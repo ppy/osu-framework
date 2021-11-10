@@ -5,7 +5,7 @@ using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Effects
 {
@@ -54,11 +54,6 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool PadExtent;
 
-        /// <summary>
-        /// Whether the resulting <see cref="BufferedContainer"/> should cache its drawn framebuffer.
-        /// </summary>
-        public bool CacheDrawnEffect;
-
         public BufferedContainer ApplyTo(Drawable drawable) =>
             new BufferedContainer
             {
@@ -69,8 +64,6 @@ namespace osu.Framework.Graphics.Effects
                 EffectPlacement = Placement,
 
                 DrawOriginal = DrawOriginal,
-
-                CacheDrawnFrameBuffer = CacheDrawnEffect,
 
                 Padding = !PadExtent
                     ? new MarginPadding()

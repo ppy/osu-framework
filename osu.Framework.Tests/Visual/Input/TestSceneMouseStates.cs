@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -381,8 +381,8 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void checkEventCount(Type type, int change = 0, bool outer = false)
         {
-            eventCounts1.TryGetValue(type, out var count1);
-            eventCounts2.TryGetValue(type, out var count2);
+            eventCounts1.TryGetValue(type, out int count1);
+            eventCounts2.TryGetValue(type, out int count2);
 
             if (outer)
             {
@@ -600,10 +600,10 @@ namespace osu.Framework.Tests.Visual.Input
                     return base.OnMouseDown(e);
                 }
 
-                protected override bool OnMouseUp(MouseUpEvent e)
+                protected override void OnMouseUp(MouseUpEvent e)
                 {
                     adjustForMouseDown(e);
-                    return base.OnMouseUp(e);
+                    base.OnMouseUp(e);
                 }
 
                 private void adjustForMouseDown(MouseEvent e)

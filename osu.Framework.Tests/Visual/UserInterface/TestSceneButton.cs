@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -14,12 +12,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneButton : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Button),
-            typeof(BasicButton)
-        };
-
         private int clickCount;
         private readonly BasicButton button;
 
@@ -38,11 +30,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
             clickCount = 0;
             button.Enabled.Value = true;
-        }
+        });
 
         [Test]
         public void Button()

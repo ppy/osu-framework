@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Transforms
     /// <typeparam name="T">
     /// The type of the <see cref="ITransformable"/> the <see cref="Transform"/>s in this sequence operate upon.
     /// </typeparam>
-    public class TransformSequence<T> where T : ITransformable
+    public class TransformSequence<T> : ITransformSequence where T : class, ITransformable
     {
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly T origin;
 
-        private readonly List<Transform> transforms = new List<Transform>();
+        private readonly List<Transform> transforms = new List<Transform>(1); // the most common usage of transforms sees one transform being added.
 
         private bool hasCompleted = true;
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence(T origin)
         {
             if (origin == null)
-                throw new NullReferenceException($"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
+                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
 
             this.origin = origin;
             startTime = currentTime = lastEndTime = origin.TransformStartTime;
@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Transforms
             // As soon as we have an infinitely looping transform,
             // completion no longer makes sense.
             if (last != null)
-                last.OnComplete = null;
+                last.CompletionTargetSequence = null;
 
             last = null;
             lastEndTime = double.PositiveInfinity;
@@ -81,8 +81,8 @@ namespace osu.Framework.Graphics.Transforms
 
             transforms.Add(transform);
 
-            transform.OnComplete = null;
-            transform.OnAbort = onTransformAborted;
+            transform.CompletionTargetSequence = null;
+            transform.AbortTargetSequence = this;
 
             if (transform.IsLooping)
                 onLoopingTransform();
@@ -91,10 +91,10 @@ namespace osu.Framework.Graphics.Transforms
             if (last == null || transform.EndTime > lastEndTime)
             {
                 if (last != null)
-                    last.OnComplete = null;
+                    last.CompletionTargetSequence = null;
 
                 last = transform;
-                last.OnComplete = onTransformsComplete;
+                last.CompletionTargetSequence = this;
                 lastEndTime = last.EndTime;
                 hasCompleted = false;
             }
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> Append(Generator childGenerator)
         {
             TransformSequence<T> child;
-            using (origin.BeginAbsoluteSequence(currentTime))
+            using (origin.BeginAbsoluteSequence(currentTime, false))
                 child = childGenerator(origin);
 
             if (!ReferenceEquals(child.origin, origin))
@@ -146,15 +146,15 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Invokes <paramref name="originFunc"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
         /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the respondibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// It is the responsibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
         /// </summary>
-        /// <typeparam name="U">The return type of <paramref name="originFunc"/>.</typeparam>
+        /// <typeparam name="TResult">The return type of <paramref name="originFunc"/>.</typeparam>
         /// <param name="originFunc">The function to be invoked.</param>
         /// <param name="result">The resulting value of the invocation of <paramref name="originFunc"/>.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Append<U>(Func<T, U> originFunc, out U result)
+        public TransformSequence<T> Append<TResult>(Func<T, TResult> originFunc, out TResult result)
         {
-            using (origin.BeginAbsoluteSequence(currentTime))
+            using (origin.BeginAbsoluteSequence(currentTime, false))
                 result = originFunc(origin);
 
             return this;
@@ -163,44 +163,16 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Invokes <paramref name="originAction"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
         /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the respondibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// It is the responsibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
         /// </summary>
         /// <param name="originAction">The function to be invoked.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Append(Action<T> originAction)
         {
-            using (origin.BeginAbsoluteSequence(currentTime))
+            using (origin.BeginAbsoluteSequence(currentTime, false))
                 originAction(origin);
 
             return this;
-        }
-
-        private void onTransformAborted()
-        {
-            if (transforms.Count == 0)
-                return;
-
-            // No need for OnAbort events to trigger anymore, since
-            // we are already aware of the abortion.
-            foreach (var t in transforms)
-            {
-                t.OnAbort = null;
-                t.OnComplete = null;
-
-                if (!t.HasStartValue)
-                    t.TargetTransformable.RemoveTransform(t);
-            }
-
-            transforms.Clear();
-            last = null;
-
-            onAbort?.Invoke();
-        }
-
-        private void onTransformsComplete()
-        {
-            hasCompleted = true;
-            onComplete?.Invoke();
         }
 
         private void subscribeComplete(Action func)
@@ -273,7 +245,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            var iterDuration = endTime - startTime + pause;
+            double iterDuration = endTime - startTime + pause;
             var toLoop = transforms.ToArray();
 
             // Duplicate existing transforms numIters times
@@ -338,14 +310,14 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            var iterDuration = endTime - startTime + pause;
+            double iterDuration = endTime - startTime + pause;
 
             foreach (var t in transforms)
             {
-                Action tmpOnAbort = t.OnAbort;
-                t.OnAbort = null;
+                var tmpOnAbort = t.AbortTargetSequence;
+                t.AbortTargetSequence = null;
                 t.TargetTransformable.RemoveTransform(t);
-                t.OnAbort = tmpOnAbort;
+                t.AbortTargetSequence = tmpOnAbort;
 
                 // Update start and end times such that no transformations need to be instantly
                 // looped right after they're added. This is required so that transforms can be
@@ -457,6 +429,34 @@ namespace osu.Framework.Graphics.Transforms
             if (hasEnd)
                 OnComplete(function);
             OnAbort(function);
+        }
+
+        void ITransformSequence.TransformAborted()
+        {
+            if (transforms.Count == 0)
+                return;
+
+            // No need for OnAbort events to trigger anymore, since
+            // we are already aware of the abortion.
+            foreach (var t in transforms)
+            {
+                t.AbortTargetSequence = null;
+                t.CompletionTargetSequence = null;
+
+                if (!t.HasStartValue)
+                    t.TargetTransformable.RemoveTransform(t);
+            }
+
+            transforms.Clear();
+            last = null;
+
+            onAbort?.Invoke();
+        }
+
+        void ITransformSequence.TransformCompleted()
+        {
+            hasCompleted = true;
+            onComplete?.Invoke();
         }
     }
 }

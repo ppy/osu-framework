@@ -20,7 +20,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             set => base.Text = text = value;
         }
 
-        public RepeatStepButton(Action action, int count = 1)
+        public RepeatStepButton(Action action, int count = 1, bool isSetupStep = false)
+            : base(isSetupStep)
         {
             this.count = count;
             Action = action;

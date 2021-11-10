@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             for (int i = 0; i < texture_width; ++i)
             {
-                var brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
+                byte brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
                 image[i, 0] = new Rgba32(255, 255, 255, brightnessByte);
             }
 

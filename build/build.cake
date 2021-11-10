@@ -1,9 +1,6 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.33"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.2.3"
-#tool "nuget:?package=NVika.MSBuild&version=1.0.1"
+#addin "nuget:?package=CodeFileSanity&version=0.0.36"
 #tool "nuget:?package=Python&version=3.7.2"
-var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
 var pythonPath = GetFiles("./tools/python.*/tools/python.exe").First();
 var waitressPath = pythonPath.GetDirectory().CombineWithFilePath("Scripts/waitress-serve.exe");
 
@@ -26,6 +23,7 @@ var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Fram
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
+var templateProject = rootDirectory.CombineWithFilePath("osu.Framework.Templates/osu.Framework.Templates.csproj");
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup
@@ -106,22 +104,15 @@ Task("Test")
         DotNetCoreVSTest(testAssemblies, settings);
     });
 
-// windows only because both inspectcore and nvika depend on net45
 Task("InspectCode")
-    .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
     .Does(() => {
         var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
+        var cacheDir = tempDirectory.Combine("inspectcode");
 
-        InspectCode(desktopSlnf, new InspectCodeSettings {
-            CachesHome = tempDirectory.Combine("inspectcode"),
-            OutputFile = inspectcodereport,
-            ArgumentCustomization = args => args.Append("--verbosity=WARN")
-        });
-
-        int returnCode = StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
-        if (returnCode != 0)
-            throw new Exception($"inspectcode failed with return code {returnCode}");
+        DotNetCoreTool(rootDirectory.FullPath,
+            "jb", $@"inspectcode ""{desktopSlnf}"" --output=""{inspectcodereport}"" --caches-home=""{cacheDir}"" --verbosity=WARN");
+        DotNetCoreTool(rootDirectory.FullPath, "nvika", $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
     });
 
 Task("CodeFileSanity")
@@ -132,8 +123,10 @@ Task("CodeFileSanity")
         });
     });
 
-Task("DotnetFormat")
-    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
+// Temporarily disabled until the tool is upgraded to 5.0.
+// The version specified in .config/dotnet-tools.json (3.1.37601) won't run on .NET hosts >=5.0.7.
+// Task("DotnetFormat")
+//    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
 
 Task("PackFramework")
     .Does(() => {
@@ -199,6 +192,21 @@ Task("PackNativeLibs")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                return args;
+            }
+        });
+    });
+
+Task("PackTemplate")
+    .Does(() => {
+        DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
+            ArgumentCustomization = args => {
+                args.Append($"/p:Version={version}");
+                args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append($"/p:NoDefaultExcludes=true");
 
                 return args;
             }
@@ -216,7 +224,7 @@ Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
-    .IsDependentOn("DotnetFormat")
+    //.IsDependentOn("DotnetFormat") <- To be uncommented after fixing the task.
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")
@@ -224,6 +232,7 @@ Task("Build")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
     .IsDependentOn("PackNativeLibs")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployFramework")
@@ -232,6 +241,7 @@ Task("DeployFramework")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployNativeLibs")

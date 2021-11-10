@@ -4,8 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.MathUtils;
-using osu.Framework.Threading;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -13,8 +12,6 @@ namespace osu.Framework.Tests.Visual.Layout
 {
     public class TestSceneScrollableFlow : FrameworkTestScene
     {
-        private readonly ScheduledDelegate boxCreator;
-
         private ScrollContainer<Drawable> scroll;
         private FillFlowContainer flow;
 
@@ -95,8 +92,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("Dragger Visible", delegate { scroll.ScrollbarVisible = !scroll.ScrollbarVisible; });
             AddStep("Dragger Overlap", delegate { scroll.ScrollbarOverlapsContent = !scroll.ScrollbarOverlapsContent; });
 
-            boxCreator?.Cancel();
-            boxCreator = Scheduler.AddDelayed(delegate
+            Scheduler.AddDelayed(delegate
             {
                 if (Parent == null) return;
 

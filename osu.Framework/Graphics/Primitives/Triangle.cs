@@ -4,14 +4,18 @@
 using osuTK;
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Triangle : IConvexPolygon, IEquatable<Triangle>
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct Triangle : IConvexPolygon, IEquatable<Triangle>
     {
-        public Vector2 P0;
-        public Vector2 P1;
-        public Vector2 P2;
+        // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
+        // See: IPolygon.GetVertices()
+        public readonly Vector2 P0;
+        public readonly Vector2 P1;
+        public readonly Vector2 P2;
 
         public Triangle(Vector2 p0, Vector2 p1, Vector2 p2)
         {
@@ -22,10 +26,7 @@ namespace osu.Framework.Graphics.Primitives
 
         public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public unsafe ReadOnlySpan<Vector2> GetVertices()
-        {
-            return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 3);
-        }
+        public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in P0), 3);
 
         public bool Equals(Triangle other) =>
             P0 == other.P0 &&

@@ -52,19 +52,10 @@ namespace osu.Framework.Testing
                 volume.Value = 0;
             }
 
-            protected override void Dispose(bool isDisposing)
+            internal override void UnbindAllBindables()
             {
+                base.UnbindAllBindables();
                 if (volume != null) volume.Value = volumeAtStartup;
-                base.Dispose(isDisposing);
-            }
-
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                host.MaximumDrawHz = int.MaxValue;
-                host.MaximumUpdateHz = int.MaxValue;
-                host.MaximumInactiveHz = int.MaxValue;
             }
 
             /// <summary>

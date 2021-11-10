@@ -8,7 +8,7 @@ using osuTK.Input;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event represeting a mouse double click.
+    /// An event representing a mouse double click.
     /// </summary>
     public class DoubleClickEvent : MouseButtonEvent
     {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -84,6 +85,7 @@ namespace osu.Framework.Allocation
                     throw new AccessModifierNotAllowedForPropertySetterException(modifier, property);
 
                 var attribute = property.GetCustomAttribute<ResolvedAttribute>();
+                Debug.Assert(attribute != null);
 
                 var cacheInfo = new CacheInfo(attribute.Name);
 
@@ -107,7 +109,7 @@ namespace osu.Framework.Allocation
 
         private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
         {
-            var val = dc.Get(type, info);
+            object val = dc.Get(type, info);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 

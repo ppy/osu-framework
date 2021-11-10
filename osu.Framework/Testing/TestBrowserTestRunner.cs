@@ -41,10 +41,6 @@ namespace osu.Framework.Testing
         {
             base.LoadComplete();
 
-            host.MaximumDrawHz = int.MaxValue;
-            host.MaximumUpdateHz = int.MaxValue;
-            host.MaximumInactiveHz = int.MaxValue;
-
             AddInternal(browser);
 
             Console.WriteLine($@"{(int)Time.Current}: Running {browser.TestTypes.Count} visual test cases...");

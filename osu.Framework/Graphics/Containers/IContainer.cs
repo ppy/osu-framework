@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     public interface IContainerEnumerable<out T> : IContainer
-        where T : IDrawable
+        where T : class, IDrawable
     {
         IReadOnlyList<T> Children { get; }
 
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     public interface IContainerCollection<in T> : IContainer
-        where T : IDrawable
+        where T : class, IDrawable
     {
         IReadOnlyList<T> Children { set; }
 

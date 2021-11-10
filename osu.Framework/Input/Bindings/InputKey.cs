@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Utils;
+
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
     /// A collection of keys, mouse and other controllers' buttons.
     /// </summary>
+    [HasOrderedElements(AllowPartialOrdering = true)]
     public enum InputKey
     {
         /// <summary>
@@ -16,21 +19,25 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The shift key.
         /// </summary>
+        [Order(3)]
         Shift = 1,
 
         /// <summary>
         /// The control key.
         /// </summary>
+        [Order(1)]
         Control = 3,
 
         /// <summary>
         /// The alt key.
         /// </summary>
+        [Order(2)]
         Alt = 5,
 
         /// <summary>
-        /// The win key.
+        /// The windows/command key.
         /// </summary>
+        [Order(4)]
         Super = 7,
 
         /// <summary>
@@ -261,7 +268,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The backspace key (equivalent to BackSpace).
         /// </summary>
-        Back = 53,
+        Back = BackSpace,
 
         /// <summary>
         /// The insert key.
@@ -396,7 +403,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keypad minus key (equivalent to KeypadSubtract).
         /// </summary>
-        KeypadMinus = 79,
+        KeypadMinus = KeypadSubtract,
 
         /// <summary>
         /// The keypad add key.
@@ -406,7 +413,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keypad plus key (equivalent to KeypadAdd).
         /// </summary>
-        KeypadPlus = 80,
+        KeypadPlus = KeypadAdd,
 
         /// <summary>
         /// The keypad decimal key.
@@ -416,7 +423,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keypad period key (equivalent to KeypadDecimal).
         /// </summary>
-        KeypadPeriod = 81,
+        KeypadPeriod = KeypadDecimal,
 
         /// <summary>
         /// The keypad enter key.
@@ -609,9 +616,9 @@ namespace osu.Framework.Input.Bindings
         Tilde = 119,
 
         /// <summary>
-        /// The grave key (equivaent to Tilde).
+        /// The grave key (equivalent to Tilde).
         /// </summary>
-        Grave = 119,
+        Grave = Tilde,
 
         /// <summary>
         /// The minus key.
@@ -631,7 +638,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The left bracket key (equivalent to BracketLeft).
         /// </summary>
-        LBracket = 122,
+        LBracket = BracketLeft,
 
         /// <summary>
         /// The right bracket key.
@@ -641,7 +648,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The right bracket key (equivalent to BracketRight).
         /// </summary>
-        RBracket = 123,
+        RBracket = BracketRight,
 
         /// <summary>
         /// The semicolon key.
@@ -688,7 +695,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The left mouse button.
         /// </summary>
-        MouseLeft = 132,
+        MouseLeft = FirstMouseButton,
 
         /// <summary>
         /// The middle mouse button.
@@ -736,7 +743,7 @@ namespace osu.Framework.Input.Bindings
         ExtraMouseButton7 = 141,
 
         /// <summary>
-        /// The eigth extra mouse button.
+        /// The eighth extra mouse button.
         /// </summary>
         ExtraMouseButton8 = 142,
 
@@ -759,6 +766,18 @@ namespace osu.Framework.Input.Bindings
         /// Mouse wheel rolled down.
         /// </summary>
         MouseWheelDown = 146,
+
+        /// <summary>
+        /// Mouse wheel rolled right.
+        /// Only supported by some mice with a secondary horizontal scroll wheel.
+        /// </summary>
+        MouseWheelRight = 147,
+
+        /// <summary>
+        /// Mouse wheel rolled left.
+        /// Only supported by some mice with a secondary horizontal scroll wheel.
+        /// </summary>
+        MouseWheelLeft = 148,
 
         /// <summary>
         /// The media mute key.
@@ -794,6 +813,54 @@ namespace osu.Framework.Input.Bindings
         /// The media next key.
         /// </summary>
         TrackNext,
+
+        /// <summary>
+        /// The left shift key.
+        /// </summary>
+        [Order(3)]
+        LShift,
+
+        /// <summary>
+        /// The right shift key.
+        /// </summary>
+        [Order(3)]
+        RShift,
+
+        /// <summary>
+        /// The left control key.
+        /// </summary>
+        [Order(1)]
+        LControl,
+
+        /// <summary>
+        /// The right control key.
+        /// </summary>
+        [Order(1)]
+        RControl,
+
+        /// <summary>
+        /// The left alt key.
+        /// </summary>
+        [Order(2)]
+        LAlt,
+
+        /// <summary>
+        /// The right alt key.
+        /// </summary>
+        [Order(2)]
+        RAlt,
+
+        /// <summary>
+        /// The left windows/command key.
+        /// </summary>
+        [Order(4)]
+        LSuper,
+
+        /// <summary>
+        /// The right windows/command key.
+        /// </summary>
+        [Order(4)]
+        RSuper,
 
         /// <summary>
         /// Indicates the first available joystick button.
@@ -1869,5 +1936,587 @@ namespace osu.Framework.Input.Bindings
         /// Joystick hat 4 right button.
         /// </summary>
         JoystickHat4Right,
+
+        #region MIDI
+
+        /// <summary>
+        /// A0 key on a MIDI input device.
+        /// </summary>
+        MidiA0 = 8192 + 1,
+
+        /// <summary>
+        /// A#0 key on a MIDI input device.
+        /// </summary>
+        MidiASharp0,
+
+        /// <summary>
+        /// B0 key on a MIDI input device.
+        /// </summary>
+        MidiB0,
+
+        /// <summary>
+        /// C1 key on a MIDI input device.
+        /// </summary>
+        MidiC1,
+
+        /// <summary>
+        /// C#1 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp1,
+
+        /// <summary>
+        /// D1 key on a MIDI input device.
+        /// </summary>
+        MidiD1,
+
+        /// <summary>
+        /// D#1 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp1,
+
+        /// <summary>
+        /// E1 key on a MIDI input device.
+        /// </summary>
+        MidiE1,
+
+        /// <summary>
+        /// F1 key on a MIDI input device.
+        /// </summary>
+        MidiF1,
+
+        /// <summary>
+        /// F#1 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp1,
+
+        /// <summary>
+        /// G1 key on a MIDI input device.
+        /// </summary>
+        MidiG1,
+
+        /// <summary>
+        /// G#1 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp1,
+
+        /// <summary>
+        /// A1 key on a MIDI input device.
+        /// </summary>
+        MidiA1,
+
+        /// <summary>
+        /// A#1 key on a MIDI input device.
+        /// </summary>
+        MidiASharp1,
+
+        /// <summary>
+        /// B1 key on a MIDI input device.
+        /// </summary>
+        MidiB1,
+
+        /// <summary>
+        /// C2 key on a MIDI input device.
+        /// </summary>
+        MidiC2,
+
+        /// <summary>
+        /// C#2 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp2,
+
+        /// <summary>
+        /// D2 key on a MIDI input device.
+        /// </summary>
+        MidiD2,
+
+        /// <summary>
+        /// D#2 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp2,
+
+        /// <summary>
+        /// E2 key on a MIDI input device.
+        /// </summary>
+        MidiE2,
+
+        /// <summary>
+        /// F2 key on a MIDI input device.
+        /// </summary>
+        MidiF2,
+
+        /// <summary>
+        /// F#2 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp2,
+
+        /// <summary>
+        /// G2 key on a MIDI input device.
+        /// </summary>
+        MidiG2,
+
+        /// <summary>
+        /// G#2 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp2,
+
+        /// <summary>
+        /// A2 key on a MIDI input device.
+        /// </summary>
+        MidiA2,
+
+        /// <summary>
+        /// A#2 key on a MIDI input device.
+        /// </summary>
+        MidiASharp2,
+
+        /// <summary>
+        /// B2 key on a MIDI input device.
+        /// </summary>
+        MidiB2,
+
+        /// <summary>
+        /// C3 key on a MIDI input device.
+        /// </summary>
+        MidiC3,
+
+        /// <summary>
+        /// C#3 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp3,
+
+        /// <summary>
+        /// D3 key on a MIDI input device.
+        /// </summary>
+        MidiD3,
+
+        /// <summary>
+        /// D#3 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp3,
+
+        /// <summary>
+        /// E3 key on a MIDI input device.
+        /// </summary>
+        MidiE3,
+
+        /// <summary>
+        /// F3 key on a MIDI input device.
+        /// </summary>
+        MidiF3,
+
+        /// <summary>
+        /// F#3 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp3,
+
+        /// <summary>
+        /// G3 key on a MIDI input device.
+        /// </summary>
+        MidiG3,
+
+        /// <summary>
+        /// G#3 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp3,
+
+        /// <summary>
+        /// A3 key on a MIDI input device.
+        /// </summary>
+        MidiA3,
+
+        /// <summary>
+        /// A#3 key on a MIDI input device.
+        /// </summary>
+        MidiASharp3,
+
+        /// <summary>
+        /// B3 key on a MIDI input device.
+        /// </summary>
+        MidiB3,
+
+        /// <summary>
+        /// C4 key on a MIDI input device.
+        /// </summary>
+        MidiC4,
+
+        /// <summary>
+        /// C#4 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp4,
+
+        /// <summary>
+        /// D4 key on a MIDI input device.
+        /// </summary>
+        MidiD4,
+
+        /// <summary>
+        /// D#4 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp4,
+
+        /// <summary>
+        /// E4 key on a MIDI input device.
+        /// </summary>
+        MidiE4,
+
+        /// <summary>
+        /// F4 key on a MIDI input device.
+        /// </summary>
+        MidiF4,
+
+        /// <summary>
+        /// F#4 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp4,
+
+        /// <summary>
+        /// G4 key on a MIDI input device.
+        /// </summary>
+        MidiG4,
+
+        /// <summary>
+        /// G#4 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp4,
+
+        /// <summary>
+        /// A4 key on a MIDI input device.
+        /// </summary>
+        MidiA4,
+
+        /// <summary>
+        /// A#4 key on a MIDI input device.
+        /// </summary>
+        MidiASharp4,
+
+        /// <summary>
+        /// B4 key on a MIDI input device.
+        /// </summary>
+        MidiB4,
+
+        /// <summary>
+        /// C5 key on a MIDI input device.
+        /// </summary>
+        MidiC5,
+
+        /// <summary>
+        /// C#5 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp5,
+
+        /// <summary>
+        /// D5 key on a MIDI input device.
+        /// </summary>
+        MidiD5,
+
+        /// <summary>
+        /// D#5 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp5,
+
+        /// <summary>
+        /// E5 key on a MIDI input device.
+        /// </summary>
+        MidiE5,
+
+        /// <summary>
+        /// F5 key on a MIDI input device.
+        /// </summary>
+        MidiF5,
+
+        /// <summary>
+        /// F#5 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp5,
+
+        /// <summary>
+        /// G5 key on a MIDI input device.
+        /// </summary>
+        MidiG5,
+
+        /// <summary>
+        /// G#5 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp5,
+
+        /// <summary>
+        /// A5 key on a MIDI input device.
+        /// </summary>
+        MidiA5,
+
+        /// <summary>
+        /// A#5 key on a MIDI input device.
+        /// </summary>
+        MidiASharp5,
+
+        /// <summary>
+        /// B5 key on a MIDI input device.
+        /// </summary>
+        MidiB5,
+
+        /// <summary>
+        /// C6 key on a MIDI input device.
+        /// </summary>
+        MidiC6,
+
+        /// <summary>
+        /// C#6 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp6,
+
+        /// <summary>
+        /// D6 key on a MIDI input device.
+        /// </summary>
+        MidiD6,
+
+        /// <summary>
+        /// D#6 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp6,
+
+        /// <summary>
+        /// E6 key on a MIDI input device.
+        /// </summary>
+        MidiE6,
+
+        /// <summary>
+        /// F6 key on a MIDI input device.
+        /// </summary>
+        MidiF6,
+
+        /// <summary>
+        /// F#6 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp6,
+
+        /// <summary>
+        /// G6 key on a MIDI input device.
+        /// </summary>
+        MidiG6,
+
+        /// <summary>
+        /// G#6 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp6,
+
+        /// <summary>
+        /// A6 key on a MIDI input device.
+        /// </summary>
+        MidiA6,
+
+        /// <summary>
+        /// A#6 key on a MIDI input device.
+        /// </summary>
+        MidiASharp6,
+
+        /// <summary>
+        /// B6 key on a MIDI input device.
+        /// </summary>
+        MidiB6,
+
+        /// <summary>
+        /// C7 key on a MIDI input device.
+        /// </summary>
+        MidiC7,
+
+        /// <summary>
+        /// C#7 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp7,
+
+        /// <summary>
+        /// D7 key on a MIDI input device.
+        /// </summary>
+        MidiD7,
+
+        /// <summary>
+        /// D#7 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp7,
+
+        /// <summary>
+        /// E7 key on a MIDI input device.
+        /// </summary>
+        MidiE7,
+
+        /// <summary>
+        /// F7 key on a MIDI input device.
+        /// </summary>
+        MidiF7,
+
+        /// <summary>
+        /// F#7 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp7,
+
+        /// <summary>
+        /// G7 key on a MIDI input device.
+        /// </summary>
+        MidiG7,
+
+        /// <summary>
+        /// G#7 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp7,
+
+        /// <summary>
+        /// A7 key on a MIDI input device.
+        /// </summary>
+        MidiA7,
+
+        /// <summary>
+        /// A#7 key on a MIDI input device.
+        /// </summary>
+        MidiASharp7,
+
+        /// <summary>
+        /// B7 key on a MIDI input device.
+        /// </summary>
+        MidiB7,
+
+        /// <summary>
+        /// C8 key on a MIDI input device.
+        /// </summary>
+        MidiC8,
+
+        #endregion
+
+        #region Tablet pen
+
+        /// <summary>
+        /// Indicates the first available tablet button.
+        /// </summary>
+        FirstTabletPenButton = 9216 + 1,
+
+        /// <summary>
+        /// The primary button on the tablet pen.
+        /// </summary>
+        TabletPenPrimaryButton = FirstTabletPenButton,
+
+        /// <summary>
+        /// The secondary button on the tablet pen.
+        /// </summary>
+        TabletPenSecondaryButton,
+
+        /// <summary>
+        /// The tertiary button on the tablet pen.
+        /// </summary>
+        TabletPenTertiaryButton,
+
+        /// <summary>
+        /// Button 4 on the tablet pen.
+        /// </summary>
+        TabletPenButton4,
+
+        /// <summary>
+        /// Button 5 on the tablet pen.
+        /// </summary>
+        TabletPenButton5,
+
+        /// <summary>
+        /// Button 6 on the tablet pen.
+        /// </summary>
+        TabletPenButton6,
+
+        /// <summary>
+        /// Button 7 on the tablet pen.
+        /// </summary>
+        TabletPenButton7,
+
+        /// <summary>
+        /// Button 8 on the tablet pen.
+        /// </summary>
+        TabletPenButton8,
+
+        #endregion
+
+        #region Auxiliary tablet buttons
+
+        /// <summary>
+        /// Indicates the first available auxiliary tablet button.
+        /// </summary>
+        FirstTabletAuxiliaryButton = 10240 + 1,
+
+        /// <summary>
+        /// Auxiliary tablet button 1.
+        /// </summary>
+        TabletAuxiliaryButton1,
+
+        /// <summary>
+        /// Auxiliary tablet button 2.
+        /// </summary>
+        TabletAuxiliaryButton2,
+
+        /// <summary>
+        /// Auxiliary tablet button 3.
+        /// </summary>
+        TabletAuxiliaryButton3,
+
+        /// <summary>
+        /// Auxiliary tablet button 4.
+        /// </summary>
+        TabletAuxiliaryButton4,
+
+        /// <summary>
+        /// Auxiliary tablet button 5.
+        /// </summary>
+        TabletAuxiliaryButton5,
+
+        /// <summary>
+        /// Auxiliary tablet button 6.
+        /// </summary>
+        TabletAuxiliaryButton6,
+
+        /// <summary>
+        /// Auxiliary tablet button 7.
+        /// </summary>
+        TabletAuxiliaryButton7,
+
+        /// <summary>
+        /// Auxiliary tablet button 8.
+        /// </summary>
+        TabletAuxiliaryButton8,
+
+        /// <summary>
+        /// Auxiliary tablet button 9.
+        /// </summary>
+        TabletAuxiliaryButton9,
+
+        /// <summary>
+        /// Auxiliary tablet button 10.
+        /// </summary>
+        TabletAuxiliaryButton10,
+
+        /// <summary>
+        /// Auxiliary tablet button 11.
+        /// </summary>
+        TabletAuxiliaryButton11,
+
+        /// <summary>
+        /// Auxiliary tablet button 12.
+        /// </summary>
+        TabletAuxiliaryButton12,
+
+        /// <summary>
+        /// Auxiliary tablet button 13.
+        /// </summary>
+        TabletAuxiliaryButton13,
+
+        /// <summary>
+        /// Auxiliary tablet button 14.
+        /// </summary>
+        TabletAuxiliaryButton14,
+
+        /// <summary>
+        /// Auxiliary tablet button 15.
+        /// </summary>
+        TabletAuxiliaryButton15,
+
+        /// <summary>
+        /// Auxiliary tablet button 16.
+        /// </summary>
+        TabletAuxiliaryButton16,
+
+        #endregion
     }
 }

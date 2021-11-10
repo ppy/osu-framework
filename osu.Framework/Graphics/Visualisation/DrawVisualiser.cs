@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly TreeContainer treeContainer;
 
         private VisualisedDrawable highlightedTarget;
-        private readonly PropertyDisplay propertyDisplay;
+        private readonly DrawableInspector drawableInspector;
         private readonly InfoOverlay overlay;
         private InputManager inputManager;
 
@@ -49,51 +49,15 @@ namespace osu.Framework.Graphics.Visualisation
                         Searching = true;
                         Target = null;
                     },
-                    GoUpOneParent = delegate
-                    {
-                        Drawable lastHighlight = highlightedTarget?.Target;
-
-                        var parent = Target?.Parent;
-
-                        if (parent != null)
-                        {
-                            var lastVisualiser = targetVisualiser;
-
-                            Target = parent;
-                            lastVisualiser.SetContainer(targetVisualiser);
-
-                            targetVisualiser.Expand();
-                        }
-
-                        // Rehighlight the last highlight
-                        if (lastHighlight != null)
-                        {
-                            VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
-
-                            if (visualised != null)
-                            {
-                                propertyDisplay.Show();
-                                setHighlight(visualised);
-                            }
-                        }
-                    },
-                    ToggleProperties = delegate
-                    {
-                        if (targetVisualiser == null)
-                            return;
-
-                        propertyDisplay.ToggleVisibility();
-
-                        if (propertyDisplay.State.Value == Visibility.Visible)
-                            setHighlight(targetVisualiser);
-                    },
+                    GoUpOneParent = goUpOneParent,
+                    ToggleInspector = toggleInspector,
                 },
                 new CursorContainer()
             };
 
-            propertyDisplay = treeContainer.PropertyDisplay;
+            drawableInspector = treeContainer.DrawableInspector;
 
-            propertyDisplay.State.ValueChanged += v =>
+            drawableInspector.State.ValueChanged += v =>
             {
                 switch (v.NewValue)
                 {
@@ -103,6 +67,46 @@ namespace osu.Framework.Graphics.Visualisation
                         break;
                 }
             };
+        }
+
+        private void goUpOneParent()
+        {
+            Drawable lastHighlight = highlightedTarget?.Target;
+
+            var parent = Target?.Parent;
+
+            if (parent != null)
+            {
+                var lastVisualiser = targetVisualiser;
+
+                Target = parent;
+                lastVisualiser.SetContainer(targetVisualiser);
+
+                targetVisualiser.Expand();
+            }
+
+            // Rehighlight the last highlight
+            if (lastHighlight != null)
+            {
+                VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
+
+                if (visualised != null)
+                {
+                    drawableInspector.Show();
+                    setHighlight(visualised);
+                }
+            }
+        }
+
+        private void toggleInspector()
+        {
+            if (targetVisualiser == null)
+                return;
+
+            drawableInspector.ToggleVisibility();
+
+            if (drawableInspector.State.Value == Visibility.Visible)
+                setHighlight(targetVisualiser);
         }
 
         protected override void LoadComplete()
@@ -124,7 +128,7 @@ namespace osu.Framework.Graphics.Visualisation
             this.FadeOut(100);
 
             setHighlight(null);
-            propertyDisplay.Hide();
+            drawableInspector.Hide();
 
             recycleVisualisers();
         }
@@ -139,7 +143,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.HighlightTarget = d =>
             {
-                propertyDisplay.Show();
+                drawableInspector.Show();
 
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
@@ -149,16 +153,20 @@ namespace osu.Framework.Graphics.Visualisation
             visualiser.Depth = 0;
 
             treeContainer.Target = targetVisualiser = visualiser;
+            targetVisualiser.TopLevel = true;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
+
+            targetVisualiser.TopLevel = false;
             targetVisualiser = null;
+
             treeContainer.Target = null;
 
             if (Target == null)
-                propertyDisplay.Hide();
+                drawableInspector.Hide();
         }
 
         private VisualisedDrawable targetVisualiser;
@@ -238,8 +246,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!validForTarget(composite))
                         return;
 
-                    if (compositeTarget == null)
-                        compositeTarget = composite;
+                    compositeTarget ??= composite;
 
                     // Allow targeting composites that don't have any content but display a border/glow
 
@@ -277,7 +284,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             var type = drawable.GetType();
 
-            if (has_custom_drawnode_cache.TryGetValue(type, out var existing))
+            if (has_custom_drawnode_cache.TryGetValue(type, out bool existing))
                 return existing;
 
             return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
@@ -296,17 +303,17 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (newHighlight == null)
             {
-                propertyDisplay.UpdateFrom(null);
+                drawableInspector.InspectedDrawable.Value = null;
                 return;
             }
 
             // Only update when property display is visible
-            if (propertyDisplay.State.Value == Visibility.Visible)
+            if (drawableInspector.State.Value == Visibility.Visible)
             {
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
 
-                propertyDisplay.UpdateFrom(newHighlight.Target);
+                drawableInspector.InspectedDrawable.Value = newHighlight.Target;
             }
         }
 

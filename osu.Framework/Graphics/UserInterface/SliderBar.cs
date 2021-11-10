@@ -21,14 +21,18 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float RangePadding;
 
+        /// <summary>
+        /// Whether keyboard control should be allowed even when the bar is not hovered.
+        /// </summary>
+        [Obsolete("Implement this kind of behaviour separately instead.")] // Can be removed 20220107
+        protected virtual bool AllowKeyboardInputWhenNotHovered => false;
+
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
         /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
         public float KeyboardStep;
-
-        protected readonly BindableNumber<T> CurrentNumber;
 
         private readonly BindableNumber<T> currentNumberInstantaneous;
 
@@ -38,47 +42,38 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool TransferValueOnCommit;
 
+        private readonly BindableNumberWithCurrent<T> current = new BindableNumberWithCurrent<T>();
+
+        protected BindableNumber<T> CurrentNumber => current;
+
         public Bindable<T> Current
         {
-            get => CurrentNumber;
+            get => current;
             set
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                CurrentNumber.UnbindBindings();
-                CurrentNumber.BindTo(value);
+                current.Current = value;
 
-                currentNumberInstantaneous.Default = CurrentNumber.Default;
+                currentNumberInstantaneous.Default = current.Default;
             }
         }
 
         protected SliderBar()
         {
-            if (typeof(T) == typeof(int))
-                CurrentNumber = new BindableInt() as BindableNumber<T>;
-            else if (typeof(T) == typeof(long))
-                CurrentNumber = new BindableLong() as BindableNumber<T>;
-            else if (typeof(T) == typeof(double))
-                CurrentNumber = new BindableDouble() as BindableNumber<T>;
-            else
-                CurrentNumber = new BindableFloat() as BindableNumber<T>;
+            currentNumberInstantaneous = new BindableNumber<T>();
 
-            if (CurrentNumber == null)
-                throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
-
-            currentNumberInstantaneous = CurrentNumber.GetUnboundCopy();
-
-            CurrentNumber.ValueChanged += e => currentNumberInstantaneous.Value = e.NewValue;
-            CurrentNumber.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
-            CurrentNumber.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
-            CurrentNumber.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
-            CurrentNumber.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
+            current.ValueChanged += e => currentNumberInstantaneous.Value = e.NewValue;
+            current.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
+            current.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
+            current.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
+            current.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
 
             currentNumberInstantaneous.ValueChanged += e =>
             {
                 if (!TransferValueOnCommit)
-                    CurrentNumber.Value = e.NewValue;
+                    current.Value = e.NewValue;
             };
         }
 
@@ -92,13 +87,13 @@ namespace osu.Framework.Graphics.UserInterface
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                var min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
-                var max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
+                float min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
+                float max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
 
                 if (max - min == 0)
                     return 1;
 
-                var val = Convert.ToSingle(currentNumberInstantaneous.Value);
+                float val = Convert.ToSingle(currentNumberInstantaneous.Value);
                 return (val - min) / (max - min);
             }
         }
@@ -113,12 +108,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            currentNumberInstantaneous.ValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MinValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.ValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MinValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MaxValueChanged += _ => Scheduler.AddOnce(updateValue);
 
-            UpdateValue(NormalizedValue);
+            Scheduler.AddOnce(updateValue);
         }
+
+        private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
 
@@ -139,10 +136,9 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             handleMouseInput(e);
-            return true;
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -159,19 +155,24 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             handleMouseInput(e);
             commit();
-            return true;
         }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!IsHovered || currentNumberInstantaneous.Disabled)
+            if (currentNumberInstantaneous.Disabled)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+#pragma warning disable 618
+            bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
+#pragma warning restore 618
+            if (!shouldHandle)
+                return false;
+
+            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
             if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
             switch (e.Key)
@@ -191,12 +192,10 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (e.Key == Key.Left || e.Key == Key.Right)
-                return commit();
-
-            return false;
+                commit();
         }
 
         private bool uncommittedChanges;
@@ -206,14 +205,14 @@ namespace osu.Framework.Graphics.UserInterface
             if (!uncommittedChanges)
                 return false;
 
-            CurrentNumber.Value = currentNumberInstantaneous.Value;
+            current.Value = currentNumberInstantaneous.Value;
             uncommittedChanges = false;
             return true;
         }
 
         private void handleMouseInput(UIEvent e)
         {
-            var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
+            float xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
             if (currentNumberInstantaneous.Disabled)
                 return;

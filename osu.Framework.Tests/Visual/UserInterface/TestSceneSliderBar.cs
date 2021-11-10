@@ -2,14 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -19,12 +18,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneSliderBar : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(BasicSliderBar<>), typeof(SliderBar<>) };
-
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderBarText;
-        private readonly SliderBar<double> sliderBar;
+        private readonly TestSliderBar sliderBar;
         private readonly SliderBar<double> transferOnCommitSliderBar;
 
         public TestSceneSliderBar()
@@ -52,7 +49,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Text = "BasicSliderBar:",
                     },
-                    sliderBar = new BasicSliderBar<double>
+                    sliderBar = new TestSliderBar
                     {
                         Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
@@ -91,11 +88,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
-        }
+        });
 
         [Test]
         public void TestVerticalDragHasNoEffect()
@@ -126,6 +123,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         [TestCase(false)]
         [TestCase(true)]
+        public void TestKeyboardInput(bool allowOutside)
+        {
+            AddStep($"allow outside: {allowOutside}", () => sliderBar.KeyboardInput = allowOutside);
+
+            checkValue(0, allowOutside);
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(1, !allowOutside);
+
+            AddStep("move mouse inside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(allowOutside ? 2 : 1, false);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
         public void TestAdjustmentPrecision(bool disabled)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
@@ -139,7 +163,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
             AddStep("Press left arrow key", () =>
             {
-                var before = sliderBar.IsHovered;
+                bool before = sliderBar.IsHovered;
                 sliderBar.IsHovered = true;
                 InputManager.PressKey(Key.Left);
                 InputManager.ReleaseKey(Key.Left);
@@ -191,6 +215,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
             sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
+        }
+
+        public class TestSliderBar : BasicSliderBar<double>
+        {
+            public bool KeyboardInput;
+
+            [Obsolete("Implement this kind of behaviour separately instead.")]
+            protected override bool AllowKeyboardInputWhenNotHovered => KeyboardInput;
         }
     }
 }

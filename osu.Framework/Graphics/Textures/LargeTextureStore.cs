@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -17,40 +18,52 @@ namespace osu.Framework.Graphics.Textures
         private readonly object referenceCountLock = new object();
         private readonly Dictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new Dictionary<string, TextureWithRefCount.ReferenceCount>();
 
-        public LargeTextureStore(IResourceStore<TextureUpload> store = null)
-            : base(store, false, All.Linear, true)
+        public LargeTextureStore(IResourceStore<TextureUpload> store = null, All filteringMode = All.Linear)
+            : base(store, false, filteringMode, true)
         {
         }
 
-        /// <summary>
-        /// Retrieves a texture.
-        /// This texture should only be assigned once, as reference counting is being used internally.
-        /// If you wish to use the same texture multiple times, call this method an equal number of times.
-        /// </summary>
-        /// <param name="name">The name of the texture.</param>
-        /// <returns>The texture.</returns>
-        public override Texture Get(string name)
+        protected override bool TryGetCached(string lookupKey, out Texture texture)
         {
             lock (referenceCountLock)
             {
-                var tex = base.Get(name);
+                if (base.TryGetCached(lookupKey, out var tex))
+                {
+                    texture = createTextureWithRefCount(lookupKey, tex);
+                    return true;
+                }
 
-                if (tex?.TextureGL == null)
-                    return null;
-
-                if (!referenceCounts.TryGetValue(name, out TextureWithRefCount.ReferenceCount count))
-                    referenceCounts[name] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(name));
-
-                return new TextureWithRefCount(tex.TextureGL, count);
+                texture = null;
+                return false;
             }
         }
 
-        private void onAllReferencesLost(string name)
+        protected override Texture CacheAndReturnTexture(string lookupKey, Texture texture)
+        {
+            lock (referenceCountLock)
+                return createTextureWithRefCount(lookupKey, base.CacheAndReturnTexture(lookupKey, texture));
+        }
+
+        private TextureWithRefCount createTextureWithRefCount([NotNull] string lookupKey, [CanBeNull] Texture baseTexture)
+        {
+            if (baseTexture == null)
+                return null;
+
+            lock (referenceCountLock)
+            {
+                if (!referenceCounts.TryGetValue(lookupKey, out TextureWithRefCount.ReferenceCount count))
+                    referenceCounts[lookupKey] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(baseTexture));
+
+                return new TextureWithRefCount(baseTexture.TextureGL, count);
+            }
+        }
+
+        private void onAllReferencesLost(Texture texture)
         {
             Debug.Assert(Monitor.IsEntered(referenceCountLock));
 
-            referenceCounts.Remove(name);
-            Purge(name);
+            referenceCounts.Remove(texture.LookupKey);
+            Purge(texture);
         }
     }
 }

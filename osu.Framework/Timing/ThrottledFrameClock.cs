@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -13,9 +15,17 @@ namespace osu.Framework.Timing
     public class ThrottledFrameClock : FramedClock
     {
         /// <summary>
-        /// The number of updated per second which is permitted.
+        /// The target number of updates per second. Only used when <see cref="Throttling"/> is <c>true</c>.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz = 1000.0;
+
+        /// <summary>
+        /// Whether throttling should be enabled. Defaults to <c>true</c>.
+        /// </summary>
+        public bool Throttling = true;
 
         /// <summary>
         /// The time spent in a Thread.Sleep state during the last frame.
@@ -28,15 +38,22 @@ namespace osu.Framework.Timing
 
             base.ProcessFrame();
 
-            if (MaximumUpdateHz > 0)
+            if (Throttling)
             {
-                throttle();
+                if (MaximumUpdateHz > 0 && MaximumUpdateHz < double.MaxValue)
+                {
+                    throttle();
+                }
+                else
+                {
+                    // Even when running at unlimited frame-rate, we should call the scheduler
+                    // to give lower-priority background processes a chance to do work.
+                    TimeSlept = sleepAndUpdateCurrent(0);
+                }
             }
             else
             {
-                // Even when running at unlimited frame-rate, we should call the scheduler
-                // to give lower-priority background processes a chance to do work.
-                TimeSlept = sleepAndUpdateCurrent(0);
+                TimeSlept = 0;
             }
 
             Debug.Assert(TimeSlept <= ElapsedFrameTime);

@@ -4,9 +4,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 using osu.Framework.Allocation;
-using osu.Framework.MathUtils;
+using osu.Framework.Bindables;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 
@@ -20,11 +22,13 @@ namespace osu.Framework.Statistics
 
         private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
 
-        private readonly BackgroundStackTraceCollector traceCollector;
+        private BackgroundStackTraceCollector traceCollector;
 
         private FrameStatistics currentFrame;
 
         private const int max_pending_frames = 10;
+
+        private readonly string threadName;
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
 
@@ -34,24 +38,35 @@ namespace osu.Framework.Statistics
 
         internal bool[] ActiveCounters { get; } = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
+        private bool enablePerformanceProfiling;
+
         public bool EnablePerformanceProfiling
         {
-            get => traceCollector.Enabled;
-            set => traceCollector.Enabled = value;
+            set
+            {
+                enablePerformanceProfiling = value;
+                updateEnabledState();
+            }
         }
 
         private double consumptionTime;
 
+        private readonly IBindable<bool> isActive;
+
         internal readonly ThrottledFrameClock Clock;
 
-        internal readonly GameThread Thread;
+        private Thread thread;
 
-        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz ?? double.MaxValue);
+        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz > 0 ? Clock.MaximumUpdateHz : double.MaxValue);
 
         internal PerformanceMonitor(GameThread thread, IEnumerable<StatisticsCounterType> counters)
         {
             Clock = thread.Clock;
-            Thread = thread;
+            threadName = thread.Name;
+
+            isActive = thread.IsActive.GetBoundCopy();
+            isActive.BindValueChanged(_ => updateEnabledState());
+
             currentFrame = FramesPool.Get();
 
             foreach (var c in counters)
@@ -62,8 +77,23 @@ namespace osu.Framework.Statistics
                 var t = (PerformanceCollectionType)i;
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
             }
+        }
 
-            traceCollector = new BackgroundStackTraceCollector(thread.Thread, ourClock);
+        /// <summary>
+        /// Switch target thread to <see cref="Thread.CurrentThread"/>.
+        /// </summary>
+        public void MakeCurrent()
+        {
+            var current = Thread.CurrentThread;
+
+            if (current == thread)
+                return;
+
+            thread = Thread.CurrentThread;
+
+            traceCollector?.Dispose();
+            traceCollector = new BackgroundStackTraceCollector(thread, ourClock, threadName);
+            updateEnabledState();
         }
 
         /// <summary>
@@ -98,7 +128,7 @@ namespace osu.Framework.Statistics
 
         private readonly int[] lastAmountGarbageCollects = new int[3];
 
-        public bool HandleGC = false;
+        public bool HandleGC;
 
         private readonly Dictionary<StatisticsCounterType, GlobalStatistic<long>> globalStatistics = new Dictionary<StatisticsCounterType, GlobalStatistic<long>>();
 
@@ -112,14 +142,15 @@ namespace osu.Framework.Statistics
             {
                 if (ActiveCounters[i])
                 {
-                    var count = FrameStatistics.COUNTERS[i];
+                    long count = FrameStatistics.COUNTERS[i];
                     var type = (StatisticsCounterType)i;
 
                     if (!globalStatistics.TryGetValue(type, out var global))
-                        globalStatistics[type] = global = GlobalStatistics.Get<long>(Thread.Name, type.ToString());
+                        globalStatistics[type] = global = GlobalStatistics.Get<long>(threadName, type.ToString());
 
                     global.Value = count;
                     currentFrame.Counts[type] = count;
+                    currentFrame.FramesPerSecond = Clock.FramesPerSecond;
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }
@@ -151,11 +182,20 @@ namespace osu.Framework.Statistics
             averageFrameTime = Interpolation.Damp(averageFrameTime, Clock.ElapsedFrameTime, 0.01, dampRate);
 
             //check for dropped (stutter) frames
-            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
+            traceCollector?.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
 
-            //reset frame totals
-            currentCollectionTypeStack.Clear();
             consumeStopwatchElapsedTime();
+        }
+
+        public void EndFrame()
+        {
+            traceCollector?.EndFrame();
+        }
+
+        private void updateEnabledState()
+        {
+            if (traceCollector != null)
+                traceCollector.Enabled = enablePerformanceProfiling && isActive.Value;
         }
 
         private double averageFrameTime;
@@ -164,7 +204,9 @@ namespace osu.Framework.Statistics
         {
             double last = consumptionTime;
 
-            consumptionTime = traceCollector.LastConsumptionTime = ourClock.CurrentTime;
+            consumptionTime = ourClock.CurrentTime;
+            if (traceCollector != null)
+                traceCollector.LastConsumptionTime = consumptionTime;
 
             return consumptionTime - last;
         }
@@ -180,13 +222,8 @@ namespace osu.Framework.Statistics
             if (!isDisposed)
             {
                 isDisposed = true;
-                traceCollector.Dispose();
+                traceCollector?.Dispose();
             }
-        }
-
-        ~PerformanceMonitor()
-        {
-            Dispose(false);
         }
 
         public void Dispose()

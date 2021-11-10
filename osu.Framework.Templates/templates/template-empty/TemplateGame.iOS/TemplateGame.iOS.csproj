@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TemplateGame.iOS</RootNamespace>
+    <AssemblyName>TemplateGame</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <DebugType>full</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Debug</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchDebug>True</MtouchDebug>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <additionalargs>/unsafe</additionalargs>
+    <Externalconsole>True</Externalconsole>
+    <MtouchUseArmv7>false</MtouchUseArmv7>
+    <DebugSymbols>True</DebugSymbols>
+    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
+    <CrashReportingApiKey>
+    </CrashReportingApiKey>
+    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchDebug>True</MtouchDebug>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <MtouchArch>x86_64</MtouchArch>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\iPhoneSimulator\Debug</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
+    <MtouchLink>None</MtouchLink>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+    <CodesignKey>iPhone Developer</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>TemplateGame.iOS</RootNamespace>
+    <AssemblyName>TemplateGame.iOS</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <DebugType>full</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Debug</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchDebug>True</MtouchDebug>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <additionalargs>/unsafe</additionalargs>
+    <Externalconsole>True</Externalconsole>
+    <MtouchUseArmv7>false</MtouchUseArmv7>
+    <DebugSymbols>True</DebugSymbols>
+    <MtouchArch>ARM64</MtouchArch>
+    <CrashReportingApiKey>
+    </CrashReportingApiKey>
+    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+    <CodesignKey>iPhone Developer</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodesignProvision>
+    </CodesignProvision>
+    <MtouchArch>ARM64</MtouchArch>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\iPhoneSimulator\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchLink>None</MtouchLink>
+    <MtouchArch>x86_64</MtouchArch>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodesignKey>iPhone Developer</CodesignKey>
+    <OutputPath>bin\iPhone\Release</OutputPath>
+    <MtouchArch>ARM64</MtouchArch>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+  </PropertyGroup>
+  <ItemGroup>
+    <InterfaceDefinition Include="LaunchScreen.storyboard" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Info.plist" />
+    <None Include="Entitlements.plist" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application.cs" />
+    <Compile Include="AppDelegate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj">
+      <Project>{6BEB95A6-0673-4AF5-892E-9146FF8B0948}</Project>
+      <Name>TemplateGame.Game</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TemplateGame.Resources\TemplateGame.Resources.csproj">
+      <Project>{6E3EBF71-8664-49D7-BD0D-2B21B3EEC540}</Project>
+      <Name>TemplateGame.Resources</Name>
+    </ProjectReference>
+  </ItemGroup>
+    <ItemGroup>
+    <NativeReference Include="$(OutputPath)\libbass.a;$(OutputPath)\libbass_fx.a">
+      <Kind>Static</Kind>
+      <SmartLink>False</SmartLink>
+      <ForceLoad>True</ForceLoad>
+    </NativeReference>
+    <NativeReference Include="$(OutputPath)\libavcodec.a;$(OutputPath)\libavdevice.a;$(OutputPath)\libavfilter.a;$(OutputPath)\libavformat.a;$(OutputPath)\libavutil.a;$(OutputPath)\libswresample.a;$(OutputPath)\libswscale.a">
+      <Kind>Static</Kind>
+      <SmartLink>False</SmartLink>
+      <ForceLoad>True</ForceLoad>
+    </NativeReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="Xamarin.iOS" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup Label="Package References">
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2021.1029.0" />
+  </ItemGroup>
+  <ItemGroup Label="Transitive Dependencies">
+    <PackageReference Include="ppy.osu.Framework" Version="2021.1029.0" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" ExcludeAssets="all" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+</Project>

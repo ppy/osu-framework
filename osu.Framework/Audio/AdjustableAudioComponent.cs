@@ -8,61 +8,82 @@ namespace osu.Framework.Audio
     /// <summary>
     /// An audio component which allows for basic bindable adjustments to be applied.
     /// </summary>
-    public class AdjustableAudioComponent : AudioComponent, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public class AdjustableAudioComponent : AudioComponent, IAdjustableAudioComponent
     {
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        public BindableDouble Volume => adjustments.Volume;
+        public BindableNumber<double> Volume => adjustments.Volume;
 
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public BindableDouble Balance => adjustments.Balance;
+        public BindableNumber<double> Balance => adjustments.Balance;
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency => adjustments.Frequency;
+        public BindableNumber<double> Frequency => adjustments.Frequency;
+
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableNumber<double> Tempo => adjustments.Tempo;
 
         protected AdjustableAudioComponent()
         {
             AggregateVolume.ValueChanged += InvalidateState;
             AggregateBalance.ValueChanged += InvalidateState;
             AggregateFrequency.ValueChanged += InvalidateState;
+            AggregateTempo.ValueChanged += InvalidateState;
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable) =>
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable) =>
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.RemoveAdjustment(type, adjustBindable);
 
-        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
+        public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
+
+        private bool invalidationPending;
+
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null)
+        {
+            if (CanPerformInline)
+                OnStateChanged();
+            else
+                invalidationPending = true;
+        }
 
         internal virtual void OnStateChanged()
         {
         }
 
-        /// <summary>
-        /// Bind all adjustments to another component's aggregated results.
-        /// </summary>
-        /// <param name="component">The other component (generally a direct parent).</param>
-        internal void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+        protected override void UpdateState()
+        {
+            base.UpdateState();
 
-        /// <summary>
-        /// Unbind all adjustments from another component's aggregated results.
-        /// </summary>
-        /// <param name="component">The other component (generally a direct parent).</param>
-        internal void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
+            if (invalidationPending)
+            {
+                invalidationPending = false;
+                OnStateChanged();
+            }
+        }
+
+        public void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+
+        public void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
 
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 
         public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
+
+        public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
 
         protected override void Dispose(bool disposing)
         {
@@ -71,6 +92,7 @@ namespace osu.Framework.Audio
             AggregateVolume.UnbindAll();
             AggregateBalance.UnbindAll();
             AggregateFrequency.UnbindAll();
+            AggregateTempo.UnbindAll();
         }
     }
 
@@ -78,6 +100,7 @@ namespace osu.Framework.Audio
     {
         Volume,
         Balance,
-        Frequency
+        Frequency,
+        Tempo
     }
 }

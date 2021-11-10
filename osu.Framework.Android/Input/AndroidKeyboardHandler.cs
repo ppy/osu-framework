@@ -1,12 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Android.Views;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK.Input;
-using System;
 
 namespace osu.Framework.Android.Input
 {
@@ -22,8 +22,6 @@ namespace osu.Framework.Android.Input
         }
 
         public override bool IsActive => true;
-
-        public override int Priority => 0;
 
         public override bool Initialize(GameHost host) => true;
 
@@ -156,7 +154,7 @@ namespace osu.Framework.Android.Input
             if (Enum.TryParse(keyCode.ToString(), out Key key))
                 return key;
 
-            // this is the worst case senario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
+            // this is the worst case scenario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
         }
 

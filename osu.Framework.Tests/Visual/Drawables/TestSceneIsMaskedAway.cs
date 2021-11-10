@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -82,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Anchor = anchor,
                         Origin = anchor,
                         Size = new Vector2(10),
-                        Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -5 : 5, anchor.HasFlag(Anchor.y0) ? -5 : 5),
+                        Position = new Vector2(anchor.HasFlagFast(Anchor.x0) ? -5 : 5, anchor.HasFlagFast(Anchor.y0) ? -5 : 5),
                     }
                 };
             });
@@ -115,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Anchor = anchor,
                         Origin = anchor,
                         Size = new Vector2(10),
-                        Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -20 : 20, anchor.HasFlag(Anchor.y0) ? -20 : 20),
+                        Position = new Vector2(anchor.HasFlagFast(Anchor.x0) ? -20 : 20, anchor.HasFlagFast(Anchor.y0) ? -20 : 20),
                     }
                 };
             });

@@ -1,0 +1,75 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [{
+            "name": "VisualTests (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/TemplateGame.Game.Tests/bin/Debug/net5.0/TemplateGame.Game.Tests.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Tests, Debug)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/TemplateGame.Game.Tests/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole"
+        },
+        {
+            "name": "VisualTests (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/TemplateGame.Game.Tests/bin/Release/net5.0/TemplateGame.Game.Tests.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Tests, Release)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/TemplateGame.Game.Tests/bin/Release/net5.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole"
+        },
+        {
+            "name": "TemplateGame (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/TemplateGame.Desktop/bin/Debug/net5.0/TemplateGame.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Desktop, Debug)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/TemplateGame.Desktop/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole"
+        },
+        {
+            "name": "TemplateGame (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/TemplateGame.Desktop/bin/Debug/net5.0/TemplateGame.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Desktop, Release)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/TemplateGame.Desktop/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole"
+        }
+    ]
+}

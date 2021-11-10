@@ -80,11 +80,6 @@ namespace osu.Framework.Allocation
             }
         }
 
-        ~TimedExpiryCache()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);

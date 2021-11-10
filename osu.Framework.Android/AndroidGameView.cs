@@ -4,12 +4,12 @@
 using System;
 using Android.Content;
 using Android.Runtime;
+using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
-using Android.Text;
-using osuTK.Graphics;
 using osu.Framework.Android.Input;
+using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
@@ -23,6 +23,7 @@ namespace osu.Framework.Android
         public new event Action<Keycode, KeyEvent> KeyUp;
         public event Action<Keycode, KeyEvent> KeyLongPress;
         public event Action<string> CommitText;
+        public event Action<AndroidGameHost> HostStarted;
 
         public AndroidGameView(Context context, Game game)
             : base(context)
@@ -65,7 +66,7 @@ namespace osu.Framework.Android
             catch (Exception e)
             {
                 Log.Verbose("AndroidGameView", "{0}", e);
-                throw new Exception("Can't load egl, aborting", e);
+                throw new InvalidOperationException("Can't load egl, aborting", e);
             }
         }
 
@@ -116,6 +117,7 @@ namespace osu.Framework.Android
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
             Host.Run(game);
+            HostStarted?.Invoke(Host);
         }
 
         private bool handleException(Exception ex)
@@ -124,8 +126,8 @@ namespace osu.Framework.Android
             // (see: https://github.com/ppy/osu/issues/6264 and linked related mono/xamarin issues)
             // to be removed when upstream fixes come in
             return ex is AggregateException ae
-                && ae.InnerException is ObjectDisposedException ode
-                && ode.ObjectName == "MobileAuthenticatedStream";
+                   && ae.InnerException is ObjectDisposedException ode
+                   && ode.ObjectName == "MobileAuthenticatedStream";
         }
 
         public override bool OnCheckIsTextEditor() => true;

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -22,6 +23,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private FillFlowContainer<Container> flow;
         private TestScrollContainer scroll;
+
+        [Resolved]
+        private Game game { get; set; }
 
         [SetUp]
         public void SetUp() => Schedule(() =>
@@ -88,11 +92,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
-            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
-
             AddStep("scroll to end", () => scroll.ScrollToEnd());
-
-            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
             AddUntilStep("references lost", () =>
             {
@@ -103,6 +103,44 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("scroll to start", () => scroll.ScrollToStart());
 
             AddUntilStep("references restored", () => references.Count() == 16);
+        }
+
+        [Test]
+        public void TestTasksCanceledDuringLoadSequence()
+        {
+            var references = new WeakList<TestBox>();
+
+            AddStep("populate panels", () =>
+            {
+                references.Clear();
+
+                for (int i = 0; i < 16; i++)
+                {
+                    DelayedLoadUnloadWrapper loadUnloadWrapper;
+
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Child = loadUnloadWrapper = new DelayedLoadUnloadWrapper(() =>
+                        {
+                            var content = new TestBox { RelativeSizeAxes = Axes.Both };
+                            references.Add(content);
+                            return content;
+                        }, 0),
+                    });
+
+                    // cancel load tasks after the delayed load has started.
+                    loadUnloadWrapper.DelayedLoadStarted += _ => game.Schedule(() => loadUnloadWrapper.UnbindAllBindables());
+                }
+            });
+
+            AddStep("remove all panels", () => flow.Clear(false));
+
+            AddUntilStep("references lost", () =>
+            {
+                GC.Collect();
+                return !references.Any();
+            });
         }
 
         [Test]
@@ -144,11 +182,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
-            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
-
             AddStep("Remove all panels", () => flow.Clear(false));
-
-            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
             AddUntilStep("references lost", () =>
             {
@@ -220,6 +254,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        [Ignore("Fails intermittently on CI, can't be reproduced locally.")]
         public void TestManyChildrenUnload()
         {
             int loaded = 0;
@@ -249,28 +284,24 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             });
 
-            int childrenWithAvatarsLoaded() =>
-                flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
-
-            int loadCount1 = 0;
-            int loadCount2 = 0;
+            IEnumerable<Drawable> childrenWithAvatarsLoaded() => flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
             AddUntilStep("wait for load", () => loaded > 0);
 
+            int loadedCount1 = 0;
+            Drawable[] loadedChildren1 = null;
+
             AddStep("scroll down", () =>
             {
-                loadCount1 = loaded;
+                loadedCount1 = loaded;
+                loadedChildren1 = childrenWithAvatarsLoaded().ToArray();
                 scroll.ScrollToEnd();
             });
 
-            AddUntilStep("more loaded", () =>
-            {
-                loadCount2 = childrenWithAvatarsLoaded();
-                return loaded > loadCount1;
-            });
+            AddUntilStep("more loaded", () => loaded > loadedCount1);
 
-            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
-            AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadCount2);
+            AddAssert("not too many loaded", () => loaded < panel_count / 4);
+            AddUntilStep("wait some unloaded", () => loadedChildren1.Any(c => !childrenWithAvatarsLoaded().Contains(c)));
         }
 
         [Test]
@@ -312,6 +343,150 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("all unloaded", () => childrenWithAvatarsLoaded() == 0);
         }
 
+        [Test]
+        public void TestUnloadWithNonOptimisingParent()
+        {
+            DelayedLoadUnloadWrapper wrapper = null;
+
+            AddStep("add panel", () =>
+            {
+                Add(new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Masking = true,
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                });
+            });
+
+            AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
+            AddStep("move wrapper outside", () => wrapper.X = 129);
+            AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
+        }
+
+        [Test]
+        public void TestUnloadWithOffscreenParent()
+        {
+            Container parent = null;
+            DelayedLoadUnloadWrapper wrapper = null;
+
+            AddStep("add panel", () =>
+            {
+                Add(parent = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Masking = true,
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                });
+            });
+
+            AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
+            AddStep("move parent offscreen", () => parent.X = 1000000); // Should be offscreen
+            AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
+        }
+
+        [Test]
+        public void TestUnloadWithParentRemovedFromHierarchy()
+        {
+            Container parent = null;
+            DelayedLoadUnloadWrapper wrapper = null;
+
+            AddStep("add panel", () =>
+            {
+                Add(parent = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Masking = true,
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                });
+            });
+
+            AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
+            AddStep("remove parent", () => Remove(parent));
+            AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
+        }
+
+        [Test]
+        public void TestUnloadedWhenAsyncLoadCompletedAndMaskedAway()
+        {
+            BasicScrollContainer scrollContainer = null;
+            DelayedLoadTestDrawable child = null;
+
+            AddStep("add panel", () =>
+            {
+                Child = scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Child = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Height = 1000,
+                        Child = new Container
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 128,
+                            Child = new DelayedLoadUnloadWrapper(() => child = new DelayedLoadTestDrawable { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 128
+                            }
+                        }
+                    }
+                };
+            });
+
+            // Check that the child is disposed when its async-load completes while the wrapper is masked away.
+            AddUntilStep("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            AddStep("scroll to end", () => scrollContainer.ScrollToEnd(false));
+            AddStep("allow load", () => child.AllowLoad.Set());
+            AddUntilStep("drawable disposed", () => child.IsDisposed);
+
+            Drawable lastChild = null;
+            AddStep("store child", () => lastChild = child);
+
+            // Check that reuse of the child is not attempted.
+            AddStep("scroll to start", () => scrollContainer.ScrollToStart(false));
+            AddStep("allow load of new child", () => child.AllowLoad.Set());
+            AddUntilStep("new child loaded", () => child.IsLoaded);
+            AddAssert("last child not loaded", () => !lastChild.IsLoaded);
+        }
+
+        [Test]
+        public void TestWrapperStopReceivingUpdatesAfterDelayedLoadCompleted()
+        {
+            DelayedLoadTestDrawable child = null;
+
+            AddStep("add panel", () =>
+            {
+                DelayedLoadUnloadWrapper wrapper;
+
+                Child = wrapper = new DelayedLoadUnloadWrapper(() => child = new DelayedLoadTestDrawable { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Height = 128,
+                };
+
+                // Prevent the wrapper from receiving updates as soon as load completes, and start making it unload its contents by repositioning it offscreen.
+                wrapper.DelayedLoadComplete += _ =>
+                {
+                    wrapper.Alpha = 0;
+                    wrapper.Position = new Vector2(-1000);
+                };
+            });
+
+            // Check that the child is disposed when its async-load completes while the wrapper is masked away.
+            AddUntilStep("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            AddStep("allow load", () => child.AllowLoad.Set());
+            AddUntilStep("drawable disposed", () => child.IsDisposed);
+        }
+
         public class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;
@@ -339,6 +514,18 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                 };
+            }
+        }
+
+        public class DelayedLoadTestDrawable : CompositeDrawable
+        {
+            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
+                    throw new TimeoutException();
             }
         }
     }

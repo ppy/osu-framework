@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using NUnit.Framework;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.IO
 {
@@ -13,13 +14,13 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestRelativePaths()
         {
-            var guid = new Guid().ToString();
+            string guid = new Guid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
-                var basePath = storage.GetFullPath(string.Empty);
+                string basePath = storage.GetFullPath(string.Empty);
 
-                Assert.IsTrue(basePath.EndsWith(guid));
+                Assert.IsTrue(basePath.EndsWith(guid, StringComparison.Ordinal));
 
                 Assert.Throws<ArgumentException>(() => storage.GetFullPath("../"));
                 Assert.Throws<ArgumentException>(() => storage.GetFullPath(".."));
@@ -27,6 +28,40 @@ namespace osu.Framework.Tests.IO
 
                 Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")) + Path.DirectorySeparatorChar, storage.GetFullPath("sub/test/"));
                 Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")), storage.GetFullPath("sub/test"));
+            }
+        }
+
+        [Test]
+        public void TestAttemptEscapeRoot()
+        {
+            string guid = new Guid().ToString();
+
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                Assert.Throws<ArgumentException>(() => storage.GetStream("../test"));
+                Assert.Throws<ArgumentException>(() => storage.GetStorageForDirectory("../"));
+            }
+        }
+
+        [Test]
+        public void TestGetSubDirectoryStorage()
+        {
+            string guid = new Guid().ToString();
+
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                Assert.That(storage.GetStorageForDirectory("subdir").GetFullPath(string.Empty), Is.EqualTo(Path.Combine(storage.GetFullPath(string.Empty), "subdir")));
+            }
+        }
+
+        [Test]
+        public void TestGetEmptySubDirectoryStorage()
+        {
+            string guid = new Guid().ToString();
+
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                Assert.That(storage.GetStorageForDirectory(string.Empty).GetFullPath(string.Empty), Is.EqualTo(storage.GetFullPath(string.Empty)));
             }
         }
     }

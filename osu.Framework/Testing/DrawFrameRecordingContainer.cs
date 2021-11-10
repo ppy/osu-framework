@@ -47,7 +47,9 @@ namespace osu.Framework.Testing
             {
                 default:
                 case RecordState.Normal:
-                    recordedFrames.ForEach(disposeRecursively);
+                    foreach (var drawNode in recordedFrames)
+                        disposeRecursively(drawNode);
+
                     recordedFrames.Clear();
 
                     currentFrame.Value = currentFrame.MaxValue = 0;

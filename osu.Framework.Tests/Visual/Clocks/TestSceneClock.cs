@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             {
                 base.Update();
 
-                var lastTime = clock.CurrentTime;
+                double lastTime = clock.CurrentTime;
 
                 (clock as IFrameBasedClock)?.ProcessFrame();
 

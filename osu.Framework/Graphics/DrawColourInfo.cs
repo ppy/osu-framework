@@ -18,6 +18,6 @@ namespace osu.Framework.Graphics
             Blending = blending ?? BlendingParameters.Inherit;
         }
 
-        public bool Equals(DrawColourInfo other) => Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
+        public readonly bool Equals(DrawColourInfo other) => Colour.Equals(other.Colour) && Blending == other.Blending;
     }
 }

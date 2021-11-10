@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using osu.Framework.IO.File;
 
 namespace osu.Framework.IO.Network
 {
@@ -34,7 +33,19 @@ namespace osu.Framework.IO.Network
         protected override void Complete(Exception e = null)
         {
             ResponseStream?.Close();
-            if (e != null) FileSafety.FileDelete(Filename);
+
+            if (e != null)
+            {
+                try
+                {
+                    File.Delete(Filename);
+                }
+                catch (Exception eOther)
+                {
+                    e = new AggregateException(e, eOther);
+                }
+            }
+
             base.Complete(e);
         }
     }

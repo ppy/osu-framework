@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -22,29 +24,52 @@ namespace osu.Framework.Platform
 
         public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
 
+        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
+        public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation: portableInstallation)
+        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
         {
             this.realtime = realtime;
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+        {
+            defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
+
+            base.SetupConfig(defaultOverrides);
+
+            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            {
+                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
+                Logger.Log($"Startup execution mode set to {mode} from envvar");
+            }
         }
 
         protected override void SetupForRun()
         {
             base.SetupForRun();
 
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
-        }
+            // We want the draw thread to run, but it doesn't matter how fast it runs.
+            // This limiting is mostly to reduce CPU overhead.
+            MaximumDrawHz = 60;
 
-        protected override void UpdateInitialize()
-        {
-        }
+            if (!realtime)
+            {
+                customClock = new FramedClock(new FastClock(CLOCK_RATE));
 
-        protected override void DrawInitialize()
-        {
+                // time is incremented per frame, rather than based on the real-world time.
+                // therefore our goal is to run frames as fast as possible.
+                MaximumUpdateHz = MaximumInactiveHz = 0;
+            }
+            else
+            {
+                // in realtime runs, set a sane upper limit to avoid cpu overhead from spinning.
+                MaximumUpdateHz = MaximumInactiveHz = 1000;
+            }
         }
 
         protected override void DrawFrame()
@@ -59,7 +84,7 @@ namespace osu.Framework.Platform
             base.UpdateFrame();
         }
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[] { };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => Array.Empty<InputHandler>();
 
         private class FastClock : IClock
         {

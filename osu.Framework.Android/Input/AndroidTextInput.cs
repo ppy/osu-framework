@@ -1,11 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Android.Content;
 using Android.Views;
 using Android.Views.InputMethods;
 using osu.Framework.Input;
-using System;
 
 namespace osu.Framework.Android.Input
 {
@@ -22,14 +22,15 @@ namespace osu.Framework.Android.Input
             this.view = view;
             activity = (AndroidGameActivity)view.Context;
 
-            inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
+            if (view.Context != null)
+                inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
-        public void Deactivate(object sender)
+        public void Deactivate()
         {
             activity.RunOnUiThread(() =>
             {
-                inputMethodManager.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
+                inputMethodManager?.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
                 view.ClearFocus();
                 view.KeyDown -= keyDown;
                 view.CommitText -= commitText;
@@ -40,7 +41,7 @@ namespace osu.Framework.Android.Input
         {
             lock (pendingLock)
             {
-                var oldPending = pending;
+                string oldPending = pending;
                 pending = string.Empty;
                 return oldPending;
             }
@@ -63,14 +64,22 @@ namespace osu.Framework.Android.Input
         public event Action<string> OnNewImeComposition;
         public event Action<string> OnNewImeResult;
 
-        public void Activate(object sender)
+        public void Activate()
         {
             activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
-                inputMethodManager.ToggleSoftInputFromWindow(view.WindowToken, ShowSoftInputFlags.Forced, HideSoftInputFlags.None);
+                inputMethodManager?.ShowSoftInput(view, 0);
                 view.KeyDown += keyDown;
                 view.CommitText += commitText;
+            });
+        }
+
+        public void EnsureActivated()
+        {
+            activity.RunOnUiThread(() =>
+            {
+                inputMethodManager?.ShowSoftInput(view, 0);
             });
         }
     }

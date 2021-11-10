@@ -2,14 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.MathUtils;
+using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -19,13 +19,6 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneScrollContainer : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(ScrollContainer<Drawable>),
-            typeof(BasicScrollContainer),
-            typeof(BasicScrollContainer<Drawable>)
-        };
-
         private ScrollContainer<Drawable> scrollContainer;
 
         [SetUp]
@@ -258,6 +251,80 @@ namespace osu.Framework.Tests.Visual.Containers
             checkScrollbarPosition(250);
         }
 
+        [Test]
+        public void TestHandleKeyboardRepeatAfterRemoval()
+        {
+            AddStep("create scroll container", () =>
+            {
+                Add(scrollContainer = new RepeatCountingScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(500),
+                    Child = new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Vertical,
+                        Children = new[]
+                        {
+                            new Box { Size = new Vector2(500) },
+                            new Box { Size = new Vector2(500) },
+                            new Box { Size = new Vector2(500) },
+                        }
+                    }
+                });
+            });
+
+            AddStep("move mouse to scroll container", () => InputManager.MoveMouseTo(scrollContainer));
+            AddStep("press page down and remove scroll container", () => InputManager.PressKey(Key.PageDown));
+            AddStep("remove scroll container", () =>
+            {
+                Remove(scrollContainer);
+                ((RepeatCountingScrollContainer)scrollContainer).RepeatCount = 0;
+            });
+
+            AddWaitStep("wait for repeats", 5);
+        }
+
+        [Test]
+        public void TestEmptyScrollContainerDoesNotHandleScrollAndDrag()
+        {
+            AddStep("create scroll container", () =>
+            {
+                Add(scrollContainer = new InputHandlingScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(500),
+                });
+            });
+
+            AddStep("Perform scroll", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.ScrollVerticalBy(50);
+            });
+
+            AddAssert("Scroll was not handled", () =>
+            {
+                var inputHandlingScrollContainer = (InputHandlingScrollContainer)scrollContainer;
+                return inputHandlingScrollContainer.ScrollHandled.HasValue && !inputHandlingScrollContainer.ScrollHandled.Value;
+            });
+
+            AddStep("Perform drag", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(scrollContainer, new Vector2(50));
+            });
+
+            AddAssert("Drag was not handled", () =>
+            {
+                var inputHandlingScrollContainer = (InputHandlingScrollContainer)scrollContainer;
+                return inputHandlingScrollContainer.DragHandled.HasValue && !inputHandlingScrollContainer.DragHandled.Value;
+            });
+        }
+
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
             if (heightAdjust != null)
@@ -278,7 +345,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private void scrollTo(float position, float scrollContentHeight, float extension)
         {
-            float clampedTarget = MathHelper.Clamp(position, -extension, scrollContentHeight + extension);
+            float clampedTarget = Math.Clamp(position, -extension, scrollContentHeight + extension);
 
             float immediateScrollPosition = 0;
 
@@ -296,6 +363,19 @@ namespace osu.Framework.Tests.Visual.Containers
         private void checkScrollbarPosition(float expected) =>
             AddUntilStep($"scrollbar position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.InternalChildren[1].DrawPosition.Y, 1));
 
+        private class RepeatCountingScrollContainer : BasicScrollContainer
+        {
+            public int RepeatCount { get; set; }
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                if (e.Repeat)
+                    RepeatCount++;
+
+                return base.OnKeyDown(e);
+            }
+        }
+
         private class ClampedScrollbarScrollContainer : BasicScrollContainer
         {
             public new ScrollbarContainer Scrollbar => base.Scrollbar;
@@ -310,6 +390,24 @@ namespace osu.Framework.Tests.Visual.Containers
                     : base(direction)
                 {
                 }
+            }
+        }
+
+        private class InputHandlingScrollContainer : BasicScrollContainer
+        {
+            public bool? ScrollHandled { get; private set; }
+            public bool? DragHandled { get; private set; }
+
+            protected override bool OnScroll(ScrollEvent e)
+            {
+                ScrollHandled = base.OnScroll(e);
+                return ScrollHandled.Value;
+            }
+
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                DragHandled = base.OnDragStart(e);
+                return DragHandled.Value;
             }
         }
     }

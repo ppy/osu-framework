@@ -1,12 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -43,6 +43,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
         public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
+            => FillTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public TransformSequence<CircularProgress> FillTo<TEasing>(double newValue, double duration, in TEasing easing)
+            where TEasing : IEasingFunction
             => this.TransformBindableTo(Current, newValue, duration, easing);
 
         [BackgroundDependencyLoader]
@@ -81,7 +85,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
-                innerRadius = MathHelper.Clamp(value, 0, 1);
+                innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -90,6 +94,10 @@ namespace osu.Framework.Graphics.UserInterface
     public static class CircularProgressTransformSequenceExtensions
     {
         public static TransformSequence<CircularProgress> FillTo(this TransformSequence<CircularProgress> t, double newValue, double duration = 0, Easing easing = Easing.None)
-            => t.Append(cp => cp.TransformBindableTo(cp.Current, newValue, duration, easing));
+            => t.FillTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public static TransformSequence<CircularProgress> FillTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => t.Append(cp => cp.FillTo(newValue, duration, easing));
     }
 }

@@ -1,12 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Graphics;
 
@@ -40,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Input
             for (int i = 0; i < 4; i++)
                 hatFlow.Add(new JoystickHatHandler(i));
 
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < JoystickState.MAX_AXES; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
@@ -76,6 +78,7 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
+                        Font = FrameworkFont.Condensed,
                         Text = $"B{buttonIndex + 1}"
                     }
                 };
@@ -90,13 +93,15 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button != button)
-                    return base.OnJoystickRelease(e);
+                {
+                    base.OnJoystickRelease(e);
+                    return;
+                }
 
                 background.FadeOut(100);
-                return true;
             }
         }
 
@@ -178,7 +183,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button == JoystickButton.FirstHatUp + hatIndex)
                     upBox.FadeOut(100);
@@ -189,42 +194,51 @@ namespace osu.Framework.Tests.Visual.Input
                 else if (e.Button == JoystickButton.FirstHatRight + hatIndex)
                     rightBox.FadeOut(100);
                 else
-                    return base.OnJoystickRelease(e);
-
-                return true;
+                    base.OnJoystickRelease(e);
             }
         }
 
         private class JoystickAxisButtonHandler : CompositeDrawable
         {
-            private readonly int axisIndex;
-            private readonly Drawable background;
+            private readonly JoystickAxisSource trackedAxis;
+            private readonly Container background;
 
             private readonly JoystickButton positiveAxisButton;
             private readonly JoystickButton negativeAxisButton;
             private readonly SpriteText rawValue;
 
-            public JoystickAxisButtonHandler(int axisIndex)
+            private readonly Box fill;
+
+            public JoystickAxisButtonHandler(int trackedAxis)
             {
-                this.axisIndex = axisIndex;
-                positiveAxisButton = JoystickButton.FirstAxisPositive + axisIndex;
-                negativeAxisButton = JoystickButton.FirstAxisNegative + axisIndex;
+                this.trackedAxis = (JoystickAxisSource)trackedAxis;
+                positiveAxisButton = JoystickButton.FirstAxisPositive + trackedAxis;
+                negativeAxisButton = JoystickButton.FirstAxisNegative + trackedAxis;
 
-                Size = new Vector2(50);
+                Size = new Vector2(100, 50);
 
-                InternalChildren = new[]
+                InternalChildren = new Drawable[]
                 {
+                    fill = new Box
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.CentreLeft,
+                        RelativeSizeAxes = Axes.Both,
+                        Width = 0,
+                        Colour = Color4.SkyBlue,
+                    },
                     background = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent,
-                        Child = new Box { RelativeSizeAxes = Axes.Both }
+                        Masking = true,
+                        BorderThickness = 3,
+                        Child = new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Transparent },
                     },
                     new SpriteText
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"AX{axisIndex + 1}"
+                        Text = $"Axis {trackedAxis + 1}"
                     },
                     rawValue = new SpriteText
                     {
@@ -235,34 +249,34 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             }
 
-            protected override void Update()
-            {
-                base.Update();
-
-                var joy = GetContainingInputManager().CurrentState.Joystick;
-                rawValue.Text = joy.Axes.Find(a => a.Axis == axisIndex).Value.ToString("0.00");
-            }
-
             protected override bool OnJoystickPress(JoystickPressEvent e)
             {
                 if (e.Button == positiveAxisButton)
-                    background.FadeColour(Color4.DarkGreen, 100, Easing.OutQuint);
+                    background.BorderColour = Color4.DarkGreen;
                 else if (e.Button == negativeAxisButton)
-                    background.FadeColour(Color4.DarkRed, 100, Easing.OutQuint);
-                else
-                    return base.OnJoystickPress(e);
+                    background.BorderColour = Color4.DarkRed;
 
-                return true;
+                return base.OnJoystickPress(e);
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button == positiveAxisButton || e.Button == negativeAxisButton)
-                    background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
+                    background.BorderColour = Color4.Transparent;
                 else
-                    return base.OnJoystickRelease(e);
+                    base.OnJoystickRelease(e);
+            }
 
-                return true;
+            protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
+            {
+                if (e.Axis.Source == trackedAxis)
+                {
+                    rawValue.Text = e.Axis.Value.ToString("0.0000000");
+                    fill.Width = e.Axis.Value / 2;
+                    fill.Alpha = Math.Abs(e.Axis.Value) == 1 ? 1 : 0.6f;
+                }
+
+                return false;
             }
         }
     }

@@ -24,13 +24,16 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.115" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.178" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
   </ItemGroup>
   <ItemGroup>
     <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)*.a">
       <WithCulture>false</WithCulture>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="app.config" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

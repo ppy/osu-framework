@@ -4,14 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Caching;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Layout;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -44,7 +45,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
         /// </summary>
-        protected FillFlowContainer<DrawableMenuItem> ItemsContainer;
+        protected FillFlowContainer<DrawableMenuItem> ItemsContainer => itemsFlow;
 
         /// <summary>
         /// The container that provides the masking effects for this <see cref="Menu"/>.
@@ -54,16 +55,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer.Children;
 
         protected readonly Direction Direction;
 
+        private ItemsFlow itemsFlow;
         private Menu parentMenu;
         private Menu submenu;
 
         private readonly Box background;
-
-        private readonly Cached sizeCache = new Cached();
 
         private readonly Container<Menu> submenuContainer;
 
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             d.RelativeSizeAxes = Axes.Both;
                             d.Masking = false;
-                            d.Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
+                            d.Child = itemsFlow = new ItemsFlow { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
                         })
                     }
                 },
@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 maxWidth = value;
 
-                sizeCache.Invalidate();
+                itemsFlow.SizeCache.Invalidate();
             }
         }
 
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 maxHeight = value;
 
-                sizeCache.Invalidate();
+                itemsFlow.SizeCache.Invalidate();
             }
         }
 
@@ -230,15 +230,20 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsLoaded)
                 return;
 
-            submenu?.Close();
+            resetState();
 
             switch (State)
             {
                 case MenuState.Closed:
                     AnimateClose();
+
+                    if (HasFocus)
+                        GetContainingInputManager()?.ChangeFocus(parentMenu);
                     break;
 
                 case MenuState.Open:
+                    ContentContainer.ScrollToStart(false);
+
                     AnimateOpen();
 
                     // We may not be present at this point, so must run on the next frame.
@@ -252,8 +257,15 @@ namespace osu.Framework.Graphics.UserInterface
 
                     break;
             }
+        }
 
-            sizeCache.Invalidate();
+        private void resetState()
+        {
+            if (!IsLoaded)
+                return;
+
+            submenu?.Close();
+            itemsFlow.SizeCache.Invalidate();
         }
 
         /// <summary>
@@ -270,7 +282,7 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.SetFlowDirection(Direction);
 
             ItemsContainer.Add(drawableItem);
-            sizeCache.Invalidate();
+            itemsFlow.SizeCache.Invalidate();
         }
 
         private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
@@ -290,7 +302,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool Remove(MenuItem item)
         {
             bool result = ItemsContainer.RemoveAll(d => d.Item == item) > 0;
-            sizeCache.Invalidate();
+            itemsFlow.SizeCache.Invalidate();
 
             return result;
         }
@@ -301,7 +313,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Clear()
         {
             ItemsContainer.Clear();
-            updateState();
+            resetState();
         }
 
         /// <summary>
@@ -329,18 +341,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                sizeCache.Invalidate();
-            base.InvalidateFromChild(invalidation, source);
-        }
-
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
 
-            if (!sizeCache.IsValid)
+            if (!itemsFlow.SizeCache.IsValid)
             {
                 // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
                 // that size ourselves, based on the content size of our children, to give them a valid relative size
@@ -364,8 +369,8 @@ namespace osu.Framework.Graphics.UserInterface
                 height = Math.Min(MaxHeight, height);
 
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-                width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
-                height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
+                width = RelativeSizeAxes.HasFlagFast(Axes.X) ? Width : width;
+                height = RelativeSizeAxes.HasFlagFast(Axes.Y) ? Height : height;
 
                 if (State == MenuState.Closed && Direction == Direction.Horizontal)
                     width = 0;
@@ -374,7 +379,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
-                sizeCache.Validate();
+                itemsFlow.SizeCache.Validate();
             }
         }
 
@@ -483,6 +488,8 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        public override bool HandleNonPositionalInput => State == MenuState.Open;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (e.Key == Key.Escape && !TopLevelMenu)
@@ -537,7 +544,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
         /// </summary>
-        /// <returns></returns>
         protected abstract Menu CreateSubMenu();
 
         /// <summary>
@@ -791,6 +797,16 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
+
+        private class ItemsFlow : FillFlowContainer<DrawableMenuItem>
+        {
+            public readonly LayoutValue SizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
+
+            public ItemsFlow()
+            {
+                AddLayout(SizeCache);
+            }
+        }
     }
 
     public enum MenuState

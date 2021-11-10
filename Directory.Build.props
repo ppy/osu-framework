@@ -1,4 +1,4 @@
-<!-- Contains required properties for osu!framework projects. -->
+﻿<!-- Contains required properties for osu!framework projects. -->
 <Project>
   <PropertyGroup Label="C#">
     <LangVersion>8.0</LangVersion>
@@ -18,10 +18,18 @@
       <PackagePath>icon.png</PackagePath>
     </None>
   </ItemGroup>
+  <ItemGroup Label="Code Analysis">
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.3" PrivateAssets="All" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeAnalysis\BannedSymbols.txt" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3" PrivateAssets="All" />
+  </ItemGroup>
+  <PropertyGroup Label="Code Analysis">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu-framework.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
-    <Copyright>Copyright (c) 2019 ppy Pty Ltd</Copyright>
+    <Copyright>Copyright (c) 2021 ppy Pty Ltd</Copyright>
     <Product>osu!framework</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

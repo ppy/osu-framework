@@ -28,28 +28,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             // to correctly attach in the GL.FramebufferRenderbuffer() call below
             GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, 1, 1);
 
-            switch (format)
-            {
-                case RenderbufferInternalFormat.DepthComponent16:
-                    attachment = FramebufferAttachment.DepthAttachment;
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
-                    sizePerPixel = 2;
-                    break;
+            attachment = format.GetAttachmentType();
+            sizePerPixel = format.GetBytesPerPixel();
 
-                case RenderbufferInternalFormat.Rgb565:
-                case RenderbufferInternalFormat.Rgb5A1:
-                case RenderbufferInternalFormat.Rgba4:
-                    attachment = FramebufferAttachment.ColorAttachment0;
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
-                    sizePerPixel = 2;
-                    break;
-
-                case RenderbufferInternalFormat.StencilIndex8:
-                    attachment = FramebufferAttachment.StencilAttachment;
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
-                    sizePerPixel = 1;
-                    break;
-            }
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
         }
 
         private Vector2 internalSize;

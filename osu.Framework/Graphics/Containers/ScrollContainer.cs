@@ -1,13 +1,13 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
-using osu.Framework.Threading;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 scrollbarVisible = value;
-                updateScrollbar();
+                scrollbarCache.Invalidate();
             }
         }
 
@@ -65,12 +65,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
-        private float availableContent => ScrollContent.DrawSize[ScrollDim];
+        public float AvailableContent => ScrollContent.DrawSize[ScrollDim];
 
         /// <summary>
         /// Size of the viewport in the scroll direction.
         /// </summary>
-        private float displayableContent => ChildSize[ScrollDim];
+        public float DisplayableContent => ChildSize[ScrollDim];
 
         /// <summary>
         /// Controls the distance scrolled per unit of mouse scroll.
@@ -118,19 +118,24 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
         /// </summary>
-        private float target;
+        protected float Target { get; private set; }
 
-        private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
+        /// <summary>
+        /// The maximum distance that can be scrolled in the scroll direction.
+        /// </summary>
+        public float ScrollableExtent => Math.Max(AvailableContent - DisplayableContent, 0);
 
-        private float scrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
+        /// <summary>
+        /// The maximum distance that the scrollbar can move in the scroll direction.
+        /// </summary>
+        public float ScrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
         /// </summary>
         /// <param name="position">The value to clamp.</param>
         /// <param name="extension">An extension value beyond the normal extent.</param>
-        /// <returns></returns>
-        protected float Clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
+        protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, ScrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
 
@@ -138,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
         /// Whether we are currently scrolled as far as possible into the scroll direction.
         /// </summary>
         /// <param name="lenience">How close to the extent we need to be.</param>
-        public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
+        public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(Target, ScrollableExtent, lenience);
 
         /// <summary>
         /// The container holding all children which are getting scrolled around.
@@ -147,7 +152,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
-        public bool IsHandlingKeyboardScrolling => IsHovered || ReceivePositionalInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
+        public bool IsHandlingKeyboardScrolling
+        {
+            get
+            {
+                if (IsHovered)
+                    return true;
+
+                InputManager inputManager = GetContainingInputManager();
+                return inputManager != null && ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
+            }
+        }
 
         /// <summary>
         /// The direction in which scrolling is supported.
@@ -180,6 +195,7 @@ namespace osu.Framework.Graphics.Containers
                 Scrollbar = CreateScrollbar(scrollDirection)
             });
 
+            Scrollbar.Hide();
             Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
@@ -191,26 +207,19 @@ namespace osu.Framework.Graphics.Containers
         {
             // ensure we only update scrollbar when something has changed, to avoid transform helpers resetting their transform every frame.
             // also avoids creating many needless Transforms every update frame.
-            if (lastAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
+            if (lastAvailableContent != AvailableContent || lastUpdateDisplayableContent != DisplayableContent)
             {
-                lastAvailableContent = availableContent;
-                lastUpdateDisplayableContent = displayableContent;
-                updateScrollbar();
+                lastAvailableContent = AvailableContent;
+                lastUpdateDisplayableContent = DisplayableContent;
+                scrollbarCache.Invalidate();
             }
         }
 
-        private void updateScrollbar()
-        {
-            var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
-            if (size > 0)
-                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
-            Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
-            updatePadding();
-        }
+        private readonly Cached scrollbarCache = new Cached();
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent || availableContent <= displayableContent)
+            if (scrollbarOverlapsContent || AvailableContent <= DisplayableContent)
                 ScrollContent.Padding = new MarginPadding();
             else
             {
@@ -231,7 +240,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
+                return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -250,11 +260,11 @@ namespace osu.Framework.Graphics.Containers
                 switch (e.Key)
                 {
                     case Key.PageUp:
-                        ScrollTo(target - displayableContent);
+                        OnUserScroll(Target - DisplayableContent);
                         return true;
 
                     case Key.PageDown:
-                        ScrollTo(target + displayableContent);
+                        OnUserScroll(Target + DisplayableContent);
                         return true;
                 }
             }
@@ -267,7 +277,7 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging || e.Button != MouseButton.Left) return false;
 
             // Continue from where we currently are scrolled to.
-            target = Current;
+            Target = Current;
 
             return true;
         }
@@ -290,7 +300,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool DragBlocksClick => dragBlocksClick;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -306,7 +316,7 @@ namespace osu.Framework.Graphics.Containers
             Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
-            float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
+            float clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
 
             Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
@@ -319,11 +329,10 @@ namespace osu.Framework.Graphics.Containers
             // can be removed if/when drag events are split out per axis or contain direction information.
             dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
-            offset(scrollOffset, false);
-            return true;
+            scrollByOffset(scrollOffset, false);
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -332,7 +341,7 @@ namespace osu.Framework.Graphics.Containers
             IsDragging = false;
 
             if (averageDragTime <= 0.0)
-                return true;
+                return;
 
             double velocity = averageDragDelta / averageDragTime;
 
@@ -346,13 +355,14 @@ namespace osu.Framework.Graphics.Containers
             // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
             double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
-            offset((float)distance, true, DistanceDecayDrag);
-
-            return true;
+            scrollByOffset((float)distance, true, DistanceDecayDrag);
         }
 
         protected override bool OnScroll(ScrollEvent e)
         {
+            if (Content.AliveInternalChildren.Count == 0)
+                return false;
+
             bool isPrecise = e.IsPrecise;
 
             Vector2 scrollDelta = e.ScrollDelta;
@@ -360,11 +370,11 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
                 scrollDeltaFloat = scrollDelta.X;
 
-            offset((isPrecise ? 10 : 80) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
+            scrollByOffset((isPrecise ? 10 : ScrollDistance) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(Clamp(fromScrollbarPosition(value)), false);
+        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(fromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -372,11 +382,12 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="offset">The scroll offset.</param>
         public void OffsetScrollPosition(float offset)
         {
-            target += offset;
+            Target += offset;
             Current += offset;
         }
 
-        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+        private void scrollByOffset(float value, bool animated, double distanceDecay = float.PositiveInfinity) =>
+            OnUserScroll(Target + value, animated, distanceDecay);
 
         /// <summary>
         /// Scroll to the start of available content.
@@ -397,7 +408,7 @@ namespace osu.Framework.Graphics.Containers
         public void ScrollToEnd(bool animated = true, bool allowDuringDrag = false)
         {
             if (!IsDragging || allowDuringDrag)
-                scrollTo(scrollableExtent, animated, DistanceDecayJump);
+                scrollTo(ScrollableExtent, animated, DistanceDecayJump);
         }
 
         /// <summary>
@@ -405,7 +416,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="offset">The amount by which we should scroll.</param>
         /// <param name="animated">Whether to animate the movement.</param>
-        public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
+        public void ScrollBy(float offset, bool animated = true) => scrollTo(Target + offset, animated);
+
+        /// <summary>
+        /// Handle a scroll to an absolute position from a user input.
+        /// </summary>
+        /// <param name="value">The position to scroll to.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
+        /// <param name="distanceDecay">Controls the rate with which the target position is approached after jumping to a specific location. Default is <see cref="DistanceDecayJump"/>.</param>
+        protected virtual void OnUserScroll(float value, bool animated = true, double? distanceDecay = null) =>
+            ScrollTo(value, animated, distanceDecay);
 
         /// <summary>
         /// Scrolls to an absolute position.
@@ -417,12 +437,12 @@ namespace osu.Framework.Graphics.Containers
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            target = Clamp(value, ClampExtension);
+            Target = Clamp(value, ClampExtension);
 
             if (animated)
                 this.distanceDecay = distanceDecay;
             else
-                Current = target;
+                Current = Target;
         }
 
         /// <summary>
@@ -445,10 +465,10 @@ namespace osu.Framework.Graphics.Containers
             float minPos = Math.Min(childPos0, childPos1);
             float maxPos = Math.Max(childPos0, childPos1);
 
-            if (minPos < Current || (minPos > Current && d.DrawSize[ScrollDim] > displayableContent))
+            if (minPos < Current || (minPos > Current && d.DrawSize[ScrollDim] > DisplayableContent))
                 ScrollTo(minPos, animated);
-            else if (maxPos > Current + displayableContent)
-                ScrollTo(maxPos - displayableContent, animated);
+            else if (maxPos > Current + DisplayableContent)
+                ScrollTo(maxPos - DisplayableContent, animated);
         }
 
         /// <summary>
@@ -474,31 +494,31 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!IsDragging && Current != Clamp(Current) && target != Clamp(target, -0.01f))
+            if (!IsDragging && Current != Clamp(Current) && Target != Clamp(Target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
-                target = Clamp(target, ClampExtension);
+                Target = Clamp(Target, ClampExtension);
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if (Current < target && target < 0 || Current > target && target > scrollableExtent)
+                if (Current < Target && Target < 0 || Current > Target && Target > ScrollableExtent)
                     localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
-                target = (float)Interpolation.Lerp(Clamp(target), target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
+                Target = (float)Interpolation.Lerp(Clamp(Target), Target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
 
-                float clampedTarget = Clamp(target);
-                if (Precision.AlmostEquals(clampedTarget, target))
-                    target = clampedTarget;
+                float clampedTarget = Clamp(Target);
+                if (Precision.AlmostEquals(clampedTarget, Target))
+                    Target = clampedTarget;
             }
 
             // Exponential interpolation between the target and our current scroll position.
-            Current = (float)Interpolation.Lerp(target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
+            Current = (float)Interpolation.Lerp(Target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
 
             // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
-            if (Precision.AlmostEquals(Current, target))
-                Current = target;
+            if (Precision.AlmostEquals(Current, Target))
+                Current = Target;
         }
 
         protected override void UpdateAfterChildren()
@@ -508,15 +528,26 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
+            if (!scrollbarCache.IsValid)
+            {
+                float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+                if (size > 0)
+                    Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
+                Scrollbar.FadeTo(ScrollbarVisible && AvailableContent - 1 > DisplayableContent ? 1 : 0, 200);
+                updatePadding();
+
+                scrollbarCache.Validate();
+            }
+
             if (ScrollDirection == Direction.Horizontal)
             {
                 Scrollbar.X = toScrollbarPosition(Current);
-                ScrollContent.X = -Current + scrollableExtent * ScrollContent.RelativeAnchorPosition.X;
+                ScrollContent.X = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X;
             }
             else
             {
                 Scrollbar.Y = toScrollbarPosition(Current);
-                ScrollContent.Y = -Current + scrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
+                ScrollContent.Y = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
             }
         }
 
@@ -527,10 +558,10 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The scrollbar position.</returns>
         private float toScrollbarPosition(float scrollPosition)
         {
-            if (Precision.AlmostEquals(0, scrollableExtent))
+            if (Precision.AlmostEquals(0, ScrollableExtent))
                 return 0;
 
-            return scrollbarMovementExtent * (scrollPosition / scrollableExtent);
+            return ScrollbarMovementExtent * (scrollPosition / ScrollableExtent);
         }
 
         /// <summary>
@@ -540,10 +571,10 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The absolute scroll position.</returns>
         private float fromScrollbarPosition(float scrollbarPosition)
         {
-            if (Precision.AlmostEquals(0, scrollbarMovementExtent))
+            if (Precision.AlmostEquals(0, ScrollbarMovementExtent))
                 return 0;
 
-            return scrollableExtent * (scrollbarPosition / scrollbarMovementExtent);
+            return ScrollableExtent * (scrollbarPosition / ScrollbarMovementExtent);
         }
 
         /// <summary>
@@ -578,6 +609,8 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDragStart(DragStartEvent e)
             {
+                if (e.Button != MouseButton.Left) return false;
+
                 dragOffset = e.MousePosition[(int)ScrollDirection] - Position[(int)ScrollDirection];
                 return true;
             }
@@ -591,25 +624,24 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
-                return true;
             }
         }
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!IsHandlingKeyboardScrolling)
                 return false;
 
-            switch (action.ActionType)
+            switch (e.Action)
             {
-                case PlatformActionType.LineStart:
+                case PlatformAction.MoveBackwardLine:
                     ScrollToStart();
                     return true;
 
-                case PlatformActionType.LineEnd:
+                case PlatformAction.MoveForwardLine:
                     ScrollToEnd();
                     return true;
 
@@ -618,8 +650,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnReleased(PlatformAction action) => false;
-
-        ScheduledDelegate DelayedLoadWrapper.IOnScreenOptimisingContainer.ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
+        {
+        }
     }
 }

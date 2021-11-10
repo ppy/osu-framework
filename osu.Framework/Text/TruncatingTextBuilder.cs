@@ -17,6 +17,9 @@ namespace osu.Framework.Text
         private readonly bool useFontSizeAsHeight;
         private readonly Vector2 spacing;
 
+        private bool ellipsisAdded;
+        private bool addingEllipsis; // Only used temporarily during the addition of the ellipsis.
+
         /// <summary>
         /// Creates a new <see cref="TextBuilder"/>.
         /// </summary>
@@ -30,9 +33,10 @@ namespace osu.Framework.Text
         /// <param name="characterList">That list to contain all resulting <see cref="TextBuilderGlyph"/>s.</param>
         /// <param name="neverFixedWidthCharacters">The characters for which fixed width should never be applied.</param>
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
+        /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
         public TruncatingTextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth, string ellipsisString = null, bool useFontSizeAsHeight = true, Vector2 startOffset = default,
-                                     Vector2 spacing = default, List<TextBuilderGlyph> characterList = null, char[] neverFixedWidthCharacters = null, char fallbackCharacter = '?')
-            : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter)
+                                     Vector2 spacing = default, List<TextBuilderGlyph> characterList = null, char[] neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
+            : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter, fixedWidthReferenceCharacter)
         {
             this.store = store;
             this.font = font;
@@ -43,8 +47,12 @@ namespace osu.Framework.Text
             this.fallbackCharacter = fallbackCharacter;
         }
 
-        private bool addingEllipsis;
-        private bool ellipsisAdded;
+        public override void Reset()
+        {
+            base.Reset();
+
+            ellipsisAdded = false;
+        }
 
         protected override bool CanAddCharacters => (base.CanAddCharacters && !ellipsisAdded) || addingEllipsis;
 
@@ -82,10 +90,10 @@ namespace osu.Framework.Text
                     if (Characters.Count == 0)
                         break;
 
-                    if (Characters[Characters.Count - 1].IsWhiteSpace())
+                    if (Characters[^1].IsWhiteSpace())
                         continue;
 
-                    if (base.HasAvailableSpace(firstEllipsisGlyph.GetKerning(Characters[Characters.Count - 1]) + spacing.X + ellipsisWidth))
+                    if (base.HasAvailableSpace(firstEllipsisGlyph.GetKerning(Characters[^1]) + spacing.X + ellipsisWidth))
                         break;
                 }
 

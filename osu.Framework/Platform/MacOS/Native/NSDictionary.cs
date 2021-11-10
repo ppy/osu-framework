@@ -5,9 +5,9 @@ using System;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
-    internal struct NSDictionary
+    internal readonly struct NSDictionary
     {
-        internal IntPtr Handle { get; private set; }
+        internal IntPtr Handle { get; }
 
         private static IntPtr classPointer = Class.Get("NSDictionary");
 

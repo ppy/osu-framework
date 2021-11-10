@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics
             for (int i = 0; i < vertices.Length - 1; ++i)
                 rotation += (vertices[i + 1].X - vertices[i].X) * (vertices[i + 1].Y + vertices[i].Y);
 
-            rotation += (vertices[0].X - vertices[vertices.Length - 1].X) * (vertices[0].Y + vertices[vertices.Length - 1].Y);
+            rotation += (vertices[0].X - vertices[^1].X) * (vertices[0].Y + vertices[^1].Y);
 
             return rotation;
         }
@@ -109,6 +109,6 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool InRightHalfPlaneOf(this Vector2 point, in Line line)
             => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
-               - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) <= 0;
+                - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) <= 0;
     }
 }

@@ -9,7 +9,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
+using osu.Framework.Localisation;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
@@ -131,7 +132,7 @@ namespace osu.Framework.Tests.Visual.Layout
             var method =
                 GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestType == testType);
             if (method != null)
-                method.Invoke(this, new object[0]);
+                method.Invoke(this, Array.Empty<object>());
         }
 
         private void buildTest()
@@ -378,7 +379,7 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             private readonly SpriteText label;
 
-            protected internal override string Label
+            protected internal override LocalisableString Label
             {
                 get => label.Text;
                 set => label.Text = value;

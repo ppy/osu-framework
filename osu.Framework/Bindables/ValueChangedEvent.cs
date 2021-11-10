@@ -4,7 +4,7 @@
 namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// An event fired when a <see cref="Bindable{T}.Value"/> changes.
+    /// An event fired when a value changes, providing the old and new value for reference.
     /// </summary>
     /// <typeparam name="T">The type of bindable.</typeparam>
     public class ValueChangedEvent<T>

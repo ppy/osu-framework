@@ -3,14 +3,21 @@
 
 namespace osu.Framework.Input
 {
-    public struct JoystickAxis
+    public readonly struct JoystickAxis
     {
-        public readonly int Axis;
+        /// <summary>
+        /// The source of this axis.
+        /// </summary>
+        public readonly JoystickAxisSource Source;
+
+        /// <summary>
+        /// The value of this axis.
+        /// </summary>
         public readonly float Value;
 
-        public JoystickAxis(int axis, float value)
+        public JoystickAxis(JoystickAxisSource source, float value)
         {
-            Axis = axis;
+            Source = source;
             Value = value;
         }
     }

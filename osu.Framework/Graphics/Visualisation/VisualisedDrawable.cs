@@ -49,6 +49,10 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
         private VisualisedDrawableFlow flow;
+        private Container connectionContainer;
+
+        private const float row_width = 10;
+        private const float row_height = 20;
 
         [Resolved]
         private DrawVisualiser visualiser { get; set; }
@@ -76,7 +80,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Position = new Vector2(10, 20)
+                    Position = new Vector2(row_width, row_height)
                 },
                 new Container
                 {
@@ -141,12 +145,37 @@ namespace osu.Framework.Graphics.Visualisation
                             Position = new Vector2(24, 0),
                             Children = new Drawable[]
                             {
-                                text = new SpriteText(),
-                                text2 = new SpriteText()
+                                text = new SpriteText { Font = FrameworkFont.Regular },
+                                text2 = new SpriteText { Font = FrameworkFont.Regular },
                             }
                         },
                     }
                 },
+            });
+
+            const float connection_width = 1;
+
+            AddInternal(connectionContainer = new Container
+            {
+                Colour = FrameworkColour.Green,
+                RelativeSizeAxes = Axes.Y,
+                Width = connection_width,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        EdgeSmoothness = new Vector2(0.5f),
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.CentreLeft,
+                        Y = row_height / 2,
+                        Width = row_width / 2,
+                        EdgeSmoothness = new Vector2(0.5f),
+                    }
+                }
             });
 
             previewBox.Position = new Vector2(9, 0);
@@ -166,9 +195,14 @@ namespace osu.Framework.Graphics.Visualisation
             updateColours();
         }
 
+        public bool TopLevel
+        {
+            set => connectionContainer.Alpha = value ? 0 : 1;
+        }
+
         private void attachEvents()
         {
-            Target.OnInvalidate += onInvalidate;
+            Target.Invalidated += onInvalidated;
             Target.OnDispose += onDispose;
 
             if (Target is CompositeDrawable da)
@@ -184,7 +218,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void detachEvents()
         {
-            Target.OnInvalidate -= onInvalidate;
+            Target.Invalidated -= onInvalidated;
             Target.OnDispose -= onDispose;
 
             if (Target is CompositeDrawable da)
@@ -253,8 +287,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
             detachEvents();
+            base.Dispose(isDisposing);
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -341,20 +375,11 @@ namespace osu.Framework.Graphics.Visualisation
             isExpanded = false;
         }
 
-        private void onAutoSize()
-        {
-            Scheduler.Add(() => activityAutosize.FadeOutFromOne(1));
-        }
+        private void onAutoSize() => activityAutosize.FadeOutFromOne(1);
 
-        private void onLayout()
-        {
-            Scheduler.Add(() => activityLayout.FadeOutFromOne(1));
-        }
+        private void onLayout() => activityLayout.FadeOutFromOne(1);
 
-        private void onInvalidate(Drawable d)
-        {
-            Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
-        }
+        private void onInvalidated(Drawable d) => activityInvalidate.FadeOutFromOne(1);
 
         private void onDispose()
         {

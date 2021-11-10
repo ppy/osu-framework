@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <LangVersion>8.0</LangVersion>
     <DefaultMtouchExtraArgs>--nolinkaway</DefaultMtouchExtraArgs>
@@ -10,7 +10,6 @@
     <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -gcc_flags "$(DefaultMtouchGccFlags)"</MtouchExtraArgs>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
-    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugSymbols>true</DebugSymbols>
@@ -46,9 +45,6 @@
     <DeviceSpecificBuild>true</DeviceSpecificBuild>
     <IOSDebuggerPort>28126</IOSDebuggerPort>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
-    <MtouchUseLlvm>true</MtouchUseLlvm>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -57,25 +53,29 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Markdig" Version="0.18.0" />
-    <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
-    <PackageReference Include="SharpFNT" Version="1.1.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
-    <PackageReference Include="System.Drawing.Common" Version="4.6.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.115" />
+    <PackageReference Include="Markdig" Version="0.26.0" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
+    <PackageReference Include="SharpFNT" Version="2.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.178" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="ppy.Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="ManagedBass" Version="2.0.4" />
-    <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
+    <PackageReference Include="ppy.ManagedBass" Version="3.1.3-alpha"/>
+    <PackageReference Include="ManagedBass.Fx" Version="3.0.0"/>
+    <PackageReference Include="ManagedBass.Mix" Version="3.0.0"/>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.6.0" />
-    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.6.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
-    
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
-    <PackageReference Include="System.Memory" Version="4.5.0" NoWarn="NU1605" />
+    <PackageReference Include="System.Memory" Version="4.5.4" NoWarn="NU1605" />
+
+    <!-- Any version ahead of this will cause AOT issues with iOS
+         See https://github.com/mono/mono/issues/21188 -->
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401"/>
   </ItemGroup>
 </Project>

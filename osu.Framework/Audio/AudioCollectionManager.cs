@@ -10,7 +10,7 @@ namespace osu.Framework.Audio
     /// A collection of audio components which need central property control.
     /// </summary>
     public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
-        where T : AdjustableAudioComponent
+        where T : AudioComponent
     {
         internal List<T> Items = new List<T>();
 
@@ -20,12 +20,15 @@ namespace osu.Framework.Audio
             {
                 if (Items.Contains(item)) return;
 
-                item.BindAdjustments(this);
+                if (item is IAdjustableAudioComponent adjustable)
+                    adjustable.BindAdjustments(this);
                 Items.Add(item);
             });
         }
 
-        public virtual void UpdateDevice(int deviceIndex)
+        void IBassAudio.UpdateDevice(int deviceIndex) => UpdateDevice(deviceIndex);
+
+        internal virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())
                 item.UpdateDevice(deviceIndex);
@@ -49,13 +52,13 @@ namespace osu.Framework.Audio
             }
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            // we need to queue disposal of our Items before enqueueing the main dispose.
+            // make the items queue their disposal, so they get disposed when UpdateChildren updates them.
             foreach (var i in Items)
                 i.Dispose();
 
-            base.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

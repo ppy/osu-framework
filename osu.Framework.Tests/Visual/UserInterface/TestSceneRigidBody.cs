@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Physics;
 using osuTK;
 using osuTK.Graphics;

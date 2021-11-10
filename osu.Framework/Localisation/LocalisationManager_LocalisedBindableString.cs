@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+#pragma warning disable 8632 // TODO: can be #nullable enable when Bindables are updated to also be.
+
 using osu.Framework.Bindables;
-using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
@@ -11,45 +11,33 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
-            private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
+            private IBindable<LocalisationParameters> parameters;
 
-            private LocalisedString text;
+            private LocalisableString text;
 
-            public LocalisedBindableString(LocalisedString text, IBindable<IResourceStore<string>> storage, IBindable<bool> preferUnicode)
+            private readonly LocalisationManager manager;
+
+            public LocalisedBindableString(LocalisableString text, LocalisationManager manager)
             {
                 this.text = text;
+                this.manager = manager;
 
-                this.storage.BindTo(storage);
-                this.preferUnicode.BindTo(preferUnicode);
-
-                this.storage.BindValueChanged(_ => updateValue());
-                this.preferUnicode.BindValueChanged(_ => updateValue(), true);
+                updateValue();
             }
 
             private void updateValue()
             {
-                string newText = preferUnicode.Value ? text.Text.Original : text.Text.Fallback;
+                Value = manager.GetLocalisedString(text);
 
-                if (text.ShouldLocalise && storage.Value != null)
-                    newText = storage.Value.Get(newText);
-
-                if (text.Args?.Length > 0 && !string.IsNullOrEmpty(newText))
+                if (parameters == null && text.Data is ILocalisableStringData)
                 {
-                    try
-                    {
-                        newText = string.Format(newText, text.Args);
-                    }
-                    catch (FormatException)
-                    {
-                        // Prevent crashes if the formatting fails. The string will be in a non-formatted state.
-                    }
+                    parameters = new Bindable<LocalisationParameters>();
+                    parameters.BindTo(manager.currentParameters);
+                    parameters.BindValueChanged(_ => updateValue());
                 }
-
-                Value = newText;
             }
 
-            LocalisedString ILocalisedBindableString.Text
+            LocalisableString ILocalisedBindableString.Text
             {
                 set
                 {
@@ -60,6 +48,16 @@ namespace osu.Framework.Localisation
 
                     updateValue();
                 }
+            }
+
+            internal override void UnbindAllInternal()
+            {
+                base.UnbindAllInternal();
+
+                // optimisation to ensure cleanup happens aggressively.
+                // without this, the central parameters bindable's internal WeakList can balloon out of control due to the
+                // weak reference cleanup only occurring on Value retrieval (which rarely/never happens in this case).
+                parameters?.UnbindAll();
             }
         }
     }

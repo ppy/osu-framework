@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using osuTK;
@@ -118,14 +119,14 @@ namespace osu.Framework.Graphics.Cursor
             Vector2 overflow = pos + menu.DrawSize - DrawSize;
 
             if (overflow.X > 0)
-                pos.X -= MathHelper.Clamp(overflow.X, 0, menu.DrawWidth);
+                pos.X -= Math.Clamp(overflow.X, 0, menu.DrawWidth);
             if (overflow.Y > 0)
-                pos.Y -= MathHelper.Clamp(overflow.Y, 0, menu.DrawHeight);
+                pos.Y -= Math.Clamp(overflow.Y, 0, menu.DrawHeight);
 
             if (pos.X < 0)
-                pos.X += MathHelper.Clamp(-pos.X, 0, menu.DrawWidth);
+                pos.X += Math.Clamp(-pos.X, 0, menu.DrawWidth);
             if (pos.Y < 0)
-                pos.Y += MathHelper.Clamp(-pos.Y, 0, menu.DrawHeight);
+                pos.Y += Math.Clamp(-pos.Y, 0, menu.DrawHeight);
 
             menu.Position = pos;
         }

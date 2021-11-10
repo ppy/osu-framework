@@ -4,12 +4,13 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -152,14 +153,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 box.Anchor = anchor;
 
-                if (anchor.HasFlag(Anchor.x0))
+                if (anchor.HasFlagFast(Anchor.x0))
                     box.X -= contextMenuContainer.CurrentMenu.DrawWidth + 10;
-                else if (anchor.HasFlag(Anchor.x2))
+                else if (anchor.HasFlagFast(Anchor.x2))
                     box.X += 10;
 
-                if (anchor.HasFlag(Anchor.y0))
+                if (anchor.HasFlagFast(Anchor.y0))
                     box.Y -= contextMenuContainer.CurrentMenu.DrawHeight + 10;
-                else if (anchor.HasFlag(Anchor.y2))
+                else if (anchor.HasFlagFast(Anchor.y2))
                     box.Y += 10;
             });
 
@@ -189,6 +190,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             clickBoxStep(() => box2);
             assertMenuState(false);
+        }
+
+        [Test]
+        public void TestHideWhileScrolledAndShow()
+        {
+            Drawable box = null;
+
+            addBoxStep(b => box = b, 1);
+            clickBoxStep(() => box);
+            assertMenuState(true);
+
+            AddStep("drag menu offscreen", () =>
+            {
+                InputManager.MoveMouseTo(contextMenuContainer.CurrentMenu);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(contextMenuContainer.CurrentMenu, new Vector2(0, 150));
+            });
+
+            AddStep("hide menu", () =>
+            {
+                InputManager.Key(Key.Escape);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+
+            clickBoxStep(() => box);
+            AddAssert("menu has correct size", () => contextMenuContainer.CurrentMenu.DrawSize.Y > 10);
         }
 
         private void clickBoxStep(Func<Drawable> getBoxFunc)

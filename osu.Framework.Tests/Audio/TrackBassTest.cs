@@ -3,11 +3,10 @@
 
 using System;
 using System.Threading;
-using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
-using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
+using osu.Framework.Bindables;
 
 #pragma warning disable 4014
 
@@ -16,37 +15,33 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackBassTest
     {
-        private DllResourceStore resources;
-
+        private BassTestComponents bass;
         private TrackBass track;
 
         [SetUp]
         public void Setup()
         {
-            // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
-            Bass.Init(0);
+            bass = new BassTestComponents();
+            track = bass.GetTrack();
 
-            resources = new DllResourceStore("osu.Framework.Tests.dll");
-
-            track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
-            updateTrack();
+            bass.Update();
         }
 
         [TearDown]
         public void Teardown()
         {
-            Bass.Free();
+            bass?.Dispose();
         }
 
         [Test]
         public void TestStart()
         {
             track.StartAsync();
-            updateTrack();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, 0);
@@ -56,8 +51,10 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             track.StartAsync();
+            bass.Update();
+
             track.StopAsync();
-            updateTrack();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -74,9 +71,9 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
             track.StopAsync();
-            updateTrack();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -86,7 +83,7 @@ namespace osu.Framework.Tests.Audio
         public void TestSeek()
         {
             track.SeekAsync(1000);
-            updateTrack();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(1000, track.CurrentTime);
@@ -96,8 +93,13 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekWhileRunning()
         {
             track.StartAsync();
+            bass.Update();
+
             track.SeekAsync(1000);
-            updateTrack();
+            bass.Update();
+
+            Thread.Sleep(50);
+            bass.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -111,8 +113,8 @@ namespace osu.Framework.Tests.Audio
         {
             bool? success = null;
 
-            runOnAudioThread(() => { success = track.Seek(track.Length); });
-            updateTrack();
+            bass.RunOnAudioThread(() => { success = track.Seek(track.Length); });
+            bass.Update();
 
             Assert.AreEqual(0, track.CurrentTime);
             Assert.IsFalse(success);
@@ -123,11 +125,11 @@ namespace osu.Framework.Tests.Audio
         {
             track.SeekAsync(1000);
             track.SeekAsync(0);
-            updateTrack();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
 
             Assert.GreaterOrEqual(track.CurrentTime, 0);
             Assert.Less(track.CurrentTime, 1000);
@@ -140,7 +142,7 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -157,9 +159,9 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
             track.StartAsync();
-            updateTrack();
+            bass.Update();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
@@ -171,7 +173,7 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -185,7 +187,7 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            bass.Update();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -205,20 +207,16 @@ namespace osu.Framework.Tests.Audio
             Assert.Less(track.CurrentTime, 3000);
         }
 
-        [Test]
-        public void TestLoopingRestart()
+        [TestCase(0)]
+        [TestCase(1000)]
+        public void TestLoopingRestart(double restartPoint)
         {
             track.Looping = true;
+            track.RestartPoint = restartPoint;
 
             startPlaybackAt(track.Length - 1);
 
-            Thread.Sleep(50);
-
-            // The first update brings the track to its end time and restarts it
-            updateTrack();
-
-            // The second update updates the IsRunning state
-            updateTrack();
+            takeEffectsAndUpdateAfter(50);
 
             // In a perfect world the track will be running after the update above, but during testing it's possible that the track is in
             // a stalled state due to updates running on Bass' own thread, so we'll loop until the track starts running again
@@ -227,69 +225,179 @@ namespace osu.Framework.Tests.Audio
 
             while (++loopCount < 50 && !track.IsRunning)
             {
-                updateTrack();
+                bass.Update();
                 Thread.Sleep(10);
             }
 
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
 
-            Assert.LessOrEqual(track.CurrentTime, 1000);
+            Assert.GreaterOrEqual(track.CurrentTime, restartPoint);
+            Assert.LessOrEqual(track.CurrentTime, restartPoint + 1000);
         }
 
         [Test]
         public void TestSetTempoNegative()
         {
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = -1);
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = 0.04f);
+            Assert.Throws<ArgumentException>(() => track.Tempo.Value = -1);
+            Assert.Throws<ArgumentException>(() => track.Tempo.Value = 0.04f);
 
             Assert.IsFalse(track.IsReversed);
 
-            track.TempoAdjust = 0.05f;
+            track.Tempo.Value = 0.05f;
 
             Assert.IsFalse(track.IsReversed);
             Assert.AreEqual(0.05f, track.Tempo.Value);
+        }
+
+        [Test]
+        public void TestRateWithAggregateAdjustments()
+        {
+            track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(1.5f));
+            Assert.AreEqual(1.5, track.Rate);
+        }
+
+        [Test]
+        public void TestLoopingTrackDoesntSetCompleted()
+        {
+            bool completedEvent = false;
+
+            track.Completed += () => completedEvent = true;
+            track.Looping = true;
+            startPlaybackAt(track.Length - 1);
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsFalse(track.HasCompleted);
+            Assert.IsFalse(completedEvent);
+
+            bass.Update();
+
+            Assert.IsTrue(track.IsRunning);
+        }
+
+        [Test]
+        public void TestHasCompletedResetsOnSeekBack()
+        {
+            // start playback and wait for completion.
+            startPlaybackAt(track.Length - 1);
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsTrue(track.HasCompleted);
+
+            // ensure seeking to end doesn't reset completed state.
+            track.SeekAsync(track.Length);
+            bass.Update();
+
+            Assert.IsTrue(track.HasCompleted);
+
+            // seeking back reset completed state.
+            track.SeekAsync(track.Length - 1);
+            bass.Update();
+
+            Assert.IsFalse(track.HasCompleted);
+        }
+
+        [Test]
+        public void TestZeroFrequencyHandling()
+        {
+            // start track.
+            track.StartAsync();
+            takeEffectsAndUpdateAfter(50);
+
+            // ensure running and has progressed.
+            Assert.IsTrue(track.IsRunning);
+            Assert.Greater(track.CurrentTime, 0);
+
+            // now set to zero frequency and update track to take effects.
+            track.Frequency.Value = 0;
+            bass.Update();
+
+            double currentTime = track.CurrentTime;
+
+            // assert time is frozen after 50ms sleep and didn't change with full precision, but "IsRunning" is still true.
+            Thread.Sleep(50);
+            bass.Update();
+
+            Assert.IsTrue(track.IsRunning);
+            Assert.AreEqual(currentTime, track.CurrentTime);
+
+            // set back to one and update track.
+            track.Frequency.Value = 1;
+            takeEffectsAndUpdateAfter(50);
+
+            // ensure time didn't jump away, and is progressing normally.
+            Assert.IsTrue(track.IsRunning);
+            Assert.Greater(track.CurrentTime, currentTime);
+            Assert.Less(track.CurrentTime, currentTime + 1000.0);
+        }
+
+        /// <summary>
+        /// Ensure setting a paused (or not yet played) track's frequency from zero to one doesn't resume / play it.
+        /// </summary>
+        [Test]
+        public void TestZeroFrequencyDoesntResumeTrack()
+        {
+            // start at zero frequency and wait a bit.
+            track.Frequency.Value = 0;
+            track.StartAsync();
+            takeEffectsAndUpdateAfter(50);
+
+            // ensure started but not progressing.
+            Assert.IsTrue(track.IsRunning);
+            Assert.AreEqual(0, track.CurrentTime);
+
+            // stop track and update.
+            track.StopAsync();
+            bass.Update();
+
+            Assert.IsFalse(track.IsRunning);
+
+            // set back to 1 frequency.
+            track.Frequency.Value = 1;
+            takeEffectsAndUpdateAfter(50);
+
+            // assert track channel still paused regardless of frequency because it's stopped via Stop() above.
+            Assert.IsFalse(track.IsRunning);
+            Assert.AreEqual(0, track.CurrentTime);
+        }
+
+        [Test]
+        public void TestBitrate()
+        {
+            Assert.Greater(track.Bitrate, 0);
+        }
+
+        [Test]
+        public void TestCurrentTimeUpdatedAfterInlineSeek()
+        {
+            track.StartAsync();
+            bass.Update();
+
+            bass.RunOnAudioThread(() => track.Seek(20000));
+            Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
+        }
+
+        private void takeEffectsAndUpdateAfter(int after)
+        {
+            bass.Update();
+            Thread.Sleep(after);
+            bass.Update();
         }
 
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
             track.StartAsync();
-            updateTrack();
+            bass.Update();
         }
-
-        private void updateTrack() => runOnAudioThread(() => track.Update());
 
         private void restartTrack()
         {
-            runOnAudioThread(() =>
+            bass.RunOnAudioThread(() =>
             {
                 track.Restart();
-                track.Update();
+                bass.Update();
             });
-        }
-
-        /// <summary>
-        /// Certain actions are invoked on the audio thread.
-        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
-        /// </summary>
-        /// <param name="action">The action to perform.</param>
-        private void runOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
         }
     }
 }

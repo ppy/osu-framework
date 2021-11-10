@@ -1,6 +1,0 @@
-{
-  "msbuild-sdks": {
-    "MSBuild.Sdk.Extras": "2.0.54",
-    "Microsoft.Build.Traversal": "2.0.24"
-  }
-}

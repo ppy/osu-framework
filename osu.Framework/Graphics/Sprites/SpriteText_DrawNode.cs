@@ -63,12 +63,14 @@ namespace osu.Framework.Graphics.Sprites
                     if (shadow)
                     {
                         var shadowQuad = parts[i].DrawQuad;
-                        shadowQuad.TopLeft += shadowOffset;
-                        shadowQuad.TopRight += shadowOffset;
-                        shadowQuad.BottomLeft += shadowOffset;
-                        shadowQuad.BottomRight += shadowOffset;
 
-                        DrawQuad(parts[i].Texture, shadowQuad, finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                        DrawQuad(parts[i].Texture,
+                            new Quad(
+                                shadowQuad.TopLeft + shadowOffset,
+                                shadowQuad.TopRight + shadowOffset,
+                                shadowQuad.BottomLeft + shadowOffset,
+                                shadowQuad.BottomRight + shadowOffset),
+                            finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
                     }
 
                     DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);

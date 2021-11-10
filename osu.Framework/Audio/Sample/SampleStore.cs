@@ -5,70 +5,61 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
-using System.Linq;
-using System.Threading.Tasks;
-using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
     internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
+        private readonly AudioMixer mixer;
 
-        private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
+        private readonly ConcurrentDictionary<string, SampleBassFactory> factories = new ConcurrentDictionary<string, SampleBassFactory>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        internal SampleStore(IResourceStore<byte[]> store)
+        internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
         {
             this.store = store;
+            this.mixer = mixer;
 
             (store as ResourceStore<byte[]>)?.AddExtension(@"wav");
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
-        public SampleChannel Get(string name)
+        public Sample Get(string name)
         {
             if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(SampleStore)}");
 
             if (string.IsNullOrEmpty(name)) return null;
 
-            this.LogIfNonBackgroundThread(name);
-
-            lock (sampleCache)
+            lock (factories)
             {
-                SampleChannel channel = null;
-
-                if (!sampleCache.TryGetValue(name, out Sample sample))
+                if (!factories.TryGetValue(name, out SampleBassFactory factory))
                 {
+                    this.LogIfNonBackgroundThread(name);
+
                     byte[] data = store.Get(name);
-                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
+                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+
+                    if (factory != null)
+                        AddItem(factory);
                 }
 
-                if (sample != null)
-                {
-                    channel = new SampleChannelBass(sample, AddItem);
-                }
-
-                return channel;
+                return factory?.CreateSample();
             }
         }
 
-        public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
-
-        public override void UpdateDevice(int deviceIndex)
-        {
-            foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
-                sample.UpdateDevice(deviceIndex);
-
-            base.UpdateDevice(deviceIndex);
-        }
+        public Task<Sample> GetAsync(string name) => Task.Run(() => Get(name));
 
         protected override void UpdateState()
         {
-            FrameStatistics.Add(StatisticsCounterType.Samples, sampleCache.Count);
+            FrameStatistics.Add(StatisticsCounterType.Samples, factories.Count);
             base.UpdateState();
         }
 

@@ -67,10 +67,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnDragStart(DragStartEvent e) => true;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             movableTarget.Position += e.Delta;
-            return base.OnDrag(e);
+            base.OnDrag(e);
         }
 
         protected override bool OnMouseDown(MouseDownEvent e) => true;

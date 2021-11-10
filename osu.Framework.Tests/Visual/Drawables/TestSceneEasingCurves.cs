@@ -3,7 +3,7 @@
 
 using System;
 using System.Linq;
-using osu.Framework.Bindables;
+using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,51 +17,44 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneEasingCurves : TestScene
     {
-        private const float default_size = 300;
+        private const float default_size = 200;
 
-        public TestSceneEasingCurves()
+        private FillFlowContainer easingsContainer;
+
+        [SetUp]
+        public void SetUp() => Schedule(() =>
         {
-            FillFlowContainer easingsContainer = null;
-
             var easingTypes = Enum.GetValues(typeof(Easing))
                                   .OfType<Easing>()
                                   .ToList();
 
-            AddStep("set up easings", () => Child = new BasicScrollContainer
+            Child = new BasicScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = easingsContainer = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Children = easingTypes.Select(type => new Visualiser(type))
-                                          .ToArray()
+                    Children = easingTypes.Select(type => new Visualiser(type)).ToArray()
                 }
-            });
+            };
+        });
 
-            AddSliderStep("resize easings", default_size, 3 * default_size, default_size, size =>
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddSliderStep("resize easings", default_size / 2, default_size * 2, default_size, size =>
             {
                 easingsContainer?.Children?.OfType<Visualiser>().ForEach(easing => easing.ResizeTo(new Vector2(size)));
             });
-
-            foreach (var type in easingTypes)
-            {
-                AddToggleStep($"toggle {type}", enabled =>
-                {
-                    var easingContainer = easingsContainer.Children.OfType<Visualiser>().Single(easing => easing.Easing == type);
-                    easingContainer.Visible.Value = enabled;
-                });
-            }
         }
 
         private class Visualiser : Container
         {
             private const float movement_duration = 1000f;
-            private const float pause_duration = 500f;
+            private const float pause_duration = 200f;
 
             public readonly Easing Easing;
-
-            public Bindable<bool> Visible { get; } = new BindableBool();
 
             private readonly CircularContainer dot;
 
@@ -70,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Easing = easing;
 
                 Size = new Vector2(default_size);
-                Padding = new MarginPadding(25);
+                Padding = new MarginPadding(5);
 
                 InternalChildren = new Drawable[]
                 {
@@ -113,8 +106,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-
-                Visible.BindValueChanged(e => Alpha = e.NewValue ? 1 : 0, true);
 
                 dot.MoveToX(1.0f, movement_duration, Easing)
                    .Then(pause_duration)

@@ -3,34 +3,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.MathUtils;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.Timing;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public abstract class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
-        protected FillFlowContainer TextFlow;
-        protected Box Background;
-        protected Drawable Caret;
-        protected Container TextContainer;
+        protected FillFlowContainer TextFlow { get; private set; }
+        protected Container TextContainer { get; private set; }
 
         public override bool HandleNonPositionalInput => HasFocus;
 
@@ -38,10 +32,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
         protected virtual float LeftRightPadding => 5;
-
-        protected virtual float CaretWidth => 3;
-
-        private const float caret_move_time = 60;
 
         public int? LengthLimit;
 
@@ -58,42 +48,10 @@ namespace osu.Framework.Graphics.UserInterface
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
 
-        [Resolved]
-        private AudioManager audio { get; set; }
-
         /// <summary>
         /// Whether this TextBox should accept left and right arrow keys for navigation.
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
-
-        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
-        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
-
-        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
-
-        protected Color4 BackgroundFocused
-        {
-            get => backgroundFocused;
-            set
-            {
-                backgroundFocused = value;
-                updateFocus();
-            }
-        }
-
-        protected Color4 BackgroundUnfocused
-        {
-            get => backgroundUnfocused;
-            set
-            {
-                backgroundUnfocused = value;
-                updateFocus();
-            }
-        }
-
-        protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
-
-        protected virtual Color4 InputErrorColour => Color4.Red;
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -102,7 +60,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether the character is allowed to be added.</returns>
         protected virtual bool CanAddCharacter(char character) => true;
 
-        public bool ReadOnly;
+        private bool readOnly;
+
+        public bool ReadOnly
+        {
+            get => readOnly;
+            set
+            {
+                readOnly = value;
+
+                if (readOnly)
+                    KillFocus();
+            }
+        }
 
         /// <summary>
         /// Whether the textbox should rescind focus on commit.
@@ -117,26 +87,25 @@ namespace osu.Framework.Graphics.UserInterface
         public override bool CanBeTabbedTo => !ReadOnly;
 
         private ITextInputSource textInput;
+
         private Clipboard clipboard;
+
+        private readonly Caret caret;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
-        public OnCommitHandler OnCommit;
+        /// <summary>
+        /// Fired whenever text is committed via a user action.
+        /// This usually happens on pressing enter, but can also be triggered on focus loss automatically, via <see cref="CommitOnFocusLost"/>.
+        /// </summary>
+        public event OnCommitHandler OnCommit;
 
-        private readonly Scheduler textUpdateScheduler = new Scheduler();
-
-        public TextBox()
+        protected TextBox()
         {
             Masking = true;
-            CornerRadius = 3;
 
             Children = new Drawable[]
             {
-                Background = new Box
-                {
-                    Colour = BackgroundUnfocused,
-                    RelativeSizeAxes = Axes.Both,
-                },
                 TextContainer = new Container
                 {
                     AutoSizeAxes = Axes.X,
@@ -144,10 +113,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
-                    Children = new[]
+                    Children = new Drawable[]
                     {
-                        Placeholder = CreatePlaceholder().With(p => p.X = CaretWidth),
-                        Caret = new DrawableCaret(),
+                        Placeholder = CreatePlaceholder(),
+                        caret = CreateCaret(),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
@@ -160,7 +129,16 @@ namespace osu.Framework.Graphics.UserInterface
                 },
             };
 
-            Current.ValueChanged += e => { Text = e.NewValue; };
+            Current.ValueChanged += e =>
+            {
+                // we generally want Text and Current to be synchronised at all times.
+                // a change to Text will trigger a Current set, and potentially cause a feedback loop which isn't always desirable
+                // (could lead to no animations playing out, etc.)
+                // the following guard is supposed to not allow that feedback loop to close.
+                if (Text != e.NewValue)
+                    Text = e.NewValue;
+            };
+            caret.Hide();
         }
 
         [BackgroundDependencyLoader]
@@ -168,53 +146,37 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
-
-            if (textInput != null)
-            {
-                textInput.OnNewImeComposition += s =>
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += s =>
-                {
-                    textUpdateScheduler.Add(onImeResult);
-                    cursorAndLayout.Invalidate();
-                };
-            }
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            textUpdateScheduler.SetCurrentThread(MainThread);
+            setText(Text);
         }
 
-        public virtual bool OnPressed(PlatformAction action)
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
-            int? amount = null;
-
             if (!HasFocus)
                 return false;
 
-            if (!HandleLeftRightArrows &&
-                action.ActionMethod == PlatformActionMethod.Move &&
-                (action.ActionType == PlatformActionType.CharNext || action.ActionType == PlatformActionType.CharPrevious))
+            if (!HandleLeftRightArrows && (e.Action == PlatformAction.MoveBackwardChar || e.Action == PlatformAction.MoveForwardChar))
                 return false;
 
-            switch (action.ActionType)
+            switch (e.Action)
             {
                 // Clipboard
-                case PlatformActionType.Cut:
-                case PlatformActionType.Copy:
+                case PlatformAction.Cut:
+                case PlatformAction.Copy:
                     if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
 
                     clipboard?.SetText(SelectedText);
-                    if (action.ActionType == PlatformActionType.Cut)
-                        removeCharacterOrSelection();
+
+                    if (e.Action == PlatformAction.Cut)
+                        DeleteBy(0);
+
                     return true;
 
-                case PlatformActionType.Paste:
+                case PlatformAction.Paste:
                     //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
                     string pending = textInput?.GetPendingText();
 
@@ -224,100 +186,164 @@ namespace osu.Framework.Graphics.UserInterface
                     InsertString(pending);
                     return true;
 
-                case PlatformActionType.SelectAll:
+                case PlatformAction.SelectAll:
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
                     return true;
 
                 // Cursor Manipulation
-                case PlatformActionType.CharNext:
-                    amount = 1;
-                    break;
+                case PlatformAction.MoveBackwardChar:
+                    MoveCursorBy(-1);
+                    return true;
 
-                case PlatformActionType.CharPrevious:
-                    amount = -1;
-                    break;
+                case PlatformAction.MoveForwardChar:
+                    MoveCursorBy(1);
+                    return true;
 
-                case PlatformActionType.LineEnd:
-                    amount = text.Length;
-                    break;
+                case PlatformAction.MoveBackwardWord:
+                    MoveCursorBy(GetBackwardWordAmount());
+                    return true;
 
-                case PlatformActionType.LineStart:
-                    amount = -text.Length;
-                    break;
+                case PlatformAction.MoveForwardWord:
+                    MoveCursorBy(GetForwardWordAmount());
+                    return true;
 
-                case PlatformActionType.WordNext:
-                    if (!AllowWordNavigation)
-                        amount = 1;
-                    else
-                    {
-                        int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
-                        while (searchNext < Text.Length && text[searchNext] == ' ')
-                            searchNext++;
-                        int nextSpace = text.IndexOf(' ', searchNext);
-                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
-                    }
+                case PlatformAction.MoveBackwardLine:
+                    MoveCursorBy(GetBackwardLineAmount());
+                    return true;
 
-                    break;
+                case PlatformAction.MoveForwardLine:
+                    MoveCursorBy(GetForwardLineAmount());
+                    return true;
 
-                case PlatformActionType.WordPrevious:
-                    if (!AllowWordNavigation)
-                        amount = -1;
-                    else
-                    {
-                        int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
-                        while (searchPrev > 0 && text[searchPrev] == ' ')
-                            searchPrev--;
-                        int lastSpace = text.LastIndexOf(' ', searchPrev);
-                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
-                    }
+                // Deletion
+                case PlatformAction.DeleteBackwardChar:
+                    DeleteBy(-1);
+                    return true;
 
-                    break;
-            }
+                case PlatformAction.DeleteForwardChar:
+                    DeleteBy(1);
+                    return true;
 
-            if (amount.HasValue)
-            {
-                switch (action.ActionMethod)
-                {
-                    case PlatformActionMethod.Move:
-                        resetSelection();
-                        moveSelection(amount.Value, false);
-                        break;
+                case PlatformAction.DeleteBackwardWord:
+                    DeleteBy(GetBackwardWordAmount());
+                    return true;
 
-                    case PlatformActionMethod.Select:
-                        moveSelection(amount.Value, true);
-                        break;
+                case PlatformAction.DeleteForwardWord:
+                    DeleteBy(GetForwardWordAmount());
+                    return true;
 
-                    case PlatformActionMethod.Delete:
-                        if (selectionLength == 0)
-                            selectionEnd = MathHelper.Clamp(selectionStart + amount.Value, 0, text.Length);
-                        if (selectionLength > 0)
-                            removeCharacterOrSelection();
-                        break;
-                }
+                case PlatformAction.DeleteBackwardLine:
+                    DeleteBy(GetBackwardLineAmount());
+                    return true;
 
-                return true;
+                case PlatformAction.DeleteForwardLine:
+                    DeleteBy(GetForwardLineAmount());
+                    return true;
+
+                // Expand selection
+                case PlatformAction.SelectBackwardChar:
+                    ExpandSelectionBy(-1);
+                    return true;
+
+                case PlatformAction.SelectForwardChar:
+                    ExpandSelectionBy(1);
+                    return true;
+
+                case PlatformAction.SelectBackwardWord:
+                    ExpandSelectionBy(GetBackwardWordAmount());
+                    return true;
+
+                case PlatformAction.SelectForwardWord:
+                    ExpandSelectionBy(GetForwardWordAmount());
+                    return true;
+
+                case PlatformAction.SelectBackwardLine:
+                    ExpandSelectionBy(GetBackwardLineAmount());
+                    return true;
+
+                case PlatformAction.SelectForwardLine:
+                    ExpandSelectionBy(GetForwardLineAmount());
+                    return true;
             }
 
             return false;
         }
 
-        public virtual bool OnReleased(PlatformAction action) => false;
-
-        internal override void UpdateClock(IFrameBasedClock clock)
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
-            base.UpdateClock(clock);
-            textUpdateScheduler.UpdateClock(Clock);
         }
 
-        private void resetSelection()
+        /// <summary>
+        /// Find the word boundary in the backward direction, then return the negative amount of characters.
+        /// </summary>
+        protected int GetBackwardWordAmount()
+        {
+            if (!AllowWordNavigation)
+                return -1;
+
+            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
+            while (searchPrev > 0 && text[searchPrev] == ' ')
+                searchPrev--;
+            int lastSpace = text.LastIndexOf(' ', searchPrev);
+            return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+        }
+
+        /// <summary>
+        /// Find the word boundary in the forward direction, then return the positive amount of characters.
+        /// </summary>
+        protected int GetForwardWordAmount()
+        {
+            if (!AllowWordNavigation)
+                return 1;
+
+            int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
+            while (searchNext < Text.Length && text[searchNext] == ' ')
+                searchNext++;
+            int nextSpace = text.IndexOf(' ', searchNext);
+            return (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+        }
+
+        // Currently only single line is supported and line length and text length are the same.
+        protected int GetBackwardLineAmount() => -text.Length;
+
+        protected int GetForwardLineAmount() => text.Length;
+
+        /// <summary>
+        /// Move the current cursor by the signed <paramref name="amount"/>.
+        /// </summary>
+        protected void MoveCursorBy(int amount)
         {
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
+            moveSelection(amount, false);
         }
 
-        private void updateFocus() => Background.FadeColour(HasFocus ? BackgroundFocused : BackgroundUnfocused, Background.IsLoaded ? 200 : 0);
+        /// <summary>
+        /// Expand the current selection by the signed <paramref name="amount"/>.
+        /// </summary>
+        protected void ExpandSelectionBy(int amount)
+        {
+            moveSelection(amount, true);
+        }
+
+        /// <summary>
+        /// If there is a selection, delete the selected text.
+        /// Otherwise, delete characters from the cursor position by the signed <paramref name="amount"/>.
+        /// A negative amount represents a backward deletion, and a positive amount represents a forward deletion.
+        /// </summary>
+        protected void DeleteBy(int amount)
+        {
+            if (selectionLength == 0)
+                selectionEnd = Math.Clamp(selectionStart + amount, 0, text.Length);
+
+            if (selectionLength > 0)
+            {
+                string removedText = removeSelection();
+                OnUserTextRemoved(removedText);
+            }
+        }
 
         protected override void Dispose(bool isDisposing)
         {
@@ -336,18 +362,15 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
 
-            textUpdateScheduler.Update();
-
-            float caretWidth = CaretWidth;
-
-            Vector2 cursorPos = Vector2.Zero;
+            float cursorPos = 0;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - CaretWidth / 2;
+                cursorPos = getPositionAt(selectionLeft);
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
+            float? selectionWidth = null;
             if (selectionLength > 0)
-                caretWidth = getPositionAt(selectionRight) - cursorPos.X;
+                selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
@@ -357,34 +380,20 @@ namespace osu.Framework.Graphics.UserInterface
                 textContainerPosX = cursorPosEnd - DrawWidth / 2 + LeftRightPadding * 2;
             }
 
-            textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
+            textContainerPosX = Math.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
 
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
             if (HasFocus)
-            {
-                Caret.ClearTransforms();
-                Caret.MoveTo(cursorPos, 60, Easing.Out);
-                Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
+                caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
 
-                if (selectionLength > 0)
-                {
-                    Caret
-                        .FadeTo(0.5f, 200, Easing.Out)
-                        .FadeColour(SelectionColour, 200, Easing.Out);
-                }
-                else
-                {
-                    Caret
-                        .FadeColour(Color4.White, 200, Easing.Out)
-                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
-                }
-            }
-
-            if (textAtLastLayout != text)
-                Current.Value = text;
             if (textAtLastLayout.Length == 0 || text.Length == 0)
-                Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
+            {
+                if (text.Length == 0)
+                    Placeholder.Show();
+                else
+                    Placeholder.Hide();
+            }
 
             textAtLastLayout = text;
         }
@@ -450,7 +459,7 @@ namespace osu.Framework.Graphics.UserInterface
             int oldEnd = selectionEnd;
 
             if (expand)
-                selectionEnd = MathHelper.Clamp(selectionEnd + offset, 0, text.Length);
+                selectionEnd = Math.Clamp(selectionEnd + offset, 0, text.Length);
             else
             {
                 if (selectionLength > 0 && Math.Abs(offset) <= 1)
@@ -462,33 +471,79 @@ namespace osu.Framework.Graphics.UserInterface
                         selectionEnd = selectionStart = selectionLeft;
                 }
                 else
-                    selectionEnd = selectionStart = MathHelper.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
+                    selectionEnd = selectionStart = Math.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
             }
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                audio.Samples.Get(@"Keyboard/key-movement")?.Play();
+                OnCaretMoved(expand);
                 cursorAndLayout.Invalidate();
             }
         }
 
-        private bool removeCharacterOrSelection(bool sound = true)
+        /// <summary>
+        /// Indicates whether a complex change operation to <see cref="Text"/> has begun.
+        /// This is relevant because, for example, an insertion operation with text selected is really a removal of the selection and an insertion.
+        /// We want to ensure that <see cref="Text"/> is transferred out to <see cref="Current"/> only at the end of such an operation chain.
+        /// </summary>
+        private bool textChanging;
+
+        /// <summary>
+        /// Starts a text change operation.
+        /// </summary>
+        /// <returns>Whether this call has initiated a text change.</returns>
+        private bool beginTextChange()
         {
-            if (Current.Disabled)
+            if (textChanging)
                 return false;
 
-            if (text.Length == 0) return false;
-            if (selectionLength == 0 && selectionLeft == 0) return false;
+            return textChanging = true;
+        }
 
-            int count = MathHelper.Clamp(selectionLength, 1, text.Length);
-            int start = MathHelper.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, text.Length - count);
+        /// <summary>
+        /// Ends a text change operation.
+        /// This causes <see cref="Text"/> to be transferred out to <see cref="Current"/>.
+        /// </summary>
+        /// <param name="started">The return value of a corresponding <see cref="beginTextChange"/> call should be passed here.</param>
+        private void endTextChange(bool started)
+        {
+            if (!started)
+                return;
 
-            if (count == 0) return false;
+            if (Current.Value != Text)
+                Current.Value = Text;
 
-            if (sound)
-                audio.Samples.Get(@"Keyboard/key-delete")?.Play();
+            textChanging = false;
+        }
 
-            foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
+        /// <summary>
+        /// Removes the selected text if a selection persists.
+        /// </summary>
+        private string removeSelection() => removeCharacters(selectionLength);
+
+        /// <summary>
+        /// Removes a specified <paramref name="number"/> of characters left side of the current position.
+        /// </summary>
+        /// <remarks>
+        /// If a selection persists, <see cref="removeSelection"/> must be called instead.
+        /// </remarks>
+        /// <returns>A string of the removed characters.</returns>
+        private string removeCharacters(int number = 1)
+        {
+            if (Current.Disabled || text.Length == 0)
+                return string.Empty;
+
+            int removeStart = Math.Clamp(selectionRight - number, 0, selectionRight);
+            int removeCount = selectionRight - removeStart;
+
+            if (removeCount == 0)
+                return string.Empty;
+
+            Debug.Assert(selectionLength == 0 || removeCount == selectionLength);
+
+            bool beganChange = beginTextChange();
+
+            foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
                 TextFlow.Remove(d);
 
@@ -497,22 +552,31 @@ namespace osu.Framework.Graphics.UserInterface
                 // account for potentially altered height of textbox
                 d.Y = TextFlow.BoundingBox.Y;
 
-                d.FadeOut(200);
-                d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
+                d.Hide();
                 d.Expire();
             }
 
-            text = text.Remove(start, count);
+            string removedText = text.Substring(removeStart, removeCount);
 
-            if (selectionLength > 0)
-                selectionStart = selectionEnd = selectionLeft;
-            else
-                selectionStart = selectionEnd = selectionLeft - 1;
+            text = text.Remove(removeStart, removeCount);
 
+            // Reorder characters depth after removal to avoid ordering issues with newly added characters.
+            for (int i = removeStart; i < TextFlow.Count; i++)
+                TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
+
+            selectionStart = selectionEnd = removeStart;
+
+            endTextChange(beganChange);
             cursorAndLayout.Invalidate();
-            return true;
+
+            return removedText;
         }
 
+        /// <summary>
+        /// Creates a single character. Override <see cref="Drawable.Show"/> and <see cref="Drawable.Hide"/> for custom behavior.
+        /// </summary>
+        /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
+        /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
         protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
@@ -525,13 +589,13 @@ namespace osu.Framework.Graphics.UserInterface
             TextFlow.RemoveRange(charsRight);
 
             // Update their depth to make room for the to-be inserted character.
-            int i = -selectionLeft;
+            int i = selectionLeft;
             foreach (Drawable d in charsRight)
-                d.Depth = --i;
+                d.Depth = getDepthForCharacterIndex(i++);
 
             // Add the character
             Drawable ch = GetDrawableCharacter(c);
-            ch.Depth = -selectionLeft;
+            ch.Depth = getDepthForCharacterIndex(selectionLeft);
 
             TextFlow.Add(ch);
 
@@ -541,77 +605,109 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
+        private float getDepthForCharacterIndex(int index) => -index;
+
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
-        /// <summary>
-        /// Insert an arbitrary string into the text at the current position.
-        /// </summary>
-        /// <param name="text">The new text to insert.</param>
-        protected void InsertString(string text)
+        protected void InsertString(string value) => insertString(value);
+
+        private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
         {
-            if (string.IsNullOrEmpty(text)) return;
+            if (string.IsNullOrEmpty(value)) return;
 
-            foreach (char c in text)
+            if (Current.Disabled)
             {
-                var ch = addCharacter(c);
+                NotifyInputError();
+                return;
+            }
 
-                if (ch == null)
+            bool beganChange = beginTextChange();
+
+            foreach (char c in value)
+            {
+                if (char.IsControl(c) || !CanAddCharacter(c))
                 {
-                    notifyInputError();
+                    NotifyInputError();
                     continue;
                 }
 
-                var col = (Color4)ch.Colour;
-                ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
+                if (selectionLength > 0)
+                    removeSelection();
+
+                if (text.Length + 1 > LengthLimit)
+                {
+                    NotifyInputError();
+                    break;
+                }
+
+                Drawable drawable = AddCharacterToFlow(c);
+
+                drawable.Show();
+                drawableCreationParameters?.Invoke(drawable);
+
+                text = text.Insert(selectionLeft, c.ToString());
+                selectionStart = selectionEnd = selectionLeft + 1;
+
+                cursorAndLayout.Invalidate();
             }
+
+            endTextChange(beganChange);
         }
 
-        private Drawable addCharacter(char c)
+        /// <summary>
+        /// Called whenever an invalid character has been entered
+        /// </summary>
+        protected abstract void NotifyInputError();
+
+        /// <summary>
+        /// Invoked when new text is added via user input.
+        /// </summary>
+        /// <param name="added">The text which was added.</param>
+        protected virtual void OnUserTextAdded(string added)
         {
-            if (Current.Disabled || char.IsControl(c) || !CanAddCharacter(c))
-                return null;
-
-            if (selectionLength > 0)
-                removeCharacterOrSelection();
-
-            if (text.Length + 1 > LengthLimit)
-            {
-                notifyInputError();
-                return null;
-            }
-
-            Drawable ch = AddCharacterToFlow(c);
-
-            text = text.Insert(selectionLeft, c.ToString());
-            selectionStart = selectionEnd = selectionLeft + 1;
-
-            cursorAndLayout.Invalidate();
-
-            return ch;
         }
 
-        private void notifyInputError()
+        /// <summary>
+        /// Invoked when text is removed via user input.
+        /// </summary>
+        /// <param name="removed">The text which was removed.</param>
+        protected virtual void OnUserTextRemoved(string removed)
         {
-            if (Background.Alpha > 0)
-                Background.FlashColour(InputErrorColour, 200);
-            else
-                TextFlow.FlashColour(InputErrorColour, 200);
         }
 
-        protected virtual SpriteText CreatePlaceholder() => new SpriteText
+        /// <summary>
+        /// Invoked whenever a text string has been committed to the textbox.
+        /// </summary>
+        /// <param name="textChanged">Whether the current text string is different than the last committed.</param>
+        protected virtual void OnTextCommitted(bool textChanged)
         {
-            Colour = Color4.Gray,
-        };
+        }
+
+        /// <summary>
+        /// Invoked whenever the caret has moved from its position.
+        /// </summary>
+        /// <param name="selecting">Whether the caret is selecting text while moving.</param>
+        protected virtual void OnCaretMoved(bool selecting)
+        {
+        }
+
+        /// <summary>
+        /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior.
+        /// </summary>
+        /// <returns>The placeholder</returns>
+        protected abstract SpriteText CreatePlaceholder();
 
         protected SpriteText Placeholder;
 
-        public string PlaceholderText
+        public LocalisableString PlaceholderText
         {
             get => Placeholder.Text;
             set => Placeholder.Text = value;
         }
 
-        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
+        protected abstract Caret CreateCaret();
+
+        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>(string.Empty);
 
         public Bindable<string> Current
         {
@@ -634,26 +730,32 @@ namespace osu.Framework.Graphics.UserInterface
 
                 lastCommitText = value ??= string.Empty;
 
-                Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
+                if (value.Length == 0)
+                    Placeholder.Show();
+                else
+                    Placeholder.Hide();
 
-                if (!IsLoaded)
-                    Current.Value = text = value;
-
-                textUpdateScheduler.Add(delegate
-                {
-                    int startBefore = selectionStart;
-                    selectionStart = selectionEnd = 0;
-                    TextFlow?.Clear();
-                    text = string.Empty;
-
-                    foreach (char c in value)
-                        addCharacter(c);
-
-                    selectionStart = MathHelper.Clamp(startBefore, 0, text.Length);
-                });
-
-                cursorAndLayout.Invalidate();
+                setText(value);
             }
+        }
+
+        private void setText(string value)
+        {
+            bool beganChange = beginTextChange();
+
+            int startBefore = selectionStart;
+            selectionStart = selectionEnd = 0;
+
+            TextFlow?.Clear();
+            text = string.Empty;
+
+            // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
+            insertString(value, d => d.FinishTransforms());
+
+            selectionStart = Math.Clamp(startBefore, 0, text.Length);
+
+            endTextChange(beganChange);
+            cursorAndLayout.Invalidate();
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
@@ -688,17 +790,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
-                if (pendingText.Any(char.IsUpper))
-                    audio.Samples.Get(@"Keyboard/key-caps")?.Play();
-                else
-                    audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-
                 InsertString(pendingText);
+                OnUserTextAdded(pendingText);
             }
 
             if (consumingText)
                 Schedule(consumePendingText);
         }
+
+        #region Input event handling
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -721,6 +821,11 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Enter:
                     Commit();
                     return true;
+
+                // avoid blocking certain keys which may be used during typing but don't produce characters.
+                case Key.BackSpace:
+                case Key.Delete:
+                    return false;
             }
 
             return base.OnKeyDown(e) || consumingText;
@@ -735,16 +840,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string lastCommitText;
 
-        private bool hasNewComittableText => text != lastCommitText;
-
         private void killFocus()
         {
             var manager = GetContainingInputManager();
-            if (manager.FocusedDrawable == this)
+            if (manager?.FocusedDrawable == this)
                 manager.ChangeFocus(null);
         }
 
-        protected void Commit()
+        /// <summary>
+        /// Commits current text on this <see cref="TextBox"/> and releases focus if <see cref="ReleaseFocusOnCommit"/> is set.
+        /// </summary>
+        protected virtual void Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
             {
@@ -754,27 +860,27 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
             }
 
-            Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
-            Background.ClearTransforms();
-            Background.FlashColour(BackgroundCommit, 400);
-
-            audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
-
-            OnCommit?.Invoke(this, hasNewComittableText);
+            bool isNew = text != lastCommitText;
             lastCommitText = text;
+
+            OnTextCommitted(isNew);
+            OnCommit?.Invoke(this, isNew);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.HasAnyKeyPressed)
                 EndConsumingText();
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             //if (textInput?.ImeActive == true) return true;
+
+            if (ReadOnly)
+                return;
 
             if (doubleClickWord != null)
             {
@@ -802,7 +908,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (text.Length == 0) return true;
+                if (text.Length == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
@@ -810,8 +916,6 @@ namespace osu.Framework.Graphics.UserInterface
 
                 cursorAndLayout.Invalidate();
             }
-
-            return true;
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -867,7 +971,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput?.ImeActive == true || ReadOnly) return true;
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -876,22 +980,16 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e)
+        protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
-            return true;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
             unbindInput();
 
-            Caret.ClearTransforms();
-            Caret.FadeOut(200);
-
-            Background.ClearTransforms();
-            Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
-
+            caret.Hide();
             cursorAndLayout.Invalidate();
 
             if (CommitOnFocusLost)
@@ -900,28 +998,34 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnClick(ClickEvent e) => !ReadOnly;
+        protected override bool OnClick(ClickEvent e)
+        {
+            if (!ReadOnly && HasFocus)
+                textInput?.EnsureActivated();
+
+            return !ReadOnly;
+        }
 
         protected override void OnFocus(FocusEvent e)
         {
             bindInput();
 
-            Background.ClearTransforms();
-            Background.FadeColour(BackgroundFocused, 200, Easing.Out);
-
+            caret.Show();
             cursorAndLayout.Invalidate();
         }
 
-        #region Native TextBox handling (winform specific)
+        #endregion
+
+        #region Native TextBox handling (platform-specific)
 
         private void unbindInput()
         {
-            textInput?.Deactivate(this);
+            textInput?.Deactivate();
         }
 
         private void bindInput()
         {
-            textInput?.Activate(this);
+            textInput?.Activate();
         }
 
         private void onImeResult()
@@ -929,7 +1033,7 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                foreach (Drawable d in imeDrawables)
+                foreach (var d in imeDrawables)
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
@@ -946,14 +1050,10 @@ namespace osu.Framework.Graphics.UserInterface
             //search for unchanged characters..
             int matchCount = 0;
             bool matching = true;
-            bool didDelete = false;
 
             int searchStart = text.Length - imeDrawables.Count;
 
-            //we want to keep processing to the end of the longest string (the current displayed or the new composition).
-            int maxLength = Math.Max(imeDrawables.Count, s.Length);
-
-            for (int i = 0; i < maxLength; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
                 {
@@ -962,62 +1062,32 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 matching = false;
+            }
 
-                if (matchCount < imeDrawables.Count)
-                {
-                    //if we are no longer matching, we want to remove all further characters.
-                    removeCharacterOrSelection(false);
-                    imeDrawables.RemoveAt(matchCount);
-                    didDelete = true;
-                }
+            int unmatchingCount = imeDrawables.Count - matchCount;
+
+            if (unmatchingCount > 0)
+            {
+                removeCharacters(unmatchingCount);
+                imeDrawables.RemoveRange(matchCount, unmatchingCount);
             }
 
             if (matchCount == s.Length)
-            {
                 //in the case of backspacing (or a NOP), we can exit early here.
-                if (didDelete)
-                    audio.Samples.Get(@"Keyboard/key-delete")?.Play();
                 return;
-            }
 
-            //add any new or changed characters
-            for (int i = matchCount; i < s.Length; i++)
+            string insertedText = s.Substring(matchCount);
+
+            insertString(insertedText, d =>
             {
-                Drawable dr = addCharacter(s[i]);
+                d.Colour = Color4.Aqua;
+                d.Alpha = 0.6f;
+                imeDrawables.Add(d);
+            });
 
-                if (dr != null)
-                {
-                    dr.Colour = Color4.Aqua;
-                    dr.Alpha = 0.6f;
-                    imeDrawables.Add(dr);
-                }
-            }
-
-            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            OnUserTextAdded(insertedText);
         }
 
         #endregion
-
-        private class DrawableCaret : CompositeDrawable
-        {
-            public DrawableCaret()
-            {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-                Alpha = 0;
-                Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
-
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
-                };
-            }
-        }
     }
 }

@@ -13,9 +13,10 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
 using osu.Framework.Screens;
+using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -27,21 +28,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TestScreen baseScreen;
         private ScreenStack stack;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Screen),
-            typeof(IScreen)
-        };
+        private readonly List<TestScreenSlow> slowLoaders = new List<TestScreenSlow>();
 
         [SetUp]
         public void SetupTest() => Schedule(() =>
         {
             Clear();
+
             Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
             });
+
+            stack.ScreenPushed += (last, current) =>
+            {
+                if (current is TestScreenSlow slow)
+                    slowLoaders.Add(slow);
+            };
         });
+
+        [TearDownSteps]
+        public void Teardown()
+        {
+            AddStep("unblock any slow loaders", () =>
+            {
+                foreach (var slow in slowLoaders)
+                    slow.AllowLoad.Set();
+
+                slowLoaders.Clear();
+            });
+        }
 
         [Test]
         public void TestPushFocusLost()
@@ -125,7 +141,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo == screen2);
             AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom == screen1);
 
-            AddAssert("ensure child", () => screen1.GetChildScreen() != null);
+            AddAssert("ensure child", () => screen1.GetChildScreen() == screen2);
+            AddAssert("ensure parent 1", () => screen1.GetParentScreen() == baseScreen);
+            AddAssert("ensure parent 2", () => screen2.GetParentScreen() == screen1);
 
             AddStep("pop", () => screen2.Exit());
 
@@ -134,6 +152,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
+            AddAssert("ensure parent gone", () => screen2.GetParentScreen() == null);
             AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
 
             AddStep("pop", () => screen1.Exit());
@@ -215,12 +234,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestScreenPushedAfterExiting()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push", () => stack.Push(screen1 = new TestScreen()));
+
+            AddUntilStep("wait for current", () => screen1.IsCurrentScreen());
+            AddStep("exit screen1", () => screen1.Exit());
+            AddUntilStep("ensure exited", () => !screen1.IsCurrentScreen());
+
+            AddStep("push again", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
+        }
+
+        [Test]
         public void TestPushToNonLoadedScreenFails()
         {
             TestScreenSlow screen1 = null;
 
             AddStep("push slow", () => stack.Push(screen1 = new TestScreenSlow()));
             AddStep("push second slow", () => Assert.Throws<InvalidOperationException>(() => screen1.Push(new TestScreenSlow())));
+        }
+
+        [Test]
+        public void TestPushAlreadyLoadedScreenFails()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push once", () => stack.Push(screen1 = new TestScreen()));
+            AddUntilStep("wait for screen to be loaded", () => screen1.IsLoaded);
+            AddStep("exit", () => screen1.Exit());
+            AddStep("push again fails", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
+            AddAssert("stack in valid state", () => stack.CurrentScreen == baseScreen);
         }
 
         [Test]
@@ -286,7 +331,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(id: 0))
                     {
                         RelativeSizeAxes = Axes.Both
                     });
@@ -296,13 +341,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Perform setup", () =>
             {
                 order = new List<int>();
-                screen1 = new TestScreenSlow
+                screen1 = new TestScreenSlow(1)
                 {
                     Entered = () => order.Add(1),
                     Suspended = () => order.Add(2),
                     Resumed = () => order.Add(5),
                 };
-                screen2 = new TestScreenSlow
+                screen2 = new TestScreenSlow(2)
                 {
                     Entered = () => order.Add(3),
                     Exited = () => order.Add(4),
@@ -345,6 +390,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
+        }
+
+        [Test]
+        public void TestEventsNotFiredBeforeScreenLoad()
+        {
+            Screen screen1 = null;
+            bool wasLoaded = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen
+            {
+                // ReSharper disable once AccessToModifiedClosure
+                Entered = () => wasLoaded &= screen1?.IsLoaded == true,
+                // ReSharper disable once AccessToModifiedClosure
+                Suspended = () => wasLoaded &= screen1?.IsLoaded == true,
+            });
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddAssert("was loaded before events", () => wasLoaded);
         }
 
         [Test]
@@ -445,6 +509,42 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
         }
 
+        [Test]
+        public void TestCallingExitFromBlockingExit()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            int screen1ResumedCount = 0;
+
+            bool blocking = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1)
+            {
+                Resumed = () => screen1ResumedCount++
+            });
+
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2)
+            {
+                Exiting = () =>
+                {
+                    if (blocking)
+                    {
+                        blocking = false;
+
+                        // ReSharper disable once AccessToModifiedClosure
+                        screen2.Exit();
+                        return true;
+                    }
+
+                    // this call should fail in a way the user can understand.
+                    return false;
+                }
+            }, () => screen1);
+
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 1 resumed only once", () => screen1ResumedCount == 1);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestMakeCurrentMidwayExitBlocking(bool validForResume)
@@ -535,7 +635,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             for (int i = 0; i < 5; i++)
             {
-                var local = i; // needed to store the correct value for our delegate
+                int local = i; // needed to store the correct value for our delegate
                 pushAndEnsureCurrent(() => screens[local], () => local > 0 ? screens[local - 1] : null);
             }
 
@@ -577,7 +677,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             for (int i = 0; i < screen_count; i++)
             {
-                var local = i; // needed to store the correct value for our delegate
+                int local = i; // needed to store the correct value for our delegate
                 pushAndEnsureCurrent(() => screens[local], () => local > 0 ? screens[local - 1] : null);
             }
 
@@ -660,6 +760,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
             AddStep("Make current the same screen", () => screen1.MakeCurrent());
             AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
+        }
+
+        [Test]
+        public void TestPushOnExiting()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return true;
+                };
+                return screen1;
+            });
+
+            AddStep("Exit screen 1", () => screen1.Exit());
+            AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
         }
 
         [Test]
@@ -751,6 +872,57 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Click center of screen", () => clickScreen(inputManager, screen2));
             AddAssert("screen 1 not clicked", () => screen1.ClickCount == 1);
             AddAssert("Screen 2 clicked", () => screen2.ClickCount == 1 && screen2.IsLoaded);
+        }
+
+        [Test]
+        public void TestMakeCurrentIntermediateResumes()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2)
+            {
+                Exiting = () => true
+            }, () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3), () => screen2);
+
+            AddStep("make screen1 current", () => screen1.MakeCurrent());
+
+            AddAssert("screen3 exited to screen2", () => screen3.ExitedTo == screen2);
+            AddAssert("screen2 resumed from screen3", () => screen2.ResumedFrom == screen3);
+        }
+
+        [Test]
+        public void TestGetChildScreenAndGetParentScreenReturnNullWhenNotInStack()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2), () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3), () => screen2);
+
+            AddStep("exit from screen 3", () => screen3.Exit());
+            AddAssert("screen 3 parent is null", () => screen3.GetParentScreen() == null);
+            AddAssert("screen 3 child is null", () => screen3.GetChildScreen() == null);
+        }
+
+        /// <summary>
+        /// Ensure that an intermediary screen doesn't block and doesn't attempt to fire events when not loaded.
+        /// </summary>
+        [Test]
+        public void TestMakeCurrentWhileScreensStillLoading()
+        {
+            TestScreen root = null;
+
+            pushAndEnsureCurrent(() => root = new TestScreen(id: 1));
+            AddStep("push slow", () => stack.Push(new TestScreenSlow { Exiting = () => true }));
+            AddStep("push second slow", () => stack.Push(new TestScreenSlow()));
+
+            AddStep("make screen1 current", () => root.MakeCurrent());
         }
 
         private void clickScreen(ManualInputManager inputManager, TestScreen screen)
@@ -901,6 +1073,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnEntering(IScreen last)
             {
+                attemptTransformMutation();
+
                 EnteredFrom = last;
                 Entered?.Invoke();
 
@@ -925,6 +1099,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override bool OnExiting(IScreen next)
             {
+                attemptTransformMutation();
+
                 ExitedTo = next;
                 Exited?.Invoke();
 
@@ -937,6 +1113,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnSuspending(IScreen next)
             {
+                attemptTransformMutation();
+
                 SuspendedTo = next;
                 Suspended?.Invoke();
 
@@ -946,11 +1124,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnResuming(IScreen last)
             {
+                attemptTransformMutation();
+
                 ResumedFrom = last;
                 Resumed?.Invoke();
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+            }
+
+            private void attemptTransformMutation()
+            {
+                // all callbacks should be in a state where transforms are able to be run.
+                this.FadeIn();
             }
 
             protected override bool OnClick(ClickEvent e)

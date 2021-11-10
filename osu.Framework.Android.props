@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <LangVersion>8.0</LangVersion>
     <OutputPath>bin\$(Configuration)</OutputPath>
@@ -26,7 +26,6 @@
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <EnableLLVM>false</EnableLLVM>
     <AndroidManagedSymbols>false</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
@@ -35,7 +34,6 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <EnableLLVM>true</EnableLLVM>
     <AndroidManagedSymbols>false</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
@@ -55,9 +53,5 @@
     <Reference Include="System.Core" />
     <Reference Include="Mono.Android" />
     <Reference Include="Java.Interop" />
-  </ItemGroup>
-  <ItemGroup Label="Package References">
-    <PackageReference Include="ManagedBass" Version="2.0.4" />
-    <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
   </ItemGroup>
 </Project>

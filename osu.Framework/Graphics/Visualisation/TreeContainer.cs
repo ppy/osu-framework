@@ -14,9 +14,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
-        public Action ToggleProperties;
+        public Action ToggleInspector;
 
-        internal PropertyDisplay PropertyDisplay { get; private set; }
+        internal DrawableInspector DrawableInspector { get; private set; }
 
         [Resolved]
         private DrawVisualiser visualiser { get; set; }
@@ -38,15 +38,16 @@ namespace osu.Framework.Graphics.Visualisation
             AddInternal(waitingText = new SpriteText
             {
                 Text = @"Waiting for target selection...",
+                Font = FrameworkFont.Regular,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
             });
 
             AddButton(@"choose target", () => ChooseTarget?.Invoke());
             AddButton(@"up one parent", () => GoUpOneParent?.Invoke());
-            AddButton(@"view properties", () => ToggleProperties?.Invoke());
+            AddButton(@"toggle inspector", () => ToggleInspector?.Invoke());
 
-            MainHorizontalContent.Add(PropertyDisplay = new PropertyDisplay());
+            MainHorizontalContent.Add(DrawableInspector = new DrawableInspector());
         }
 
         protected override void Update()

@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestButton : TestSceneButton
+    internal class TestButton : TestButtonBase
     {
         private SpriteIcon icon;
         private Container leftBoxContainer;

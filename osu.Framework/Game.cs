@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -16,15 +13,18 @@ using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Graphics.Visualisation.Audio;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osuTK;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalKeyboardInput
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -45,6 +45,12 @@ namespace osu.Framework
 
         public ShaderManager Shaders { get; private set; }
 
+        /// <summary>
+        /// A store containing fonts accessible game-wide.
+        /// </summary>
+        /// <remarks>
+        /// It is recommended to use <see cref="AddFont"/> when adding new fonts.
+        /// </remarks>
         public FontStore Fonts { get; private set; }
 
         private FontStore localFonts;
@@ -55,7 +61,11 @@ namespace osu.Framework
 
         private DrawVisualiser drawVisualiser;
 
+        private TextureVisualiser textureVisualiser;
+
         private LogOverlay logOverlay;
+
+        private AudioMixerVisualiser audioMixerVisualiser;
 
         protected override Container<Drawable> Content => content;
 
@@ -68,6 +78,14 @@ namespace osu.Framework
         /// </remarks>
         /// </summary>
         protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
+
+        /// <summary>
+        /// Creates the <see cref="Storage"/> where this <see cref="Game"/> will reside.
+        /// </summary>
+        /// <param name="host">The <see cref="GameHost"/>.</param>
+        /// <param name="defaultStorage">The default <see cref="Storage"/> to be used if a custom <see cref="Storage"/> isn't desired.</param>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected internal virtual Storage CreateStorage(GameHost host, Storage defaultStorage) => defaultStorage;
 
         protected Game()
         {
@@ -105,7 +123,7 @@ namespace osu.Framework
         private void load(FrameworkConfigManager config)
         {
             Resources = new ResourceStore<byte[]>();
-            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
             Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
@@ -134,7 +152,7 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
-            var cacheStorage = Host.Storage.GetStorageForDirectory(Path.Combine("cache", "fonts"));
+            var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
             Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
@@ -143,20 +161,62 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+            // Roboto (FrameworkFont.Regular)
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic");
 
-            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
-            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
-            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
+            // RobotoCondensed (FrameworkFont.Condensed)
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
+
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands");
 
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
+
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+
+            executionMode = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
+
+            logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
+            logOverlayVisibility.BindValueChanged(visibility =>
+            {
+                if (visibility.NewValue)
+                {
+                    if (logOverlay == null)
+                    {
+                        LoadComponentAsync(logOverlay = new LogOverlay
+                        {
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    logOverlay.Show();
+                }
+                else
+                {
+                    logOverlay?.Hide();
+                }
+            }, true);
         }
+
+        /// <summary>
+        /// Add a font to be globally accessible to the game.
+        /// </summary>
+        /// <param name="store">The backing store with font resources.</param>
+        /// <param name="assetName">The base name of the font.</param>
+        /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
+        public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+            => addFont(target ?? Fonts, store, assetName);
+
+        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+            => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
         protected override void LoadComplete()
         {
@@ -164,7 +224,7 @@ namespace osu.Framework
 
             PerformanceOverlay performanceOverlay;
 
-            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads.Reverse())
+            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads)
             {
                 Margin = new MarginPadding(5),
                 Direction = FillDirection.Vertical,
@@ -183,11 +243,18 @@ namespace osu.Framework
 
         private GlobalStatisticsDisplay globalStatistics;
 
-        public bool OnPressed(FrameworkAction action)
+        private Bindable<bool> logOverlayVisibility;
+
+        private Bindable<FrameSync> frameSyncMode;
+
+        private Bindable<ExecutionMode> executionMode;
+
+        public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
-            switch (action)
+            switch (e.Action)
             {
                 case FrameworkAction.CycleFrameStatistics:
+
                     switch (FrameStatistics.Value)
                     {
                         case FrameStatisticsMode.None:
@@ -205,27 +272,13 @@ namespace osu.Framework
 
                     return true;
 
-                case FrameworkAction.ToggleGlobalStatistics:
-
-                    if (globalStatistics == null)
-                    {
-                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
-                        {
-                            Depth = float.MinValue / 2,
-                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
-                        }, AddInternal);
-                    }
-
-                    globalStatistics.ToggleVisibility();
-                    return true;
-
                 case FrameworkAction.ToggleDrawVisualiser:
 
                     if (drawVisualiser == null)
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
-                            ToolPosition = new Vector2(100),
+                            ToolPosition = getCascadeLocation(0),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
@@ -233,27 +286,99 @@ namespace osu.Framework
                     drawVisualiser.ToggleVisibility();
                     return true;
 
-                case FrameworkAction.ToggleLogOverlay:
-                    if (logOverlay == null)
+                case FrameworkAction.ToggleGlobalStatistics:
+
+                    if (globalStatistics == null)
                     {
-                        LoadComponentAsync(logOverlay = new LogOverlay
+                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
                         {
+                            Depth = float.MinValue / 2,
+                            Position = getCascadeLocation(1),
+                        }, AddInternal);
+                    }
+
+                    globalStatistics.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleAtlasVisualiser:
+
+                    if (textureVisualiser == null)
+                    {
+                        LoadComponentAsync(textureVisualiser = new TextureVisualiser
+                        {
+                            Position = getCascadeLocation(2),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
 
-                    logOverlay.ToggleVisibility();
+                    textureVisualiser.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleAudioMixerVisualiser:
+                    if (audioMixerVisualiser == null)
+                    {
+                        LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
+                        {
+                            Position = getCascadeLocation(3),
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    audioMixerVisualiser.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleLogOverlay:
+                    logOverlayVisibility.Value = !logOverlayVisibility.Value;
                     return true;
 
                 case FrameworkAction.ToggleFullscreen:
                     Window?.CycleMode();
+                    return true;
+
+                case FrameworkAction.CycleFrameSync:
+                    var nextFrameSync = frameSyncMode.Value + 1;
+
+                    if (nextFrameSync > FrameSync.Unlimited)
+                        nextFrameSync = FrameSync.VSync;
+
+                    frameSyncMode.Value = nextFrameSync;
+                    break;
+
+                case FrameworkAction.CycleExecutionMode:
+                    var nextExecutionMode = executionMode.Value + 1;
+
+                    if (nextExecutionMode > ExecutionMode.MultiThreaded)
+                        nextExecutionMode = ExecutionMode.SingleThread;
+
+                    executionMode.Value = nextExecutionMode;
+                    break;
+            }
+
+            return false;
+
+            Vector2 getCascadeLocation(int index)
+                => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
+        }
+
+        public void OnReleased(KeyBindingReleaseEvent<FrameworkAction> e)
+        {
+        }
+
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
+        {
+            switch (e.Action)
+            {
+                case PlatformAction.Exit:
+                    Host.Window?.Close();
                     return true;
             }
 
             return false;
         }
 
-        public bool OnReleased(FrameworkAction action) => false;
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
+        {
+        }
 
         public void Exit()
         {
@@ -267,10 +392,23 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            // ensure any async disposals are completed before we begin to rip components out.
+            // if we were to not wait, async disposals may throw unexpected exceptions.
+            AsyncDisposalQueue.WaitForEmpty();
+
             base.Dispose(isDisposing);
+
+            // call a second time to protect against anything being potentially async disposed in the base.Dispose call.
+            AsyncDisposalQueue.WaitForEmpty();
 
             Audio?.Dispose();
             Audio = null;
+
+            Fonts?.Dispose();
+            Fonts = null;
+
+            localFonts?.Dispose();
+            localFonts = null;
         }
     }
 }

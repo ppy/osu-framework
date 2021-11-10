@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
+using osuTK;
 
 namespace osu.Framework.Tests.Containers
 {
@@ -42,8 +43,7 @@ namespace osu.Framework.Tests.Containers
         }
 
         /// <summary>
-        /// Tests whether adding a child to multiple containers by abusing <see cref="Container{T}.Children"/>
-        /// results in a <see cref="InvalidOperationException"/>.
+        /// Tests whether adding a child to multiple containers results in a <see cref="InvalidOperationException"/>.
         /// </summary>
         [Test]
         public void TestPreLoadMultipleAdds()
@@ -51,13 +51,12 @@ namespace osu.Framework.Tests.Containers
             // Non-async
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var unused = new Container
+                var unused1 = new Container
                 {
-                    // Container is an IReadOnlyList<T>, so Children can accept a Container.
-                    // This further means that CompositeDrawable.AddInternal will try to add all of
-                    // the children of the Container that was set to Children, which should throw an exception
-                    Children = new Container { Child = new Container() }
+                    Child = new Container(),
                 };
+
+                var unused2 = new Container { Child = unused1.Child };
             });
         }
 
@@ -74,14 +73,12 @@ namespace osu.Framework.Tests.Containers
 
                 try
                 {
-                    loadedContainer.Add(new Container
+                    var unused = new Container
                     {
-                        // Container is an IReadOnlyList<T>, so Children can accept a Container.
-                        // This further means that CompositeDrawable.AddInternal will try to add all of
-                        // the children of the Container that was set to Children, which should throw an exception
-                        Children = new Container { Child = new Container() }
-                    });
+                        Child = new Container(),
+                    };
 
+                    loadedContainer.Add(new Container { Child = unused.Child });
                     return false;
                 }
                 catch (InvalidOperationException)
@@ -89,6 +86,26 @@ namespace osu.Framework.Tests.Containers
                     return true;
                 }
             });
+        }
+
+        /// <summary>
+        /// Tests whether a drawable that is loaded can be added to an unloaded container.
+        /// </summary>
+        [Test]
+        public void TestAddLoadedDrawableToUnloadedContainer()
+        {
+            Drawable target = null;
+
+            AddStep("load target", () =>
+            {
+                Add(target = new Box { Size = new Vector2(100) });
+
+                // Empty scheduler to force creation of the scheduler.
+                target.Schedule(() => { });
+            });
+
+            AddStep("remove target", () => Remove(target));
+            AddStep("add target to unloaded container", () => Add(new Container { Child = target }));
         }
 
         /// <summary>
@@ -152,6 +169,8 @@ namespace osu.Framework.Tests.Containers
 
             Assert.That(container, Has.Count.Zero);
             Assert.That(unbound, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [TestCase(false)]
@@ -182,6 +201,8 @@ namespace osu.Framework.Tests.Containers
             }
 
             Assert.That(disposed, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [Test]
@@ -213,6 +234,43 @@ namespace osu.Framework.Tests.Containers
             AddStep("allow load", () => drawable.AllowLoad.Set());
 
             AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
+        }
+
+        [Test]
+        public void TestExpireChildAfterLoad()
+        {
+            Container container = null;
+            Drawable child = null;
+
+            AddStep("add container and child", () =>
+            {
+                Add(container = new Container
+                {
+                    Child = child = new Box()
+                });
+            });
+
+            AddStep("expire child", () => child.Expire());
+
+            AddUntilStep("container has no children", () => container.Count == 0);
+        }
+
+        [Test]
+        public void TestExpireChildBeforeLoad()
+        {
+            Container container = null;
+
+            AddStep("add container", () => Add(container = new Container()));
+
+            AddStep("add expired child", () =>
+            {
+                var child = new Box();
+                child.Expire();
+
+                container.Add(child);
+            });
+
+            AddUntilStep("container has no children", () => container.Count == 0);
         }
 
         private class DelayedLoadDrawable : CompositeDrawable
@@ -266,6 +324,30 @@ namespace osu.Framework.Tests.Containers
             });
 
             AddAssert("correct count", () => count == 2);
+        }
+
+        [Test]
+        public void TestAliveChildrenContainsOnlyAliveChildren()
+        {
+            Container container = null;
+            Drawable aliveChild = null;
+            Drawable nonAliveChild = null;
+
+            AddStep("create container", () =>
+            {
+                Child = container = new Container
+                {
+                    Children = new[]
+                    {
+                        aliveChild = new Box(),
+                        nonAliveChild = new Box { LifetimeStart = double.MaxValue }
+                    }
+                };
+            });
+
+            AddAssert("1 alive child", () => container.AliveChildren.Count == 1);
+            AddAssert("alive child contained", () => container.AliveChildren.Contains(aliveChild));
+            AddAssert("non-alive child not contained", () => !container.AliveChildren.Contains(nonAliveChild));
         }
 
         private class TestContainer : Container

@@ -9,14 +9,14 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>
-        where TVertex : IVertex, IEquatable<TVertex>
+        where TVertex : struct, IVertex, IEquatable<TVertex>
     {
         public TVertex Vertex;
 
         [VertexMember(1, VertexAttribPointerType.Float)]
         public float BackbufferDrawDepth;
 
-        public bool Equals(DepthWrappingVertex<TVertex> other)
+        public readonly bool Equals(DepthWrappingVertex<TVertex> other)
             => Vertex.Equals(other.Vertex)
                && BackbufferDrawDepth.Equals(other.BackbufferDrawDepth);
     }

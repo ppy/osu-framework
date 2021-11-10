@@ -7,6 +7,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Timing;
 
@@ -193,6 +194,26 @@ namespace osu.Framework.Tests.Visual.Containers
             validate(1);
         }
 
+        [Test]
+        public void TestLifetimeMutatingChildren()
+        {
+            AddStep("detach container", () => Remove(container));
+
+            TestLifetimeMutatingChild first = null, second = null;
+            AddStep("add children", () =>
+            {
+                container.AddInternal(first = new TestLifetimeMutatingChild(3, 5));
+                container.AddInternal(second = new TestLifetimeMutatingChild(3, 5));
+            });
+
+            AddStep("process single frame when children alive", () =>
+            {
+                manualClock.CurrentTime = 4;
+                container.UpdateSubTree();
+            });
+            AddAssert("both children processed", () => first.Processed && second.Processed);
+        }
+
         [Test, Ignore("Takes too long. Unignore when you changed relevant code.")]
         public void TestFuzz()
         {
@@ -204,11 +225,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 r = rng.Next(5);
 
                 if (l > r)
-                {
-                    var l1 = l;
-                    l = r;
-                    r = l1;
-                }
+                    (l, r) = (r, l);
 
                 ++r;
             }
@@ -224,7 +241,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             void addChild()
             {
-                randomLifetime(out var l, out var r);
+                randomLifetime(out double l, out double r);
                 container.AddInternal(new TestChild(l, r));
                 checkAll();
             }
@@ -239,10 +256,13 @@ namespace osu.Framework.Tests.Visual.Containers
             void changeLifetime()
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
-                randomLifetime(out var l, out var r);
+                randomLifetime(out double l, out double r);
                 Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
                 child.LifetimeStart = l;
                 child.LifetimeEnd = r;
+
+                // This is called from boundary crossing events and results in timing issues if the LTMC is not updated in time. Force an update here to prevent such issues.
+                container.UpdateSubTree();
                 checkAll();
             }
 
@@ -321,6 +341,24 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
+        public class TestLifetimeMutatingChild : TestChild
+        {
+            public bool Processed { get; private set; }
+
+            public TestLifetimeMutatingChild(double lifetimeStart, double lifetimeEnd)
+                : base(lifetimeStart, lifetimeEnd)
+            {
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                LifetimeEnd = LifetimeStart;
+                Processed = true;
+            }
+        }
+
         public class TestContainer : LifetimeManagementContainer
         {
             public event Action<LifetimeBoundaryCrossedEvent> OnCrossing;
@@ -340,6 +378,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 OnCrossing?.Invoke(e);
             }
+
+            public new void UpdateSubTree() => base.UpdateSubTree();
         }
     }
 }

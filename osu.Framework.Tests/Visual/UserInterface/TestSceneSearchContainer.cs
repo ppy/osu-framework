@@ -91,6 +91,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(count);
         }
 
+        [TestCase("tst", 2)]
+        [TestCase("ssn 1", 6)]
+        [TestCase("sns 1", 0)]
+        [TestCase("hdr", 8)]
+        [TestCase("tt", 2)]
+        [TestCase("ttt", 0)]
+        public void TestEagerFilteringEnabled(string term, int count)
+        {
+            AddStep("set non-contiguous on", () => search.AllowNonContiguousMatching = true);
+            setTerm(term);
+            checkCount(count);
+        }
+
+        [TestCase("tst", 0)]
+        [TestCase("ssn 1", 0)]
+        [TestCase("sns 1", 0)]
+        [TestCase("hdr", 0)]
+        [TestCase("tt", 0)]
+        [TestCase("ttt", 0)]
+        public void TestEagerFilteringDisabled(string term, int count)
+        {
+            AddStep("set non-contiguous off", () => search.AllowNonContiguousMatching = false);
+            setTerm(term);
+            checkCount(count);
+        }
+
         [TestCase]
         public void TestRefilterAfterNewChild()
         {

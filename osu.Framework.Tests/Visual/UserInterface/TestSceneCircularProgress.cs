@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Textures;
@@ -15,8 +13,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneCircularProgress : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode) };
-
         private readonly CircularProgress clock;
 
         private int rotateMode;
@@ -177,7 +173,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 1:
-                    clock.Colour = new Color4(255, 128, 128, 255);
+                    clock.Colour = new Color4(255, 88, 88, 255);
                     break;
 
                 case 2:

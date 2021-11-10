@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
@@ -38,7 +39,7 @@ namespace osu.Framework.Tests.Lists
         public void TestEmptyJaggedToRectangular()
         {
             int[,] result = null;
-            Assert.DoesNotThrow(() => result = new int[0][].ToRectangular());
+            Assert.DoesNotThrow(() => result = Array.Empty<int[]>().ToRectangular());
             Assert.AreEqual(0, result.Length);
         }
 
@@ -54,7 +55,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestJaggedColumnToRectangular()
         {
-            var jagged = new int[10][];
+            int[][] jagged = new int[10][];
 
             int[,] result = null;
             Assert.DoesNotThrow(() => result = jagged.ToRectangular());
@@ -74,7 +75,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestJaggedRowToRectangular()
         {
-            var jagged = new int[1][];
+            int[][] jagged = new int[1][];
             jagged[0] = new int[10];
 
             int[,] result = null;
@@ -96,7 +97,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestSquareJaggedToRectangular()
         {
-            var jagged = new int[10][];
+            int[][] jagged = new int[10][];
             for (int i = 0; i < 10; i++)
                 jagged[i] = new int[10];
 
@@ -109,7 +110,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestNonSquareJaggedToRectangular()
         {
-            var jagged = new int[10][];
+            int[][] jagged = new int[10][];
             for (int i = 0; i < 10; i++)
                 jagged[i] = new int[i];
 
@@ -122,7 +123,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestNonSquareJaggedWithNullRowsToRectangular()
         {
-            var jagged = new int[10][];
+            int[][] jagged = new int[10][];
 
             for (int i = 1; i < 10; i += 2)
             {
@@ -142,14 +143,14 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestInvertRectangular()
         {
-            var original = new int?[,]
+            int?[,] original =
             {
                 { 1, 2, null },
                 { null, 3, 4 },
                 { 5, 6, null }
             };
 
-            var result = original.Invert();
+            int?[,] result = original.Invert();
 
             Assert.AreEqual(1, result[0, 0]);
             Assert.AreEqual(2, result[1, 0]);
@@ -166,7 +167,7 @@ namespace osu.Framework.Tests.Lists
         public void TestInvertJagged()
         {
             // 4x5 array
-            var original = new[]
+            int?[][] original =
             {
                 new int?[] { 1, 2, null },
                 new int?[] { 3, 4 },
@@ -174,7 +175,7 @@ namespace osu.Framework.Tests.Lists
                 new int?[] { null, 5, 6, 7, 8 }
             };
 
-            var result = original.Invert();
+            int?[][] result = original.Invert();
 
             // Ensure 5x4 array
             Assert.AreEqual(5, result.Length);

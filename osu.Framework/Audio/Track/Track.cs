@@ -1,42 +1,28 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using osu.Framework.Statistics;
-using osu.Framework.Timing;
 using System;
-using osu.Framework.Bindables;
+using System.Threading.Tasks;
+using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasTempoAdjust, ITrack
+    public abstract class Track : AdjustableAudioComponent, ITrack, IAudioChannel
     {
-        public event Action Completed;
-        public event Action Failed;
+        public event Action? Completed;
+        public event Action? Failed;
 
         protected virtual void RaiseCompleted() => Completed?.Invoke();
         protected virtual void RaiseFailed() => Failed?.Invoke();
 
-        /// <summary>
-        /// Is this track capable of producing audio?
-        /// </summary>
         public virtual bool IsDummyDevice => true;
 
-        /// <summary>
-        /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
-        /// </summary>
         public double RestartPoint { get; set; }
 
-        /// <summary>
-        /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
-        /// </summary>
-        public readonly BindableDouble Tempo = new BindableDouble(1);
-
-        protected Track()
-        {
-            Tempo.ValueChanged += InvalidateState;
-        }
-
-        protected override void OnLooping() => Restart();
+        public virtual bool Looping { get; set; }
 
         /// <summary>
         /// Reset this track to a logical default state.
@@ -63,8 +49,8 @@ namespace osu.Framework.Audio.Track
 
         public virtual void ResetSpeedAdjustments()
         {
-            Frequency.Value = 1;
-            Tempo.Value = 1;
+            RemoveAllAdjustments(AdjustableProperty.Frequency);
+            RemoveAllAdjustments(AdjustableProperty.Tempo);
         }
 
         /// <summary>
@@ -115,34 +101,38 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual double Rate
         {
-            get => Frequency.Value * Tempo.Value;
-            set => throw new InvalidOperationException($"Setting {nameof(Rate)} directly on a {nameof(Track)} is not supported. Set {nameof(IHasPitchAdjust.PitchAdjust)} or {nameof(IHasTempoAdjust.TempoAdjust)} instead.");
+            get => AggregateFrequency.Value * AggregateTempo.Value;
+            set => throw new InvalidOperationException($"Setting {nameof(Rate)} directly on a {nameof(Track)} is not supported. Set {nameof(Tempo)} or {nameof(Frequency)} instead.");
         }
 
         public bool IsReversed => Rate < 0;
 
         public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
 
-        /// <summary>
-        /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
-        /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
-        /// The most recent values are returned. Synchronisation between channels should not be expected.
-        /// </summary>
-        public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
-
-        /// <summary>
-        /// The playback tempo multiplier for this track, where 1 is the original speed.
-        /// </summary>
-        public double TempoAdjust
-        {
-            get => Tempo.Value;
-            set => Tempo.Value = value;
-        }
+        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
         protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
+
             base.UpdateState();
+
+            if (Looping && HasCompleted)
+                Restart();
         }
+
+        #region Mixing
+
+        protected virtual AudioMixer? Mixer { get; set; }
+
+        AudioMixer? IAudioChannel.Mixer
+        {
+            get => Mixer;
+            set => Mixer = value;
+        }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
+
+        #endregion
     }
 }

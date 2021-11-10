@@ -1,12 +1,23 @@
 # EditorConfig is awesome: http://editorconfig.org
 root = true
 
+[*.{csproj,props,targets}]
+charset = utf-8-bom
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
 [*.cs]
 end_of_line = crlf
 insert_final_newline = true
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
+
+#license header
+file_header_template = Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.\nSee the LICENCE file in the repository root for full licence text.
 
 #Roslyn naming styles
 
@@ -121,7 +132,7 @@ dotnet_style_qualification_for_event = false:warning
 dotnet_style_predefined_type_for_locals_parameters_members = true:warning
 dotnet_style_predefined_type_for_member_access = true:warning
 csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_for_built_in_types = true:none
+csharp_style_var_for_built_in_types = false:warning
 csharp_style_var_elsewhere = true:silent
 
 #Style - modifiers
@@ -135,7 +146,7 @@ csharp_preferred_modifier_order = public,private,protected,internal,new,abstract
 csharp_style_expression_bodied_accessors = true:warning
 csharp_style_expression_bodied_constructors = false:none
 csharp_style_expression_bodied_indexers = true:warning
-csharp_style_expression_bodied_methods = true:silent
+csharp_style_expression_bodied_methods = false:silent
 csharp_style_expression_bodied_operators = true:warning
 csharp_style_expression_bodied_properties = true:warning
 csharp_style_expression_bodied_local_functions = true:silent
@@ -176,8 +187,8 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:silent
 #Style - C# 8 features
 csharp_prefer_static_local_function = true:warning
 csharp_prefer_simple_using_statement = true:silent
-csharp_style_prefer_index_operator = false:none
-csharp_style_prefer_range_operator = false:none
+csharp_style_prefer_index_operator = true:warning
+csharp_style_prefer_range_operator = true:warning
 csharp_style_prefer_switch_expression = false:none
 
 #Supressing roslyn built-in analyzers
@@ -192,3 +203,18 @@ dotnet_diagnostic.IDE0052.severity = silent
 dotnet_diagnostic.IDE0067.severity = none
 dotnet_diagnostic.IDE0068.severity = none
 dotnet_diagnostic.IDE0069.severity = none
+
+#File header
+dotnet_diagnostic.IDE0073.severity = warning
+
+#Disable operator overloads requiring alternate named methods
+dotnet_diagnostic.CA2225.severity = none
+
+# Banned APIs
+dotnet_diagnostic.RS0030.severity = error
+
+[*.{yaml,yml}]
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true

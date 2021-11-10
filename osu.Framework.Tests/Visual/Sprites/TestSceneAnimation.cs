@@ -2,140 +2,317 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneAnimation : GridTestScene
+    public class TestSceneAnimation : FrameworkTestScene
     {
-        public TestSceneAnimation()
-            : base(2, 3)
-        {
-            Cell(0, 0).Child = createTest("texture - auto size", () => new TestTextureAnimation());
-            Cell(0, 1).Child = createTest("texture - relative size + fit", () => new TestTextureAnimation
-            {
-                RelativeSizeAxes = Axes.Both,
-                FillMode = FillMode.Fit
-            });
-            Cell(0, 2).Child = createTest("texture - fixed size", () => new TestTextureAnimation { Size = new Vector2(100, 50) });
+        private SpriteText timeText;
 
-            Cell(1, 0).Child = createTest("drawable - auto size", () => new TestDrawableAnimation());
-            Cell(1, 1).Child = createTest("drawable - relative size + fit", () => new TestDrawableAnimation(Axes.Both)
+        private ManualClock clock;
+
+        private TestAnimation animation;
+        private Container animationContainer;
+
+        [Resolved]
+        private FontStore fontStore { get; set; }
+
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddStep("load container", () =>
             {
-                RelativeSizeAxes = Axes.Both,
-                FillMode = FillMode.Fit
+                Children = new Drawable[]
+                {
+                    animationContainer = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Clock = new FramedClock(clock = new ManualClock()),
+                    },
+                    timeText = new SpriteText { Text = "Animation is loading..." }
+                };
             });
-            Cell(1, 2).Child = createTest("drawable - fixed size", () => new TestDrawableAnimation(Axes.Both) { Size = new Vector2(100, 50) });
+
+            loadNewAnimation();
+
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
-        private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new Container
+        [Test]
+        public void TestFrameSeeking()
         {
-            RelativeSizeAxes = Axes.Both,
-            Padding = new MarginPadding(10),
-            Child = new GridContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Content = new[]
-                {
-                    new Drawable[]
-                    {
-                        new SpriteText
-                        {
-                            Anchor = Anchor.TopCentre,
-                            Origin = Anchor.TopCentre,
-                            Text = name
-                        },
-                    },
-                    new Drawable[]
-                    {
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            BorderColour = Color4.OrangeRed,
-                            BorderThickness = 2,
-                            Children = new[]
-                            {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Alpha = 0,
-                                    AlwaysPresent = true
-                                },
-                                animationCreationFunc()
-                            }
-                        }
-                    },
-                },
-                RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
-            }
-        };
+            AddAssert("frame count is correct", () => animation.FrameCount == TestAnimation.LOADABLE_FRAMES);
+            AddUntilStep("wait for frames to pass", () => animation.CurrentFrameIndex > 10);
+            AddStep("stop animation", () => animation.Stop());
+            AddAssert("is stopped", () => !animation.IsPlaying);
 
-        private class TestDrawableAnimation : DrawableAnimation
+            AddStep("goto frame 60", () => animation.GotoFrame(60));
+            AddAssert("is at frame 60", () => animation.CurrentFrameIndex == 60);
+
+            AddStep("goto frame 30", () => animation.GotoFrame(30));
+            AddAssert("is at frame 30", () => animation.CurrentFrameIndex == 30);
+
+            AddStep("goto frame 60", () => animation.GotoFrame(60));
+            AddAssert("is at frame 60", () => animation.CurrentFrameIndex == 60);
+
+            AddStep("start animation", () => animation.Play());
+            AddUntilStep("continues to frame 70", () => animation.CurrentFrameIndex == 70);
+        }
+
+        [Test]
+        public void TestStartFromCurrentTime()
         {
-            public TestDrawableAnimation(Axes contentRelativeAxes = Axes.None)
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+
+            AddWaitStep("Wait some", 20);
+
+            loadNewAnimation();
+
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+        }
+
+        [Test]
+        public void TestStoppedAnimationIsAtZero()
+        {
+            loadNewAnimation(postLoadAction: a => a.Stop());
+            AddAssert("Animation is at start", () => animation.PlaybackPosition == 0);
+        }
+
+        [Test]
+        public void TestStoppedAnimationIsAtSpecifiedFrame()
+        {
+            loadNewAnimation(postLoadAction: a => a.GotoAndStop(2));
+            AddAssert("Animation is at specific frame", () => animation.PlaybackPosition == 500);
+        }
+
+        [Test]
+        public void TestPauseThenResume()
+        {
+            loadNewAnimation(false, postLoadAction: a => a.Stop());
+
+            AddWaitStep("wait some", 10);
+
+            AddStep("play", () => animation.Play());
+
+            AddAssert("time is near start", () => animation.CurrentFrameIndex < 2);
+        }
+
+        [Test]
+        public void TestStartFromOngoingTime()
+        {
+            AddWaitStep("Wait some", 20);
+
+            loadNewAnimation(false);
+
+            AddAssert("Animation is not near start", () => animation.PlaybackPosition > 1000);
+        }
+
+        [Test]
+        public void TestSetCustomClockWithCurrentTime()
+        {
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+
+            AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
+
+            double posBefore = 0;
+
+            AddStep("store position", () => posBefore = animation.PlaybackPosition);
+
+            AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
+
+            AddAssert("Animation continued playing at current position", () => animation.PlaybackPosition - posBefore < 1000);
+        }
+
+        [Test]
+        public void TestSetCustomClockWithOngoingTime()
+        {
+            loadNewAnimation(false);
+
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+
+            AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
+
+            AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
+
+            AddAssert("Animation is not near start", () => animation.PlaybackPosition > 1000);
+        }
+
+        [Test]
+        public void TestJumpForward()
+        {
+            AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
+            AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= 10000);
+        }
+
+        [Test]
+        public void TestJumpBack()
+        {
+            AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
+            AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= 10000);
+
+            AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
+            AddUntilStep("Animation seeked", () => animation.PlaybackPosition < 10000);
+        }
+
+        [Test]
+        public void TestAnimationDoesNotLoopIfDisabled()
+        {
+            AddStep("Seek to end", () => clock.CurrentTime = animation.Duration);
+            AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= animation.Duration - 1000);
+
+            AddWaitStep("Wait for playback", 10);
+            AddAssert("Not looped", () => animation.PlaybackPosition >= animation.Duration - 1000);
+        }
+
+        [Test]
+        public void TestAnimationLoopsIfEnabled()
+        {
+            AddStep("Set looping", () => animation.Loop = true);
+            AddStep("Seek to end", () => clock.CurrentTime = animation.Duration - 2000);
+            AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= animation.Duration - 1000);
+
+            AddWaitStep("Wait for playback", 10);
+            AddUntilStep("Looped", () => animation.PlaybackPosition < animation.Duration - 1000);
+        }
+
+        [Test]
+        public void TestTransformBeforeLoaded()
+        {
+            AddStep("set time to future", () => clock.CurrentTime = 10000);
+
+            loadNewAnimation(postLoadAction: a =>
+            {
+                a.Alpha = 0;
+                a.FadeInFromZero(10).Then().FadeOutFromOne(1000);
+            });
+
+            AddAssert("Is visible", () => animation.Alpha > 0);
+        }
+
+        [Test]
+        public void TestStartFromFutureTimeWithInitialSeek()
+        {
+            AddStep("set time to future", () => clock.CurrentTime = 10000);
+
+            loadNewAnimation(false, a =>
+            {
+                a.PlaybackPosition = -10000;
+            });
+
+            AddAssert("Animation is at beginning", () => animation.PlaybackPosition < 1000);
+        }
+
+        [Test]
+        public void TestGotoZeroOnFirstFrameVisible()
+        {
+            loadNewAnimation();
+
+            AddStep("set time to 1000", () => clock.CurrentTime = 1000);
+            AddStep("hide animation", () => animation.Hide());
+
+            AddStep("set time = 2000", () => clock.CurrentTime = 2000);
+            AddStep("goto(0) and show", () =>
+            {
+                animation.GotoFrame(0);
+                animation.Show();
+            });
+
+            // Note: We won't get PlaybackPosition=0 here because the test runner increments the clock by at least 200ms per step, so 1000 is a safe value.
+            AddAssert("animation restarted from 0", () => animation.PlaybackPosition < 1000);
+        }
+
+        [TestCase(0)]
+        [TestCase(48)]
+        public void TestGotoFrameBeforeLoaded(int frame)
+        {
+            AddStep("create new animation", () => animation = new TestAnimation(true, fontStore)
+            {
+                Loop = false
+            });
+            AddStep($"go to frame {frame}", () => animation.GotoFrame(frame));
+
+            AddStep("load animation", () => animationContainer.Child = animation);
+
+            AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex == frame);
+        }
+
+        [Test]
+        public void TestClearFrames()
+        {
+            loadNewAnimation();
+
+            AddUntilStep("animation is playing", () => animation.CurrentFrameIndex > 0);
+
+            AddStep("clear frames", () => animation.ClearFrames());
+            AddAssert("animation duration is 0", () => animation.Duration == 0);
+            AddAssert("animation is at start", () => animation.CurrentFrameIndex == 0);
+        }
+
+        private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
+        {
+            AddStep("load animation", () =>
+            {
+                animationContainer.Child = animation = new TestAnimation(startFromCurrent, fontStore)
+                {
+                    Loop = false,
+                };
+
+                postLoadAction?.Invoke(animation);
+            });
+
+            AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (clock != null)
+                clock.CurrentTime += Clock.ElapsedFrameTime;
+
+            if (animation != null)
+            {
+                timeText.Text = $"playback: {animation.PlaybackPosition:N0} current frame: {animation.CurrentFrameIndex} total frames: {animation.FramesProcessed}";
+            }
+        }
+
+        private class TestAnimation : TextureAnimation
+        {
+            public const int LOADABLE_FRAMES = 72;
+
+            public int FramesProcessed;
+
+            // fontStore passed in via ctor to be able to test scenarios where an animation
+            // already has frames before load
+            public TestAnimation(bool startFromCurrent, FontStore fontStore)
+                : base(startFromCurrent)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
 
-                for (int i = 1; i <= 60; i++)
+                for (int i = 0; i < LOADABLE_FRAMES; i++)
                 {
-                    var c = new Container
+                    AddFrame(new Texture(fontStore.Get(null, (char)('0' + i))?.Texture.TextureGL)
                     {
-                        RelativeSizeAxes = contentRelativeAxes,
-                        Children = new Drawable[]
-                        {
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.SlateGray
-                            },
-                            new SpriteText
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Text = i.ToString()
-                            }
-                        }
-                    };
-
-                    if ((contentRelativeAxes & Axes.X) == 0)
-                        c.Width = 100;
-
-                    if ((contentRelativeAxes & Axes.Y) == 0)
-                        c.Height = 100;
-
-                    AddFrame(c);
+                        ScaleAdjust = 1 + i / 40f,
+                    }, 250);
                 }
             }
-        }
 
-        private class TestTextureAnimation : TextureAnimation
-        {
-            [Resolved]
-            private FontStore fontStore { get; set; }
-
-            public TestTextureAnimation()
+            protected override void DisplayFrame(Texture content)
             {
-                Anchor = Anchor.Centre;
-                Origin = Anchor.Centre;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                for (int i = 0; i <= 9; i++)
-                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0]).Texture.TextureGL) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
+                FramesProcessed++;
+                base.DisplayFrame(content);
             }
         }
     }

@@ -14,15 +14,32 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public bool IsTransparent;
-        public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
+        /// <summary>
+        /// The texture wrap mode in horizontal direction.
+        /// </summary>
+        public readonly WrapMode WrapModeS;
+
+        /// <summary>
+        /// The texture wrap mode in vertical direction.
+        /// </summary>
+        public readonly WrapMode WrapModeT;
+
+        protected TextureGL(WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        {
+            WrapModeS = wrapModeS;
+            WrapModeT = wrapModeT;
+        }
 
         #region Disposal
 
-        ~TextureGL()
-        {
-            Dispose(false);
-        }
+        internal virtual bool IsQueuedForUpload { get; set; }
+
+        /// <summary>
+        /// By default, texture uploads are queued for upload at the beginning of each frame, allowing loading them ahead of time.
+        /// When this is true, this will be bypassed and textures will only be uploaded on use. Should be set for every-frame texture uploads
+        /// to avoid overloading the global queue.
+        /// </summary>
+        public bool BypassTextureUploadQueueing;
 
         /// <summary>
         /// Whether this <see cref="TextureGL"/> can used for drawing.
@@ -50,11 +67,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public abstract bool Loaded { get; }
 
+        public Opacity Opacity { get; protected set; } = Opacity.Mixed;
+
         public abstract int TextureId { get; }
 
         public abstract int Height { get; set; }
 
         public abstract int Width { get; set; }
+
+        public abstract RectangleI Bounds { get; }
 
         public Vector2 Size => new Vector2(Width, Height);
 
@@ -68,8 +89,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                            Vector2? inflationPercentage = null);
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -80,15 +102,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null);
+                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null);
 
         /// <summary>
         /// Bind as active texture.
         /// </summary>
         /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0);
+        public bool Bind(TextureUnit unit = TextureUnit.Texture0) => Bind(unit, WrapModeS, WrapModeT);
+
+        /// <summary>
+        /// Bind as active texture.
+        /// </summary>
+        /// <param name="unit">The texture unit to bind to.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>True if bind was successful.</returns>
+        internal abstract bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.
@@ -101,6 +133,92 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload);
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGL"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null);
+
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGLAtlas"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <param name="uploadOpacity">Whether the upload is opaque, transparent, or a mix of both..</param>
+        internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity);
+
+        protected static Opacity ComputeOpacity(ITextureUpload upload)
+        {
+            // TODO: Investigate performance issues and revert functionality once we are sure there is no overhead.
+            // see https://github.com/ppy/osu/issues/9307
+            return Opacity.Mixed;
+
+            // if (upload.Data.Length == 0)
+            //     return Opacity.Transparent;
+            //
+            // bool isTransparent = true;
+            // bool isOpaque = true;
+            //
+            // for (int i = 0; i < upload.Data.Length; ++i)
+            // {
+            //     isTransparent &= upload.Data[i].A == 0;
+            //     isOpaque &= upload.Data[i].A == 255;
+            //
+            //     if (!isTransparent && !isOpaque)
+            //         return Opacity.Mixed;
+            // }
+            //
+            // if (isTransparent)
+            //     return Opacity.Transparent;
+            //
+            // return Opacity.Opaque;
+        }
+
+        protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
+        {
+            // Compute opacity if it doesn't have a value yet
+            uploadOpacity ??= ComputeOpacity(upload);
+
+            // Update the texture's opacity depending on the upload's opacity.
+            // If the upload covers the entire bounds of the texture, it fully
+            // determines the texture's opacity. Otherwise, it can only turn
+            // the texture's opacity into a mixed state (if it disagrees with
+            // the texture's existing opacity).
+            if (upload.Bounds == Bounds && upload.Level == 0)
+                Opacity = uploadOpacity.Value;
+            else if (uploadOpacity.Value != Opacity)
+                Opacity = Opacity.Mixed;
+        }
+    }
+
+    public enum WrapMode
+    {
+        /// <summary>
+        /// No wrapping. If the texture is part of an atlas, this may read outside the texture's bounds.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Clamps to the edge of the texture, repeating the edge to fill the remainder of the draw area.
+        /// </summary>
+        ClampToEdge = 1,
+
+        /// <summary>
+        /// Clamps to a transparent-black border around the texture, repeating the border to fill the remainder of the draw area.
+        /// </summary>
+        ClampToBorder = 2,
+
+        /// <summary>
+        /// Repeats the texture.
+        /// </summary>
+        Repeat = 3,
+    }
+
+    public enum Opacity
+    {
+        Opaque,
+        Mixed,
+        Transparent,
     }
 }

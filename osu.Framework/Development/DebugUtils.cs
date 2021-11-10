@@ -3,18 +3,15 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using NUnit.Framework.Internal;
 
 namespace osu.Framework.Development
 {
     public static class DebugUtils
     {
-        internal static Assembly HostAssembly { get; set; }
-
         public static bool IsNUnitRunning => is_nunit_running.Value;
 
         private static readonly Lazy<bool> is_nunit_running = new Lazy<bool>(() =>
@@ -22,7 +19,25 @@ namespace osu.Framework.Development
                 var entry = Assembly.GetEntryAssembly();
 
                 // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-                return entry == null || entry.Location.Contains("testhost");
+                // when running under nunit + Rider > 2020.2 EAP6, entry assembly becomes ReSharperTestRunner[32|64], which isn't what we want.
+                bool entryIsKnownTestAssembly = entry != null && (entry.Location.Contains("testhost") || entry.Location.Contains("ReSharperTestRunner"));
+
+                // null assembly can indicate nunit, but it can also indicate native code (e.g. android).
+                // to distinguish nunit runs from android launches, check the class name of the current test.
+                // if no actual test is running, nunit will make up an ad-hoc test context, which we can match on
+                // to eliminate such false positives.
+                bool nullEntryWithActualTestContext = entry == null && TestContext.CurrentContext.Test.ClassName != typeof(TestExecutionContext.AdhocContext).FullName;
+
+                return entryIsKnownTestAssembly || nullEntryWithActualTestContext;
+            }
+        );
+
+        private static readonly Lazy<Assembly> nunit_test_assembly = new Lazy<Assembly>(() =>
+            {
+                Debug.Assert(IsNUnitRunning);
+
+                string testName = TestContext.CurrentContext.Test.ClassName;
+                return AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(testName) != null);
             }
         );
 
@@ -33,7 +48,7 @@ namespace osu.Framework.Development
         );
 
         /// <summary>
-        /// Whether the framework is currently logging performance issues via <see cref="DebugSetting.PerformanceLogging"/>.
+        /// Whether the framework is currently logging performance issues.
         /// This should be used only when a configuration is not available via DI or otherwise (ie. in a static context).
         /// </summary>
         public static bool LogPerformanceIssues { get; internal set; }
@@ -42,23 +57,23 @@ namespace osu.Framework.Development
         private static bool isDebugAssembly(Assembly assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
 
         /// <summary>
-        /// Get the entry assembly, even when running under nUnit.
-        /// Will fall back to calling assembly if there is no Entry assembly.
+        /// Gets the entry assembly, or calling assembly otherwise.
+        /// When running under NUnit, the assembly of the current test will be returned instead.
         /// </summary>
         /// <returns>The entry assembly (usually obtained via <see cref="Assembly.GetEntryAssembly()"/>.</returns>
         public static Assembly GetEntryAssembly()
         {
-            if (IsNUnitRunning && HostAssembly != null)
-                return HostAssembly;
+            if (IsNUnitRunning)
+                return nunit_test_assembly.Value;
 
-            return Assembly.GetEntryAssembly() ?? HostAssembly ?? Assembly.GetCallingAssembly();
+            return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
 
         /// <summary>
-        /// Get the entry path, even when running under nUnit.
+        /// Gets the absolute path to the directory containing the assembly determined by <see cref="GetEntryAssembly"/>.
         /// </summary>
-        /// <returns>The entry assembly (usually obtained via the entry assembly's <see cref="Assembly.Location"/>.</returns>
-        public static string GetEntryPath() =>
-            IsNUnitRunning ? TestContext.CurrentContext.TestDirectory : Path.GetDirectoryName(GetEntryAssembly().Location);
+        /// <returns>The entry path (usually obtained via the entry assembly's <see cref="Assembly.Location"/> directory.</returns>
+        [Obsolete("Use AppContext.BaseDirectory instead")] // Can be removed 20220211
+        public static string GetEntryPath() => AppContext.BaseDirectory;
     }
 }

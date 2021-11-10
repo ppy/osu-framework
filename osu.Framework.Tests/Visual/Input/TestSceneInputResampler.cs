@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             for (int i = 0; i < width; ++i)
             {
-                var brightnessByte = (byte)((float)i / (width - 1) * 255);
+                byte brightnessByte = (byte)((float)i / (width - 1) * 255);
                 image[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
             }
 
@@ -201,11 +201,11 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 AddUserVertex(e.MousePosition);
                 DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
-                return base.OnDrag(e);
+                base.OnDrag(e);
             }
         }
 

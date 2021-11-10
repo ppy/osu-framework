@@ -19,8 +19,11 @@ namespace osu.Framework.Input.StateChanges
         public Vector2 Delta;
 
         /// <summary>
-        /// Whether the change occurred as the result of a precise scroll.
+        /// Whether the change came from a device supporting precision scrolling.
         /// </summary>
+        /// <remarks>
+        /// In cases this is true, scroll events will generally map 1:1 to user's input, rather than incrementing in large "notches" (as expected of traditional scroll wheels).
+        /// </remarks>
         public bool IsPrecise;
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
@@ -31,6 +34,7 @@ namespace osu.Framework.Input.StateChanges
             {
                 var lastScroll = mouse.Scroll;
                 mouse.Scroll += Delta;
+                mouse.LastSource = this;
                 handler.HandleInputStateChange(new MouseScrollChangeEvent(state, this, lastScroll, IsPrecise));
             }
         }

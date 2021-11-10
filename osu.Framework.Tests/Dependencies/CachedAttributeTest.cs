@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider18();
 
-            Assert.Throws<NullReferenceException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+            Assert.Throws<NullDependencyException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
         [Test]
@@ -261,6 +261,17 @@ namespace osu.Framework.Tests.Dependencies
             var provider = new Provider24();
 
             Assert.Throws<AccessModifierNotAllowedForCachedValueException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        [Test]
+        public void TestCachedViaInterface()
+        {
+            var provider = new Provider25();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<IProviderInterface3>());
+            Assert.IsNotNull(dependencies.Get<IProviderInterface2>());
         }
 
         private interface IProvidedInterface1
@@ -440,6 +451,20 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Cached]
             public object Provided1 => null;
+        }
+
+        private class Provider25 : IProviderInterface3
+        {
+        }
+
+        [Cached]
+        private interface IProviderInterface3 : IProviderInterface2
+        {
+        }
+
+        [Cached]
+        private interface IProviderInterface2
+        {
         }
     }
 }

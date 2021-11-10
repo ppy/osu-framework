@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Text;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
@@ -70,6 +71,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestMaxWidthWithRelativeSize()
         {
+            float textWidth = 0;
+
             createTest(s =>
             {
                 s.RelativeSizeAxes = Axes.X;
@@ -77,9 +80,11 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "some very long text that should exceed the max width";
                 s.Truncate = true;
             }, Axes.Y);
+            AddStep("store text width", () => textWidth = display.Text.TextBuilder.Bounds.X);
 
             AddStep("set parent size", () => display.Width = 100);
             AddAssert("size <= max", () => display.Text.DrawWidth <= 50);
+            AddAssert("width increased", () => display.Text.TextBuilder.Bounds.X > textWidth);
         }
 
         private void createTest(Action<SpriteText> initFunc, Axes autoSizeAxes = Axes.Both)
@@ -93,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class VisualDisplay : CompositeDrawable
         {
-            public readonly SpriteText Text;
+            public readonly TestSpriteText Text;
 
             public VisualDisplay(Action<SpriteText> initFunc, Axes autoSizeAxes = Axes.Both)
             {
@@ -109,11 +114,19 @@ namespace osu.Framework.Tests.Visual.Sprites
                         Alpha = 0.2f,
                         Colour = Color4.Pink
                     },
-                    Text = new SpriteText { AllowMultiline = false }
+                    Text = new TestSpriteText { AllowMultiline = false }
                 };
 
                 initFunc?.Invoke(Text);
             }
+        }
+
+        private class TestSpriteText : SpriteText
+        {
+            public TextBuilder TextBuilder { get; private set; }
+
+            protected override TextBuilder CreateTextBuilder(ITexturedGlyphLookupStore store)
+                => TextBuilder = base.CreateTextBuilder(store);
         }
     }
 }

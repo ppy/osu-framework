@@ -6,6 +6,7 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Process = System.Diagnostics.Process;
 
 namespace osu.Framework.Android
 {
@@ -44,7 +45,7 @@ namespace osu.Framework.Android
 
             UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation;
 
-            // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigaton bar and potentially the status bar
+            // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
             Window.DecorView.SystemUiVisibilityChange += (_, e) =>
             {
@@ -53,13 +54,30 @@ namespace osu.Framework.Android
                     UIVisibilityFlags = systemUiFlags;
                 }
             };
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+                Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+
+            gameView.HostStarted += host =>
+            {
+                host.AllowScreenSuspension.Result.BindValueChanged(allow =>
+                {
+                    RunOnUiThread(() =>
+                    {
+                        if (!allow.NewValue)
+                            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        else
+                            Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    });
+                }, true);
+            };
         }
 
         protected override void OnPause()
         {
             base.OnPause();
             // Because Android is not playing nice with Background - we just kill it
-            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            Process.GetCurrentProcess().Kill();
         }
 
         public override void OnBackPressed()

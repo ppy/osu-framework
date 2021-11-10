@@ -2,27 +2,29 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
+using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
-using System.Threading.Tasks;
-using System.Threading;
-using NUnit.Framework.Internal;
-using osu.Framework.Development;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
+    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract class TestScene : Container, IDynamicallyCompile
     {
@@ -37,96 +39,57 @@ namespace osu.Framework.Testing
         private Task runTask;
         private ITestSceneTestRunner runner;
 
-        [OneTimeSetUp]
-        public void SetupGameHost()
+        /// <summary>
+        /// A nested game instance, if added via <see cref="AddGame"/>.
+        /// </summary>
+        private Game nestedGame;
+
+        public object DynamicCompilationOriginal { get; internal set; }
+
+        [BackgroundDependencyLoader]
+        private void load(GameHost host)
         {
-            host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
-            runner = CreateRunner();
-
-            if (!(runner is Game game))
-                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
-
-            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
-
-            while (!game.IsLoaded)
-            {
-                checkForErrors();
-                Thread.Sleep(10);
-            }
+            // SetupGameHost won't be run for interactive runs so we need to populate this from DI.
+            this.host ??= host;
         }
 
-        protected internal override void AddInternal(Drawable drawable) =>
+        /// <summary>
+        /// Add a full game instance in a nested state for visual testing.
+        /// </summary>
+        /// <remarks>
+        /// Any previous game added via this method will be disposed if called multiple times.
+        /// </remarks>
+        /// <param name="game">The game to add.</param>
+        protected void AddGame([NotNull] Game game)
+        {
+            if (game == null) throw new ArgumentNullException(nameof(game));
+
+            exitNestedGame();
+
+            nestedGame = game;
+            nestedGame.SetHost(host);
+
+            base.Add(nestedGame);
+        }
+
+        public override void Add(Drawable drawable)
+        {
+            if (drawable is Game)
+                throw new InvalidOperationException($"Use {nameof(AddGame)} when testing a game instance.");
+
+            base.Add(drawable);
+        }
+
+        protected internal override void AddInternal(Drawable drawable)
+        {
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+        }
 
         protected internal override void ClearInternal(bool disposeChildren = true) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
 
         protected internal override bool RemoveInternal(Drawable drawable) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
-
-        [OneTimeTearDown]
-        public void DestroyGameHost()
-        {
-            host.Exit();
-            runTask.Wait();
-            host.Dispose();
-
-            try
-            {
-                // clean up after each run
-                host.Storage.DeleteDirectory(string.Empty);
-            }
-            catch
-            {
-            }
-        }
-
-        [SetUp]
-        public void SetUpTestForNUnit()
-        {
-            if (DebugUtils.IsNUnitRunning)
-            {
-                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
-                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
-                // for the game threads refers to the current _test_ execution context for each test
-                var executionContext = TestExecutionContext.CurrentContext;
-
-                foreach (var thread in host.Threads)
-                {
-                    thread.Scheduler.Add(() =>
-                    {
-                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
-                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
-                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
-                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
-                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
-                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
-                    });
-                }
-
-                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                    schedule(() => StepsContainer.Clear());
-            }
-
-            RunSetUpSteps();
-        }
-
-        [TearDown]
-        public void RunTests()
-        {
-            checkForErrors();
-            runner.RunTestBlocking(this);
-            checkForErrors();
-        }
-
-        private void checkForErrors()
-        {
-            if (host.ExecutionState == ExecutionState.Stopping)
-                runTask.Wait();
-
-            if (runTask.Exception != null)
-                throw runTask.Exception;
-        }
 
         /// <summary>
         /// Tests any steps and assertions in the constructor of this <see cref="TestScene"/>.
@@ -139,6 +102,8 @@ namespace osu.Framework.Testing
 
         protected TestScene()
         {
+            DynamicCompilationOriginal = this;
+
             Name = RemovePrefix(GetType().ReadableName());
 
             RelativeSizeAxes = Axes.Both;
@@ -278,9 +243,11 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
+        private bool addStepsAsSetupSteps;
+
         public StepButton AddStep(string description, Action action)
         {
-            var step = new SingleStepButton
+            var step = new SingleStepButton(addStepsAsSetupSteps)
             {
                 Text = description,
                 Action = action
@@ -312,7 +279,7 @@ namespace osu.Framework.Testing
 
         protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
         {
-            StepsContainer.Add(new RepeatStepButton(action, invocationCount)
+            StepsContainer.Add(new RepeatStepButton(action, invocationCount, addStepsAsSetupSteps)
             {
                 Text = description,
             });
@@ -328,7 +295,7 @@ namespace osu.Framework.Testing
 
         protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
-            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
+            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate, addStepsAsSetupSteps)
             {
                 Text = description ?? @"Until",
             });
@@ -336,7 +303,7 @@ namespace osu.Framework.Testing
 
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
-            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
+            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
             {
                 Text = description ?? @"Wait",
             });
@@ -352,7 +319,7 @@ namespace osu.Framework.Testing
 
         protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
         {
-            StepsContainer.Add(new AssertButton
+            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps)
             {
                 Text = description,
                 ExtendedDescription = extendedDescription,
@@ -361,14 +328,17 @@ namespace osu.Framework.Testing
             });
         });
 
-        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
-        private void schedule(Action action) => Scheduler.Add(action, false);
-
-        public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
-
         internal void RunSetUpSteps()
         {
-            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+            addStepsAsSetupSteps = true;
+            foreach (var method in ReflectionUtils.GetMethodsWithAttribute(GetType(), typeof(SetUpStepsAttribute), true))
+                method.Invoke(this, null);
+            addStepsAsSetupSteps = false;
+        }
+
+        internal void RunTearDownSteps()
+        {
+            foreach (var method in ReflectionUtils.GetMethodsWithAttribute(GetType(), typeof(TearDownStepsAttribute), true))
                 method.Invoke(this, null);
         }
 
@@ -376,11 +346,138 @@ namespace osu.Framework.Testing
         /// Remove the "TestScene" prefix from a name.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>
         public static string RemovePrefix(string name)
         {
             return name.Replace("TestCase", string.Empty) // TestScene used to be called TestCase. This handles consumer projects which haven't updated their naming for the near future.
                        .Replace(nameof(TestScene), string.Empty);
         }
+
+        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
+        private void schedule(Action action) => Scheduler.Add(action, false);
+
+        private void exitNestedGame()
+        {
+            if (nestedGame?.Parent == null) return;
+
+            // important that we do a synchronous disposal.
+            // using Expire() will cause a deadlock in AsyncDisposalQueue.
+            nestedGame.Parent.RemoveInternal(nestedGame);
+            nestedGame.Dispose();
+        }
+
+        #region NUnit execution setup
+
+        [OneTimeSetUp]
+        public void SetupGameHostForNUnit()
+        {
+            host = new TestSceneHost($"{GetType().Name}-{Guid.NewGuid()}", exitNestedGame);
+            runner = CreateRunner();
+
+            if (!(runner is Game game))
+                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
+
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+
+            while (!game.IsLoaded)
+            {
+                checkForErrors();
+                Thread.Sleep(10);
+            }
+        }
+
+        [SetUp]
+        public void SetUpTestForNUnit()
+        {
+            if (DebugUtils.IsNUnitRunning)
+            {
+                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
+                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
+                // for the game threads refers to the current _test_ execution context for each test
+                var executionContext = TestExecutionContext.CurrentContext;
+
+                foreach (var thread in host.Threads)
+                {
+                    thread.Scheduler.Add(() =>
+                    {
+                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
+                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
+                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
+                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
+                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
+                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
+                    });
+                }
+
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+                    schedule(() => StepsContainer.Clear());
+
+                RunSetUpSteps();
+            }
+        }
+
+        [TearDown]
+        protected virtual void RunTestsFromNUnit()
+        {
+            RunTearDownSteps();
+
+            checkForErrors();
+            runner.RunTestBlocking(this);
+            checkForErrors();
+        }
+
+        [OneTimeTearDown]
+        public void DestroyGameHostFromNUnit()
+        {
+            ((TestSceneHost)host).ExitFromRunner();
+
+            try
+            {
+                runTask.Wait();
+            }
+            finally
+            {
+                host.Dispose();
+
+                try
+                {
+                    // clean up after each run
+                    host.Storage.DeleteDirectory(string.Empty);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void checkForErrors()
+        {
+            if (host.ExecutionState == ExecutionState.Stopping)
+                runTask.Wait();
+
+            if (runTask.Exception != null)
+                throw runTask.Exception;
+        }
+
+        private class TestSceneHost : TestRunHeadlessGameHost
+        {
+            private readonly Action onExitRequest;
+
+            public TestSceneHost(string name, Action onExitRequest)
+                : base(name)
+            {
+                this.onExitRequest = onExitRequest;
+            }
+
+            protected override void PerformExit(bool immediately)
+            {
+                // Block base call so nested game instances can't end the testing process.
+                // See ExitFromRunner below.
+                onExitRequest?.Invoke();
+            }
+
+            public void ExitFromRunner() => base.PerformExit(false);
+        }
     }
+
+    #endregion
 }

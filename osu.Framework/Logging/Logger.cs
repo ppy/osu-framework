@@ -60,7 +60,13 @@ namespace osu.Framework.Logging
         public static Storage Storage
         {
             private get => storage;
-            set => storage = value ?? throw new ArgumentNullException(nameof(value));
+            set
+            {
+                storage = value ?? throw new ArgumentNullException(nameof(value));
+
+                // clear static loggers so they are correctly purged at the new storage location.
+                static_loggers.Clear();
+            }
         }
 
         /// <summary>
@@ -245,7 +251,7 @@ namespace osu.Framework.Logging
         {
             lock (static_sync_lock)
             {
-                var nameLower = name.ToLower();
+                string nameLower = name.ToLower();
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
@@ -299,7 +305,7 @@ namespace osu.Framework.Logging
             IEnumerable<string> lines = logOutput
                                         .Replace(@"\r\n", @"\n")
                                         .Split('\n')
-                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture)}: {s.Trim()}");
+                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} [{level.ToString().ToLower()}]: {s.Trim()}");
 
             if (outputToListeners)
             {
@@ -324,11 +330,11 @@ namespace osu.Framework.Logging
 
                     bool bypassRateLimit = level >= LogLevel.Verbose;
 
-                    foreach (var line in lines)
+                    foreach (string line in lines)
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
-                            consoleLog($"[{Name}:{level.ToString().ToLower()}] {line}");
+                            consoleLog($"[{Name.ToLower()}] {line}");
 
                             if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
                                 consoleLog($"Console output is being limited. Please check {Filename} for full logs.");
@@ -356,7 +362,7 @@ namespace osu.Framework.Logging
                         using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
                         {
-                            foreach (var line in lines)
+                            foreach (string line in lines)
                                 writer.WriteLine(line);
                         }
                     }
@@ -402,8 +408,8 @@ namespace osu.Framework.Logging
 
             add("----------------------------------------------------------", outputToListeners: false);
             add($"{Name} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
-            add($"{GameIdentifier} {VersionIdentifier}", outputToListeners: false);
-            add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
+            add($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}", outputToListeners: false);
+            add($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ", outputToListeners: false);
             add("----------------------------------------------------------", outputToListeners: false);
         }
 

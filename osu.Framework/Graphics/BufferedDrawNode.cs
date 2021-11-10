@@ -36,7 +36,9 @@ namespace osu.Framework.Graphics
 
         private Color4 backgroundColour;
         private RectangleF screenSpaceDrawRectangle;
+        private Vector2 frameBufferScale;
         private Vector2 frameBufferSize;
+        private IDrawable rootNodeCached;
 
         public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
             : base(source)
@@ -52,8 +54,11 @@ namespace osu.Framework.Graphics
             backgroundColour = Source.BackgroundColour;
             screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
+            frameBufferScale = Source.FrameBufferScale;
 
-            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width), MathF.Ceiling(screenSpaceDrawRectangle.Height));
+            clipDrawRectangle();
+
+            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
             DrawRectangle = SharedData.PixelSnapping
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
@@ -134,17 +139,17 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to bind.</param>
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
-        protected ValueInvokeOnDisposal BindFrameBuffer(FrameBuffer frameBuffer)
+        protected IDisposable BindFrameBuffer(FrameBuffer frameBuffer)
         {
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
             frameBuffer.Bind();
 
-            return new ValueInvokeOnDisposal(frameBuffer.Unbind);
+            return new ValueInvokeOnDisposal<FrameBuffer>(frameBuffer, b => b.Unbind());
         }
 
-        private ValueInvokeOnDisposal establishFrameBufferViewport()
+        private IDisposable establishFrameBufferViewport()
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
@@ -162,14 +167,42 @@ namespace osu.Framework.Graphics
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
             GLWrapper.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            GLWrapper.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            GLWrapper.PushScissorOffset(screenSpaceMaskingRect.Location);
 
-            return new ValueInvokeOnDisposal(returnViewport);
+            return new ValueInvokeOnDisposal<BufferedDrawNode>(this, d => d.returnViewport());
         }
 
         private void returnViewport()
         {
+            GLWrapper.PopScissorOffset();
             GLWrapper.PopViewport();
+            GLWrapper.PopScissor();
             GLWrapper.PopMaskingInfo();
+        }
+
+        private void clipDrawRectangle()
+        {
+            if (!SharedData.ClipToRootNode || Source == null)
+                return;
+
+            // Get the root node
+            IDrawable rootNode = rootNodeCached;
+
+            if (rootNodeCached == null)
+            {
+                rootNode = Source;
+                while (rootNode.Parent != null)
+                    rootNode = rootNode.Parent;
+                rootNodeCached = rootNode;
+            }
+
+            if (rootNode == null)
+                return;
+
+            // Clip the screen space draw rectangle to the bounds of the root node
+            RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft, rootNode.ScreenSpaceDrawQuad.Size);
+            screenSpaceDrawRectangle.Intersect(clipBounds);
         }
 
         protected override void Dispose(bool isDisposing)

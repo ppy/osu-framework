@@ -147,9 +147,13 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>3</filterpriority>
         public static bool operator !=(RectangleF left, RectangleF right) => !(left == right);
 
-        public static RectangleF operator *(RectangleF left, float right) => new RectangleF(left.X * right, left.Y * right, left.Width * right, left.Height * right);
+        public static RectangleF operator *(RectangleF rectangle, float scale) => new RectangleF(rectangle.X * scale, rectangle.Y * scale, rectangle.Width * scale, rectangle.Height * scale);
 
-        public static RectangleF operator /(RectangleF left, float right) => new RectangleF(left.X / right, left.Y / right, left.Width / right, left.Height / right);
+        public static RectangleF operator /(RectangleF rectangle, float scale) => new RectangleF(rectangle.X / scale, rectangle.Y / scale, rectangle.Width / scale, rectangle.Height / scale);
+
+        public static RectangleF operator *(RectangleF rectangle, Vector2 scale) => new RectangleF(rectangle.X * scale.X, rectangle.Y * scale.Y, rectangle.Width * scale.X, rectangle.Height * scale.Y);
+
+        public static RectangleF operator /(RectangleF rectangle, Vector2 scale) => new RectangleF(rectangle.X / scale.X, rectangle.Y / scale.Y, rectangle.Width / scale.X, rectangle.Height / scale.Y);
 
         /// <summary>Determines if the specified point is contained within this <see cref="RectangleF"/> structure.</summary>
         /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="RectangleF"/> structure; otherwise false.</returns>
@@ -190,7 +194,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>
         /// Gets this <see cref="RectangleF"/> with positive width and height.
-        /// This is usefull if you have a <see cref="RectangleF"/> with negative <see cref="Width"/> or <see cref="Height"/>.
+        /// This is useful if you have a <see cref="RectangleF"/> with negative <see cref="Width"/> or <see cref="Height"/>.
         /// </summary>
         /// <example>
         /// var rect = new <see cref="RectangleF"/> { <see cref="Width"/> = -200, <see cref="Height"/> = -300 }
@@ -358,6 +362,23 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="bottom">The bottom coordinate.</param>
         /// <returns>The <see cref="RectangleF"/>.</returns>
         public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
+
+        /// <summary>
+        /// Creates a new <see cref="RectangleF"/> in relative coordinate space to another <see cref="RectangleF"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="RectangleF"/>.</param>
+        /// <returns>The relative coordinate space representation of this <see cref="RectangleF"/> in <paramref name="other"/>.</returns>
+        public RectangleF RelativeIn(RectangleF other)
+        {
+            float scaleX = Width / other.Width;
+            float scaleY = Height / other.Height;
+            return new RectangleF((X - other.X) / other.Width, (Y - other.Y) / other.Height, scaleX, scaleY);
+        }
+
+        /// <summary>
+        /// Create a new <see cref="RectangleF"/> congruent to this rectangle but with non-negative <see cref="Width"/> and <see cref="Height"/>.
+        /// </summary>
+        public RectangleF Normalize() => new RectangleF(Math.Min(Left, Right), Math.Min(Top, Bottom), Math.Abs(Width), Math.Abs(Height));
 
         /// <summary>Converts the specified <see cref="RectangleI"/> structure to a <see cref="RectangleF"/> structure.</summary>
         /// <returns>The <see cref="RectangleF"/> structure that is converted from the specified <see cref="RectangleI"/> structure.</returns>

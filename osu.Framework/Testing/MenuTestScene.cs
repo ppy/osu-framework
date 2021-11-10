@@ -1,8 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -18,18 +18,9 @@ namespace osu.Framework.Testing
     {
         protected MenuStructure Menus;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Menu),
-            typeof(BasicMenu),
-            typeof(MenuTestScene)
-        };
-
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             Menu menu;
             Child = new Container
             {
@@ -68,12 +59,7 @@ namespace osu.Framework.Testing
             /// <summary>
             /// Retrieves the <see cref="Menu.DrawableMenuItem"/>s of the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.
             /// </summary>
-            public IReadOnlyList<Drawable> GetMenuItems()
-            {
-                var contents = (CompositeDrawable)menu.InternalChildren[0];
-                var contentContainer = (CompositeDrawable)contents.InternalChildren[1];
-                return ((CompositeDrawable)((CompositeDrawable)contentContainer.InternalChildren[0]).InternalChildren[0]).InternalChildren;
-            }
+            public IReadOnlyList<Drawable> GetMenuItems() => menu.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().First().Children;
 
             /// <summary>
             /// Finds the <see cref="Menu.DrawableMenuItem"/> index in the <see cref="Menu"/> represented by this <see cref="MenuStructure"/> that

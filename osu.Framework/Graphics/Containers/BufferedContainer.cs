@@ -8,9 +8,9 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.MathUtils;
-using osu.Framework.Caching;
+using osu.Framework.Utils;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -26,8 +26,8 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
-            : base(formats, pixelSnapping)
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+            : base(formats, pixelSnapping, cachedFrameBuffer)
         {
         }
     }
@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
             get => effectBlending;
             set
             {
-                if (effectBlending.Equals(value))
+                if (effectBlending == value)
                     return;
 
                 effectBlending = value;
@@ -176,13 +176,28 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Vector2 frameBufferScale = Vector2.One;
+
+        public Vector2 FrameBufferScale
+        {
+            get => frameBufferScale;
+            set
+            {
+                if (frameBufferScale == value)
+                    return;
+
+                frameBufferScale = value;
+                ForceRedraw();
+            }
+        }
+
         /// <summary>
-        /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
+        /// Whether the rendered framebuffer is being cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
         /// If false, then the framebuffer is re-rendered before it is blitted to the screen; equivalent
         /// to calling <see cref="ForceRedraw"/> every frame.
         /// </summary>
-        public bool CacheDrawnFrameBuffer;
+        public readonly bool UsingCachedFrameBuffer;
 
         private bool redrawOnScale = true;
 
@@ -204,7 +219,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Forces a redraw of the framebuffer before it is blitted the next time.
-        /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
+        /// Only relevant if <see cref="UsingCachedFrameBuffer"/> is true.
         /// </summary>
         public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
@@ -216,8 +231,6 @@ namespace osu.Framework.Graphics.Containers
         /// and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
         /// </summary>
         private long updateVersion;
-
-        protected override bool CanBeFlattened => false;
 
         public IShader TextureShader { get; private set; }
 
@@ -231,11 +244,22 @@ namespace osu.Framework.Graphics.Containers
         /// Constructs an empty buffered container.
         /// </summary>
         /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
-        /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
-        /// This amounts to setting the texture filtering mode to "nearest".</param>
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+        /// <param name="pixelSnapping">
+        /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".
+        /// </param>
+        /// <param name="cachedFrameBuffer">
+        /// Whether the rendered framebuffer should be cached until <see cref="ForceRedraw"/> is called
+        /// or the size of the container (i.e. framebuffer) changes.
+        /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
+        /// </param>
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
         {
-            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
+            UsingCachedFrameBuffer = cachedFrameBuffer;
+
+            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
+
+            AddLayout(screenSpaceSizeBacking);
         }
 
         [BackgroundDependencyLoader]
@@ -248,21 +272,33 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
+
+            childrenUpdateVersion = updateVersion;
+
+            return result;
+        }
+
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
-        private readonly Cached screenSpaceSizeBacking = new Cached();
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo
+        private readonly LayoutValue screenSpaceSizeBacking = new LayoutValue(Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
+            bool result = base.OnInvalidate(invalidation, source);
+
             if ((invalidation & Invalidation.DrawNode) > 0)
+            {
                 ++updateVersion;
+                result = true;
+            }
 
-            // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
-            if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
-                screenSpaceSizeBacking.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
+            return result;
         }
 
         private long childrenUpdateVersion = -1;
@@ -273,7 +309,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             // Invalidate drawn frame buffer every frame.
-            if (!CacheDrawnFrameBuffer)
+            if (!UsingCachedFrameBuffer)
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {
@@ -293,13 +329,6 @@ namespace osu.Framework.Graphics.Containers
 
                 screenSpaceSizeBacking.Validate();
             }
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            childrenUpdateVersion = updateVersion;
         }
 
         /// <summary>
@@ -327,7 +356,17 @@ namespace osu.Framework.Graphics.Containers
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
         // Children should not receive the true colour to avoid colour doubling when the frame-buffers are rendered to the back-buffer.
-        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
+        public override DrawColourInfo DrawColourInfo
+        {
+            get
+            {
+                // Todo: This is incorrect.
+                var blending = Blending;
+                blending.ApplyDefaultToInherited();
+
+                return new DrawColourInfo(Color4.White, blending);
+            }
+        }
 
         protected override void Dispose(bool isDisposing)
         {

@@ -8,6 +8,8 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
@@ -15,39 +17,48 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneFrontToBackBox : FrameworkTestScene
     {
+        [Resolved]
+        private FrameworkDebugConfigManager debugConfig { get; set; }
+
         private TestBox blendedBox;
 
-        [BackgroundDependencyLoader]
-        private void load(FrameworkDebugConfigManager debugConfig)
+        [SetUp]
+        public void Setup() => Schedule(() =>
         {
-            AddToggleStep("disable front to back", val => debugConfig.Set(DebugSetting.BypassFrontToBackPass, val));
+            Clear();
+        });
+
+        [TearDownSteps]
+        public void TearDownSteps()
+        {
+            AddToggleStep("disable front to back", val => debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val));
         }
 
         [Test]
         public void TestOpaqueBoxWithMixedBlending()
         {
-            createBox();
+            createBlendedBox();
             AddAssert("renders interior", () => blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestTransparentBoxWithMixedBlending()
         {
-            createBox(b => b.Alpha = 0.5f);
+            createBlendedBox(b => b.Alpha = 0.5f);
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestOpaqueBoxWithAdditiveBlending()
         {
-            createBox(b => b.Blending = BlendingParameters.Additive);
+            createBlendedBox(b => b.Blending = BlendingParameters.Additive);
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestTransparentBoxWithAdditiveBlending()
         {
-            createBox(b =>
+            createBlendedBox(b =>
             {
                 b.Blending = BlendingParameters.Additive;
                 b.Alpha = 0.5f;
@@ -62,7 +73,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(BlendingEquation.ReverseSubtract)]
         public void TestOpaqueBoxWithNonAddRGBEquation(BlendingEquation equationMode)
         {
-            createBox(b =>
+            createBlendedBox(b =>
             {
                 var blending = BlendingParameters.Inherit;
                 blending.RGBEquation = equationMode;
@@ -78,7 +89,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(BlendingEquation.ReverseSubtract)]
         public void TestOpaqueBoxWithNonAddAlphaEquation(BlendingEquation equationMode)
         {
-            createBox(b =>
+            createBlendedBox(b =>
             {
                 var blending = BlendingParameters.Inherit;
                 blending.AlphaEquation = equationMode;
@@ -88,11 +99,104 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
-        private void createBox(Action<Box> setupAction = null) => AddStep("create box", () =>
+        [Test]
+        public void TestSmallSizeMasking()
         {
-            Clear();
+            AddStep("create test", () =>
+            {
+                Children = new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Y = -120,
+                        Text = "No rounded corners should be visible below",
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(20),
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Green
+                            },
+                            new Container
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.Both,
+                                Masking = true,
+                                CornerRadius = 40,
+                                Child = new Box
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Green
+                                }
+                            }
+                        }
+                    }
+                };
+            });
+        }
 
-            Add(new Container
+        [Test]
+        public void TestNegativeSizeMasking()
+        {
+            AddStep("create test", () =>
+            {
+                Children = new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Y = -120,
+                        Text = "No rounded corners should be visible below",
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(200),
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Green
+                            },
+                            new Container
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.Both,
+                                Size = new Vector2(-1f),
+                                Masking = true,
+                                CornerRadius = 20,
+                                Child = new Box
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Green
+                                }
+                            }
+                        }
+                    }
+                };
+            });
+        }
+
+        private void createBlendedBox(Action<Box> setupAction = null) => AddStep("create box", () =>
+        {
+            Child = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -113,7 +217,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Size = new Vector2(0.5f),
                     }
                 }
-            });
+            };
 
             setupAction?.Invoke(blendedBox);
         });
@@ -129,7 +233,7 @@ namespace osu.Framework.Tests.Visual.Containers
             internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
                 => currentDrawNode = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
 
-            private class TestBoxDrawNode : BoxDrawNode
+            private class TestBoxDrawNode : SpriteDrawNode
             {
                 public TestBoxDrawNode(Box source)
                     : base(source)
