@@ -18,5 +18,6 @@ using ObjCRuntime;
 [assembly: LinkWith("libavutil.a", SmartLink = false, ForceLoad = true)]
 [assembly: LinkWith("libbass.a", SmartLink = false, ForceLoad = true)]
 [assembly: LinkWith("libbass_fx.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libbassmix.a", SmartLink = false, ForceLoad = true)]
 [assembly: LinkWith("libswresample.a", SmartLink = false, ForceLoad = true)]
 [assembly: LinkWith("libswscale.a", SmartLink = false, ForceLoad = true)]
