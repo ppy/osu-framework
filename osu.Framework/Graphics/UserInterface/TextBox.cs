@@ -1025,14 +1025,37 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void bindInput()
         {
-            textInput?.Activate();
+            if (textInput == null)
+                return;
+
+            textInput.Activate();
+            textInput.OnNewImeComposition += handleImeComposition;
+            textInput.OnNewImeResult += handleImeResult;
         }
 
         private void unbindInput()
         {
-            textInput?.Deactivate();
+            if (textInput == null)
+                return;
+
+            textInput.Deactivate();
+            textInput.OnNewImeComposition -= handleImeComposition;
+            textInput.OnNewImeResult -= handleImeResult;
         }
 
+        private void handleImeComposition(string composition, int selectionStart, int selectionLength)
+        {
+            Schedule(() => onImeComposition(composition, selectionStart, selectionLength));
+        }
+
+        private void handleImeResult(string result)
+        {
+            Schedule(() =>
+            {
+                onImeComposition(result, result.Length, 0);
+                onImeResult();
+            });
+        }
 
         /// <summary>
         /// Returns how many characters of the two strings match from the beginning, and from the end.
