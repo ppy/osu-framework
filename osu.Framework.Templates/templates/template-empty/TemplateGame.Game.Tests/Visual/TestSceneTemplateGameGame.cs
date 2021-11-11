@@ -16,7 +16,7 @@ namespace TemplateGame.Game.Tests.Visual
             game = new TemplateGameGame();
             game.SetHost(host);
 
-            Add(game);
+            AddGame(game);
         }
     }
 }

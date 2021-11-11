@@ -14,6 +14,8 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public abstract class AudioMixer : AudioComponent, IAudioMixer
     {
+        public readonly string Identifier;
+
         private readonly AudioMixer? globalMixer;
 
         /// <summary>
@@ -21,9 +23,11 @@ namespace osu.Framework.Audio.Mixing
         /// </summary>
         /// <param name="globalMixer">The global <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
         /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
-        protected AudioMixer(AudioMixer? globalMixer)
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        protected AudioMixer(AudioMixer? globalMixer, string identifier)
         {
             this.globalMixer = globalMixer;
+            Identifier = identifier;
         }
 
         public abstract BindableList<IEffectParameter> Effects { get; }

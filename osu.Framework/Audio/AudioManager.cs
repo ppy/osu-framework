@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using ManagedBass.Fx;
+using ManagedBass.Mix;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
@@ -145,8 +147,8 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(TrackMixer = createAudioMixer(null));
-            AddItem(SampleMixer = createAudioMixer(null));
+            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
+            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
 
             CancellationToken token = cancelSource.Token;
 
@@ -168,13 +170,6 @@ namespace osu.Framework.Audio
                     }
                 }) { IsBackground = true }.Start();
             });
-        }
-
-        protected override void UpdateChildren()
-        {
-            base.UpdateChildren();
-
-            activeMixers.RemoveAll(m => m.HasCompleted);
         }
 
         protected override void Dispose(bool disposing)
@@ -206,20 +201,36 @@ namespace osu.Framework.Audio
             });
         }
 
+        private static int userMixerID;
+
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
         /// <remarks>
         /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
         /// </remarks>
-        public AudioMixer CreateAudioMixer() => createAudioMixer(SampleMixer);
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer)
+        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer);
-            activeMixers.Add(mixer);
+            var mixer = new BassAudioMixer(globalMixer, identifier);
             AddItem(mixer);
             return mixer;
+        }
+
+        protected override void ItemAdded(AudioComponent item)
+        {
+            base.ItemAdded(item);
+            if (item is AudioMixer mixer)
+                activeMixers.Add(mixer);
+        }
+
+        protected override void ItemRemoved(AudioComponent item)
+        {
+            base.ItemRemoved(item);
+            if (item is AudioMixer mixer)
+                activeMixers.Remove(mixer);
         }
 
         /// <summary>
@@ -298,7 +309,8 @@ namespace osu.Framework.Audio
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
-                          BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
+                          BASS FX Version:            {BassFx.Version}
+                          BASS MIX Version:           {BassMix.Version}
                           Device:                     {device.Name}
                           Drive:                      {device.Driver}");
 
