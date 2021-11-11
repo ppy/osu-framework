@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -1030,48 +1029,119 @@ namespace osu.Framework.Graphics.UserInterface
             textInput?.Deactivate();
         }
 
+
+        /// <summary>
+        /// Returns how many characters of the two strings match from the beginning, and from the end.
+        /// </summary>
+        /// <remarks>
+        /// Characters matched from the beginning will not match from the end.
+        /// </remarks>
+        private void matchBeginningEnd(string a, string b, out int matchBeginning, out int matchEnd)
+        {
+            int minLength = Math.Min(a.Length, b.Length);
+
+            matchBeginning = 0;
+
+            for (int i = 0; i < minLength; i++)
+            {
+                if (a[i] == b[i])
+                    matchBeginning = i + 1;
+                else
+                    break;
+            }
+
+            matchEnd = 0;
+
+            // check how many match (of the ones we didn't match), starting from the end
+            for (int i = 1; i <= minLength - matchBeginning; i++)
+            {
+                if (a[^i] == b[^i])
+                    matchEnd = i;
+                else
+                    break;
+            }
+        }
+
         private readonly List<Drawable> imeCompositionDrawables = new List<Drawable>();
 
-        private void onImeComposition(string s)
+        /// <summary>
+        /// Index of the first character in the current composition.
+        /// </summary>
+        private int imeCompositionStart;
+
+        /// <remarks>
+        /// This checks which parts of the old and new compositions match,
+        /// and only updates the non-matching part in the current composition text.
+        /// </remarks>
+        private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength)
         {
-            //search for unchanged characters..
-            int matchCount = 0;
-            bool matching = true;
+            bool beganChange = beginTextChange();
 
-            int searchStart = text.Length - imeCompositionDrawables.Count;
-
-            for (int i = 0; i < s.Length; i++)
+            if (imeCompositionDrawables.Count == 0)
             {
-                if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
+                // this is the start of a new composition, as we currently have no composition text.
+
+                imeCompositionStart = selectionLeft;
+
+                if (string.IsNullOrEmpty(newComposition))
                 {
-                    matchCount = i + 1;
-                    continue;
+                    // early return as SDL might sometimes send empty text editing events.
+                    // we don't want the currently selected text to be removed in that case
+                    // (we only want it removed once the user has entered _some_ text).
+                    // the composition text hasn't changed anyway, so there is no need to go
+                    // trough the rest of the method.
+                    return;
                 }
 
-                matching = false;
+                if (selectionLength > 0)
+                    removeSelection();
             }
 
-            int unmatchingCount = imeCompositionDrawables.Count - matchCount;
+            string oldComposition = text.Substring(imeCompositionStart, imeCompositionDrawables.Count);
 
-            if (unmatchingCount > 0)
+            matchBeginningEnd(oldComposition, newComposition, out int matchBeginning, out int matchEnd);
+
+            // how many characters have been removed, starting from `matchBeginning`
+            int removeCount = oldComposition.Length - matchEnd - matchBeginning;
+
+            // remove the characters that don't match
+            if (removeCount > 0)
             {
-                removeCharacters(unmatchingCount);
-                imeCompositionDrawables.RemoveRange(matchCount, unmatchingCount);
+                // set up selection for for `DeleteBy`
+                selectionStart = imeCompositionStart + matchBeginning;
+                selectionEnd = selectionStart + removeCount;
+
+                DeleteBy(0);
+                imeCompositionDrawables.RemoveRange(matchBeginning, removeCount);
             }
 
-            if (matchCount == s.Length)
-                //in the case of backspacing (or a NOP), we can exit early here.
-                return;
+            // how many characters have been added, starting from `matchBeginning`
+            int addCount = newComposition.Length - matchEnd - matchBeginning;
 
-            string insertedText = s.Substring(matchCount);
-
-            insertString(insertedText, d =>
+            if (addCount > 0)
             {
-                d.Alpha = 0.6f;
-                imeCompositionDrawables.Add(d);
-            });
+                string addedText = newComposition.Substring(matchBeginning, addCount);
 
-            OnUserTextAdded(insertedText);
+                // set up selection for `insertString`
+                selectionStart = selectionEnd = imeCompositionStart + matchBeginning;
+
+                int insertPosition = matchBeginning;
+                insertString(addedText, d =>
+                {
+                    d.Alpha = 0.6f;
+                    imeCompositionDrawables.Insert(insertPosition++, d);
+                });
+
+                OnUserTextAdded(addedText);
+            }
+
+            // update the selection to the one the IME requested.
+            // this selection is only a hint to the user, and is not used in the compositing logic.
+            selectionStart = imeCompositionStart + newSelectionStart;
+            selectionEnd = selectionStart + newSelectionLength;
+
+            endTextChange(beganChange);
+            cursorAndLayout.Invalidate();
         }
 
         private void onImeResult()
