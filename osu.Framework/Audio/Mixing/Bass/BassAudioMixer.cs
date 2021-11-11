@@ -197,7 +197,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the level (peak amplitude) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <remarks>See: <see cref="BassMix.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to get the levels of.</param>
         /// <param name="levels">The array in which the levels are to be returned.</param>
         /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
@@ -209,7 +209,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the immediate sample data (or an FFT representation of it) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
+        /// <remarks>See: <see cref="BassMix.ChannelGetData(int, float[], int)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the data of.</param>
         /// <param name="buffer">float[] to write the data to.</param>
         /// <param name="length">Number of bytes wanted, and/or <see cref="T:ManagedBass.DataFlags"/>.</param>
