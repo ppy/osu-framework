@@ -1067,7 +1067,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             insertString(insertedText, d =>
             {
-                d.Colour = Color4.Aqua;
                 d.Alpha = 0.6f;
                 imeCompositionDrawables.Add(d);
             });
@@ -1082,7 +1081,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 foreach (var d in imeCompositionDrawables)
                 {
-                    d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
                 }
             }
