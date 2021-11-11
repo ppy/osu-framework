@@ -11,6 +11,8 @@ using ObjCRuntime;
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
 
+[assembly: LinkWith(LinkerFlags = "-lstdc++ -lbz2")]
+[assembly: LinkWith(Frameworks = "AudioToolbox AVFoundation CoreMedia VideoToolbox SystemConfiguration CFNetwork Accelerate")]
 [assembly: LinkWith("libavcodec.a", SmartLink = false, ForceLoad = true)]
 [assembly: LinkWith("libavdevice.a", SmartLink = false, ForceLoad = true)]
 [assembly: LinkWith("libavfilter.a", SmartLink = false, ForceLoad = true)]
