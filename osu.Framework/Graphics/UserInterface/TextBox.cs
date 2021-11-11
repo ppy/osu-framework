@@ -1083,9 +1083,14 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     d.FadeTo(1, 200, Easing.Out);
                 }
+
+                // move the cursor to end of finalized composition.
+                selectionStart = selectionEnd = imeCompositionStart + imeCompositionDrawables.Count;
             }
 
             imeCompositionDrawables.Clear();
+
+            cursorAndLayout.Invalidate();
         }
 
         #endregion
