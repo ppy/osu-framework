@@ -1032,21 +1032,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly List<Drawable> imeDrawables = new List<Drawable>();
 
-        private void onImeResult()
-        {
-            //we only succeeded if there is pending data in the textbox
-            if (imeDrawables.Count > 0)
-            {
-                foreach (var d in imeDrawables)
-                {
-                    d.Colour = Color4.White;
-                    d.FadeTo(1, 200, Easing.Out);
-                }
-            }
-
-            imeDrawables.Clear();
-        }
-
         private void onImeComposition(string s)
         {
             //search for unchanged characters..
@@ -1088,6 +1073,21 @@ namespace osu.Framework.Graphics.UserInterface
             });
 
             OnUserTextAdded(insertedText);
+        }
+
+        private void onImeResult()
+        {
+            //we only succeeded if there is pending data in the textbox
+            if (imeDrawables.Count > 0)
+            {
+                foreach (var d in imeDrawables)
+                {
+                    d.Colour = Color4.White;
+                    d.FadeTo(1, 200, Easing.Out);
+                }
+            }
+
+            imeDrawables.Clear();
         }
 
         #endregion
