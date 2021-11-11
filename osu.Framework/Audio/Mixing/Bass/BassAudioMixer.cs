@@ -244,6 +244,31 @@ namespace osu.Framework.Audio.Mixing.Bass
             => BassMix.ChannelRemoveSync(channel.Handle, sync);
 
         /// <summary>
+        /// Retrieves the level (peak amplitude) of the mixer output.
+        /// </summary>
+        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <param name="levels">The array in which the levels are to be returned.</param>
+        /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
+        /// <param name="flags">What levels to retrieve.</param>
+        /// <returns><c>true</c> if successful, false otherwise.</returns>
+        public bool MixerGetLevel([In, Out] float[] levels, float length, LevelRetrievalFlags flags)
+            => ManagedBass.Bass.ChannelGetLevel(Handle, levels, length, flags);
+
+        /// <summary>
+        /// Retrieves the immediate sample data (or an FFT representation of it) of the mixer output.
+        /// </summary>
+        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
+        /// <param name="buffer">float[] to write the data to.</param>
+        /// <param name="length">Number of bytes wanted, and/or <see cref="T:ManagedBass.DataFlags"/>.</param>
+        /// <returns>If an error occurs, -1 is returned, use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
+        /// <para>When requesting FFT data, the number of bytes read from the channel (to perform the FFT) is returned.</para>
+        /// <para>When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the <see cref="F:ManagedBass.DataFlags.Float"/> or DataFlags.Fixed flag).</para>
+        /// <para>When using the <see cref="F:ManagedBass.DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
+        /// </returns>
+        public int MixerGetData(float[] buffer, int length)
+            => ManagedBass.Bass.ChannelGetData(Handle, buffer, length);
+
+        /// <summary>
         /// Frees a channel's resources.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
