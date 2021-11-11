@@ -1030,7 +1030,7 @@ namespace osu.Framework.Graphics.UserInterface
             textInput?.Deactivate();
         }
 
-        private readonly List<Drawable> imeDrawables = new List<Drawable>();
+        private readonly List<Drawable> imeCompositionDrawables = new List<Drawable>();
 
         private void onImeComposition(string s)
         {
@@ -1038,7 +1038,7 @@ namespace osu.Framework.Graphics.UserInterface
             int matchCount = 0;
             bool matching = true;
 
-            int searchStart = text.Length - imeDrawables.Count;
+            int searchStart = text.Length - imeCompositionDrawables.Count;
 
             for (int i = 0; i < s.Length; i++)
             {
@@ -1051,12 +1051,12 @@ namespace osu.Framework.Graphics.UserInterface
                 matching = false;
             }
 
-            int unmatchingCount = imeDrawables.Count - matchCount;
+            int unmatchingCount = imeCompositionDrawables.Count - matchCount;
 
             if (unmatchingCount > 0)
             {
                 removeCharacters(unmatchingCount);
-                imeDrawables.RemoveRange(matchCount, unmatchingCount);
+                imeCompositionDrawables.RemoveRange(matchCount, unmatchingCount);
             }
 
             if (matchCount == s.Length)
@@ -1069,7 +1069,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 d.Colour = Color4.Aqua;
                 d.Alpha = 0.6f;
-                imeDrawables.Add(d);
+                imeCompositionDrawables.Add(d);
             });
 
             OnUserTextAdded(insertedText);
@@ -1078,16 +1078,16 @@ namespace osu.Framework.Graphics.UserInterface
         private void onImeResult()
         {
             //we only succeeded if there is pending data in the textbox
-            if (imeDrawables.Count > 0)
+            if (imeCompositionDrawables.Count > 0)
             {
-                foreach (var d in imeDrawables)
+                foreach (var d in imeCompositionDrawables)
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
                 }
             }
 
-            imeDrawables.Clear();
+            imeCompositionDrawables.Clear();
         }
 
         #endregion
