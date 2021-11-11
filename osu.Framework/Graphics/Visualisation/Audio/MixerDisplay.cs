@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
     {
         public readonly AudioMixer Mixer;
 
-        private readonly FillFlowContainer<AudioChannelDisplay> channelsContainer;
+        private readonly FillFlowContainer<AudioChannelDisplay> mixerChannelsContainer;
 
         public MixerDisplay(AudioMixer mixer)
         {
@@ -26,6 +26,8 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 
             RelativeSizeAxes = Axes.Y;
             AutoSizeAxes = Axes.X;
+
+            Container outputChannelContainer;
 
             InternalChild = new Container
             {
@@ -47,20 +49,47 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                         Colour = FrameworkColour.Yellow,
                         Padding = new MarginPadding(2),
                     },
-                    channelsContainer = new FillFlowContainer<AudioChannelDisplay>
+                    new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.Y,
                         AutoSizeAxes = Axes.X,
                         Direction = FillDirection.Horizontal,
-                        Spacing = new Vector2(10),
                         Padding = new MarginPadding
                         {
                             Horizontal = 10,
                             Bottom = 20
+                        },
+                        Children = new Drawable[]
+                        {
+                            outputChannelContainer = new Container
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                AutoSizeAxes = Axes.X,
+                                Padding = new MarginPadding
+                                {
+                                    Left = 10,
+                                    Bottom = 20
+                                }
+                            },
+                            mixerChannelsContainer = new FillFlowContainer<AudioChannelDisplay>
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                AutoSizeAxes = Axes.X,
+                                Direction = FillDirection.Horizontal,
+                                Spacing = new Vector2(10),
+                                Padding = new MarginPadding
+                                {
+                                    Horizontal = 10,
+                                    Bottom = 20
+                                }
+                            }
                         }
                     }
                 }
             };
+
+            if (Mixer is BassAudioMixer bassMixer)
+                outputChannelContainer.Add(new AudioChannelDisplay(bassMixer.Handle, true));
         }
 
         protected override void Update()
@@ -77,11 +106,11 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 
             foreach (int channel in channels)
             {
-                if (channelsContainer.All(ch => ch.ChannelHandle != channel))
-                    channelsContainer.Add(new AudioChannelDisplay(channel));
+                if (mixerChannelsContainer.All(ch => ch.ChannelHandle != channel))
+                    mixerChannelsContainer.Add(new AudioChannelDisplay(channel));
             }
 
-            channelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));
+            mixerChannelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));
         }
     }
 }
