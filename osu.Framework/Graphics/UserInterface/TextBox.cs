@@ -13,6 +13,7 @@ using osuTK;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.PlatformActionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
@@ -163,6 +164,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (!HandleLeftRightArrows && (e.Action == PlatformAction.MoveBackwardChar || e.Action == PlatformAction.MoveForwardChar))
                 return false;
+
+            if (e.Action.IsCommonTextEditingAction() && ImeCompositionActive)
+                return true;
 
             switch (e.Action)
             {
@@ -803,11 +807,26 @@ namespace osu.Framework.Graphics.UserInterface
                 Schedule(consumePendingText);
         }
 
+        /// <summary>
+        /// Whether there is a ongoing IME composition.
+        /// </summary>
+        /// <remarks>
+        /// The IME should take full input priority, as a lot of the common text editing keys/shortcuts
+        /// are used internally in the IME for compositing.
+        /// Full data about the composition events is processed by <see cref="handleImeComposition"/> "passively"
+        /// so we shouldn't take any action on key events we receive.
+        /// </remarks>
+        protected bool ImeCompositionActive => textInput?.ImeActive == true || imeCompositionDrawables.Count > 0;
+
         #region Input event handling
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (readOnly)
+                return true;
+
+            if (ImeCompositionActive)
+                return true;
 
             if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
