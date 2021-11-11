@@ -13,6 +13,7 @@ using osuTK;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
@@ -408,6 +409,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 updateCursorAndLayout();
                 cursorAndLayout.Validate();
+
+                // keep the IME window up-to date with the current selection / composition string.
+                updateImeWindowPosition();
             }
         }
 
@@ -1085,6 +1089,13 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (string.IsNullOrEmpty(newComposition))
                 {
+                    // we might get an empty composition when the IME is first activated,
+                    // the IME mode has changed (eg. plaintext -> kana),
+                    // or when the keyboard layout and language have changed to a one supported by an IME.
+                    // we can use this opportunity to update the IME window so it appears in
+                    // the correct place once the user starts compositing.
+                    updateImeWindowPosition();
+
                     // early return as SDL might sometimes send empty text editing events.
                     // we don't want the currently selected text to be removed in that case
                     // (we only want it removed once the user has entered _some_ text).
@@ -1161,6 +1172,43 @@ namespace osu.Framework.Graphics.UserInterface
             imeCompositionDrawables.Clear();
 
             cursorAndLayout.Invalidate();
+        }
+
+        /// <summary>
+        /// Updates the location of the platform-native IME composition window
+        /// to the current composition string / current selection.
+        /// </summary>
+        private void updateImeWindowPosition()
+        {
+            if (!cursorAndLayout.IsValid)
+                return;
+
+            int startIndex, endIndex;
+
+            if (imeCompositionDrawables.Count > 0)
+            {
+                startIndex = imeCompositionStart;
+                endIndex = imeCompositionStart + imeCompositionDrawables.Count;
+            }
+            else
+            {
+                startIndex = selectionLeft;
+                endIndex = selectionRight;
+            }
+
+            float start = getPositionAt(startIndex);
+            float end = getPositionAt(endIndex);
+
+            var compositionTextRectangle = new RectangleF
+            {
+                X = start,
+                Y = 0,
+                Width = end - start,
+                Height = DrawHeight,
+            };
+
+            var quad = ToScreenSpace(compositionTextRectangle);
+            textInput?.SetImeRectangle(quad.AABBFloat);
         }
 
         #endregion
