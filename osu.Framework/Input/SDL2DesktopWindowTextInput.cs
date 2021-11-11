@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -10,13 +11,14 @@ namespace osu.Framework.Input
     {
         private readonly SDL2DesktopWindow window;
         private string pending = string.Empty;
+        private bool active;
 
         public SDL2DesktopWindowTextInput(SDL2DesktopWindow window)
         {
             this.window = window;
         }
 
-        public bool ImeActive => false;
+        public bool ImeActive { get; private set; }
 
         public string GetPendingText()
         {
@@ -32,12 +34,36 @@ namespace osu.Framework.Input
 
         private void handleTextInput(string text)
         {
-            pending += text;
+            if (ImeActive)
+            {
+                // SDL sends IME results as `SDL_TextInputEvent` which we can't differentiate from regular text input
+                // so we have to manually keep track and invoke the correct event.
+                OnNewImeResult?.Invoke(text);
+                ImeActive = false;
+            }
+            else
+            {
+                pending += text;
+            }
         }
 
-        private void handleTextEditing(string text, int start, int length)
+        private void handleTextEditing(string text, int selectionStart, int selectionLength)
         {
-            // TODO: add IME support
+            if (text == null) return;
+
+            // SDL sends empty text on composition end
+            // https://github.com/libsdl-org/SDL/blob/1fc25bd83902df65e666f0cf0aa4dc717ade0748/src/video/windows/SDL_windowskeyboard.c#L934-L939
+            ImeActive = !string.IsNullOrEmpty(text);
+
+            // sanitize input, as SDL will only report up to 32 bytes (~10 CJK characters)
+            // but the selection can go beyond.
+            if (selectionStart > text.Length)
+                selectionStart = text.Length;
+
+            if (selectionStart + selectionLength > text.Length)
+                selectionLength = text.Length - selectionStart;
+
+            OnNewImeComposition?.Invoke(text, selectionStart, selectionLength);
         }
 
         public void Activate()
@@ -45,6 +71,7 @@ namespace osu.Framework.Input
             window.TextInput += handleTextInput;
             window.TextEditing += handleTextEditing;
             window.StartTextInput();
+            active = true;
         }
 
         public void EnsureActivated()
@@ -57,18 +84,23 @@ namespace osu.Framework.Input
             window.TextInput -= handleTextInput;
             window.TextEditing -= handleTextEditing;
             window.StopTextInput();
+            active = false;
         }
 
-        public event Action<string> OnNewImeComposition
+        public void SetImeRectangle(RectangleF rectangle)
         {
-            add { }
-            remove { }
+            window.SetTextInputRect(rectangle);
         }
 
-        public event Action<string> OnNewImeResult
+        public void ResetIme()
         {
-            add { }
-            remove { }
+            ImeActive = false;
+            window.StopTextInput();
+
+            if (active) EnsureActivated();
         }
+
+        public event Action<string, int, int> OnNewImeComposition;
+        public event Action<string> OnNewImeResult;
     }
 }

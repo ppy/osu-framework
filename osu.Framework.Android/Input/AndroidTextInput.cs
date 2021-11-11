@@ -5,6 +5,7 @@ using System;
 using Android.Content;
 using Android.Views;
 using Android.Views.InputMethods;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 
 namespace osu.Framework.Android.Input
@@ -40,7 +41,7 @@ namespace osu.Framework.Android.Input
 
         private void commitText(string text)
         {
-            OnNewImeComposition?.Invoke(text);
+            OnNewImeComposition?.Invoke(text, text.Length, 0);
             OnNewImeResult?.Invoke(text);
         }
 
@@ -83,7 +84,15 @@ namespace osu.Framework.Android.Input
             });
         }
 
-        public event Action<string> OnNewImeComposition;
+        public void SetImeRectangle(RectangleF rectangle)
+        {
+        }
+
+        public void ResetIme()
+        {
+        }
+
+        public event Action<string, int, int> OnNewImeComposition;
         public event Action<string> OnNewImeResult;
     }
 }

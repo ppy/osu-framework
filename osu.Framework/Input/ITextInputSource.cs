@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Input
 {
@@ -11,6 +12,9 @@ namespace osu.Framework.Input
     /// </summary>
     public interface ITextInputSource
     {
+        /// <summary>
+        /// Whether the IME is actively providing text composition trough <see cref="OnNewImeComposition"/> and accepting input from the user.
+        /// </summary>
         bool ImeActive { get; }
 
         string GetPendingText();
@@ -25,7 +29,23 @@ namespace osu.Framework.Input
 
         void Deactivate();
 
-        event Action<string> OnNewImeComposition;
+        /// <summary>
+        /// Sets where the native implementation displays the IME and other text input elements.
+        /// </summary>
+        /// <param name="rectangle">Should be provided in screen space.</param>
+        void SetImeRectangle(RectangleF rectangle);
+
+        /// <summary>
+        /// Resets the IME.
+        /// This clears the current composition string and prepares it for new input.
+        /// </summary>
+        void ResetIme();
+
+        /// <summary>
+        /// Parameters are, in order: composition text, selection start, selection length.
+        /// </summary>
+        event Action<string, int, int> OnNewImeComposition;
+
         event Action<string> OnNewImeResult;
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using Foundation;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 
 namespace osu.Framework.iOS.Input
@@ -59,7 +60,15 @@ namespace osu.Framework.iOS.Input
             view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
-        public event Action<string> OnNewImeComposition
+        public void SetImeRectangle(RectangleF rectangle)
+        {
+        }
+
+        public void ResetIme()
+        {
+        }
+
+        public event Action<string, int, int> OnNewImeComposition
         {
             add { }
             remove { }
