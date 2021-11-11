@@ -11,6 +11,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -23,6 +24,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using Size = System.Drawing.Size;
 
 // ReSharper disable UnusedParameter.Local
@@ -396,6 +398,9 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
+            // change to proper constant once SDL2-CS is updated.
+            SDL.SDL_SetHint("SDL_IME_SHOW_UI", "1");
+
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
             // so we deactivate it on startup.
@@ -576,6 +581,12 @@ namespace osu.Framework.Platform
         public void StartTextInput() => ScheduleCommand(SDL.SDL_StartTextInput);
 
         public void StopTextInput() => ScheduleCommand(SDL.SDL_StopTextInput);
+
+        public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
+        {
+            var sdlRect = ((RectangleI)(rect * Scale)).ToSDLRect();
+            SDL.SDL_SetTextInputRect(ref sdlRect);
+        });
 
         #region SDL Event Handling
 

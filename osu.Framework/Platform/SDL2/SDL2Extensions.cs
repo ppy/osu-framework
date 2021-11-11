@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK.Input;
@@ -978,5 +979,14 @@ namespace osu.Framework.Platform.SDL2
                     return JoystickButton.GamePadDPadRight;
             }
         }
+
+        public static SDL.SDL_Rect ToSDLRect(this RectangleI rectangle) =>
+            new SDL.SDL_Rect
+            {
+                x = rectangle.X,
+                y = rectangle.Y,
+                h = rectangle.Height,
+                w = rectangle.Width,
+            };
     }
 }
