@@ -1119,8 +1119,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </remarks>
         private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength)
         {
-            bool beganChange = beginTextChange();
-
             if (imeCompositionDrawables.Count == 0)
             {
                 // this is the start of a new composition, as we currently have no composition text.
@@ -1147,6 +1145,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (selectionLength > 0)
                     removeSelection();
             }
+
+            bool beganChange = beginTextChange();
 
             string oldComposition = text.Substring(imeCompositionStart, imeCompositionDrawables.Count);
 
