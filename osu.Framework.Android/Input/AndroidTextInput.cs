@@ -92,7 +92,7 @@ namespace osu.Framework.Android.Input
         {
         }
 
-        public event Action<string, int, int> OnNewImeComposition;
+        public event ITextInputSource.ImeCompositionDelegate OnNewImeComposition;
         public event Action<string> OnNewImeResult;
     }
 }

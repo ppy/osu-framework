@@ -68,7 +68,7 @@ namespace osu.Framework.iOS.Input
         {
         }
 
-        public event Action<string, int, int> OnNewImeComposition
+        public event ITextInputSource.ImeCompositionDelegate OnNewImeComposition
         {
             add { }
             remove { }

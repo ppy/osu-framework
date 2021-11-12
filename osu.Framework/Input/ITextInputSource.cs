@@ -44,8 +44,16 @@ namespace osu.Framework.Input
         /// <summary>
         /// Parameters are, in order: composition text, selection start, selection length.
         /// </summary>
-        event Action<string, int, int> OnNewImeComposition;
+        event ImeCompositionDelegate OnNewImeComposition;
 
         event Action<string> OnNewImeResult;
+
+        /// <summary>
+        /// Fired on a new IME composition.
+        /// </summary>
+        /// <param name="text">The composition text.</param>
+        /// <param name="start">The index of the selection start.</param>
+        /// <param name="length">The length of the selection.</param>
+        public delegate void ImeCompositionDelegate(string text, int start, int length);
     }
 }

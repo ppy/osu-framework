@@ -100,7 +100,7 @@ namespace osu.Framework.Input
             if (active) EnsureActivated();
         }
 
-        public event Action<string, int, int> OnNewImeComposition;
+        public event ITextInputSource.ImeCompositionDelegate OnNewImeComposition;
         public event Action<string> OnNewImeResult;
     }
 }
