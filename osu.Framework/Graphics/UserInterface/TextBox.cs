@@ -462,8 +462,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
-            if (textInput?.ImeActive == true) return;
-
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
 
