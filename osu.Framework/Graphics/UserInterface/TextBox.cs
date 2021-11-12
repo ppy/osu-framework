@@ -717,6 +717,27 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Invoked whenever the IME composition has changed.
+        /// </summary>
+        /// <param name="newComposition">The current text of the composition.</param>
+        /// <param name="removedTextLength">The number of characters that have been replaced by new ones.</param>
+        /// <param name="addedTextLength">The number of characters that have replaced the old ones.</param>
+        /// <param name="selectionMoved">Whether the selection/caret has moved.</param>
+        protected virtual void OnImeComposition(string newComposition, int removedTextLength, int addedTextLength, bool selectionMoved)
+        {
+        }
+
+        /// <summary>
+        /// Invoked when the IME has finished compositing.
+        /// </summary>
+        /// <remarks>
+        /// Also invoked on a "less successful" / forced finalize, eg. if prematurely ended by <see cref="FinalizeImeComposition"/>.
+        /// </remarks>
+        protected virtual void OnImeResult()
+        {
+        }
+
+        /// <summary>
         /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior.
         /// </summary>
         /// <returns>The placeholder</returns>
@@ -1154,6 +1175,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </remarks>
         private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength)
         {
+            // used for tracking the selection to report for `OnImeComposition()`
+            int oldStart = selectionStart;
+            int oldEnd = selectionEnd;
+
             if (imeCompositionDrawables.Count == 0)
             {
                 // this is the start of a new composition, as we currently have no composition text.
@@ -1193,11 +1218,10 @@ namespace osu.Framework.Graphics.UserInterface
             // remove the characters that don't match
             if (removeCount > 0)
             {
-                // set up selection for for `DeleteBy`
                 selectionStart = imeCompositionStart + matchBeginning;
                 selectionEnd = selectionStart + removeCount;
+                removeSelection();
 
-                DeleteBy(0);
                 imeCompositionDrawables.RemoveRange(matchBeginning, removeCount);
             }
 
@@ -1217,14 +1241,14 @@ namespace osu.Framework.Graphics.UserInterface
                     d.Alpha = 0.6f;
                     imeCompositionDrawables.Insert(insertPosition++, d);
                 });
-
-                OnUserTextAdded(addedText);
             }
 
             // update the selection to the one the IME requested.
             // this selection is only a hint to the user, and is not used in the compositing logic.
             selectionStart = imeCompositionStart + newSelectionStart;
             selectionEnd = selectionStart + newSelectionLength;
+
+            OnImeComposition(newComposition, removeCount, addCount, oldStart != selectionStart || oldEnd != selectionEnd);
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -1242,6 +1266,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // move the cursor to end of finalized composition.
                 selectionStart = selectionEnd = imeCompositionStart + imeCompositionDrawables.Count;
+
+                OnImeResult();
             }
 
             imeCompositionDrawables.Clear();
