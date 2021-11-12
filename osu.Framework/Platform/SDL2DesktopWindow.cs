@@ -1435,9 +1435,8 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Invoked when an IME text editing event occurs.
-        /// Parameters are, in order: composition text, selection start, selection length.
         /// </summary>
-        public event Action<string, int, int> TextEditing;
+        public event TextEditingDelegate TextEditing;
 
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged;
@@ -1467,5 +1466,13 @@ namespace osu.Framework.Platform
         public void Dispose()
         {
         }
+
+        /// <summary>
+        /// Fired when text is edited, usually via IME composition.
+        /// </summary>
+        /// <param name="text">The composition text.</param>
+        /// <param name="start">The index of the selection start.</param>
+        /// <param name="length">The length of the selection.</param>
+        public delegate void TextEditingDelegate(string text, int start, int length);
     }
 }
