@@ -63,11 +63,11 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
-        private void loadNewVideo()
+        private void loadNewVideo(string format = "mp4")
         {
             AddStep("load video", () =>
             {
-                videoContainer.Child = video = new TestVideo(videoStore.GetStream("sample-video.mp4"))
+                videoContainer.Child = video = new TestVideo(videoStore.GetStream($"sample-video.{format}"))
                 {
                     Loop = false,
                     Origin = Anchor.Centre,
@@ -133,28 +133,40 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
-        [Test]
-        public void TestJumpForward()
+        [TestCase("mp4")]
+        [TestCase("avi")]
+        [TestCase("webm")]
+        public void TestJumpForward(string videoFormat)
         {
+            loadNewVideo(videoFormat);
+
             AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
             AddUntilStep("Video seeked", () => video.PlaybackPosition >= 10000);
         }
 
-        [Test]
-        public void TestJumpBack()
+        [TestCase("mp4")]
+        [TestCase("avi")]
+        [TestCase("webm")]
+        public void TestJumpBack(string videoFormat)
         {
+            loadNewVideo(videoFormat);
+
             AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
             AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
             AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
             AddUntilStep("Video seeked", () => video.PlaybackPosition < 30000);
         }
 
-        [Test]
-        public void TestJumpBackAfterEndOfPlayback()
+        [TestCase("mp4")]
+        [TestCase("avi")]
+        [TestCase("webm")]
+        public void TestJumpBackAfterEndOfPlayback(string videoFormat)
         {
-            AddStep("Jump ahead by 60 seconds", () => clock.CurrentTime += 60000);
+            loadNewVideo(videoFormat);
 
-            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
+            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 3000);
+
+            AddUntilStep("Video seeked", () => video.PlaybackPosition >= video.Duration - 3000);
             AddUntilStep("Reached end", () => video.State == VideoDecoder.DecoderState.EndOfStream);
             AddStep("reset decode state", () => didDecode = false);
 
