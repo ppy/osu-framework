@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using ManagedBass.Fx;
+using ManagedBass.Mix;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
@@ -20,7 +22,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
-    public class AudioManager : AudioCollectionManager<AdjustableAudioComponent>
+    public class AudioManager : AudioCollectionManager<AudioComponent>
     {
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
@@ -109,8 +111,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        internal IBindableList<int> ActiveMixerHandles => activeMixerHandles;
-        private readonly BindableList<int> activeMixerHandles = new BindableList<int>();
+        internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
+        private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
 
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
@@ -145,8 +147,8 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(TrackMixer = createAudioMixer(null));
-            AddItem(SampleMixer = createAudioMixer(null));
+            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
+            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
 
             CancellationToken token = cancelSource.Token;
 
@@ -199,21 +201,36 @@ namespace osu.Framework.Audio
             });
         }
 
+        private static int userMixerID;
+
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
         /// <remarks>
         /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
         /// </remarks>
-        public AudioMixer CreateAudioMixer() => createAudioMixer(SampleMixer);
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer)
+        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer);
-            mixer.HandleCreated += i => activeMixerHandles.Add(i);
-            mixer.HandleDestroyed += i => activeMixerHandles.Remove(i);
+            var mixer = new BassAudioMixer(globalMixer, identifier);
             AddItem(mixer);
             return mixer;
+        }
+
+        protected override void ItemAdded(AudioComponent item)
+        {
+            base.ItemAdded(item);
+            if (item is AudioMixer mixer)
+                activeMixers.Add(mixer);
+        }
+
+        protected override void ItemRemoved(AudioComponent item)
+        {
+            base.ItemRemoved(item);
+            if (item is AudioMixer mixer)
+                activeMixers.Remove(mixer);
         }
 
         /// <summary>
@@ -221,11 +238,12 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
-        public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null)
+        /// <param name="mixer">The <see cref="AudioMixer"/> to use for tracks created by this store. Defaults to the global <see cref="TrackMixer"/>.</param>
+        public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
         {
             if (store == null) return globalTrackStore.Value;
 
-            TrackStore tm = new TrackStore(store, TrackMixer);
+            TrackStore tm = new TrackStore(store, mixer ?? TrackMixer);
             globalTrackStore.Value.AddItem(tm);
             return tm;
         }
@@ -235,11 +253,12 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
-        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null)
+        /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
         {
             if (store == null) return globalSampleStore.Value;
 
-            SampleStore sm = new SampleStore(store, SampleMixer);
+            SampleStore sm = new SampleStore(store, mixer ?? SampleMixer);
             globalSampleStore.Value.AddItem(sm);
             return sm;
         }
@@ -290,7 +309,8 @@ namespace osu.Framework.Audio
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
-                          BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
+                          BASS FX Version:            {BassFx.Version}
+                          BASS MIX Version:           {BassMix.Version}
                           Device:                     {device.Name}
                           Drive:                      {device.Driver}");
 

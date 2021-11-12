@@ -50,6 +50,11 @@ namespace osu.Framework.Platform
         event Action Resized;
 
         /// <summary>
+        /// Invoked when the system keyboard layout has changed.
+        /// </summary>
+        event Action KeymapChanged;
+
+        /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
         IBindable<bool> CursorInWindow { get; }

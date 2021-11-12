@@ -50,9 +50,8 @@ namespace osu.Framework.Tests.Visual.Containers
                     },
                     box = new ContainingBox(i >= 6, i >= 8)
                     {
-                        Child = new CountingBox(i == 2 || i == 3, i == 4 || i == 5)
+                        Child = new CountingBox(i == 2 || i == 3, i == 4 || i == 5, cached: i % 2 == 1 || i == 10)
                         {
-                            CacheDrawnFrameBuffer = i % 2 == 1 || i == 10,
                             RedrawOnScale = i != 10
                         },
                     }
@@ -120,7 +119,8 @@ namespace osu.Framework.Tests.Visual.Containers
             private readonly bool moving;
             private readonly SpriteText count;
 
-            public CountingBox(bool rotating = false, bool moving = false)
+            public CountingBox(bool rotating = false, bool moving = false, bool cached = false)
+                : base(cachedFrameBuffer: cached)
             {
                 this.rotating = rotating;
                 this.moving = moving;

@@ -3,9 +3,12 @@
 
 using System.Linq;
 using ManagedBass.Mix;
+using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 
@@ -13,16 +16,18 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 {
     public class MixerDisplay : CompositeDrawable
     {
-        public readonly int MixerHandle;
+        public readonly AudioMixer Mixer;
 
-        private readonly FillFlowContainer<AudioChannelDisplay> channelsContainer;
+        private readonly FillFlowContainer<AudioChannelDisplay> mixerChannelsContainer;
 
-        public MixerDisplay(int mixerHandle)
+        public MixerDisplay(AudioMixer mixer)
         {
-            MixerHandle = mixerHandle;
+            Mixer = mixer;
 
             RelativeSizeAxes = Axes.Y;
             AutoSizeAxes = Axes.X;
+
+            Container outputChannelContainer;
 
             InternalChild = new Container
             {
@@ -35,34 +40,77 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Black.Opacity(0.2f)
                     },
-                    channelsContainer = new FillFlowContainer<AudioChannelDisplay>
+                    new SpriteText
+                    {
+                        Anchor = Anchor.BottomCentre,
+                        Origin = Anchor.BottomCentre,
+                        Text = mixer.Identifier,
+                        Font = FrameworkFont.Condensed.With(size: 14),
+                        Colour = FrameworkColour.Yellow,
+                        Padding = new MarginPadding(2),
+                    },
+                    new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.Y,
                         AutoSizeAxes = Axes.X,
                         Direction = FillDirection.Horizontal,
-                        Spacing = new Vector2(10),
-                        Padding = new MarginPadding { Horizontal = 10 }
+                        Padding = new MarginPadding
+                        {
+                            Horizontal = 10,
+                            Bottom = 20
+                        },
+                        Children = new Drawable[]
+                        {
+                            outputChannelContainer = new Container
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                AutoSizeAxes = Axes.X,
+                                Padding = new MarginPadding
+                                {
+                                    Left = 10,
+                                    Bottom = 20
+                                }
+                            },
+                            mixerChannelsContainer = new FillFlowContainer<AudioChannelDisplay>
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                AutoSizeAxes = Axes.X,
+                                Direction = FillDirection.Horizontal,
+                                Spacing = new Vector2(10),
+                                Padding = new MarginPadding
+                                {
+                                    Horizontal = 10,
+                                    Bottom = 20
+                                }
+                            }
+                        }
                     }
                 }
             };
+
+            if (Mixer is BassAudioMixer bassMixer)
+                outputChannelContainer.Add(new AudioChannelDisplay(bassMixer.Handle, true));
         }
 
         protected override void Update()
         {
             base.Update();
 
-            int[] channels = BassMix.MixerGetChannels(MixerHandle);
+            if (!(Mixer is BassAudioMixer bassMixer))
+                return;
+
+            int[] channels = BassMix.MixerGetChannels(bassMixer.Handle);
 
             if (channels == null)
                 return;
 
             foreach (int channel in channels)
             {
-                if (channelsContainer.All(ch => ch.ChannelHandle != channel))
-                    channelsContainer.Add(new AudioChannelDisplay(channel));
+                if (mixerChannelsContainer.All(ch => ch.ChannelHandle != channel))
+                    mixerChannelsContainer.Add(new AudioChannelDisplay(channel));
             }
 
-            channelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));
+            mixerChannelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));
         }
     }
 }

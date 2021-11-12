@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Audio
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
-            mixer = audio.CreateAudioMixer();
+            mixer = audio.CreateAudioMixer(Name);
             mixer.Effects.BindTo(Effects);
         }
 

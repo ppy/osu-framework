@@ -633,6 +633,10 @@ namespace osu.Framework.Platform
                     handleTextInputEvent(e.text);
                     break;
 
+                case SDL.SDL_EventType.SDL_KEYMAPCHANGED:
+                    handleKeymapChangedEvent();
+                    break;
+
                 case SDL.SDL_EventType.SDL_MOUSEMOTION:
                     handleMouseMotionEvent(e.motion);
                     break;
@@ -911,6 +915,11 @@ namespace osu.Framework.Platform
                     ScheduleEvent(() => KeyUp?.Invoke(key));
                     break;
             }
+        }
+
+        private void handleKeymapChangedEvent()
+        {
+            ScheduleEvent(() => KeymapChanged?.Invoke());
         }
 
         private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
@@ -1429,6 +1438,9 @@ namespace osu.Framework.Platform
         /// Parameters are, in order: composition text, selection start, selection length.
         /// </summary>
         public event Action<string, int, int> TextEditing;
+
+        /// <inheritdoc cref="IWindow.KeymapChanged"/>
+        public event Action KeymapChanged;
 
         /// <summary>
         /// Invoked when a joystick axis changes.
