@@ -351,6 +351,24 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Finalizes the current IME composition (if any).
+        /// </summary>
+        protected void FinalizeImeComposition()
+        {
+            textInput?.ResetIme();
+            Scheduler.Add(onImeResult, false);
+        }
+
+        /// <summary>
+        /// Cancels the current IME composition, removing it from the <see cref="Text"/>.
+        /// </summary>
+        protected void CancelImeComposition()
+        {
+            textInput?.ResetIme();
+            Scheduler.Add(() => onImeComposition(string.Empty, 0, 0), false);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             OnCommit = null;
@@ -874,6 +892,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void Commit()
         {
+            if (ImeCompositionActive)
+                FinalizeImeComposition();
+
             if (ReleaseFocusOnCommit && HasFocus)
             {
                 killFocus();
@@ -899,10 +920,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnDrag(DragEvent e)
         {
-            //if (textInput?.ImeActive == true) return true;
-
             if (ReadOnly)
                 return;
+
+            if (ImeCompositionActive)
+                FinalizeImeComposition();
 
             if (doubleClickWord != null)
             {
@@ -951,7 +973,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (ImeCompositionActive)
+                FinalizeImeComposition();
 
             if (text.Length == 0) return true;
 
@@ -993,7 +1016,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (ReadOnly)
+                return true;
+
+            if (ImeCompositionActive)
+                FinalizeImeComposition();
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1009,6 +1036,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
+            if (ImeCompositionActive)
+                FinalizeImeComposition();
+
             unbindInput();
 
             caret.Hide();
