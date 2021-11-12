@@ -854,12 +854,17 @@ namespace osu.Framework.Graphics.UserInterface
             switch (e.Key)
             {
                 case Key.Escape:
-                    KillFocus();
+                    // if keypress is repeating, the IME was probably closed with the first, non-repeating keypress
+                    // so don't kill focus unless the user has explicitly released and pressed the key again.
+                    if (!e.Repeat)
+                        KillFocus();
                     return true;
 
                 case Key.KeypadEnter:
                 case Key.Enter:
-                    Commit();
+                    // same rationale as comment above.
+                    if (!e.Repeat)
+                        Commit();
                     return true;
 
                 // avoid blocking certain keys which may be used during typing but don't produce characters.
