@@ -15,8 +15,6 @@ namespace osu.Framework.Input
 
         string GetPendingText();
 
-        void Deactivate();
-
         void Activate();
 
         /// <summary>
@@ -24,6 +22,8 @@ namespace osu.Framework.Input
         /// and that the user can start entering text.
         /// </summary>
         void EnsureActivated();
+
+        void Deactivate();
 
         event Action<string> OnNewImeComposition;
         event Action<string> OnNewImeResult;
