@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace osu.Framework.Localisation
 {
+    /// <summary>
+    /// A string which can display a plural variant of a localised string according to the plural context.
+    /// </summary>
     public class PluralisableString : TranslatableString
     {
         private const char variant_delimiter = '|';
