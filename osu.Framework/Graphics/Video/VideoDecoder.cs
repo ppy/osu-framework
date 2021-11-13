@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => stream == null ? 0 : duration * timeBaseInSeconds * 1000;
+        public double Duration { get; private set; }
 
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
@@ -83,7 +83,6 @@ namespace osu.Framework.Graphics.Video
         private Stream videoStream;
 
         private double timeBaseInSeconds;
-        private long duration;
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
@@ -345,8 +344,12 @@ namespace osu.Framework.Graphics.Video
                 throw new InvalidOperationException($"Couldn't find video stream: {getErrorMessage(streamIndex)}");
 
             stream = formatContext->streams[streamIndex];
-            duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
             timeBaseInSeconds = stream->time_base.GetValue();
+
+            if (stream->duration > 0)
+                Duration = stream->duration * timeBaseInSeconds * 1000;
+            else
+                Duration = formatContext->duration / AGffmpeg.AV_TIME_BASE * 1000;
         }
 
         private void recreateCodecContext()
