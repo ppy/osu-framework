@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewVideo(videoFormat);
 
             AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
-            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 10000);
+            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 10000);
         }
 
         [TestCase("mp4")]
@@ -152,9 +152,9 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewVideo(videoFormat);
 
             AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
-            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
+            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 30000);
             AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
-            AddUntilStep("Video seeked", () => video.PlaybackPosition < 30000);
+            AddUntilStep("Video seeked", () => video.CurrentFrameTime < 30000);
         }
 
         [TestCase("mp4")]
@@ -164,9 +164,9 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             loadNewVideo(videoFormat);
 
-            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 3000);
+            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 10000);
+            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 15000);
 
-            AddUntilStep("Video seeked", () => video.PlaybackPosition >= video.Duration - 3000);
             AddUntilStep("Reached end", () => video.State == VideoDecoder.DecoderState.EndOfStream);
             AddStep("reset decode state", () => didDecode = false);
 
