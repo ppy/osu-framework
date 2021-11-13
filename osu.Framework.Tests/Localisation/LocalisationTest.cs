@@ -378,6 +378,44 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual("12.34 / number 98.76% EN / number romanised EN", text.Value);
         }
 
+        [Test]
+        public void TestPluralisableString()
+        {
+            const string key = FakeStorage.LOCALISABLE_PLURALISABLE_STRING_EN;
+
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var textSingularVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 1, 1));
+            Assert.AreEqual("1 circle", textSingularVariant.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+            Assert.AreEqual("1 cercle", textSingularVariant.Value);
+
+            var textPluralVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 2, 2));
+            Assert.AreEqual("2 cercles", textPluralVariant.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+            Assert.AreEqual("2 circles", textPluralVariant.Value);
+        }
+
+        [Test]
+        public void TestPluralisableStringNonEnglishPluralRules()
+        {
+            const string key = FakeStorage.LOCALISABLE_PLURALISABLE_STRING_EN;
+
+            manager.AddLanguage("pl", new FakeStorage("pl"));
+            config.SetValue(FrameworkSetting.Locale, "pl");
+
+            var textFirstVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 1, 1));
+            Assert.AreEqual("1 krąg", textFirstVariant.Value);
+
+            var textSecondVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 3, 3));
+            Assert.AreEqual("3 kręgi", textSecondVariant.Value);
+
+            var textThirdVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 13, 13));
+            Assert.AreEqual("13 kręgów", textThirdVariant.Value);
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
@@ -406,6 +444,9 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_NUMBER_FORMAT_STRING_FR = "number {0} FR";
             public const string LOCALISABLE_COMPLEX_FORMAT_STRING_EN = "number {0} with {1} and {2} EN";
             public const string LOCALISABLE_COMPLEX_FORMAT_STRING_FR = "number {0} with {1} and {2} FR";
+            public const string LOCALISABLE_PLURALISABLE_STRING_EN = "{0} circle|{0} circles";
+            public const string LOCALISABLE_PLURALISABLE_STRING_FR = "{0} cercle|{0} cercles";
+            public const string LOCALISABLE_PLURALISABLE_STRING_PL = "{0} krąg|{0} kręgi|{0} kręgów";
 
             public CultureInfo EffectiveCulture { get; }
 
@@ -468,6 +509,21 @@ namespace osu.Framework.Tests.Localisation
                             case "fr":
                                 return LOCALISABLE_COMPLEX_FORMAT_STRING_FR;
                         }
+
+                    case LOCALISABLE_PLURALISABLE_STRING_EN:
+                    {
+                        switch (locale)
+                        {
+                            default:
+                                return LOCALISABLE_PLURALISABLE_STRING_EN;
+
+                            case "fr":
+                                return LOCALISABLE_PLURALISABLE_STRING_FR;
+
+                            case "pl":
+                                return LOCALISABLE_PLURALISABLE_STRING_PL;
+                        }
+                    }
 
                     default:
                         return null;

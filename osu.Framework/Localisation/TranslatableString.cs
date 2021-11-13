@@ -92,7 +92,7 @@ namespace osu.Framework.Localisation
                    && Args.SequenceEqual(other.Args);
         }
 
-        public bool Equals(ILocalisableStringData? other) => other is TranslatableString translatable && Equals(translatable);
+        public virtual bool Equals(ILocalisableStringData? other) => other is TranslatableString translatable && Equals(translatable);
         public override bool Equals(object? obj) => obj is TranslatableString translatable && Equals(translatable);
 
         public override int GetHashCode()
