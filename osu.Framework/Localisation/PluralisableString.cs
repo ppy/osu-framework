@@ -13,10 +13,24 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class PluralisableString : TranslatableString
     {
+        /// <summary>
+        /// The plural count to use when applying plural rules.
+        /// </summary>
         public readonly int Count;
 
+        /// <summary>
+        /// The character to use as a plural variant separator in localised text.
+        /// </summary>
         public readonly char Separator;
 
+        /// <summary>
+        /// Creates a <see cref="PluralisableString"/> using texts.
+        /// </summary>
+        /// <param name="key">The key for <see cref="LocalisationManager"/> to look up with.</param>
+        /// <param name="fallback">The fallback string to use when no translation can be found.</param>
+        /// <param name="count">The plural count to use when applying plural rules.</param>
+        /// <param name="separator">The character to use as a plural variant separator in localised text.</param>
+        /// <param name="args">Optional formattable arguments.</param>
         public PluralisableString(string key, string fallback, int count, char separator, params object[] args)
             : base(key, fallback, args)
         {
@@ -24,6 +38,13 @@ namespace osu.Framework.Localisation
             Separator = separator;
         }
 
+        /// <summary>
+        /// Creates a <see cref="PluralisableString"/> using interpolated string.
+        /// </summary>
+        /// <param name="key">The key for <see cref="LocalisationManager"/> to look up with.</param>
+        /// <param name="interpolation">The interpolated string containing fallback and formattable arguments.</param>
+        /// <param name="count">The plural count to use when applying plural rules.</param>
+        /// <param name="separator">The character to use as a plural variant separator in localised text.</param>
         public PluralisableString(string key, FormattableString interpolation, int count, char separator)
             : base(key, interpolation)
         {
