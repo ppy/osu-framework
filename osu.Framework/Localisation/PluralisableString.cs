@@ -34,7 +34,7 @@ namespace osu.Framework.Localisation
         protected override string GetLocalisedFormat(LocalisationParameters parameters, string format)
         {
             string[] variants = format.Split(Separator);
-            return variants.ElementAtOrDefault(getPluralIndex(parameters)) ?? variants.ElementAt(variants.Length);
+            return variants.ElementAtOrDefault(getPluralIndex(parameters)) ?? variants.ElementAt(variants.Length - 1);
         }
 
         public bool Equals(PluralisableString? other)
