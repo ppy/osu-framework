@@ -48,12 +48,14 @@ namespace osu.Framework.Localisation
             Args = interpolation.GetArguments();
         }
 
+        protected virtual string GetLocalisedFormat(LocalisationParameters parameters, string format) => format;
+
         public string GetLocalised(LocalisationParameters parameters)
         {
             if (parameters.Store == null)
                 return ToString();
 
-            string localisedFormat = parameters.Store.Get(Key) ?? Fallback;
+            string localisedFormat = GetLocalisedFormat(parameters, parameters.Store.Get(Key) ?? Fallback);
 
             try
             {
@@ -71,14 +73,14 @@ namespace osu.Framework.Localisation
             catch (FormatException e)
             {
                 // The formatting has failed
-                Logger.Log($"Localised format failed. Key: {Key}, culture: {parameters.Store.EffectiveCulture}, fallback format string: \"{Fallback}\", localised format string: \"{localisedFormat}\". Exception: {e}",
+                Logger.Log($"Localised format failed. Key: {Key}, culture: {parameters.Store.EffectiveCulture}, fallback format string: \"{GetLocalisedFormat(parameters, Fallback)}\", localised format string: \"{localisedFormat}\". Exception: {e}",
                     LoggingTarget.Runtime, LogLevel.Verbose);
             }
 
             return ToString();
         }
 
-        public override string ToString() => string.Format(CultureInfo.InvariantCulture, Fallback, Args);
+        public override string ToString() => string.Format(CultureInfo.InvariantCulture, GetLocalisedFormat(new LocalisationParameters(null, false), Fallback), Args);
 
         public bool Equals(TranslatableString? other)
         {
