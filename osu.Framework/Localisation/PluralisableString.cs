@@ -13,25 +13,27 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class PluralisableString : TranslatableString
     {
-        private const char variant_delimiter = '|';
-
         public readonly int Count;
 
-        public PluralisableString(string key, string fallback, int count, params object[] args)
+        public readonly char Separator;
+
+        public PluralisableString(string key, string fallback, int count, char separator, params object[] args)
             : base(key, fallback, args)
         {
             Count = count;
+            Separator = separator;
         }
 
-        public PluralisableString(string key, FormattableString interpolation, int count)
+        public PluralisableString(string key, FormattableString interpolation, int count, char separator)
             : base(key, interpolation)
         {
             Count = count;
+            Separator = separator;
         }
 
         protected override string GetLocalisedFormat(LocalisationParameters parameters, string format)
         {
-            string[] variants = format.Split(variant_delimiter);
+            string[] variants = format.Split(Separator);
             return variants.ElementAtOrDefault(getPluralIndex(parameters)) ?? variants.ElementAt(variants.Length);
         }
 
