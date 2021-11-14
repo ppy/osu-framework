@@ -26,16 +26,7 @@ namespace osu.Framework.Android.Input
                 inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
-        public void Deactivate()
-        {
-            activity.RunOnUiThread(() =>
-            {
-                inputMethodManager?.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
-                view.ClearFocus();
-                view.KeyDown -= keyDown;
-                view.CommitText -= commitText;
-            });
-        }
+        public bool ImeActive => false;
 
         public string GetPendingText()
         {
@@ -59,19 +50,15 @@ namespace osu.Framework.Android.Input
                 pending += (char)e.UnicodeChar;
         }
 
-        public bool ImeActive => false;
-
-        public event Action<string> OnNewImeComposition;
-        public event Action<string> OnNewImeResult;
-
         public void Activate()
         {
+            view.KeyDown += keyDown;
+            view.CommitText += commitText;
+
             activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
                 inputMethodManager?.ShowSoftInput(view, 0);
-                view.KeyDown += keyDown;
-                view.CommitText += commitText;
             });
         }
 
@@ -79,8 +66,24 @@ namespace osu.Framework.Android.Input
         {
             activity.RunOnUiThread(() =>
             {
+                view.RequestFocus();
                 inputMethodManager?.ShowSoftInput(view, 0);
             });
         }
+
+        public void Deactivate()
+        {
+            view.KeyDown -= keyDown;
+            view.CommitText -= commitText;
+
+            activity.RunOnUiThread(() =>
+            {
+                inputMethodManager?.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
+                view.ClearFocus();
+            });
+        }
+
+        public event Action<string> OnNewImeComposition;
+        public event Action<string> OnNewImeResult;
     }
 }

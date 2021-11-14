@@ -101,7 +101,7 @@ namespace osu.Framework.Platform
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
         });
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
+        public override ITextInputSource GetTextInput() => Window == null ? null : new SDL2DesktopWindowTextInput(Window as SDL2DesktopWindow);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
