@@ -2,7 +2,7 @@
 # That is to avoid them from getting stripped out due to appearing falsely unused.
 
 IOS_PROJECT=$(dirname $0)
-FRAMEWORK=$(builtin cd "$IOS_PROJECT/.."; pwd)
+FRAMEWORK=$(cd "$IOS_PROJECT/.."; pwd)
 
 LIBRARIES=("$IOS_PROJECT/libbass_fx.a" "$IOS_PROJECT/libbassmix.a")
 PROJECTS=("$FRAMEWORK/osu.Framework.iOS.props")
