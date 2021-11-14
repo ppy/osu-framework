@@ -13,15 +13,12 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class PluralisableString : TranslatableString
     {
+        private const char variant_separator = '|';
+
         /// <summary>
         /// The plural count to use when applying plural rules.
         /// </summary>
         public readonly int Count;
-
-        /// <summary>
-        /// The character to use as a plural variant separator in localised text.
-        /// </summary>
-        public readonly char Separator;
 
         /// <summary>
         /// Creates a <see cref="PluralisableString"/> using texts.
@@ -29,13 +26,11 @@ namespace osu.Framework.Localisation
         /// <param name="key">The key for <see cref="LocalisationManager"/> to look up with.</param>
         /// <param name="fallback">The fallback string to use when no translation can be found.</param>
         /// <param name="count">The plural count to use when applying plural rules.</param>
-        /// <param name="separator">The character to use as a plural variant separator in localised text.</param>
         /// <param name="args">Optional formattable arguments.</param>
-        public PluralisableString(string key, string fallback, int count, char separator, params object[] args)
+        public PluralisableString(string key, string fallback, int count, params object[] args)
             : base(key, fallback, args)
         {
             Count = count;
-            Separator = separator;
         }
 
         /// <summary>
@@ -44,17 +39,15 @@ namespace osu.Framework.Localisation
         /// <param name="key">The key for <see cref="LocalisationManager"/> to look up with.</param>
         /// <param name="interpolation">The interpolated string containing fallback and formattable arguments.</param>
         /// <param name="count">The plural count to use when applying plural rules.</param>
-        /// <param name="separator">The character to use as a plural variant separator in localised text.</param>
-        public PluralisableString(string key, FormattableString interpolation, int count, char separator)
+        public PluralisableString(string key, FormattableString interpolation, int count)
             : base(key, interpolation)
         {
             Count = count;
-            Separator = separator;
         }
 
         protected override string GetLocalisedFormat(LocalisationParameters parameters, string format)
         {
-            string[] variants = format.Split(Separator);
+            string[] variants = format.Split(variant_separator);
             return variants.ElementAtOrDefault(getPluralIndex(parameters)) ?? variants.ElementAt(variants.Length - 1);
         }
 
@@ -74,7 +67,6 @@ namespace osu.Framework.Localisation
             var hashCode = new HashCode();
             hashCode.Add(base.GetHashCode());
             hashCode.Add(Count);
-            hashCode.Add(Separator);
             return hashCode.ToHashCode();
         }
 

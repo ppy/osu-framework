@@ -385,13 +385,13 @@ namespace osu.Framework.Tests.Localisation
 
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
-            var textSingularVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 1, '|', 1));
+            var textSingularVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 1, 1));
             Assert.AreEqual("1 circle", textSingularVariant.Value);
 
             config.SetValue(FrameworkSetting.Locale, "fr");
             Assert.AreEqual("1 cercle", textSingularVariant.Value);
 
-            var textPluralVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 2, '|', 2));
+            var textPluralVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 2, 2));
             Assert.AreEqual("2 cercles", textPluralVariant.Value);
 
             config.SetValue(FrameworkSetting.Locale, "en");
@@ -406,13 +406,13 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("pl", new FakeStorage("pl"));
             config.SetValue(FrameworkSetting.Locale, "pl");
 
-            var textFirstVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 1, '|', 1));
+            var textFirstVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 1, 1));
             Assert.AreEqual("1 krąg", textFirstVariant.Value);
 
-            var textSecondVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 3, '|', 3));
+            var textSecondVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 3, 3));
             Assert.AreEqual("3 kręgi", textSecondVariant.Value);
 
-            var textThirdVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 13, '|', 13));
+            var textThirdVariant = manager.GetLocalisedBindableString(new PluralisableString(key, key, 13, 13));
             Assert.AreEqual("13 kręgów", textThirdVariant.Value);
         }
 
