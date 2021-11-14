@@ -74,6 +74,7 @@ namespace osu.Framework.Localisation
             var hashCode = new HashCode();
             hashCode.Add(base.GetHashCode());
             hashCode.Add(Count);
+            hashCode.Add(Separator);
             return hashCode.ToHashCode();
         }
 
