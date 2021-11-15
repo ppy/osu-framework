@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.IO;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -23,20 +22,20 @@ namespace osu.Framework.Tests.Visual.Sprites
         [BackgroundDependencyLoader]
         private void load(Game game)
         {
-            byte[] videoData = game.Resources.Get("Videos/sample-video.mp4");
+            const string video_path = "Videos/sample-video.mp4";
 
-            Cell(0, 0).Child = createTest("video - auto size", () => new TestVideo(new MemoryStream(videoData)));
-            Cell(0, 1).Child = createTest("video - relative size + fit", () => new TestVideo(new MemoryStream(videoData))
+            Cell(0, 0).Child = createTest("video - auto size", () => new TestVideo(game.Resources.GetStream(video_path)));
+            Cell(0, 1).Child = createTest("video - relative size + fit", () => new TestVideo(game.Resources.GetStream(video_path))
             {
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fit
             });
-            Cell(0, 2).Child = createTest("video - relative size + fill", () => new TestVideo(new MemoryStream(videoData))
+            Cell(0, 2).Child = createTest("video - relative size + fill", () => new TestVideo(game.Resources.GetStream(video_path))
             {
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fill
             });
-            Cell(0, 3).Child = createTest("video - fixed size", () => new TestVideo(new MemoryStream(videoData))
+            Cell(0, 3).Child = createTest("video - fixed size", () => new TestVideo(game.Resources.GetStream(video_path))
             {
                 Size = new Vector2(100, 50)
             });
