@@ -396,6 +396,11 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
+            // we want text input to only be active when SDL2DesktopWindowTextInput is active.
+            // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
+            // so we deactivate it on startup.
+            SDL.SDL_StopTextInput();
+
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
@@ -567,6 +572,10 @@ namespace osu.Framework.Platform
 
             ScheduleEvent(() => MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale)));
         }
+
+        public void StartTextInput() => ScheduleCommand(SDL.SDL_StartTextInput);
+
+        public void StopTextInput() => ScheduleCommand(SDL.SDL_StopTextInput);
 
         #region SDL Event Handling
 
@@ -869,14 +878,24 @@ namespace osu.Framework.Platform
             if (ptr == IntPtr.Zero)
                 return;
 
-            string text = Marshal.PtrToStringUTF8(ptr) ?? "";
+            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
-            foreach (char c in text)
-                ScheduleEvent(() => KeyTyped?.Invoke(c));
+            ScheduleEvent(() => TextInput?.Invoke(text));
         }
 
-        private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
+        private unsafe void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
         {
+            var ptr = new IntPtr(evtEdit.text);
+            if (ptr == IntPtr.Zero)
+                return;
+
+            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
+
+            // copy to avoid CS1686
+            int start = evtEdit.start;
+            int length = evtEdit.length;
+
+            ScheduleEvent(() => TextEditing?.Invoke(text, start, length));
         }
 
         private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
@@ -1410,9 +1429,14 @@ namespace osu.Framework.Platform
         public event Action<Key> KeyUp;
 
         /// <summary>
-        /// Invoked when the user types a character.
+        /// Invoked when the user enters text.
         /// </summary>
-        public event Action<char> KeyTyped;
+        public event Action<string> TextInput;
+
+        /// <summary>
+        /// Invoked when an IME text editing event occurs.
+        /// </summary>
+        public event TextEditingDelegate TextEditing;
 
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged;
@@ -1442,5 +1466,13 @@ namespace osu.Framework.Platform
         public void Dispose()
         {
         }
+
+        /// <summary>
+        /// Fired when text is edited, usually via IME composition.
+        /// </summary>
+        /// <param name="text">The composition text.</param>
+        /// <param name="start">The index of the selection start.</param>
+        /// <param name="length">The length of the selection.</param>
+        public delegate void TextEditingDelegate(string text, int start, int length);
     }
 }
