@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osuTK;
@@ -18,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         private AudioManager audioManager { get; set; }
 
         private readonly FillFlowContainer<MixerDisplay> mixerFlow;
-        private readonly IBindableList<int> activeMixerHandles = new BindableList<int>();
+        private readonly IBindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
 
         public AudioMixerVisualiser()
             : base("AudioMixer", "(Ctrl+F9 to toggle)")
@@ -45,8 +46,8 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         {
             base.LoadComplete();
 
-            activeMixerHandles.BindTo(audioManager.ActiveMixerHandles);
-            activeMixerHandles.BindCollectionChanged(onActiveMixerHandlesChanged, true);
+            activeMixers.BindTo(audioManager.ActiveMixers);
+            activeMixers.BindCollectionChanged(onActiveMixerHandlesChanged, true);
         }
 
         private void onActiveMixerHandlesChanged(object sender, NotifyCollectionChangedEventArgs e) => Schedule(() =>
@@ -55,13 +56,13 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             {
                 case NotifyCollectionChangedAction.Add:
                     Debug.Assert(e.NewItems != null);
-                    foreach (int handle in e.NewItems.OfType<int>())
-                        mixerFlow.Add(new MixerDisplay(handle));
+                    foreach (var mixer in e.NewItems.OfType<AudioMixer>())
+                        mixerFlow.Add(new MixerDisplay(mixer));
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     Debug.Assert(e.OldItems != null);
-                    mixerFlow.RemoveAll(m => e.OldItems.OfType<int>().Contains(m.MixerHandle));
+                    mixerFlow.RemoveAll(m => e.OldItems.OfType<AudioMixer>().Contains(m.Mixer));
                     break;
             }
         });

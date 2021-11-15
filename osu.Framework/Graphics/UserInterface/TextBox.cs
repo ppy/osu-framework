@@ -45,7 +45,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual bool AllowWordNavigation => true;
 
-        //represents the left/right selection coordinates of the word double clicked on when dragging
+        /// <summary>
+        /// Represents the left/right selection coordinates of the word double clicked on when dragging.
+        /// </summary>
         private int[] doubleClickWord;
 
         /// <summary>
@@ -1018,15 +1020,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region Native TextBox handling (platform-specific)
 
+        private void bindInput()
+        {
+            textInput?.Activate();
+        }
+
         private void unbindInput()
         {
             textInput?.Deactivate();
         }
 
-        private void bindInput()
-        {
-            textInput?.Activate();
-        }
+        private readonly List<Drawable> imeDrawables = new List<Drawable>();
 
         private void onImeResult()
         {
@@ -1042,8 +1046,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             imeDrawables.Clear();
         }
-
-        private readonly List<Drawable> imeDrawables = new List<Drawable>();
 
         private void onImeComposition(string s)
         {

@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => stream == null ? 0 : duration * timeBaseInSeconds * 1000;
+        public double Duration { get; private set; }
 
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
@@ -83,7 +83,6 @@ namespace osu.Framework.Graphics.Video
         private Stream videoStream;
 
         private double timeBaseInSeconds;
-        private long duration;
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
@@ -314,67 +313,22 @@ namespace osu.Framework.Graphics.Video
             return decoder.videoStream.Position;
         }
 
-        /// <remarks>
-        /// Returned HW devices are not guaranteed to be available on the current machine, they only represent what the loaded FFmpeg libraries support.
-        /// </remarks>
-        private IEnumerable<(FFmpegCodec codec, AVHWDeviceType hwDeviceType)> getAvailableDecoders(AVCodecID codecId)
-        {
-            var comparer = new AVHWDeviceTypePerformanceComparer();
-            var codecs = new Lists.SortedList<(FFmpegCodec, AVHWDeviceType hwDeviceType)>((x, y) => comparer.Compare(x.hwDeviceType, y.hwDeviceType));
-            FFmpegCodec firstCodec = null;
-
-            void* iterator = null;
-
-            while (true)
-            {
-                var avCodec = ffmpeg.av_codec_iterate(&iterator);
-
-                if (avCodec == null) break;
-
-                var codec = new FFmpegCodec(ffmpeg, avCodec);
-                if (codec.Id != codecId || !codec.IsDecoder) continue;
-
-                firstCodec ??= codec;
-
-                if (TargetHardwareVideoDecoders.Value == HardwareVideoDecoder.None)
-                    break;
-
-                foreach (var hwDeviceType in codec.SupportedHwDeviceTypes.Value)
-                {
-                    var hwVideoDecoder = hwDeviceType.ToHardwareVideoDecoder();
-
-                    if (!hwVideoDecoder.HasValue || !TargetHardwareVideoDecoders.Value.HasFlagFast(hwVideoDecoder.Value))
-                        continue;
-
-                    codecs.Add((codec, hwDeviceType));
-                }
-            }
-
-            // default to the first codec that we found with no HW devices.
-            // The first codec is what FFmpeg's `avcodec_find_decoder` would return so this way we'll automatically fallback to that.
-            if (firstCodec != null)
-                codecs.Add((firstCodec, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE));
-
-            return codecs;
-        }
-
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
         private void prepareDecoding()
         {
             const int context_buffer_size = 4096;
-
-            // the first call to FFmpeg will throw an exception if the libraries cannot be found
-            // this will be safely handled in StartDecoding()
-            var fcPtr = ffmpeg.avformat_alloc_context();
-            formatContext = fcPtr;
             readPacketCallback = readPacket;
             seekCallback = streamSeekCallbacks;
-
             // we shouldn't keep a reference to this buffer as it can be freed and replaced by the native libs themselves.
             // https://ffmpeg.org/doxygen/4.1/aviobuf_8c.html#a853f5149136a27ffba3207d8520172a5
             byte* contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
+
             ioContext = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
+
+            var fcPtr = ffmpeg.avformat_alloc_context();
+            formatContext = fcPtr;
             formatContext->pb = ioContext;
+            formatContext->flags |= AGffmpeg.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             inputOpened = openInputResult >= 0;
@@ -390,8 +344,12 @@ namespace osu.Framework.Graphics.Video
                 throw new InvalidOperationException($"Couldn't find video stream: {getErrorMessage(streamIndex)}");
 
             stream = formatContext->streams[streamIndex];
-            duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
             timeBaseInSeconds = stream->time_base.GetValue();
+
+            if (stream->duration > 0)
+                Duration = stream->duration * timeBaseInSeconds * 1000;
+            else
+                Duration = formatContext->duration / AGffmpeg.AV_TIME_BASE * 1000;
         }
 
         private void recreateCodecContext()
@@ -402,7 +360,7 @@ namespace osu.Framework.Graphics.Video
             var codecParams = *stream->codecpar;
             bool openSuccessful = false;
 
-            foreach (var (decoder, hwDeviceType) in getAvailableDecoders(codecParams.codec_id))
+            foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, TargetHardwareVideoDecoders.Value))
             {
                 // free context in case it was allocated in a previous iteration or recreate call.
                 if (codecContext != null)
@@ -603,8 +561,9 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                // some formats (e.g. AVI) don't contain "presentation timestamp" so fallback to the best effort one if it's missing.
-                long frameTimestamp = receiveFrame->pts != AGffmpeg.AV_NOPTS_VALUE ? receiveFrame->pts : receiveFrame->best_effort_timestamp;
+                // use `best_effort_timestamp` as it can be more accurate if timestamps from the source file (pts) are broken.
+                // but some HW codecs don't set it in which case fallback to `pts`
+                long frameTimestamp = receiveFrame->best_effort_timestamp != AGffmpeg.AV_NOPTS_VALUE ? receiveFrame->best_effort_timestamp : receiveFrame->pts;
 
                 double frameTime = (frameTimestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
@@ -738,6 +697,54 @@ namespace osu.Framework.Graphics.Video
 
             int messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
             return $"{Encoding.ASCII.GetString(buffer[..messageLength])} ({errorCode})";
+        }
+
+        /// <remarks>
+        /// Returned HW devices are not guaranteed to be available on the current machine, they only represent what the loaded FFmpeg libraries support.
+        /// </remarks>
+        protected virtual IEnumerable<(FFmpegCodec codec, AVHWDeviceType hwDeviceType)> GetAvailableDecoders(
+            AVInputFormat* inputFormat,
+            AVCodecID codecId,
+            HardwareVideoDecoder targetHwDecoders
+        )
+        {
+            var comparer = new AVHWDeviceTypePerformanceComparer();
+            var codecs = new Lists.SortedList<(FFmpegCodec, AVHWDeviceType hwDeviceType)>((x, y) => comparer.Compare(x.hwDeviceType, y.hwDeviceType));
+            FFmpegCodec firstCodec = null;
+
+            void* iterator = null;
+
+            while (true)
+            {
+                var avCodec = ffmpeg.av_codec_iterate(&iterator);
+
+                if (avCodec == null) break;
+
+                var codec = new FFmpegCodec(ffmpeg, avCodec);
+                if (codec.Id != codecId || !codec.IsDecoder) continue;
+
+                firstCodec ??= codec;
+
+                if (targetHwDecoders == HardwareVideoDecoder.None)
+                    break;
+
+                foreach (var hwDeviceType in codec.SupportedHwDeviceTypes.Value)
+                {
+                    var hwVideoDecoder = hwDeviceType.ToHardwareVideoDecoder();
+
+                    if (!hwVideoDecoder.HasValue || !targetHwDecoders.HasFlagFast(hwVideoDecoder.Value))
+                        continue;
+
+                    codecs.Add((codec, hwDeviceType));
+                }
+            }
+
+            // default to the first codec that we found with no HW devices.
+            // The first codec is what FFmpeg's `avcodec_find_decoder` would return so this way we'll automatically fallback to that.
+            if (firstCodec != null)
+                codecs.Add((firstCodec, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE));
+
+            return codecs;
         }
 
         protected virtual FFmpegFuncs CreateFuncs()

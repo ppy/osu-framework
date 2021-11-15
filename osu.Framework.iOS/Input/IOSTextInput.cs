@@ -38,12 +38,6 @@ namespace osu.Framework.iOS.Input
                 pending += text;
         }
 
-        public void Deactivate()
-        {
-            view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
-            view.KeyboardTextField.UpdateFirstResponder(false);
-        }
-
         public void Activate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
@@ -57,6 +51,12 @@ namespace osu.Framework.iOS.Input
             // `responderSemaphore` currently works in that method.
 
             // TODO: add iOS implementation
+        }
+
+        public void Deactivate()
+        {
+            view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
+            view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
         public event Action<string> OnNewImeComposition

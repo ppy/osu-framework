@@ -38,9 +38,9 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
-
         public override Clipboard GetClipboard() => new MacOSClipboard();
+
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
 
         protected override void Swap()
         {

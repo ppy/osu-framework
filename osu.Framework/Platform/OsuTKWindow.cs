@@ -46,6 +46,9 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Resized;
 
+        /// <inheritdoc cref="IWindow.KeymapChanged"/>
+        public event Action KeymapChanged { add { } remove { } }
+
         /// <summary>
         /// Invoked when any key has been pressed.
         /// </summary>

@@ -74,7 +74,13 @@ namespace osu.Framework.Tests.Visual.Testing
                 sample = new DrawableSample(samples.Get("long.mp3"));
 
                 if (withMixer)
-                    InternalChild = new DrawableAudioMixer { Children = new Drawable[] { track, sample } };
+                {
+                    InternalChild = new DrawableAudioMixer
+                    {
+                        Name = "drawable mixer",
+                        Children = new Drawable[] { track, sample }
+                    };
+                }
                 else
                     InternalChildren = new Drawable[] { track, sample };
             }
