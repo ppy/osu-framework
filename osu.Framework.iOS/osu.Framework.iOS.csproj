@@ -28,12 +28,12 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)\*.a" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)*.a">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+      <WithCulture>False</WithCulture>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <!-- Without separate dll configs and using BundleResource, dllmaps won't work properly
