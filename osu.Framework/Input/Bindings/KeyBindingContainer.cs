@@ -4,13 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
-using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Input.Bindings
@@ -392,13 +390,6 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingContainer : Container
     {
-        // This is only specified here (rather than in PlatformContainer, where it is consumed) to workaround
-        // a critical iOS / Xamarin bug, where consumer applications may crash during startup at an unmanaged level.
-        // It should eventually be removed when the issue is identified and fixed upstream.
-        // See https://github.com/ppy/osu-framework/pull/4263 for discussion.
-        [Resolved]
-        protected GameHost Host { get; private set; }
-
         protected IEnumerable<IKeyBinding> KeyBindings;
 
         public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }
