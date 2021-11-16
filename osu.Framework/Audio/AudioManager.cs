@@ -25,20 +25,18 @@ namespace osu.Framework.Audio
     public class AudioManager : AudioCollectionManager<AudioComponent>
     {
         /// <summary>
+        /// The number of BASS audio devices preceding the first real audio device.
+        /// Consisting of <see cref="Bass.NoSoundDevice"/> and <see cref="bass_default_device"/>.
+        /// </summary>
+        protected const int BASS_INTERNAL_DEVICES = 2;
+
+        /// <summary>
         /// The index of the BASS audio device denoting the OS default.
         /// </summary>
         /// <remarks>
         /// See http://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_DEFAULT.html for more information on the included device.
         /// </remarks>
         private const int bass_default_device = 1;
-
-        /// <summary>
-        /// The beginning index of the BASS real audio devices.
-        /// </summary>
-        /// <remarks>
-        /// The first two devices are <see cref="Bass.NoSoundDevice"/> and <see cref="bass_default_device"/>.
-        /// </remarks>
-        private const int bass_first_real_device = 2;
 
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
@@ -290,7 +288,7 @@ namespace osu.Framework.Audio
 
             // try using the specified device
             int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
-            if (deviceIndex >= 0 && setAudioDevice(bass_first_real_device + deviceIndex))
+            if (deviceIndex >= 0 && setAudioDevice(BASS_INTERNAL_DEVICES + deviceIndex))
                 return true;
 
             // try using the system default if there is any device present.
@@ -382,13 +380,13 @@ namespace osu.Framework.Audio
 
             audioDevices = updatedAudioDevices;
 
-            // Bass should always be providing "No sound" and "Default" device
-            Trace.Assert(audioDevices.Count >= 2, "Bass did not provide any audio devices.");
+            // Bass should always be providing "No sound" and "Default" device.
+            Trace.Assert(audioDevices.Count >= BASS_INTERNAL_DEVICES, "Bass did not provide any audio devices.");
 
             onDevicesChanged();
 
             var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(2).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+            var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICES).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
 
             var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
             var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();

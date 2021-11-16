@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Audio
             var devices = base.EnumerateAllDevices();
 
             if (simulateLoss)
-                devices = devices.Take(2);
+                devices = devices.Take(BASS_INTERNAL_DEVICES);
 
             return devices;
         }
