@@ -33,6 +33,14 @@ namespace osu.Framework.Audio
         private const int bass_default_device = 1;
 
         /// <summary>
+        /// The beginning index of the BASS real audio devices.
+        /// </summary>
+        /// <remarks>
+        /// The first two devices are <see cref="Bass.NoSoundDevice"/> and <see cref="bass_default_device"/>.
+        /// </remarks>
+        private const int bass_first_real_device = 2;
+
+        /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
         public ITrackStore Tracks => globalTrackStore.Value;
@@ -281,14 +289,15 @@ namespace osu.Framework.Audio
             deviceName ??= AudioDevice.Value;
 
             // try using the specified device
-            if (setAudioDevice(audioDevices.FindIndex(d => d.Name == deviceName)))
+            int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
+            if (deviceIndex >= 0 && setAudioDevice(bass_first_real_device + deviceIndex))
                 return true;
 
-            // try using the system default device
-            if (setAudioDevice(bass_default_device))
+            // try using the system default if there is any device present.
+            if (audioDeviceNames.Count > 0 && setAudioDevice(bass_default_device))
                 return true;
 
-            // no audio devices can be used, so try using Bass-provided "No sound" device as last resort
+            // no audio devices can be used, so try using Bass-provided "No sound" device as last resort.
             if (setAudioDevice(Bass.NoSoundDevice))
                 return true;
 
