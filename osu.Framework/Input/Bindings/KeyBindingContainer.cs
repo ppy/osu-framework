@@ -204,7 +204,13 @@ namespace osu.Framework.Input.Bindings
             {
                 // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
                 if (simultaneousMode == SimultaneousBindingMode.None)
-                    releasePressedActions(state);
+                {
+                    // in the case of a key repeat we don't want to send the "released" action, even in the case of "none" simultaneous mode.
+                    if (repeat)
+                        pressedActions.Clear();
+                    else
+                        releasePressedActions(state);
+                }
 
                 List<Drawable> inputQueue = getInputQueue(newBinding, true);
                 Drawable handledBy = PropagatePressed(inputQueue, state, newBinding.GetAction<T>(), scrollAmount, isPrecise, repeat);
