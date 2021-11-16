@@ -75,12 +75,6 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
-        /// Override to enable or disable sending of repeated actions (disabled by default).
-        /// Each repeated action will have its own pressed/released event pair.
-        /// </summary>
-        protected virtual bool SendRepeats => false;
-
-        /// <summary>
         /// Whether this <see cref="KeyBindingContainer"/> should attempt to handle input before any of its children.
         /// </summary>
         protected virtual bool Prioritised => false;
@@ -118,9 +112,6 @@ namespace osu.Framework.Input.Bindings
                     return false;
 
                 case KeyDownEvent keyDown:
-                    if (keyDown.Repeat && !SendRepeats)
-                        return pressedBindings.Count > 0;
-
                     if (handleNewPressed(state, KeyCombination.FromKey(keyDown.Key), keyDown.Repeat))
                         return true;
 
