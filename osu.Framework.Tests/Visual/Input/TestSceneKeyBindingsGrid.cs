@@ -547,17 +547,19 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 if (Action == e.Action)
                 {
-                    if (Concurrency != SimultaneousBindingMode.All)
-                        Trace.Assert(OnPressedCount == OnReleasedCount);
-                    ++OnPressedCount;
+                    if (!e.Repeat)
+                    {
+                        if (Concurrency != SimultaneousBindingMode.All)
+                            Trace.Assert(OnPressedCount == OnReleasedCount);
+                        ++OnPressedCount;
 
-                    alphaTarget += 0.2f;
-                    Background.Alpha = alphaTarget;
+                        alphaTarget += 0.2f;
+                        Background.Alpha = alphaTarget;
+                    }
 
                     highlight.ClearTransforms();
                     highlight.Alpha = 1f;
                     highlight.FadeOut(200);
-
                     return true;
                 }
 
