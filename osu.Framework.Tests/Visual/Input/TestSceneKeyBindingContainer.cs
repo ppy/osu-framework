@@ -207,7 +207,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
             AddAssert("release received", () => releasedReceived);
 
-            AddAssert("one one press received", () => pressedReceived == 1);
+            AddAssert("only one press received", () => pressedReceived == 1);
         }
 
         [Test]
