@@ -179,7 +179,10 @@ namespace osu.Framework.Input.Bindings
 
             var pressEvent = new KeyBindingPressEvent<T>(state, action, true);
 
-            return keyRepeatInputQueue.FirstOrDefault(d => triggerKeyBindingEvent(d, pressEvent)) != null;
+            // Only drawables that can still handle input should handle the repeat
+            var drawables = keyRepeatInputQueue.Intersect(KeyBindingInputQueue).Where(t => t.IsAlive && t.IsPresent);
+
+            return drawables.FirstOrDefault(d => triggerKeyBindingEvent(d, pressEvent)) != null;
         }
 
         private bool handleNewPressed(InputState state, InputKey newKey, Vector2? scrollDelta = null, bool isPrecise = false)
