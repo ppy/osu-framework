@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestValidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new JsonWebRequest<HttpBinGetResponse>(url)
             {
                 Method = HttpMethod.Get,
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestCustomUserAgent([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new CustomUserAgentWebRequest(url)
             {
                 Method = HttpMethod.Get,
@@ -497,13 +497,13 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
-            WebRequest request;
-
-            using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
             {
                 Method = HttpMethod.Get,
                 AllowInsecureRequests = true,
-            })
+            };
+
+            using (request)
             {
                 request.Started += () => { };
                 request.Failed += e => { };

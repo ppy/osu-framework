@@ -18,7 +18,6 @@ using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -47,10 +46,12 @@ namespace osu.Framework.iOS
         /// </summary>
         private void handleKeyboardNotification(NSNotification notification)
         {
+            if (notification.UserInfo == null) return;
+
             NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
             RectangleF keyboardFrame = nsKeyboardFrame.RectangleFValue;
 
-            var softwareKeyboard = keyboardFrame.Height > 120;
+            bool softwareKeyboard = keyboardFrame.Height > 120;
 
             if (keyboardHandler != null)
                 keyboardHandler.KeyboardActive = softwareKeyboard;
@@ -82,11 +83,6 @@ namespace osu.Framework.iOS
             DebugConfig.SetValue(DebugSetting.BypassFrontToBackPass, true);
         }
 
-        protected override void PerformExit(bool immediately)
-        {
-            // we shouldn't exit on iOS, as Window.Run does not block
-        }
-
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
         protected override bool LimitedMemoryEnvironment => true;
@@ -107,9 +103,9 @@ namespace osu.Framework.iOS
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
+
+        public override void PresentFileExternally(string filename) => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)
         {
@@ -126,7 +122,8 @@ namespace osu.Framework.iOS
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream) => new IOSVideoDecoder(stream);
+        public override VideoDecoder CreateVideoDecoder(Stream stream)
+            => new IOSVideoDecoder(stream);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {

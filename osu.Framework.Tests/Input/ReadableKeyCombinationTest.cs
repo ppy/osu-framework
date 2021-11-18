@@ -2,12 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Tests.Input
 {
     [TestFixture]
-    public class KeyCombinationTest
+    public class ReadableKeyCombinationTest
     {
         private static readonly object[][] key_combination_display_test_cases =
         {
@@ -24,8 +25,10 @@ namespace osu.Framework.Tests.Input
             new object[] { new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Alt, InputKey.Super, InputKey.LAlt, InputKey.RShift, InputKey.LSuper), "Ctrl-LAlt-RShift-LWin" },
         };
 
+        private static readonly ReadableKeyCombinationProvider readable_key_combination_provider = new ReadableKeyCombinationProvider();
+
         [TestCaseSource(nameof(key_combination_display_test_cases))]
         public void TestKeyCombinationDisplayOrder(KeyCombination keyCombination, string expectedRepresentation)
-            => Assert.That(keyCombination.ReadableString(), Is.EqualTo(expectedRepresentation));
+            => Assert.That(readable_key_combination_provider.GetReadableString(keyCombination), Is.EqualTo(expectedRepresentation));
     }
 }

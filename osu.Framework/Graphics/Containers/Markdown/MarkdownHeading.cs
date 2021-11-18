@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             public float FontSize;
 
-            protected override SpriteText CreateSpriteText()
+            protected internal override SpriteText CreateSpriteText()
                 => base.CreateSpriteText().With(t => t.Font = t.Font.With(size: FontSize));
         }
     }

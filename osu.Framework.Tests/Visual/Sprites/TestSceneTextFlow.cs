@@ -1,11 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
@@ -61,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             textFlowContainer.AddText("CONSIDERABLY", t => t.Colour = Color4.Pink);
             textFlowContainer.AddText(" SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!", t => t.Colour = Color4.Red);
             textFlowContainer.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
-            var textSize = 48f;
+            float textSize = 48f;
             textFlowContainer.AddParagraph("Multiple Text Sizes", t =>
             {
                 t.Font = t.Font.With(size: textSize);
@@ -171,6 +173,8 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                     }
                 }
             });
+
+            AddAssert("icons added correctly", () => this.ChildrenOfType<LineBaseBox>().Any());
 
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -104,10 +105,13 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost gameHost, ShaderManager shaders)
+        private void load(GameHost gameHost, FrameworkConfigManager config, ShaderManager shaders)
         {
             decoder = gameHost.CreateVideoDecoder(stream);
             decoder.Looping = Loop;
+
+            config.BindWith(FrameworkSetting.HardwareVideoDecoder, decoder.TargetHardwareVideoDecoders);
+
             decoder.StartDecoding();
 
             Duration = decoder.Duration;
@@ -117,27 +121,36 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
-
-            if (nextFrame != null)
+            if (decoder.State == VideoDecoder.DecoderState.EndOfStream)
             {
-                bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
-                                    (!Loop ||
-                                     (Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
-                                      Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek)
-                                    );
+                // if at the end of the stream but our playback enters a valid time region again, a seek operation is required to get the decoder back on track.
+                if (PlaybackPosition < decoder.Duration)
+                    seekIntoSync();
+            }
 
-                // we are too far ahead or too far behind
-                if (tooFarBehind && decoder.CanSeek)
+            var peekFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+            bool outOfSync = false;
+
+            if (peekFrame != null)
+            {
+                outOfSync = Math.Abs(PlaybackPosition - peekFrame.Time) > lenience_before_seek;
+
+                if (Loop)
                 {
-                    Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
-                    decoder.Seek(PlaybackPosition);
-                    decoder.ReturnFrames(availableFrames);
-                    availableFrames.Clear();
+                    // handle looping bounds (as we could be in the roll-over process between loops).
+                    outOfSync &= Math.Abs(PlaybackPosition - decoder.Duration - peekFrame.Time) > lenience_before_seek &&
+                                 Math.Abs(PlaybackPosition + decoder.Duration - peekFrame.Time) > lenience_before_seek;
                 }
             }
 
-            var frameTime = CurrentFrameTime;
+            // we are too far ahead or too far behind
+            if (outOfSync && decoder.CanSeek)
+            {
+                Logger.Log($"Video too far out of sync ({peekFrame.Time}), seeking to {PlaybackPosition}");
+                seekIntoSync();
+            }
+
+            double frameTime = CurrentFrameTime;
 
             while (availableFrames.Count > 0 && checkNextFrameValid(availableFrames.Peek()))
             {
@@ -164,6 +177,13 @@ namespace osu.Framework.Graphics.Video
 
             if (frameTime != CurrentFrameTime)
                 FramesProcessed++;
+
+            void seekIntoSync()
+            {
+                decoder.Seek(PlaybackPosition);
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+            }
         }
 
         private bool checkNextFrameValid(DecodedFrame frame)
@@ -183,10 +203,19 @@ namespace osu.Framework.Graphics.Video
             base.Dispose(isDisposing);
 
             isDisposed = true;
-            decoder?.Dispose();
 
-            foreach (var f in availableFrames)
-                f.Texture.Dispose();
+            if (decoder != null)
+            {
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+
+                decoder.Dispose();
+            }
+            else
+            {
+                foreach (var f in availableFrames)
+                    f.Texture.Dispose();
+            }
         }
 
         protected override float GetFillAspectRatio() => Sprite.FillAspectRatio;

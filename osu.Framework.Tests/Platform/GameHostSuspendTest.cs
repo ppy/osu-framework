@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Platform
 
             IBindable<GameThreadState> updateThreadState = null;
 
-            var task = Task.Run(() =>
+            var task = Task.Factory.StartNew(() =>
             {
                 using (host = new ExecutionModeGameHost(@"host", threadMode))
                 {
@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Platform
                     gameCreated.Set();
                     host.Run(game);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
             Assert.IsTrue(gameCreated.Wait(timeout));
             Assert.IsTrue(game.BecameAlive.Wait(timeout));

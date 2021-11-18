@@ -50,6 +50,44 @@ jobs:
           name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
           path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
 
+  build-only-android:
+    name: Build only (Android)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install .NET 5.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Build
+        run: msbuild osu-framework.Android.slnf /restore /p:Configuration=Debug
+
+  build-only-ios:
+    name: Build only (iOS)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install .NET 5.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
+
+      # Contrary to seemingly any other msbuild, msbuild running on macOS/Mono
+      # cannot accept .sln(f) files as arguments.
+      # Build just the iOS framework project for now.
+      - name: Build
+        run: msbuild osu.Framework.iOS/osu.Framework.iOS.csproj /restore /p:Configuration=Debug
+
   inspect-code:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -79,11 +117,14 @@ jobs:
         run: |
           # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
           # FIXME: Suppress warnings from templates project
-          dotnet codefilesanity | while read -r line; do
-             if [[ "$line" != *"/osu.Framework.Templates/"* ]]; then
-               echo "::warning::$line"
-             fi
-          done
+          exit_code=0
+          while read -r line; do
+            if [[ ! -z "$line" && "$line" != *"/osu.Framework.Templates/"* ]]; then
+              echo "::error::$line"
+              exit_code=1
+            fi
+          done <<< $(dotnet codefilesanity)
+          exit $exit_code
 
       # Temporarily disabled due to test failures, but it won't work anyway until the tool is upgraded.
       # - name: .NET Format (Dry Run)

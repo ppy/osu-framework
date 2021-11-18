@@ -23,9 +23,6 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
-        public event Action<int>? HandleCreated;
-        public event Action<int>? HandleDestroyed;
-
         /// <summary>
         /// The handle for this mixer.
         /// </summary>
@@ -47,8 +44,9 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
         /// <param name="globalMixer"><inheritdoc /></param>
-        public BassAudioMixer(AudioMixer? globalMixer)
-            : base(globalMixer)
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public BassAudioMixer(AudioMixer? globalMixer, string identifier)
+            : base(globalMixer, identifier)
         {
             EnqueueAction(createMixer);
         }
@@ -296,7 +294,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
             ManagedBass.Bass.ChannelPlay(Handle);
-            HandleCreated?.Invoke(Handle);
         }
 
         /// <summary>
@@ -368,8 +365,14 @@ namespace osu.Framework.Audio.Mixing.Bass
                     Debug.Assert(e.NewItems != null);
 
                     EffectWithHandle oldEffect = ActiveEffects[e.NewStartingIndex];
-                    ActiveEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull());
-                    removeEffect(oldEffect);
+                    EffectWithHandle newEffect = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull()) { Handle = oldEffect.Handle };
+
+                    ActiveEffects[e.NewStartingIndex] = newEffect;
+
+                    // If the effect types don't match, the old effect has to be removed altogether. Otherwise, the new parameters can be applied onto the existing handle.
+                    if (oldEffect.Effect.FXType != newEffect.Effect.FXType)
+                        removeEffect(oldEffect);
+
                     applyEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
                 }
@@ -403,10 +406,9 @@ namespace osu.Framework.Audio.Mixing.Bass
                     if (effect.Handle != 0)
                         ManagedBass.Bass.FXSetPriority(effect.Handle, effect.Priority);
                     else
-                    {
                         effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
-                        ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
-                    }
+
+                    ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
                 }
             }
         });
@@ -433,14 +435,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             if (Handle != 0)
             {
-                HandleDestroyed?.Invoke(Handle);
-
                 ManagedBass.Bass.StreamFree(Handle);
                 Handle = 0;
             }
-
-            HandleCreated = null;
-            HandleDestroyed = null;
         }
 
         internal class EffectWithHandle

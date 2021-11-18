@@ -126,12 +126,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!Enabled.Value)
                 return true;
 
-            switch (action)
+            switch (e.Action)
             {
                 case PlatformAction.MoveToListStart:
                     ChangeSelection?.Invoke(DropdownSelectionAction.First);
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public void OnReleased(PlatformAction action)
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
 

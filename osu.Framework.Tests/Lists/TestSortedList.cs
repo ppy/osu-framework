@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Lists
 
             Assert.Throws<InvalidOperationException>(() =>
             {
-                foreach (var _ in list)
+                foreach (int _ in list)
                     list.RemoveAt(list.Count - 1);
             });
         }

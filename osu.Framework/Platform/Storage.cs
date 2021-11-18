@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
                 path += Path.DirectorySeparatorChar;
 
             // create non-existing path.
-            var fullPath = GetFullPath(path, true);
+            string fullPath = GetFullPath(path, true);
 
             return (Storage)Activator.CreateInstance(GetType(), fullPath);
         }
@@ -108,26 +108,23 @@ namespace osu.Framework.Platform
         public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         /// <summary>
-        /// Retrieve an SQLite database connection string from within this storage.
+        /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
-        /// <param name="name">The name of the database.</param>
-        /// <returns>An SQLite connection string.</returns>
-        public abstract string GetDatabaseConnectionString(string name);
-
-        /// <summary>
-        /// Delete an SQLite database from within this storage.
-        /// </summary>
-        /// <param name="name">The name of the database to delete.</param>
-        public abstract void DeleteDatabase(string name);
+        /// <param name="filename">The relative path to the file which should be opened.</param>
+        public abstract void OpenFileExternally(string filename);
 
         /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        public void OpenInNativeExplorer() => OpenPathInNativeExplorer(string.Empty);
+        public void PresentExternally() => OpenFileExternally(string.Empty);
 
         /// <summary>
-        /// Opens a native file browser window to the specified relative path.
+        /// Requests to present a file externally in the platform's native file browser.
         /// </summary>
-        public abstract void OpenPathInNativeExplorer(string path);
+        /// <remarks>
+        /// This will open the parent folder and, (if available) highlight the file.
+        /// </remarks>
+        /// <param name="filename">Relative path to the file.</param>
+        public abstract void PresentFileExternally(string filename);
     }
 }

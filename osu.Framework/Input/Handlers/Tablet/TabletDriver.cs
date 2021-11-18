@@ -49,7 +49,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     // wait a small delay as multiple devices may appear over a very short interval.
                     await Task.Delay(50, cancellationToken).ConfigureAwait(false);
 
-                    var foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+                    int foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
 
                     if (foundVendor > 0)
                     {

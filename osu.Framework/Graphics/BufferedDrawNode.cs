@@ -38,6 +38,7 @@ namespace osu.Framework.Graphics
         private RectangleF screenSpaceDrawRectangle;
         private Vector2 frameBufferScale;
         private Vector2 frameBufferSize;
+        private IDrawable rootNodeCached;
 
         public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
             : base(source)
@@ -54,6 +55,8 @@ namespace osu.Framework.Graphics
             screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
             frameBufferScale = Source.FrameBufferScale;
+
+            clipDrawRectangle();
 
             frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
             DrawRectangle = SharedData.PixelSnapping
@@ -176,6 +179,30 @@ namespace osu.Framework.Graphics
             GLWrapper.PopViewport();
             GLWrapper.PopScissor();
             GLWrapper.PopMaskingInfo();
+        }
+
+        private void clipDrawRectangle()
+        {
+            if (!SharedData.ClipToRootNode || Source == null)
+                return;
+
+            // Get the root node
+            IDrawable rootNode = rootNodeCached;
+
+            if (rootNodeCached == null)
+            {
+                rootNode = Source;
+                while (rootNode.Parent != null)
+                    rootNode = rootNode.Parent;
+                rootNodeCached = rootNode;
+            }
+
+            if (rootNode == null)
+                return;
+
+            // Clip the screen space draw rectangle to the bounds of the root node
+            RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft, rootNode.ScreenSpaceDrawQuad.Size);
+            screenSpaceDrawRectangle.Intersect(clipBounds);
         }
 
         protected override void Dispose(bool isDisposing)

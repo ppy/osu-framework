@@ -15,14 +15,14 @@ namespace osu.Framework.Localisation
     public class LocalisableFormattableString : IEquatable<LocalisableFormattableString>, ILocalisableStringData
     {
         public readonly IFormattable Value;
-        public readonly string Format;
+        public readonly string? Format;
 
         /// <summary>
         /// Creates a <see cref="LocalisableFormattableString"/> with an <see cref="IFormattable"/> value and a format string.
         /// </summary>
         /// <param name="value">The <see cref="IFormattable"/> value.</param>
         /// <param name="format">The format string.</param>
-        public LocalisableFormattableString(IFormattable value, string format)
+        public LocalisableFormattableString(IFormattable value, string? format)
         {
             Value = value;
             Format = format;

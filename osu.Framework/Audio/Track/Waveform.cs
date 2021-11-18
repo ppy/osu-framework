@@ -96,7 +96,7 @@ namespace osu.Framework.Audio.Track
 
                 // Each iteration pulls in several samples
                 int bytesPerIteration = bytesPerPoint * points_per_iteration;
-                var sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
+                float[] sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
 
                 // Read sample data
                 while (length > 0)

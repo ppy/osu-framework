@@ -2,32 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Video;
-using osu.Framework.IO.Network;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     internal class TestVideo : Video
     {
-        private static MemoryStream consumeVideoStream()
-        {
-            var wr = new WebRequest("https://assets.ppy.sh/media/landing.mp4");
-            Task.Run(() => wr.PerformAsync());
-
-            while (!wr.Completed)
-                Thread.Sleep(100);
-
-            var videoStream = new MemoryStream();
-            wr.ResponseStream.CopyTo(videoStream);
-            videoStream.Position = 0;
-            return videoStream;
-        }
-
-        public TestVideo(bool startAtCurrentTime = true)
-            : base(consumeVideoStream(), startAtCurrentTime)
+        public TestVideo(Stream videoStream, bool startAtCurrentTime = true)
+            : base(videoStream, startAtCurrentTime)
         {
         }
 

@@ -50,6 +50,11 @@ namespace osu.Framework.Platform
         event Action Resized;
 
         /// <summary>
+        /// Invoked when the system keyboard layout has changed.
+        /// </summary>
+        event Action KeymapChanged;
+
+        /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
         IBindable<bool> CursorInWindow { get; }
@@ -133,7 +138,8 @@ namespace osu.Framework.Platform
         void Close();
 
         /// <summary>
-        /// Start the window's run loop. Is a blocking call.
+        /// Start the window's run loop.
+        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
         void Run();
 

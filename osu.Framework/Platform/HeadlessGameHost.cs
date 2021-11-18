@@ -24,9 +24,11 @@ namespace osu.Framework.Platform
 
         public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
 
+        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        public override string UserStoragePath => "./headless/";
+        public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
         public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
@@ -51,11 +53,23 @@ namespace osu.Framework.Platform
         {
             base.SetupForRun();
 
-            MaximumDrawHz = double.MaxValue;
-            MaximumUpdateHz = double.MaxValue;
-            MaximumInactiveHz = double.MaxValue;
+            // We want the draw thread to run, but it doesn't matter how fast it runs.
+            // This limiting is mostly to reduce CPU overhead.
+            MaximumDrawHz = 60;
 
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
+            if (!realtime)
+            {
+                customClock = new FramedClock(new FastClock(CLOCK_RATE));
+
+                // time is incremented per frame, rather than based on the real-world time.
+                // therefore our goal is to run frames as fast as possible.
+                MaximumUpdateHz = MaximumInactiveHz = 0;
+            }
+            else
+            {
+                // in realtime runs, set a sane upper limit to avoid cpu overhead from spinning.
+                MaximumUpdateHz = MaximumInactiveHz = 1000;
+            }
         }
 
         protected override void DrawFrame()

@@ -99,8 +99,8 @@ namespace osu.Framework.Extensions
             if (jagged == null)
                 return null;
 
-            var rows = jagged.Length;
-            var cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
+            int rows = jagged.Length;
+            int cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
 
             var rectangular = new T[rows, cols];
 
@@ -315,6 +315,17 @@ namespace osu.Framework.Extensions
         /// <returns>The standardised path string.</returns>
         public static string ToStandardisedPath(this string path)
             => path.Replace('\\', '/');
+
+        /// <summary>
+        /// Trim DirectorySeparatorChar from the end of the path.
+        /// </summary>
+        /// <remarks>
+        /// Trims both <see cref="Path.DirectorySeparatorChar"/> and <see cref="Path.AltDirectorySeparatorChar"/>.
+        /// </remarks>
+        /// <param name="path">The path string to trim.</param>
+        /// <returns>The path with DirectorySeparatorChar trimmed.</returns>
+        public static string TrimDirectorySeparator(this string path)
+            => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.

@@ -236,6 +236,7 @@ namespace osu.Framework.Input.Bindings
         /// <returns>The string representation.</returns>
         public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
 
+        [Obsolete("Resolve ReadableKeyCombinationProvider with DI and use ReadableKeyCombinationProvider.GetReadableString(KeyCombination)")] // Can be removed 20220424
         public string ReadableString()
         {
             var sortedKeys = Keys.GetValuesInOrder().ToArray();
@@ -375,73 +376,91 @@ namespace osu.Framework.Input.Bindings
                     return "Del";
 
                 case InputKey.PageUp:
-                    return "Pgup";
+                    return "PgUp";
 
                 case InputKey.PageDown:
-                    return "Pgdn";
+                    return "PgDn";
 
                 case InputKey.CapsLock:
                     return "Caps";
 
-                case InputKey.Number0:
-                    return "0";
-
                 case InputKey.Keypad0:
                     return "Numpad0";
-
-                case InputKey.Number1:
-                    return "1";
 
                 case InputKey.Keypad1:
                     return "Numpad1";
 
-                case InputKey.Number2:
-                    return "2";
-
                 case InputKey.Keypad2:
                     return "Numpad2";
-
-                case InputKey.Number3:
-                    return "3";
 
                 case InputKey.Keypad3:
                     return "Numpad3";
 
-                case InputKey.Number4:
-                    return "4";
-
                 case InputKey.Keypad4:
                     return "Numpad4";
-
-                case InputKey.Number5:
-                    return "5";
 
                 case InputKey.Keypad5:
                     return "Numpad5";
 
-                case InputKey.Number6:
-                    return "6";
-
                 case InputKey.Keypad6:
                     return "Numpad6";
-
-                case InputKey.Number7:
-                    return "7";
 
                 case InputKey.Keypad7:
                     return "Numpad7";
 
-                case InputKey.Number8:
-                    return "8";
-
                 case InputKey.Keypad8:
                     return "Numpad8";
 
-                case InputKey.Number9:
-                    return "9";
-
                 case InputKey.Keypad9:
                     return "Numpad9";
+
+                case InputKey.KeypadDivide:
+                    return "NumpadDivide";
+
+                case InputKey.KeypadMultiply:
+                    return "NumpadMultiply";
+
+                case InputKey.KeypadMinus:
+                    return "NumpadMinus";
+
+                case InputKey.KeypadPlus:
+                    return "NumpadPlus";
+
+                case InputKey.KeypadDecimal:
+                    return "NumpadDecimal";
+
+                case InputKey.KeypadEnter:
+                    return "NumpadEnter";
+
+                case InputKey.Number0:
+                    return "0";
+
+                case InputKey.Number1:
+                    return "1";
+
+                case InputKey.Number2:
+                    return "2";
+
+                case InputKey.Number3:
+                    return "3";
+
+                case InputKey.Number4:
+                    return "4";
+
+                case InputKey.Number5:
+                    return "5";
+
+                case InputKey.Number6:
+                    return "6";
+
+                case InputKey.Number7:
+                    return "7";
+
+                case InputKey.Number8:
+                    return "8";
+
+                case InputKey.Number9:
+                    return "9";
 
                 case InputKey.Tilde:
                     return "~";
@@ -453,10 +472,10 @@ namespace osu.Framework.Input.Bindings
                     return "Plus";
 
                 case InputKey.BracketLeft:
-                    return "(";
+                    return "[";
 
                 case InputKey.BracketRight:
-                    return ")";
+                    return "]";
 
                 case InputKey.Semicolon:
                     return ";";

@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -331,6 +332,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPreviousWordDeletionWithShortWords()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("a b c"));
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("two words remain", () => textBox.Text == "a b ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("one word remains", () => textBox.Text == "a ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
         public void TestNextWordDeletion()
         {
             InsertableTextBox textBox = null;
@@ -355,6 +386,37 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("two words remain", () => textBox.Text == " long text");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("one word remains", () => textBox.Text == " text");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
+        public void TestNextWordDeletionWithShortWords()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40)
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("a b c"));
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("two words remain", () => textBox.Text == " b c");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("one word remains", () => textBox.Text == " c");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
@@ -518,6 +580,102 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
             AddStep("delete last character", () => InputManager.Keys(PlatformAction.DeleteBackwardChar));
             AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
+        }
+
+        [Test]
+        public void TestValueCorrectionViaCurrent()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () => textBoxes.AddRange(new[]
+            {
+                textBox = new InsertableTextBox
+                {
+                    Text = "24",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                },
+            }));
+
+            AddStep("register current callback", () => textBox.Current.BindValueChanged(text =>
+            {
+                if (string.IsNullOrEmpty(text.NewValue))
+                    return;
+
+                if (!int.TryParse(text.NewValue, out int value) || value > 100)
+                    textBox.Current.Value = "0";
+            }));
+
+            AddStep("click textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("insert digit", () => textBox.InsertString("9"));
+            AddUntilStep("textbox value is 0", () => textBox.Current.Value == "0");
+            AddUntilStep("caret is in correct position", () =>
+            {
+                var spriteText = textBox.ChildrenOfType<SpriteText>().SingleOrDefault(text => text.Text == "0");
+                var caret = textBox.ChildrenOfType<Caret>().Single();
+
+                return spriteText != null && Precision.AlmostEquals(
+                    spriteText.ScreenSpaceDrawQuad.TopRight.X,
+                    caret.ScreenSpaceDrawQuad.TopLeft.X,
+                    5f);
+            });
+        }
+
+        [Test]
+        public void TestInputOverride()
+        {
+            InsertableTextBox overrideInputBox = null;
+
+            AddStep("add override textbox", () =>
+            {
+                textBoxes.Add(overrideInputBox = new InsertableTextBox
+                {
+                    Text = @"Override input textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+                overrideInputBox.Current.BindValueChanged(vce =>
+                {
+                    if (vce.NewValue != @"Input overridden!")
+                        overrideInputBox.Current.Value = @"Input overridden!";
+                });
+            });
+
+            AddStep(@"set some text", () => overrideInputBox.Text = "smth");
+            AddAssert(@"verify display state", () => overrideInputBox.FlowingText == "Input overridden!");
+        }
+
+        [Test]
+        public void TestDisableAndSetText()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add text box", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                    Text = "hello"
+                });
+            });
+            AddAssert("text is hello", () => textBox.Text == "hello");
+
+            AddStep("set new text and disable", () =>
+            {
+                textBox.Text = "goodbye";
+                textBox.Current.Disabled = true;
+            });
+            AddAssert("text is goodbye", () => textBox.Text == "goodbye");
+
+            AddStep("attempt to set text", () => textBox.Text = "change!");
+            AddAssert("text is unchanged", () => textBox.Text == "goodbye");
+
+            AddStep("attempt to insert text", () => textBox.InsertString("maybe this way?"));
+            AddAssert("text is unchanged", () => textBox.Text == "goodbye");
         }
 
         private void prependString(InsertableTextBox textBox, string text)
