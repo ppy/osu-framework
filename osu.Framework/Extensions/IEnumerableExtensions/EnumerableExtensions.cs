@@ -110,11 +110,9 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// </summary>
         public static T FirstOrDefaultOfType<T>(this IEnumerable<object> self)
         {
-            using var enumerator = self.GetEnumerator();
-
-            while (enumerator.MoveNext())
+            foreach ( var i in self )
             {
-                if (enumerator.Current is T t) return t;
+                if ( i is T t ) return t;
             }
 
             return default;

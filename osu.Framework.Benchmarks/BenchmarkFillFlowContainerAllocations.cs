@@ -48,14 +48,14 @@ namespace osu.Framework.Benchmarks
         {
             for (int i = 0; i < game.Containers.Count; i++)
             {
-                game.Containers[i].TestPerfromLayout();
+                game.Containers[i].TestPerformLayout();
             }
         }
 
         [Benchmark]
         public void SinglePerformLayout()
         {
-            game.Containers[0].TestPerfromLayout();
+            game.Containers[0].TestPerformLayout();
         }
 
         protected override Game CreateGame() => game = new TestGame();
@@ -67,7 +67,7 @@ namespace osu.Framework.Benchmarks
                 _ = ComputeLayoutPositions();
             }
 
-            public void TestPerfromLayout()
+            public void TestPerformLayout()
             {
                 Invalidate(source: Layout.InvalidationSource.Child);
                 UpdateAfterChildren();
