@@ -164,36 +164,42 @@ namespace osu.Framework.Graphics.UserInterface
             if (!HandleLeftRightArrows && (e.Action == PlatformAction.MoveBackwardChar || e.Action == PlatformAction.MoveForwardChar))
                 return false;
 
+            if (!e.Repeat)
+            {
+                switch (e.Action)
+                {
+                    // Clipboard
+                    case PlatformAction.Cut:
+                    case PlatformAction.Copy:
+                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+
+                        clipboard?.SetText(SelectedText);
+
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+
+                        return true;
+
+                    case PlatformAction.Paste:
+                        //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        string pending = textInput?.GetPendingText();
+
+                        if (string.IsNullOrEmpty(pending))
+                            pending = clipboard?.GetText();
+
+                        InsertString(pending);
+                        return true;
+
+                    case PlatformAction.SelectAll:
+                        selectionStart = 0;
+                        selectionEnd = text.Length;
+                        cursorAndLayout.Invalidate();
+                        return true;
+                }
+            }
+
             switch (e.Action)
             {
-                // Clipboard
-                case PlatformAction.Cut:
-                case PlatformAction.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-
-                    clipboard?.SetText(SelectedText);
-
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
-
-                    return true;
-
-                case PlatformAction.Paste:
-                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput?.GetPendingText();
-
-                    if (string.IsNullOrEmpty(pending))
-                        pending = clipboard?.GetText();
-
-                    InsertString(pending);
-                    return true;
-
-                case PlatformAction.SelectAll:
-                    selectionStart = 0;
-                    selectionEnd = text.Length;
-                    cursorAndLayout.Invalidate();
-                    return true;
-
                 // Cursor Manipulation
                 case PlatformAction.MoveBackwardChar:
                     MoveCursorBy(-1);
