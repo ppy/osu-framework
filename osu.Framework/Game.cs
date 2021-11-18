@@ -251,6 +251,9 @@ namespace osu.Framework
 
         public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
+            if (e.Repeat)
+                return false;
+
             switch (e.Action)
             {
                 case FrameworkAction.CycleFrameStatistics:
@@ -366,6 +369,9 @@ namespace osu.Framework
 
         public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
+            if (e.Repeat)
+                return false;
+
             switch (e.Action)
             {
                 case PlatformAction.Exit:

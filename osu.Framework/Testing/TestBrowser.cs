@@ -377,6 +377,9 @@ namespace osu.Framework.Testing
 
         public bool OnPressed(KeyBindingPressEvent<TestBrowserAction> e)
         {
+            if (e.Repeat)
+                return false;
+
             switch (e.Action)
             {
                 case TestBrowserAction.Search:
