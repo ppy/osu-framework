@@ -170,6 +170,9 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleRepeat(InputState state)
         {
+            if (!HandleRepeats)
+                return false;
+
             if (pressedActions.Count == 0)
                 return false;
 
@@ -414,6 +417,16 @@ namespace osu.Framework.Input.Bindings
         protected IEnumerable<IKeyBinding> KeyBindings;
 
         public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }
+
+        /// <summary>
+        /// Whether key repeat events should be sent. Defaults to <c>true</c>.
+        /// </summary>
+        /// <remarks>
+        /// Key repeats will invoke actions at the same rates as <see cref="Drawable.OnKeyDown"/> events.
+        /// Disabling this is recommended if you either don't require key repeats (quite often applicable to gameplay input),
+        /// or want a custom repeat rate.
+        /// </remarks>
+        protected virtual bool HandleRepeats => true;
 
         protected override void LoadComplete()
         {
