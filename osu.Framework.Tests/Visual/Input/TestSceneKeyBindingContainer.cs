@@ -174,38 +174,40 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void TestSingleKeyRepeatEvents()
         {
-            bool pressedReceived = false;
-            bool repeatedReceived = false;
+            int pressedReceived = 0;
+            int repeatedReceived = 0;
             bool releasedReceived = false;
 
             AddStep("add container", () =>
             {
-                pressedReceived = false;
-                repeatedReceived = false;
+                pressedReceived = 0;
+                repeatedReceived = 0;
                 releasedReceived = false;
 
-                Child = new TestKeyBindingContainer(true)
+                Child = new TestKeyBindingContainer
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedReceived = a == TestAction.ActionA,
-                        Repeated = a => repeatedReceived = a == TestAction.ActionA,
+                        Pressed = a => pressedReceived += a == TestAction.ActionA ? 1 : 0,
+                        Repeated = a => repeatedReceived += a == TestAction.ActionA ? 1 : 0,
                         Released = a => releasedReceived = a == TestAction.ActionA
                     }
                 };
             });
 
             AddStep("press A", () => InputManager.PressKey(Key.A));
-            AddAssert("press received", () => pressedReceived);
+            AddAssert("press received", () => pressedReceived == 1);
 
             for (int i = 0; i < 10; i++)
             {
-                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived);
-                AddStep("reset for next repeat", () => repeatedReceived = false);
+                int localI = i + 1;
+                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived >= localI);
             }
 
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
             AddAssert("release received", () => releasedReceived);
+
+            AddAssert("only one press received", () => pressedReceived == 1);
         }
 
         [Test]
@@ -221,7 +223,7 @@ namespace osu.Framework.Tests.Visual.Input
                 repeatedReceived = false;
                 releasedReceived = false;
 
-                Child = new TestKeyBindingContainer(true)
+                Child = new TestKeyBindingContainer
                 {
                     Child = new TestKeyBindingReceptor
                     {
@@ -284,13 +286,6 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
-            protected override bool SendRepeats { get; }
-
-            public TestKeyBindingContainer(bool sendRepeats = false)
-            {
-                SendRepeats = sendRepeats;
-            }
-
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
