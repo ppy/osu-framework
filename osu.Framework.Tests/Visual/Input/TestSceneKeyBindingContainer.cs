@@ -211,6 +211,46 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestKeyRepeatDoesntFireWhenNotAlive()
+        {
+            int pressedReceived = 0;
+            int repeatedReceived = 0;
+            bool releasedReceived = false;
+            TestKeyBindingReceptor receptor = null;
+
+            AddStep("add container", () =>
+            {
+                pressedReceived = 0;
+                repeatedReceived = 0;
+                releasedReceived = false;
+
+                Child = new TestKeyBindingContainer
+                {
+                    Child = receptor = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedReceived += a == TestAction.ActionA ? 1 : 0,
+                        Repeated = a => repeatedReceived += a == TestAction.ActionA ? 1 : 0,
+                        Released = a => releasedReceived = a == TestAction.ActionA
+                    }
+                };
+            });
+
+            AddStep("press A", () => InputManager.PressKey(Key.A));
+            AddUntilStep("wait for non-zero repeated", () => repeatedReceived > 0);
+
+            AddStep("hide receptor", () => receptor.Hide());
+
+            int stopReceivingCheck = 0;
+            AddStep("store count", () => stopReceivingCheck = repeatedReceived);
+            AddWaitStep("wait some", 5);
+            AddAssert("ensure not incrementing", () => stopReceivingCheck == repeatedReceived);
+
+            AddStep("release A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("release received", () => releasedReceived);
+            AddAssert("only one press received", () => pressedReceived == 1);
+        }
+
+        [Test]
         public void TestKeyCombinationRepeatEvents()
         {
             bool pressedReceived = false;
