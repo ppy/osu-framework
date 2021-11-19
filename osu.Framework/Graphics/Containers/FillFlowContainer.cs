@@ -325,6 +325,9 @@ namespace osu.Framework.Graphics.Containers
                 };
         }
 
+        /// <summary>
+        /// Converts a <see cref="Vector2"/> to a <see cref="CrossVector"/> with the current <see cref="FillDirection"/>.
+        /// </summary>
         protected CrossVector ToCross(Vector2 vector)
         {
             if (Direction.MainAxis() == Axes.X)
@@ -345,6 +348,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Converts a <see cref="CrossVector"/> to a <see cref="Vector2"/> assuming its orientation is the current <see cref="FillDirection"/>.
+        /// </summary>
         protected Vector2 ToVector(CrossVector vector)
         {
             if (Direction.MainAxis() == Axes.X)
@@ -394,6 +400,9 @@ namespace osu.Framework.Graphics.Containers
 
     public static class FillDirectionExtensions
     {
+        /// <summary>
+        /// The used axes - if it's a "Full" direction, <see cref="Axes.Both"/>, otherwise, the main axis.
+        /// </summary>
         public static Axes AffectedAxes(this FillDirection direction)
         {
             if (direction == FillDirection.Full || direction == FillDirection.FullVertical)
@@ -402,6 +411,9 @@ namespace osu.Framework.Graphics.Containers
                 return direction.MainAxis();
         }
 
+        /// <summary>
+        /// The primary axis.
+        /// </summary>
         public static Axes MainAxis(this FillDirection direction)
         {
             if (direction == FillDirection.Full || direction == FillDirection.Horizontal)
@@ -410,6 +422,9 @@ namespace osu.Framework.Graphics.Containers
                 return Axes.Y;
         }
 
+        /// <summary>
+        /// The secondary axis, orthogonal to the main axis.
+        /// </summary>
         public static Axes CrossAxis(this FillDirection direction)
             => direction.MainAxis() == Axes.X ? Axes.Y : Axes.X;
     }
