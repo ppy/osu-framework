@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Containers
                     float spanMainSize = spanBeginOffset + current.Main + (1 - spacingFactor.Main) * size.Main;
 
                     // We've exceeded our allowed main size, move to a new span
-                    if ((Direction.AffectedAxes() == Axes.Both && Precision.DefinitelyBigger(spanMainSize, max.Main)) || ForceNewRow(c))
+                    if ((Direction.AffectedAxes() == Axes.Both && Precision.DefinitelyBigger(spanMainSize, max.Main)) || ForceNewSpan(c))
                     {
                         current.Main = 0;
                         current.Cross += spanCrossSize;
@@ -289,7 +289,18 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
+        [Obsolete("Use ForceNewSpan instead")]
         protected virtual bool ForceNewRow(Drawable child) => false;
+
+        /// <summary>
+        /// Returns true if the given child should be placed on a new span, false otherwise. This will be called automatically for each child in this FillFlowContainers FlowingChildren-List.
+        /// A span can refer to either row or column, depending on <see cref="Direction"/>.
+        /// </summary>
+        /// <param name="child">The child to check.</param>
+        /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
+#pragma warning disable CS0618 // Type or member is obsolete
+        protected virtual bool ForceNewSpan(Drawable child) => ForceNewRow(child);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         /// An ad-hoc <see cref="Vector2"/> which uses a concept of "main" and "cross" axes rather than "x" and "y"
