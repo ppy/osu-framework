@@ -297,7 +297,7 @@ namespace osu.Framework.Graphics.Containers
         /// A span can refer to either row or column, depending on <see cref="Direction"/>.
         /// </summary>
         /// <param name="child">The child to check.</param>
-        /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
+        /// <returns>True if the given child should be placed on a new span, false otherwise.</returns>
 #pragma warning disable CS0618 // Type or member is obsolete
         protected virtual bool ForceNewSpan(Drawable child) => ForceNewRow(child);
 #pragma warning restore CS0618 // Type or member is obsolete
