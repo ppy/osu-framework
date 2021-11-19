@@ -11,6 +11,6 @@ namespace osu.Framework.Tests.Android
     public class TestGameActivity : AndroidGameActivity
     {
         protected override Game CreateGame()
-            => new VisualTestGame();
+            => new AndroidVisualTestGame(this);
     }
 }
