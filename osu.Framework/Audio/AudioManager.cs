@@ -25,6 +25,20 @@ namespace osu.Framework.Audio
     public class AudioManager : AudioCollectionManager<AudioComponent>
     {
         /// <summary>
+        /// The number of BASS audio devices preceding the first real audio device.
+        /// Consisting of <see cref="Bass.NoSoundDevice"/> and <see cref="bass_default_device"/>.
+        /// </summary>
+        protected const int BASS_INTERNAL_DEVICE_COUNT = 2;
+
+        /// <summary>
+        /// The index of the BASS audio device denoting the OS default.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_DEFAULT.html for more information on the included device.
+        /// </remarks>
+        private const int bass_default_device = 1;
+
+        /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
         public ITrackStore Tracks => globalTrackStore.Value;
@@ -273,14 +287,15 @@ namespace osu.Framework.Audio
             deviceName ??= AudioDevice.Value;
 
             // try using the specified device
-            if (setAudioDevice(audioDevices.FindIndex(d => d.Name == deviceName)))
+            int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
+            if (deviceIndex >= 0 && setAudioDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex))
                 return true;
 
-            // try using the system default device
-            if (setAudioDevice(audioDevices.FindIndex(d => d.Name != deviceName && d.IsDefault)))
+            // try using the system default if there is any device present.
+            if (audioDeviceNames.Count > 0 && setAudioDevice(bass_default_device))
                 return true;
 
-            // no audio devices can be used, so try using Bass-provided "No sound" device as last resort
+            // no audio devices can be used, so try using Bass-provided "No sound" device as last resort.
             if (setAudioDevice(Bass.NoSoundDevice))
                 return true;
 
@@ -348,6 +363,9 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
+            // Always provide a default device. This should be a no-op, but we have asserts for this behaviour.
+            Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);
+
             return AudioThread.InitDevice(device);
         }
 
@@ -362,13 +380,13 @@ namespace osu.Framework.Audio
 
             audioDevices = updatedAudioDevices;
 
-            // Bass should always be providing "No sound" device
-            Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
-
-            onDevicesChanged();
+            // Bass should always be providing "No sound" and "Default" device.
+            Trace.Assert(audioDevices.Count >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
 
             var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+            var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+
+            onDevicesChanged();
 
             var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
             var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
