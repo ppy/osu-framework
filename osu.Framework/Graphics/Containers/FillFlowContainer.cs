@@ -226,7 +226,7 @@ namespace osu.Framework.Graphics.Containers
                     current.X += stride.X;
                 }
 
-                float height = layoutPositions[^1].Y;
+                float height = layoutPositions[children.Length - 1].Y;
 
                 Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
 
