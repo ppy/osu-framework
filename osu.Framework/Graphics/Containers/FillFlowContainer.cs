@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
             // We need to keep track of row widths such that we can compute correct
             // positions for horizontal centre anchor children.
             // We also store for each child to which row it belongs.
-            var rowIndices = ArrayPool<int>.Shared.Rent(children.Length);
+            int[] rowIndices = ArrayPool<int>.Shared.Rent(children.Length);
 
             var rowOffsetsToMiddle = new List<float> { 0 };
 
@@ -164,7 +164,9 @@ namespace osu.Framework.Graphics.Containers
                     // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
                     // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
                     // in an autosize-related feedback loop, and we can thus simply allow it.
-                    if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                    if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0
+                        && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X
+                            || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                     {
                         throw new InvalidOperationException(
                             "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
