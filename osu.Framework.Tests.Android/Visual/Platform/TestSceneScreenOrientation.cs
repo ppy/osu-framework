@@ -176,6 +176,9 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
             }
 
+            gameActivity.RequestedOrientation = PM.ScreenOrientation.Locked;
+            var a = gameActivity.RequestedOrientation;
+
             AddStep("Unlock and change setting to Any", () =>
             {
                 manager.SetOrientationLock(false);
@@ -211,10 +214,6 @@ namespace osu.Framework.Tests.Visual.Platform
             AddAssert("Test if setting has changed", () =>
             {
                 return orientationBindable.Value == ScreenOrientation.LandscapeRight;
-            });
-            AddStep("Change setting back to Any", () =>
-            {
-
             });
             AddStep("Unlock orientation", () =>
             {
