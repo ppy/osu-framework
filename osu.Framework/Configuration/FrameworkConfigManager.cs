@@ -37,7 +37,7 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
-            SetDefault(FrameworkSetting.Orientation, Orientation.Landscape);
+            SetDefault(FrameworkSetting.ScreenOrientation, ScreenOrientation.AnyLandscape);
             SetDefault(FrameworkSetting.ShowUnicode, false);
             SetDefault(FrameworkSetting.Locale, string.Empty);
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Configuration
             new TrackedSetting<bool>(FrameworkSetting.ShowLogOverlay, v => new SettingDescription(v, "Debug Logs", v ? "visible" : "hidden", "Ctrl+F10")),
             new TrackedSetting<Size>(FrameworkSetting.WindowedSize, v => new SettingDescription(v, "Screen resolution", $"{v.Width}x{v.Height}")),
             new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter")),
-            new TrackedSetting<Orientation>(FrameworkSetting.Orientation, v => new SettingDescription(v, "Screen orientation", v.ToString())),
+            new TrackedSetting<ScreenOrientation>(FrameworkSetting.ScreenOrientation, v => new SettingDescription(v, "Screen orientation", v.ToString())),
 #pragma warning disable 618
             new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
             new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandlers, v =>
@@ -91,7 +91,7 @@ namespace osu.Framework.Configuration
         SizeFullscreen,
 
         WindowMode,
-        Orientation,
+        ScreenOrientation,
         ConfineMouseMode,
         FrameSync,
         ExecutionMode,
