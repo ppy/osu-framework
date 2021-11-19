@@ -51,7 +51,7 @@ namespace osu.Framework.Android
                 case ScreenOrientation.ReversePortrait:
                     return AndroidPM.ScreenOrientation.ReversePortrait;
                 case ScreenOrientation.Any:
-                    return AndroidPM.ScreenOrientation.Sensor;
+                    return AndroidPM.ScreenOrientation.FullSensor;
                 case ScreenOrientation.Auto:
                     return AndroidPM.ScreenOrientation.FullUser;
                 default:
