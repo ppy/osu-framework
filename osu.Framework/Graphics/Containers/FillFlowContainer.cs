@@ -43,14 +43,14 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
-        private FillDirection direction = FillDirection.Full;
+        private FillDirection direction = FillDirection.FullHorizontal;
 
         /// <summary>
-        /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Horizontal"/>,
+        /// If <see cref="FillDirection.FullHorizontal"/>, <see cref="FillDirection.FullVertical"/> or <see cref="FillDirection.Horizontal"/>,
         /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
         /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
         /// They are arranged from right-to-left otherwise.
-        /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Vertical"/>,
+        /// If <see cref="FillDirection.FullHorizontal"/>, <see cref="FillDirection.FullVertical"/> or <see cref="FillDirection.Vertical"/>,
         /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
         /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
         /// They are arranged from bottom-to-top otherwise.
@@ -86,19 +86,19 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private CrossVector spacingFactor(Drawable c)
+        private FlowVector calculateSpacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
             if (c.Anchor.HasFlagFast(Anchor.x2))
                 result.X = 1 - result.X;
             if (c.Anchor.HasFlagFast(Anchor.y2))
                 result.Y = 1 - result.Y;
-            return ToCross(result);
+            return ToFlowVector(result);
         }
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
-            var max = ToCross(MaximumSize);
+            var max = ToFlowVector(MaximumSize);
 
             if (MaximumSize == Vector2.Zero)
             {
@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                 // If we are inheriting then we need to use the parent size (our ActualSize).
-                max = ToCross(new Vector2(
+                max = ToFlowVector(new Vector2(
                     AutoSizeAxes.HasFlagFast(Axes.X) ? float.MaxValue : s.X,
                     AutoSizeAxes.HasFlagFast(Axes.Y) ? float.MaxValue : s.Y
                 ));
@@ -117,21 +117,21 @@ namespace osu.Framework.Graphics.Containers
                 yield break;
 
             // The positions for each child we will return later on.
-            var layoutPositions = ArrayPool<CrossVector>.Shared.Rent(children.Length);
+            var layoutPositions = ArrayPool<FlowVector>.Shared.Rent(children.Length);
 
-            // We need to keep track of span sizes such that we can compute correct
+            // We need to keep track of line sizes such that we can compute correct
             // positions for centre anchor children.
-            // We also store for each child to which span it belongs.
-            int[] spanIndices = ArrayPool<int>.Shared.Rent(children.Length);
+            // We also store for each child to which line it belongs.
+            int[] lineIndices = ArrayPool<int>.Shared.Rent(children.Length);
 
-            var spanOffsetsToMiddle = new List<float> { 0 };
+            var lineOffsetsToMiddle = new List<float> { 0 };
 
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
-            var current = CrossVector.Zero;
-            var size = ToCross(children[0].BoundingBox.Size);
-            float spanBeginOffset = spacingFactor(children[0]).Main * size.Main;
-            float spanCrossSize = 0;
+            var current = FlowVector.Zero;
+            var size = ToFlowVector(children[0].BoundingBox.Size);
+            float lineBeginOffset = calculateSpacingFactor(children[0]).Flow * size.Flow;
+            float lineLineSize = 0;
             var ourRelativeAnchor = children[0].RelativeAnchorPosition;
 
             // Defer the return of the rented lists
@@ -142,57 +142,57 @@ namespace osu.Framework.Graphics.Containers
                     Drawable c = children[i];
                     validateChild(c, ourRelativeAnchor);
 
-                    var spacingFactor = this.spacingFactor(c);
-                    float spanMainSize = spanBeginOffset + current.Main + (1 - spacingFactor.Main) * size.Main;
+                    var spacingFactor = calculateSpacingFactor(c);
+                    float lineFlowSize = lineBeginOffset + current.Flow + (1 - spacingFactor.Flow) * size.Flow;
 
-                    // We've exceeded our allowed main size, move to a new span
-                    if ((Direction.AffectedAxes() == Axes.Both && Precision.DefinitelyBigger(spanMainSize, max.Main)) || ForceNewSpan(c))
+                    // We've exceeded our allowed flow size, move to a new line
+                    if ((Direction.AffectedAxes() == Axes.Both && Precision.DefinitelyBigger(lineFlowSize, max.Flow)) || ForceNewLine(c))
                     {
-                        current.Main = 0;
-                        current.Cross += spanCrossSize;
+                        current.Flow = 0;
+                        current.Line += lineLineSize;
 
                         layoutPositions[i] = current;
 
-                        spanOffsetsToMiddle.Add(0);
-                        spanBeginOffset = spacingFactor.Main * size.Main;
+                        lineOffsetsToMiddle.Add(0);
+                        lineBeginOffset = spacingFactor.Flow * size.Flow;
 
-                        spanCrossSize = 0;
+                        lineLineSize = 0;
                     }
                     else
                     {
                         layoutPositions[i] = current;
 
-                        // Compute offset to the middle of the span, to be applied in case of centre anchor
+                        // Compute offset to the middle of the line, to be applied in case of centre anchor
                         // in a second pass.
-                        spanOffsetsToMiddle[^1] = spanBeginOffset - spanMainSize / 2;
+                        lineOffsetsToMiddle[^1] = lineBeginOffset - lineFlowSize / 2;
                     }
 
-                    spanIndices[i] = spanOffsetsToMiddle.Count - 1;
-                    var stride = CrossVector.Zero;
+                    lineIndices[i] = lineOffsetsToMiddle.Count - 1;
+                    var stride = FlowVector.Zero;
 
                     if (i < children.Length - 1)
                     {
                         // Compute stride. Note, that the stride depends on the origins of the drawables
                         // on both sides of the step to be taken.
-                        stride = (CrossVector.One - spacingFactor) * size;
+                        stride = (FlowVector.One - spacingFactor) * size;
 
                         c = children[i + 1];
-                        size = ToCross(c.BoundingBox.Size);
+                        size = ToFlowVector(c.BoundingBox.Size);
 
-                        stride += this.spacingFactor(c) * size;
+                        stride += spacingFactor * size;
                     }
 
-                    stride += ToCross(Spacing);
+                    stride += ToFlowVector(Spacing);
 
-                    if (stride.Cross > spanCrossSize)
-                        spanCrossSize = stride.Cross;
-                    current.Main += stride.Main;
+                    if (stride.Line > lineLineSize)
+                        lineLineSize = stride.Line;
+                    current.Flow += stride.Flow;
                 }
 
-                float crossSize = layoutPositions[children.Length - 1].Cross;
+                float lineSize = layoutPositions[children.Length - 1].Line;
 
                 // Second pass, adjusting the positions for anchors of children.
-                // Uses span sizes and total size for centre-anchors.
+                // Uses line sizes and total flow size for centre-anchors.
                 for (int i = 0; i < children.Length; i++)
                 {
                     var c = children[i];
@@ -204,11 +204,11 @@ namespace osu.Framework.Graphics.Containers
                         layoutPosition.X = -layoutPosition.X;
                     else if (c.Anchor.HasFlagFast(Anchor.x1))
                     {
-                        layoutPosition.X += Direction.MainAxis() == Axes.X
+                        layoutPosition.X += Direction.FlowAxis() == Axes.X
                             // Begin flow at centre of current row
-                            ? spanOffsetsToMiddle[spanIndices[i]]
+                            ? lineOffsetsToMiddle[lineIndices[i]]
                             // Begin flow at centre of total width
-                            : -(crossSize / 2);
+                            : -(lineSize / 2);
                     }
 
                     if (c.Anchor.HasFlagFast(Anchor.y2))
@@ -216,11 +216,11 @@ namespace osu.Framework.Graphics.Containers
                         layoutPosition.Y = -layoutPosition.Y;
                     else if (c.Anchor.HasFlagFast(Anchor.y1))
                     {
-                        layoutPosition.Y += Direction.MainAxis() == Axes.Y
+                        layoutPosition.Y += Direction.FlowAxis() == Axes.Y
                             // Begin flow at centre of current column
-                            ? spanOffsetsToMiddle[spanIndices[i]]
+                            ? lineOffsetsToMiddle[lineIndices[i]]
                             // Begin flow at centre of total height
-                            : -(crossSize / 2);
+                            : -(lineSize / 2);
                     }
 
                     yield return layoutPosition;
@@ -228,8 +228,8 @@ namespace osu.Framework.Graphics.Containers
             }
             finally
             {
-                ArrayPool<CrossVector>.Shared.Return(layoutPositions);
-                ArrayPool<int>.Shared.Return(spanIndices);
+                ArrayPool<FlowVector>.Shared.Return(layoutPositions);
+                ArrayPool<int>.Shared.Return(lineIndices);
             }
         }
 
@@ -289,95 +289,61 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
-        [Obsolete("Use ForceNewSpan instead")]
+        [Obsolete("Use ForceNewLine instead")] // Can be removed 20220520
         protected virtual bool ForceNewRow(Drawable child) => false;
 
         /// <summary>
-        /// Returns true if the given child should be placed on a new span, false otherwise. This will be called automatically for each child in this FillFlowContainers FlowingChildren-List.
-        /// A span can refer to either row or column, depending on <see cref="Direction"/>.
+        /// Returns true if the given child should be placed on a new line, false otherwise. This will be called automatically for each child in this FillFlowContainers FlowingChildren-List.
+        /// A line can refer to either row or column, depending on <see cref="Direction"/>.
         /// </summary>
         /// <param name="child">The child to check.</param>
-        /// <returns>True if the given child should be placed on a new span, false otherwise.</returns>
+        /// <returns>True if the given child should be placed on a new line, false otherwise.</returns>
 #pragma warning disable CS0618 // Type or member is obsolete
-        protected virtual bool ForceNewSpan(Drawable child) => ForceNewRow(child);
+        protected virtual bool ForceNewLine(Drawable child) => ForceNewRow(child);
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// An ad-hoc <see cref="Vector2"/> which uses a concept of "main" and "cross" axes rather than "x" and "y"
-        /// in order to work with both XY and YX orientations.
+        /// Converts a <see cref="Vector2"/> to a <see cref="FlowVector"/> with the current <see cref="FillDirection"/>.
         /// </summary>
-        protected struct CrossVector
+        protected FlowVector ToFlowVector(Vector2 vector)
         {
-            public float Main;
-            public float Cross;
-
-            public static CrossVector Zero { get; } = new CrossVector();
-            public static CrossVector One { get; } = new CrossVector { Main = 1, Cross = 1 };
-
-            public static CrossVector operator +(CrossVector a, CrossVector b)
-                => new CrossVector
-                {
-                    Main = a.Main + b.Main,
-                    Cross = a.Cross + b.Cross
-                };
-
-            public static CrossVector operator -(CrossVector a, CrossVector b)
-                => new CrossVector
-                {
-                    Main = a.Main - b.Main,
-                    Cross = a.Cross - b.Cross
-                };
-
-            public static CrossVector operator *(CrossVector a, CrossVector b)
-                => new CrossVector
-                {
-                    Main = a.Main * b.Main,
-                    Cross = a.Cross * b.Cross
-                };
-        }
-
-        /// <summary>
-        /// Converts a <see cref="Vector2"/> to a <see cref="CrossVector"/> with the current <see cref="FillDirection"/>.
-        /// </summary>
-        protected CrossVector ToCross(Vector2 vector)
-        {
-            if (Direction.MainAxis() == Axes.X)
+            if (Direction.FlowAxis() == Axes.X)
             {
-                return new CrossVector
+                return new FlowVector
                 {
-                    Main = vector.X,
-                    Cross = vector.Y
+                    Flow = vector.X,
+                    Line = vector.Y
                 };
             }
             else
             {
-                return new CrossVector
+                return new FlowVector
                 {
-                    Main = vector.Y,
-                    Cross = vector.X
+                    Flow = vector.Y,
+                    Line = vector.X
                 };
             }
         }
 
         /// <summary>
-        /// Converts a <see cref="CrossVector"/> to a <see cref="Vector2"/> assuming its orientation is the current <see cref="FillDirection"/>.
+        /// Converts a <see cref="FlowVector"/> to a <see cref="Vector2"/> assuming its orientation is the current <see cref="FillDirection"/>.
         /// </summary>
-        protected Vector2 ToVector(CrossVector vector)
+        protected Vector2 ToVector(FlowVector vector)
         {
-            if (Direction.MainAxis() == Axes.X)
+            if (Direction.FlowAxis() == Axes.X)
             {
                 return new Vector2
                 {
-                    X = vector.Main,
-                    Y = vector.Cross
+                    X = vector.Flow,
+                    Y = vector.Line
                 };
             }
             else
             {
                 return new Vector2
                 {
-                    X = vector.Cross,
-                    Y = vector.Main
+                    X = vector.Line,
+                    Y = vector.Flow
                 };
             }
         }
@@ -391,7 +357,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Fill horizontally first, then fill vertically via multiple rows.
         /// </summary>
-        Full,
+        FullHorizontal,
+
+        /// <summary>
+        /// Fill vertically first, then fill horizontally via multiple columns.
+        /// </summary>
+        FullVertical,
 
         /// <summary>
         /// Fill only horizontally.
@@ -404,39 +375,40 @@ namespace osu.Framework.Graphics.Containers
         Vertical,
 
         /// <summary>
-        /// Fill vertically first, then fill horizontally via multiple columns.
+        /// Fill horizontally first, then fill vertically via multiple rows.
         /// </summary>
-        FullVertical,
+        [Obsolete("Use FullHorizontal instead")] // Can be removed 20220520
+        Full = FullHorizontal
     }
 
     public static class FillDirectionExtensions
     {
         /// <summary>
-        /// The used axes - if it's a "Full" direction, <see cref="Axes.Both"/>, otherwise, the main axis.
+        /// The used axes - if it's a "Full" direction, <see cref="Axes.Both"/>, otherwise, the flow axis.
         /// </summary>
         public static Axes AffectedAxes(this FillDirection direction)
         {
-            if (direction == FillDirection.Full || direction == FillDirection.FullVertical)
+            if (direction == FillDirection.FullHorizontal || direction == FillDirection.FullVertical)
                 return Axes.Both;
             else
-                return direction.MainAxis();
+                return direction.FlowAxis();
         }
 
         /// <summary>
         /// The primary axis.
         /// </summary>
-        public static Axes MainAxis(this FillDirection direction)
+        public static Axes FlowAxis(this FillDirection direction)
         {
-            if (direction == FillDirection.Full || direction == FillDirection.Horizontal)
+            if (direction == FillDirection.FullHorizontal || direction == FillDirection.Horizontal)
                 return Axes.X;
             else
                 return Axes.Y;
         }
 
         /// <summary>
-        /// The secondary axis, orthogonal to the main axis.
+        /// The secondary axis, orthogonal to the flow axis.
         /// </summary>
-        public static Axes CrossAxis(this FillDirection direction)
-            => direction.MainAxis() == Axes.X ? Axes.Y : Axes.X;
+        public static Axes LineAxis(this FillDirection direction)
+            => direction.FlowAxis() == Axes.X ? Axes.Y : Axes.X;
     }
 }

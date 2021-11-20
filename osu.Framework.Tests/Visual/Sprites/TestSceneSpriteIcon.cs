@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
                             Spacing = new Vector2(5),
-                            Direction = FillDirection.Full,
+                            Direction = FillDirection.FullHorizontal,
                         },
                     }
                 }

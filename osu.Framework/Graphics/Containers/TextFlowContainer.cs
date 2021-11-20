@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool ForceNewSpan(Drawable child) => child is NewLineContainer;
+        protected override bool ForceNewLine(Drawable child) => child is NewLineContainer;
 
         public class NewLineContainer : Container
         {

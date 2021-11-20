@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             Child = fill = new FillFlowContainer
             {
                 Spacing = new Vector2(5),
-                Direction = FillDirection.Full,
+                Direction = FillDirection.FullHorizontal,
                 RelativeSizeAxes = Axes.Both,
             };
 

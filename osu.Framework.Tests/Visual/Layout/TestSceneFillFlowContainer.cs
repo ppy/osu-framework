@@ -357,7 +357,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [FlowTestCase(FlowTestType.Full)]
         private void test1()
         {
-            fillContainer.Direction = FillDirection.Full;
+            fillContainer.Direction = FillDirection.FullHorizontal;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 

@@ -88,7 +88,7 @@ namespace osu.Framework.Benchmarks
                 {
                     var container = new TestFillFlowContainer
                     {
-                        Direction = FillDirection.Full,
+                        Direction = FillDirection.FullHorizontal,
                         AutoSizeAxes = Axes.Y,
                         Width = 1000
                     };

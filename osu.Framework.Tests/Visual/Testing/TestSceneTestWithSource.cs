@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Testing
         {
             new object[] { Visibility.Visible, FillDirection.Horizontal, false },
             new object[] { Visibility.Hidden, FillDirection.Vertical, true },
-            new object[] { Visibility.Hidden, FillDirection.Full, false },
+            new object[] { Visibility.Hidden, FillDirection.FullHorizontal, false },
         };
 
         public static object[][] ExposedSourceField = SourceField;

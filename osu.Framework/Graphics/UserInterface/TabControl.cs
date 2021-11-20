@@ -437,7 +437,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
-            Direction = FillDirection.Full,
+            Direction = FillDirection.FullHorizontal,
             RelativeSizeAxes = Axes.Both,
             Depth = -1,
             Masking = true
