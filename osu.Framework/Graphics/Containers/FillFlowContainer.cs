@@ -96,6 +96,23 @@ namespace osu.Framework.Graphics.Containers
             return ToFlowVector(result);
         }
 
+        // a thing to note here is that it is currently impossible to have a reversed and centered flow at the same time
+        private (bool reverse, bool center) calculateFlowAnchor(Drawable c)
+        {
+            if (Direction.FlowAxis() == Axes.X)
+                return (c.Anchor.HasFlagFast(Anchor.x2), c.Anchor.HasFlagFast(Anchor.x1));
+            else
+                return (c.Anchor.HasFlagFast(Anchor.y2), c.Anchor.HasFlagFast(Anchor.y1));
+        }
+
+        private (bool reverse, bool center) calculateLineAnchor(Drawable c)
+        {
+            if (Direction.FlowAxis() == Axes.Y)
+                return (c.Anchor.HasFlagFast(Anchor.x2), c.Anchor.HasFlagFast(Anchor.x1));
+            else
+                return (c.Anchor.HasFlagFast(Anchor.y2), c.Anchor.HasFlagFast(Anchor.y1));
+        }
+
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = ToFlowVector(MaximumSize);
@@ -133,6 +150,7 @@ namespace osu.Framework.Graphics.Containers
             float lineBeginOffset = calculateSpacingFactor(children[0]).Flow * size.Flow;
             float lineLineSize = 0;
             var ourRelativeAnchor = children[0].RelativeAnchorPosition;
+            var (reverseFlow, centerFlow) = calculateFlowAnchor(children[0]);
 
             // Defer the return of the rented lists
             try
@@ -179,7 +197,7 @@ namespace osu.Framework.Graphics.Containers
                         c = children[i + 1];
                         size = ToFlowVector(c.BoundingBox.Size);
 
-                        stride += spacingFactor * size;
+                        stride += calculateSpacingFactor(c) * size;
                     }
 
                     stride += ToFlowVector(Spacing);
@@ -195,35 +213,20 @@ namespace osu.Framework.Graphics.Containers
                 // Uses line sizes and total flow size for centre-anchors.
                 for (int i = 0; i < children.Length; i++)
                 {
-                    var c = children[i];
+                    var layoutPosition = layoutPositions[i];
+                    var (reverseLine, centerLine) = calculateLineAnchor(children[i]);
 
-                    var layoutPosition = ToVector(layoutPositions[i]);
+                    if (reverseFlow)
+                        layoutPosition.Flow = -layoutPosition.Flow;
+                    else if (centerFlow)
+                        layoutPosition.Flow += lineOffsetsToMiddle[lineIndices[i]];
 
-                    if (c.Anchor.HasFlagFast(Anchor.x2))
-                        // Flow right-to-left
-                        layoutPosition.X = -layoutPosition.X;
-                    else if (c.Anchor.HasFlagFast(Anchor.x1))
-                    {
-                        layoutPosition.X += Direction.FlowAxis() == Axes.X
-                            // Begin flow at centre of current row
-                            ? lineOffsetsToMiddle[lineIndices[i]]
-                            // Begin flow at centre of total width
-                            : -(lineSize / 2);
-                    }
+                    if (reverseLine)
+                        layoutPosition.Line = -layoutPosition.Line;
+                    else if (centerLine)
+                        layoutPosition.Line -= lineSize / 2;
 
-                    if (c.Anchor.HasFlagFast(Anchor.y2))
-                        // Flow bottom-to-top
-                        layoutPosition.Y = -layoutPosition.Y;
-                    else if (c.Anchor.HasFlagFast(Anchor.y1))
-                    {
-                        layoutPosition.Y += Direction.FlowAxis() == Axes.Y
-                            // Begin flow at centre of current column
-                            ? lineOffsetsToMiddle[lineIndices[i]]
-                            // Begin flow at centre of total height
-                            : -(lineSize / 2);
-                    }
-
-                    yield return layoutPosition;
+                    yield return ToVector(layoutPosition);
                 }
             }
             finally
