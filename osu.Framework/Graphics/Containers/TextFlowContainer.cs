@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Containers
             base.LoadAsyncComplete();
 
             localisationParameters.Value = Localisation.CurrentParameters.Value;
-            recreateAllParts();
+            RecreateAllParts();
         }
 
         protected override void LoadComplete()
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             if (!partsCache.IsValid)
-                recreateAllParts();
+                RecreateAllParts();
         }
 
         public override IEnumerable<Drawable> FlowingChildren
@@ -315,7 +315,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void recreateAllParts()
+        protected virtual void RecreateAllParts()
         {
             // manual parts need to be manually removed before clearing contents,
             // to avoid accidentally disposing of them in the process.
