@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformAction.Paste:
                     //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput?.GetPendingText();
+                    string pending = textInput.GetPendingText();
 
                     if (string.IsNullOrEmpty(pending))
                         pending = clipboard?.GetText();
@@ -455,7 +455,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
-            if (textInput?.ImeActive == true) return;
+            if (textInput.ImeActive) return;
 
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
@@ -765,7 +765,7 @@ namespace osu.Framework.Graphics.UserInterface
         private bool consumingText;
 
         /// <summary>
-        /// Begin consuming text from an <see cref="ITextInputSource"/>.
+        /// Begin consuming text from an <see cref="TextInputSource"/>.
         /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
         /// </summary>
         protected void BeginConsumingText()
@@ -775,7 +775,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Stops consuming text from an <see cref="ITextInputSource"/>.
+        /// Stops consuming text from an <see cref="TextInputSource"/>.
         /// </summary>
         protected void EndConsumingText()
         {
@@ -788,7 +788,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether any characters were consumed.</returns>
         private void consumePendingText()
         {
-            string pendingText = textInput?.GetPendingText();
+            string pendingText = textInput.GetPendingText();
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
@@ -804,7 +804,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (textInput.ImeActive || ReadOnly) return true;
 
             if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
@@ -931,7 +931,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput.ImeActive) return true;
 
             if (text.Length == 0) return true;
 
@@ -973,7 +973,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (textInput.ImeActive || ReadOnly) return true;
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1003,7 +1003,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && HasFocus)
-                textInput?.EnsureActivated();
+                textInput.EnsureActivated();
 
             return !ReadOnly;
         }
@@ -1026,13 +1026,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (inputBound)
             {
-                textInput?.EnsureActivated();
+                textInput.EnsureActivated();
                 return;
             }
 
             inputBound = true;
 
-            textInput?.Activate();
+            textInput.Activate();
         }
 
         private void unbindInput()
@@ -1042,7 +1042,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             inputBound = false;
 
-            textInput?.Deactivate();
+            textInput.Deactivate();
         }
 
         private readonly List<Drawable> imeDrawables = new List<Drawable>();
