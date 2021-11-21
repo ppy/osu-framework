@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Containers
             var ourRelativeAnchor = children[0].RelativeAnchorPosition;
             var (reverseFlow, centerFlow) = calculateFlowAnchor(children[0]);
 
-            float lineLineSize = 0;
+            float lineCrossSize = 0;
             int lineChildCount = 0;
 
             // Defer the return of the rented list
@@ -161,9 +161,9 @@ namespace osu.Framework.Graphics.Containers
                         finalizeLineFlow(i - lineChildCount, i);
 
                         current.Flow = 0;
-                        current.Line += lineLineSize + ToFlowVector(Spacing).Line;
+                        current.Line += lineCrossSize + ToFlowVector(Spacing).Line;
 
-                        lineLineSize = 0;
+                        lineCrossSize = 0;
                         lineChildCount = 0;
                     }
 
@@ -185,8 +185,8 @@ namespace osu.Framework.Graphics.Containers
                         stride += spacingFactor * size;
                     }
 
-                    if (stride.Line > lineLineSize)
-                        lineLineSize = stride.Line;
+                    if (stride.Line > lineCrossSize)
+                        lineCrossSize = stride.Line;
                     current.Flow += stride.Flow + ToFlowVector(Spacing).Flow;
                 }
 
@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.Containers
                     }
                 }
 
-                float lineSize = layoutPositions[children.Length - 1].Line;
+                float totalLineSize = layoutPositions[children.Length - 1].Line;
 
                 // Second pass, adjusting the positioning on the line axis
                 // after the total line size has been calculated
@@ -217,7 +217,7 @@ namespace osu.Framework.Graphics.Containers
                     if (reverseLine)
                         layoutPosition.Line = -layoutPosition.Line;
                     else if (centerLine)
-                        layoutPosition.Line -= lineSize / 2;
+                        layoutPosition.Line -= totalLineSize / 2;
 
                     yield return ToVector(layoutPosition);
                 }
