@@ -46,7 +46,7 @@ namespace osu.Framework.Android
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
-        public override TextInputSource GetTextInput() => new AndroidTextInput(gameView);
+        protected override TextInputSource CreateTextInput() => new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]

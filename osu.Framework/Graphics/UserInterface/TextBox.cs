@@ -88,7 +88,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
-        private TextInputSource textInput;
+        [Resolved]
+        private TextInputSource textInput { get; set; }
 
         private Clipboard clipboard;
 
@@ -146,7 +147,6 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
         }
 

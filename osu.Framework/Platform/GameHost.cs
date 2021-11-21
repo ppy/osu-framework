@@ -691,6 +691,7 @@ namespace osu.Framework.Platform
                 }
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
+                Dependencies.CacheAs(CreateTextInput());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -1050,7 +1051,7 @@ namespace osu.Framework.Platform
 
         public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
-        public abstract TextInputSource GetTextInput();
+        protected virtual TextInputSource CreateTextInput() => new TextInputSource();
 
         #region IDisposable Support
 
