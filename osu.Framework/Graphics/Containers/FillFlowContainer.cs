@@ -193,6 +193,7 @@ namespace osu.Framework.Graphics.Containers
                 void finalizeLineFlow(int from, int to)
                 {
                     float centreOffset = ToFlowVector(children[from].BoundingBox.Size).Flow * calculateSpacingFactor(children[from]).Flow;
+
                     for (int i = from; i < to; i++)
                     {
                         if (reverseFlow)
