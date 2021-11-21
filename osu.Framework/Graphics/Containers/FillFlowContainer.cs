@@ -170,22 +170,24 @@ namespace osu.Framework.Graphics.Containers
                     lineChildCount++;
                     layoutPositions[i] = current;
 
+                    var stride = size;
+
                     if (i < children.Length - 1)
                     {
                         // Compute stride. Note, that the stride depends on the origins of the drawables
                         // on both sides of the step to be taken.
-                        var stride = (FlowVector.One - spacingFactor) * size;
+                        stride = (FlowVector.One - spacingFactor) * size;
 
                         c = children[i + 1];
                         size = ToFlowVector(c.BoundingBox.Size);
                         spacingFactor = calculateSpacingFactor(c);
 
                         stride += spacingFactor * size;
-
-                        if (stride.Line > lineLineSize)
-                            lineLineSize = stride.Line;
-                        current.Flow += stride.Flow + ToFlowVector(Spacing).Flow;
                     }
+
+                    if (stride.Line > lineLineSize)
+                        lineLineSize = stride.Line;
+                    current.Flow += stride.Flow + ToFlowVector(Spacing).Flow;
                 }
 
                 finalizeLineFlow(children.Length - lineChildCount, children.Length);
