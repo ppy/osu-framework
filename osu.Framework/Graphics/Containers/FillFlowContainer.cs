@@ -147,7 +147,8 @@ namespace osu.Framework.Graphics.Containers
             // and computing initial flow positions.
             var current = FlowVector.Zero;
             var size = ToFlowVector(children[0].BoundingBox.Size);
-            float lineBeginOffset = calculateSpacingFactor(children[0]).Flow * size.Flow;
+            var spacingFactor = calculateSpacingFactor(children[0]);
+            float lineBeginOffset = spacingFactor.Flow * size.Flow;
             float lineLineSize = 0;
             var ourRelativeAnchor = children[0].RelativeAnchorPosition;
             var (reverseFlow, centerFlow) = calculateFlowAnchor(children[0]);
@@ -160,7 +161,6 @@ namespace osu.Framework.Graphics.Containers
                     Drawable c = children[i];
                     validateChild(c, ourRelativeAnchor);
 
-                    var spacingFactor = calculateSpacingFactor(c);
                     float lineFlowSize = lineBeginOffset + current.Flow + (1 - spacingFactor.Flow) * size.Flow;
 
                     // We've exceeded our allowed flow size, move to a new line
@@ -169,8 +169,6 @@ namespace osu.Framework.Graphics.Containers
                         current.Flow = 0;
                         current.Line += lineLineSize;
 
-                        layoutPositions[i] = current;
-
                         lineOffsetsToMiddle.Add(0);
                         lineBeginOffset = spacingFactor.Flow * size.Flow;
 
@@ -178,14 +176,14 @@ namespace osu.Framework.Graphics.Containers
                     }
                     else
                     {
-                        layoutPositions[i] = current;
-
                         // Compute offset to the middle of the line, to be applied in case of centre anchor
                         // in a second pass.
                         lineOffsetsToMiddle[^1] = lineBeginOffset - lineFlowSize / 2;
                     }
 
+                    layoutPositions[i] = current;
                     lineIndices[i] = lineOffsetsToMiddle.Count - 1;
+
                     var stride = FlowVector.Zero;
 
                     if (i < children.Length - 1)
@@ -196,8 +194,9 @@ namespace osu.Framework.Graphics.Containers
 
                         c = children[i + 1];
                         size = ToFlowVector(c.BoundingBox.Size);
+                        spacingFactor = calculateSpacingFactor(c);
 
-                        stride += calculateSpacingFactor(c) * size;
+                        stride += spacingFactor * size;
                     }
 
                     stride += ToFlowVector(Spacing);
