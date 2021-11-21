@@ -136,24 +136,18 @@ namespace osu.Framework.Graphics.Containers
             // The positions for each child we will return later on.
             var layoutPositions = ArrayPool<FlowVector>.Shared.Rent(children.Length);
 
-            // We need to keep track of line sizes such that we can compute correct
-            // positions for centre anchor children.
-            // We also store for each child to which line it belongs.
-            int[] lineIndices = ArrayPool<int>.Shared.Rent(children.Length);
-
-            var lineOffsetsToMiddle = new List<float> { 0 };
-
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
             var current = FlowVector.Zero;
             var size = ToFlowVector(children[0].BoundingBox.Size);
             var spacingFactor = calculateSpacingFactor(children[0]);
-            float lineBeginOffset = spacingFactor.Flow * size.Flow;
-            float lineLineSize = 0;
             var ourRelativeAnchor = children[0].RelativeAnchorPosition;
             var (reverseFlow, centerFlow) = calculateFlowAnchor(children[0]);
 
-            // Defer the return of the rented lists
+            float lineLineSize = 0;
+            int lineChildCount = 0;
+
+            // Defer the return of the rented list
             try
             {
                 for (int i = 0; i < children.Length; ++i)
@@ -161,64 +155,61 @@ namespace osu.Framework.Graphics.Containers
                     Drawable c = children[i];
                     validateChild(c, ourRelativeAnchor);
 
-                    float lineFlowSize = lineBeginOffset + current.Flow + (1 - spacingFactor.Flow) * size.Flow;
-
                     // We've exceeded our allowed flow size, move to a new line
-                    if ((Direction.AffectedAxes() == Axes.Both && Precision.DefinitelyBigger(lineFlowSize, max.Flow)) || ForceNewLine(c))
+                    if ((Direction.AffectedAxes() == Axes.Both && lineChildCount > 0 && Precision.DefinitelyBigger(current.Flow + size.Flow, max.Flow)) || ForceNewLine(c))
                     {
-                        current.Flow = 0;
-                        current.Line += lineLineSize;
+                        finalizeLineFlow(i - lineChildCount, i);
 
-                        lineOffsetsToMiddle.Add(0);
-                        lineBeginOffset = spacingFactor.Flow * size.Flow;
+                        current.Flow = 0;
+                        current.Line += lineLineSize + ToFlowVector(Spacing).Line;
 
                         lineLineSize = 0;
-                    }
-                    else
-                    {
-                        // Compute offset to the middle of the line, to be applied in case of centre anchor
-                        // in a second pass.
-                        lineOffsetsToMiddle[^1] = lineBeginOffset - lineFlowSize / 2;
+                        lineChildCount = 0;
                     }
 
+                    lineChildCount++;
                     layoutPositions[i] = current;
-                    lineIndices[i] = lineOffsetsToMiddle.Count - 1;
-
-                    var stride = FlowVector.Zero;
 
                     if (i < children.Length - 1)
                     {
                         // Compute stride. Note, that the stride depends on the origins of the drawables
                         // on both sides of the step to be taken.
-                        stride = (FlowVector.One - spacingFactor) * size;
+                        var stride = (FlowVector.One - spacingFactor) * size;
 
                         c = children[i + 1];
                         size = ToFlowVector(c.BoundingBox.Size);
                         spacingFactor = calculateSpacingFactor(c);
 
                         stride += spacingFactor * size;
+
+                        if (stride.Line > lineLineSize)
+                            lineLineSize = stride.Line;
+                        current.Flow += stride.Flow + ToFlowVector(Spacing).Flow;
                     }
+                }
 
-                    stride += ToFlowVector(Spacing);
+                finalizeLineFlow(children.Length - lineChildCount, children.Length);
 
-                    if (stride.Line > lineLineSize)
-                        lineLineSize = stride.Line;
-                    current.Flow += stride.Flow;
+                void finalizeLineFlow(int from, int to)
+                {
+                    float centreOffset = ToFlowVector(children[from].BoundingBox.Size).Flow * calculateSpacingFactor(children[from]).Flow;
+                    for (int i = from; i < to; i++)
+                    {
+                        if (reverseFlow)
+                            layoutPositions[i].Flow = -layoutPositions[i].Flow;
+                        else if (centerFlow)
+                            layoutPositions[i].Flow -= current.Flow / 2 - centreOffset;
+                    }
                 }
 
                 float lineSize = layoutPositions[children.Length - 1].Line;
 
-                // Second pass, adjusting the positions for anchors of children.
-                // Uses line sizes and total flow size for centre-anchors.
+                // Second pass, adjusting the positioning on the line axis
+                // after the total line size has been calculated
                 for (int i = 0; i < children.Length; i++)
                 {
                     var layoutPosition = layoutPositions[i];
                     var (reverseLine, centerLine) = calculateLineAnchor(children[i]);
-
-                    if (reverseFlow)
-                        layoutPosition.Flow = -layoutPosition.Flow;
-                    else if (centerFlow)
-                        layoutPosition.Flow += lineOffsetsToMiddle[lineIndices[i]];
 
                     if (reverseLine)
                         layoutPosition.Line = -layoutPosition.Line;
@@ -231,7 +222,6 @@ namespace osu.Framework.Graphics.Containers
             finally
             {
                 ArrayPool<FlowVector>.Shared.Return(layoutPositions);
-                ArrayPool<int>.Shared.Return(lineIndices);
             }
         }
 
