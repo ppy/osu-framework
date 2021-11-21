@@ -1020,13 +1020,28 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region Native TextBox handling (platform-specific)
 
+        private bool inputBound;
+
         private void bindInput()
         {
+            if (inputBound)
+            {
+                textInput?.EnsureActivated();
+                return;
+            }
+
+            inputBound = true;
+
             textInput?.Activate();
         }
 
         private void unbindInput()
         {
+            if (!inputBound)
+                return;
+
+            inputBound = false;
+
             textInput?.Deactivate();
         }
 
