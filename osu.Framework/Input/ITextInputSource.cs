@@ -13,7 +13,7 @@ namespace osu.Framework.Input
     public interface ITextInputSource
     {
         /// <summary>
-        /// Whether the IME is actively providing text composition trough <see cref="OnNewImeComposition"/> and accepting input from the user.
+        /// Whether the IME is actively providing text composition through <see cref="OnNewImeComposition"/> and accepting input from the user.
         /// </summary>
         bool ImeActive { get; }
 

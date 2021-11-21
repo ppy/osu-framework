@@ -1198,7 +1198,7 @@ namespace osu.Framework.Graphics.UserInterface
                     // we don't want the currently selected text to be removed in that case
                     // (we only want it removed once the user has entered _some_ text).
                     // the composition text hasn't changed anyway, so there is no need to go
-                    // trough the rest of the method.
+                    // through the rest of the method.
                     return;
                 }
 
