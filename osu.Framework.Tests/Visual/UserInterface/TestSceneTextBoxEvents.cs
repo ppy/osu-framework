@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Ignore("not possible to test yet for attached reason.")]
         public void TestInsertingUserTextInvokesEvent()
         {
-            // todo: this is not straightforward to test at the moment (requires manipulating ITextInputSource, which is stored at host level), steps commented for now.
+            // todo: this is not straightforward to test at the moment (requires manipulating TextInputSource, which is stored at host level), steps commented for now.
             //AddStep("press letter key to insert text", () => addToPendingTextInput());
             //AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
         }

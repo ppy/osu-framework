@@ -1050,7 +1050,7 @@ namespace osu.Framework.Platform
 
         public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
-        public abstract ITextInputSource GetTextInput();
+        public abstract TextInputSource GetTextInput();
 
         #region IDisposable Support
 

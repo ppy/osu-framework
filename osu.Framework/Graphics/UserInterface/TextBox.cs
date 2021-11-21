@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
-        private ITextInputSource textInput;
+        private TextInputSource textInput;
 
         private Clipboard clipboard;
 
