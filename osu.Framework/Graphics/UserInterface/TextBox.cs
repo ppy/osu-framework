@@ -726,13 +726,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCaretVisibility()
         {
-            bool newVisibility =
-                // only show if we're focused
-                HasFocus && (
-                    // and the host is active
-                    isActive.Value
-                    // or if text is selected
-                    || selectionLength != 0);
+            // a blinking cursor signals to the user that keyboard input will appear at that cursor,
+            // hide the caret when we don't have keyboard focus to conform with that expectation.
+            // importantly, we want want the caret to remain visible when there is a selection.
+            bool newVisibility = HasFocus && (isActive.Value || selectionLength != 0);
 
             if (caretVisible != newVisibility)
             {
