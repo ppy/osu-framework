@@ -34,6 +34,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual float LeftRightPadding => 5;
 
+        /// <summary>
+        /// Maximum allowed length of text.
+        /// </summary>
+        /// <remarks>Any input beyond this limit will be dropped and then <see cref="NotifyInputError"/> will be called.</remarks>
         public int? LengthLimit;
 
         /// <summary>
@@ -1207,6 +1211,22 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             bool beganChange = beginTextChange();
+
+            int lengthWithoutComposition = text.Length - imeCompositionDrawables.Count;
+
+            if (lengthWithoutComposition + newComposition.Length > LengthLimit)
+            {
+                newComposition = newComposition.Substring(0, (int)LengthLimit - lengthWithoutComposition);
+
+                // sanitize input, keep selection within bounds.
+                if (newSelectionStart > newComposition.Length)
+                    newSelectionStart = newComposition.Length;
+
+                if (newSelectionStart + newSelectionLength > newComposition.Length)
+                    newSelectionLength = newComposition.Length - newSelectionStart;
+
+                NotifyInputError();
+            }
 
             string oldComposition = text.Substring(imeCompositionStart, imeCompositionDrawables.Count);
 
