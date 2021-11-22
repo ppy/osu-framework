@@ -413,9 +413,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            //have to run this after children flow
+            // have to run this after children flow
             if (!cursorAndLayout.IsValid)
             {
+                // update in case selection length has changed.
+                updateCaretVisibility();
+
                 updateCursorAndLayout();
                 cursorAndLayout.Validate();
             }
