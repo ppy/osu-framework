@@ -16,7 +16,7 @@ namespace osu.Framework.Input
 
         private void handleTextInput(string text)
         {
-            PendingText += text;
+            AddPendingText(text);
         }
 
         private void handleTextEditing(string text, int start, int length)

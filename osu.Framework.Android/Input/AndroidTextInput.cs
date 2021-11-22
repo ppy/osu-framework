@@ -32,7 +32,7 @@ namespace osu.Framework.Android.Input
         private void keyDown(Keycode arg, KeyEvent e)
         {
             if (e.UnicodeChar != 0)
-                PendingText += (char)e.UnicodeChar;
+                AddPendingText(((char)e.UnicodeChar).ToString());
         }
 
         protected override void ActivateTextInput()

@@ -17,7 +17,22 @@ namespace osu.Framework.Input
         /// </summary>
         public bool ImeActive { get; protected set; }
 
-        protected string PendingText { get; set; }
+        private readonly object pendingLock = new object();
+        private string pendingText = string.Empty;
+
+        /// <summary>
+        /// Adds <paramref name="text"/> to the text pending to be collected by <see cref="GetPendingText"/>.
+        /// </summary>
+        /// <remarks>
+        /// Used for collecting inputted text from native implementations.
+        /// </remarks>
+        protected void AddPendingText(string text)
+        {
+            lock (pendingLock)
+            {
+                pendingText += text;
+            }
+        }
 
         /// <summary>
         /// Gets all the text that was inputted by the user since the last <see cref="GetPendingText"/> call.
@@ -27,13 +42,11 @@ namespace osu.Framework.Input
         /// </remarks>
         public string GetPendingText()
         {
-            try
+            lock (pendingLock)
             {
-                return PendingText;
-            }
-            finally
-            {
-                PendingText = string.Empty;
+                string oldPending = pendingText;
+                pendingText = string.Empty;
+                return oldPending;
             }
         }
 
@@ -78,8 +91,11 @@ namespace osu.Framework.Input
             {
                 DeactivateTextInput();
 
-                // clear out the pending text in case some of it wasn't consumed
-                PendingText = string.Empty;
+                lock (pendingLock)
+                {
+                    // clear out the pending text in case some of it wasn't consumed
+                    pendingText = string.Empty;
+                }
             }
         }
 
@@ -88,7 +104,7 @@ namespace osu.Framework.Input
         /// Should be overriden per-platform.
         /// </summary>
         /// <remarks>
-        /// An active native implementation should add user inputted text to <see cref="PendingText"/>
+        /// An active native implementation should add user inputted text with <see cref="AddPendingText"/>.
         /// and forward IME composition events through <see cref="TriggerImeComposition"/> and <see cref="TriggerImeResult"/>.
         /// </remarks>
         protected virtual void ActivateTextInput()
