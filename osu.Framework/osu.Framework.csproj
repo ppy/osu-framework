@@ -22,7 +22,6 @@
   </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="managed-midi" Version="1.9.14" />
-    <PackageReference Include="Markdig" Version="0.26.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
@@ -44,6 +43,10 @@
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401"/>
+
+    <!-- Any version ahead of this will cause runtime issues on iOS
+         See https://github.com/xoofx/markdig/issues/564 -->
+    <PackageReference Include="Markdig" Version="0.23.0" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.805.0" />
