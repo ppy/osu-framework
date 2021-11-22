@@ -155,14 +155,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
-
             isActive = host.IsActive.GetBoundCopy();
-            isActive.BindValueChanged(_ => Scheduler.AddOnce(updateCaretVisibility));
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+            isActive.BindValueChanged(_ => Scheduler.AddOnce(updateCaretVisibility));
             setText(Text);
         }
 
