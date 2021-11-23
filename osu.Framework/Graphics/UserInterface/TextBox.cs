@@ -730,7 +730,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // a blinking cursor signals to the user that keyboard input will appear at that cursor,
             // hide the caret when we don't have keyboard focus to conform with that expectation.
-            // importantly, we want want the caret to remain visible when there is a selection.
+            // importantly, we want the caret to remain visible when there is a selection.
             bool newVisibility = HasFocus && (isActive.Value || selectionLength != 0);
 
             if (caretVisible != newVisibility)
