@@ -92,6 +92,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Clipboard clipboard;
 
+        /// <summary>
+        /// Whether the <see cref="GameHost"/> is active (has keyboard focus).
+        /// </summary>
+        private IBindable<bool> isActive;
+
         private readonly Caret caret;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
@@ -140,6 +145,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (Text != e.NewValue)
                     Text = e.NewValue;
             };
+
+            caretVisible = false;
             caret.Hide();
         }
 
@@ -148,11 +155,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
+            isActive = host.IsActive.GetBoundCopy();
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+            isActive.BindValueChanged(_ => Scheduler.AddOnce(updateCaretVisibility));
             setText(Text);
         }
 
@@ -386,7 +395,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
-            if (HasFocus)
+            if (caretVisible)
                 caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
 
             if (textAtLastLayout.Length == 0 || text.Length == 0)
@@ -404,9 +413,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            //have to run this after children flow
+            // have to run this after children flow
             if (!cursorAndLayout.IsValid)
             {
+                // update in case selection length has changed.
+                updateCaretVisibility();
+
                 updateCursorAndLayout();
                 cursorAndLayout.Validate();
             }
@@ -709,6 +721,31 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract Caret CreateCaret();
 
+        /// <summary>
+        /// Whether the <see cref="caret"/> should be visible.
+        /// </summary>
+        private bool caretVisible;
+
+        private void updateCaretVisibility()
+        {
+            // a blinking cursor signals to the user that keyboard input will appear at that cursor,
+            // hide the caret when we don't have keyboard focus to conform with that expectation.
+            // importantly, we want the caret to remain visible when there is a selection.
+            bool newVisibility = HasFocus && (isActive.Value || selectionLength != 0);
+
+            if (caretVisible != newVisibility)
+            {
+                caretVisible = newVisibility;
+
+                if (caretVisible)
+                    caret.Show();
+                else
+                    caret.Hide();
+
+                cursorAndLayout.Invalidate();
+            }
+        }
+
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>(string.Empty);
 
         public Bindable<string> Current
@@ -991,8 +1028,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            caret.Hide();
-            cursorAndLayout.Invalidate();
+            updateCaretVisibility();
 
             if (CommitOnFocusLost)
                 Commit();
@@ -1012,8 +1048,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             bindInput();
 
-            caret.Show();
-            cursorAndLayout.Invalidate();
+            updateCaretVisibility();
         }
 
         #endregion
