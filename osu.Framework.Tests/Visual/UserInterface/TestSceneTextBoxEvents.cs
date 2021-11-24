@@ -4,6 +4,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
@@ -15,12 +17,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private EventQueuesTextBox textBox;
 
+        private ManualTextInput textInput;
+
         private const string default_text = "some default text";
 
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("add textbox", () => Child = textBox = new EventQueuesTextBox
+            ManualTextInputContainer textInputContainer = null;
+
+            AddStep("add manual text input container", () =>
+            {
+                Child = textInputContainer = new ManualTextInputContainer();
+                textInput = textInputContainer.TextInput;
+            });
+
+            AddStep("add textbox", () => textInputContainer.Child = textBox = new EventQueuesTextBox
             {
                 CommitOnFocusLost = true,
                 ReleaseFocusOnCommit = false,
@@ -69,12 +81,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        [Ignore("not possible to test yet for attached reason.")]
         public void TestInsertingUserTextInvokesEvent()
         {
-            // todo: this is not straightforward to test at the moment (requires manipulating TextInputSource, which is stored at host level), steps commented for now.
-            //AddStep("press letter key to insert text", () => addToPendingTextInput());
-            //AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
+            AddStep("press letter key to insert text", () =>
+            {
+                // press a key so TextBox starts consuming text
+                InputManager.Key(Key.W);
+                textInput.AddToPendingText("W");
+            });
+            AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
         }
 
         [Test]
@@ -145,6 +160,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override void OnUserTextRemoved(string removed) => UserRemovedTextQueue.Enqueue(removed);
             protected override void OnTextCommitted(bool textChanged) => CommittedTextQueue.Enqueue(textChanged);
             protected override void OnCaretMoved(bool selecting) => CaretMovedQueue.Enqueue(selecting);
+        }
+
+        private class ManualTextInputContainer : Container
+        {
+            [Cached(typeof(TextInputSource))]
+            public readonly ManualTextInput TextInput;
+
+            public ManualTextInputContainer()
+            {
+                TextInput = new ManualTextInput();
+            }
+        }
+
+        private class ManualTextInput : TextInputSource
+        {
+            public void AddToPendingText(string text) => AddPendingText(text);
         }
     }
 }
