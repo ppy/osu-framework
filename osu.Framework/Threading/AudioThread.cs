@@ -138,18 +138,20 @@ namespace osu.Framework.Threading
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
 
-            int lastDevice = Bass.CurrentDevice;
+            int selectedDevice = Bass.CurrentDevice;
 
-            if (canFreeDevice(deviceId))
+            if (canFreeDevice(deviceId) && canSelectDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
             }
 
-            if (lastDevice != deviceId)
-                Bass.CurrentDevice = lastDevice;
+            if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
+                Bass.CurrentDevice = selectedDevice;
 
             initialised_devices.Remove(deviceId);
+
+            static bool canSelectDevice(int deviceId) => Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
         }
 
         /// <summary>
