@@ -168,6 +168,10 @@ namespace osu.Framework.Threading
         /// Whether a device can be freed.
         /// On Linux, freeing device 0 is disallowed as it can cause deadlocks which don't surface immediately.
         /// </summary>
-        private static bool canFreeDevice(int deviceId) => deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux;
+        private static bool canFreeDevice(int deviceId)
+        {
+            return (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+                   && Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
+        }
     }
 }
