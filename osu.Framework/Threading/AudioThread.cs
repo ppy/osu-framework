@@ -139,18 +139,19 @@ namespace osu.Framework.Threading
             Debug.Assert(ThreadSafety.IsAudioThread);
 
             int selectedDevice = Bass.CurrentDevice;
-            bool selectedDeviceInitialised = Bass.GetDeviceInfo(selectedDevice, out var lastDeviceInfo) && lastDeviceInfo.IsInitialized;
 
-            if (canFreeDevice(deviceId))
+            if (canFreeDevice(deviceId) && canSelectDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
             }
 
-            if (selectedDevice != deviceId && selectedDeviceInitialised)
+            if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
                 Bass.CurrentDevice = selectedDevice;
 
             initialised_devices.Remove(deviceId);
+
+            static bool canSelectDevice(int deviceId) => Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
         }
 
         /// <summary>
@@ -169,10 +170,6 @@ namespace osu.Framework.Threading
         /// Whether a device can be freed.
         /// On Linux, freeing device 0 is disallowed as it can cause deadlocks which don't surface immediately.
         /// </summary>
-        private static bool canFreeDevice(int deviceId)
-        {
-            return (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
-                   && Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
-        }
+        private static bool canFreeDevice(int deviceId) => deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux;
     }
 }
