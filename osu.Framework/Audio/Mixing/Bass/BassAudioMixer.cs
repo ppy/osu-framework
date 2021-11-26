@@ -313,10 +313,10 @@ namespace osu.Framework.Audio.Mixing.Bass
             foreach (var channel in toAdd)
                 AddChannelToBassMix(channel);
 
-            // Initialize sub-mixers that were added prior to mixer being loaded.
+            // Initialize sub-mixers that were added prior to this mixer being initialized.
             foreach (var item in Items)
             {
-                if (item is BassAudioMixer mixer && mixer.IsAlive)
+                if (item is BassAudioMixer mixer && !mixer.IsDisposed)
                 {
                     if (mixer.Handle == 0)
                         mixer.createMixer();

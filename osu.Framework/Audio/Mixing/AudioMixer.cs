@@ -18,17 +18,7 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        #region IAudioChannel
-
-        public AudioMixer? Mixer { get; }
-
-        AudioMixer? IAudioChannel.Mixer { get; set; }
-
-        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
-
-        #endregion
-
-        private AudioMixer? parentMixer;
+        private readonly AudioMixer? parentMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
@@ -71,11 +61,11 @@ namespace osu.Framework.Audio.Mixing
         /// Removes an <see cref="IAudioChannel"/> from the mix.
         /// </summary>
         /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
-        /// <param name="returnToDefault">Whether <paramref name="channel"/> should be returned to the default mixer.</param>
-        protected void Remove(IAudioChannel channel, bool returnToDefault)
+        /// <param name="moveToParent">Whether <paramref name="channel"/> should be re-routed to the parent mixer.</param>
+        protected void Remove(IAudioChannel channel, bool moveToParent)
         {
             // If this is a top-level mixer, prevent removal.
-            if (returnToDefault && parentMixer == null)
+            if (moveToParent && parentMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -86,8 +76,8 @@ namespace osu.Framework.Audio.Mixing
                 RemoveInternal(channel);
                 channel.Mixer = null;
 
-                // Add the channel back to the default mixer so audio can always be played.
-                if (parentMixer != null && !parentMixer.IsDisposed && returnToDefault)
+                // Move channel to parent mixer if requested (and present).
+                if (parentMixer != null && !parentMixer.IsDisposed && moveToParent)
                     parentMixer.AsNonNull().Add(channel);
             });
         }
@@ -103,5 +93,15 @@ namespace osu.Framework.Audio.Mixing
         /// </summary>
         /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
         protected abstract void RemoveInternal(IAudioChannel channel);
+
+        #region IAudioChannel
+
+        public AudioMixer? Mixer { get; }
+
+        AudioMixer? IAudioChannel.Mixer { get; set; }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
+
+        #endregion
     }
 }
