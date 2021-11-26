@@ -54,6 +54,11 @@ namespace osu.Framework.Audio
         private readonly AudioThread thread;
 
         /// <summary>
+        /// The global mixer which all audio routes through before output.
+        /// </summary>
+        public readonly AudioMixer GlobalMixer;
+
+        /// <summary>
         /// The global mixer which all tracks are routed into by default.
         /// </summary>
         public readonly AudioMixer TrackMixer;
@@ -161,8 +166,9 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
-            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
+            AddItem(GlobalMixer = new BassAudioMixer(null, nameof(GlobalMixer)));
+            GlobalMixer.Add(TrackMixer = new BassAudioMixer(GlobalMixer, nameof(TrackMixer)));
+            GlobalMixer.Add(SampleMixer = new BassAudioMixer(GlobalMixer, nameof(SampleMixer)));
 
             CancellationToken token = cancelSource.Token;
 
@@ -221,15 +227,17 @@ namespace osu.Framework.Audio
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
         /// <remarks>
-        /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
+        /// Audio output from the <see cref="AudioMixer"/> will be routed to <see cref="GlobalMixer"/>.
         /// </remarks>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(GlobalMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
+        private AudioMixer createAudioMixer(AudioMixer parentMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer, identifier);
-            AddItem(mixer);
+            var mixer = new BassAudioMixer(parentMixer, identifier);
+
+            parentMixer.Add(mixer);
+
             return mixer;
         }
 
