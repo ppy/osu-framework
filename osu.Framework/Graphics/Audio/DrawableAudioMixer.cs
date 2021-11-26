@@ -26,6 +26,8 @@ namespace osu.Framework.Graphics.Audio
 
         public BindableList<IAudioChannel> Channels => mixer.Channels;
 
+        public float[] GetChannelLevel(IAudioChannel channel, float length) => mixer.GetChannelLevel(channel, length);
+
         public void Add(IAudioChannel channel)
         {
             if (LoadState < LoadState.Ready)

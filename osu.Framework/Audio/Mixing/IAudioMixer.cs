@@ -39,5 +39,12 @@ namespace osu.Framework.Audio.Mixing
         /// </summary>
         /// <param name="channel">The channel to remove.</param>
         void Remove(IAudioChannel channel);
+
+        /// <summary>
+        /// Retrieves the level (peak amplitude) of a channel.
+        /// </summary>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to retrieve the levels for.</param>
+        /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
+        float[] GetChannelLevel(IAudioChannel channel, float length);
     }
 }

@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using ManagedBass;
-using ManagedBass.Mix;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         private const int sample_window = 30;
         private const int peak_hold_time = 3000;
 
-        public readonly int ChannelHandle;
+        public readonly IAudioChannel Channel;
 
         private readonly Drawable volBarL;
         private readonly Drawable volBarR;
@@ -29,10 +29,10 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         private double lastMaxPeakTime;
         private readonly bool isOutputChannel;
 
-        public AudioChannelDisplay(int channelHandle, bool isOutputChannel = false)
+        public AudioChannelDisplay(IAudioChannel channel)
         {
-            ChannelHandle = channelHandle;
-            this.isOutputChannel = isOutputChannel;
+            Channel = channel;
+            isOutputChannel = channel is BassAudioMixer;
 
             RelativeSizeAxes = Axes.Y;
             AutoSizeAxes = Axes.X;
@@ -68,7 +68,8 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                                     Origin = Anchor.BottomLeft,
                                     RelativeSizeAxes = Axes.Y,
                                     Width = 30,
-                                    Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green
+                                    Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green,
+                                    Height = 0
                                 },
                                 volBarR = new Box
                                 {
@@ -76,7 +77,8 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                                     Origin = Anchor.BottomLeft,
                                     RelativeSizeAxes = Axes.Y,
                                     Width = 30,
-                                    Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green
+                                    Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green,
+                                    Height = 0
                                 }
                             }
                         }
@@ -92,7 +94,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                             {
                                 peakText = new SpriteText { Text = "N/A", Font = FrameworkFont.Condensed.With(size: 14f) },
                                 maxPeakText = new SpriteText { Text = "N/A", Font = FrameworkFont.Condensed.With(size: 14f) },
-                                mixerLabel = new SpriteText { Text = " ", Font = FrameworkFont.Condensed.With(size: 14f), Colour = FrameworkColour.Yellow },
+                                mixerLabel = new SpriteText { Text = " ", Font = FrameworkFont.Condensed.With(size: 14f), Colour = FrameworkColour.YellowGreen },
                             }
                         }
                     }
@@ -104,13 +106,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         {
             base.Update();
 
-            float[] levels = new float[2];
-
-            if (isOutputChannel)
-                Bass.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
-            else
-                BassMix.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
-
+            float[] levels = Channel.GetLevel(1 / 1000f * sample_window);
             float curPeakL = levels[0];
             float curPeakR = levels[1];
             float curPeak = (curPeakL + curPeakR) / 2f;

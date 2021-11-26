@@ -60,6 +60,30 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public override BindableList<IAudioChannel> Channels => new BindableList<IAudioChannel>(ActiveChannels.ToArray());
 
+        public override float[] GetLevel(float length)
+        {
+            float[] levels = new float[2];
+
+            if (parentMixer != null)
+                levels = parentMixer.GetChannelLevel(this, length);
+            else
+                MixerGetLevel(levels, length, LevelRetrievalFlags.Stereo);
+
+            return levels;
+        }
+
+        public override float[] GetChannelLevel(IAudioChannel channel, float length)
+        {
+            float[] levels = new float[2];
+
+            if (!(channel is IBassAudioChannel bassAudioChannel))
+                return levels;
+
+            ChannelGetLevel(bassAudioChannel, levels, length, LevelRetrievalFlags.Stereo);
+
+            return levels;
+        }
+
         protected override void AddInternal(IAudioChannel channel)
         {
             Debug.Assert(CanPerformInline);
