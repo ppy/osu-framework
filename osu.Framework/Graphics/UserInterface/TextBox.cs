@@ -383,7 +383,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength > 0)
                 selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
-            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
+            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / (DrawWidth - 2 * LeftRightPadding);
 
             //we only want to reposition the view when the cursor reaches near the extremities.
             if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
