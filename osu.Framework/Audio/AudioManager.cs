@@ -130,9 +130,6 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
-        private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
-
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
@@ -239,20 +236,6 @@ namespace osu.Framework.Audio
             parentMixer.Add(mixer);
 
             return mixer;
-        }
-
-        protected override void ItemAdded(AudioComponent item)
-        {
-            base.ItemAdded(item);
-            if (item is AudioMixer mixer)
-                activeMixers.Add(mixer);
-        }
-
-        protected override void ItemRemoved(AudioComponent item)
-        {
-            base.ItemRemoved(item);
-            if (item is AudioMixer mixer)
-                activeMixers.Remove(mixer);
         }
 
         /// <summary>
