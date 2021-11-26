@@ -1385,8 +1385,11 @@ namespace osu.Framework.Graphics.UserInterface
                 endIndex = selectionRight;
             }
 
-            float start = getPositionAt(startIndex);
-            float end = getPositionAt(endIndex);
+            float start = getPositionAt(startIndex) - textContainerPosX + LeftRightPadding;
+            float end = getPositionAt(endIndex) - textContainerPosX + LeftRightPadding;
+
+            start = Math.Clamp(start, LeftRightPadding, DrawWidth - LeftRightPadding);
+            end = Math.Clamp(end, LeftRightPadding, DrawWidth - LeftRightPadding);
 
             var compositionTextRectangle = new RectangleF
             {
