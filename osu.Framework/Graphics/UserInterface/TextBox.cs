@@ -894,7 +894,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Full data about the composition events is processed by <see cref="handleImeComposition"/> "passively"
         /// so we shouldn't take any action on key events we receive.
         /// </remarks>
-        protected bool ImeCompositionActive => textInput?.ImeActive == true || imeCompositionDrawables.Count > 0;
+        protected bool ImeCompositionActive => textInput?.ImeActive == true || imeCompositionLength > 0;
 
         #region Input event handling
 
@@ -1201,7 +1201,17 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Contains all the <see cref="Drawable"/>s from the <see cref="TextFlow"/>
+        /// that are part of the current IME composition.
+        /// </summary>
         private readonly List<Drawable> imeCompositionDrawables = new List<Drawable>();
+
+        /// <summary>
+        /// Length of the current IME composition.
+        /// </summary>
+        /// <remarks>A length of <c>0</c> means that IME composition isn't active.</remarks>
+        private int imeCompositionLength => imeCompositionDrawables.Count;
 
         /// <summary>
         /// Index of the first character in the current composition.
@@ -1218,7 +1228,7 @@ namespace osu.Framework.Graphics.UserInterface
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
 
-            if (imeCompositionDrawables.Count == 0)
+            if (imeCompositionLength == 0)
             {
                 // this is the start of a new composition, as we currently have no composition text.
 
@@ -1247,7 +1257,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             bool beganChange = beginTextChange();
 
-            int lengthWithoutComposition = text.Length - imeCompositionDrawables.Count;
+            int lengthWithoutComposition = text.Length - imeCompositionLength;
 
             if (lengthWithoutComposition + newComposition.Length > LengthLimit)
             {
@@ -1263,7 +1273,7 @@ namespace osu.Framework.Graphics.UserInterface
                 NotifyInputError();
             }
 
-            string oldComposition = text.Substring(imeCompositionStart, imeCompositionDrawables.Count);
+            string oldComposition = text.Substring(imeCompositionStart, imeCompositionLength);
 
             matchBeginningEnd(oldComposition, newComposition, out int matchBeginning, out int matchEnd);
 
@@ -1311,7 +1321,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void onImeResult()
         {
-            //we only succeeded if there is pending data in the textbox
+            // we only succeeded if there is pending data in the textbox
             if (imeCompositionDrawables.Count > 0)
             {
                 foreach (var d in imeCompositionDrawables)
@@ -1320,7 +1330,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 // move the cursor to end of finalized composition.
-                selectionStart = selectionEnd = imeCompositionStart + imeCompositionDrawables.Count;
+                selectionStart = selectionEnd = imeCompositionStart + imeCompositionLength;
 
                 OnImeResult();
             }
@@ -1341,10 +1351,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             int startIndex, endIndex;
 
-            if (imeCompositionDrawables.Count > 0)
+            if (imeCompositionLength > 0)
             {
                 startIndex = imeCompositionStart;
-                endIndex = imeCompositionStart + imeCompositionDrawables.Count;
+                endIndex = imeCompositionStart + imeCompositionLength;
             }
             else
             {
