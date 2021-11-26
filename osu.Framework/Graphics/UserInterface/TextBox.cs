@@ -13,12 +13,14 @@ using osuTK;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Extensions.PlatformActionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -111,6 +113,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// This usually happens on pressing enter, but can also be triggered on focus loss automatically, via <see cref="CommitOnFocusLost"/>.
         /// </summary>
         public event OnCommitHandler OnCommit;
+
+        private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         protected TextBox()
         {
@@ -365,21 +369,36 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Finalizes the current IME composition (if any).
+        /// Finalize the current IME composition if one is active.
         /// </summary>
+        /// <remarks>Must only be called from the update thread.</remarks>
         protected void FinalizeImeComposition()
         {
+            if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
+                return;
+
             textInput?.ResetIme();
-            Scheduler.Add(onImeResult, false);
+
+            textUpdateScheduler.Add(onImeResult);
+
+            // importantly, we want to force-update all pending text/composition events,
+            // so that when we return control to the caller, those events won't mutate text and caret position.
+            textUpdateScheduler.Update();
         }
 
         /// <summary>
         /// Cancels the current IME composition, removing it from the <see cref="Text"/>.
         /// </summary>
+        /// <remarks>Must only be called from the update thread.</remarks>
         protected void CancelImeComposition()
         {
+            if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
+                return;
+
             textInput?.ResetIme();
-            Scheduler.Add(() => onImeComposition(string.Empty, 0, 0), false);
+
+            textUpdateScheduler.Add(() => onImeComposition(string.Empty, 0, 0));
+            textUpdateScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
         }
 
         protected override void Dispose(bool isDisposing)
@@ -433,6 +452,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             textAtLastLayout = text;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // update the scheduler before updating children as it might mutate TextFlow.
+            // we want the character drawables to be up-to date for further calculations in `updateCursorAndLayout()`.
+            textUpdateScheduler.Update();
         }
 
         protected override void UpdateAfterChildren()
@@ -959,8 +987,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void Commit()
         {
-            if (ImeCompositionActive)
-                FinalizeImeComposition();
+            FinalizeImeComposition();
 
             if (ReleaseFocusOnCommit && HasFocus)
             {
@@ -990,8 +1017,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return;
 
-            if (ImeCompositionActive)
-                FinalizeImeComposition();
+            FinalizeImeComposition();
 
             if (doubleClickWord != null)
             {
@@ -1040,8 +1066,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            if (ImeCompositionActive)
-                FinalizeImeComposition();
+            FinalizeImeComposition();
 
             if (text.Length == 0) return true;
 
@@ -1086,8 +1111,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return true;
 
-            if (ImeCompositionActive)
-                FinalizeImeComposition();
+            FinalizeImeComposition();
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1103,8 +1127,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
-            if (ImeCompositionActive)
-                FinalizeImeComposition();
+            FinalizeImeComposition();
 
             unbindInput();
 
@@ -1157,12 +1180,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
-            Schedule(() => onImeComposition(composition, selectionStart, selectionLength));
+            textUpdateScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength));
         }
 
         private void handleImeResult(string result)
         {
-            Schedule(() =>
+            textUpdateScheduler.Add(() =>
             {
                 onImeComposition(result, result.Length, 0);
                 onImeResult();
