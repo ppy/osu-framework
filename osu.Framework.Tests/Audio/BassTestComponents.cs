@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using JetBrains.Annotations;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing.Bass;
@@ -52,9 +53,9 @@ namespace osu.Framework.Tests.Audio
 
         public void Add(params AudioComponent[] component) => components.AddRange(component);
 
-        internal BassAudioMixer CreateMixer()
+        internal BassAudioMixer CreateMixer([CanBeNull] BassAudioMixer bassMixer = null, string identifier = "Test mixer")
         {
-            var mixer = new BassAudioMixer(Mixer, "Test mixer");
+            var mixer = new BassAudioMixer(bassMixer, identifier);
             components.Insert(0, mixer);
             return mixer;
         }

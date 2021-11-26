@@ -22,7 +22,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
-    internal class BassAudioMixer : AudioMixer, IBassAudio
+    internal class BassAudioMixer : AudioMixer, IBassAudioChannel
     {
         /// <summary>
         /// The handle for this mixer.
@@ -37,22 +37,28 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// The list of channels which are currently active in the BASS mix.
         /// </summary>
-        private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
+        internal readonly List<IBassAudioChannel> ActiveChannels = new List<IBassAudioChannel>();
 
         private const int frequency = 44100;
+
+        private readonly AudioMixer? parentMixer;
 
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer"><inheritdoc /></param>
+        /// <param name="parentMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public BassAudioMixer(AudioMixer? globalMixer, string identifier)
-            : base(globalMixer, identifier)
+        public BassAudioMixer(AudioMixer? parentMixer, string identifier)
+            : base(parentMixer, identifier)
         {
+            this.parentMixer = parentMixer;
+
             EnqueueAction(createMixer);
         }
 
         public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
+
+        public override BindableList<IAudioChannel> Channels => new BindableList<IAudioChannel>(ActiveChannels.ToArray());
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -63,6 +69,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
+
+            if (bassChannel is BassAudioMixer mixer)
+                AddChannelToBassMix(mixer);
 
             if (!bassChannel.MixerChannelPaused)
                 ChannelPlay(bassChannel);
@@ -78,7 +87,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            if (activeChannels.Remove(bassChannel))
+            if (ActiveChannels.Remove(bassChannel))
                 removeChannelFromBassMix(bassChannel);
         }
 
@@ -245,8 +254,10 @@ namespace osu.Framework.Audio.Mixing.Bass
             return ManagedBass.Bass.StreamFree(channel.Handle);
         }
 
-        public void UpdateDevice(int deviceIndex)
+        internal override void UpdateDevice(int deviceIndex)
         {
+            base.UpdateDevice(deviceIndex);
+
             if (Handle == 0)
                 createMixer();
             else
@@ -255,17 +266,21 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         protected override void UpdateState()
         {
-            for (int i = 0; i < activeChannels.Count; i++)
+            for (int i = 0; i < ActiveChannels.Count; i++)
             {
-                var channel = activeChannels[i];
+                var channel = ActiveChannels[i];
                 if (channel.IsActive)
                     continue;
 
-                activeChannels.RemoveAt(i--);
+                ActiveChannels.RemoveAt(i--);
+
+                if (channel is BassAudioMixer bassAudioMixer && bassAudioMixer.IsDisposed)
+                    return;
+
                 removeChannelFromBassMix(channel);
             }
 
-            FrameStatistics.Add(StatisticsCounterType.MixChannels, activeChannels.Count);
+            FrameStatistics.Add(StatisticsCounterType.MixChannels, ActiveChannels.Count);
             base.UpdateState();
         }
 
@@ -279,7 +294,12 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+            BassFlags flags = BassFlags.MixerNonStop;
+
+            if (parentMixer != null)
+                flags |= BassFlags.Decode;
+
+            Handle = BassMix.CreateMixerStream(frequency, 2, flags);
             if (Handle == 0)
                 return;
 
@@ -287,10 +307,23 @@ namespace osu.Framework.Audio.Mixing.Bass
             ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
 
             // Register all channels that were previously played prior to the mixer being loaded.
-            var toAdd = activeChannels.ToArray();
-            activeChannels.Clear();
+            var toAdd = ActiveChannels.ToArray();
+            ActiveChannels.Clear();
+
             foreach (var channel in toAdd)
                 AddChannelToBassMix(channel);
+
+            // Initialize sub-mixers that were added prior to mixer being loaded.
+            foreach (var item in Items)
+            {
+                if (item is BassAudioMixer mixer && mixer.IsAlive)
+                {
+                    if (mixer.Handle == 0)
+                        mixer.createMixer();
+
+                    AddChannelToBassMix(mixer);
+                }
+            }
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
@@ -310,7 +343,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 flags |= BassFlags.MixerChanPause;
 
             if (BassMix.MixerAddChannel(Handle, channel.Handle, flags))
-                activeChannels.Add(channel);
+                ActiveChannels.Add(channel);
         }
 
         /// <summary>
@@ -435,7 +468,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             base.Dispose(disposing);
 
             // Move all contained channels back to the default mixer.
-            foreach (var channel in activeChannels.ToArray())
+            foreach (var channel in ActiveChannels.ToArray())
                 Remove(channel);
 
             if (Handle != 0)
@@ -457,5 +490,17 @@ namespace osu.Framework.Audio.Mixing.Bass
                 Effect = effect;
             }
         }
+
+        #region Mixing
+
+        private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
+
+        bool IBassAudioChannel.IsActive => !IsDisposed;
+
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = false;
+
+        BassAudioMixer IBassAudioChannel.Mixer => bassMixer;
+
+        #endregion
     }
 }

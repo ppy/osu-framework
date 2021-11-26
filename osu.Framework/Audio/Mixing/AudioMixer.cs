@@ -3,6 +3,8 @@
 
 #nullable enable
 
+using System;
+using System.Threading.Tasks;
 using ManagedBass;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -12,28 +14,43 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/>s into one output.
     /// </summary>
-    public abstract class AudioMixer : AudioComponent, IAudioMixer
+    public abstract class AudioMixer : AudioCollectionManager<AudioComponent>, IAudioMixer, IAudioChannel
     {
         public readonly string Identifier;
 
-        private readonly AudioMixer? globalMixer;
+        #region IAudioChannel
+
+        public AudioMixer? Mixer { get; }
+
+        AudioMixer? IAudioChannel.Mixer { get; set; }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
+
+        #endregion
+
+        private AudioMixer? parentMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer">The global <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
+        /// <param name="parentMixer">The <see cref="AudioMixer"/> to route audio output to. <see cref="IAudioChannel"/>s are moved to this if removed from this one.
         /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        protected AudioMixer(AudioMixer? globalMixer, string identifier)
+        protected AudioMixer(AudioMixer? parentMixer, string identifier)
         {
-            this.globalMixer = globalMixer;
+            this.parentMixer = parentMixer;
             Identifier = identifier;
         }
 
         public abstract BindableList<IEffectParameter> Effects { get; }
 
+        public abstract BindableList<IAudioChannel> Channels { get; }
+
         public void Add(IAudioChannel channel)
         {
+            if (channel is AudioMixer audioMixer)
+                AddItem(audioMixer);
+
             channel.EnqueueAction(() =>
             {
                 if (channel.Mixer == this)
@@ -57,8 +74,8 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="returnToDefault">Whether <paramref name="channel"/> should be returned to the default mixer.</param>
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
-            // If this is the default mixer, prevent removal.
-            if (returnToDefault && globalMixer == null)
+            // If this is a top-level mixer, prevent removal.
+            if (returnToDefault && parentMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -70,8 +87,8 @@ namespace osu.Framework.Audio.Mixing
                 channel.Mixer = null;
 
                 // Add the channel back to the default mixer so audio can always be played.
-                if (returnToDefault)
-                    globalMixer.AsNonNull().Add(channel);
+                if (parentMixer != null && !parentMixer.IsDisposed && returnToDefault)
+                    parentMixer.AsNonNull().Add(channel);
             });
         }
 

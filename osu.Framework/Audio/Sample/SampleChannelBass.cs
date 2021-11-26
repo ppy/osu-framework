@@ -217,7 +217,11 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                bassMixer.StreamFree(this);
+                if (Mixer != null)
+                    bassMixer.StreamFree(this);
+                else
+                    Bass.StreamFree(channel);
+
                 channel = 0;
             }
 

@@ -74,9 +74,9 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestMovedToGlobalMixerWhenRemovedFromMixer()
+        public void TestMovedToParentMixerWhenRemovedFromMixer()
         {
-            var secondMixer = bass.CreateMixer();
+            var secondMixer = bass.CreateMixer(bass.Mixer);
 
             secondMixer.Add(track);
             secondMixer.Remove(track);
@@ -108,9 +108,9 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestChannelMovedToGlobalMixerAfterDispose()
+        public void TestChannelMovedToParentMixerAfterDispose()
         {
-            var secondMixer = bass.CreateMixer();
+            var secondMixer = bass.CreateMixer(bass.Mixer);
 
             secondMixer.Add(track);
             bass.Update();

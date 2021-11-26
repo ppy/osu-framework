@@ -24,6 +24,11 @@ namespace osu.Framework.Audio.Mixing
         BindableList<IEffectParameter> Effects { get; }
 
         /// <summary>
+        /// The currently active channels.
+        /// </summary>
+        BindableList<IAudioChannel> Channels { get; }
+
+        /// <summary>
         /// Adds a channel to the mix.
         /// </summary>
         /// <param name="channel">The channel to add.</param>
