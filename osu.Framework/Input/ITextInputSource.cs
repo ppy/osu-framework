@@ -42,10 +42,14 @@ namespace osu.Framework.Input
         void ResetIme();
 
         /// <summary>
-        /// Parameters are, in order: composition text, selection start, selection length.
+        /// Invoked when the IME composition starts or changes.
         /// </summary>
+        /// <remarks>Empty string for text means that the composition has been cancelled.</remarks>
         event ImeCompositionDelegate OnNewImeComposition;
 
+        /// <summary>
+        /// Invoked when the IME composition successfully completes.
+        /// </summary>
         event Action<string> OnNewImeResult;
 
         /// <summary>
@@ -54,6 +58,7 @@ namespace osu.Framework.Input
         /// <param name="text">The composition text.</param>
         /// <param name="start">The index of the selection start.</param>
         /// <param name="length">The length of the selection.</param>
+        /// <remarks>Empty string for <paramref name="text"/> means that the composition has been cancelled.</remarks>
         public delegate void ImeCompositionDelegate(string text, int start, int length);
     }
 }

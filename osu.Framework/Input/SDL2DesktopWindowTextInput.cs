@@ -11,6 +11,10 @@ namespace osu.Framework.Input
     {
         private readonly SDL2DesktopWindow window;
         private string pending = string.Empty;
+
+        /// <summary>
+        /// Whether one or more consumers requested this <see cref="ITextInputSource"/> to be active.
+        /// </summary>
         private bool active;
 
         public SDL2DesktopWindowTextInput(SDL2DesktopWindow window)
