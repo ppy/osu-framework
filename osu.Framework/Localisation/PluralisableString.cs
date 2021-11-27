@@ -48,6 +48,8 @@ namespace osu.Framework.Localisation
         protected override string GetLocalisedFormat(LocalisationParameters parameters, string format)
         {
             string[] variants = format.Split(variant_separator);
+
+            //use the last plural form available for the current locale if the requested form is missing from translated strings.
             return variants.ElementAtOrDefault(getPluralIndex(parameters)) ?? variants.ElementAt(variants.Length - 1);
         }
 

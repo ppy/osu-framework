@@ -416,6 +416,20 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual("13 kręgów", textThirdVariant.Value);
         }
 
+        [Test]
+        public void TestPluralisableStringPluralFormFallback()
+        {
+            const string key = FakeStorage.LOCALISABLE_PLURALISABLE_INCOMPLETE_EN;
+
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var textString = manager.GetLocalisedBindableString(new PluralisableString(key, key, 2, 2));
+            Assert.AreEqual("2 circle", textString.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+            Assert.AreEqual("2 cercle", textString.Value);
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
@@ -447,6 +461,8 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_PLURALISABLE_STRING_EN = "{0} circle|{0} circles";
             public const string LOCALISABLE_PLURALISABLE_STRING_FR = "{0} cercle|{0} cercles";
             public const string LOCALISABLE_PLURALISABLE_STRING_PL = "{0} krąg|{0} kręgi|{0} kręgów";
+            public const string LOCALISABLE_PLURALISABLE_INCOMPLETE_EN = "{0} circle";
+            public const string LOCALISABLE_PLURALISABLE_INCOMPLETE_FR = "{0} cercle";
 
             public CultureInfo EffectiveCulture { get; }
 
@@ -522,6 +538,18 @@ namespace osu.Framework.Tests.Localisation
 
                             case "pl":
                                 return LOCALISABLE_PLURALISABLE_STRING_PL;
+                        }
+                    }
+
+                    case LOCALISABLE_PLURALISABLE_INCOMPLETE_EN:
+                    {
+                        switch (locale)
+                        {
+                            default:
+                                return LOCALISABLE_PLURALISABLE_INCOMPLETE_EN;
+
+                            case "fr":
+                                return LOCALISABLE_PLURALISABLE_INCOMPLETE_FR;
                         }
                     }
 
