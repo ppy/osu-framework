@@ -426,7 +426,7 @@ namespace osu.Framework.Tests.Localisation
             var textString = manager.GetLocalisedBindableString(new PluralisableString(key, key, 2, 2));
             Assert.AreEqual("2 circle", textString.Value);
 
-            config.SetValue(FrameworkSetting.Locale, "en");
+            config.SetValue(FrameworkSetting.Locale, "fr");
             Assert.AreEqual("2 cercle", textString.Value);
         }
 
