@@ -21,6 +21,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private FillFlowContainer textBoxes;
 
+        private const float equals_epsilon = 0.1f;
+
         [SetUp]
         public new void SetUp() => Schedule(() =>
         {
@@ -678,6 +680,91 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is unchanged", () => textBox.Text == "goodbye");
         }
 
+        [Test]
+        public void TestLongTextMovesTextContainer()
+        {
+            PaddedTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new PaddedTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "hello",
+                });
+            });
+
+            AddAssert("text container didn't move", () => textBox.TextContainerPosX == 0);
+
+            AddStep("set long text", () => textBox.Text = "this is very long text in a box");
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerPosX, 77.497f, equals_epsilon));
+        }
+
+        [Test]
+        public void TestMovingCaretMovesTextContainer()
+        {
+            PaddedTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new PaddedTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "framework framework framework framework framework framework framework"
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to start", () => textBox.TextContainerPosX == 0);
+
+            AddStep("move forward word", () => InputManager.Keys(PlatformAction.MoveForwardWord));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container didn't move", () => textBox.TextContainerPosX == 0);
+
+            AddStep("move forward word", () => InputManager.Keys(PlatformAction.MoveForwardWord));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerPosX, 165.1f, equals_epsilon));
+        }
+
+        [Test]
+        public void TestClickingToMoveCaretMovesTextContainer()
+        {
+            PaddedTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new PaddedTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "this is very long text in a box that will scroll",
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to start", () => textBox.TextContainerPosX == 0);
+
+            AddStep("click close to the right edge of textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox, new Vector2(90, 0));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerPosX, 138.098f, equals_epsilon));
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
@@ -789,6 +876,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Width = selectionWidth + 1 ?? caret_width;
                 }
             }
+        }
+
+        private class PaddedTextBox : BasicTextBox
+        {
+            protected override float LeftRightPadding => 50;
+
+            public float TextContainerPosX => LeftRightPadding - TextContainer.X;
+
+            public bool TextContainerTransformsFinished => TextContainer.LatestTransformEndTime == TextContainer.TransformStartTime;
         }
     }
 }
