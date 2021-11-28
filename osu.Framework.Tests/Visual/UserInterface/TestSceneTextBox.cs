@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -20,8 +21,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public class TestSceneTextBox : ManualInputManagerTestScene
     {
         private FillFlowContainer textBoxes;
-
-        private const float equals_epsilon = 0.1f;
 
         [SetUp]
         public new void SetUp() => Schedule(() =>
@@ -694,11 +693,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            AddAssert("text container didn't move", () => textBox.TextContainerPosX == 0);
+            AddAssert("text container didn't move", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
 
             AddStep("set long text", () => textBox.Text = "this is very long text in a box");
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
-            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerPosX, 77.497f, equals_epsilon));
+            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopRight.X, textBox.DrawWidth - PaddedTextBox.LEFT_RIGHT_PADDING, 1));
         }
 
         [Test]
@@ -722,15 +721,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
-            AddAssert("text container moved to start", () => textBox.TextContainerPosX == 0);
+            AddAssert("text container moved to start", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
 
             AddStep("move forward word", () => InputManager.Keys(PlatformAction.MoveForwardWord));
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
-            AddAssert("text container didn't move", () => textBox.TextContainerPosX == 0);
+            AddAssert("text container didn't move", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
 
             AddStep("move forward word", () => InputManager.Keys(PlatformAction.MoveForwardWord));
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
-            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerPosX, 165.1f, equals_epsilon));
+            AddAssert("text container moved back", () => textBox.TextContainerBounds.TopLeft.X < PaddedTextBox.LEFT_RIGHT_PADDING);
         }
 
         [Test]
@@ -754,15 +753,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
-            AddAssert("text container moved to start", () => textBox.TextContainerPosX == 0);
+            AddAssert("text container moved to start", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
 
             AddStep("click close to the right edge of textbox", () =>
             {
-                InputManager.MoveMouseTo(textBox, new Vector2(90, 0));
+                InputManager.MoveMouseTo((textBox.ScreenSpaceDrawQuad.TopRight + textBox.ScreenSpaceDrawQuad.BottomRight) / 2 - new Vector2(1, 0));
                 InputManager.Click(MouseButton.Left);
             });
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
-            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerPosX, 138.098f, equals_epsilon));
+            AddAssert("text container moved back", () => textBox.TextContainerBounds.TopLeft.X < PaddedTextBox.LEFT_RIGHT_PADDING);
         }
 
         private void prependString(InsertableTextBox textBox, string text)
@@ -880,9 +879,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class PaddedTextBox : BasicTextBox
         {
-            protected override float LeftRightPadding => 50;
+            public const float LEFT_RIGHT_PADDING = 50;
 
-            public float TextContainerPosX => LeftRightPadding - TextContainer.X;
+            protected override float LeftRightPadding => LEFT_RIGHT_PADDING;
+
+            public Quad TextContainerBounds => TextContainer.ToSpaceOfOtherDrawable(new RectangleF(Vector2.Zero, TextContainer.DrawSize), this);
 
             public bool TextContainerTransformsFinished => TextContainer.LatestTransformEndTime == TextContainer.TransformStartTime;
         }
