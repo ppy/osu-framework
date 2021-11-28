@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Platform
 {
@@ -63,7 +64,9 @@ namespace osu.Framework.Platform
                     {
                         using (var stream = client.GetStream())
                         {
-                            var message = await receive(stream, cancellationToken: token).ConfigureAwait(false);
+                            var message = await receive(stream, token).ConfigureAwait(false);
+                            if (message == null)
+                                continue;
 
                             var response = MessageReceived?.Invoke(message);
 
@@ -130,6 +133,8 @@ namespace osu.Framework.Platform
             await stream.ReadAsync(header.AsMemory(), cancellationToken).ConfigureAwait(false);
 
             int len = BitConverter.ToInt32(header, 0);
+            if (len == 0)
+                return null;
 
             byte[] data = new byte[len];
             await stream.ReadAsync(data.AsMemory(), cancellationToken).ConfigureAwait(false);
