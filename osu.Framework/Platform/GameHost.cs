@@ -94,7 +94,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
-        public event Action<IpcMessage> MessageReceived;
+        public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
         /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
@@ -111,11 +111,7 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual bool LimitedMemoryEnvironment => false;
 
-        protected IpcMessage OnMessageReceived(IpcMessage message)
-        {
-            MessageReceived?.Invoke(message);
-            return null;
-        }
+        protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 

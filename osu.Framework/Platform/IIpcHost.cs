@@ -8,7 +8,7 @@ namespace osu.Framework.Platform
 {
     public interface IIpcHost
     {
-        event Action<IpcMessage> MessageReceived;
+        event Func<IpcMessage, IpcMessage> MessageReceived;
 
         Task SendMessageAsync(IpcMessage ipcMessage);
     }
