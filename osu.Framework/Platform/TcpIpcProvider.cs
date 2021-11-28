@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -94,13 +95,20 @@ namespace osu.Framework.Platform
                 await client.ConnectAsync(IPAddress.Loopback, ipc_port).ConfigureAwait(false);
 
                 using (var stream = client.GetStream())
+                    await send(stream, message).ConfigureAwait(false);
+            }
+        }
+
+        public async Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message)
+        {
+            using (var client = new TcpClient())
+            {
+                await client.ConnectAsync(IPAddress.Loopback, ipc_port).ConfigureAwait(false);
+
+                using (var stream = client.GetStream())
                 {
-                    string str = JsonConvert.SerializeObject(message, Formatting.None);
-                    byte[] data = Encoding.UTF8.GetBytes(str);
-                    byte[] header = BitConverter.GetBytes(data.Length);
-                    await stream.WriteAsync(header.AsMemory()).ConfigureAwait(false);
-                    await stream.WriteAsync(data.AsMemory()).ConfigureAwait(false);
-                    await stream.FlushAsync().ConfigureAwait(false);
+                    await send(stream, message).ConfigureAwait(false);
+                    return await receive(stream).ConfigureAwait(false);
                 }
             }
         }
