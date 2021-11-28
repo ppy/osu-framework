@@ -19,6 +19,8 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
+        public const int IPC_PORT = 45356;
+
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
         private Thread ipcThread;
@@ -66,7 +68,7 @@ namespace osu.Framework.Platform
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider(45356);
+            ipcProvider = new TcpIpcProvider(IPC_PORT);
             IsPrimaryInstance = ipcProvider.Bind();
 
             if (IsPrimaryInstance)
