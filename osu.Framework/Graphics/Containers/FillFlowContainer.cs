@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Containers
                     Drawable c = children[i];
                     validateChild(c, ourRelativeAnchor);
 
-                    // We've exceeded our allowed flow size, move to a new line
+                    // We've exceeded our allowed main size, move to a new line
                     if ((Direction.AffectedAxes() == Axes.Both && lineChildCount > 0 && Precision.DefinitelyBigger(current.Flow + size.Flow, max.Flow)) || ForceNewLine(c))
                     {
                         finalizeLineFlow(i - lineChildCount, i);
@@ -194,6 +194,10 @@ namespace osu.Framework.Graphics.Containers
 
                 void finalizeLineFlow(int from, int to)
                 {
+                    // we are centering with the help of the centre anchor, which sets the first child
+                    // to our middle and the next ones after it, so we have to align their edge to our center
+                    // and then move them towards the center by half of the lines main size.
+                    // this calculates the offset needed to align the edge
                     float centreOffset = ToFlowVector(children[from].BoundingBox.Size).Flow * calculateSpacingFactor(children[from]).Flow;
 
                     for (int i = from; i < to; i++)
@@ -205,10 +209,14 @@ namespace osu.Framework.Graphics.Containers
                     }
                 }
 
-                float totalLineSize = layoutPositions[children.Length - 1].Line;
+                // this does not take into account the last lines cross size,
+                // but it does not matter because of how the children are anchored.
+                // this is also why we can just put a minus in front of the positions
+                // when reversing the flow
+                float totalCrossSize = layoutPositions[children.Length - 1].Line;
 
                 // Second pass, adjusting the positioning on the line axis
-                // after the total line size has been calculated
+                // after the total cross size has been calculated
                 for (int i = 0; i < children.Length; i++)
                 {
                     var layoutPosition = layoutPositions[i];
@@ -217,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
                     if (reverseLine)
                         layoutPosition.Line = -layoutPosition.Line;
                     else if (centerLine)
-                        layoutPosition.Line -= totalLineSize / 2;
+                        layoutPosition.Line -= totalCrossSize / 2;
 
                     yield return ToVector(layoutPosition);
                 }

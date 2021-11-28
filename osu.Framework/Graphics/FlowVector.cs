@@ -4,16 +4,25 @@
 namespace osu.Framework.Graphics
 {
     /// <summary>
-    /// A <see cref="osuTK.Vector2"/> with an arbitrary orientation represented as "Flow" - the main axis
+    /// A <see cref="osuTK.Vector2"/> with an arbitrary orientation represented as "Flow" - the primary axis
     /// and "Line" - the secondary axis, perpendicular to "Flow".
     /// For example, in a text container, in the left-right/top-bottom orientation
     /// "Flow" would be used for the +X axis (right) and "Line" for the +Y axis (down).
     /// If we wanted to make the text container now handle a right-left/top-bottom orientation,
     /// all we would need to do is interpret the "Flow" axis as -X (left) instead.
+    /// When referring to a size, you should use the terms "Main size" and "Cross size"
+    /// rather than "Flow size" and "Line size".
     /// </summary>
     public struct FlowVector
     {
+        /// <summary>
+        /// The primary axis.
+        /// </summary>
         public float Flow;
+
+        /// <summary>
+        /// The secondary axis.
+        /// </summary>
         public float Line;
 
         public FlowVector(float flow, float line)
