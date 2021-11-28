@@ -20,7 +20,7 @@ namespace osu.Framework.Platform
         private TcpListener listener;
         private CancellationTokenSource cancelListener;
 
-        public event Action<IpcMessage> MessageReceived;
+        public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         public bool Bind()
         {
@@ -62,27 +62,12 @@ namespace osu.Framework.Platform
                     {
                         using (var stream = client.GetStream())
                         {
-                            byte[] header = new byte[sizeof(int)];
-                            await stream.ReadAsync(header.AsMemory(), token).ConfigureAwait(false);
-                            int len = BitConverter.ToInt32(header, 0);
-                            byte[] data = new byte[len];
-                            await stream.ReadAsync(data.AsMemory(), token).ConfigureAwait(false);
-                            string str = Encoding.UTF8.GetString(data);
-                            var json = JToken.Parse(str);
+                            var message = await receive(stream, cancellationToken: token).ConfigureAwait(false);
 
-                            var type = Type.GetType(json["Type"].Value<string>());
-                            var value = json["Value"];
+                            var response = MessageReceived?.Invoke(message);
 
-                            Trace.Assert(type != null);
-                            Trace.Assert(value != null);
-
-                            var msg = new IpcMessage
-                            {
-                                Type = type.AssemblyQualifiedName,
-                                Value = JsonConvert.DeserializeObject(value.ToString(), type),
-                            };
-
-                            MessageReceived?.Invoke(msg);
+                            if (response != null)
+                                await send(stream, response).ConfigureAwait(false);
                         }
                     }
                 }
@@ -118,6 +103,43 @@ namespace osu.Framework.Platform
                     await stream.FlushAsync().ConfigureAwait(false);
                 }
             }
+        }
+
+        private async Task send(Stream stream, IpcMessage message)
+        {
+            string str = JsonConvert.SerializeObject(message, Formatting.None);
+            byte[] data = Encoding.UTF8.GetBytes(str);
+            byte[] header = BitConverter.GetBytes(data.Length);
+
+            await stream.WriteAsync(header.AsMemory()).ConfigureAwait(false);
+            await stream.WriteAsync(data.AsMemory()).ConfigureAwait(false);
+            await stream.FlushAsync().ConfigureAwait(false);
+        }
+
+        private async Task<IpcMessage> receive(Stream stream, CancellationToken cancellationToken = default)
+        {
+            byte[] header = new byte[sizeof(int)];
+            await stream.ReadAsync(header.AsMemory(), cancellationToken).ConfigureAwait(false);
+
+            int len = BitConverter.ToInt32(header, 0);
+
+            byte[] data = new byte[len];
+            await stream.ReadAsync(data.AsMemory(), cancellationToken).ConfigureAwait(false);
+
+            string str = Encoding.UTF8.GetString(data);
+
+            var json = JToken.Parse(str);
+            var type = Type.GetType(json["Type"].Value<string>());
+            var value = json["Value"];
+
+            Trace.Assert(type != null);
+            Trace.Assert(value != null);
+
+            return new IpcMessage
+            {
+                Type = type.AssemblyQualifiedName,
+                Value = JsonConvert.DeserializeObject(value.ToString(), type),
+            };
         }
 
         public void Dispose()

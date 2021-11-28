@@ -111,7 +111,11 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual bool LimitedMemoryEnvironment => false;
 
-        protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
+        protected IpcMessage OnMessageReceived(IpcMessage message)
+        {
+            MessageReceived?.Invoke(message);
+            return null;
+        }
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
