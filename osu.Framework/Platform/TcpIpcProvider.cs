@@ -19,10 +19,14 @@ namespace osu.Framework.Platform
     /// </summary>
     public class TcpIpcProvider : IDisposable
     {
+        /// <summary>
+        /// Invoked when a message is received by this IPC server.
+        /// Returns either a response in the form of an <see cref="IpcMessage"/>, or <c>null</c> for no response.
+        /// </summary>
+        public event Func<IpcMessage, IpcMessage> MessageReceived;
+
         private TcpListener listener;
         private CancellationTokenSource cancelListener;
-
-        public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         private readonly int port;
 
