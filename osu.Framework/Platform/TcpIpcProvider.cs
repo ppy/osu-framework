@@ -14,6 +14,9 @@ using Newtonsoft.Json.Linq;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// An inter-process communication provider that runs over a specified TCP port, binding to the loopback address.
+    /// </summary>
     public class TcpIpcProvider : IDisposable
     {
         private TcpListener listener;
@@ -23,11 +26,19 @@ namespace osu.Framework.Platform
 
         private readonly int port;
 
+        /// <summary>
+        /// Create a new provider.
+        /// </summary>
+        /// <param name="port">The port to operate on.</param>
         public TcpIpcProvider(int port)
         {
             this.port = port;
         }
 
+        /// <summary>
+        /// Attempt to bind as the "server" instance.
+        /// </summary>
+        /// <returns>Whether the bind was successful. If <c>false</c>, another instance is likely already running (and can be messaged using <see cref="SendMessageAsync"/> or <see cref="SendMessageWithResponseAsync"/>).</returns>
         public bool Bind()
         {
             listener = new TcpListener(IPAddress.Loopback, port);
@@ -49,6 +60,9 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Start processing events received by the listener. <see cref="Bind"/> must be called first.
+        /// </summary>
         public async Task StartAsync()
         {
             var token = cancelListener.Token;
@@ -95,6 +109,10 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Send a message to the IPC server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
         public async Task SendMessageAsync(IpcMessage message)
         {
             using (var client = new TcpClient())
@@ -106,6 +124,11 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Send a message to the IPC server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The response from the server.</returns>
         public async Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message)
         {
             using (var client = new TcpClient())
