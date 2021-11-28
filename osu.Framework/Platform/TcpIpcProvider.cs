@@ -11,22 +11,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Platform
 {
     public class TcpIpcProvider : IDisposable
     {
-        private const int ipc_port = 45356;
-
         private TcpListener listener;
         private CancellationTokenSource cancelListener;
 
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
+        private readonly int port;
+
+        public TcpIpcProvider(int port)
+        {
+            this.port = port;
+        }
+
         public bool Bind()
         {
-            listener = new TcpListener(IPAddress.Loopback, ipc_port);
+            listener = new TcpListener(IPAddress.Loopback, port);
 
             try
             {
@@ -95,7 +99,7 @@ namespace osu.Framework.Platform
         {
             using (var client = new TcpClient())
             {
-                await client.ConnectAsync(IPAddress.Loopback, ipc_port).ConfigureAwait(false);
+                await client.ConnectAsync(IPAddress.Loopback, port).ConfigureAwait(false);
 
                 using (var stream = client.GetStream())
                     await send(stream, message).ConfigureAwait(false);
@@ -106,7 +110,7 @@ namespace osu.Framework.Platform
         {
             using (var client = new TcpClient())
             {
-                await client.ConnectAsync(IPAddress.Loopback, ipc_port).ConfigureAwait(false);
+                await client.ConnectAsync(IPAddress.Loopback, port).ConfigureAwait(false);
 
                 using (var stream = client.GetStream())
                 {

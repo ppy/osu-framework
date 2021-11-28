@@ -66,7 +66,7 @@ namespace osu.Framework.Platform
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider();
+            ipcProvider = new TcpIpcProvider(45356);
             IsPrimaryInstance = ipcProvider.Bind();
 
             if (IsPrimaryInstance)
