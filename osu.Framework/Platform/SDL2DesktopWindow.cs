@@ -883,22 +883,16 @@ namespace osu.Framework.Platform
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
-            var ptr = new IntPtr(evtText.text);
-            if (ptr == IntPtr.Zero)
+            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
                 return;
-
-            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
             ScheduleEvent(() => TextInput?.Invoke(text));
         }
 
         private unsafe void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
         {
-            var ptr = new IntPtr(evtEdit.text);
-            if (ptr == IntPtr.Zero)
+            if (!SDL2Extensions.TryGetStringFromBytePointer(evtEdit.text, out string text))
                 return;
-
-            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
             // copy to avoid CS1686
             int start = evtEdit.start;
