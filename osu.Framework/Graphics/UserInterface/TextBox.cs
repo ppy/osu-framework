@@ -175,7 +175,14 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
             isActive.BindValueChanged(_ => Scheduler.AddOnce(updateCaretVisibility));
+            current.BindDisabledChanged(disabled =>
+            {
+                if (disabled)
+                    Scheduler.AddOnce(FinalizeImeComposition);
+            });
+
             setText(Text);
         }
 
@@ -1312,6 +1319,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </remarks>
         private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength)
         {
+            if (Current.Disabled)
+            {
+                NotifyInputError();
+                return;
+            }
+
             // used for tracking the selection to report for `OnImeComposition()`
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
@@ -1398,6 +1411,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void onImeResult()
         {
+            if (Current.Disabled)
+            {
+                NotifyInputError();
+                // importantly, we don't return here so that we can finalize the composition
+                // if we were called because Current was disabled.
+            }
+
             // we only succeeded if there is pending data in the textbox
             if (imeCompositionDrawables.Count > 0)
             {
