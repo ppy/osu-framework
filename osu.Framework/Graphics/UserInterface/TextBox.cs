@@ -1230,6 +1230,66 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Sanitizes the given composition, ensuring it fits within <see cref="LengthLimit"/> and respects <see cref="CanAddCharacter"/>.
+        /// </summary>
+        /// <returns><c>true</c> if the composition was sanitized in some way.</returns>
+        private bool sanitizeComposition(ref string composition, ref int selectionStart, ref int selectionLength)
+        {
+            bool sanitized = false;
+
+            // remove characters that can't be added.
+
+            for (int index = 0; index < composition.Length; index++)
+            {
+                if (!canAddCharacter(composition[index]))
+                {
+                    composition = composition.Remove(index, 1);
+                    sanitized = true;
+
+                    if (index < selectionStart)
+                    {
+                        selectionStart--;
+                    }
+                    else if (index < selectionStart + selectionLength)
+                    {
+                        selectionLength--;
+                    }
+
+                    // move index back so we don't skip over the next character.
+                    index--;
+                }
+            }
+
+            // trim composition if goes beyond the LengthLimit.
+
+            int lengthWithoutComposition = text.Length - imeCompositionLength;
+
+            if (lengthWithoutComposition + composition.Length > LengthLimit)
+            {
+                composition = composition.Substring(0, (int)LengthLimit - lengthWithoutComposition);
+                sanitized = true;
+            }
+
+            // keep selection within bounds.
+            // the selection could be out of bounds if it was trimmed by the above,
+            // or if the platform-native composition event was ill-formed.
+
+            if (selectionStart > composition.Length)
+            {
+                selectionStart = composition.Length;
+                sanitized = true;
+            }
+
+            if (selectionStart + selectionLength > composition.Length)
+            {
+                selectionLength = composition.Length - selectionStart;
+                sanitized = true;
+            }
+
+            return sanitized;
+        }
+
+        /// <summary>
         /// Contains all the <see cref="Drawable"/>s from the <see cref="TextFlow"/>
         /// that are part of the current IME composition.
         /// </summary>
@@ -1285,19 +1345,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             bool beganChange = beginTextChange();
 
-            int lengthWithoutComposition = text.Length - imeCompositionLength;
-
-            if (lengthWithoutComposition + newComposition.Length > LengthLimit)
+            if (sanitizeComposition(ref newComposition, ref newSelectionStart, ref newSelectionLength))
             {
-                newComposition = newComposition.Substring(0, (int)LengthLimit - lengthWithoutComposition);
-
-                // sanitize input, keep selection within bounds.
-                if (newSelectionStart > newComposition.Length)
-                    newSelectionStart = newComposition.Length;
-
-                if (newSelectionStart + newSelectionLength > newComposition.Length)
-                    newSelectionLength = newComposition.Length - newSelectionStart;
-
                 NotifyInputError();
             }
 
