@@ -98,9 +98,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddAssert("Test if current screen is " + orientation.ToString(), () =>
                 {
                     var nativeOrientation = manager.SettingToNativeOrientation(orientation);
-                    if (gameActivity.RequestedOrientation != nativeOrientation)
-                        return false;
-                    return true;
+                    return gameActivity.RequestedOrientation == nativeOrientation;
                 });
             }
         }
