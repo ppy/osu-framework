@@ -59,14 +59,6 @@ namespace osu.Framework.Input
             // https://github.com/libsdl-org/SDL/blob/1fc25bd83902df65e666f0cf0aa4dc717ade0748/src/video/windows/SDL_windowskeyboard.c#L934-L939
             ImeActive = !string.IsNullOrEmpty(text);
 
-            // sanitize input, as SDL will only report up to 32 bytes (~10 CJK characters)
-            // but the selection can go beyond.
-            if (selectionStart > text.Length)
-                selectionStart = text.Length;
-
-            if (selectionStart + selectionLength > text.Length)
-                selectionLength = text.Length - selectionStart;
-
             OnNewImeComposition?.Invoke(text, selectionStart, selectionLength);
         }
 
