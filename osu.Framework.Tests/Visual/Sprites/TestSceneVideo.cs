@@ -213,12 +213,16 @@ namespace osu.Framework.Tests.Visual.Sprites
         private int fps;
         private int lastFramesProcessed;
 
+        private readonly FramedClock realtimeClock = new FramedClock();
+
         protected override void Update()
         {
             base.Update();
 
+            realtimeClock.ProcessFrame();
+
             if (clock != null)
-                clock.CurrentTime += Clock.ElapsedFrameTime;
+                clock.CurrentTime += realtimeClock.ElapsedFrameTime;
 
             if (video != null)
             {
