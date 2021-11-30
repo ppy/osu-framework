@@ -9,7 +9,6 @@ namespace osu.Framework.Tests.Android
     internal class AndroidVisualTestGame : VisualTestGame
     {
         [Cached]
-        // Allows dependency injection
         private readonly AndroidGameActivity gameActivity;
 
         public AndroidVisualTestGame(AndroidGameActivity gameActivity)
