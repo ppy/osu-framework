@@ -69,6 +69,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether the character is allowed to be added.</returns>
         protected virtual bool CanAddCharacter(char character) => true;
 
+        /// <summary>
+        /// Private helper for <see cref="CanAddCharacter"/>, additionally requiring that the character is not a control character.
+        /// </summary>
+        private bool canAddCharacter(char character) => !char.IsControl(character) && CanAddCharacter(character);
+
         private bool readOnly;
 
         public bool ReadOnly
@@ -694,7 +699,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             foreach (char c in value)
             {
-                if (char.IsControl(c) || !CanAddCharacter(c))
+                if (!canAddCharacter(c))
                 {
                     NotifyInputError();
                     continue;
