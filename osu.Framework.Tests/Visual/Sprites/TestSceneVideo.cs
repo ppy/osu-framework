@@ -67,6 +67,8 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
             AddUntilStep("Wait for video to load", () => video.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
+
+            AddUntilStep("Wait for decode start", () => video.CurrentFrameTime > 0);
         }
 
         [Test]
