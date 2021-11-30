@@ -167,8 +167,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             loadNewVideo(videoFormat);
 
-            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 10000);
-            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 15000);
+            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 1000);
+            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 1500);
 
             AddUntilStep("Reached end", () => video.State == VideoDecoder.DecoderState.EndOfStream);
             AddStep("reset decode state", () => didDecode = false);
