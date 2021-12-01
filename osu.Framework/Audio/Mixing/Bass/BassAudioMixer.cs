@@ -275,7 +275,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 ActiveChannels.RemoveAt(i--);
 
                 if (channel is BassAudioMixer bassAudioMixer && bassAudioMixer.IsDisposed)
-                    return;
+                    continue;
 
                 removeChannelFromBassMix(channel);
             }
