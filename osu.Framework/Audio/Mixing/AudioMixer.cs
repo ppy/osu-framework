@@ -34,7 +34,7 @@ namespace osu.Framework.Audio.Mixing
 
         public abstract BindableList<IEffectParameter> Effects { get; }
 
-        public abstract BindableList<IAudioChannel> Channels { get; }
+        internal abstract BindableList<IAudioChannel> Channels { get; }
 
         public void Add(IAudioChannel channel)
         {
