@@ -58,7 +58,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
-        public override BindableList<IAudioChannel> Channels => new BindableList<IAudioChannel>(ActiveChannels.ToArray());
+        internal override BindableList<IAudioChannel> Channels => new BindableList<IAudioChannel>(ActiveChannels.ToArray());
 
         public override float[] GetLevel(float length)
         {
