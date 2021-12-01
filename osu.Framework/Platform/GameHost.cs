@@ -71,6 +71,17 @@ namespace osu.Framework.Platform
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
         /// <summary>
+        /// Lock the screen orientation to whatever the current screen orientation is on mobile devices.
+        /// Do nothing on other platforms.
+        /// </summary>
+        /// <remarks>
+        /// Will throw <see cref="InvalidOperationException"/> if value is changed while <see cref="FrameworkSetting.ScreenOrientation"/> setting is disabled<br/>
+        /// This also temporarily disable the effect of <see cref="FrameworkSetting.ScreenOrientation"/> setting without throwing exception.<br/>
+        /// The setting changed while this is locked will still be applied as usual when the lock is disabled again.
+        /// </remarks>
+        public readonly Bindable<bool> LockScreenOrientation = new Bindable<bool>();
+
+        /// <summary>
         /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
         /// </summary>
         public virtual bool IsPrimaryInstance { get; protected set; } = true;
@@ -152,6 +163,12 @@ namespace osu.Framework.Platform
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
         private ReadableKeyCombinationProvider readableKeyCombinationProvider;
+
+        protected Bindable<ScreenOrientation> ScreenOrientationBindable { get; private set; }
+        [CanBeNull]
+        protected virtual ScreenOrientationManager GetScreenOrientationManager() => null;
+        [CanBeNull]
+        private ScreenOrientationManager screenOrientationManager;
 
         /// <summary>
         /// The default initial path when requesting a user to select a file/folder.
@@ -929,6 +946,13 @@ namespace osu.Framework.Platform
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
+
+            ScreenOrientationBindable = Config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
+            screenOrientationManager = GetScreenOrientationManager();
+            LockScreenOrientation.ValueChanged += (value) =>
+            {
+                screenOrientationManager?.SetOrientationLock(value.NewValue);
+            };
 
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
             executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);

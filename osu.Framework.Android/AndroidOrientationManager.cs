@@ -12,14 +12,13 @@ namespace osu.Framework.Android
 {
     public class AndroidOrientationManager : ScreenOrientationManager
     {
-        private bool isLocked = false;
         /// <summary>
         /// Initialize a manager class to control Orientation on Android
         /// </summary>
-        /// <param name="config">Framework config manager used to get the orientation setting</param>
+        /// <param name="settingBindable">Screen orientation setting bindable</param>
         /// <param name="gameActivity">Game activity to initialize orientation control on</param>
-        public AndroidOrientationManager(FrameworkConfigManager config, Activity gameActivity)
-            : base(config)
+        public AndroidOrientationManager(Activity gameActivity, Bindable<ScreenOrientation> settingBindable)
+            : base(settingBindable)
         {
             this.gameActivity = gameActivity;
         }
@@ -34,7 +33,7 @@ namespace osu.Framework.Android
         /// </remarks>
         /// <param name="orientation">Orientation</param>
         /// <returns><see cref="AndroidPM.ScreenOrientation"/> enum to use with Android SDK</returns>
-        public virtual AndroidPM.ScreenOrientation SettingToNativeOrientation(ScreenOrientation orientation)
+        protected virtual AndroidPM.ScreenOrientation SettingToNativeOrientation(ScreenOrientation orientation)
         {
             switch (orientation)
             {
@@ -61,26 +60,16 @@ namespace osu.Framework.Android
 
         protected override void OnScreenOrientationSettingChanged(ValueChangedEvent<ScreenOrientation> value)
         {
-            if (isLocked) return;
             gameActivity.RunOnUiThread(() =>
             {
                 gameActivity.RequestedOrientation = SettingToNativeOrientation(value.NewValue);
             });
         }
-
-        /// <summary>
-        /// Lock/unlock the orientation to current orientation
-        /// </summary>
-        /// <param name="isLocked"><see langword="true"/> to lock the orientation and <see langword="false"/> to unlock</param>
-        public void SetOrientationLock(bool isLocked)
+        protected override void OnScreenOrientationLocked()
         {
-            this.isLocked = isLocked;
             gameActivity.RunOnUiThread(() =>
             {
-                if (isLocked)
-                    gameActivity.RequestedOrientation = AndroidPM.ScreenOrientation.Locked;
-                else
-                    OrientationBindable.TriggerChange();
+                gameActivity.RequestedOrientation = AndroidPM.ScreenOrientation.Locked;
             });
         }
     }

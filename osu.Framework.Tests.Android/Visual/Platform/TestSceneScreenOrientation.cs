@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Android;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -22,8 +21,6 @@ namespace osu.Framework.Tests.Visual.Platform
 {
     public class TestSceneScreenOrientation : TestScene
     {
-        private AndroidOrientationManager manager;
-
         private readonly SpriteText currentOrientationSetting = new SpriteText();
         private readonly SpriteText currentScreenOrientation = new SpriteText();
         private readonly Dropdown<ScreenOrientation> orientationDropdown;
@@ -51,25 +48,24 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private FrameworkConfigManager config { get; set; }
         [Resolved]
+        private GameHost host { get; set; }
+        [Resolved]
         private TestGameActivity gameActivity { get; set; }
         private Bindable<ScreenOrientation> orientationBindable;
 
-        private PM.ScreenOrientation originalOrientation;
+        private ScreenOrientation originalOrientation;
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        private void load()
         {
             window = host.Window;
             if (window == null) return;
-
-            originalOrientation = gameActivity.RequestedOrientation;
-            manager = new AndroidOrientationManager(config, gameActivity);
 
             orientationBindable = config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
             orientationBindable.BindValueChanged(value =>
             {
                 currentOrientationSetting.Text = "Current orientation setting: " + value.NewValue.ToString();
-                currentScreenOrientation.Text = "Current screen orientation: " + manager.SettingToNativeOrientation(value.NewValue);
+                currentScreenOrientation.Text = "Current screen orientation: " + gameActivity.RequestedOrientation;
             });
             orientationDropdown.Current.BindTo(orientationBindable);
         }
@@ -83,24 +79,32 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
             }
 
-            ScreenOrientation[] testOrientations = {
+            originalOrientation = orientationBindable.Value;
+
+            ScreenOrientation[] testOrientations =
+            {
                 ScreenOrientation.AnyPortrait,
                 ScreenOrientation.AnyLandscape,
                 ScreenOrientation.Auto
             };
-
-            foreach (var orientation in testOrientations)
+            PM.ScreenOrientation[] nativeOrientations =
             {
-                AddStep("Change setting to " + orientation.ToString(), () =>
-                {
-                    orientationBindable.Value = orientation;
-                });
-                AddAssert("Test if current screen is " + orientation.ToString(), () =>
-                {
-                    var nativeOrientation = manager.SettingToNativeOrientation(orientation);
-                    return gameActivity.RequestedOrientation == nativeOrientation;
-                });
+                PM.ScreenOrientation.UserPortrait,
+                PM.ScreenOrientation.UserLandscape,
+                PM.ScreenOrientation.FullUser
+            };
+
+            for (int i = 0; i < testOrientations.Length; i++)
+            {
+                var test = testOrientations[i];
+                var native = nativeOrientations[i];
+                AddStep("Change setting to " + test.ToString(), () =>
+                    orientationBindable.Value = test);
+                AddAssert("Test if current screen is " + test.ToString(), () =>
+                    gameActivity.RequestedOrientation == native);
             }
+            AddStep("Change orientation back to original", () =>
+                orientationBindable.Value = originalOrientation);
         }
 
         [Test]
@@ -112,31 +116,34 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
             }
 
-            ScreenOrientation[] testOrientations = {
+            originalOrientation = orientationBindable.Value;
+
+            ScreenOrientation[] testOrientations =
+            {
                 ScreenOrientation.Portrait,
                 ScreenOrientation.ReversePortrait,
                 ScreenOrientation.LandscapeLeft,
                 ScreenOrientation.LandscapeRight,
             };
-
-            foreach (var orientation in testOrientations)
+            PM.ScreenOrientation[] nativeOrientations =
             {
-                AddStep("Change setting to " + orientation.ToString(), () =>
-                {
-                    orientationBindable.Value = orientation;
-                });
-                AddAssert("Test if current screen is " + orientation.ToString(), () =>
-                {
-                    var nativeOrientation = manager.SettingToNativeOrientation(orientation);
-                    if (gameActivity.RequestedOrientation != nativeOrientation)
-                        return false;
-                    return true;
-                });
+                PM.ScreenOrientation.Portrait,
+                PM.ScreenOrientation.ReversePortrait,
+                PM.ScreenOrientation.ReverseLandscape,
+                PM.ScreenOrientation.Landscape,
+            };
+
+            for (int i = 0; i < testOrientations.Length; i++)
+            {
+                var test = testOrientations[i];
+                var native = nativeOrientations[i];
+                AddStep("Change setting to " + test.ToString(), () =>
+                    orientationBindable.Value = test);
+                AddAssert("Test if current screen is " + test.ToString(), () =>
+                    gameActivity.RequestedOrientation == native);
             }
             AddStep("Change orientation back to original", () =>
-            {
-                gameActivity.RequestedOrientation = originalOrientation;
-            });
+                orientationBindable.Value = originalOrientation);
         }
 
         [Test]
@@ -147,22 +154,16 @@ namespace osu.Framework.Tests.Visual.Platform
                 Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
                 return;
             }
+
+            originalOrientation = orientationBindable.Value;
+
             AddStep("Change setting to Any", () =>
-            {
-                orientationBindable.Value = ScreenOrientation.Any;
-            });
-            AddAssert("Test if current screen is Any", () =>
-            {
-                var nativeOrientation = manager.SettingToNativeOrientation(ScreenOrientation.Any);
-                if (gameActivity.RequestedOrientation != nativeOrientation)
-                    return false;
-                return true;
-            });
-            AddWaitStep("Try rotating with auto-rotate locked", 20);
+                orientationBindable.Value = ScreenOrientation.Any);
+            AddAssert("Test if current screen is FullSensor", () =>
+                gameActivity.RequestedOrientation == PM.ScreenOrientation.FullSensor);
+            AddWaitStep("Try rotating with auto-rotate locked", 10);
             AddStep("Change orientation back to original", () =>
-            {
-                gameActivity.RequestedOrientation = originalOrientation;
-            });
+                orientationBindable.Value = originalOrientation);
         }
 
         [Test]
@@ -174,60 +175,40 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
             }
 
-            gameActivity.RequestedOrientation = PM.ScreenOrientation.Locked;
-            var a = gameActivity.RequestedOrientation;
+            originalOrientation = orientationBindable.Value;
 
             AddStep("Unlock and change setting to Any", () =>
             {
-                manager.SetOrientationLock(false);
+                host.LockScreenOrientation.Value = false;
                 orientationBindable.Value = ScreenOrientation.Any;
             });
+
             AddAssert("Test if current screen is Any", () =>
-            {
-                var nativeOrientation = manager.SettingToNativeOrientation(ScreenOrientation.Any);
-                if (gameActivity.RequestedOrientation != nativeOrientation)
-                    return false;
-                return true;
-            });
+                gameActivity.RequestedOrientation == PM.ScreenOrientation.FullSensor);
+
             AddStep("Lock orientation", () =>
-            {
-                manager.SetOrientationLock(true);
-            });
+                host.LockScreenOrientation.Value = true);
+
             AddAssert("Test if orientation is locked", () =>
-            {
-                if (gameActivity.RequestedOrientation != PM.ScreenOrientation.Locked)
-                    return false;
-                return true;
-            });
+                gameActivity.RequestedOrientation == PM.ScreenOrientation.Locked);
+
             AddStep("Change setting while locked", () =>
-            {
-                orientationBindable.Value = ScreenOrientation.LandscapeRight;
-            });
+                orientationBindable.Value = ScreenOrientation.LandscapeRight);
+
             AddAssert("Test if orientation is still locked", () =>
-            {
-                if (gameActivity.RequestedOrientation != PM.ScreenOrientation.Locked)
-                    return false;
-                return true;
-            });
+                gameActivity.RequestedOrientation == PM.ScreenOrientation.Locked);
+
             AddAssert("Test if setting has changed", () =>
-            {
-                return orientationBindable.Value == ScreenOrientation.LandscapeRight;
-            });
+                orientationBindable.Value == ScreenOrientation.LandscapeRight);
+
             AddStep("Unlock orientation", () =>
-            {
-                manager.SetOrientationLock(false);
-            });
+                host.LockScreenOrientation.Value = false);
+
             AddAssert("Test if orientation is back to setting", () =>
-            {
-                var nativeOrientation = manager.SettingToNativeOrientation(orientationBindable.Value);
-                if (gameActivity.RequestedOrientation != nativeOrientation)
-                    return false;
-                return true;
-            });
+                gameActivity.RequestedOrientation == PM.ScreenOrientation.Landscape);
+
             AddStep("Change orientation back to original", () =>
-            {
-                gameActivity.RequestedOrientation = originalOrientation;
-            });
+                orientationBindable.Value = originalOrientation);
         }
     }
 }
