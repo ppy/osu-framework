@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Mixing
         /// <summary>
         /// The mixer in which all audio produced by this channel should be routed into.
         /// </summary>
-        internal AudioMixer? Mixer { get; set; }
+        public AudioMixer? Mixer { get; set; }
 
         /// <summary>
         /// Enqueues an action to be performed on the audio thread as part of this channel.

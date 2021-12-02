@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -167,9 +166,11 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(GlobalMixer = new BassAudioMixer(null, nameof(GlobalMixer)));
-            GlobalMixer.Add(TrackMixer = CreateAudioMixer(nameof(TrackMixer)));
-            GlobalMixer.Add(SampleMixer = CreateAudioMixer(nameof(SampleMixer)));
+            AddItem(GlobalMixer = CreateAudioMixer(nameof(GlobalMixer)));
+            TrackMixer = CreateAudioMixer(nameof(TrackMixer));
+            TrackMixer.Mixer = GlobalMixer;
+            SampleMixer = CreateAudioMixer(nameof(SampleMixer));
+            SampleMixer.Mixer = GlobalMixer;
 
             CancellationToken token = cancelSource.Token;
 
@@ -227,26 +228,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <remarks>
-        /// Audio output from the <see cref="AudioMixer"/> will be routed to <see cref="GlobalMixer"/>.
-        /// </remarks>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public AudioMixer CreateAudioMixer(string identifier = default) => CreateAudioMixer(null, identifier);
+        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(!string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        /// <summary>
-        /// Creates a new <see cref="AudioMixer"/>.
-        /// </summary>
-        /// <param name="parentMixer">Where output from the <see cref="AudioMixer"/> should be routed to. If null, audio will be routed to <see cref="GlobalMixer"/>.</param>
-        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public AudioMixer CreateAudioMixer([CanBeNull] AudioMixer parentMixer = null, string identifier = default) => createAudioMixer(parentMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
-
-        private AudioMixer createAudioMixer([CanBeNull] AudioMixer parentMixer, string identifier)
+        private AudioMixer createAudioMixer(string identifier)
         {
-            parentMixer ??= GlobalMixer;
-
-            var mixer = new BassAudioMixer(parentMixer, identifier);
-
-            parentMixer.Add(mixer);
+            var mixer = new BassAudioMixer(identifier);
 
             return mixer;
         }

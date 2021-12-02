@@ -41,18 +41,13 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         private const int frequency = 44100;
 
-        private readonly AudioMixer? parentMixer;
-
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <param name="parentMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public BassAudioMixer(AudioMixer? parentMixer, string identifier)
-            : base(parentMixer, identifier)
+        public BassAudioMixer(string identifier)
+            : base(identifier)
         {
-            this.parentMixer = parentMixer;
-
             EnqueueAction(createMixer);
         }
 
@@ -250,7 +245,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool StreamFree(IBassAudioChannel channel)
         {
-            Remove(channel, false);
+            Remove(channel);
             return ManagedBass.Bass.StreamFree(channel.Handle);
         }
 
@@ -296,7 +291,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             BassFlags flags = BassFlags.MixerNonStop;
 
-            if (parentMixer != null)
+            if (Mixer != null)
                 flags |= BassFlags.Decode;
 
             Handle = BassMix.CreateMixerStream(frequency, 2, flags);
@@ -494,6 +489,36 @@ namespace osu.Framework.Audio.Mixing.Bass
         #region Mixing
 
         private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
+
+        public override AudioMixer? Mixer
+        {
+            get => base.Mixer;
+            set
+            {
+                if (Mixer == value)
+                    return;
+
+                if (Mixer != null)
+                    bassMixer.RemoveInternal(this);
+
+                // If the output of this mixer changes from being another mixer to going direct out (or vice-versa), the mixer needs to be recreated (with the decode flag set accordingly)
+                if (
+                    (Mixer == null && value != null) ||
+                    (Mixer != null && value == null)
+                )
+                {
+                    if (Handle != 0)
+                        ManagedBass.Bass.StreamFree(Handle);
+
+                    base.Mixer = value;
+
+                    EnqueueAction(createMixer);
+                }
+
+                if (Mixer != null)
+                    bassMixer.Add(this);
+            }
+        }
 
         bool IBassAudioChannel.IsActive => !IsDisposed;
 

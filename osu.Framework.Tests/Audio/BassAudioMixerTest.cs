@@ -65,18 +65,6 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestMovedToParentMixerWhenRemovedFromMixer()
-        {
-            var secondMixer = bass.CreateMixer(bass.Mixer);
-
-            secondMixer.Add(track);
-            secondMixer.Remove(track);
-            bass.Update();
-
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
-        }
-
-        [Test]
         public void TestVirtualTrackCanBeAddedAndRemoved()
         {
             var secondMixer = bass.CreateMixer();
@@ -96,20 +84,6 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.Zero);
-        }
-
-        [Test]
-        public void TestChannelMovedToParentMixerAfterDispose()
-        {
-            var secondMixer = bass.CreateMixer(bass.Mixer);
-
-            secondMixer.Add(track);
-            bass.Update();
-
-            secondMixer.Dispose();
-            bass.Update();
-
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
         }
 
         [Test]

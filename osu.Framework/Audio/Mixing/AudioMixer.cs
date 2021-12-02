@@ -7,7 +7,6 @@ using System;
 using System.Threading.Tasks;
 using ManagedBass;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -18,17 +17,12 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        private readonly AudioMixer? parentMixer;
-
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="parentMixer">The <see cref="AudioMixer"/> to route audio output to. <see cref="IAudioChannel"/>s are moved to this if removed from this one.
-        /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        protected AudioMixer(AudioMixer? parentMixer, string identifier)
+        protected AudioMixer(string identifier)
         {
-            this.parentMixer = parentMixer;
             Identifier = identifier;
         }
 
@@ -47,7 +41,7 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 // Ensure the channel is removed from its current mixer.
-                channel.Mixer?.Remove(channel, false);
+                channel.Mixer?.Remove(channel);
 
                 AddInternal(channel);
 
@@ -55,14 +49,11 @@ namespace osu.Framework.Audio.Mixing
             });
         }
 
-        public void Remove(IAudioChannel channel) => Remove(channel, true);
-
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
         /// </summary>
         /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
-        /// <param name="moveToParent">Whether <paramref name="channel"/> should be re-routed to the parent mixer.</param>
-        protected void Remove(IAudioChannel channel, bool moveToParent)
+        public void Remove(IAudioChannel channel)
         {
             channel.EnqueueAction(() =>
             {
@@ -71,10 +62,6 @@ namespace osu.Framework.Audio.Mixing
 
                 RemoveInternal(channel);
                 channel.Mixer = null;
-
-                // Move channel to parent mixer if requested (and present).
-                if (moveToParent && parentMixer != null && !parentMixer.IsDisposed)
-                    parentMixer.AsNonNull().Add(channel);
             });
         }
 
@@ -92,9 +79,13 @@ namespace osu.Framework.Audio.Mixing
 
         #region IAudioChannel
 
-        public AudioMixer? Mixer { get; }
+        public virtual AudioMixer? Mixer { get; set; }
 
-        AudioMixer? IAudioChannel.Mixer { get; set; }
+        AudioMixer? IAudioChannel.Mixer
+        {
+            get => Mixer;
+            set => Mixer = value;
+        }
 
         Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 
