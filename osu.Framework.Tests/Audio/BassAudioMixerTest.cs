@@ -49,15 +49,6 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestCannotBeRemovedFromGlobalMixer()
-        {
-            bass.Mixer.Remove(track);
-            bass.Update();
-
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
-        }
-
-        [Test]
         public void TestTrackIsMovedBetweenMixers()
         {
             var secondMixer = bass.CreateMixer();

@@ -64,10 +64,6 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="moveToParent">Whether <paramref name="channel"/> should be re-routed to the parent mixer.</param>
         protected void Remove(IAudioChannel channel, bool moveToParent)
         {
-            // If this is a top-level mixer, prevent removal.
-            if (moveToParent && parentMixer == null)
-                return;
-
             channel.EnqueueAction(() =>
             {
                 if (channel.Mixer != this)
@@ -77,7 +73,7 @@ namespace osu.Framework.Audio.Mixing
                 channel.Mixer = null;
 
                 // Move channel to parent mixer if requested (and present).
-                if (parentMixer != null && !parentMixer.IsDisposed && moveToParent)
+                if (moveToParent && parentMixer != null && !parentMixer.IsDisposed)
                     parentMixer.AsNonNull().Add(channel);
             });
         }
