@@ -212,8 +212,11 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.Paste:
+                    string pending = null;
+
                     //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput.GetPendingText();
+                    if (inputBound)
+                        pending = textInput.GetPendingText();
 
                     if (string.IsNullOrEmpty(pending))
                         pending = clipboard?.GetText();
@@ -389,7 +392,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
                 return;
 
-            textInput.ResetIme();
+            if (inputBound)
+                textInput.ResetIme();
 
             textUpdateScheduler.Add(onImeResult);
 
@@ -407,7 +411,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
                 return;
 
-            textInput.ResetIme();
+            if (inputBound)
+                textInput.ResetIme();
 
             textUpdateScheduler.Add(() => onImeComposition(string.Empty, 0, 0));
             textUpdateScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
@@ -912,9 +917,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Consumes any pending characters and adds them to the textbox if not <see cref="ReadOnly"/>.
         /// </summary>
-        /// <returns>Whether any characters were consumed.</returns>
         private void consumePendingText()
         {
+            if (!inputBound)
+            {
+                EndConsumingText();
+                return;
+            }
+
             string pendingText = textInput.GetPendingText();
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
@@ -1155,7 +1165,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (!ReadOnly && HasFocus)
+            if (!ReadOnly && inputBound)
                 textInput.EnsureActivated();
 
             return !ReadOnly;
@@ -1172,6 +1182,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region Native TextBox handling (platform-specific)
 
+        /// <summary>
+        /// Whether <see cref="textInput"/> has been activated and bound to.
+        /// </summary>
         private bool inputBound;
 
         private void bindInput()
@@ -1182,11 +1195,11 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            inputBound = true;
-
             textInput.Activate();
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
+
+            inputBound = true;
         }
 
         private void unbindInput()
@@ -1454,7 +1467,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private void updateImeWindowPosition()
         {
-            if (!cursorAndLayout.IsValid)
+            if (!cursorAndLayout.IsValid || !inputBound)
                 return;
 
             int startIndex, endIndex;
