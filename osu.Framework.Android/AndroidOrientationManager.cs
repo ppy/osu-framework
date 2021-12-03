@@ -17,8 +17,8 @@ namespace osu.Framework.Android
         /// </summary>
         /// <param name="settingBindable">Screen orientation setting bindable</param>
         /// <param name="gameActivity">Game activity to initialize orientation control on</param>
-        public AndroidOrientationManager(Activity gameActivity, Bindable<ScreenOrientation> settingBindable)
-            : base(settingBindable)
+        public AndroidOrientationManager(Activity gameActivity, Bindable<ScreenOrientation> settingBindable, Bindable<bool> lockBindable)
+            : base(settingBindable, lockBindable)
         {
             this.gameActivity = gameActivity;
         }

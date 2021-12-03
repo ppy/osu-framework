@@ -13,7 +13,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
-using osu.Framework.Tests.Android;
 using osuTK;
 using PM = Android.Content.PM;
 
@@ -83,7 +82,8 @@ namespace osu.Framework.Tests.Android.Visual.Platform
                 return;
             }
 
-            originalOrientation = orientationBindable.Value;
+            AddStep("Get original orientation", () =>
+                originalOrientation = orientationBindable.Value);
 
             ScreenOrientation[] testOrientations =
             {
@@ -121,7 +121,8 @@ namespace osu.Framework.Tests.Android.Visual.Platform
                 return;
             }
 
-            originalOrientation = orientationBindable.Value;
+            AddStep("Get original orientation", () =>
+                originalOrientation = orientationBindable.Value);
 
             ScreenOrientation[] testOrientations =
             {
@@ -161,7 +162,8 @@ namespace osu.Framework.Tests.Android.Visual.Platform
                 return;
             }
 
-            originalOrientation = orientationBindable.Value;
+            AddStep("Get original orientation", () =>
+                originalOrientation = orientationBindable.Value);
 
             AddStep("Change setting to Any", () =>
                 orientationBindable.Value = ScreenOrientation.Any);
@@ -181,7 +183,8 @@ namespace osu.Framework.Tests.Android.Visual.Platform
                 return;
             }
 
-            originalOrientation = orientationBindable.Value;
+            AddStep("Get original orientation", () =>
+                originalOrientation = orientationBindable.Value);
 
             AddStep("Unlock and change setting to Any", () =>
             {

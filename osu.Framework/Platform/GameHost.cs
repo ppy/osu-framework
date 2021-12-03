@@ -164,10 +164,8 @@ namespace osu.Framework.Platform
 
         private ReadableKeyCombinationProvider readableKeyCombinationProvider;
 
-        protected Bindable<ScreenOrientation> ScreenOrientationBindable { get; private set; }
-
         [CanBeNull]
-        internal virtual ScreenOrientationManager GetScreenOrientationManager() => null;
+        internal virtual ScreenOrientationManager CreateScreenOrientationManager(Bindable<ScreenOrientation> settingBindable, Bindable<bool> lockBindable) => null;
 
         [CanBeNull]
         private ScreenOrientationManager screenOrientationManager;
@@ -928,6 +926,8 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
+        private Bindable<ScreenOrientation> screenOrientation;
+
         private Bindable<ExecutionMode> executionMode;
 
         private Bindable<string> threadLocale;
@@ -950,13 +950,8 @@ namespace osu.Framework.Platform
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
 
-            ScreenOrientationBindable = Config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
-            screenOrientationManager = GetScreenOrientationManager();
-
-            LockScreenOrientation.ValueChanged += value =>
-            {
-                screenOrientationManager?.SetOrientationLock(value.NewValue);
-            };
+            screenOrientation = Config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
+            screenOrientationManager = CreateScreenOrientationManager(screenOrientation, LockScreenOrientation);
 
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
             executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);

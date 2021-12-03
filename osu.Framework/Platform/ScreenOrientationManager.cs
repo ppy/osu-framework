@@ -13,15 +13,18 @@ namespace osu.Framework.Platform
 
         private Bindable<ScreenOrientation> orientationBindable;
 
-        protected ScreenOrientationManager(Bindable<ScreenOrientation> orientationSettingBindable)
+        protected ScreenOrientationManager(Bindable<ScreenOrientation> orientationSettingBindable, Bindable<bool> lockBindable)
         {
             orientationBindable = orientationSettingBindable;
             orientationBindable.BindValueChanged(value =>
             {
                 if (isLocked) return;
-
                 OnScreenOrientationSettingChanged(value);
             });
+            lockBindable.ValueChanged += value =>
+            {
+                SetOrientationLock(value.NewValue);
+            };
         }
 
         /// <summary>
