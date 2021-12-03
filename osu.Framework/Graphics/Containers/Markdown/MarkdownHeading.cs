@@ -19,9 +19,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         private readonly HeadingBlock headingBlock;
 
-        [Resolved]
-        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
-
         public MarkdownHeading(HeadingBlock headingBlock)
         {
             this.headingBlock = headingBlock;

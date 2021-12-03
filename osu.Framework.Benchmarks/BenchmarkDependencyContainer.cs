@@ -11,6 +11,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Local
+
 namespace osu.Framework.Benchmarks
 {
     public class BenchmarkDependencyContainer : GameBenchmark

@@ -20,7 +20,7 @@ namespace osu.Framework.Allocation
     /// <remarks>
     /// The value of the property is resolved upon <see cref="Drawable.Load"/> for the target <see cref="Drawable"/>.
     /// </remarks>
-    [MeansImplicitUse]
+    [MeansImplicitUse(ImplicitUseKindFlags.Assign)]
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
