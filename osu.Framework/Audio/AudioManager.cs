@@ -366,6 +366,9 @@ namespace osu.Framework.Audio
             // Always provide a default device. This should be a no-op, but we have asserts for this behaviour.
             Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);
 
+            // Disable BASS_CONFIG_DEV_TIMEOUT flag to keep BASS audio output from pausing on device processing timeout.
+            Bass.Configure((ManagedBass.Configuration)70, false);
+
             return AudioThread.InitDevice(device);
         }
 
