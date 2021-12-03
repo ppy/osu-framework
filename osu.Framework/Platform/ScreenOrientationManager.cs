@@ -7,16 +7,16 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Platform
 {
-    public abstract class ScreenOrientationManager
+    internal abstract class ScreenOrientationManager
     {
         private bool isLocked;
 
-        public Bindable<ScreenOrientation> OrientationBindable { get; protected set; }
+        private Bindable<ScreenOrientation> orientationBindable;
 
         protected ScreenOrientationManager(Bindable<ScreenOrientation> orientationSettingBindable)
         {
-            OrientationBindable = orientationSettingBindable;
-            OrientationBindable.BindValueChanged(value =>
+            orientationBindable = orientationSettingBindable;
+            orientationBindable.BindValueChanged(value =>
             {
                 if (isLocked) return;
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Platform
         /// <exception cref="InvalidOperationException">Thrown if setting is disabled</exception>
         public void SetOrientationLock(bool isLocked)
         {
-            if (OrientationBindable.Disabled)
+            if (orientationBindable.Disabled)
                 throw new InvalidOperationException("Can't change screen orientation lock when setting is disabled");
 
             this.isLocked = isLocked;
@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
             if (isLocked)
                 OnScreenOrientationLocked();
             else
-                OrientationBindable.TriggerChange();
+                orientationBindable.TriggerChange();
         }
     }
 }

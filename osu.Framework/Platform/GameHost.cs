@@ -167,7 +167,7 @@ namespace osu.Framework.Platform
         protected Bindable<ScreenOrientation> ScreenOrientationBindable { get; private set; }
 
         [CanBeNull]
-        protected virtual ScreenOrientationManager GetScreenOrientationManager() => null;
+        internal virtual ScreenOrientationManager GetScreenOrientationManager() => null;
 
         [CanBeNull]
         private ScreenOrientationManager screenOrientationManager;

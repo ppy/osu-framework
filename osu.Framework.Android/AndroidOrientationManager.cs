@@ -10,7 +10,7 @@ using Android.App;
 
 namespace osu.Framework.Android
 {
-    public class AndroidOrientationManager : ScreenOrientationManager
+    internal class AndroidOrientationManager : ScreenOrientationManager
     {
         /// <summary>
         /// Initialize a manager class to control Orientation on Android
@@ -33,7 +33,7 @@ namespace osu.Framework.Android
         /// </remarks>
         /// <param name="orientation">Orientation</param>
         /// <returns><see cref="AndroidPM.ScreenOrientation"/> enum to use with Android SDK</returns>
-        protected virtual AndroidPM.ScreenOrientation SettingToNativeOrientation(ScreenOrientation orientation)
+        private AndroidPM.ScreenOrientation settingToNativeOrientation(ScreenOrientation orientation)
         {
             switch (orientation)
             {
@@ -62,7 +62,7 @@ namespace osu.Framework.Android
         {
             gameActivity.RunOnUiThread(() =>
             {
-                gameActivity.RequestedOrientation = SettingToNativeOrientation(value.NewValue);
+                gameActivity.RequestedOrientation = settingToNativeOrientation(value.NewValue);
             });
         }
         protected override void OnScreenOrientationLocked()

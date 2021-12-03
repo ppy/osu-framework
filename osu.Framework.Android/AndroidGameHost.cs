@@ -46,7 +46,7 @@ namespace osu.Framework.Android
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
-        protected override ScreenOrientationManager GetScreenOrientationManager()
+        internal override ScreenOrientationManager GetScreenOrientationManager()
             => new AndroidOrientationManager((AndroidGameActivity)gameView.Context, ScreenOrientationBindable);
 
         protected override TextInputSource CreateTextInput() => new AndroidTextInput(gameView);
