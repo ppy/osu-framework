@@ -109,47 +109,36 @@ namespace osu.Framework.Threading
         internal static bool InitDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
+            Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
 
-            bool didInit = Bass.Init(deviceId);
-
-            // If the device was already initialised, the device can be used without much fuss.
-            if (Bass.LastError == Errors.Already)
+            // Try to initialise the device, or request a re-initialise.
+            if (Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
             {
-                Bass.CurrentDevice = deviceId;
-
-                if (!canFreeDevice(deviceId))
-                    didInit = true;
-                else
-                {
-                    // Without this call, on windows (and potentially other platforms), a device which is disconnected then reconnected
-                    // will look initialised but not work correctly in practice.
-                    FreeDevice(deviceId);
-                    didInit = Bass.Init(deviceId);
-                }
+                initialised_devices.Add(deviceId);
+                return true;
             }
 
-            if (didInit)
-                initialised_devices.Add(deviceId);
-
-            return didInit;
+            return false;
         }
 
         internal static void FreeDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
 
-            int lastDevice = Bass.CurrentDevice;
+            int selectedDevice = Bass.CurrentDevice;
 
-            if (canFreeDevice(deviceId))
+            if (canFreeDevice(deviceId) && canSelectDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
             }
 
-            if (lastDevice != deviceId)
-                Bass.CurrentDevice = lastDevice;
+            if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
+                Bass.CurrentDevice = selectedDevice;
 
             initialised_devices.Remove(deviceId);
+
+            static bool canSelectDevice(int deviceId) => Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
         }
 
         /// <summary>

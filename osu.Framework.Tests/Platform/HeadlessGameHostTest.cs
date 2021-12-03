@@ -104,6 +104,7 @@ namespace osu.Framework.Tests.Platform
                             Assert.AreEqual("example", message.Bar);
                             // ReSharper disable once AccessToDisposedClosure
                             received.Set();
+                            return null;
                         };
 
                         clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();

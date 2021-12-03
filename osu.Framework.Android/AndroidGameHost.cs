@@ -49,7 +49,7 @@ namespace osu.Framework.Android
         protected override ScreenOrientationManager GetScreenOrientationManager()
             => new AndroidOrientationManager((AndroidGameActivity)gameView.Context, ScreenOrientationBindable);
 
-        public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
+        protected override TextInputSource CreateTextInput() => new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]

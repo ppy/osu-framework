@@ -88,9 +88,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
-        private ITextInputSource textInput;
+        [Resolved]
+        private TextInputSource textInput { get; set; }
 
         private Clipboard clipboard;
+
+        /// <summary>
+        /// Whether the <see cref="GameHost"/> is active (has keyboard focus).
+        /// </summary>
+        private IBindable<bool> isActive;
 
         private readonly Caret caret;
 
@@ -140,19 +146,22 @@ namespace osu.Framework.Graphics.UserInterface
                 if (Text != e.NewValue)
                     Text = e.NewValue;
             };
+
+            caretVisible = false;
             caret.Hide();
         }
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
+            isActive = host.IsActive.GetBoundCopy();
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+            isActive.BindValueChanged(_ => Scheduler.AddOnce(updateCaretVisibility));
             setText(Text);
         }
 
@@ -180,7 +189,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformAction.Paste:
                     //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput?.GetPendingText();
+                    string pending = textInput.GetPendingText();
 
                     if (string.IsNullOrEmpty(pending))
                         pending = clipboard?.GetText();
@@ -374,7 +383,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength > 0)
                 selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
-            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
+            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / (DrawWidth - 2 * LeftRightPadding);
 
             //we only want to reposition the view when the cursor reaches near the extremities.
             if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
@@ -386,7 +395,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
-            if (HasFocus)
+            if (caretVisible)
                 caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
 
             if (textAtLastLayout.Length == 0 || text.Length == 0)
@@ -404,9 +413,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            //have to run this after children flow
+            // have to run this after children flow
             if (!cursorAndLayout.IsValid)
             {
+                // update in case selection length has changed.
+                updateCaretVisibility();
+
                 updateCursorAndLayout();
                 cursorAndLayout.Validate();
             }
@@ -455,7 +467,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
-            if (textInput?.ImeActive == true) return;
+            if (textInput.ImeActive) return;
 
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
@@ -709,6 +721,31 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract Caret CreateCaret();
 
+        /// <summary>
+        /// Whether the <see cref="caret"/> should be visible.
+        /// </summary>
+        private bool caretVisible;
+
+        private void updateCaretVisibility()
+        {
+            // a blinking cursor signals to the user that keyboard input will appear at that cursor,
+            // hide the caret when we don't have keyboard focus to conform with that expectation.
+            // importantly, we want the caret to remain visible when there is a selection.
+            bool newVisibility = HasFocus && (isActive.Value || selectionLength != 0);
+
+            if (caretVisible != newVisibility)
+            {
+                caretVisible = newVisibility;
+
+                if (caretVisible)
+                    caret.Show();
+                else
+                    caret.Hide();
+
+                cursorAndLayout.Invalidate();
+            }
+        }
+
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>(string.Empty);
 
         public Bindable<string> Current
@@ -765,7 +802,7 @@ namespace osu.Framework.Graphics.UserInterface
         private bool consumingText;
 
         /// <summary>
-        /// Begin consuming text from an <see cref="ITextInputSource"/>.
+        /// Begin consuming text from an <see cref="TextInputSource"/>.
         /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
         /// </summary>
         protected void BeginConsumingText()
@@ -775,7 +812,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Stops consuming text from an <see cref="ITextInputSource"/>.
+        /// Stops consuming text from an <see cref="TextInputSource"/>.
         /// </summary>
         protected void EndConsumingText()
         {
@@ -788,7 +825,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether any characters were consumed.</returns>
         private void consumePendingText()
         {
-            string pendingText = textInput?.GetPendingText();
+            string pendingText = textInput.GetPendingText();
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
@@ -804,7 +841,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (textInput.ImeActive || ReadOnly) return true;
 
             if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
@@ -931,7 +968,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput.ImeActive) return true;
 
             if (text.Length == 0) return true;
 
@@ -973,7 +1010,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (textInput.ImeActive || ReadOnly) return true;
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -991,8 +1028,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            caret.Hide();
-            cursorAndLayout.Invalidate();
+            updateCaretVisibility();
 
             if (CommitOnFocusLost)
                 Commit();
@@ -1003,7 +1039,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && HasFocus)
-                textInput?.EnsureActivated();
+                textInput.EnsureActivated();
 
             return !ReadOnly;
         }
@@ -1012,22 +1048,36 @@ namespace osu.Framework.Graphics.UserInterface
         {
             bindInput();
 
-            caret.Show();
-            cursorAndLayout.Invalidate();
+            updateCaretVisibility();
         }
 
         #endregion
 
         #region Native TextBox handling (platform-specific)
 
+        private bool inputBound;
+
         private void bindInput()
         {
-            textInput?.Activate();
+            if (inputBound)
+            {
+                textInput.EnsureActivated();
+                return;
+            }
+
+            inputBound = true;
+
+            textInput.Activate();
         }
 
         private void unbindInput()
         {
-            textInput?.Deactivate();
+            if (!inputBound)
+                return;
+
+            inputBound = false;
+
+            textInput.Deactivate();
         }
 
         private readonly List<Drawable> imeDrawables = new List<Drawable>();

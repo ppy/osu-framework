@@ -1,0 +1,10 @@
+﻿<!-- This is automatically imported in all projects referencing osu.Framework.iOS via package,
+     mainly for setting up all dllmap references required for libraries to work on iOS. -->
+<Project>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)..\dllmaps\*.dll.config">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>
