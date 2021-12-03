@@ -38,9 +38,9 @@ namespace osu.Framework.Android
             switch (orientation)
             {
                 case ScreenOrientation.AnyLandscape:
-                    return AndroidPM.ScreenOrientation.UserLandscape;
+                    return AndroidPM.ScreenOrientation.SensorLandscape;
                 case ScreenOrientation.AnyPortrait:
-                    return AndroidPM.ScreenOrientation.UserPortrait;
+                    return AndroidPM.ScreenOrientation.SensorPortrait;
                 case ScreenOrientation.LandscapeLeft:
                     return AndroidPM.ScreenOrientation.ReverseLandscape;
                 case ScreenOrientation.LandscapeRight:
