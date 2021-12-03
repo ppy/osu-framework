@@ -580,6 +580,16 @@ namespace osu.Framework.Platform
 
         public void StopTextInput() => ScheduleCommand(SDL.SDL_StopTextInput);
 
+        /// <summary>
+        /// Resets internal state of the platform-native IME.
+        /// This will clear its composition text and prepare it for new input.
+        /// </summary>
+        public void ResetIme() => ScheduleCommand(() =>
+        {
+            SDL.SDL_StopTextInput();
+            SDL.SDL_StartTextInput();
+        });
+
         public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
             var sdlRect = ((RectangleI)(rect * Scale)).ToSDLRect();

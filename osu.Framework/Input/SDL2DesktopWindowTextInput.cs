@@ -68,9 +68,7 @@ namespace osu.Framework.Input
         public override void ResetIme()
         {
             ImeActive = false;
-            window.StopTextInput();
-
-            EnsureActivated();
+            window.ResetIme();
         }
     }
 }
