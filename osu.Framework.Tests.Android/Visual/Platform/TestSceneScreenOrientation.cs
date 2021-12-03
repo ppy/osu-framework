@@ -17,7 +17,7 @@ using osu.Framework.Tests.Android;
 using osuTK;
 using PM = Android.Content.PM;
 
-namespace osu.Framework.Tests.Visual.Platform
+namespace osu.Framework.Tests.Android.Visual.Platform
 {
     public class TestSceneScreenOrientation : TestScene
     {
@@ -26,6 +26,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Dropdown<ScreenOrientation> orientationDropdown;
 
         private IWindow window;
+
         public TestSceneScreenOrientation()
         {
             Child = new FillFlowContainer
@@ -47,10 +48,13 @@ namespace osu.Framework.Tests.Visual.Platform
 
         [Resolved]
         private FrameworkConfigManager config { get; set; }
+
         [Resolved]
         private GameHost host { get; set; }
+
         [Resolved]
         private TestGameActivity gameActivity { get; set; }
+
         private Bindable<ScreenOrientation> orientationBindable;
 
         private ScreenOrientation originalOrientation;
@@ -103,6 +107,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddAssert("Test if current screen is " + test.ToString(), () =>
                     gameActivity.RequestedOrientation == native);
             }
+
             AddStep("Change orientation back to original", () =>
                 orientationBindable.Value = originalOrientation);
         }
@@ -142,6 +147,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddAssert("Test if current screen is " + test.ToString(), () =>
                     gameActivity.RequestedOrientation == native);
             }
+
             AddStep("Change orientation back to original", () =>
                 orientationBindable.Value = originalOrientation);
         }
