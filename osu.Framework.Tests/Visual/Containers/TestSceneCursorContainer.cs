@@ -19,8 +19,7 @@ namespace osu.Framework.Tests.Visual.Containers
             Container container;
             TestCursorContainer cursorContainer;
 
-            void createContent()
-            {
+            void createContent() =>
                 Child = container = new Container
                 {
                     Masking = true,
@@ -42,7 +41,6 @@ namespace osu.Framework.Tests.Visual.Containers
                         }
                     }
                 };
-            }
 
             bool cursorCenteredInContainer() =>
                 Precision.AlmostEquals(
