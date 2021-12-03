@@ -93,8 +93,8 @@ namespace osu.Framework.Tests.Android.Visual.Platform
             };
             PM.ScreenOrientation[] nativeOrientations =
             {
-                PM.ScreenOrientation.UserPortrait,
-                PM.ScreenOrientation.UserLandscape,
+                PM.ScreenOrientation.SensorPortrait,
+                PM.ScreenOrientation.SensorLandscape,
                 PM.ScreenOrientation.FullUser
             };
 
