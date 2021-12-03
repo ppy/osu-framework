@@ -7,6 +7,8 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Testing.Dependencies;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Local
+
 namespace osu.Framework.Tests.Dependencies
 {
     [TestFixture]
