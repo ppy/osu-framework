@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -678,6 +679,91 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is unchanged", () => textBox.Text == "goodbye");
         }
 
+        [Test]
+        public void TestLongTextMovesTextContainer()
+        {
+            PaddedTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new PaddedTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "hello",
+                });
+            });
+
+            AddAssert("text container didn't move", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
+
+            AddStep("set long text", () => textBox.Text = "this is very long text in a box");
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to expected position", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopRight.X, textBox.DrawWidth - PaddedTextBox.LEFT_RIGHT_PADDING, 1));
+        }
+
+        [Test]
+        public void TestMovingCaretMovesTextContainer()
+        {
+            PaddedTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new PaddedTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "framework framework framework framework framework framework framework"
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to start", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
+
+            AddStep("move forward word", () => InputManager.Keys(PlatformAction.MoveForwardWord));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container didn't move", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
+
+            AddStep("move forward word", () => InputManager.Keys(PlatformAction.MoveForwardWord));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved back", () => textBox.TextContainerBounds.TopLeft.X < PaddedTextBox.LEFT_RIGHT_PADDING);
+        }
+
+        [Test]
+        public void TestClickingToMoveCaretMovesTextContainer()
+        {
+            PaddedTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new PaddedTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "this is very long text in a box that will scroll",
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved to start", () => Precision.AlmostEquals(textBox.TextContainerBounds.TopLeft.X, PaddedTextBox.LEFT_RIGHT_PADDING, 1));
+
+            AddStep("click close to the right edge of textbox", () =>
+            {
+                InputManager.MoveMouseTo((textBox.ScreenSpaceDrawQuad.TopRight + textBox.ScreenSpaceDrawQuad.BottomRight) / 2 - new Vector2(1, 0));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
+            AddAssert("text container moved back", () => textBox.TextContainerBounds.TopLeft.X < PaddedTextBox.LEFT_RIGHT_PADDING);
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
@@ -789,6 +875,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Width = selectionWidth + 1 ?? caret_width;
                 }
             }
+        }
+
+        private class PaddedTextBox : BasicTextBox
+        {
+            public const float LEFT_RIGHT_PADDING = 50;
+
+            protected override float LeftRightPadding => LEFT_RIGHT_PADDING;
+
+            public Quad TextContainerBounds => TextContainer.ToSpaceOfOtherDrawable(new RectangleF(Vector2.Zero, TextContainer.DrawSize), this);
+
+            public bool TextContainerTransformsFinished => TextContainer.LatestTransformEndTime == TextContainer.TransformStartTime;
         }
     }
 }
