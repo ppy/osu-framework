@@ -9,15 +9,17 @@ namespace osu.Framework.Platform
 {
     public abstract class ScreenOrientationManager
     {
-        private bool isLocked = false;
+        private bool isLocked;
+
         public Bindable<ScreenOrientation> OrientationBindable { get; protected set; }
 
-        public ScreenOrientationManager(Bindable<ScreenOrientation> orientationSettingBindable)
+        protected ScreenOrientationManager(Bindable<ScreenOrientation> orientationSettingBindable)
         {
             OrientationBindable = orientationSettingBindable;
-            OrientationBindable.BindValueChanged((value) =>
+            OrientationBindable.BindValueChanged(value =>
             {
                 if (isLocked) return;
+
                 OnScreenOrientationSettingChanged(value);
             });
         }
@@ -47,7 +49,9 @@ namespace osu.Framework.Platform
         {
             if (OrientationBindable.Disabled)
                 throw new InvalidOperationException("Can't change screen orientation lock when setting is disabled");
+
             this.isLocked = isLocked;
+
             if (isLocked)
                 OnScreenOrientationLocked();
             else

@@ -165,8 +165,10 @@ namespace osu.Framework.Platform
         private ReadableKeyCombinationProvider readableKeyCombinationProvider;
 
         protected Bindable<ScreenOrientation> ScreenOrientationBindable { get; private set; }
+
         [CanBeNull]
         protected virtual ScreenOrientationManager GetScreenOrientationManager() => null;
+
         [CanBeNull]
         private ScreenOrientationManager screenOrientationManager;
 
@@ -950,7 +952,8 @@ namespace osu.Framework.Platform
 
             ScreenOrientationBindable = Config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
             screenOrientationManager = GetScreenOrientationManager();
-            LockScreenOrientation.ValueChanged += (value) =>
+
+            LockScreenOrientation.ValueChanged += value =>
             {
                 screenOrientationManager?.SetOrientationLock(value.NewValue);
             };
