@@ -389,7 +389,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
                 return;
 
-            textInput?.ResetIme();
+            textInput.ResetIme();
 
             textUpdateScheduler.Add(onImeResult);
 
@@ -407,7 +407,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
                 return;
 
-            textInput?.ResetIme();
+            textInput.ResetIme();
 
             textUpdateScheduler.Add(() => onImeComposition(string.Empty, 0, 0));
             textUpdateScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
@@ -936,7 +936,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Full data about the composition events is processed by <see cref="handleImeComposition"/> "passively"
         /// so we shouldn't take any action on key events we receive.
         /// </remarks>
-        protected bool ImeCompositionActive => textInput?.ImeActive == true || imeCompositionLength > 0;
+        protected bool ImeCompositionActive => textInput.ImeActive || imeCompositionLength > 0;
 
         #region Input event handling
 
@@ -1485,7 +1485,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             var quad = ToScreenSpace(compositionTextRectangle);
-            textInput?.SetImeRectangle(quad.AABBFloat);
+            textInput.SetImeRectangle(quad.AABBFloat);
         }
 
         #endregion
