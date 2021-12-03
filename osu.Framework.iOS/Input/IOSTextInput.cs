@@ -1,51 +1,33 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using Foundation;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 
 namespace osu.Framework.iOS.Input
 {
-    public class IOSTextInput : ITextInputSource
+    public class IOSTextInput : TextInputSource
     {
         private readonly IOSGameView view;
-
-        private string pending = string.Empty;
 
         public IOSTextInput(IOSGameView view)
         {
             this.view = view;
         }
 
-        public bool ImeActive => false;
-
-        public string GetPendingText()
-        {
-            try
-            {
-                return pending;
-            }
-            finally
-            {
-                pending = string.Empty;
-            }
-        }
-
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
             if (text == " " || text.Trim().Length > 0)
-                pending += text;
+                AddPendingText(text);
         }
 
-        public void Activate()
+        protected override void ActivateTextInput()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
         }
 
-        public void EnsureActivated()
+        protected override void EnsureTextInputActivated()
         {
             // If the user has manually closed the keyboard, it will not be shown until another TextBox is focused.
             // Calling `view.KeyboardTextField.UpdateFirstResponder` over and over again won't work, due to how
@@ -54,30 +36,10 @@ namespace osu.Framework.iOS.Input
             // TODO: add iOS implementation
         }
 
-        public void Deactivate()
+        protected override void DeactivateTextInput()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
-        }
-
-        public void SetImeRectangle(RectangleF rectangle)
-        {
-        }
-
-        public void ResetIme()
-        {
-        }
-
-        public event ITextInputSource.ImeCompositionDelegate OnNewImeComposition
-        {
-            add { }
-            remove { }
-        }
-
-        public event Action<string> OnNewImeResult
-        {
-            add { }
-            remove { }
         }
     }
 }

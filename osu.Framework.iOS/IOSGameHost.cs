@@ -89,7 +89,7 @@ namespace osu.Framework.iOS
 
         public override bool CanExit => false;
 
-        public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
+        protected override TextInputSource CreateTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]

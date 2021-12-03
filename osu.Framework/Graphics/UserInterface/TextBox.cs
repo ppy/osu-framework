@@ -100,7 +100,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
-        private ITextInputSource textInput;
+        [Resolved]
+        private TextInputSource textInput { get; set; }
 
         private Clipboard clipboard;
 
@@ -167,7 +168,6 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
             isActive = host.IsActive.GetBoundCopy();
         }
@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformAction.Paste:
                     //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput?.GetPendingText();
+                    string pending = textInput.GetPendingText();
 
                     if (string.IsNullOrEmpty(pending))
                         pending = clipboard?.GetText();
@@ -440,7 +440,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength > 0)
                 selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
-            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
+            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / (DrawWidth - 2 * LeftRightPadding);
 
             //we only want to reposition the view when the cursor reaches near the extremities.
             if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
@@ -536,6 +536,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
+            if (textInput.ImeActive) return;
+
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
 
@@ -890,7 +892,7 @@ namespace osu.Framework.Graphics.UserInterface
         private bool consumingText;
 
         /// <summary>
-        /// Begin consuming text from an <see cref="ITextInputSource"/>.
+        /// Begin consuming text from an <see cref="TextInputSource"/>.
         /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
         /// </summary>
         protected void BeginConsumingText()
@@ -900,7 +902,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Stops consuming text from an <see cref="ITextInputSource"/>.
+        /// Stops consuming text from an <see cref="TextInputSource"/>.
         /// </summary>
         protected void EndConsumingText()
         {
@@ -913,7 +915,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether any characters were consumed.</returns>
         private void consumePendingText()
         {
-            string pendingText = textInput?.GetPendingText();
+            string pendingText = textInput.GetPendingText();
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
@@ -1154,7 +1156,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && HasFocus)
-                textInput?.EnsureActivated();
+                textInput.EnsureActivated();
 
             return !ReadOnly;
         }
@@ -1170,24 +1172,33 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region Native TextBox handling (platform-specific)
 
+        private bool inputBound;
+
         private void bindInput()
         {
-            if (textInput == null)
+            if (inputBound)
+            {
+                textInput.EnsureActivated();
                 return;
+            }
+
+            inputBound = true;
 
             textInput.Activate();
-            textInput.OnNewImeComposition += handleImeComposition;
-            textInput.OnNewImeResult += handleImeResult;
+            textInput.OnImeComposition += handleImeComposition;
+            textInput.OnImeResult += handleImeResult;
         }
 
         private void unbindInput()
         {
-            if (textInput == null)
+            if (!inputBound)
                 return;
 
+            inputBound = false;
+
             textInput.Deactivate();
-            textInput.OnNewImeComposition -= handleImeComposition;
-            textInput.OnNewImeResult -= handleImeResult;
+            textInput.OnImeComposition -= handleImeComposition;
+            textInput.OnImeResult -= handleImeResult;
         }
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)

@@ -73,18 +73,15 @@ namespace osu.Framework.Tests.Audio
         {
             var cts = new TaskCompletionSource<bool>();
 
-            void runScheduled()
+            void runScheduled() => thread.Scheduler.Add(() =>
             {
-                thread.Scheduler.Add(() =>
+                if (count-- > 0)
+                    runScheduled();
+                else
                 {
-                    if (count-- > 0)
-                        runScheduled();
-                    else
-                    {
-                        cts.SetResult(true);
-                    }
-                });
-            }
+                    cts.SetResult(true);
+                }
+            });
 
             runScheduled();
 

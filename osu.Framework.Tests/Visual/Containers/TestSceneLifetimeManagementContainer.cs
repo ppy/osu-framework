@@ -230,14 +230,11 @@ namespace osu.Framework.Tests.Visual.Containers
                 ++r;
             }
 
-            void checkAll()
+            void checkAll() => Schedule(() =>
             {
-                Schedule(() =>
-                {
-                    foreach (var child in container.InternalChildren)
-                        Assert.AreEqual(child.ShouldBeAlive, child.IsAlive, $"Aliveness is invalid for {child}");
-                });
-            }
+                foreach (var child in container.InternalChildren)
+                    Assert.AreEqual(child.ShouldBeAlive, child.IsAlive, $"Aliveness is invalid for {child}");
+            });
 
             void addChild()
             {

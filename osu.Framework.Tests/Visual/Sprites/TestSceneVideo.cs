@@ -67,6 +67,8 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
             AddUntilStep("Wait for video to load", () => video.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
+
+            AddUntilStep("Wait for decode start", () => video.CurrentFrameTime > 0);
         }
 
         [Test]
@@ -165,8 +167,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             loadNewVideo(videoFormat);
 
-            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 10000);
-            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 15000);
+            AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 1000);
+            AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 1500);
 
             AddUntilStep("Reached end", () => video.State == VideoDecoder.DecoderState.EndOfStream);
             AddStep("reset decode state", () => didDecode = false);
@@ -211,12 +213,16 @@ namespace osu.Framework.Tests.Visual.Sprites
         private int fps;
         private int lastFramesProcessed;
 
+        private readonly FramedClock realtimeClock = new FramedClock();
+
         protected override void Update()
         {
             base.Update();
 
+            realtimeClock.ProcessFrame();
+
             if (clock != null)
-                clock.CurrentTime += Clock.ElapsedFrameTime;
+                clock.CurrentTime += realtimeClock.ElapsedFrameTime;
 
             if (video != null)
             {
