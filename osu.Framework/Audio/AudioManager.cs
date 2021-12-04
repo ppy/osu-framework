@@ -367,6 +367,7 @@ namespace osu.Framework.Audio
             Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);
 
             // Disable BASS_CONFIG_DEV_TIMEOUT flag to keep BASS audio output from pausing on device processing timeout.
+            // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
             return AudioThread.InitDevice(device);
