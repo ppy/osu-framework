@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -1270,11 +1271,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             // remove characters that can't be added.
 
-            for (int index = 0; index < composition.Length; index++)
+            var builder = new StringBuilder(composition);
+
+            for (int index = 0; index < builder.Length; index++)
             {
-                if (!canAddCharacter(composition[index]))
+                if (!canAddCharacter(builder[index]))
                 {
-                    composition = composition.Remove(index, 1);
+                    builder.Remove(index, 1);
                     sanitized = true;
 
                     if (index < selectionStart)
@@ -1290,6 +1293,9 @@ namespace osu.Framework.Graphics.UserInterface
                     index--;
                 }
             }
+
+            if (sanitized)
+                composition = builder.ToString();
 
             // trim composition if goes beyond the LengthLimit.
 
