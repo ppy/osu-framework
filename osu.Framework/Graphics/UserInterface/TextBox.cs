@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
                     // disabling Current means that the textbox shouldn't accept any more user input.
                     // if there is currently an ongoing composition, we want to finalize it and reset the user's IME
                     // so that the user understands that compositing is done and that further input won't be accepted.
-                    FinalizeImeComposition();
+                    FinalizeImeComposition(false);
                 }
             });
 
@@ -395,8 +395,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Finalize the current IME composition if one is active.
         /// </summary>
+        /// <param name="userEvent">
+        /// Whether this was invoked from a user action.
+        /// Set to <c>true</c> to have <see cref="OnImeResult"/> invoked.
+        /// </param>
         /// <remarks>Must only be called from the update thread.</remarks>
-        protected void FinalizeImeComposition()
+        protected void FinalizeImeComposition(bool userEvent)
         {
             // do nothing if there isn't an active composition.
             // importantly, if there are pending tasks, we should finish those off regardless
@@ -406,7 +410,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
-            imeCompositionScheduler.Add(onImeResult);
+            imeCompositionScheduler.Add(() => onImeResult(userEvent, false));
 
             if (inputBound)
                 textInput.ResetIme();
@@ -429,7 +433,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (inputBound)
                 textInput.ResetIme();
 
-            imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0));
+            imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
             imeCompositionScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
         }
 
@@ -808,10 +812,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Invoked when the IME has finished compositing.
         /// </summary>
-        /// <remarks>
-        /// Also invoked on a "less successful" / forced finalize, eg. if prematurely ended by <see cref="FinalizeImeComposition"/>.
-        /// </remarks>
-        protected virtual void OnImeResult()
+        /// <param name="result">The result of the composition.</param>
+        /// <param name="successful">
+        /// Whether this composition was finished trough normal means (eg. user normally finished compositing trough the IME).
+        /// <c>false</c> if ended prematurely.
+        /// </param>
+        protected virtual void OnImeResult(string result, bool successful)
         {
         }
 
@@ -1031,7 +1037,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void Commit()
         {
-            FinalizeImeComposition();
+            FinalizeImeComposition(false);
 
             if (ReleaseFocusOnCommit && HasFocus)
             {
@@ -1061,7 +1067,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return;
 
-            FinalizeImeComposition();
+            FinalizeImeComposition(true);
 
             if (doubleClickWord != null)
             {
@@ -1110,7 +1116,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            FinalizeImeComposition();
+            FinalizeImeComposition(true);
 
             if (text.Length == 0) return true;
 
@@ -1155,7 +1161,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return true;
 
-            FinalizeImeComposition();
+            FinalizeImeComposition(true);
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1171,7 +1177,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
-            FinalizeImeComposition();
+            FinalizeImeComposition(true);
 
             unbindInput();
 
@@ -1236,15 +1242,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
-            imeCompositionScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength));
+            imeCompositionScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength, true));
         }
 
         private void handleImeResult(string result)
         {
             imeCompositionScheduler.Add(() =>
             {
-                onImeComposition(result, result.Length, 0);
-                onImeResult();
+                onImeComposition(result, result.Length, 0, false);
+                onImeResult(true, true);
             });
         }
 
@@ -1366,11 +1372,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// This checks which parts of the old and new compositions match,
         /// and only updates the non-matching part in the current composition text.
         /// </remarks>
-        private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength)
+        private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength, bool userEvent)
         {
             if (Current.Disabled)
             {
-                NotifyInputError();
+                if (userEvent) NotifyInputError();
                 return;
             }
 
@@ -1452,17 +1458,17 @@ namespace osu.Framework.Graphics.UserInterface
             selectionStart = imeCompositionStart + newSelectionStart;
             selectionEnd = selectionStart + newSelectionLength;
 
-            OnImeComposition(newComposition, removeCount, addCount, oldStart != selectionStart || oldEnd != selectionEnd);
+            if (userEvent) OnImeComposition(newComposition, removeCount, addCount, oldStart != selectionStart || oldEnd != selectionEnd);
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
         }
 
-        private void onImeResult()
+        private void onImeResult(bool userEvent, bool successful)
         {
             if (Current.Disabled)
             {
-                NotifyInputError();
+                if (userEvent) NotifyInputError();
                 // importantly, we don't return here so that we can finalize the composition
                 // if we were called because Current was disabled.
             }
@@ -1478,7 +1484,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // move the cursor to end of finalized composition.
                 selectionStart = selectionEnd = imeCompositionStart + imeCompositionLength;
 
-                OnImeResult();
+                if (userEvent) OnImeResult(text.Substring(imeCompositionStart, imeCompositionLength), successful);
             }
 
             imeCompositionDrawables.Clear();
