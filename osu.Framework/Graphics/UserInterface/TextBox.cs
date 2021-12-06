@@ -1383,7 +1383,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (Current.Disabled)
             {
-                if (userEvent) NotifyInputError();
+                // don't raise error if composition text is empty, as the empty event could be generated indirectly,
+                // and not by explicit user interaction. eg. if IME is reset, input language is changed, etc.
+                if (userEvent && !string.IsNullOrEmpty(newComposition))
+                    NotifyInputError();
+
+
                 return;
             }
 
