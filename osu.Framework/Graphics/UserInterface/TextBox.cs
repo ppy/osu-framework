@@ -401,10 +401,10 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
+            imeCompositionScheduler.Add(onImeResult);
+
             if (inputBound)
                 textInput.ResetIme();
-
-            imeCompositionScheduler.Add(onImeResult);
 
             // importantly, we want to force-update all pending composition events,
             // so that when we return control to the caller, those events won't mutate text and/or caret position.
