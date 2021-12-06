@@ -19,21 +19,13 @@ namespace osu.Framework.Input
         public bool ImeActive { get; protected set; }
 
         private readonly object pendingLock = new object();
+
         private string pendingText = string.Empty;
 
         /// <summary>
-        /// Adds <paramref name="text"/> to the text pending to be collected by <see cref="GetPendingText"/>.
+        /// Counts how many times consumers have activated this <see cref="TextInputSource"/>.
         /// </summary>
-        /// <remarks>
-        /// Used for collecting inputted text from native implementations.
-        /// </remarks>
-        protected void AddPendingText(string text)
-        {
-            lock (pendingLock)
-            {
-                pendingText += text;
-            }
-        }
+        private int activationCounter;
 
         /// <summary>
         /// Gets all the text that was input by the user since the last <see cref="GetPendingText"/> call.
@@ -50,11 +42,6 @@ namespace osu.Framework.Input
                 return oldPending;
             }
         }
-
-        /// <summary>
-        /// Counts how many times consumers have activated this <see cref="TextInputSource"/>.
-        /// </summary>
-        private int activationCounter;
 
         /// <summary>
         /// Activates this <see cref="TextInputSource"/>.
@@ -101,6 +88,47 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Sets where the native implementation displays IME controls and other text input elements.
+        /// </summary>
+        /// <param name="rectangle">Should be provided in screen space.</param>
+        public virtual void SetImeRectangle(RectangleF rectangle)
+        {
+        }
+
+        /// <summary>
+        /// Resets IME.
+        /// This clears the current composition string and prepares it for new input.
+        /// </summary>
+        public virtual void ResetIme()
+        {
+        }
+
+        /// <summary>
+        /// Invoked when IME composition starts or changes.
+        /// </summary>
+        /// <remarks>Empty string for text means that the composition has been cancelled.</remarks>
+        public event ImeCompositionDelegate OnImeComposition;
+
+        /// <summary>
+        /// Invoked when IME composition successfully completes.
+        /// </summary>
+        public event Action<string> OnImeResult;
+
+        /// <summary>
+        /// Adds <paramref name="text"/> to the text pending to be collected by <see cref="GetPendingText"/>.
+        /// </summary>
+        /// <remarks>
+        /// Used for collecting inputted text from native implementations.
+        /// </remarks>
+        protected void AddPendingText(string text)
+        {
+            lock (pendingLock)
+            {
+                pendingText += text;
+            }
+        }
+
+        /// <summary>
         /// Activates the native implementation that provides text input.
         /// Should be overriden per-platform.
         /// </summary>
@@ -129,29 +157,9 @@ namespace osu.Framework.Input
         {
         }
 
-        /// <summary>
-        /// Sets where the native implementation displays IME controls and other text input elements.
-        /// </summary>
-        /// <param name="rectangle">Should be provided in screen space.</param>
-        public virtual void SetImeRectangle(RectangleF rectangle)
-        {
-        }
-
-        /// <summary>
-        /// Resets IME.
-        /// This clears the current composition string and prepares it for new input.
-        /// </summary>
-        public virtual void ResetIme()
-        {
-        }
-
-        /// <summary>
-        /// Invoked when IME composition starts or changes.
-        /// </summary>
-        /// <remarks>Empty string for text means that the composition has been cancelled.</remarks>
-        public event ImeCompositionDelegate OnImeComposition;
-
         protected void TriggerImeComposition(string text, int start, int length) => OnImeComposition?.Invoke(text, start, length);
+
+        protected void TriggerImeResult(string text) => OnImeResult?.Invoke(text);
 
         /// <summary>
         /// Fired on a new IME composition.
@@ -161,12 +169,5 @@ namespace osu.Framework.Input
         /// <param name="length">The length of the selection.</param>
         /// <remarks>Empty string for <paramref name="text"/> means that the composition has been cancelled.</remarks>
         public delegate void ImeCompositionDelegate(string text, int start, int length);
-
-        /// <summary>
-        /// Invoked when IME composition successfully completes.
-        /// </summary>
-        public event Action<string> OnImeResult;
-
-        protected void TriggerImeResult(string text) => OnImeResult?.Invoke(text);
     }
 }
