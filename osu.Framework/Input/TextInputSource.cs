@@ -14,7 +14,7 @@ namespace osu.Framework.Input
     public class TextInputSource
     {
         /// <summary>
-        /// Whether the IME is actively providing text composition through <see cref="OnImeComposition"/> and accepting input from the user.
+        /// Whether IME is actively providing text composition through <see cref="OnImeComposition"/> and accepting input from the user.
         /// </summary>
         public bool ImeActive { get; protected set; }
 
@@ -36,10 +36,10 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Gets all the text that was inputted by the user since the last <see cref="GetPendingText"/> call.
+        /// Gets all the text that was input by the user since the last <see cref="GetPendingText"/> call.
         /// </summary>
         /// <remarks>
-        /// Should be periodically called to collect user-inputted text.
+        /// Should be periodically called to collect user-input text.
         /// </remarks>
         public string GetPendingText()
         {
@@ -105,7 +105,7 @@ namespace osu.Framework.Input
         /// Should be overriden per-platform.
         /// </summary>
         /// <remarks>
-        /// An active native implementation should add user inputted text with <see cref="AddPendingText"/>.
+        /// An active native implementation should add user input text with <see cref="AddPendingText"/>.
         /// and forward IME composition events through <see cref="TriggerImeComposition"/> and <see cref="TriggerImeResult"/>.
         /// </remarks>
         protected virtual void ActivateTextInput()
@@ -130,7 +130,7 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Sets where the native implementation displays the IME and other text input elements.
+        /// Sets where the native implementation displays IME controls and other text input elements.
         /// </summary>
         /// <param name="rectangle">Should be provided in screen space.</param>
         public virtual void SetImeRectangle(RectangleF rectangle)
@@ -138,7 +138,7 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Resets the IME.
+        /// Resets IME.
         /// This clears the current composition string and prepares it for new input.
         /// </summary>
         public virtual void ResetIme()
@@ -146,7 +146,7 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Invoked when the IME composition starts or changes.
+        /// Invoked when IME composition starts or changes.
         /// </summary>
         /// <remarks>Empty string for text means that the composition has been cancelled.</remarks>
         public event ImeCompositionDelegate OnImeComposition;
@@ -163,7 +163,7 @@ namespace osu.Framework.Input
         public delegate void ImeCompositionDelegate(string text, int start, int length);
 
         /// <summary>
-        /// Invoked when the IME composition successfully completes.
+        /// Invoked when IME composition successfully completes.
         /// </summary>
         public event Action<string> OnImeResult;
 
