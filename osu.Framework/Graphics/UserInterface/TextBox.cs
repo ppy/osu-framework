@@ -181,10 +181,15 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
 
             isActive.BindValueChanged(_ => Scheduler.AddOnce(updateCaretVisibility));
-            current.BindDisabledChanged(disabled =>
+            Current.BindDisabledChanged(disabled =>
             {
                 if (disabled)
-                    Scheduler.AddOnce(FinalizeImeComposition);
+                {
+                    // disabling Current means that the textbox shouldn't accept any more user input.
+                    // if there is currently an ongoing composition, we want to finalize it and reset the user's IME
+                    // so that the user understands that compositing is done and that further input won't be accepted.
+                    FinalizeImeComposition();
+                }
             });
 
             setText(Text);
