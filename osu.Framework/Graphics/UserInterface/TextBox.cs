@@ -121,7 +121,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public event OnCommitHandler OnCommit;
 
-        private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
+        /// <summary>
+        /// Scheduler used for scheduling IME composition and result events coming from <see cref="textInput"/>.
+        /// </summary>
+        private readonly Scheduler imeCompositionScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         protected TextBox()
         {
@@ -390,17 +393,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>Must only be called from the update thread.</remarks>
         protected void FinalizeImeComposition()
         {
-            if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
+            if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
             if (inputBound)
                 textInput.ResetIme();
 
-            textUpdateScheduler.Add(onImeResult);
+            imeCompositionScheduler.Add(onImeResult);
 
-            // importantly, we want to force-update all pending text/composition events,
-            // so that when we return control to the caller, those events won't mutate text and caret position.
-            textUpdateScheduler.Update();
+            // importantly, we want to force-update all pending composition events,
+            // so that when we return control to the caller, those events won't mutate text and/or caret position.
+            imeCompositionScheduler.Update();
         }
 
         /// <summary>
@@ -409,14 +412,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>Must only be called from the update thread.</remarks>
         protected void CancelImeComposition()
         {
-            if (!ImeCompositionActive && !textUpdateScheduler.HasPendingTasks)
+            if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
             if (inputBound)
                 textInput.ResetIme();
 
-            textUpdateScheduler.Add(() => onImeComposition(string.Empty, 0, 0));
-            textUpdateScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
+            imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0));
+            imeCompositionScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
         }
 
         protected override void Dispose(bool isDisposing)
@@ -478,7 +481,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             // update the scheduler before updating children as it might mutate TextFlow.
             // we want the character drawables to be up-to date for further calculations in `updateCursorAndLayout()`.
-            textUpdateScheduler.Update();
+            imeCompositionScheduler.Update();
         }
 
         protected override void UpdateAfterChildren()
@@ -1217,12 +1220,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
-            textUpdateScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength));
+            imeCompositionScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength));
         }
 
         private void handleImeResult(string result)
         {
-            textUpdateScheduler.Add(() =>
+            imeCompositionScheduler.Add(() =>
             {
                 onImeComposition(result, result.Length, 0);
                 onImeResult();
