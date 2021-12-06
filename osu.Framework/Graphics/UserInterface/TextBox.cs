@@ -1386,8 +1386,12 @@ namespace osu.Framework.Graphics.UserInterface
                 // don't raise error if composition text is empty, as the empty event could be generated indirectly,
                 // and not by explicit user interaction. eg. if IME is reset, input language is changed, etc.
                 if (userEvent && !string.IsNullOrEmpty(newComposition))
+                {
                     NotifyInputError();
 
+                    // importantly, we want to reset the IME so it doesn't falsely report that IME composition is active.
+                    textInput.ResetIme();
+                }
 
                 return;
             }
