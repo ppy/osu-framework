@@ -332,6 +332,11 @@ namespace osu.Framework.Platform
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
 
+            // In the case of an unhandled or unobserved exception, it's feasible that the disposal flow for `GameHost` doesn't run.
+            // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
+            // We force flushing the logger here to ensure logging completes.
+            Logger.Flush();
+
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
 
