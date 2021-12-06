@@ -886,6 +886,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             bool beganChange = beginTextChange();
 
+            // finalize and cleanup the IME composition (if one is active) so we get a clean slate for pending text changes and future IME composition.
+            // `IsLoaded` check is required because `Text` could be set in the initializer / before the drawable loaded.
+            // `FinalizeImeComposition()` crashes if textbox isn't fully loaded.
+            if (IsLoaded) FinalizeImeComposition(false);
+
             int startBefore = selectionStart;
             selectionStart = selectionEnd = 0;
 
