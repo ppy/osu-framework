@@ -716,7 +716,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
-        protected void InsertString(string value) => insertString(value);
+        protected void InsertString(string value)
+        {
+            // inserting text could insert it in the middle of an active composition, leading to an invalid state.
+            // so finalize the composition before adding text.
+            FinalizeImeComposition(false);
+
+            insertString(value);
+        }
 
         private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
         {
