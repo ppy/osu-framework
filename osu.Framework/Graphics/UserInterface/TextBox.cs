@@ -979,7 +979,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Full data about the composition events is processed by <see cref="handleImeComposition"/> "passively"
         /// so we shouldn't take any action on key events we receive.
         /// </remarks>
-        protected bool ImeCompositionActive => textInput.ImeActive || imeCompositionLength > 0;
+        protected bool ImeCompositionActive => inputBound && textInput.ImeActive || imeCompositionLength > 0;
 
         #region Input event handling
 
