@@ -398,6 +398,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>Must only be called from the update thread.</remarks>
         protected void FinalizeImeComposition()
         {
+            // do nothing if there isn't an active composition.
+            // importantly, if there are pending tasks, we should finish those off regardless
+            // and then call `onImeResult()`.
+            // the composition being inactive and having scheduled tasks shouldn't happen,
+            // but the check is here to cover that improbable edge case.
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
@@ -417,6 +422,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>Must only be called from the update thread.</remarks>
         protected void CancelImeComposition()
         {
+            // same rationale as above, in `FinalizeImeComposition()`
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
