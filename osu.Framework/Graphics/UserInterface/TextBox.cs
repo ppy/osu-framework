@@ -1184,7 +1184,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
-            FinalizeImeComposition(true);
+            // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
+            FinalizeImeComposition(false);
 
             unbindInput();
 
