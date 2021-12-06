@@ -16,7 +16,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Whether IME is actively providing text composition through <see cref="OnImeComposition"/> and accepting input from the user.
         /// </summary>
-        public bool ImeActive { get; protected set; }
+        public bool ImeActive { get; private set; }
 
         private readonly object pendingLock = new object();
 
@@ -101,6 +101,7 @@ namespace osu.Framework.Input
         /// </summary>
         public virtual void ResetIme()
         {
+            ImeActive = false;
         }
 
         /// <summary>
@@ -157,9 +158,21 @@ namespace osu.Framework.Input
         {
         }
 
-        protected void TriggerImeComposition(string text, int start, int length) => OnImeComposition?.Invoke(text, start, length);
+        protected void TriggerImeComposition(string text, int start, int length)
+        {
+            // empty text means that composition isn't active.
+            ImeActive = !string.IsNullOrEmpty(text);
 
-        protected void TriggerImeResult(string text) => OnImeResult?.Invoke(text);
+            OnImeComposition?.Invoke(text, start, length);
+        }
+
+        protected void TriggerImeResult(string text)
+        {
+            // IME is deactivated / not providing active composition once the current one is finalized.
+            ImeActive = false;
+
+            OnImeResult?.Invoke(text);
+        }
 
         /// <summary>
         /// Fired on a new IME composition.

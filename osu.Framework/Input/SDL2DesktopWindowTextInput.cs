@@ -17,12 +17,12 @@ namespace osu.Framework.Input
 
         private void handleTextInput(string text)
         {
+            // SDL sends IME results as `SDL_TextInputEvent` which we can't differentiate from regular text input
+            // so we have to manually keep track and invoke the correct event.
+
             if (ImeActive)
             {
-                // SDL sends IME results as `SDL_TextInputEvent` which we can't differentiate from regular text input
-                // so we have to manually keep track and invoke the correct event.
                 TriggerImeResult(text);
-                ImeActive = false;
             }
             else
             {
@@ -33,10 +33,6 @@ namespace osu.Framework.Input
         private void handleTextEditing(string text, int selectionStart, int selectionLength)
         {
             if (text == null) return;
-
-            // SDL sends empty text on composition end
-            // https://github.com/libsdl-org/SDL/blob/1fc25bd83902df65e666f0cf0aa4dc717ade0748/src/video/windows/SDL_windowskeyboard.c#L934-L939
-            ImeActive = !string.IsNullOrEmpty(text);
 
             TriggerImeComposition(text, selectionStart, selectionLength);
         }
@@ -67,7 +63,7 @@ namespace osu.Framework.Input
 
         public override void ResetIme()
         {
-            ImeActive = false;
+            base.ResetIme();
             window.ResetIme();
         }
     }
