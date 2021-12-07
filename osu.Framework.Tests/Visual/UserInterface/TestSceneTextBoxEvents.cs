@@ -159,7 +159,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Result = composition_text,
                 Successful = true
             }));
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
+            assertCompositionNotActive();
         }
 
         [Test]
@@ -249,9 +249,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestEmptyCompositionDoesntInvokeEvent()
         {
             AddStep("trigger empty composition", () => textInput.TriggerImeComposition(string.Empty, 0, 0));
-            AddAssert("ime composition event not raised", () => textBox.ImeCompositionQueue.Count == 0);
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
-
+            assertCompositionNotActive();
             testNormalTextInput();
         }
 
@@ -272,7 +270,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RemovedTextLength = composition_text.Length,
                 SelectionMoved = true
             }));
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
+            assertCompositionNotActive();
             AddAssert("text box focused", () => textBox.HasFocus);
 
             testNormalTextInput();
@@ -323,7 +321,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             startComposition();
 
             AddStep("set text", () => textBox.Text = new_text);
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
+            assertCompositionNotActive();
             AddAssert("text is expected", () => textBox.Text == new_text);
         }
 
@@ -335,7 +333,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             startComposition();
 
             AddStep("set current", () => textBox.Current.Value = new_text);
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
+            assertCompositionNotActive();
             AddAssert("current value matches expected", () => textBox.Current.Value == new_text);
         }
 
@@ -345,12 +343,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             startComposition();
 
             AddStep("disable current", () => textBox.Current.Disabled = true);
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
+            assertCompositionNotActive();
             AddAssert("current value matches expected", () => textBox.Current.Value == default_text + composition_text);
 
             AddStep("trigger composition", () => textInput.TriggerImeComposition(composition_text, composition_text.Length, 0));
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
-            AddAssert("ime composition event not raised", () => textBox.ImeCompositionQueue.Count == 0);
+            assertCompositionNotActive();
             AddAssert("input error event raised", () => textBox.InputErrorQueue.Dequeue());
         }
 
@@ -360,14 +357,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             startComposition();
 
             AddStep("set read only", () => textBox.ReadOnly = true);
+
             AddAssert("text committed event raised", () => textBox.CommittedTextQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
-            AddAssert("ime composition event not raised", () => textBox.ImeCompositionQueue.Count == 0);
+            assertCompositionNotActive();
 
             AddStep("trigger composition", () => textInput.TriggerImeComposition(composition_text, composition_text.Length, 0));
-            AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
-            AddAssert("ime composition event not raised", () => textBox.ImeCompositionQueue.Count == 0);
-
+            assertCompositionNotActive();
             AddStep("press key to insert normal text", () =>
             {
                 InputManager.Key(Key.W);
@@ -396,6 +391,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                         textBox.CaretMovedQueue.Count == 0 &&
                                                         textBox.ImeCompositionQueue.Count == 0 &&
                                                         textBox.ImeResultQueue.Count == 0);
+        }
+
+        private void assertCompositionNotActive()
+        {
+            AddAssert("ime composition not active", () => !textBox.ImeCompositionActive);
+            AddAssert("ime composition event not raised", () => textBox.ImeCompositionQueue.Count == 0);
         }
 
         private void startComposition()
