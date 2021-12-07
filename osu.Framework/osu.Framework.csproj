@@ -38,7 +38,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.178" />
     <PackageReference Include="StbiSharp" Version="1.0.13" />
-    <PackageReference Include="ppy.SDL2-CS" Version="1.0.468-alpha" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.486-alpha" />
 
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
