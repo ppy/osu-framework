@@ -252,7 +252,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("ime composition event not raised", () => textBox.ImeCompositionQueue.Count == 0);
             AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
 
-            textInputWorks();
+            testNormalTextInput();
         }
 
         [Test]
@@ -275,7 +275,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("ime composition not active", () => textBox.ImeCompositionActive == false);
             AddAssert("text box focused", () => textBox.HasFocus);
 
-            textInputWorks();
+            testNormalTextInput();
 
             AddStep("press escape again to kill focus", () => InputManager.Key(Key.Escape));
             AddAssert("text box not focused", () => textBox.HasFocus == false);
@@ -414,7 +414,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }));
         }
 
-        private void textInputWorks()
+        private void testNormalTextInput()
         {
             AddStep("press key to insert normal text", () =>
             {
