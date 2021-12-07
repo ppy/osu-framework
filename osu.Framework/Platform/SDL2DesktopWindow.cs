@@ -592,7 +592,7 @@ namespace osu.Framework.Platform
 
         public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
-            var sdlRect = ((RectangleI)(rect * Scale)).ToSDLRect();
+            var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
             SDL.SDL_SetTextInputRect(ref sdlRect);
         });
 
