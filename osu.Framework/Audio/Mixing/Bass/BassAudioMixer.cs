@@ -306,7 +306,13 @@ namespace osu.Framework.Audio.Mixing.Bass
             ActiveChannels.Clear();
 
             foreach (var channel in toAdd)
-                AddChannelToBassMix(channel);
+            {
+                // ensure mixers added via setter are added to Items for future re-init
+                if (channel is BassAudioMixer mixer && !mixer.IsDisposed && mixer.Handle == 0)
+                    AddItem(mixer);
+                else
+                    AddChannelToBassMix(channel);
+            }
 
             // Initialize sub-mixers that were added prior to this mixer being initialized.
             foreach (var item in Items)
@@ -499,7 +505,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     return;
 
                 if (Mixer != null)
-                    bassMixer.RemoveInternal(this);
+                    bassMixer.EnqueueAction(() => bassMixer.RemoveInternal(this));
 
                 // If the output of this mixer changes from being another mixer to going direct out (or vice-versa), the mixer needs to be recreated (with the decode flag set accordingly)
                 if (
@@ -507,16 +513,19 @@ namespace osu.Framework.Audio.Mixing.Bass
                     (Mixer != null && value == null)
                 )
                 {
+                    value?.AddItem(this);
+
                     if (Handle != 0)
                         ManagedBass.Bass.StreamFree(Handle);
 
                     base.Mixer = value;
 
-                    EnqueueAction(createMixer);
+                    if (Mixer != null)
+                        bassMixer.EnqueueAction(createMixer);
                 }
 
                 if (Mixer != null)
-                    bassMixer.Add(this);
+                    bassMixer.EnqueueAction(() => bassMixer.AddInternal(this));
             }
         }
 

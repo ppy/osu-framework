@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Audio
 {
-    public class DrawableAudioMixer : AudioContainer
+    public class DrawableAudioMixer : AudioContainer, IAudioMixer
     {
         private AudioMixer mixer;
 

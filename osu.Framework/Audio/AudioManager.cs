@@ -166,11 +166,9 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(GlobalMixer = CreateAudioMixer(nameof(GlobalMixer)));
+            AddItem(GlobalMixer = new BassAudioMixer(nameof(GlobalMixer)));
             TrackMixer = CreateAudioMixer(nameof(TrackMixer));
-            TrackMixer.Mixer = GlobalMixer;
             SampleMixer = CreateAudioMixer(nameof(SampleMixer));
-            SampleMixer.Mixer = GlobalMixer;
 
             CancellationToken token = cancelSource.Token;
 
@@ -233,7 +231,10 @@ namespace osu.Framework.Audio
 
         private AudioMixer createAudioMixer(string identifier)
         {
-            var mixer = new BassAudioMixer(identifier);
+            var mixer = new BassAudioMixer(identifier)
+            {
+                Mixer = GlobalMixer
+            };
 
             return mixer;
         }
