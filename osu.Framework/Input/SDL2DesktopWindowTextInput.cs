@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -16,12 +17,24 @@ namespace osu.Framework.Input
 
         private void handleTextInput(string text)
         {
-            AddPendingText(text);
+            // SDL sends IME results as `SDL_TextInputEvent` which we can't differentiate from regular text input
+            // so we have to manually keep track and invoke the correct event.
+
+            if (ImeActive)
+            {
+                TriggerImeResult(text);
+            }
+            else
+            {
+                AddPendingText(text);
+            }
         }
 
-        private void handleTextEditing(string text, int start, int length)
+        private void handleTextEditing(string text, int selectionStart, int selectionLength)
         {
-            // TODO: add IME support
+            if (text == null) return;
+
+            TriggerImeComposition(text, selectionStart, selectionLength);
         }
 
         protected override void ActivateTextInput()
@@ -41,6 +54,17 @@ namespace osu.Framework.Input
             window.TextInput -= handleTextInput;
             window.TextEditing -= handleTextEditing;
             window.StopTextInput();
+        }
+
+        public override void SetImeRectangle(RectangleF rectangle)
+        {
+            window.SetTextInputRect(rectangle);
+        }
+
+        public override void ResetIme()
+        {
+            base.ResetIme();
+            window.ResetIme();
         }
     }
 }

@@ -25,7 +25,6 @@ namespace osu.Framework.Android.Input
 
         private void commitText(string text)
         {
-            TriggerImeComposition(text);
             TriggerImeResult(text);
         }
 

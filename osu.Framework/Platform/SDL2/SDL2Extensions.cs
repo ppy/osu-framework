@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK.Input;
@@ -977,6 +980,36 @@ namespace osu.Framework.Platform.SDL2
                 case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
                     return JoystickButton.GamePadDPadRight;
             }
+        }
+
+        public static SDL.SDL_Rect ToSDLRect(this RectangleI rectangle) =>
+            new SDL.SDL_Rect
+            {
+                x = rectangle.X,
+                y = rectangle.Y,
+                h = rectangle.Height,
+                w = rectangle.Width,
+            };
+
+        /// <summary>
+        /// Converts a UTF-8 byte pointer to a string.
+        /// </summary>
+        /// <remarks>Most commonly used with SDL text events.</remarks>
+        /// <param name="bytePointer">Pointer to UTF-8 encoded byte array.</param>
+        /// <param name="str">The resulting string</param>
+        /// <returns><c>true</c> if the <paramref name="bytePointer"/> was successfully converted to a string.</returns>
+        public static unsafe bool TryGetStringFromBytePointer(byte* bytePointer, out string str)
+        {
+            var ptr = new IntPtr(bytePointer);
+
+            if (ptr == IntPtr.Zero)
+            {
+                str = null;
+                return false;
+            }
+
+            str = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
+            return true;
         }
     }
 }
