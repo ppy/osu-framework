@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics.Containers
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children added.");
 
                 child.Load(Clock, Dependencies, false);
 
@@ -345,6 +345,9 @@ namespace osu.Framework.Graphics.Containers
             }
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children set.");
+
                 ClearInternal();
                 AddInternal(value);
             }
@@ -414,6 +417,9 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+
                 ClearInternal();
                 AddRangeInternal(value);
             }
@@ -500,6 +506,9 @@ namespace osu.Framework.Graphics.Containers
         {
             EnsureChildMutationAllowed();
 
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Children cannot be cleared on a disposed drawable.");
+
             if (internalChildren.Count == 0) return;
 
             foreach (Drawable t in internalChildren)
@@ -539,7 +548,7 @@ namespace osu.Framework.Graphics.Containers
             EnsureChildMutationAllowed();
 
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+                throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
