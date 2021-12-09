@@ -345,6 +345,9 @@ namespace osu.Framework.Graphics.Containers
             }
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children set.");
+
                 ClearInternal();
                 AddInternal(value);
             }
