@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics.Containers
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children added.");
 
                 child.Load(Clock, Dependencies, false);
 
@@ -346,7 +346,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children set.");
+                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children set.");
 
                 ClearInternal();
                 AddInternal(value);
