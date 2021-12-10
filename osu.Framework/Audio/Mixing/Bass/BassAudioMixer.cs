@@ -516,6 +516,24 @@ namespace osu.Framework.Audio.Mixing.Bass
                     (Mixer != null && value == null)
                 )
                 {
+                    // ensure we're not about to create a routing loop
+                    AudioMixer? parentMixer = value;
+                    bool loopDetected = false;
+
+                    while (parentMixer != null)
+                    {
+                        if (parentMixer == this)
+                        {
+                            loopDetected = true;
+                            break;
+                        }
+
+                        parentMixer = parentMixer.Mixer;
+                    }
+
+                    if (loopDetected)
+                        throw new InvalidOperationException("Mixer loop detected");
+
                     Mixer?.RemoveItem(this);
                     value?.AddItem(this);
 
