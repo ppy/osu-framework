@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -227,13 +228,20 @@ namespace osu.Framework.Audio
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(!string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+        public AudioMixer CreateAudioMixer(string identifier = default) => CreateAudioMixer(GlobalMixer, identifier);
 
-        private AudioMixer createAudioMixer(string identifier)
+        /// <summary>
+        /// Creates a new <see cref="AudioMixer"/>.
+        /// </summary>
+        /// <param name="mixer">An <see cref="AudioMixer"/> to route output of the mixer to.</param>
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public AudioMixer CreateAudioMixer([CanBeNull] AudioMixer mixer, string identifier = default) => createAudioMixer(mixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+
+        private AudioMixer createAudioMixer([CanBeNull] AudioMixer targetMixer, string identifier)
         {
             var mixer = new BassAudioMixer(identifier)
             {
-                Mixer = GlobalMixer
+                Mixer = targetMixer
             };
 
             return mixer;
