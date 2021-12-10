@@ -10,6 +10,7 @@ using NUnit.Framework;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -309,6 +310,93 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
+        }
+
+        [Test]
+        public void TestMixerCanAddAndRemoveSubMixer()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer");
+
+            mixer.Add(secondMixer);
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
+
+            mixer.Remove(secondMixer);
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.Null);
+        }
+
+        [Test]
+        public void TestMixerSetsDecodeFlagCorrectlyWhenNested()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer", mixer);
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
+
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.True);
+
+            mixer.Remove(secondMixer);
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.Null);
+
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.False);
+        }
+
+        [Test]
+        public void TestMixerSetter()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer");
+
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.False);
+
+            secondMixer.Mixer = mixer;
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
+
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.True);
+
+            secondMixer.Mixer = null;
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.Null);
+
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.False);
+        }
+
+        [Test]
+        public void TestMixerLoopViaSetterThrowsException()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer", mixer);
+
+            Assert.Throws<InvalidOperationException>(() => mixer.Mixer = secondMixer);
+        }
+
+        [Test]
+        public void TestMixerLoopViaAddThrowsException()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer", mixer);
+
+            bass.RunOnAudioThread(() =>
+            {
+                Assert.Throws<InvalidOperationException>(() => secondMixer.Add(mixer));
+            });
+        }
+
+        private bool mixerChannelHasDecodeFlag(BassAudioMixer mixer)
+        {
+            ChannelInfo channelInfo;
+            Bass.ChannelGetInfo(mixer.Handle, out channelInfo);
+            return channelInfo.Flags.HasFlagFast(BassFlags.Decode);
         }
 
         private void assertEffectParameters()

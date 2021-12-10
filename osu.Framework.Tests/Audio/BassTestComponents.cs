@@ -52,9 +52,12 @@ namespace osu.Framework.Tests.Audio
 
         public void Add(params AudioComponent[] component) => components.AddRange(component);
 
-        internal BassAudioMixer CreateMixer(string identifier = "Test mixer")
+        internal BassAudioMixer CreateMixer(string identifier = "Test mixer", BassAudioMixer parentMixer = null)
         {
-            var mixer = new BassAudioMixer(identifier);
+            var mixer = new BassAudioMixer(identifier)
+            {
+                Mixer = parentMixer
+            };
             components.Insert(0, mixer);
             return mixer;
         }
