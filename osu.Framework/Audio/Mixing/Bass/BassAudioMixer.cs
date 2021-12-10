@@ -516,6 +516,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     (Mixer != null && value == null)
                 )
                 {
+                    Mixer?.RemoveItem(this);
                     value?.AddItem(this);
 
                     if (Handle != 0)
