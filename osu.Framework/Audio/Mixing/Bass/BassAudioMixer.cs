@@ -505,9 +505,12 @@ namespace osu.Framework.Audio.Mixing.Bass
                     return;
 
                 if (Mixer != null)
-                    bassMixer.EnqueueAction(() => bassMixer.RemoveInternal(this));
+                {
+                    var oldMixer = bassMixer;
+                    oldMixer.EnqueueAction(() => oldMixer.RemoveInternal(this));
+                }
 
-                // If the output of this mixer changes from being another mixer to going direct out (or vice-versa), the mixer needs to be recreated (with the decode flag set accordingly)
+                // If the output target of this mixer changes from being another mixer to direct out (or vice-versa), the mixer needs to be recreated (with the decode flag set accordingly)
                 if (
                     (Mixer == null && value != null) ||
                     (Mixer != null && value == null)
@@ -520,12 +523,14 @@ namespace osu.Framework.Audio.Mixing.Bass
 
                     base.Mixer = value;
 
-                    if (Mixer != null)
-                        bassMixer.EnqueueAction(createMixer);
+                    EnqueueAction(createMixer);
                 }
 
                 if (Mixer != null)
-                    bassMixer.EnqueueAction(() => bassMixer.AddInternal(this));
+                {
+                    var oldMixer = bassMixer;
+                    oldMixer.EnqueueAction(() => oldMixer.AddInternal(this));
+                }
             }
         }
 
