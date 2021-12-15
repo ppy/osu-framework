@@ -807,7 +807,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class NumberTextBox : BasicTextBox
         {
-            protected override bool CanAddCharacter(char character) => char.IsNumber(character);
+            protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
         }
 
         private class CustomTextBox : BasicTextBox
