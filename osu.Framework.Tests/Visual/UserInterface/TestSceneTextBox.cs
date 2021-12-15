@@ -180,7 +180,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
+            // <c>U+FF11</c> is the Unicode FULLWIDTH DIGIT ONE character, treated as a number by char.IsNumber()
+            AddStep(@"set number text", () => numbers.Text = "1h2e3l4l5o6\uFF11");
             AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
         }
 
