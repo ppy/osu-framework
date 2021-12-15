@@ -233,7 +233,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="mixer">An <see cref="AudioMixer"/> to route output of the mixer to.</param>
+        /// <param name="mixer">An <see cref="AudioMixer"/> to route the output of the created <see cref="AudioMixer"/> to. If null, audio goes directly out instead.</param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
         public AudioMixer CreateAudioMixer([CanBeNull] AudioMixer mixer, string identifier = default) => createAudioMixer(mixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
