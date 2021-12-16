@@ -316,7 +316,7 @@ namespace osu.Framework.Screens
         }
 
         private void logTransition(IScreen screen1, IScreen screen2, bool wasExit) =>
-            Logger.Log($"[{GetType().Name}] transition ({screen1?.GetType().Name ?? "none"} {(wasExit ? "<<" : ">>")} {screen2?.GetType().Name ?? "none"})");
+            Logger.Log($"📺 {GetType().Name} transition ({screen1?.GetType().Name ?? "none"} {(wasExit ? "«" : "»")} {screen2?.GetType().Name ?? "none"})");
 
         /// <summary>
         /// Unbind and return leases for all <see cref="Bindable{T}"/>s managed by the exiting screen.
