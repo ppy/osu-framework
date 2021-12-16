@@ -207,10 +207,13 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
+            const int thread_join_timeout = 2000;
+
             if (thread != null)
             {
                 cancellationSource.Cancel();
-                thread.Join();
+                if (!thread.Join(thread_join_timeout))
+                    Logger.Log($"IPC thread failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             }
         }
     }
