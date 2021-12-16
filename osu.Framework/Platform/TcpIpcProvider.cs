@@ -66,7 +66,6 @@ namespace osu.Framework.Platform
                 };
 
                 thread.Start();
-
                 cancellationSource = new CancellationTokenSource();
                 return true;
             }
@@ -210,6 +209,7 @@ namespace osu.Framework.Platform
             if (listener != null)
             {
                 cancellationSource.Cancel();
+                thread.Join();
             }
         }
     }
