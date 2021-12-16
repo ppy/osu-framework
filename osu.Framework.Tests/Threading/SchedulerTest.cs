@@ -262,14 +262,14 @@ namespace osu.Framework.Tests.Threading
                     // allow catch-up to potentially occur.
                     scheduler.Update();
 
-                int expectedInovations;
+                int expectedInvocations;
 
                 if (performCatchUp)
-                    expectedInovations = (int)(d / 500);
+                    expectedInvocations = (int)(d / 500);
                 else
-                    expectedInovations = (int)(d / 2000);
+                    expectedInvocations = (int)(d / 2000);
 
-                Assert.AreEqual(expectedInovations, invocations);
+                Assert.AreEqual(expectedInvocations, invocations);
             }
         }
 
