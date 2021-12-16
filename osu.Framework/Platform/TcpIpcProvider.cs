@@ -29,9 +29,11 @@ namespace osu.Framework.Platform
 
         private TcpListener listener;
 
-        private CancellationTokenSource cancelListener;
+        private CancellationTokenSource cancellationSource;
 
         private readonly int port;
+
+        private Thread thread;
 
         /// <summary>
         /// Create a new provider.
@@ -43,7 +45,7 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Attempt to bind to the TCP port as a server.
+        /// Attempt to bind to the TCP port as a server, and start listening for incoming connections if successful.
         /// </summary>
         /// <returns>
         /// Whether the bind was successful.
@@ -56,7 +58,16 @@ namespace osu.Framework.Platform
             try
             {
                 listener.Start();
-                cancelListener = new CancellationTokenSource();
+
+                thread = new Thread(listen)
+                {
+                    Name = $"{GetType().Name} (listening on {port})",
+                    IsBackground = true
+                };
+
+                thread.Start();
+
+                cancellationSource = new CancellationTokenSource();
                 return true;
             }
             catch (SocketException ex)
@@ -75,9 +86,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Start processing events received by the listener. <see cref="Bind"/> must be called first.
         /// </summary>
-        public async Task StartAsync()
+        private async void listen()
         {
-            var token = cancelListener.Token;
+            var token = cancellationSource.Token;
 
             try
             {
@@ -197,7 +208,9 @@ namespace osu.Framework.Platform
         public void Dispose()
         {
             if (listener != null)
-                cancelListener.Cancel();
+            {
+                cancellationSource.Cancel();
+            }
         }
     }
 }
