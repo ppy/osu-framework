@@ -65,9 +65,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            if (bassChannel is BassAudioMixer mixer)
-                AddChannelToBassMix(mixer);
-
             if (!bassChannel.MixerChannelPaused)
                 ChannelPlay(bassChannel);
         }

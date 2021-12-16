@@ -32,9 +32,6 @@ namespace osu.Framework.Audio.Mixing
 
         public void Add(IAudioChannel channel)
         {
-            if (channel is AudioMixer audioMixer)
-                AddItem(audioMixer);
-
             channel.EnqueueAction(() =>
             {
                 if (channel.Mixer == this)
