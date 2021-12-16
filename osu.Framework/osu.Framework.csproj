@@ -36,7 +36,7 @@
     <PackageReference Include="ManagedBass.Mix" Version="3.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.182" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.185" />
     <PackageReference Include="StbiSharp" Version="1.0.13" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.486-alpha" />
 
