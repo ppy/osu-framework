@@ -81,12 +81,6 @@ namespace osu.Framework.Audio.Mixing
 
         public virtual AudioMixer? Mixer { get; set; }
 
-        AudioMixer? IAudioChannel.Mixer
-        {
-            get => Mixer;
-            set => Mixer = value;
-        }
-
         Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 
         #endregion
