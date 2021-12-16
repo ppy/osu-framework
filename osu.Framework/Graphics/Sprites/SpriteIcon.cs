@@ -48,8 +48,8 @@ namespace osu.Framework.Graphics.Sprites
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
                         FillMode = FillMode.Fit,
-                        Y = 2,
-                        Colour = new Color4(0f, 0f, 0f, 0.2f),
+                        Position = shadowOffset,
+                        Colour = shadowColour
                     },
                     Alpha = shadow ? 1 : 0,
                 },
@@ -117,6 +117,38 @@ namespace osu.Framework.Graphics.Sprites
                 shadow = value;
                 if (shadowVisibility != null)
                     shadowVisibility.Alpha = value ? 1 : 0;
+            }
+        }
+
+        private Color4 shadowColour = new Color4(0f, 0f, 0f, 0.2f);
+
+        /// <summary>
+        /// The colour of the shadow displayed around the icon. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
+        public Color4 ShadowColour
+        {
+            get => shadowColour;
+            set
+            {
+                shadowColour = value;
+
+                spriteShadow.Colour = shadowColour;
+            }
+        }
+
+        private Vector2 shadowOffset = new Vector2(0, 2f);
+
+        /// <summary>
+        /// The offset of the shadow displayed around the icon. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
+        public Vector2 ShadowOffset
+        {
+            get => shadowOffset;
+            set
+            {
+                shadowOffset = value;
+
+                spriteShadow.Position = shadowOffset;
             }
         }
 
