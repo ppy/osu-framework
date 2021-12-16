@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Threading
 {
-    public class ScheduledDelegateWithData<T> : ScheduledDelegate
+    internal class ScheduledDelegateWithData<T> : ScheduledDelegate
     {
         public new readonly Action<T> Task;
 
