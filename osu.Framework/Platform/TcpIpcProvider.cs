@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu.Framework.Logging;
 
+#nullable enable
+
 namespace osu.Framework.Platform
 {
     /// <summary>
@@ -25,15 +27,13 @@ namespace osu.Framework.Platform
         /// Invoked when a message is received when running as a server.
         /// Returns either a response in the form of an <see cref="IpcMessage"/>, or <c>null</c> for no response.
         /// </summary>
-        public event Func<IpcMessage, IpcMessage> MessageReceived;
+        public event Func<IpcMessage, IpcMessage>? MessageReceived;
 
-        private TcpListener listener;
+        private Thread? thread;
 
-        private CancellationTokenSource cancellationSource;
+        private readonly CancellationTokenSource cancellationSource = new CancellationTokenSource();
 
         private readonly int port;
-
-        private Thread thread;
 
         /// <summary>
         /// Create a new provider.
@@ -53,26 +53,25 @@ namespace osu.Framework.Platform
         /// </returns>
         public bool Bind()
         {
-            listener = new TcpListener(IPAddress.Loopback, port);
+            if (thread != null)
+                throw new InvalidOperationException($"Can't {nameof(Bind)} more than once.");
+
+            var listener = new TcpListener(IPAddress.Loopback, port);
 
             try
             {
                 listener.Start();
 
-                thread = new Thread(listen)
+                (thread = new Thread(() => listen(listener))
                 {
                     Name = $"{GetType().Name} (listening on {port})",
                     IsBackground = true
-                };
+                }).Start();
 
-                thread.Start();
-                cancellationSource = new CancellationTokenSource();
                 return true;
             }
             catch (SocketException ex)
             {
-                listener = null;
-
                 // In the common case that another instance is bound the the port, we don't need to log anything.
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     return false;
@@ -82,10 +81,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        /// <summary>
-        /// Start processing events received by the listener. <see cref="Bind"/> must be called first.
-        /// </summary>
-        private async void listen()
+        private async void listen(TcpListener listener)
         {
             var token = cancellationSource.Token;
 
@@ -151,7 +147,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="message">The message to send.</param>
         /// <returns>The response from the server.</returns>
-        public async Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message)
+        public async Task<IpcMessage?> SendMessageWithResponseAsync(IpcMessage message)
         {
             using (var client = new TcpClient())
             {
@@ -176,7 +172,7 @@ namespace osu.Framework.Platform
             await stream.FlushAsync().ConfigureAwait(false);
         }
 
-        private async Task<IpcMessage> receive(Stream stream, CancellationToken cancellationToken = default)
+        private async Task<IpcMessage?> receive(Stream stream, CancellationToken cancellationToken = default)
         {
             byte[] header = new byte[sizeof(int)];
             await stream.ReadAsync(header.AsMemory(), cancellationToken).ConfigureAwait(false);
@@ -191,11 +187,16 @@ namespace osu.Framework.Platform
             string str = Encoding.UTF8.GetString(data);
 
             var json = JToken.Parse(str);
-            var type = Type.GetType(json["Type"].Value<string>());
+
+            string? typeName = json["Type"]?.Value<string>();
+
+            Debug.Assert(typeName != null);
+
+            var type = Type.GetType(typeName);
             var value = json["Value"];
 
-            Trace.Assert(type != null);
-            Trace.Assert(value != null);
+            Debug.Assert(type != null);
+            Debug.Assert(value != null);
 
             return new IpcMessage
             {
@@ -206,7 +207,7 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
-            if (listener != null)
+            if (thread != null)
             {
                 cancellationSource.Cancel();
                 thread.Join();
