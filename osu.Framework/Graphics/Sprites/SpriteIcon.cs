@@ -132,7 +132,8 @@ namespace osu.Framework.Graphics.Sprites
             {
                 shadowColour = value;
 
-                spriteShadow.Colour = shadowColour;
+                if (spriteShadow != null)
+                    spriteShadow.Colour = shadowColour;
             }
         }
 
@@ -148,7 +149,8 @@ namespace osu.Framework.Graphics.Sprites
             {
                 shadowOffset = value;
 
-                spriteShadow.Position = shadowOffset;
+                if (spriteShadow != null)
+                    spriteShadow.Position = shadowOffset;
             }
         }
 
