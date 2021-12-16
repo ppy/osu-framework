@@ -33,13 +33,8 @@ namespace osu.Framework.Logging
             {
                 Logger.Log("⏳ Currently loading components");
 
-                lock (loading_components)
-                {
-                    foreach (var c in loading_components)
-                    {
-                        Logger.Log($"- {c.GetType().ReadableName(),-16} LoadState:{c.LoadState,-5} Thread:{c.LoadThread.Name}");
-                    }
-                }
+                foreach (var c in loading_components)
+                    Logger.Log($"- {c.GetType().ReadableName(),-16} LoadState:{c.LoadState,-5} Thread:{c.LoadThread.Name}");
 
                 loading_components.Clear();
             }
