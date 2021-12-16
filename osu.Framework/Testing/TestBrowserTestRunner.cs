@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Testing
@@ -43,7 +44,7 @@ namespace osu.Framework.Testing
 
             AddInternal(browser);
 
-            Console.WriteLine($@"{(int)Time.Current}: Running {browser.TestTypes.Count} visual test cases...");
+            Logger.Log($@"Running {browser.TestTypes.Count} visual test cases...");
 
             runNext();
         }
