@@ -9,10 +9,15 @@ namespace osu.Framework.Threading
     {
         public new readonly Action<T> Task;
 
+        public T Data;
+
         public ScheduledDelegateWithData(Action<T> task, T data, double executionTime = 0, double repeatInterval = -1)
-            : base(() => task(data), executionTime, repeatInterval)
+            : base(executionTime, repeatInterval)
         {
             Task = task;
+            Data = data;
+
+            base.Task = () => Task(Data);
         }
     }
 }
