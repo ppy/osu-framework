@@ -542,7 +542,11 @@ namespace osu.Framework.Audio.Mixing.Bass
 
                     base.Mixer = value;
 
-                    EnqueueAction(createMixer);
+                    if (Mixer != null)
+                    {
+                        var newMixer = bassMixer;
+                        newMixer.EnqueueAction(createMixer);
+                    }
                 }
 
                 if (Mixer != null)
