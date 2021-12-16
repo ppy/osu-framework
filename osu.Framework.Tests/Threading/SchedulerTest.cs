@@ -355,6 +355,20 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestAddOnceWithDataUsesMostRecentData()
+        {
+            int receivedData = 0;
+
+            void action(int i) => receivedData = i;
+
+            scheduler.AddOnce(action, 1);
+            scheduler.AddOnce(action, 2);
+
+            scheduler.Update();
+            Assert.AreEqual(2, receivedData);
+        }
+
+        [Test]
         public void TestAddOnceInlineFunctionWithVariable()
         {
             int invocations = 0;
