@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -100,14 +99,22 @@ namespace osu.Framework.Platform
                     {
                         using (var stream = client.GetStream())
                         {
-                            var message = receive(stream, token).Result;
-                            if (message == null)
-                                continue;
+                            try
+                            {
+                                var message = receive(stream, token).Result;
 
-                            var response = MessageReceived?.Invoke(message);
+                                if (message == null)
+                                    continue;
 
-                            if (response != null)
-                                send(stream, response).Wait(token);
+                                var response = MessageReceived?.Invoke(message);
+
+                                if (response != null)
+                                    send(stream, response).Wait(token);
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Error(e, "Error handling incoming IPC request.");
+                            }
                         }
                     }
                 }
@@ -190,13 +197,13 @@ namespace osu.Framework.Platform
 
             string? typeName = json["Type"]?.Value<string>();
 
-            Debug.Assert(typeName != null);
+            if (typeName == null) throw new InvalidOperationException("Response JSON has missing Type field.");
 
             var type = Type.GetType(typeName);
             var value = json["Value"];
 
-            Debug.Assert(type != null);
-            Debug.Assert(value != null);
+            if (type == null) throw new InvalidOperationException($"Response type could not be mapped ({typeName}).");
+            if (value == null) throw new InvalidOperationException("Response JSON has missing Value field.");
 
             return new IpcMessage
             {
