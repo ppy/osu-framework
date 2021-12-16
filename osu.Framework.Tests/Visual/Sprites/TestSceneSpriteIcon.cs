@@ -76,7 +76,12 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("change icons", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
             AddStep("white background", () => background.FadeColour(Color4.White, 200));
             AddStep("move shadow offset", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.ShadowOffset += Vector2.One));
-            AddStep("change shadow color", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.ShadowColour = Color4.Pink));
+            AddStep("change shadow colour", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.ShadowColour = Color4.Pink));
+            AddStep("add new icon with colour and offset", () =>
+                flow.Add(new Icon("FontAwesome.Regular.Handshake", FontAwesome.Regular.Handshake)
+                {
+                    SpriteIcon = { Shadow = true, ShadowColour = Color4.Orange, ShadowOffset = new Vector2(5, 1) }
+                }));
         }
 
         private class Icon : Container, IHasTooltip
