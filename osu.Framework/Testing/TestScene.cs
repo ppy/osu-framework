@@ -201,6 +201,7 @@ namespace osu.Framework.Testing
             }
             catch (Exception e)
             {
+                Logging.Logger.Log($"💥 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
                 onError?.Invoke(e);
                 return;
             }
@@ -221,6 +222,7 @@ namespace osu.Framework.Testing
 
             if (actionIndex > StepsContainer.Children.Count - 1)
             {
+                Logging.Logger.Log($"✅ {GetType().ReadableName()} completed");
                 onCompletion?.Invoke();
                 return;
             }
