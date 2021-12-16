@@ -205,27 +205,15 @@ namespace osu.Framework.Testing
                 return;
             }
 
-            string text = ".";
-
-            if (actionRepetition == 0)
-            {
-                text = $"{(int)Time.Current}: ".PadLeft(7);
-
-                if (actionIndex < 0)
-                    text += $"{GetType().ReadableName()}";
-                else
-                    text += $"step {actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}";
-            }
-
-            Console.Write(text);
-
             actionRepetition++;
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                if (actionIndex >= 0)
+                    Logging.Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
+
                 actionIndex++;
                 actionRepetition = 0;
-                Console.WriteLine();
 
                 if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
                     return;

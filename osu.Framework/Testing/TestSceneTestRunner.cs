@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -10,6 +9,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Testing
@@ -82,7 +82,7 @@ namespace osu.Framework.Testing
                 {
                     AddInternal(test);
 
-                    Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
+                    Logger.Log($@"💨 {test} running");
 
                     // Nunit will run the tests in the TestScene with the same TestScene instance so the TestScene
                     // needs to be removed before the host is exited, otherwise it will end up disposed

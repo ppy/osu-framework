@@ -80,6 +80,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private void updateText() => base.Text = $@"{Text} ({invocations} tries)";
 
-        public override string ToString() => "Repeat: " + base.ToString();
+        public override string ToString() => "Until: " + base.ToString();
     }
 }
