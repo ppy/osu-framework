@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Containers
@@ -246,7 +247,7 @@ namespace osu.Framework.Tests.Visual.Containers
             void removeChild()
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
-                Console.WriteLine($"removeChild: {child.ChildID}");
+                Logger.Log($"removeChild: {child.ChildID}");
                 container.RemoveInternal(child);
             }
 
@@ -254,7 +255,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
                 randomLifetime(out double l, out double r);
-                Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
+                Logger.Log($"changeLifetime: {child.ChildID}, {l}, {r}");
                 child.LifetimeStart = l;
                 child.LifetimeEnd = r;
 
@@ -266,7 +267,7 @@ namespace osu.Framework.Tests.Visual.Containers
             void changeTime()
             {
                 int time = rng.Next(6);
-                Console.WriteLine($"changeTime: {time}");
+                Logger.Log($"changeTime: {time}");
                 manualClock.CurrentTime = time;
                 checkAll();
             }
@@ -276,7 +277,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 addChild();
                 container.OnCrossing += e =>
                 {
-                    Console.WriteLine($"OnCrossing({e})");
+                    Logger.Log($"OnCrossing({e})");
                     changeLifetime();
                 };
             });

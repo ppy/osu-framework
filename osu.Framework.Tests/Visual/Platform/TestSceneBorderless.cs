@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
@@ -141,7 +142,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             if (window == null)
             {
-                Console.WriteLine("No suitable window found");
+                Logger.Log("No suitable window found");
                 return;
             }
 
