@@ -10,6 +10,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Screens
 {
@@ -108,6 +109,7 @@ namespace osu.Framework.Screens
                 suspend(source, newScreen);
 
             stack.Push(newScreen);
+            logTransition(source, newScreen, false);
             ScreenPushed?.Invoke(source, newScreen);
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
@@ -303,6 +305,7 @@ namespace osu.Framework.Screens
 
             exited.Add(toExit.AsDrawable());
 
+            logTransition(toExit, CurrentScreen, true);
             ScreenExited?.Invoke(toExit, CurrentScreen);
 
             // Resume the next current screen from the exited one
@@ -311,6 +314,9 @@ namespace osu.Framework.Screens
 
             return false;
         }
+
+        private void logTransition(IScreen screen1, IScreen screen2, bool wasExit) =>
+            Logger.Log($"[{GetType().Name}] transition ({screen1?.GetType().Name ?? "none"} {(wasExit ? "<<" : ">>")} {screen2?.GetType().Name ?? "none"})");
 
         /// <summary>
         /// Unbind and return leases for all <see cref="Bindable{T}"/>s managed by the exiting screen.
