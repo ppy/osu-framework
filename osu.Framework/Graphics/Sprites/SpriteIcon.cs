@@ -69,6 +69,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             base.LoadComplete();
             updateTexture();
+            updateShadow();
         }
 
         private IconUsage loadedIcon;
@@ -115,8 +116,9 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 shadow = value;
-                if (shadowVisibility != null)
-                    shadowVisibility.Alpha = value ? 1 : 0;
+
+                if (IsLoaded)
+                    updateShadow();
             }
         }
 
@@ -132,8 +134,8 @@ namespace osu.Framework.Graphics.Sprites
             {
                 shadowColour = value;
 
-                if (spriteShadow != null)
-                    spriteShadow.Colour = shadowColour;
+                if (IsLoaded)
+                    updateShadow();
             }
         }
 
@@ -149,9 +151,16 @@ namespace osu.Framework.Graphics.Sprites
             {
                 shadowOffset = value;
 
-                if (spriteShadow != null)
-                    spriteShadow.Position = shadowOffset;
+                if (IsLoaded)
+                    updateShadow();
             }
+        }
+
+        private void updateShadow()
+        {
+            shadowVisibility.Alpha = shadow ? 1 : 0;
+            spriteShadow.Colour = shadowColour;
+            spriteShadow.Position = shadowOffset;
         }
 
         private IconUsage icon;
@@ -164,7 +173,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (icon.Equals(value)) return;
 
                 icon = value;
-                if (LoadState == LoadState.Loaded)
+                if (IsLoaded)
                     updateTexture();
             }
         }
