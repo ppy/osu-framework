@@ -11,21 +11,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Platform
 {
     /// <summary>
     /// An inter-process communication provider that runs over a specified TCP port, binding to the loopback address.
+    /// This single class handles both binding as a server, or messaging another bound instance that is acting as a server.
     /// </summary>
     public class TcpIpcProvider : IDisposable
     {
         /// <summary>
-        /// Invoked when a message is received by this IPC server.
+        /// Invoked when a message is received when running as a server.
         /// Returns either a response in the form of an <see cref="IpcMessage"/>, or <c>null</c> for no response.
         /// </summary>
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         private TcpListener listener;
+
         private CancellationTokenSource cancelListener;
 
         private readonly int port;
@@ -40,9 +43,12 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Attempt to bind as the "server" instance.
+        /// Attempt to bind to the TCP port as a server.
         /// </summary>
-        /// <returns>Whether the bind was successful. If <c>false</c>, another instance is likely already running (and can be messaged using <see cref="SendMessageAsync"/> or <see cref="SendMessageWithResponseAsync"/>).</returns>
+        /// <returns>
+        /// Whether the bind was successful.
+        /// If <c>false</c>, another instance is likely already running (and can be messaged using <see cref="SendMessageAsync"/> or <see cref="SendMessageWithResponseAsync"/>).
+        /// </returns>
         public bool Bind()
         {
             listener = new TcpListener(IPAddress.Loopback, port);
@@ -56,10 +62,12 @@ namespace osu.Framework.Platform
             catch (SocketException ex)
             {
                 listener = null;
+
+                // In the common case that another instance is bound the the port, we don't need to log anything.
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     return false;
 
-                Console.WriteLine($@"Unhandled exception initializing IPC server: {ex}");
+                Logger.Error(ex, "Unable to bind IPC server");
                 return false;
             }
         }
