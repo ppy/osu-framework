@@ -27,7 +27,7 @@ namespace osu.Framework.Platform
         /// Invoked when a message is received when running as a server.
         /// Returns either a response in the form of an <see cref="IpcMessage"/>, or <c>null</c> for no response.
         /// </summary>
-        public event Func<IpcMessage, IpcMessage>? MessageReceived;
+        public event Func<IpcMessage, IpcMessage?>? MessageReceived;
 
         private Thread? thread;
 
