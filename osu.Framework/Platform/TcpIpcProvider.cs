@@ -81,7 +81,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private async void listen(TcpListener listener)
+        private void listen(TcpListener listener)
         {
             var token = cancellationSource.Token;
 
@@ -91,23 +91,23 @@ namespace osu.Framework.Platform
                 {
                     while (!listener.Pending())
                     {
-                        await Task.Delay(10, token).ConfigureAwait(false);
+                        Thread.Sleep(10);
                         if (token.IsCancellationRequested)
                             return;
                     }
 
-                    using (var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false))
+                    using (var client = listener.AcceptTcpClient())
                     {
                         using (var stream = client.GetStream())
                         {
-                            var message = await receive(stream, token).ConfigureAwait(false);
+                            var message = receive(stream, token).Result;
                             if (message == null)
                                 continue;
 
                             var response = MessageReceived?.Invoke(message);
 
                             if (response != null)
-                                await send(stream, response).ConfigureAwait(false);
+                                send(stream, response).Wait(token);
                         }
                     }
                 }
