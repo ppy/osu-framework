@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Diagnostics;
+using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Lists;
@@ -12,23 +12,26 @@ namespace osu.Framework.Logging
     {
         private static readonly WeakList<Drawable> loading_components = new WeakList<Drawable>();
 
-        [Conditional("DEBUG")]
         public static void Add(Drawable component)
         {
+            if (!DebugUtils.IsDebugBuild) return;
+
             lock (loading_components)
                 loading_components.Add(component);
         }
 
-        [Conditional("DEBUG")]
         public static void Remove(Drawable component)
         {
+            if (!DebugUtils.IsDebugBuild) return;
+
             lock (loading_components)
                 loading_components.Remove(component);
         }
 
-        [Conditional("DEBUG")]
         public static void LogAndFlush()
         {
+            if (!DebugUtils.IsDebugBuild) return;
+
             lock (loading_components)
             {
                 Logger.Log("⏳ Currently loading components");

@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
@@ -267,9 +266,11 @@ namespace osu.Framework.Logging
         /// Logs a new message with the <see cref="LogLevel.Debug"/> and will only be logged if your project is built in the Debug configuration. Please note that the default setting for <see cref="Level"/> is <see cref="LogLevel.Verbose"/> so unless you increase the <see cref="Level"/> to <see cref="LogLevel.Debug"/> messages printed with this method will not appear in the output.
         /// </summary>
         /// <param name="message">The message that should be logged.</param>
-        [Conditional("DEBUG")]
         public void Debug(string message = @"")
         {
+            if (!DebugUtils.IsDebugBuild)
+                return;
+
             Add(message, LogLevel.Debug);
         }
 
