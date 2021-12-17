@@ -1011,5 +1011,36 @@ namespace osu.Framework.Platform.SDL2
             str = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
             return true;
         }
+
+        // ReSharper disable InconsistentNaming (mimics SDL and SDL2-CS naming)
+        // ReSharper disable IdentifierTypo
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct INTERNAL_windows_wmmsg
+        {
+            public IntPtr hwnd;
+            public uint msg;
+            public ulong wParam;
+            public long lParam;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct INTERNAL_SysWMmsgUnion
+        {
+            [FieldOffset(0)]
+            public INTERNAL_windows_wmmsg win;
+            // could add more native events here if required
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct SDL_SysWMmsg
+        {
+            public SDL.SDL_version version;
+            public SDL.SDL_SYSWM_TYPE subsystem;
+            public INTERNAL_SysWMmsgUnion msg;
+        }
+
+        // ReSharper restore InconsistentNaming
+        // ReSharper restore IdentifierTypo
     }
 }

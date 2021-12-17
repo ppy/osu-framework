@@ -718,6 +718,10 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_DROPCOMPLETE:
                     handleDropEvent(e.drop);
                     break;
+
+                case SDL.SDL_EventType.SDL_SYSWMEVENT:
+                    HandleSysWMEvent(e.syswm);
+                    break;
             }
         }
 
@@ -984,6 +988,19 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                     break;
             }
+        }
+
+        /// <summary>
+        /// Override if platform requires special handling of native events.
+        /// </summary>
+        /// <remarks>
+        /// Make sure to enable the events with
+        ///   <code>
+        ///     SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+        ///   </code>
+        /// </remarks>
+        protected virtual void HandleSysWMEvent(SDL.SDL_SysWMEvent sysWM)
+        {
         }
 
         /// <summary>
