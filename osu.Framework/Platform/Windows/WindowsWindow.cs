@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using SDL2;
 
@@ -31,6 +32,101 @@ namespace osu.Framework.Platform.Windows
             catch
             {
                 // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
+            }
+        }
+
+        public override void Create()
+        {
+            base.Create();
+
+            // enable WM events to use with `HandleSysWMEvent`
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+        }
+
+        public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
+
+        protected override void HandleSysWMEvent(SDL.SDL_SysWMEvent sysWM)
+        {
+            var wmMsg = Marshal.PtrToStructure<SDL2Extensions.SDL_SysWMmsg>(sysWM.msg);
+            var m = wmMsg.msg.win;
+
+            switch (m.msg)
+            {
+                case Imm.WM_IME_STARTCOMPOSITION:
+                case Imm.WM_IME_COMPOSITION:
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    handleImeMessage(m.hwnd, m.msg, m.lParam);
+                    break;
+            }
+        }
+
+        protected override unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        {
+            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
+                return;
+
+            // block SDL text input if we already committed that text.
+            // keep in mind that the text provided by SDL may be shorter than our text.
+            if (lastFinalizedComposition != null && lastFinalizedComposition.StartsWith(text, StringComparison.Ordinal))
+            {
+                lastFinalizedComposition = null;
+                return;
+            }
+
+            ScheduleEvent(() => TriggerTextInput(text));
+        }
+
+        protected override void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
+        {
+            // handled by custom logic below
+        }
+
+        private string lastComposition;
+        private string lastFinalizedComposition;
+
+        private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
+        {
+            switch (uMsg)
+            {
+                case Imm.WM_IME_STARTCOMPOSITION:
+                    lastComposition = null;
+                    ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
+                    break;
+
+                case Imm.WM_IME_COMPOSITION:
+                    using (var inputContext = new Imm.InputContext(hWnd))
+                    {
+                        if (Imm.TryGetImeResult(inputContext, lParam, out string resultText))
+                        {
+                            if (string.IsNullOrEmpty(resultText) && !string.IsNullOrEmpty(lastComposition))
+                            {
+                                // These events are somewhat delayed as they go trough SDL's event queue,
+                                // so it's possible that the internal IME state has changed by the time we get the event,
+                                // especially so if a ongoing composition is finished and a new one is started with a single keystroke.
+                                // In case the internal IME state has changed and we get empty result text,
+                                // use the last composition as fallback.
+                                resultText = lastComposition;
+                            }
+
+                            lastComposition = null;
+                            lastFinalizedComposition = resultText;
+
+                            ScheduleEvent(() => TriggerTextInput(resultText));
+                        }
+
+                        if (Imm.TryGetImeComposition(inputContext, lParam, out string compositionText, out int start, out int length))
+                        {
+                            lastComposition = compositionText;
+                            ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
+                        }
+                    }
+
+                    break;
+
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    lastComposition = null;
+                    ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
+                    break;
             }
         }
 
