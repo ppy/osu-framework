@@ -67,6 +67,18 @@ namespace osu.Framework.Platform.Windows.Native
         }
 
         /// <summary>
+        /// Sets whether IME is allowed.
+        /// </summary>
+        /// <remarks>
+        /// If IME is disallowed, text input is active and a language that uses IME is selected,
+        /// then IME will be forced into alphanumeric mode, behaving as normal keyboard input (no compositing will happen).
+        /// </remarks>
+        internal static void SetImeAllowed(IntPtr hWnd, bool allowed)
+        {
+            ImmAssociateContextEx(hWnd, IntPtr.Zero, allowed ? AssociationFlags.IACE_DEFAULT : AssociationFlags.IACE_IGNORENOCONTEXT);
+        }
+
+        /// <summary>
         /// Returns true if <paramref name="lParam"/> has the specified <paramref name="flag"/>.
         /// </summary>
         private static bool hasFlag(this long lParam, CompositionString flag) => (lParam & (long)flag) != 0;
@@ -184,6 +196,10 @@ namespace osu.Framework.Platform.Windows.Native
         [DllImport("imm32.dll", CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool ImmNotifyIME(IntPtr hImc, NotificationCode dwAction, uint dwIndex, uint dwValue);
+
+        [DllImport("imm32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool ImmAssociateContextEx(IntPtr hWnd, IntPtr hImc, AssociationFlags dwFlags);
 
         // ReSharper disable IdentifierTypo
 
@@ -390,6 +406,28 @@ namespace osu.Framework.Platform.Windows.Native
             /// Clear the composition string and set the status to no composition string.
             /// </summary>
             CPS_CANCEL = 0x0004,
+        }
+
+        /// <summary>
+        /// Flags specifying the type of association between the window and the input method context.
+        /// dwFlags for <see cref="ImmAssociateContextEx"/>.
+        /// </summary>
+        private enum AssociationFlags : uint
+        {
+            /// <summary>
+            /// Associate the input method context to the child windows of the specified window only.
+            /// </summary>
+            IACE_CHILDREN = 0x0001,
+
+            /// <summary>
+            /// Restore the default input method context of the window.
+            /// </summary>
+            IACE_DEFAULT = 0x0010,
+
+            /// <summary>
+            /// Do not associate the input method context with windows that are not associated with any input method context.
+            /// </summary>
+            IACE_IGNORENOCONTEXT = 0x0020,
         }
 
         // ReSharper restore IdentifierTypo

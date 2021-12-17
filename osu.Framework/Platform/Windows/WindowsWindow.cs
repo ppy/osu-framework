@@ -43,6 +43,12 @@ namespace osu.Framework.Platform.Windows
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
         }
 
+        public override void StartTextInput(bool allowIme)
+        {
+            base.StartTextInput(allowIme);
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
+        }
+
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
 
         protected override void HandleSysWMEvent(SDL.SDL_SysWMEvent sysWM)
