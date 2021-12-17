@@ -16,6 +16,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
@@ -202,6 +203,7 @@ namespace osu.Framework.Testing
             catch (Exception e)
             {
                 Logging.Logger.Log($"💥 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
+                LoadingComponentsLogger.LogAndFlush();
                 onError?.Invoke(e);
                 return;
             }
