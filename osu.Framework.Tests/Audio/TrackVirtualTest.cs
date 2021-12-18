@@ -85,6 +85,29 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestStopWhenDisposed()
+        {
+            startPlaybackAt(0);
+
+            Thread.Sleep(50);
+            updateTrack();
+
+            Assert.IsTrue(track.IsAlive);
+            Assert.IsTrue(track.IsRunning);
+
+            track.Dispose();
+            updateTrack();
+
+            Assert.IsFalse(track.IsAlive);
+            Assert.IsFalse(track.IsRunning);
+
+            double expectedTime = track.CurrentTime;
+            Thread.Sleep(50);
+
+            Assert.AreEqual(expectedTime, track.CurrentTime);
+        }
+
+        [Test]
         public void TestSeek()
         {
             track.Seek(1000);

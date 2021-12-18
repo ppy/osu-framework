@@ -65,6 +65,30 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestStopWhenDisposed()
+        {
+            track.StartAsync();
+            bass.Update();
+
+            Thread.Sleep(50);
+            bass.Update();
+
+            Assert.IsTrue(track.IsAlive);
+            Assert.IsTrue(track.IsRunning);
+
+            track.Dispose();
+            bass.Update();
+
+            Assert.IsFalse(track.IsAlive);
+            Assert.IsFalse(track.IsRunning);
+
+            double expectedTime = track.CurrentTime;
+            Thread.Sleep(50);
+
+            Assert.AreEqual(expectedTime, track.CurrentTime);
+        }
+
+        [Test]
         public void TestStopAtEnd()
         {
             startPlaybackAt(track.Length - 1);
