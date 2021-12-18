@@ -1029,6 +1029,7 @@ namespace osu.Framework.Platform.SDL2
         {
             [FieldOffset(0)]
             public INTERNAL_windows_wmmsg win;
+
             // could add more native events here if required
         }
 
