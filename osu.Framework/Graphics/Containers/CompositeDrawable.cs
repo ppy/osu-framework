@@ -26,6 +26,7 @@ using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Layout;
+using osu.Framework.Logging;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 
@@ -85,9 +86,9 @@ namespace osu.Framework.Graphics.Containers
 
         private WeakList<Drawable> loadingComponents;
 
-        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync) + " (standard)");
 
-        private static readonly ThreadedTaskScheduler long_load_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        private static readonly ThreadedTaskScheduler long_load_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync) + " (long load)");
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -159,7 +160,13 @@ namespace osu.Framework.Graphics.Containers
             foreach (var d in loadables)
             {
                 loadingComponents.Add(d);
-                d.OnLoadComplete += _ => loadingComponents.Remove(d);
+                LoadingComponentsLogger.Add(d);
+
+                d.OnLoadComplete += _ =>
+                {
+                    loadingComponents.Remove(d);
+                    LoadingComponentsLogger.Remove(d);
+                };
             }
 
             var taskScheduler = loadables.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
@@ -301,7 +308,10 @@ namespace osu.Framework.Graphics.Containers
             if (loadingComponents != null)
             {
                 foreach (var d in loadingComponents)
+                {
                     d.Dispose();
+                    LoadingComponentsLogger.Remove(d);
+                }
             }
 
             OnAutoSize = null;
