@@ -73,6 +73,12 @@ namespace osu.Framework.Platform.Windows
                 return;
             }
 
+            // also block if there is an ongoing composition (unlikely to occur).
+            if (!string.IsNullOrEmpty(lastComposition))
+            {
+                return;
+            }
+
             ScheduleEvent(() => TriggerTextInput(text));
         }
 
