@@ -47,7 +47,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override void HandleSysWMEvent(SDL.SDL_SysWMEvent sysWM)
         {
-            var wmMsg = Marshal.PtrToStructure<SDL2Extensions.SDL_SysWMmsg>(sysWM.msg);
+            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(sysWM.msg);
             var m = wmMsg.msg.win;
 
             switch (m.msg)
