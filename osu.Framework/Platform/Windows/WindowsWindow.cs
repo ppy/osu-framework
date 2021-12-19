@@ -39,26 +39,28 @@ namespace osu.Framework.Platform.Windows
         {
             base.Create();
 
-            // enable WM events to use with `HandleSysWMEvent`
+            // enable window message events to use with `OnSDLEvent` below.
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+
+            OnSDLEvent += e =>
+            {
+                if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
+
+                var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
+                var m = wmMsg.msg.win;
+
+                switch (m.msg)
+                {
+                    case Imm.WM_IME_STARTCOMPOSITION:
+                    case Imm.WM_IME_COMPOSITION:
+                    case Imm.WM_IME_ENDCOMPOSITION:
+                        handleImeMessage(m.hwnd, m.msg, m.lParam);
+                        break;
+                }
+            };
         }
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
-
-        protected override void HandleSysWMEvent(SDL.SDL_SysWMEvent sysWM)
-        {
-            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(sysWM.msg);
-            var m = wmMsg.msg.win;
-
-            switch (m.msg)
-            {
-                case Imm.WM_IME_STARTCOMPOSITION:
-                case Imm.WM_IME_COMPOSITION:
-                case Imm.WM_IME_ENDCOMPOSITION:
-                    handleImeMessage(m.hwnd, m.msg, m.lParam);
-                    break;
-            }
-        }
 
         protected override void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -70,10 +72,7 @@ namespace osu.Framework.Platform.Windows
             }
 
             // also block if there is an ongoing composition (unlikely to occur).
-            if (!string.IsNullOrEmpty(lastComposition))
-            {
-                return;
-            }
+            if (imeCompositionActive) return;
 
             base.HandleTextInputEvent(evtText);
         }
@@ -84,13 +83,12 @@ namespace osu.Framework.Platform.Windows
         }
 
         /// <summary>
-        /// Text of the last IME composition.
+        /// Whether IME composition is active.
         /// </summary>
-        /// <remarks>Reset to <c>null</c> when composition ends.</remarks>
-        private string lastComposition;
+        private bool imeCompositionActive;
 
         /// <summary>
-        /// Whether there was a IME result recently.
+        /// Whether an IME result was recently posted.
         /// </summary>
         /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
         private bool recentImeResult;
@@ -100,7 +98,7 @@ namespace osu.Framework.Platform.Windows
             switch (uMsg)
             {
                 case Imm.WM_IME_STARTCOMPOSITION:
-                    lastComposition = null;
+                    imeCompositionActive = false;
                     ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
                     break;
 
@@ -109,25 +107,14 @@ namespace osu.Framework.Platform.Windows
                     {
                         if (inputContext.TryGetImeResult(out string resultText))
                         {
-                            if (string.IsNullOrEmpty(resultText) && !string.IsNullOrEmpty(lastComposition))
-                            {
-                                // These events are somewhat delayed as they go through SDL's event queue,
-                                // so it's possible that the internal IME state has changed by the time we get the event,
-                                // especially so if a ongoing composition is finished and a new one is started with a single keystroke.
-                                // In case the internal IME state has changed and we get empty result text,
-                                // use the last composition as fallback.
-                                resultText = lastComposition;
-                            }
-
-                            lastComposition = null;
+                            imeCompositionActive = false;
                             recentImeResult = true;
-
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
                         if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
                         {
-                            lastComposition = compositionText;
+                            imeCompositionActive = true;
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
                         }
                     }
@@ -135,7 +122,7 @@ namespace osu.Framework.Platform.Windows
                     break;
 
                 case Imm.WM_IME_ENDCOMPOSITION:
-                    lastComposition = null;
+                    imeCompositionActive = false;
                     ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
                     break;
             }
