@@ -427,19 +427,22 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
             SDL.SDL_SetEventFilter(eventFilterDelegate = (_, eventPtr) =>
             {
-                // ReSharper disable once PossibleNullReferenceException
-                var e = (SDL.SDL_Event)Marshal.PtrToStructure(eventPtr, typeof(SDL.SDL_Event));
+                var e = Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr);
+                OnSDLEvent?.Invoke(e);
 
+                return 1;
+            }, IntPtr.Zero);
+
+            // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
+            OnSDLEvent += e =>
+            {
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
                     updateWindowSize();
                 }
-
-                return 1;
-            }, IntPtr.Zero);
+            };
 
             while (Exists)
             {
@@ -1494,6 +1497,11 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
+
+        /// <summary>
+        /// Invoked on every SDL event before it's posted to the event queue.
+        /// </summary>
+        protected event Action<SDL.SDL_Event> OnSDLEvent;
 
         #endregion
 
