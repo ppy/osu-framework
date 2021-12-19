@@ -60,11 +60,8 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
-        protected override unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        protected override void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
-                return;
-
             // block SDL text input if there was a recent result from `handleImeMessage()`.
             if (recentImeResult)
             {
@@ -78,7 +75,7 @@ namespace osu.Framework.Platform.Windows
                 return;
             }
 
-            ScheduleEvent(() => TriggerTextInput(text));
+            base.HandleTextInputEvent(evtText);
         }
 
         protected override void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
