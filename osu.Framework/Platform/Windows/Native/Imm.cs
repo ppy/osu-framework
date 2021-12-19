@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Platform.Windows.Native
 {
@@ -33,12 +34,12 @@ namespace osu.Framework.Platform.Windows.Native
         {
             private readonly InputContextHandle handle;
 
-            private readonly long lParam;
+            private readonly CompositionString lParam;
 
             public InputContext(IntPtr hWnd, long lParam = 0)
             {
                 handle = new InputContextHandle(hWnd);
-                this.lParam = lParam;
+                this.lParam = (CompositionString)lParam;
             }
 
             /// <summary>
@@ -110,11 +111,6 @@ namespace osu.Framework.Platform.Windows.Native
             }
 
             /// <summary>
-            /// Returns true if <see cref="lParam"/> has the specified <paramref name="flag"/>.
-            /// </summary>
-            private bool lParamHasFlag(CompositionString flag) => (lParam & (long)flag) != 0;
-
-            /// <summary>
             /// Get the <paramref name="size"/> of the corresponding <paramref name="compositionString"/> from the IMM.
             /// </summary>
             /// <remarks>
@@ -128,7 +124,7 @@ namespace osu.Framework.Platform.Windows.Native
             {
                 size = -1;
 
-                if (!lParamHasFlag(compositionString))
+                if (!lParam.HasFlagFast(compositionString))
                     return false;
 
                 size = ImmGetCompositionString(handle, compositionString, null, 0);
@@ -275,6 +271,7 @@ namespace osu.Framework.Platform.Windows.Native
         /// <c>lParam</c> values of <see cref="WM_IME_COMPOSITION"/> event.
         /// Parameter <c>dwIndex</c> of <see cref="ImmGetCompositionString"/>.
         /// </summary>
+        [Flags]
         private enum CompositionString : uint
         {
             /// <summary>
