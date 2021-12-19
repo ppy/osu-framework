@@ -94,9 +94,9 @@ namespace osu.Framework.Platform.Windows
                     break;
 
                 case Imm.WM_IME_COMPOSITION:
-                    using (var inputContext = new Imm.InputContext(hWnd))
+                    using (var inputContext = new Imm.InputContext(hWnd, lParam))
                     {
-                        if (Imm.TryGetImeResult(inputContext, lParam, out string resultText))
+                        if (inputContext.TryGetImeResult(out string resultText))
                         {
                             if (string.IsNullOrEmpty(resultText) && !string.IsNullOrEmpty(lastComposition))
                             {
@@ -114,7 +114,7 @@ namespace osu.Framework.Platform.Windows
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
-                        if (Imm.TryGetImeComposition(inputContext, lParam, out string compositionText, out int start, out int length))
+                        if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
                         {
                             lastComposition = compositionText;
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
