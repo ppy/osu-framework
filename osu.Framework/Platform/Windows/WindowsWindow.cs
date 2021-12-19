@@ -100,7 +100,7 @@ namespace osu.Framework.Platform.Windows
                         {
                             if (string.IsNullOrEmpty(resultText) && !string.IsNullOrEmpty(lastComposition))
                             {
-                                // These events are somewhat delayed as they go trough SDL's event queue,
+                                // These events are somewhat delayed as they go through SDL's event queue,
                                 // so it's possible that the internal IME state has changed by the time we get the event,
                                 // especially so if a ongoing composition is finished and a new one is started with a single keystroke.
                                 // In case the internal IME state has changed and we get empty result text,
