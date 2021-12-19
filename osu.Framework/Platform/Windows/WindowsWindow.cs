@@ -65,11 +65,10 @@ namespace osu.Framework.Platform.Windows
             if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
                 return;
 
-            // block SDL text input if we already committed that text.
-            // keep in mind that the text provided by SDL may be shorter than our text.
-            if (lastFinalizedComposition != null && lastFinalizedComposition.StartsWith(text, StringComparison.Ordinal))
+            // block SDL text input if there was a recent result from `handleImeMessage()`.
+            if (recentImeResult)
             {
-                lastFinalizedComposition = null;
+                recentImeResult = false;
                 return;
             }
 
@@ -87,8 +86,17 @@ namespace osu.Framework.Platform.Windows
             // handled by custom logic below
         }
 
+        /// <summary>
+        /// Text of the last IME composition.
+        /// </summary>
+        /// <remarks>Reset to <c>null</c> when composition ends.</remarks>
         private string lastComposition;
-        private string lastFinalizedComposition;
+
+        /// <summary>
+        /// Whether there was a IME result recently.
+        /// </summary>
+        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
+        private bool recentImeResult;
 
         private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
         {
@@ -115,7 +123,7 @@ namespace osu.Framework.Platform.Windows
                             }
 
                             lastComposition = null;
-                            lastFinalizedComposition = resultText;
+                            recentImeResult = true;
 
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
