@@ -26,7 +26,7 @@ namespace osu.Framework.Threading
 
         private int runningTaskCount;
 
-        public string GetStatusString() => $"{name} concurrency:{MaximumConcurrencyLevel} running:{runningTaskCount} pending:{tasks.Count}";
+        public string GetStatusString() => $"{name} concurrency:{MaximumConcurrencyLevel} running:{runningTaskCount} pending:{pendingTaskCount}";
 
         /// <summary>
         /// Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.
@@ -98,6 +98,22 @@ namespace osu.Framework.Threading
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
         public override int MaximumConcurrencyLevel => threads.Length;
+
+        private int pendingTaskCount
+        {
+            get
+            {
+                try
+                {
+                    return tasks.Count;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // tasks may have been disposed. there's no easy way to check on this other than catch for it.
+                    return 0;
+                }
+            }
+        }
 
         /// <summary>
         /// Cleans up the scheduler by indicating that no more tasks will be queued.
