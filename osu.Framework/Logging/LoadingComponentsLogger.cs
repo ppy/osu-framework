@@ -40,9 +40,9 @@ namespace osu.Framework.Logging
 
                 foreach (var c in loading_components.OrderBy(c => c.LoadThread?.Name).ThenBy(c => c.LoadState))
                 {
-                    Logger.Log($"{c.GetType().ReadableName(),-16}");
-                    Logger.Log($"- thread:{c.LoadThread?.Name ?? "none"}");
-                    Logger.Log($"- state:{c.LoadState,-5}");
+                    Logger.Log($"{c.GetType().ReadableName()}");
+                    Logger.Log($"- thread: {c.LoadThread?.Name ?? "none"}");
+                    Logger.Log($"- state:  {c.LoadState}");
                 }
 
                 loading_components.Clear();
