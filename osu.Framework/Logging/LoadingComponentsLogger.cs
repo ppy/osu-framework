@@ -5,6 +5,7 @@ using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Logging
@@ -41,6 +42,11 @@ namespace osu.Framework.Logging
                     Logger.Log($"- {c.GetType().ReadableName(),-16} LoadState:{c.LoadState,-5} Thread:{c.LoadThread.Name}");
 
                 loading_components.Clear();
+
+                Logger.Log("🧵 Task schedulers");
+
+                Logger.Log(CompositeDrawable.SCHEDULER_STANDARD.GetStatusString());
+                Logger.Log(CompositeDrawable.SCHEDULER_LONG_LOAD.GetStatusString());
             }
         }
     }

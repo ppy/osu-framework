@@ -20,7 +20,13 @@ namespace osu.Framework.Threading
 
         private readonly ImmutableArray<Thread> threads;
 
+        private readonly string name;
+
         private bool isDisposed;
+
+        private int runningTaskCount;
+
+        public string GetStatusString() => $"{name} concurrency:{MaximumConcurrencyLevel} running:{runningTaskCount} pending:{tasks.Count}";
 
         /// <summary>
         /// Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.
@@ -32,13 +38,14 @@ namespace osu.Framework.Threading
             if (numberOfThreads < 1)
                 throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
 
+            this.name = name;
             tasks = new BlockingCollection<Task>();
 
             threads = Enumerable.Range(0, numberOfThreads).Select(i =>
             {
                 var thread = new Thread(processTasks)
                 {
-                    Name = $"ThreadedTaskScheduler ({name})",
+                    Name = $"{nameof(ThreadedTaskScheduler)} ({name})",
                     IsBackground = true
                 };
 
@@ -56,7 +63,12 @@ namespace osu.Framework.Threading
         {
             try
             {
-                foreach (var t in tasks.GetConsumingEnumerable()) TryExecuteTask(t);
+                foreach (var t in tasks.GetConsumingEnumerable())
+                {
+                    Interlocked.Increment(ref runningTaskCount);
+                    TryExecuteTask(t);
+                    Interlocked.Decrement(ref runningTaskCount);
+                }
             }
             catch (ObjectDisposedException)
             {

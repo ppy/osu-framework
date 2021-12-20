@@ -86,9 +86,9 @@ namespace osu.Framework.Graphics.Containers
 
         private WeakList<Drawable> loadingComponents;
 
-        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync) + " (standard)");
+        internal static readonly ThreadedTaskScheduler SCHEDULER_STANDARD = new ThreadedTaskScheduler(4, $"{nameof(LoadComponentsAsync)} (standard)");
 
-        private static readonly ThreadedTaskScheduler long_load_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync) + " (long load)");
+        internal static readonly ThreadedTaskScheduler SCHEDULER_LONG_LOAD = new ThreadedTaskScheduler(4, $"{nameof(LoadComponentsAsync)} (long load)");
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
                 };
             }
 
-            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? SCHEDULER_LONG_LOAD : SCHEDULER_STANDARD;
 
             return Task.Factory.StartNew(() => loadComponents(loadables, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(loaded =>
             {
