@@ -122,7 +122,7 @@ namespace osu.Framework.Screens
                 else
                 {
                     log($"scheduling push {getTypeString(newScreen)}");
-                    Scheduler.Add(() => finishPush(null, newScreen));
+                    Schedule(() => finishPush(null, newScreen));
                 }
             }
             else
@@ -202,7 +202,7 @@ namespace osu.Framework.Screens
                 else
                 {
                     log($"scheduling load {getTypeString(toLoad)}");
-                    Scheduler.Add(() => LoadScreen(loader, toLoad, continuation));
+                    Schedule(() => LoadScreen(loader, toLoad, continuation));
                 }
             }
         }
