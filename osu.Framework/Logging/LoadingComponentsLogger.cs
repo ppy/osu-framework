@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -34,7 +35,7 @@ namespace osu.Framework.Logging
 
             lock (loading_components)
             {
-                Logger.Log("⏳ Currently loading components");
+                Logger.Log($"⏳ Currently loading components ({loading_components.Count()})");
 
                 foreach (var c in loading_components)
                     Logger.Log($"- {c.GetType().ReadableName(),-16} LoadState:{c.LoadState,-5} Thread:{c.LoadThread.Name}");
