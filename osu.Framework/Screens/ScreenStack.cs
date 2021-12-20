@@ -109,7 +109,6 @@ namespace osu.Framework.Screens
                 suspend(source, newScreen);
 
             stack.Push(newScreen);
-            logTransition(source, newScreen, false);
             ScreenPushed?.Invoke(source, newScreen);
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
@@ -121,7 +120,10 @@ namespace osu.Framework.Screens
                 if (LoadState >= LoadState.Ready)
                     LoadScreen(this, newScreenDrawable, () => finishPush(null, newScreen));
                 else
+                {
+                    log($"scheduling push {getTypeString(newScreen)}");
                     Schedule(() => finishPush(null, newScreen));
+                }
             }
             else
                 LoadScreen((CompositeDrawable)source, newScreenDrawable, () => finishPush(source, newScreen));
@@ -146,6 +148,7 @@ namespace osu.Framework.Screens
                 suspend(parent, child);
 
             AddInternal(child.AsDrawable());
+            log($"entered {getTypeString(child)}");
         }
 
         /// <summary>
@@ -155,7 +158,7 @@ namespace osu.Framework.Screens
         /// <param name="to">The screen being entered.</param>
         private void suspend(IScreen from, IScreen to)
         {
-            var sourceDrawable = from?.AsDrawable();
+            var sourceDrawable = from.AsDrawable();
             if (sourceDrawable == null)
                 return;
 
@@ -169,6 +172,7 @@ namespace osu.Framework.Screens
 
             void performSuspend()
             {
+                log($"suspended {getTypeString(from)} (waiting on {getTypeString(to)})");
                 from.OnSuspending(to);
                 sourceDrawable.Expire();
             }
@@ -191,9 +195,15 @@ namespace osu.Framework.Screens
             else
             {
                 if (loader.LoadState >= LoadState.Ready)
+                {
+                    log($"loading {getTypeString(toLoad)}");
                     loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+                }
                 else
+                {
+                    log($"scheduling load {getTypeString(toLoad)}");
                     Schedule(() => LoadScreen(loader, toLoad, continuation));
+                }
             }
         }
 
@@ -305,7 +315,9 @@ namespace osu.Framework.Screens
 
             exited.Add(toExit.AsDrawable());
 
-            logTransition(toExit, CurrentScreen, true);
+            log($"exit from {getTypeString(toExit)}");
+            log($"resume to {getTypeString(CurrentScreen)}");
+
             ScreenExited?.Invoke(toExit, CurrentScreen);
 
             // Resume the next current screen from the exited one
@@ -315,8 +327,15 @@ namespace osu.Framework.Screens
             return false;
         }
 
-        private void logTransition(IScreen screen1, IScreen screen2, bool wasExit) =>
-            Logger.Log($"📺 {GetType().Name} transition ({screen1?.GetType().Name ?? "none"} {(wasExit ? "«" : "»")} {screen2?.GetType().Name ?? "none"})");
+        private void log(string message) => Logger.Log($"📺 {getTypeString(this)}(depth:{stack.Count}) {message}");
+
+        private static string getTypeString(object o)
+        {
+            if (o == null)
+                return "[empty]";
+
+            return $"{o}#{o.GetHashCode().ToString("000").Substring(0, 3)}";
+        }
 
         /// <summary>
         /// Unbind and return leases for all <see cref="Bindable{T}"/>s managed by the exiting screen.
