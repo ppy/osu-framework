@@ -196,6 +196,9 @@ namespace osu.Framework.Testing
             {
                 if (loadableStep != null)
                 {
+                    if (actionRepetition == 0)
+                        Logging.Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
+
                     scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();
                 }
@@ -212,8 +215,8 @@ namespace osu.Framework.Testing
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
-                if (actionIndex >= 0)
-                    Logging.Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
+                if (actionIndex >= 0 && actionRepetition > 1)
+                    Logging.Logger.Log($"✔️ {actionRepetition} repetitions");
 
                 actionIndex++;
                 actionRepetition = 0;
