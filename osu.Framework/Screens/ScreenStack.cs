@@ -120,7 +120,10 @@ namespace osu.Framework.Screens
                 if (LoadState >= LoadState.Ready)
                     LoadScreen(this, newScreenDrawable, () => finishPush(null, newScreen));
                 else
-                    Schedule(() => finishPush(null, newScreen));
+                {
+                    log($"scheduling push {getTypeString(newScreen)}");
+                    Scheduler.Add(() => finishPush(null, newScreen));
+                }
             }
             else
                 LoadScreen((CompositeDrawable)source, newScreenDrawable, () => finishPush(source, newScreen));
@@ -197,7 +200,10 @@ namespace osu.Framework.Screens
                     loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
                 }
                 else
-                    Schedule(() => LoadScreen(loader, toLoad, continuation));
+                {
+                    log($"scheduling load {getTypeString(toLoad)}");
+                    Scheduler.Add(() => LoadScreen(loader, toLoad, continuation));
+                }
             }
         }
 
