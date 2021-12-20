@@ -180,6 +180,10 @@ namespace osu.Framework.Graphics.Containers
 
                 if (linkedSource.Token.IsCancellationRequested)
                 {
+                    // In the case of cancellation the final load state will not be reached, so cleanup here is required.
+                    foreach (var d in loadables)
+                        LoadingComponentsLogger.Remove(d);
+
                     linkedSource.Dispose();
                     return;
                 }
@@ -234,7 +238,10 @@ namespace osu.Framework.Graphics.Containers
                     break;
 
                 if (!components[i].LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                {
+                    LoadingComponentsLogger.Remove(components[i]);
                     components.Remove(components[i--]);
+                }
             }
         }
 
