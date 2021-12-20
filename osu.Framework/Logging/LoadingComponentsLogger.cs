@@ -38,9 +38,11 @@ namespace osu.Framework.Logging
             {
                 Logger.Log($"⏳ Currently loading components ({loading_components.Count()})");
 
-                foreach (var c in loading_components)
+                foreach (var c in loading_components.OrderBy(c => c.LoadThread?.Name).ThenBy(c => c.LoadState))
                 {
-                    Logger.Log($"- {c.GetType().ReadableName(),-16} LoadState:{c.LoadState,-5} Thread:{c.LoadThread?.Name ?? "none"}");
+                    Logger.Log($"{c.GetType().ReadableName(),-16}");
+                    Logger.Log($"- thread:{c.LoadThread?.Name ?? "none"}");
+                    Logger.Log($"- state:{c.LoadState,-5}");
                 }
 
                 loading_components.Clear();
