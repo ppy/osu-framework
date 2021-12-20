@@ -205,7 +205,10 @@ namespace osu.Framework.Testing
             }
             catch (Exception e)
             {
-                Logging.Logger.Log($"💥 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
+                Logging.Logger.Log(actionRepetition > 0
+                    ? $"💥 Failed (on attempt {actionRepetition:0,#})"
+                    : "💥 Failed");
+
                 LoadingComponentsLogger.LogAndFlush();
                 onError?.Invoke(e);
                 return;
