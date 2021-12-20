@@ -334,7 +334,7 @@ namespace osu.Framework.Screens
             if (o == null)
                 return "[empty]";
 
-            return $"{o.GetType().Name}#{o.GetHashCode().ToString("000").Substring(0, 3)}";
+            return $"{o}#{o.GetHashCode().ToString("000").Substring(0, 3)}";
         }
 
         /// <summary>
