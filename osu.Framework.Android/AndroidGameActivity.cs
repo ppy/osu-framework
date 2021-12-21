@@ -73,13 +73,6 @@ namespace osu.Framework.Android
             };
         }
 
-        protected override void OnPause()
-        {
-            base.OnPause();
-            // Because Android is not playing nice with Background - we just kill it
-            Process.GetCurrentProcess().Kill();
-        }
-
         public override void OnBackPressed()
         {
             // Avoid the default implementation that does close the app.
