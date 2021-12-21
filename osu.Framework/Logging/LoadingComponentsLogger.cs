@@ -3,7 +3,6 @@
 
 using System.Linq;
 using osu.Framework.Development;
-using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Lists;
@@ -40,7 +39,7 @@ namespace osu.Framework.Logging
 
                 foreach (var c in loading_components.OrderBy(c => c.LoadThread?.Name).ThenBy(c => c.LoadState))
                 {
-                    Logger.Log($"{c.GetType().ReadableName()}");
+                    Logger.Log(c.ToString());
                     Logger.Log($"- thread: {c.LoadThread?.Name ?? "none"}");
                     Logger.Log($"- state:  {c.LoadState}");
                 }
