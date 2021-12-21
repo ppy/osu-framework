@@ -85,6 +85,7 @@ namespace osu.Framework.Platform.Windows
         /// <summary>
         /// Whether IME composition is active.
         /// </summary>
+        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
         private bool imeCompositionActive;
 
         /// <summary>
@@ -107,14 +108,12 @@ namespace osu.Framework.Platform.Windows
                     {
                         if (inputContext.TryGetImeResult(out string resultText))
                         {
-                            imeCompositionActive = false;
                             recentImeResult = true;
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
                         if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
                         {
-                            imeCompositionActive = true;
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
                         }
                     }
