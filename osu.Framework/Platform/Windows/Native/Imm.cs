@@ -32,6 +32,9 @@ namespace osu.Framework.Platform.Windows.Native
         /// </summary>
         internal class InputContext : IDisposable
         {
+            /// <summary>
+            /// The IMM handle, used as the <c>hImc</c> param of native functions.
+            /// </summary>
             private readonly InputContextHandle handle;
 
             private readonly CompositionString lParam;
@@ -47,7 +50,7 @@ namespace osu.Framework.Platform.Windows.Native
             /// </summary>
             public bool TryGetImeComposition(out string compositionText, out int start, out int length)
             {
-                if (handle.IsClosed || handle.IsInvalid)
+                if (handleInvalidOrClosed())
                 {
                     start = 0;
                     length = 0;
@@ -88,7 +91,7 @@ namespace osu.Framework.Platform.Windows.Native
             /// </summary>
             public bool TryGetImeResult(out string resultText)
             {
-                if (handle.IsClosed || handle.IsInvalid)
+                if (handleInvalidOrClosed())
                 {
                     resultText = null;
                     return false;
@@ -105,7 +108,7 @@ namespace osu.Framework.Platform.Windows.Native
             /// </remarks>
             public void CancelComposition()
             {
-                if (handle.IsClosed || handle.IsInvalid) return;
+                if (handleInvalidOrClosed()) return;
 
                 ImmNotifyIME(handle, NotificationCode.NI_COMPOSITIONSTR, (uint)CompositionStringAction.CPS_CANCEL, 0);
             }
@@ -215,6 +218,20 @@ namespace osu.Framework.Platform.Windows.Native
                 targetStart = start;
                 targetEnd = end;
                 return true;
+            }
+
+            /// <summary>
+            /// Checks whether the <see cref="handle"/> is invalid or closed.
+            /// </summary>
+            /// <remarks>Should be checked before calling native functions with the <see cref="handle"/>.</remarks>
+            /// <returns><c>true</c> if the handle is invalid.</returns>
+            /// <exception cref="ObjectDisposedException">Thrown if the <see cref="handle"/> was disposed/closed.</exception>
+            private bool handleInvalidOrClosed()
+            {
+                if (handle.IsClosed)
+                    throw new ObjectDisposedException(handle.ToString(), $"Attempted to use a closed {nameof(InputContextHandle)}.");
+
+                return handle.IsInvalid;
             }
 
             public void Dispose()
