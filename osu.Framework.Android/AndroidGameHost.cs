@@ -30,6 +30,11 @@ namespace osu.Framework.Android
             this.gameView = gameView;
         }
 
+        /// <summary>
+        /// Allows <see cref="AndroidGameView"/> to access the config.
+        /// </summary>
+        internal new FrameworkConfigManager Config => base.Config;
+
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
