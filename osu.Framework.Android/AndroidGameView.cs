@@ -108,7 +108,8 @@ namespace osu.Framework.Android
         {
             base.OnLoad(e);
 
-            RenderGame();
+            if (Host == null)
+                RenderGame();
         }
 
         [STAThread]
