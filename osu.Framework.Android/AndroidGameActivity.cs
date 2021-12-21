@@ -6,6 +6,7 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using ManagedBass;
 using Process = System.Diagnostics.Process;
 
 namespace osu.Framework.Android
@@ -77,12 +78,14 @@ namespace osu.Framework.Android
         {
             base.OnPause();
             gameView.Host?.Suspend();
+            Bass.Pause();
         }
 
         protected override void OnResume()
         {
             base.OnResume();
             gameView.Host?.Resume();
+            Bass.Start();
         }
 
         public override void OnBackPressed()
