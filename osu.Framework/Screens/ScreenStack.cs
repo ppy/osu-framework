@@ -141,6 +141,7 @@ namespace osu.Framework.Screens
                 if (child == CurrentScreen)
                     exitFrom(null, shouldFireExitEvent: false, shouldFireResumeEvent: suspendImmediately);
 
+                log($"push of {getTypeString(child)} cancelled due to {nameof(child.ValidForPush)} becoming false");
                 return;
             }
 
