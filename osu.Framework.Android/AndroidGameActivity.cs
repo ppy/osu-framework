@@ -73,6 +73,18 @@ namespace osu.Framework.Android
             };
         }
 
+        protected override void OnPause()
+        {
+            base.OnPause();
+            gameView.Host?.Suspend();
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            gameView.Host?.Resume();
+        }
+
         public override void OnBackPressed()
         {
             // Avoid the default implementation that does close the app.
