@@ -49,7 +49,7 @@
     <PackageReference Include="Markdig" Version="0.23.0" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.805.0" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.1221.0" />
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
