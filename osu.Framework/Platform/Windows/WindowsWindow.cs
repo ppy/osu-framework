@@ -98,7 +98,7 @@ namespace osu.Framework.Platform.Windows
             switch (uMsg)
             {
                 case Imm.WM_IME_STARTCOMPOSITION:
-                    imeCompositionActive = false;
+                    imeCompositionActive = true;
                     ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
                     break;
 
