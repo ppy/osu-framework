@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
@@ -313,20 +314,43 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestMixerCanAddAndRemoveSubMixer()
+        public void TestMixerCanAddAndRemoveSubMixerViaAddRemove()
         {
             var mixer = bass.CreateMixer("mixer");
             var secondMixer = bass.CreateMixer("submixer");
+            bass.Update();
 
             mixer.Add(secondMixer);
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
+            Assert.That(mixer.Channels, Does.Contain(secondMixer));
 
             mixer.Remove(secondMixer);
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.Null);
+            Assert.That(mixer.Channels, Does.Not.Contain(secondMixer));
+        }
+
+        [Test]
+        public void TestMixerCanAddAndRemoveSubMixerViaSetter()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer");
+            bass.Update();
+
+            secondMixer.Mixer = mixer;
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
+            Assert.That(mixer.Channels, Does.Contain(secondMixer));
+
+            secondMixer.Mixer = null;
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.Null);
+            Assert.That(mixer.Channels.ToArray(), Does.Not.Contain(secondMixer));
         }
 
         [Test]
@@ -337,14 +361,29 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
-
             Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.True);
 
             mixer.Remove(secondMixer);
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.Null);
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.False);
+        }
 
+        [Test]
+        public void TestMixerSetsDecodeFlagCorrectlyWhenNestedViaSetter()
+        {
+            var mixer = bass.CreateMixer("mixer");
+            var secondMixer = bass.CreateMixer("submixer", mixer);
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
+            Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.True);
+
+            secondMixer.Mixer = null;
+            bass.Update();
+
+            Assert.That(secondMixer.Mixer, Is.Null);
             Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.False);
         }
 
@@ -360,14 +399,12 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
-
             Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.True);
 
             secondMixer.Mixer = null;
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.Null);
-
             Assert.That(mixerChannelHasDecodeFlag(secondMixer), Is.False);
         }
 
