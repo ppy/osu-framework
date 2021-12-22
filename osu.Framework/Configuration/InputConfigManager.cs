@@ -13,6 +13,12 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
+    /// <summary>
+    /// Handles serialisation/deserialisation of a provided collection of <see cref="InputHandler"/>s.
+    /// </summary>
+    /// <remarks>
+    /// Only saves settings on disposal currently.
+    /// </remarks>
     [Serializable]
     public class InputConfigManager : ConfigManager
     {
@@ -21,8 +27,13 @@ namespace osu.Framework.Configuration
         private readonly Storage storage;
 
         [JsonConverter(typeof(TypedRepopulatingConverter<InputHandler>))]
-        public IReadOnlyList<InputHandler> InputHandlers { get; set; }
+        public IReadOnlyList<InputHandler> InputHandlers { get; private set; }
 
+        /// <summary>
+        /// Create a new instance.
+        /// </summary>
+        /// <param name="storage">The storage to store the configuration file to.</param>
+        /// <param name="inputHandlers">The collection of available input handlers. Settings will be loaded into existing instances.</param>
         public InputConfigManager(Storage storage, IReadOnlyList<InputHandler> inputHandlers)
         {
             this.storage = storage;
