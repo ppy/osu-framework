@@ -211,7 +211,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             public byte[] Get(string name) => getWithBlocking(name, baseStore.Get);
 
-            public Task<byte[]> GetAsync(string name) => getWithBlocking(name, baseStore.GetAsync);
+            public Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default) =>
+                getWithBlocking(name, name1 => baseStore.GetAsync(name1, cancellationToken));
 
             public Stream GetStream(string name) => getWithBlocking(name, baseStore.GetStream);
 
