@@ -991,8 +991,7 @@ namespace osu.Framework.Platform
                 threadRunner.SetCulture(culture);
             }, true);
 
-            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
-            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
+            InputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
         private void updateFrameSyncMode()
