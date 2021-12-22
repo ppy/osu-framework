@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
@@ -22,7 +23,8 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        public Task<TextureUpload> GetAsync(string name) => Task.Run(() => Get(name));
+        public Task<TextureUpload> GetAsync(string name, CancellationToken cancellationToken = default) =>
+            Task.Run(() => Get(name), cancellationToken);
 
         public TextureUpload Get(string name)
         {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Configuration;
@@ -417,7 +418,8 @@ namespace osu.Framework.Tests.Localisation
                 EffectiveCulture = new CultureInfo(locale);
             }
 
-            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name)).ConfigureAwait(false);
+            public async Task<string> GetAsync(string name, CancellationToken cancellationToken = default) =>
+                await Task.Run(() => Get(name), cancellationToken).ConfigureAwait(false);
 
             public string Get(string name)
             {
