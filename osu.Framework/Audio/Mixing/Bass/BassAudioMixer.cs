@@ -57,6 +57,30 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
+        public override float[] GetLevel(float length)
+        {
+            float[] levels = new float[2];
+
+            if (Mixer != null)
+                levels = Mixer.GetChannelLevel(this, length);
+            else
+                MixerGetLevel(levels, length, LevelRetrievalFlags.Stereo);
+
+            return levels;
+        }
+
+        public override float[] GetChannelLevel(IAudioChannel channel, float length)
+        {
+            float[] levels = new float[2];
+
+            if (!(channel is IBassAudioChannel bassAudioChannel))
+                return levels;
+
+            ChannelGetLevel(bassAudioChannel, levels, length, LevelRetrievalFlags.Stereo);
+
+            return levels;
+        }
+
         protected override void AddInternal(IAudioChannel channel)
         {
             Debug.Assert(CanPerformInline);
@@ -195,7 +219,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the level (peak amplitude) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <remarks>See: <see cref="BassMix.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to get the levels of.</param>
         /// <param name="levels">The array in which the levels are to be returned.</param>
         /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
@@ -207,7 +231,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the immediate sample data (or an FFT representation of it) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
+        /// <remarks>See: <see cref="BassMix.ChannelGetData(int, float[], int)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the data of.</param>
         /// <param name="buffer">float[] to write the data to.</param>
         /// <param name="length">Number of bytes wanted, and/or <see cref="T:ManagedBass.DataFlags"/>.</param>
@@ -240,6 +264,17 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool ChannelRemoveSync(IBassAudioChannel channel, int sync)
             => BassMix.ChannelRemoveSync(channel.Handle, sync);
+
+        /// <summary>
+        /// Retrieves the level (peak amplitude) of the mixer output.
+        /// </summary>
+        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <param name="levels">The array in which the levels are to be returned.</param>
+        /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
+        /// <param name="flags">What levels to retrieve.</param>
+        /// <returns><c>true</c> if successful, false otherwise.</returns>
+        public bool MixerGetLevel([In, Out] float[] levels, float length, LevelRetrievalFlags flags)
+            => ManagedBass.Bass.ChannelGetLevel(Handle, levels, length, flags);
 
         /// <summary>
         /// Frees a channel's resources.

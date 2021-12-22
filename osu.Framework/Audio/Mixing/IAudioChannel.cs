@@ -24,5 +24,11 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="action">The action to perform.</param>
         /// <returns>A task which can be used for continuation logic. May return a <see cref="Task.CompletedTask"/> if called while already on the audio thread.</returns>
         internal Task EnqueueAction(Action action);
+
+        /// <summary>
+        /// Retrieves the level (peak amplitude) of the channel.
+        /// </summary>
+        /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
+        public float[] GetLevel(float length);
     }
 }
