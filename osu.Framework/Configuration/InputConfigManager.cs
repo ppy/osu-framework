@@ -20,14 +20,14 @@ namespace osu.Framework.Configuration
     /// Only saves settings on disposal currently.
     /// </remarks>
     [Serializable]
-    public class InputConfigManager : ConfigManager
+    internal class InputConfigManager : ConfigManager
     {
         public const string FILENAME = "input.json";
 
         private readonly Storage storage;
 
         [JsonConverter(typeof(TypedRepopulatingConverter<InputHandler>))]
-        public IReadOnlyList<InputHandler> InputHandlers { get; private set; }
+        public IReadOnlyList<InputHandler> InputHandlers { get; set; }
 
         /// <summary>
         /// Create a new instance.

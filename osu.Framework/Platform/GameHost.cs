@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
-        protected InputConfigManager InputConfig { get; private set; }
+        private InputConfigManager inputConfig { get; set; }
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -991,7 +991,7 @@ namespace osu.Framework.Platform
                 threadRunner.SetCulture(culture);
             }, true);
 
-            InputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
+            inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
         private void updateFrameSyncMode()
@@ -1090,7 +1090,7 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
-            InputConfig?.Dispose();
+            inputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
