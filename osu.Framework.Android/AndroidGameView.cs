@@ -137,8 +137,8 @@ namespace osu.Framework.Android
 
         public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
         {
-            outAttrs.ImeOptions = ImeFlags.NoExtractUi;
-            outAttrs.InputType = InputTypes.Null;
+            outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
+            outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
         }
     }
