@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
@@ -77,12 +78,7 @@ namespace osu.Framework.IO.Stores
                 stores.Remove(store);
         }
 
-        /// <summary>
-        /// Retrieves an object from the store.
-        /// </summary>
-        /// <param name="name">The name of the object.</param>
-        /// <returns>The object.</returns>
-        public virtual async Task<T> GetAsync(string name)
+        public virtual async Task<T> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             if (name == null)
                 return null;
@@ -93,7 +89,7 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (string f in filenames)
                 {
-                    T result = await store.GetAsync(f).ConfigureAwait(false);
+                    T result = await store.GetAsync(f, cancellationToken).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
