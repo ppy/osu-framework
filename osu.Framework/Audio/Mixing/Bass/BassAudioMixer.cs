@@ -100,8 +100,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0 || channel.Handle == 0)
                 return false;
 
-            // Todo: This (and all other methods like ChannelPause()) should update the channel's playing state.
-            // channel.MixerChannelPaused = false;
+            channel.MixerChannelPaused = false;
 
             AddChannelToBassMix(channel);
             BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
@@ -125,6 +124,8 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public bool ChannelPause(IBassAudioChannel channel, bool flushMixer = false)
         {
+            channel.MixerChannelPaused = true;
+
             bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
 
             if (flushMixer)
