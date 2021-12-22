@@ -9,8 +9,6 @@ using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using osu.Framework.Android.Input;
-using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osuTK.Graphics;
 
 namespace osu.Framework.Android
@@ -20,8 +18,6 @@ namespace osu.Framework.Android
         public AndroidGameHost Host { get; private set; }
 
         private readonly Game game;
-
-        private readonly Bindable<bool> keyboardFix = new Bindable<bool>();
 
         public new event Action<Keycode, KeyEvent> KeyDown;
         public new event Action<Keycode, KeyEvent> KeyUp;
@@ -121,7 +117,6 @@ namespace osu.Framework.Android
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
             Host.Run(game);
-            Host.Config.BindWith(FrameworkSetting.AndroidKeyboardFix, keyboardFix);
             HostStarted?.Invoke(Host);
         }
 
@@ -140,13 +135,7 @@ namespace osu.Framework.Android
         public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
         {
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
-
-            // Use alternative InputType if setting is enabled. This alternative should fix https://github.com/ppy/osu/issues/8264.
-            // https://github.com/termux/termux-app/blob/af16e79bf8e422811885f435c3aaf74d619dd7e6/terminal-view/src/main/java/com/termux/view/TerminalView.java#L265-L283
-            outAttrs.InputType = keyboardFix.Value
-                ? InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions
-                : InputTypes.Null;
-
+            outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
         }
     }

@@ -39,7 +39,6 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
             SetDefault(FrameworkSetting.ShowUnicode, false);
             SetDefault(FrameworkSetting.Locale, string.Empty);
-            SetDefault(FrameworkSetting.AndroidKeyboardFix, false);
 
 #pragma warning disable 618
             SetDefault(FrameworkSetting.MapAbsoluteInputToWindow, false);
@@ -96,8 +95,6 @@ namespace osu.Framework.Configuration
 
         ShowUnicode,
         Locale,
-
-        AndroidKeyboardFix,
 
         [Obsolete("Input-related settings are now stored in InputConfigManager. Adjustments should be made via Host.AvailableInputHandlers bindables directly.")] // can be removed 20210911
         IgnoredInputHandlers,
