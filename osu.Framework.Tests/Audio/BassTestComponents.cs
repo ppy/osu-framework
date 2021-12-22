@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Audio
 
         internal BassAudioMixer CreateMixer(string identifier = "Test mixer", BassAudioMixer parentMixer = null)
         {
-            var mixer = new BassAudioMixer(identifier)
+            var mixer = new BassAudioMixer(identifier, Mixer)
             {
                 Mixer = parentMixer
             };

@@ -28,8 +28,6 @@ namespace osu.Framework.Audio.Mixing
 
         public abstract BindableList<IEffectParameter> Effects { get; }
 
-        internal abstract BindableList<IAudioChannel> Channels { get; }
-
         public void Add(IAudioChannel channel)
         {
             channel.EnqueueAction(() =>
@@ -40,7 +38,8 @@ namespace osu.Framework.Audio.Mixing
                 // Ensure the channel is removed from its current mixer.
                 channel.Mixer?.Remove(channel);
 
-                AddInternal(channel);
+                if (!(channel is AudioMixer))
+                    AddInternal(channel);
 
                 channel.Mixer = this;
             });
@@ -57,7 +56,9 @@ namespace osu.Framework.Audio.Mixing
                 if (channel.Mixer != this)
                     return;
 
-                RemoveInternal(channel);
+                if (!(channel is AudioMixer))
+                    RemoveInternal(channel);
+
                 channel.Mixer = null;
             });
         }
@@ -77,6 +78,8 @@ namespace osu.Framework.Audio.Mixing
         #region IAudioChannel
 
         public virtual AudioMixer? Mixer { get; set; }
+
+        internal new Task EnqueueAction(Action action) => base.EnqueueAction(action);
 
         Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 

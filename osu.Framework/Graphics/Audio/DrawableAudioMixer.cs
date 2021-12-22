@@ -26,8 +26,6 @@ namespace osu.Framework.Graphics.Audio
 
         public BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
-        public BindableList<IAudioChannel> Channels => mixer.Channels;
-
         public void Add(IAudioChannel channel)
         {
             if (LoadState < LoadState.Ready)

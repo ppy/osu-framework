@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
@@ -324,13 +323,13 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
-            Assert.That(mixer.Channels, Does.Contain(secondMixer));
+            Assert.That(mixer.ActiveChannels, Does.Contain(secondMixer));
 
             mixer.Remove(secondMixer);
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.Null);
-            Assert.That(mixer.Channels, Does.Not.Contain(secondMixer));
+            Assert.That(mixer.ActiveChannels, Does.Not.Contain(secondMixer));
         }
 
         [Test]
@@ -344,13 +343,13 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.EqualTo(mixer));
-            Assert.That(mixer.Channels, Does.Contain(secondMixer));
+            Assert.That(mixer.ActiveChannels, Does.Contain(secondMixer));
 
             secondMixer.Mixer = null;
             bass.Update();
 
             Assert.That(secondMixer.Mixer, Is.Null);
-            Assert.That(mixer.Channels.ToArray(), Does.Not.Contain(secondMixer));
+            Assert.That(mixer.ActiveChannels.ToArray(), Does.Not.Contain(secondMixer));
         }
 
         [Test]
