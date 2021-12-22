@@ -108,6 +108,8 @@ namespace osu.Framework.Android
         {
             base.OnLoad(e);
 
+            // osuTK calls `OnLoad()` every time the application surface is created, which will also happen upon a resume,
+            // at which point the host is already present and running, so there is no reason to create another one.
             if (Host == null)
                 RenderGame();
         }
