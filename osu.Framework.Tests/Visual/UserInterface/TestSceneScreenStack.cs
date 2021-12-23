@@ -235,6 +235,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("screen1 not current", () => !screen1.IsCurrentScreen());
             AddAssert("screen1 was not added to hierarchy", () => !screen1.IsLoaded);
+            AddAssert("screen1 was not entered", () => screen1.EnteredFrom == null);
+            AddAssert("screen1 was not exited", () => screen1.ExitedTo == null);
 
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
             AddUntilStep("ensure new current", () => screen2.IsCurrentScreen());
