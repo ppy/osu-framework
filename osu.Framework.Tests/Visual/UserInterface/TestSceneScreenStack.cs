@@ -1057,8 +1057,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Masking = true;
             }
 
-            public override string ToString() => Name;
-
             protected override void OnFocus(FocusEvent e)
             {
                 base.OnFocus(e);
