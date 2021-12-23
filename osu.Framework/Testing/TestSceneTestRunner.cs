@@ -8,6 +8,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
@@ -83,7 +84,8 @@ namespace osu.Framework.Testing
                 {
                     AddInternal(test);
 
-                    Logger.Log($@"💨 {test} {TestContext.CurrentContext.Test.Name}");
+                    Logger.Log($@"💨 Class: {test.GetType().ReadableName()}");
+                    Logger.Log($@"🔶 Test:  {TestContext.CurrentContext.Test.Name}");
 
                     // Nunit will run the tests in the TestScene with the same TestScene instance so the TestScene
                     // needs to be removed before the host is exited, otherwise it will end up disposed
