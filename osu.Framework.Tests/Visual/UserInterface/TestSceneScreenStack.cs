@@ -234,7 +234,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("base became current again", () => baseScreen.IsCurrentScreen());
 
             AddAssert("screen1 not current", () => !screen1.IsCurrentScreen());
-            AddAssert("screen1 exited", () => screen1.ExitedTo == baseScreen);
             AddAssert("screen1 was not added to hierarchy", () => !screen1.IsLoaded);
 
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
