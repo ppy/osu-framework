@@ -226,9 +226,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddStep("exit slow", () => screen1.Exit());
             AddStep("allow load", () => screen1.AllowLoad.Set());
+            AddAssert("ensure base not current", () => baseScreen.IsCurrentScreen());
             AddUntilStep("wait for screen to load", () => screen1.LoadState >= LoadState.Ready);
-            AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
-            AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
+
+            // Intentionally before the until step as it may catch a very brief incorrect state.
+            AddAssert("ensure slow not current", () => !screen1.IsCurrentScreen());
+
+            AddUntilStep("base became current again", () => baseScreen.IsCurrentScreen());
+            AddAssert("ensure slow not current", () => !screen1.IsCurrentScreen());
+
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
             AddUntilStep("ensure new current", () => screen2.IsCurrentScreen());
         }
