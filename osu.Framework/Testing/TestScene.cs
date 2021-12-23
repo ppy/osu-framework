@@ -198,7 +198,7 @@ namespace osu.Framework.Testing
                 if (loadableStep != null)
                 {
                     if (actionRepetition == 0)
-                        Logging.Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
+                        Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}");
 
                     scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();
@@ -206,7 +206,7 @@ namespace osu.Framework.Testing
             }
             catch (Exception e)
             {
-                Logging.Logger.Log(actionRepetition > 0
+                Logger.Log(actionRepetition > 0
                     ? $"💥 Failed (on attempt {actionRepetition:0,#})"
                     : "💥 Failed");
 
@@ -220,7 +220,7 @@ namespace osu.Framework.Testing
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
                 if (actionIndex >= 0 && actionRepetition > 1)
-                    Logging.Logger.Log($"✔️ {actionRepetition} repetitions");
+                    Logger.Log($"✔️ {actionRepetition} repetitions");
 
                 actionIndex++;
                 actionRepetition = 0;
@@ -231,7 +231,7 @@ namespace osu.Framework.Testing
 
             if (actionIndex > StepsContainer.Children.Count - 1)
             {
-                Logging.Logger.Log($"✅ {GetType().ReadableName()} completed");
+                Logger.Log($"✅ {GetType().ReadableName()} completed");
                 onCompletion?.Invoke();
                 return;
             }
