@@ -223,19 +223,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreenSlow screen1 = null;
             TestScreen screen2 = null;
 
-            AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
-            AddStep("exit slow", () => screen1.Exit());
+            AddStep("push screen1", () => baseScreen.Push(screen1 = new TestScreenSlow()));
+            AddStep("exit screen1", () => screen1.Exit());
 
-            AddAssert("ensure base not current", () => !baseScreen.IsCurrentScreen());
+            AddAssert("base not current (waiting load of screen1)", () => !baseScreen.IsCurrentScreen());
 
             AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("wait for screen to load", () => screen1.LoadState >= LoadState.Ready);
 
-            // Intentionally before the until step as it may catch a very brief incorrect state.
-            AddAssert("ensure slow not current", () => !screen1.IsCurrentScreen());
-
             AddUntilStep("base became current again", () => baseScreen.IsCurrentScreen());
-            AddAssert("ensure slow not current", () => !screen1.IsCurrentScreen());
+
+            AddAssert("screen1 not current", () => !screen1.IsCurrentScreen());
+            AddAssert("screen1 exited", () => screen1.ExitedTo == baseScreen);
+            AddAssert("screen1 was not added to hierarchy", () => !screen1.IsLoaded);
 
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
             AddUntilStep("ensure new current", () => screen2.IsCurrentScreen());
