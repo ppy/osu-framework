@@ -394,7 +394,17 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                scheduler.Add(() => Storage.Delete(Filename));
+                scheduler.Add(() =>
+                {
+                    try
+                    {
+                        Storage.Delete(Filename);
+                    }
+                    catch
+                    {
+                        // may fail if the file/directory was already cleaned up, ie. during test runs.
+                    }
+                });
                 writer_idle.Reset();
             }
         }
