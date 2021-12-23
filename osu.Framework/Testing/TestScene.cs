@@ -22,6 +22,7 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
@@ -265,6 +266,8 @@ namespace osu.Framework.Testing
 
             step.Action = () =>
             {
+                Logger.Log($@"💨 {this} {description}");
+
                 // kinda hacky way to avoid this doesn't get triggered by automated runs.
                 if (step.IsHovered)
                     RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);

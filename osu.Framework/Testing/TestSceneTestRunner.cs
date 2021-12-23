@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -82,7 +83,9 @@ namespace osu.Framework.Testing
                 {
                     AddInternal(test);
 
-                    Logger.Log($@"💨 {test} running");
+                    Logger.Log(TestContext.CurrentContext != null
+                        ? $@"💨 {test} {TestContext.CurrentContext.Test.Name}"
+                        : $@"💨 {test}");
 
                     // Nunit will run the tests in the TestScene with the same TestScene instance so the TestScene
                     // needs to be removed before the host is exited, otherwise it will end up disposed
