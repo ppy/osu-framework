@@ -83,9 +83,7 @@ namespace osu.Framework.Testing
                 {
                     AddInternal(test);
 
-                    Logger.Log(TestContext.CurrentContext != null
-                        ? $@"💨 {test} {TestContext.CurrentContext.Test.Name}"
-                        : $@"💨 {test}");
+                    Logger.Log($@"💨 {test} {TestContext.CurrentContext.Test.Name}");
 
                     // Nunit will run the tests in the TestScene with the same TestScene instance so the TestScene
                     // needs to be removed before the host is exited, otherwise it will end up disposed
