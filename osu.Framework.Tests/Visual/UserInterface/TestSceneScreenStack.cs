@@ -232,6 +232,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("wait for screen to load", () => screen1.LoadState >= LoadState.Ready);
 
             AddUntilStep("base became current again", () => baseScreen.IsCurrentScreen());
+            AddAssert("base screen was suspended", () => baseScreen.SuspendedTo == screen1);
+            AddAssert("base screen was resumed", () => baseScreen.ResumedFrom == screen1);
 
             AddAssert("screen1 not current", () => !screen1.IsCurrentScreen());
             AddAssert("screen1 was not added to hierarchy", () => !screen1.IsLoaded);
