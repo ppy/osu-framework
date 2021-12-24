@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -51,6 +52,14 @@ namespace osu.Framework.Logging
                 Logger.Log(CompositeDrawable.SCHEDULER_STANDARD.GetStatusString());
                 Logger.Log(CompositeDrawable.SCHEDULER_LONG_LOAD.GetStatusString());
             }
+
+            ThreadPool.GetAvailableThreads(out int workerAvailable, out int completionAvailable);
+            ThreadPool.GetMinThreads(out int workerMin, out int completionMin);
+            ThreadPool.GetMaxThreads(out int workerMax, out int completionMax);
+
+            Logger.Log("🎱 Thread pool");
+            Logger.Log($"worker:     min {workerMin,-6:#,0} max {workerMax,-6:#,0} available {workerAvailable,-6:#,0}");
+            Logger.Log($"completion: min {completionMin,-6:#,0} max {completionMax,-6:#,0} available {completionAvailable,-6:#,0}");
         }
     }
 }
