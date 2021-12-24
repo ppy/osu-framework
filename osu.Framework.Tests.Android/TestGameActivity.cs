@@ -2,14 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using Android.App;
-using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using osu.Framework.Android;
 
 namespace osu.Framework.Tests.Android
 {
-    [Activity(MainLauncher = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize, Theme = "@android:style/Theme.NoTitleBar")]
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public class TestGameActivity : AndroidGameActivity
     {
         protected override Game CreateGame()
