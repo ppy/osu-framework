@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Containers
                 var drawableItem = itemMap[item];
 
                 ListContainer.Remove(drawableItem);
-                AsyncDisposalQueue.Enqueue(drawableItem);
+                DisposeChildAsync(drawableItem);
 
                 itemMap.Remove(item);
             }
