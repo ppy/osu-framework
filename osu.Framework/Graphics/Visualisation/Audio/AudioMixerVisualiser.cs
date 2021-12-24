@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         {
             base.LoadComplete();
 
-            mixerFlow.Add(new MixerDisplay(audioManager.GlobalMixer));
+            mixerFlow.Add(new MixerDisplay(audioManager.OutputMixer));
         }
     }
 }

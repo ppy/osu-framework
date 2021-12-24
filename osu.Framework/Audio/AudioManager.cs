@@ -55,7 +55,12 @@ namespace osu.Framework.Audio
         private readonly AudioThread thread;
 
         /// <summary>
-        /// The global mixer which all audio routes through before output.
+        /// The final mixer in the chain that performs downsampling (to 16-bit) before output.
+        /// </summary>
+        public readonly AudioMixer OutputMixer;
+
+        /// <summary>
+        /// The global mixer which all audio is routed through.
         /// </summary>
         public readonly AudioMixer GlobalMixer;
 
@@ -164,7 +169,17 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(GlobalMixer = new BassAudioMixer(nameof(GlobalMixer), null));
+            // The audio mixer hierarchy is:
+            // OutputMixer (downsamples to 16-bit)
+            // └ GlobalMixer (32-bit float)
+            //   └ TrackMixer (32-bit float)
+            //   └ SampleMixer (32-bit float)
+
+            AddItem(OutputMixer = new BassAudioMixer(nameof(OutputMixer), null, true));
+            GlobalMixer = new BassAudioMixer(nameof(GlobalMixer), OutputMixer)
+            {
+                Mixer = OutputMixer
+            };
             TrackMixer = CreateAudioMixer(nameof(TrackMixer));
             SampleMixer = CreateAudioMixer(nameof(SampleMixer));
 
