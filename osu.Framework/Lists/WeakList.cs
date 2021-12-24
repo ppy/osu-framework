@@ -17,7 +17,7 @@ namespace osu.Framework.Lists
         where T : class
     {
         /// <summary>
-        /// The number of items that can be removed from this <see cref="WeakList{T}"/> before an <see cref="Add(T)"/> will cause the list to be trimmed.
+        /// The number of items that can be added or removed from this <see cref="WeakList{T}"/> before the next <see cref="Add(T)"/> to cause the list to be trimmed.
         /// </summary>
         private const int opportunistic_trim_threshold = 100;
 
@@ -26,10 +26,10 @@ namespace osu.Framework.Lists
         private int listEnd; // The exclusive ending index in the list.
 
         /// <summary>
-        /// The number of items that have been soft-deleted from this <see cref="WeakList{T}"/>.
-        /// These items can be opportunistically removed once the threshold set by <see cref="opportunistic_trim_threshold"/> is reached, or via an enumeration of this <see cref="WeakList{T}"/>.
+        /// The number of items that have been added or removed from this <see cref="WeakList{T}"/> since it was last trimmed.
+        /// Upon reaching the <see cref="opportunistic_trim_threshold"/>, this list will be trimmed on the next <see cref="Add(T)"/>.
         /// </summary>
-        private int countTrimmable;
+        private int countChangesSinceTrim;
 
         public void Add(T obj) => add(new InvalidatableWeakReference(obj));
 
@@ -37,16 +37,19 @@ namespace osu.Framework.Lists
 
         private void add(in InvalidatableWeakReference item)
         {
-            if (countTrimmable > opportunistic_trim_threshold)
+            if (countChangesSinceTrim > opportunistic_trim_threshold)
                 trim();
 
             if (listEnd < list.Count)
             {
                 list[listEnd] = item;
-                countTrimmable--;
+                countChangesSinceTrim--;
             }
             else
+            {
                 list.Add(item);
+                countChangesSinceTrim++;
+            }
 
             listEnd++;
         }
@@ -108,7 +111,7 @@ namespace osu.Framework.Lists
             else if (index == listEnd - 1)
                 listEnd--;
 
-            countTrimmable++;
+            countChangesSinceTrim++;
         }
 
         public bool Contains(T item)
@@ -152,7 +155,7 @@ namespace osu.Framework.Lists
         public void Clear()
         {
             listStart = listEnd = 0;
-            countTrimmable = list.Count;
+            countChangesSinceTrim = list.Count;
         }
 
         public ValidItemsEnumerator GetEnumerator()
@@ -177,7 +180,7 @@ namespace osu.Framework.Lists
             // After the trim, the valid range represents the full list.
             listStart = 0;
             listEnd = list.Count;
-            countTrimmable = 0;
+            countChangesSinceTrim = 0;
         }
 
         private readonly struct InvalidatableWeakReference
