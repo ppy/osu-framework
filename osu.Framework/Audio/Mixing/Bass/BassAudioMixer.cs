@@ -41,6 +41,8 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         private readonly AudioMixer globalMixer;
 
+        private readonly bool floatingPoint;
+
         private const int frequency = 44100;
 
         /// <summary>
@@ -48,9 +50,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
         /// <param name="globalMixer"></param>
-        public BassAudioMixer(string identifier, AudioMixer? globalMixer)
+        /// <param name="disableFloatingPoint">Whether the mixer should using 16-bit instead of 32-bit floating-point for sample data</param>
+        public BassAudioMixer(string identifier, AudioMixer? globalMixer, bool disableFloatingPoint = false)
             : base(identifier)
         {
+            floatingPoint = !disableFloatingPoint;
             this.globalMixer = globalMixer ?? this;
             this.globalMixer.EnqueueAction(createMixer);
         }
@@ -339,6 +343,9 @@ namespace osu.Framework.Audio.Mixing.Bass
                 return;
 
             BassFlags flags = BassFlags.MixerNonStop;
+
+            if (floatingPoint)
+                flags |= BassFlags.Float;
 
             if (Mixer != null)
                 flags |= BassFlags.Decode;
