@@ -110,7 +110,11 @@ namespace osu.Framework.Graphics.Containers
                 if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
                     currentlyDraggedItem = null;
 
-                ListContainer.Remove(itemMap[item]);
+                var drawableItem = itemMap[item];
+
+                ListContainer.Remove(drawableItem);
+                drawableItem.Dispose();
+
                 itemMap.Remove(item);
             }
 
