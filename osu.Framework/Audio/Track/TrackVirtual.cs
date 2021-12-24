@@ -95,5 +95,13 @@ namespace osu.Framework.Audio.Track
             lock (clock)
                 clock.Rate = Rate;
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+                Stop();
+
+            base.Dispose(disposing);
+        }
     }
 }

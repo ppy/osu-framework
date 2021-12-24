@@ -283,8 +283,14 @@ namespace osu.Framework.Threading
         {
             lock (queueLock)
             {
-                if (runQueue.OfType<ScheduledDelegateWithData<T>>().Any(sd => sd.Task == task))
+                var existing = runQueue.OfType<ScheduledDelegateWithData<T>>().SingleOrDefault(sd => sd.Task == task);
+
+                if (existing != null)
+                {
+                    // ensure the single queued instance always has the most recent data.
+                    existing.Data = data;
                     return false;
+                }
 
                 runQueue.Enqueue(new ScheduledDelegateWithData<T>(task, data));
             }

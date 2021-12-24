@@ -16,11 +16,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
@@ -195,37 +197,33 @@ namespace osu.Framework.Testing
             {
                 if (loadableStep != null)
                 {
+                    if (actionRepetition == 0)
+                        Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.Text}");
+
                     scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();
                 }
             }
             catch (Exception e)
             {
+                Logger.Log(actionRepetition > 0
+                    ? $"💥 Failed (on attempt {actionRepetition:#,0})"
+                    : "💥 Failed");
+
+                LoadingComponentsLogger.LogAndFlush();
                 onError?.Invoke(e);
                 return;
             }
-
-            string text = ".";
-
-            if (actionRepetition == 0)
-            {
-                text = $"{(int)Time.Current}: ".PadLeft(7);
-
-                if (actionIndex < 0)
-                    text += $"{GetType().ReadableName()}";
-                else
-                    text += $"step {actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}";
-            }
-
-            Console.Write(text);
 
             actionRepetition++;
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                if (actionIndex >= 0 && actionRepetition > 1)
+                    Logger.Log($"✔️ {actionRepetition} repetitions");
+
                 actionIndex++;
                 actionRepetition = 0;
-                Console.WriteLine();
 
                 if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
                     return;
@@ -233,6 +231,7 @@ namespace osu.Framework.Testing
 
             if (actionIndex > StepsContainer.Children.Count - 1)
             {
+                Logger.Log($"✅ {GetType().ReadableName()} completed");
                 onCompletion?.Invoke();
                 return;
             }
@@ -267,6 +266,8 @@ namespace osu.Framework.Testing
 
             step.Action = () =>
             {
+                Logger.Log($@"💨 {this} {description}");
+
                 // kinda hacky way to avoid this doesn't get triggered by automated runs.
                 if (step.IsHovered)
                     RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
+using Android;
 using Android.App;
 
 // We publish our internal attributes to other sub-projects of the framework.
@@ -11,5 +12,13 @@ using Android.App;
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
 
-// https://docs.microsoft.com/en-us/answers/questions/182601/does-xamarinandroid-suppor-manifest-merging.html
-[assembly: UsesPermission(Android.Manifest.Permission.ReadExternalStorage)]
+[assembly: Application(
+    HardwareAccelerated = false,
+    ResizeableActivity = true,
+    Theme = "@android:style/Theme.Black.NoTitleBar"
+)]
+[assembly: UsesPermission(Manifest.Permission.ReadExternalStorage)]
+[assembly: UsesPermission(Manifest.Permission.WriteExternalStorage)]
+[assembly: UsesPermission(Manifest.Permission.WakeLock)]
+[assembly: UsesPermission(Manifest.Permission.ReadFrameBuffer)]
+[assembly: UsesPermission(Manifest.Permission.Internet)]

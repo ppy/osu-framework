@@ -1,74 +1,70 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class SDL2DesktopWindowTextInput : ITextInputSource
+    public class SDL2DesktopWindowTextInput : TextInputSource
     {
         private readonly SDL2DesktopWindow window;
-        private string pending = string.Empty;
 
         public SDL2DesktopWindowTextInput(SDL2DesktopWindow window)
         {
             this.window = window;
         }
 
-        public bool ImeActive => false;
-
-        public string GetPendingText()
-        {
-            try
-            {
-                return pending;
-            }
-            finally
-            {
-                pending = string.Empty;
-            }
-        }
-
         private void handleTextInput(string text)
         {
-            pending += text;
+            // SDL sends IME results as `SDL_TextInputEvent` which we can't differentiate from regular text input
+            // so we have to manually keep track and invoke the correct event.
+
+            if (ImeActive)
+            {
+                TriggerImeResult(text);
+            }
+            else
+            {
+                AddPendingText(text);
+            }
         }
 
-        private void handleTextEditing(string text, int start, int length)
+        private void handleTextEditing(string text, int selectionStart, int selectionLength)
         {
-            // TODO: add IME support
+            if (text == null) return;
+
+            TriggerImeComposition(text, selectionStart, selectionLength);
         }
 
-        public void Activate()
+        protected override void ActivateTextInput()
         {
             window.TextInput += handleTextInput;
             window.TextEditing += handleTextEditing;
             window.StartTextInput();
         }
 
-        public void EnsureActivated()
+        protected override void EnsureTextInputActivated()
         {
             window.StartTextInput();
         }
 
-        public void Deactivate()
+        protected override void DeactivateTextInput()
         {
             window.TextInput -= handleTextInput;
             window.TextEditing -= handleTextEditing;
             window.StopTextInput();
         }
 
-        public event Action<string> OnNewImeComposition
+        public override void SetImeRectangle(RectangleF rectangle)
         {
-            add { }
-            remove { }
+            window.SetTextInputRect(rectangle);
         }
 
-        public event Action<string> OnNewImeResult
+        public override void ResetIme()
         {
-            add { }
-            remove { }
+            base.ResetIme();
+            window.ResetIme();
         }
     }
 }

@@ -40,12 +40,16 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The work task.
         /// </summary>
-        internal readonly Action Task;
+        internal Action Task;
 
         public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
+            : this(executionTime, repeatInterval)
         {
             Task = task;
+        }
 
+        protected ScheduledDelegate(double executionTime = 0, double repeatInterval = -1)
+        {
             ExecutionTime = executionTime;
             RepeatInterval = repeatInterval;
         }

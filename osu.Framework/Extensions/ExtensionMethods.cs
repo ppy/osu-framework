@@ -328,6 +328,18 @@ namespace osu.Framework.Extensions
             => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         /// <summary>
+        /// Whether this character is an ASCII digit (0-9).
+        /// </summary>
+        /// <remarks>
+        /// Useful for checking if a character plays well with <c>int.TryParse()</c>.
+        /// <see cref="char.IsNumber(char)"/> returns <c>true</c> for non-ASCII digits and other Unicode numbers;
+        /// we don't want that, so we explicitly check the character value.
+        /// </remarks>
+        /// <param name="character">The character to check.</param>
+        /// <returns>True if the character is an ASCII digit.</returns>
+        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
+
+        /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
         /// </summary>
         /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>

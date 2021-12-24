@@ -142,6 +142,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Light.FadeColour(Color4.YellowGreen);
         }
 
-        public override string ToString() => Text.ToString();
+        public override string ToString() => $@"""{Text}"" " + base.ToString();
     }
 }

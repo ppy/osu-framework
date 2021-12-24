@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
-        protected InputConfigManager InputConfig { get; private set; }
+        private InputConfigManager inputConfig { get; set; }
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -94,7 +94,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
-        public event Action<IpcMessage> MessageReceived;
+        public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
         /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
@@ -111,7 +111,7 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual bool LimitedMemoryEnvironment => false;
 
-        protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
+        protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
@@ -331,6 +331,11 @@ namespace osu.Framework.Platform
 
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
+
+            // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
+            // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
+            // We force flushing the logger here to ensure logging completes.
+            Logger.Flush();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -691,6 +696,7 @@ namespace osu.Framework.Platform
                 }
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
+                Dependencies.CacheAs(CreateTextInput());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -985,8 +991,7 @@ namespace osu.Framework.Platform
                 threadRunner.SetCulture(culture);
             }, true);
 
-            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
-            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
+            inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
         private void updateFrameSyncMode()
@@ -1050,7 +1055,7 @@ namespace osu.Framework.Platform
 
         public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
-        public abstract ITextInputSource GetTextInput();
+        protected virtual TextInputSource CreateTextInput() => new TextInputSource();
 
         #region IDisposable Support
 
@@ -1085,12 +1090,13 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
-            InputConfig?.Dispose();
+            inputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
             Window?.Dispose();
 
+            LoadingComponentsLogger.LogAndFlush();
             Logger.Flush();
         }
 

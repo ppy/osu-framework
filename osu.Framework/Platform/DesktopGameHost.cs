@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -19,9 +18,10 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
+        public const int IPC_PORT = 45356;
+
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
-        private Thread ipcThread;
 
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
             : base(gameName)
@@ -66,21 +66,10 @@ namespace osu.Framework.Platform
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider();
+            ipcProvider = new TcpIpcProvider(IPC_PORT);
+            ipcProvider.MessageReceived += OnMessageReceived;
+
             IsPrimaryInstance = ipcProvider.Bind();
-
-            if (IsPrimaryInstance)
-            {
-                ipcProvider.MessageReceived += OnMessageReceived;
-
-                ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
-                {
-                    Name = "IPC",
-                    IsBackground = true
-                };
-
-                ipcThread.Start();
-            }
         }
 
         public bool IsPortableInstallation { get; }
@@ -101,7 +90,13 @@ namespace osu.Framework.Platform
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
         });
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new SDL2DesktopWindowTextInput(Window as SDL2DesktopWindow);
+        protected override TextInputSource CreateTextInput()
+        {
+            if (Window is SDL2DesktopWindow desktopWindow)
+                return new SDL2DesktopWindowTextInput(desktopWindow);
+
+            return base.CreateTextInput();
+        }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
@@ -126,7 +121,6 @@ namespace osu.Framework.Platform
         protected override void Dispose(bool isDisposing)
         {
             ipcProvider?.Dispose();
-            ipcThread?.Join(50);
             base.Dispose(isDisposing);
         }
     }
