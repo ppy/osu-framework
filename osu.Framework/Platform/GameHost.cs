@@ -271,7 +271,10 @@ namespace osu.Framework.Platform
 
         public string FullPath => fullPathBacking.Value;
 
-        protected string Name { get; }
+        /// <summary>
+        /// The name of the game to be hosted.
+        /// </summary>
+        public string Name { get; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
