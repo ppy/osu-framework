@@ -3,16 +3,28 @@
 
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using ManagedBass;
-using Process = System.Diagnostics.Process;
 
 namespace osu.Framework.Android
 {
+    // since `ActivityAttribute` can't be inherited, the below is only provided as an illustrative example of how to setup an activity for best compatibility.
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public abstract class AndroidGameActivity : Activity
     {
+        protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard
+                                                               | ConfigChanges.KeyboardHidden
+                                                               | ConfigChanges.Orientation
+                                                               | ConfigChanges.ScreenLayout
+                                                               | ConfigChanges.ScreenSize
+                                                               | ConfigChanges.SmallestScreenSize
+                                                               | ConfigChanges.UiMode;
+
+        protected const LaunchMode DEFAULT_LAUNCH_MODE = LaunchMode.SingleInstance;
+
         protected abstract Game CreateGame();
 
         /// <summary>
@@ -40,6 +52,11 @@ namespace osu.Framework.Android
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            // The default current directory on android is '/'.
+            // On some devices '/' maps to the app data directory. On others it maps to the root of the internal storage.
+            // In order to have a consistent current directory on all devices the full path of the app data directory is set as the current directory.
+            System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+
             base.OnCreate(savedInstanceState);
 
             SetContentView(gameView = new AndroidGameView(this, CreateGame()));
