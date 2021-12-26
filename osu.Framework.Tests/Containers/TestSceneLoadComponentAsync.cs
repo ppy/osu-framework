@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Containers
         [Test]
         public void TestNoTplThreadPoolReliance()
         {
-            Container screen = null;
+            Container container = null;
 
             ManualResetEventSlim resetEvent = new ManualResetEventSlim();
 
@@ -173,10 +173,10 @@ namespace osu.Framework.Tests.Containers
 
             AddStep("load component asynchronously", () =>
             {
-                LoadComponentAsync(screen = new Container(), Add);
+                LoadComponentAsync(container = new Container(), Add);
             });
 
-            AddUntilStep("wait for load", () => screen.IsLoaded);
+            AddUntilStep("wait for load", () => container.IsLoaded);
 
             AddStep("restore capacity", () =>
             {
