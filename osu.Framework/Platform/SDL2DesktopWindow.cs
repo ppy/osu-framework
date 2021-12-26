@@ -526,7 +526,7 @@ namespace osu.Framework.Platform
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
             float clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            ScheduleEvent(() => JoystickAxisChanged?.Invoke(new JoystickAxis(axisSource, clamped)));
+            ScheduleEvent(TriggerJoystickAxisChanged, new JoystickAxis(axisSource, clamped));
         }
 
         private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
@@ -573,7 +573,7 @@ namespace osu.Framework.Platform
             int rx = x - pos.X;
             int ry = y - pos.Y;
 
-            ScheduleEvent(() => MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale)));
+            ScheduleEvent(TriggerMouseMove, new Vector2(rx * Scale, ry * Scale));
         }
 
         public void StartTextInput() => ScheduleCommand(SDL.SDL_StartTextInput);
@@ -597,6 +597,13 @@ namespace osu.Framework.Platform
         });
 
         #region SDL Event Handling
+
+        /// <summary>
+        /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
+        /// </summary>
+        /// <param name="action">The <see cref="Action"/> to execute.</param>
+        /// <param name="data">The data to pass.</param>
+        protected void ScheduleEvent<T>(Action<T> action, T data) => eventScheduler.Add(action, data, false);
 
         /// <summary>
         /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
@@ -886,9 +893,9 @@ namespace osu.Framework.Platform
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
         {
             if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
-                ScheduleEvent(() => MouseMove?.Invoke(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
+                ScheduleEvent(TriggerMouseMove, new Vector2(evtMotion.x * Scale, evtMotion.y * Scale));
             else
-                ScheduleEvent(() => MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale)));
+                ScheduleEvent(TriggerMouseMoveRelative, new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
         }
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
@@ -1416,10 +1423,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<Vector2> MouseMove;
 
+        protected void TriggerMouseMove(Vector2 newPosition) => MouseMove?.Invoke(newPosition);
+
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window (via relative / raw input).
         /// </summary>
         public event Action<Vector2> MouseMoveRelative;
+
+        protected void TriggerMouseMoveRelative(Vector2 newPosition) => MouseMoveRelative?.Invoke(newPosition);
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
@@ -1458,6 +1469,8 @@ namespace osu.Framework.Platform
         /// Invoked when a joystick axis changes.
         /// </summary>
         public event Action<JoystickAxis> JoystickAxisChanged;
+
+        protected void TriggerJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
 
         /// <summary>
         /// Invoked when the user presses a button on a joystick.
