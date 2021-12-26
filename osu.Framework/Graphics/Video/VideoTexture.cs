@@ -134,18 +134,20 @@ namespace osu.Framework.Graphics.Video
 
             memoryLease?.Dispose();
 
-            GLWrapper.ScheduleDisposal(unload);
+            GLWrapper.ScheduleDisposal(unload, this);
         }
 
-        private void unload()
+        private void unload(VideoTexture v)
         {
-            if (textureIds == null)
+            int[] ids = v.textureIds;
+
+            if (ids == null)
                 return;
 
-            for (int i = 0; i < textureIds.Length; i++)
+            for (int i = 0; i < ids.Length; i++)
             {
-                if (textureIds[i] >= 0)
-                    GL.DeleteTextures(1, new[] { textureIds[i] });
+                if (ids[i] >= 0)
+                    GL.DeleteTextures(1, new[] { ids[i] });
             }
         }
 

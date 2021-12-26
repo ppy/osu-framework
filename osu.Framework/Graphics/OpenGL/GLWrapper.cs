@@ -879,7 +879,7 @@ namespace osu.Framework.Graphics.OpenGL
             while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
+            ScheduleDisposal(GL.DeleteFramebuffer, frameBuffer);
         }
 
         private static int currentShader;
