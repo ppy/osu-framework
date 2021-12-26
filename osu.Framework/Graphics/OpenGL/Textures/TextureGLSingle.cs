@@ -106,24 +106,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
 
-            GLWrapper.ScheduleDisposal(unload, this);
-        }
+            GLWrapper.ScheduleDisposal(texture =>
+            {
+                int disposableId = texture.textureId;
 
-        /// <summary>
-        /// Removes texture from GL memory.
-        /// </summary>
-        private static void unload(TextureGLSingle texture)
-        {
-            int disposableId = texture.textureId;
+                if (disposableId <= 0)
+                    return;
 
-            if (disposableId <= 0)
-                return;
+                GL.DeleteTextures(1, new[] { disposableId });
 
-            GL.DeleteTextures(1, new[] { disposableId });
+                texture.memoryLease?.Dispose();
 
-            texture.memoryLease?.Dispose();
-
-            texture.textureId = 0;
+                texture.textureId = 0;
+            }, this);
         }
 
         #endregion
