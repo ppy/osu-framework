@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.Containers
             // The scheduled delegate will be cancelled if this wrapper has its UpdateSubTreeMasking() invoked, as more accurate intersections can be computed there instead.
             if (isIntersectingResetDelegate == null)
             {
-                isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
+                isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(wrapper => wrapper.IsIntersecting = false, this, 0);
                 result = true;
             }
 
