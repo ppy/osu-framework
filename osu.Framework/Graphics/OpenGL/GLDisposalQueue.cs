@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.OpenGL
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
             lock (newDisposals)
-                newDisposals.Add(new PendingDisposal<T>(target, disposalAction));
+                newDisposals.Add(new PendingDisposal<T>(disposalAction, target));
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             private readonly T target;
 
-            public PendingDisposal(T target, Action<T> disposeAction)
+            public PendingDisposal(Action<T> disposeAction, T target)
             {
                 action = disposeAction;
                 this.target = target;
