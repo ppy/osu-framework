@@ -483,7 +483,7 @@ namespace osu.Framework.Platform
 
             // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
             // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
-            eventScheduler.Add(storeWindowSizeToConfig, true);
+            eventScheduler.AddOnce(storeWindowSizeToConfig);
         }
 
         /// <summary>
