@@ -408,9 +408,6 @@ namespace osu.Framework.Platform
 
             Exists = true;
 
-            MouseEntered += () => cursorInWindow.Value = true;
-            MouseLeft += () => cursorInWindow.Value = false;
-
             graphicsBackend.Initialise(this);
 
             updateWindowSpecifics();
