@@ -28,21 +28,21 @@ namespace osu.Framework.Android.Input
 
         public override bool Initialize(GameHost host) => true;
 
-        private void handleTouch(object sender, View.TouchEventArgs e)
+        private void handleTouch(MotionEvent touchEvent)
         {
-            if (e.Event.Action == MotionEventActions.Move)
+            if (touchEvent.Action == MotionEventActions.Move)
             {
-                for (int i = 0; i < Math.Min(e.Event.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
+                for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
                 {
-                    var touch = getEventTouch(e.Event, i);
+                    var touch = getEventTouch(touchEvent, i);
                     PendingInputs.Enqueue(new TouchInput(touch, true));
                 }
             }
-            else if (e.Event.ActionIndex < TouchState.MAX_TOUCH_COUNT)
+            else if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
             {
-                var touch = getEventTouch(e.Event, e.Event.ActionIndex);
+                var touch = getEventTouch(touchEvent, touchEvent.ActionIndex);
 
-                switch (e.Event.ActionMasked)
+                switch (touchEvent.ActionMasked)
                 {
                     case MotionEventActions.Down:
                     case MotionEventActions.PointerDown:
@@ -58,10 +58,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleHover(object sender, View.HoverEventArgs e)
+        private void handleHover(MotionEvent hoverEvent)
         {
-            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = getEventPosition(e.Event) });
-            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, e.Event.ButtonState == MotionEventButtonState.StylusPrimary));
+            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = getEventPosition(hoverEvent) });
+            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
         }
 
         private Touch getEventTouch(MotionEvent e, int index) => new Touch((TouchSource)e.GetPointerId(index), getEventPosition(e, index));

@@ -19,12 +19,6 @@ namespace osu.Framework.Android
 
         private readonly Game game;
 
-        public new event Action<Keycode, KeyEvent> KeyDown;
-        public new event Action<Keycode, KeyEvent> KeyUp;
-        public event Action<Keycode, KeyEvent> KeyLongPress;
-        public event Action<string> CommitText;
-        public event Action<AndroidGameHost> HostStarted;
-
         public AndroidGameView(Context context, Game game)
             : base(context)
         {
@@ -104,6 +98,18 @@ namespace osu.Framework.Android
             return true;
         }
 
+        public override bool OnHoverEvent(MotionEvent e)
+        {
+            Hover?.Invoke(e);
+            return true;
+        }
+
+        public override bool OnTouchEvent(MotionEvent e)
+        {
+            Touch?.Invoke(e);
+            return true;
+        }
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -141,5 +147,44 @@ namespace osu.Framework.Android
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
         }
+
+        #region Events
+
+        /// <summary>
+        /// Invoked on a key down event.
+        /// </summary>
+        public new event Action<Keycode, KeyEvent> KeyDown;
+
+        /// <summary>
+        /// Invoked on a key up event.
+        /// </summary>
+        public new event Action<Keycode, KeyEvent> KeyUp;
+
+        /// <summary>
+        /// Invoked on a key long press event.
+        /// </summary>
+        public event Action<Keycode, KeyEvent> KeyLongPress;
+
+        /// <summary>
+        /// Invoked on a hover event.
+        /// </summary>
+        public new event Action<MotionEvent> Hover;
+
+        /// <summary>
+        /// Invoked on a touch event.
+        /// </summary>
+        public new event Action<MotionEvent> Touch;
+
+        /// <summary>
+        /// Invoked when text is committed by an <see cref="AndroidInputConnection"/>.
+        /// </summary>
+        public event Action<string> CommitText;
+
+        /// <summary>
+        /// Invoked when the <see cref="game"/> has been started on the <see cref="Host"/>.
+        /// </summary>
+        public event Action<AndroidGameHost> HostStarted;
+
+        #endregion
     }
 }
