@@ -48,7 +48,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private bool isDisposed;
 
-        protected virtual void Dispose(bool isDisposing) => GLWrapper.ScheduleDisposal(() => Available = false);
+        protected virtual void Dispose(bool isDisposing)
+        {
+            GLWrapper.ScheduleDisposal(t => t.Available = false, this);
+        }
 
         public void Dispose()
         {
