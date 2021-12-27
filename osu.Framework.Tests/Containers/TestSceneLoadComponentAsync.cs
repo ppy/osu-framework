@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -127,6 +128,63 @@ namespace osu.Framework.Tests.Containers
             AddStep("Allow child 1 load", () => composite.AllowLoad.Set());
 
             AddUntilStep("Scheduled content run", () => scheduleRun);
+        }
+
+        /// <summary>
+        /// Ensure the work load, and importantly, the continuations do not run on the TPL thread pool.
+        /// Since we have our own task schedulers handling these load tasks.
+        /// </summary>
+        [Test]
+        public void TestNoTplThreadPoolReliance()
+        {
+            Container container = null;
+
+            ManualResetEventSlim resetEvent = new ManualResetEventSlim();
+
+            int workerMin = 0;
+            int completionMin = 0;
+            int workerMax = 0;
+            int completionMax = 0;
+
+            int runCount = 0;
+
+            AddStep("set limited threadpool capacity", () =>
+            {
+                ThreadPool.GetMinThreads(out workerMin, out completionMin);
+                ThreadPool.GetMaxThreads(out workerMax, out completionMax);
+
+                ThreadPool.SetMinThreads(2, 2);
+                ThreadPool.SetMaxThreads(2, 2);
+            });
+
+            AddStep("saturate threadpool", () =>
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    Task.Run(() =>
+                    {
+                        Interlocked.Increment(ref runCount);
+                        return resetEvent.Wait(60000);
+                    });
+                }
+            });
+
+            AddAssert("Not all tasks started", () => runCount <= 2);
+
+            AddStep("load component asynchronously", () =>
+            {
+                LoadComponentAsync(container = new Container(), Add);
+            });
+
+            AddUntilStep("wait for load", () => container.IsLoaded);
+
+            AddStep("restore capacity", () =>
+            {
+                resetEvent.Set();
+
+                ThreadPool.SetMinThreads(workerMin, completionMin);
+                ThreadPool.SetMaxThreads(workerMax, completionMax);
+            });
         }
 
         private class AsyncChildrenLoadingComposite : CompositeDrawable

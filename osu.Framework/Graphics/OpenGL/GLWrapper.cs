@@ -119,12 +119,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly GLDisposalQueue disposal_queue = new GLDisposalQueue();
 
-        internal static void ScheduleDisposal(Action disposalAction)
+        internal static void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
             if (host != null && host.TryGetTarget(out _))
-                disposal_queue.ScheduleDisposal(disposalAction);
+                disposal_queue.ScheduleDisposal(disposalAction, target);
             else
-                disposalAction.Invoke();
+                disposalAction.Invoke(target);
         }
 
         private static void checkPendingDisposals()
@@ -879,7 +879,7 @@ namespace osu.Framework.Graphics.OpenGL
             while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
+            ScheduleDisposal(GL.DeleteFramebuffer, frameBuffer);
         }
 
         private static int currentShader;
