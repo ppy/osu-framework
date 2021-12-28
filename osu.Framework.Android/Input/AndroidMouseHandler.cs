@@ -1,8 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using Android.Views;
-using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -14,17 +14,17 @@ namespace osu.Framework.Android.Input
     /// <summary>
     /// Input handler for Android mouse-type devices: the <see cref="InputSourceType.Mouse"/> and <see cref="InputSourceType.Touchpad"/>.
     /// </summary>
-    public class AndroidMouseHandler : InputHandler
+    public class AndroidMouseHandler : AndroidInputHandler
     {
         public override string Description => "Mouse";
 
         public override bool IsActive => true;
 
-        private readonly AndroidGameView view;
+        protected override IEnumerable<InputSourceType> HandledInputSources => new[] { InputSourceType.Mouse, InputSourceType.Touchpad };
 
         public AndroidMouseHandler(AndroidGameView view)
+            : base(view)
         {
-            this.view = view;
         }
 
         public override bool Initialize(GameHost host)
@@ -36,21 +36,19 @@ namespace osu.Framework.Android.Input
             {
                 if (enabled.NewValue)
                 {
-                    view.MouseKeyDown += onKeyDown;
-                    view.MouseKeyLongPress += onKeyDown;
-                    view.MouseKeyUp += onKeyUp;
-                    view.MouseHover += onHover;
-                    view.MouseTouch += onTouch;
-                    view.MouseGenericMotion += onGenericMotion;
+                    View.KeyDown += onKeyDown;
+                    View.KeyUp += onKeyUp;
+                    View.Hover += onHover;
+                    View.Touch += onTouch;
+                    View.GenericMotion += onGenericMotion;
                 }
                 else
                 {
-                    view.MouseKeyDown -= onKeyDown;
-                    view.MouseKeyLongPress -= onKeyDown;
-                    view.MouseKeyUp -= onKeyUp;
-                    view.MouseHover -= onHover;
-                    view.MouseTouch -= onTouch;
-                    view.MouseGenericMotion -= onGenericMotion;
+                    View.KeyDown -= onKeyDown;
+                    View.KeyUp -= onKeyUp;
+                    View.Hover -= onHover;
+                    View.Touch -= onTouch;
+                    View.GenericMotion -= onGenericMotion;
                 }
             }, true);
 
@@ -59,6 +57,8 @@ namespace osu.Framework.Android.Input
 
         private void onKeyDown(Keycode keycode, KeyEvent e)
         {
+            if (!ShouldHandleEvent(e)) return;
+
             // some implementations might send Mouse1 and Mouse2 as keyboard keycodes, so we handle those here.
             if (keycode.TryGetMouseButton(out var button))
                 handleMouseDown(button);
@@ -66,44 +66,52 @@ namespace osu.Framework.Android.Input
 
         private void onKeyUp(Keycode keycode, KeyEvent e)
         {
+            if (!ShouldHandleEvent(e)) return;
+
             if (keycode.TryGetMouseButton(out var button))
                 handleMouseUp(button);
         }
 
-        private void onHover(MotionEvent hoverEvent)
+        private void onHover(object sender, View.HoverEventArgs e)
         {
-            switch (hoverEvent.Action)
+            if (!ShouldHandleEvent(e.Event)) return;
+
+            switch (e.Event.Action)
             {
                 case MotionEventActions.HoverMove:
-                    handleMouseMoveEvent(hoverEvent);
+                    handleMouseMoveEvent(e.Event);
                     break;
             }
         }
 
-        private void onTouch(MotionEvent touchEvent)
+        private void onTouch(object sender, View.TouchEventArgs e)
         {
-            switch (touchEvent.Action)
+            if (!ShouldHandleEvent(e.Event)) return;
+
+            switch (e.Event.Action)
             {
                 case MotionEventActions.Move:
-                    handleMouseMoveEvent(touchEvent);
+                    handleMouseMoveEvent(e.Event);
                     break;
             }
         }
 
-        private void onGenericMotion(MotionEvent motionEvent)
+        private void onGenericMotion(object sender, View.GenericMotionEventArgs e)
         {
-            switch (motionEvent.Action)
+            if (!ShouldHandleEvent(e.Event)) return;
+
+            switch (e.Event.Action)
             {
                 case MotionEventActions.ButtonPress:
-                    handleMouseDown(motionEvent.ActionButton.ToMouseButton());
+                    handleMouseDown(e.Event.ActionButton.ToMouseButton());
                     break;
 
                 case MotionEventActions.ButtonRelease:
-                    handleMouseUp(motionEvent.ActionButton.ToMouseButton());
+                    handleMouseUp(e.Event.ActionButton.ToMouseButton());
                     break;
 
                 case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(motionEvent));
+                    handleMouseWheel(getEventScroll(e.Event));
                     break;
             }
         }
@@ -112,7 +120,7 @@ namespace osu.Framework.Android.Input
 
         private void handleMouseMoveEvent(MotionEvent evt)
         {
-            // https://developer.android.com/reference/android/view/MotionEvent#batching
+            // https://developer.android.com/reference/android/View/MotionEvent#batching
             for (int i = 0; i < evt.HistorySize; i++)
                 handleMouseMove(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
 

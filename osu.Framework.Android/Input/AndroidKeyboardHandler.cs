@@ -2,31 +2,30 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using Android.Views;
-using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Platform;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
 {
-    public class AndroidKeyboardHandler : InputHandler
+    public class AndroidKeyboardHandler : AndroidInputHandler
     {
-        private readonly AndroidGameView view;
+        protected override IEnumerable<InputSourceType> HandledInputSources => new[] { InputSourceType.Keyboard };
 
         public AndroidKeyboardHandler(AndroidGameView view)
+            : base(view)
         {
-            this.view = view;
-            view.KeyDown += keyDown;
-            view.KeyUp += keyUp;
+            View.KeyDown += keyDown;
+            View.KeyUp += keyUp;
         }
 
         public override bool IsActive => true;
 
-        public override bool Initialize(GameHost host) => true;
-
         private void keyDown(Keycode keycode, KeyEvent e)
         {
+            if (!ShouldHandleEvent(e)) return;
+
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
@@ -35,6 +34,8 @@ namespace osu.Framework.Android.Input
 
         private void keyUp(Keycode keycode, KeyEvent e)
         {
+            if (!ShouldHandleEvent(e)) return;
+
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
@@ -160,8 +161,8 @@ namespace osu.Framework.Android.Input
 
         protected override void Dispose(bool disposing)
         {
-            view.KeyDown -= keyDown;
-            view.KeyUp -= keyUp;
+            View.KeyDown -= keyDown;
+            View.KeyUp -= keyUp;
             base.Dispose(disposing);
         }
     }
