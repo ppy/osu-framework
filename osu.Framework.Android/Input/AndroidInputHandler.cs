@@ -53,7 +53,8 @@ namespace osu.Framework.Android.Input
             // compute the bitmask for later use.
             foreach (var inputSource in HandledEventSources)
             {
-                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags (InputSourceType is a flags enum, but is not properly marked as such)
+                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
+                // (InputSourceType is a flags enum, but is not properly marked as such)
                 inputSourceBitmask |= inputSource;
             }
 
