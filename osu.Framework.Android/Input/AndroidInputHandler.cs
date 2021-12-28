@@ -83,6 +83,7 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected virtual void OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
+            throw new NotSupportedException($"{nameof(InputEventType.CapturedPointer)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
         }
 
         /// <summary>
@@ -93,6 +94,7 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected virtual void OnGenericMotion(MotionEvent genericMotionEvent)
         {
+            throw new NotSupportedException($"{nameof(InputEventType.GenericMotion)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
         }
 
         /// <summary>
@@ -103,6 +105,7 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected virtual void OnHover(MotionEvent hoverEvent)
         {
+            throw new NotSupportedException($"{nameof(InputEventType.Hover)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
         }
 
         /// <summary>
@@ -113,6 +116,7 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected virtual void OnKeyDown(Keycode keycode, KeyEvent e)
         {
+            throw new NotSupportedException($"{nameof(InputEventType.KeyDown)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
         }
 
         /// <summary>
@@ -123,6 +127,7 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected virtual void OnKeyUp(Keycode keycode, KeyEvent e)
         {
+            throw new NotSupportedException($"{nameof(InputEventType.KeyUp)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
         }
 
         /// <summary>
@@ -133,6 +138,7 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected virtual void OnTouch(MotionEvent touchEvent)
         {
+            throw new NotSupportedException($"{nameof(InputEventType.Touch)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
         }
 
         #region Event handlers
