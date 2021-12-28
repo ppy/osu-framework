@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Input;
@@ -20,98 +19,63 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        protected override IEnumerable<InputSourceType> HandledInputSources => new[] { InputSourceType.Mouse, InputSourceType.Touchpad };
+        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.Touchpad };
+
+        protected override IEnumerable<InputEventType> HandledEventTypes
+            => new[] { InputEventType.GenericMotion, InputEventType.Hover, InputEventType.KeyDown, InputEventType.KeyUp, InputEventType.Touch };
 
         public AndroidMouseHandler(AndroidGameView view)
             : base(view)
         {
         }
 
-        public override bool Initialize(GameHost host)
+        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
-            if (!base.Initialize(host))
-                return false;
-
-            Enabled.BindValueChanged(enabled =>
-            {
-                if (enabled.NewValue)
-                {
-                    View.KeyDown += onKeyDown;
-                    View.KeyUp += onKeyUp;
-                    View.Hover += onHover;
-                    View.Touch += onTouch;
-                    View.GenericMotion += onGenericMotion;
-                }
-                else
-                {
-                    View.KeyDown -= onKeyDown;
-                    View.KeyUp -= onKeyUp;
-                    View.Hover -= onHover;
-                    View.Touch -= onTouch;
-                    View.GenericMotion -= onGenericMotion;
-                }
-            }, true);
-
-            return true;
-        }
-
-        private void onKeyDown(Keycode keycode, KeyEvent e)
-        {
-            if (!ShouldHandleEvent(e)) return;
-
             // some implementations might send Mouse1 and Mouse2 as keyboard keycodes, so we handle those here.
             if (keycode.TryGetMouseButton(out var button))
                 handleMouseDown(button);
         }
 
-        private void onKeyUp(Keycode keycode, KeyEvent e)
+        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
         {
-            if (!ShouldHandleEvent(e)) return;
-
             if (keycode.TryGetMouseButton(out var button))
                 handleMouseUp(button);
         }
 
-        private void onHover(object sender, View.HoverEventArgs e)
+        protected override void OnHover(MotionEvent hoverEvent)
         {
-            if (!ShouldHandleEvent(e.Event)) return;
-
-            switch (e.Event.Action)
+            switch (hoverEvent.Action)
             {
                 case MotionEventActions.HoverMove:
-                    handleMouseMoveEvent(e.Event);
+                    handleMouseMoveEvent(hoverEvent);
                     break;
             }
         }
 
-        private void onTouch(object sender, View.TouchEventArgs e)
+        protected override void OnTouch(MotionEvent touchEvent)
         {
-            if (!ShouldHandleEvent(e.Event)) return;
-
-            switch (e.Event.Action)
+            switch (touchEvent.Action)
             {
                 case MotionEventActions.Move:
-                    handleMouseMoveEvent(e.Event);
+                    handleMouseMoveEvent(touchEvent);
                     break;
             }
         }
 
-        private void onGenericMotion(object sender, View.GenericMotionEventArgs e)
+        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
         {
-            if (!ShouldHandleEvent(e.Event)) return;
-
-            switch (e.Event.Action)
+            switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.ButtonPress:
-                    handleMouseDown(e.Event.ActionButton.ToMouseButton());
+                    handleMouseDown(genericMotionEvent.ActionButton.ToMouseButton());
                     break;
 
                 case MotionEventActions.ButtonRelease:
-                    handleMouseUp(e.Event.ActionButton.ToMouseButton());
+                    handleMouseUp(genericMotionEvent.ActionButton.ToMouseButton());
                     break;
 
                 case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(e.Event));
+                    handleMouseWheel(getEventScroll(genericMotionEvent));
                     break;
             }
         }

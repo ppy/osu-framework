@@ -11,31 +11,27 @@ namespace osu.Framework.Android.Input
 {
     public class AndroidKeyboardHandler : AndroidInputHandler
     {
-        protected override IEnumerable<InputSourceType> HandledInputSources => new[] { InputSourceType.Keyboard };
+        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Keyboard };
+
+        protected override IEnumerable<InputEventType> HandledEventTypes => new[] { InputEventType.KeyDown, InputEventType.KeyUp };
 
         public AndroidKeyboardHandler(AndroidGameView view)
             : base(view)
         {
-            View.KeyDown += keyDown;
-            View.KeyUp += keyUp;
         }
 
         public override bool IsActive => true;
 
-        private void keyDown(Keycode keycode, KeyEvent e)
+        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
-            if (!ShouldHandleEvent(e)) return;
-
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
                 PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
         }
 
-        private void keyUp(Keycode keycode, KeyEvent e)
+        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
         {
-            if (!ShouldHandleEvent(e)) return;
-
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
@@ -157,13 +153,6 @@ namespace osu.Framework.Android.Input
 
             // this is the worst case scenario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            View.KeyDown -= keyDown;
-            View.KeyUp -= keyUp;
-            base.Dispose(disposing);
         }
     }
 }

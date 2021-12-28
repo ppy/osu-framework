@@ -16,32 +16,30 @@ namespace osu.Framework.Android.Input
     {
         public override bool IsActive => true;
 
-        protected override IEnumerable<InputSourceType> HandledInputSources => new[] { InputSourceType.BluetoothStylus, InputSourceType.Stylus, InputSourceType.Touchscreen };
+        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.BluetoothStylus, InputSourceType.Stylus, InputSourceType.Touchscreen };
+
+        protected override IEnumerable<InputEventType> HandledEventTypes => new[] { InputEventType.Hover, InputEventType.Touch };
 
         public AndroidTouchHandler(AndroidGameView view)
             : base(view)
         {
-            View.Touch += handleTouch;
-            View.Hover += handleHover;
         }
 
-        private void handleTouch(object sender, View.TouchEventArgs e)
+        protected override void OnTouch(MotionEvent touchEvent)
         {
-            if (!ShouldHandleEvent(e.Event)) return;
-
-            if (e.Event.Action == MotionEventActions.Move)
+            if (touchEvent.Action == MotionEventActions.Move)
             {
-                for (int i = 0; i < Math.Min(e.Event.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
+                for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
                 {
-                    var touch = getEventTouch(e.Event, i);
+                    var touch = getEventTouch(touchEvent, i);
                     PendingInputs.Enqueue(new TouchInput(touch, true));
                 }
             }
-            else if (e.Event.ActionIndex < TouchState.MAX_TOUCH_COUNT)
+            else if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
             {
-                var touch = getEventTouch(e.Event, e.Event.ActionIndex);
+                var touch = getEventTouch(touchEvent, touchEvent.ActionIndex);
 
-                switch (e.Event.ActionMasked)
+                switch (touchEvent.ActionMasked)
                 {
                     case MotionEventActions.Down:
                     case MotionEventActions.PointerDown:
@@ -57,22 +55,13 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleHover(object sender, View.HoverEventArgs e)
+        protected override void OnHover(MotionEvent hoverEvent)
         {
-            if (!ShouldHandleEvent(e.Event)) return;
-
-            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = getEventPosition(e.Event) });
-            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, e.Event.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = getEventPosition(hoverEvent) });
+            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
         }
 
         private Touch getEventTouch(MotionEvent e, int index) => new Touch((TouchSource)e.GetPointerId(index), getEventPosition(e, index));
         private Vector2 getEventPosition(MotionEvent e, int index = 0) => new Vector2(e.GetX(index) * View.ScaleX, e.GetY(index) * View.ScaleY);
-
-        protected override void Dispose(bool disposing)
-        {
-            View.Touch -= handleTouch;
-            View.Hover -= handleHover;
-            base.Dispose(disposing);
-        }
     }
 }
