@@ -696,6 +696,46 @@ namespace osu.Framework.Tests.IO
             Assert.Throws<ArgumentException>(() => request.AddParameter("cannot", "work", RequestParameterType.Form));
         }
 
+        /// <summary>
+        /// Ensure the work load, and importantly, the continuations do not run on the TPL thread pool.
+        /// Since we have our own task schedulers handling these load tasks.
+        /// </summary>
+        [Test]
+        public void TestSynchronousFlowTplReliance()
+        {
+            int workerMin;
+            int completionMin;
+            int workerMax;
+            int completionMax;
+
+            ManualResetEventSlim resetEvent = new ManualResetEventSlim();
+
+            // set limited threadpool capacity
+            ThreadPool.GetMinThreads(out workerMin, out completionMin);
+            ThreadPool.GetMaxThreads(out workerMax, out completionMax);
+
+            ThreadPool.SetMinThreads(2, 2);
+            ThreadPool.SetMaxThreads(2, 2);
+
+            var request = new DelayedWebRequest
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+                Timeout = 1000,
+                Delay = 2
+            };
+
+            request.CompleteInvoked = () => request.Delay = 0;
+
+            request.Perform();
+
+            // restore capacity
+            resetEvent.Set();
+
+            ThreadPool.SetMinThreads(workerMin, completionMin);
+            ThreadPool.SetMaxThreads(workerMax, completionMax);
+        }
+
         [Test, Retry(5)]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
@@ -812,10 +852,10 @@ namespace osu.Framework.Tests.IO
             {
             }
 
-            protected override void Complete(Exception e = null)
+            protected override Task Complete(Exception e = null)
             {
                 CompleteInvoked?.Invoke();
-                base.Complete(e);
+                return base.Complete(e);
             }
         }
     }
