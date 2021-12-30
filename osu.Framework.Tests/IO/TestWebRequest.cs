@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -172,7 +172,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => finishedException = exception;
 
             if (async)
-                Assert.ThrowsAsync<HttpRequestException>(request.PerformAsync);
+                Assert.ThrowsAsync<HttpRequestException>(() => request.PerformAsync());
             else
                 Assert.Throws<HttpRequestException>(request.Perform);
 
@@ -195,7 +195,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.ThrowsAsync<WebException>(request.PerformAsync);
+                Assert.ThrowsAsync<WebException>(() => request.PerformAsync());
             else
                 Assert.Throws<WebException>(request.Perform);
 
@@ -219,7 +219,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.ThrowsAsync<ArgumentException>(request.PerformAsync);
+                Assert.ThrowsAsync<ArgumentException>(() => request.PerformAsync());
             else
                 Assert.Throws<ArgumentException>(request.Perform);
 
@@ -250,7 +250,7 @@ namespace osu.Framework.Tests.IO
             request.Started += () => request.Abort();
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -313,7 +313,7 @@ namespace osu.Framework.Tests.IO
             Assert.DoesNotThrow(request.Abort);
 
             if (async)
-                Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+                Assert.ThrowsAsync<InvalidOperationException>(() => request.PerformAsync());
             else
                 Assert.Throws<InvalidOperationException>(request.Perform);
 
@@ -399,7 +399,7 @@ namespace osu.Framework.Tests.IO
             cancellationSource.Cancel();
             request.PerformAsync(cancellationSource.Token);
 
-            Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+            Assert.ThrowsAsync<InvalidOperationException>(() => request.PerformAsync(cancellationSource.Token));
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -569,7 +569,7 @@ namespace osu.Framework.Tests.IO
             request.AddParameter("testkey2", "testval2");
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -605,7 +605,7 @@ namespace osu.Framework.Tests.IO
             request.AddRaw(JsonConvert.SerializeObject(testObject));
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -631,7 +631,7 @@ namespace osu.Framework.Tests.IO
             };
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -713,7 +713,7 @@ namespace osu.Framework.Tests.IO
                 request.AddParameter("chunk_size", chunk_size.ToString());
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 

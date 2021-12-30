@@ -228,13 +228,8 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public Task PerformAsync() => PerformAsync(default);
-
-        /// <summary>
-        /// Performs the request asynchronously.
-        /// </summary>
         /// <param name="cancellationToken">A token to cancel the request.</param>
-        public async Task PerformAsync(CancellationToken cancellationToken)
+        public async Task PerformAsync(CancellationToken cancellationToken = default)
         {
             if (Completed)
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
