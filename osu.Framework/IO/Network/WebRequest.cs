@@ -409,7 +409,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                PerformAsync().Wait();
+                // Start a long-running task to ensure we don't block on a TPL thread pool thread.
+                // Unfortunately we can't use a full synchronous flow due to IPv4 fallback logic *requiring* the async path for now.
+                Task.Factory.StartNew(() => PerformAsync().Wait(), TaskCreationOptions.LongRunning).Wait();
             }
             catch (AggregateException ae)
             {
