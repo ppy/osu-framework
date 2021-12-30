@@ -376,8 +376,8 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
-                        WebExceptionStatus.Timeout));
+                    await Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                        WebExceptionStatus.Timeout)).ConfigureAwait(false);
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
@@ -389,7 +389,7 @@ namespace osu.Framework.IO.Network
                         // we may be coming from one of the exception blocks handled above (as Complete will rethrow all exceptions).
                         throw;
 
-                    Complete(e);
+                    await Complete(e).ConfigureAwait(false);
                 }
             }
 
@@ -465,17 +465,17 @@ namespace osu.Framework.IO.Network
                     else
                     {
                         ResponseStream.Seek(0, SeekOrigin.Begin);
-                        Complete();
+                        await Complete().ConfigureAwait(false);
                         break;
                     }
                 }
             }
         }
 
-        protected virtual void Complete(Exception e = null)
+        protected virtual Task Complete(Exception e = null)
         {
             if (Aborted)
-                return;
+                return Task.CompletedTask;
 
             var we = e as WebException;
 
@@ -508,8 +508,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
-                    internalPerform().Wait();
-                    return;
+                    return internalPerform();
                 }
 
                 logger.Add($"Request to {Url} failed with {e}.");
@@ -572,6 +571,8 @@ namespace osu.Framework.IO.Network
                 Aborted = true;
                 throw e;
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
