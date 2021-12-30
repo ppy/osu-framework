@@ -134,6 +134,19 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
+        private CancellationToken? userToken;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
+
+        private LengthTrackingStream requestStream;
+        private HttpResponseMessage response;
+
+        private long contentLength => requestStream?.Length ?? 0;
+
+        private const string form_boundary = "-----------------------------28947758029299";
+
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+
         private static readonly HttpClient client = new HttpClient(
 #if NET5_0
             new SocketsHttpHandler
@@ -211,19 +224,6 @@ namespace osu.Framework.IO.Network
         }
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
-
-        private CancellationToken? userToken;
-        private CancellationTokenSource abortToken;
-        private CancellationTokenSource timeoutToken;
-
-        private LengthTrackingStream requestStream;
-        private HttpResponseMessage response;
-
-        private long contentLength => requestStream?.Length ?? 0;
-
-        private const string form_boundary = "-----------------------------28947758029299";
-
-        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         /// <summary>
         /// Performs the request asynchronously.
