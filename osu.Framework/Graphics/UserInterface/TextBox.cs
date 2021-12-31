@@ -1150,6 +1150,19 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        protected override bool OnTripleClick(TripleClickEvent e)
+        {
+            FinalizeImeComposition(true);
+
+            if (text.Length == 0) return true;
+
+            selectionStart = 0;
+            selectionEnd = text.Length;
+            
+            cursorAndLayout.Invalidate();
+            return true;
+        }
+
         private static int findSeparatorIndex(string input, int searchPos, int direction)
         {
             bool isLetterOrDigit = char.IsLetterOrDigit(input[searchPos]);

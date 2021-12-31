@@ -114,6 +114,7 @@ namespace osu.Framework.Tests.Visual.Input
         private static readonly Type drag_end = typeof(DragEndEvent);
         private static readonly Type click = typeof(ClickEvent);
         private static readonly Type double_click = typeof(DoubleClickEvent);
+        private static readonly Type triple_click = typeof(TripleClickEvent);
 
         [Test]
         public void BasicScroll()
@@ -304,17 +305,18 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
-        public void ClickAndDoubleClick()
+        public void ClickAndMultipleClick()
         {
             initTestScene();
 
-            waitDoubleClickTime();
+            waitMultipleClickTime();
             AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkEventCount(click, 1);
-            waitDoubleClickTime();
+            waitMultipleClickTime();
             AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkEventCount(click, 1);
-            waitDoubleClickTime();
+            waitMultipleClickTime();
+
             AddStep("double click", () =>
             {
                 InputManager.Click(MouseButton.Left);
@@ -322,17 +324,31 @@ namespace osu.Framework.Tests.Visual.Input
             });
             checkEventCount(click, 1);
             checkEventCount(double_click, 1);
-            waitDoubleClickTime();
+            waitMultipleClickTime();
+
             AddStep("triple click", () =>
             {
                 InputManager.Click(MouseButton.Left);
                 InputManager.Click(MouseButton.Left);
                 InputManager.Click(MouseButton.Left);
             });
+            checkEventCount(click, 1);
+            checkEventCount(double_click, 1);
+            checkEventCount(triple_click, 1);
+            waitMultipleClickTime();
+
+            AddStep("quadruple click", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
             checkEventCount(click, 2);
             checkEventCount(double_click, 1);
+            checkEventCount(triple_click, 1);
+            waitMultipleClickTime();
 
-            waitDoubleClickTime();
             AddStep("click then mouse down", () =>
             {
                 InputManager.Click(MouseButton.Left);
@@ -340,11 +356,28 @@ namespace osu.Framework.Tests.Visual.Input
             });
             checkEventCount(click, 1);
             checkEventCount(double_click, 1);
+
             AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount(click);
             checkEventCount(double_click);
+            waitMultipleClickTime();
 
-            waitDoubleClickTime();
+            AddStep("double click then mouse down", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            checkEventCount(click, 1);
+            checkEventCount(double_click, 1);
+            checkEventCount(triple_click, 1);
+
+            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkEventCount(click);
+            checkEventCount(double_click);
+            checkEventCount(triple_click);
+            waitMultipleClickTime();
+
             AddStep("double click drag", () =>
             {
                 InputManager.Click(MouseButton.Left);
@@ -353,7 +386,25 @@ namespace osu.Framework.Tests.Visual.Input
             });
             checkEventCount(click, 1);
             checkEventCount(double_click, 1);
-            checkEventCount(drag_start, 1);
+            checkEventCount(drag_start, 1); 
+
+            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkEventCount(click);
+            checkEventCount(double_click);
+            checkEventCount(triple_click);
+            waitMultipleClickTime();
+
+            AddStep("triple click drag", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopRight);
+            });
+            checkEventCount(click, 1);
+            checkEventCount(double_click, 1);
+            checkEventCount(triple_click, 1);
+            checkEventCount(drag_start, 1); 
         }
 
         [Test]
@@ -371,7 +422,7 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(mouse_up, 1);
         }
 
-        private void waitDoubleClickTime()
+        private void waitMultipleClickTime()
         {
             AddWaitStep("wait to don't double click", 2);
         }
@@ -391,7 +442,7 @@ namespace osu.Framework.Tests.Visual.Input
             else
             {
                 // those types are handled by state tracker 2
-                if (!new[] { drag_start, drag, drag_end, click, double_click }.Contains(type))
+                if (!new[] { drag_start, drag, drag_end, click, double_click, triple_click}.Contains(type))
                     count1 += change;
                 count2 += change;
             }
@@ -447,7 +498,8 @@ namespace osu.Framework.Tests.Visual.Input
                             addCounter(typeof(MouseDownEvent)),
                             addCounter(typeof(MouseUpEvent)),
                             addCounter(typeof(ClickEvent)),
-                            addCounter(typeof(DoubleClickEvent))
+                            addCounter(typeof(DoubleClickEvent)),
+                            addCounter(typeof(TripleClickEvent))
                         }
                     },
                     new BoundedCursorContainer(number)
@@ -473,7 +525,7 @@ namespace osu.Framework.Tests.Visual.Input
                         break;
                 }
 
-                return type == click || type == double_click;
+                return type == click || type == double_click || type == triple_click;
             }
 
             private EventCounter addCounter(Type type)

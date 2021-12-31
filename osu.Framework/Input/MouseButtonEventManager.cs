@@ -50,9 +50,9 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// The maximum time between two clicks for a double-click to be considered.
+        /// The maximum time between two or three clicks for a double- or tripple-click to be considered.
         /// </summary>
-        public virtual float DoubleClickTime => 250;
+        public virtual float ClickTimeInterval => 250;
 
         /// <summary>
         /// The distance that must be moved until a dragged click becomes invalid.
@@ -109,14 +109,26 @@ namespace osu.Framework.Input
 
             Drawable handledBy = PropagateButtonEvent(targets, new MouseDownEvent(state, Button, MouseDownPosition));
 
-            if (LastClickTime != null && GetCurrentTime() - LastClickTime < DoubleClickTime)
+            if (LastClickTime != null && GetCurrentTime() - LastClickTime < ClickTimeInterval)
             {
-                if (handleDoubleClick(state, targets))
+                if (!IsDoubleClicked && handleDoubleClick(state, targets))
                 {
                     //when we handle a double-click we want to block a normal click from firing.
                     BlockNextClick = true;
+                    LastClickTime = GetCurrentTime();
+                     //we also want to be able to triple-click afterwards.
+                    IsDoubleClicked = true;
+                }
+                else if (handleTripleClick(state, targets))
+                {
+                    BlockNextClick = true;
+                    IsDoubleClicked = false;
                     LastClickTime = null;
                 }
+            }
+            else
+            {
+                IsDoubleClicked = false;
             }
 
             return handledBy;
@@ -147,6 +159,7 @@ namespace osu.Framework.Input
         }
 
         protected bool BlockNextClick;
+        protected bool IsDoubleClicked;
 
         private void handleClick(InputState state, List<Drawable> targets)
         {
@@ -175,6 +188,17 @@ namespace osu.Framework.Input
                 return false;
 
             return PropagateButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
+        }
+
+        private bool handleTripleClick(InputState state, List<Drawable> targets)
+        {
+            if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
+                return false;
+
+            if (!targets.Contains(clicked))
+                return false;
+
+            return PropagateButtonEvent(new[] { clicked }, new TripleClickEvent(state, Button, MouseDownPosition)) != null;
         }
 
         private void handleDrag(InputState state, Vector2 lastPosition)
