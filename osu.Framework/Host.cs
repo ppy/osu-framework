@@ -11,7 +11,7 @@ namespace osu.Framework
 {
     public static class Host
     {
-        public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
+        public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false, bool bypassCompositorOnLinux = true)
         {
             switch (RuntimeInfo.OS)
             {
@@ -19,7 +19,7 @@ namespace osu.Framework
                     return new MacOSGameHost(gameName, bindIPC, portableInstallation);
 
                 case RuntimeInfo.Platform.Linux:
-                    return new LinuxGameHost(gameName, bindIPC, portableInstallation);
+                    return new LinuxGameHost(gameName, bindIPC, portableInstallation, bypassCompositorOnLinux);
 
                 case RuntimeInfo.Platform.Windows:
                     return new WindowsGameHost(gameName, bindIPC, portableInstallation);

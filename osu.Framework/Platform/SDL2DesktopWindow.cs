@@ -395,7 +395,6 @@ namespace osu.Framework.Platform
                                         SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
                                         WindowState.ToFlags();
 
-            SDL.SDL_SetHint(SDL.SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
