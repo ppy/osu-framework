@@ -304,19 +304,18 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(click);
         }
 
-        [Test]
-        public void ClickAndMultipleClick()
+       [Test]
+        public void ClickAndDoubleClick()
         {
             initTestScene();
 
-            waitMultipleClickTime();
+            waitDoubleClickTime();
             AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkEventCount(click, 1);
-            waitMultipleClickTime();
+            waitDoubleClickTime();
             AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkEventCount(click, 1);
-            waitMultipleClickTime();
-
+            waitDoubleClickTime();
             AddStep("double click", () =>
             {
                 InputManager.Click(MouseButton.Left);
@@ -324,7 +323,53 @@ namespace osu.Framework.Tests.Visual.Input
             });
             checkEventCount(click, 1);
             checkEventCount(double_click, 1);
-            waitMultipleClickTime();
+            waitDoubleClickTime();
+            AddStep("triple click", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+            checkEventCount(click, 2);
+            checkEventCount(double_click, 1);
+
+            waitDoubleClickTime();
+            AddStep("click then mouse down", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            checkEventCount(click, 1);
+            checkEventCount(double_click, 1);
+            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkEventCount(click);
+            checkEventCount(double_click);
+
+            waitDoubleClickTime();
+            AddStep("double click drag", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+            });
+            checkEventCount(click, 1);
+            checkEventCount(double_click, 1);
+            checkEventCount(drag_start, 1);
+        }
+
+        [Test]
+        public void ClickAndTripleClick()
+        {
+            initTestScene();
+
+            waitDoubleClickTime();
+            AddStep("click", () => InputManager.Click(MouseButton.Left));
+            checkEventCount(click, 1);
+            waitDoubleClickTime();
+            AddStep("click", () => InputManager.Click(MouseButton.Left));
+            checkEventCount(click, 1);
+            waitDoubleClickTime();
+            AddStep("click", () => InputManager.Click(MouseButton.Left));
+            checkEventCount(click, 1);
+            waitDoubleClickTime();
 
             AddStep("triple click", () =>
             {
@@ -335,7 +380,7 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(click, 1);
             checkEventCount(double_click, 1);
             checkEventCount(triple_click, 1);
-            waitMultipleClickTime();
+            waitDoubleClickTime();
 
             AddStep("quadruple click", () =>
             {
@@ -347,20 +392,7 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(click, 2);
             checkEventCount(double_click, 1);
             checkEventCount(triple_click, 1);
-            waitMultipleClickTime();
-
-            AddStep("click then mouse down", () =>
-            {
-                InputManager.Click(MouseButton.Left);
-                InputManager.PressButton(MouseButton.Left);
-            });
-            checkEventCount(click, 1);
-            checkEventCount(double_click, 1);
-
-            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
-            checkEventCount(click);
-            checkEventCount(double_click);
-            waitMultipleClickTime();
+            waitDoubleClickTime();
 
             AddStep("double click then mouse down", () =>
             {
@@ -375,24 +407,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount(click);
             checkEventCount(double_click);
-            checkEventCount(triple_click);
-            waitMultipleClickTime();
-
-            AddStep("double click drag", () =>
-            {
-                InputManager.Click(MouseButton.Left);
-                InputManager.PressButton(MouseButton.Left);
-                InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft);
-            });
-            checkEventCount(click, 1);
-            checkEventCount(double_click, 1);
-            checkEventCount(drag_start, 1); 
-
-            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
-            checkEventCount(click);
-            checkEventCount(double_click);
-            checkEventCount(triple_click);
-            waitMultipleClickTime();
+            waitDoubleClickTime();
 
             AddStep("triple click drag", () =>
             {
@@ -422,7 +437,7 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(mouse_up, 1);
         }
 
-        private void waitMultipleClickTime()
+        private void waitDoubleClickTime()
         {
             AddWaitStep("wait to don't double click", 2);
         }
