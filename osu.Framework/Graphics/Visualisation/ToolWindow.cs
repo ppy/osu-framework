@@ -49,6 +49,7 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Y,
                     Direction = FillDirection.Vertical
                 },
+                new CursorContainer()
             });
 
             AddRange(new Drawable[]
@@ -102,7 +103,6 @@ namespace osu.Framework.Graphics.Visualisation
                         }
                     }
                 },
-                new CursorContainer()
             });
         }
 
