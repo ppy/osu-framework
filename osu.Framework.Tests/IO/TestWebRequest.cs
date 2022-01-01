@@ -708,8 +708,6 @@ namespace osu.Framework.Tests.IO
             int workerMax;
             int completionMax;
 
-            ManualResetEventSlim resetEvent = new ManualResetEventSlim();
-
             // set limited threadpool capacity
             ThreadPool.GetMinThreads(out workerMin, out completionMin);
             ThreadPool.GetMaxThreads(out workerMax, out completionMax);
@@ -730,8 +728,6 @@ namespace osu.Framework.Tests.IO
             request.Perform();
 
             // restore capacity
-            resetEvent.Set();
-
             ThreadPool.SetMinThreads(workerMin, completionMin);
             ThreadPool.SetMaxThreads(workerMax, completionMax);
         }
