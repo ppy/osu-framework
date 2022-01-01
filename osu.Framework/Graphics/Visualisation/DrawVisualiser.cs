@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -51,6 +51,7 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     GoUpOneParent = goUpOneParent,
                     ToggleInspector = toggleInspector,
+                    InspectRoot = inspectRoot,
                 },
                 new CursorContainer()
             };
@@ -107,6 +108,13 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (drawableInspector.State.Value == Visibility.Visible)
                 setHighlight(targetVisualiser);
+        }
+
+        private void inspectRoot()
+        {
+            Target = game;
+            Searching = false;
+            overlay.Target = null;
         }
 
         protected override void LoadComplete()

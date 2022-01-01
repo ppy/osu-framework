@@ -24,6 +24,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer MainHorizontalContent;
 
+        private readonly FillFlowContainer content;
+
+        protected override Container<Drawable> Content => content;
+
         protected ToolWindow(string title, string keyHelpText)
         {
             AutoSizeAxes = Axes.X;
@@ -39,6 +43,16 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
+                content = new FillFlowContainer
+                {
+                    AutoSizeAxes = Axes.X,
+                    RelativeSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical
+                },
+            });
+
+            AddRange(new Drawable[]
+            {
                 new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
@@ -105,9 +119,6 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
-            // Used instead of GridContainer due to grid container's autosize failing to reduce size after increase.
-            MainHorizontalContent.Padding = new MarginPadding { Top = TitleBar.HEIGHT + ToolbarContent.DrawHeight };
         }
 
         protected override void PopIn() => this.FadeIn(100);

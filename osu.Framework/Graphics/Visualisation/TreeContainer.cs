@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.Visualisation
         public Action ChooseTarget;
         public Action GoUpOneParent;
         public Action ToggleInspector;
+        public Action InspectRoot;
 
         internal DrawableInspector DrawableInspector { get; private set; }
 
@@ -35,7 +36,7 @@ namespace osu.Framework.Graphics.Visualisation
         public TreeContainer()
             : base("Draw Visualiser", "(Ctrl+F1 to toggle)")
         {
-            AddInternal(waitingText = new SpriteText
+            ScrollContent.Add(waitingText = new SpriteText
             {
                 Text = @"Waiting for target selection...",
                 Font = FrameworkFont.Regular,
@@ -46,6 +47,7 @@ namespace osu.Framework.Graphics.Visualisation
             AddButton(@"choose target", () => ChooseTarget?.Invoke());
             AddButton(@"up one parent", () => GoUpOneParent?.Invoke());
             AddButton(@"toggle inspector", () => ToggleInspector?.Invoke());
+            AddButton(@"inspect root", () => InspectRoot?.Invoke());
 
             MainHorizontalContent.Add(DrawableInspector = new DrawableInspector());
         }
