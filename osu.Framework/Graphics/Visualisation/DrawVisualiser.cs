@@ -30,6 +30,9 @@ namespace osu.Framework.Graphics.Visualisation
         [Cached]
         private readonly TreeContainer treeContainer;
 
+        [Resolved]
+        private Game game { get; set; }
+
         private VisualisedDrawable highlightedTarget;
         private readonly DrawableInspector drawableInspector;
         private readonly InfoOverlay overlay;
