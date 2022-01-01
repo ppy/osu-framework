@@ -24,9 +24,13 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer MainHorizontalContent;
 
+        private readonly FillFlowContainer header;
+        private readonly Container mainContent;
         private readonly FillFlowContainer content;
 
         protected override Container<Drawable> Content => content;
+
+        private Layout.LayoutValue layout = new Layout.LayoutValue(Invalidation.DrawSize, Layout.InvalidationSource.Child);
 
         protected ToolWindow(string title, string keyHelpText)
         {
@@ -54,7 +58,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             AddRange(new Drawable[]
             {
-                new FillFlowContainer
+                header = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
@@ -84,9 +88,8 @@ namespace osu.Framework.Graphics.Visualisation
                         }
                     }
                 },
-                new TooltipContainer
+                mainContent = new TooltipContainer
                 {
-                    RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
                     Child = MainHorizontalContent = new FillFlowContainer
                     {
@@ -104,6 +107,8 @@ namespace osu.Framework.Graphics.Visualisation
                     }
                 },
             });
+
+            AddLayout(layout);
         }
 
         protected void AddButton(string text, Action action)
@@ -124,5 +129,15 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopIn() => this.FadeIn(100);
 
         protected override void PopOut() => this.FadeOut(100);
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+            if (!layout.IsValid)
+            {
+                mainContent.Height = Height - header.Height;
+                layout.Validate();
+            }
+        }
     }
 }
