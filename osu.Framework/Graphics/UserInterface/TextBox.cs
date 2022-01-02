@@ -1023,6 +1023,13 @@ namespace osu.Framework.Graphics.UserInterface
             return base.OnKeyDown(e) || consumingText;
         }
 
+        protected override bool Handle(UIEvent e)
+        {            
+            if (e is TripleClickEvent tripleClickEvent)
+                return OnTripleClick(tripleClickEvent);
+            return base.Handle(e);
+        }
+
         private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0 && key <= Key.NonUSBackSlash) && key != Key.KeypadEnter;
 
         /// <summary>
@@ -1150,7 +1157,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnTripleClick(TripleClickEvent e)
+        protected bool OnTripleClick(TripleClickEvent e)
         {
             FinalizeImeComposition(true);
 

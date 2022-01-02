@@ -350,13 +350,6 @@ namespace osu.Framework.Graphics.Visualisation
             RequestTarget?.Invoke(Target);
             return true;
         }
-
-        protected override bool OnTripleClick(TripleClickEvent e)
-        {
-            RequestTarget?.Invoke(Target);
-            return true;
-        }
-
         private bool isExpanded = true;
 
         public void Expand()
