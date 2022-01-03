@@ -26,18 +26,25 @@ namespace osu.Framework
                     return new WindowsGameHost(gameName, bindIPC, portableInstallation);
 
                 default:
-                    throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
+                    throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({RuntimeInfo.OS}).");
             }
         }
 
         public static DesktopGameHost GetSuitableHost(HostConfig hostConfig)
         {
-            return RuntimeInfo.OS switch
+            switch (RuntimeInfo.OS)
             {
-                RuntimeInfo.Platform.Windows => new WindowsGameHost(hostConfig),
-                RuntimeInfo.Platform.Linux => new LinuxGameHost(hostConfig),
-                RuntimeInfo.Platform.macOS => new MacOSGameHost(hostConfig),
-                _ => throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)})."),
+                case RuntimeInfo.Platform.Windows:
+                    return new WindowsGameHost(hostConfig);
+
+                case RuntimeInfo.Platform.Linux:
+                    return new LinuxGameHost(hostConfig);
+
+                case RuntimeInfo.Platform.macOS:
+                    return new MacOSGameHost(hostConfig);
+
+                default:
+                    throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({RuntimeInfo.OS}).");
             };
         }
     }
