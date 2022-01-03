@@ -15,8 +15,14 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
+        [Obsolete("Use MacOSGameHost(HostConfig) instead.")]
         internal MacOSGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
             : base(gameName, bindIPC, portableInstallation)
+        {
+        }
+
+        internal MacOSGameHost(HostConfig hostConfig)
+            : base(hostConfig)
         {
         }
 

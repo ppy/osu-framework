@@ -11,7 +11,8 @@ namespace osu.Framework
 {
     public static class Host
     {
-        public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false, bool bypassCompositorOnLinux = true)
+        [Obsolete("Use GetSuitableHost(HostConfig) instead.")]
+        public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
         {
             switch (RuntimeInfo.OS)
             {
@@ -19,7 +20,7 @@ namespace osu.Framework
                     return new MacOSGameHost(gameName, bindIPC, portableInstallation);
 
                 case RuntimeInfo.Platform.Linux:
-                    return new LinuxGameHost(gameName, bindIPC, portableInstallation, bypassCompositorOnLinux);
+                    return new LinuxGameHost(gameName, bindIPC, portableInstallation);
 
                 case RuntimeInfo.Platform.Windows:
                     return new WindowsGameHost(gameName, bindIPC, portableInstallation);
@@ -27,6 +28,17 @@ namespace osu.Framework
                 default:
                     throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
             }
+        }
+
+        public static DesktopGameHost GetSuitableHost(HostConfig hostConfig)
+        {
+            return RuntimeInfo.OS switch
+            {
+                RuntimeInfo.Platform.Windows => new WindowsGameHost(hostConfig),
+                RuntimeInfo.Platform.Linux => new LinuxGameHost(hostConfig),
+                RuntimeInfo.Platform.macOS => new MacOSGameHost(hostConfig),
+                _ => throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)})."),
+            };
         }
     }
 }

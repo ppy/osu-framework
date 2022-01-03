@@ -32,8 +32,15 @@ namespace osu.Framework.Platform.Windows
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
+
+        [Obsolete("Use WindowsGameHost(HostConfig) instead.")]
         internal WindowsGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
             : base(gameName, bindIPC, portableInstallation)
+        {
+        }
+
+        internal WindowsGameHost(HostConfig hostConfig)
+            : base(hostConfig)
         {
         }
 

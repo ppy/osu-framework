@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -23,11 +24,19 @@ namespace osu.Framework.Platform
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
 
+        [Obsolete("Use DesktopGameHost(HostConfig) instead.")]
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
             : base(gameName)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
+        }
+
+        protected DesktopGameHost(HostConfig hostConfig)
+            : base(hostConfig.GameName)
+        {
+            bindIPCPort = hostConfig.BindIPC;
+            IsPortableInstallation = hostConfig.PortableInstallation;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
