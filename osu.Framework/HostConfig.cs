@@ -47,8 +47,21 @@ namespace osu.Framework
         {
             Name = @"";
             BindIPC = false;
+            Realtime = true;
             PortableInstallation = false;
             BypassCompositor = true;
+        }
+
+        public HostConfig With(string name = null, bool? bindIPC = null, bool? realtime = null, bool? portableInstallation = null, bool? bypassCompositor = null)
+        {
+            return new HostConfig
+            {
+                Name = name ?? Name,
+                BindIPC = bindIPC ?? BindIPC,
+                Realtime = realtime ?? Realtime,
+                PortableInstallation = portableInstallation ?? PortableInstallation,
+                BypassCompositor = bypassCompositor ?? BypassCompositor,
+            };
         }
     }
 }
