@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
@@ -13,8 +14,18 @@ namespace osu.Framework.Tests.IO
     /// </summary>
     public class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
     {
+        [Obsolete("Use BackgroundGameHeadlessGameHost(HostConfig) instead.")]
         public BackgroundGameHeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
+        {
+            var testGame = new TestGame();
+
+            Task.Factory.StartNew(() => Run(testGame), TaskCreationOptions.LongRunning);
+
+            testGame.HasProcessed.Wait();
+        }
+
+        public BackgroundGameHeadlessGameHost(HostConfig hostConfig) : base(hostConfig)
         {
             var testGame = new TestGame();
 
