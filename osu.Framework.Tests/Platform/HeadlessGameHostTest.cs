@@ -88,8 +88,16 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
-            using (var client = new HeadlessGameHost(@"client", true))
+            using (var server = new BackgroundGameHeadlessGameHost(new HostConfig
+            {
+                Name = @"server",
+                BindIPC = true,
+            }))
+            using (var client = new HeadlessGameHost(new HostConfig
+            {
+                Name = @"client",
+                BindIPC = true,
+            }))
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
@@ -127,7 +135,7 @@ namespace osu.Framework.Tests.Platform
         public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost
         {
             public ExceptionDuringSetupGameHost(string gameName)
-                : base(gameName)
+                : base(new HostConfig { Name = gameName })
             {
             }
 
