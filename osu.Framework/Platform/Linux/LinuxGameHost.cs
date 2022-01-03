@@ -21,12 +21,6 @@ namespace osu.Framework.Platform.Linux
         /// </remarks>
         public readonly bool BypassCompositor;
 
-        [Obsolete("Use LinuxGameHost(HostConfig) instead.")]
-        internal LinuxGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation)
-        {
-        }
-
         internal LinuxGameHost(HostConfig hostConfig)
             : base(hostConfig)
         {

@@ -24,14 +24,6 @@ namespace osu.Framework.Platform
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
 
-        [Obsolete("Use DesktopGameHost(HostConfig) instead.")]
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
-            : base(gameName)
-        {
-            this.bindIPCPort = bindIPCPort;
-            IsPortableInstallation = portableInstallation;
-        }
-
         protected DesktopGameHost(HostConfig hostConfig)
             : base(hostConfig.Name)
         {
