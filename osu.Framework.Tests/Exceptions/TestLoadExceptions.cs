@@ -199,7 +199,11 @@ namespace osu.Framework.Tests.Exceptions
 
             try
             {
-                using (var host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
+                using (var host = new TestRunHeadlessGameHost(new HostConfig
+                {
+                    Name = $"{GetType().Name}-{Guid.NewGuid()}",
+                    Realtime = false,
+                }))
                 {
                     using (var game = new TestGame())
                     {
