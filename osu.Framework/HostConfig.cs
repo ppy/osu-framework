@@ -6,7 +6,7 @@ namespace osu.Framework
     /// <summary>
     /// Various configuration properties for a <see cref="Host"/>.
     /// </summary>
-    public struct HostConfig
+    public class HostConfig
     {
         /// <summary>
         /// Name of the game or application.
