@@ -281,7 +281,12 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets the number of channels represented by each <see cref="Point"/>.
         /// </summary>
-        public int GetChannels() => GetChannelsAsync().WaitSafelyForResult();
+        public int GetChannels()
+        {
+            readTask?.WaitSafely();
+
+            return channels;
+        }
 
         /// <summary>
         /// Gets the number of channels represented by each <see cref="Point"/>.
