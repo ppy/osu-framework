@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
         }
 
         protected DesktopGameHost(HostConfig hostConfig)
-            : base(hostConfig.GameName)
+            : base(hostConfig.Name)
         {
             bindIPCPort = hostConfig.BindIPC;
             IsPortableInstallation = hostConfig.PortableInstallation;

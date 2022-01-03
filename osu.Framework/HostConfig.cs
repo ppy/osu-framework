@@ -11,7 +11,7 @@ namespace osu.Framework
         /// <summary>
         /// Name of the game or application.
         /// </summary>
-        public string GameName { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Whether to bind the IPC port.
@@ -45,7 +45,7 @@ namespace osu.Framework
 
         public HostConfig()
         {
-            GameName = @"";
+            Name = @"";
             BindIPC = false;
             PortableInstallation = false;
             BypassCompositor = true;
