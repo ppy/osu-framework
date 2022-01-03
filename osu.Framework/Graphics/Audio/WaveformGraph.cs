@@ -197,10 +197,12 @@ namespace osu.Framework.Graphics.Audio
                 cancelSource = new CancellationTokenSource();
                 var token = cancelSource.Token;
 
-                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
+                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(task =>
                 {
-                    var points = w.WaitSafelyForResult().GetPoints();
-                    int channels = w.WaitSafelyForResult().GetChannels();
+                    var resampled = task.WaitSafelyForResult();
+
+                    var points = resampled.GetPoints();
+                    int channels = resampled.GetChannels();
                     double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
                     double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
                     double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
@@ -213,7 +215,7 @@ namespace osu.Framework.Graphics.Audio
                         resampledMaxMidIntensity = maxMidIntensity;
                         resampledMaxLowIntensity = maxLowIntensity;
 
-                        OnWaveformRegenerated(w.WaitSafelyForResult());
+                        OnWaveformRegenerated(resampled);
 
                         Invalidate(Invalidation.DrawNode);
                     });
