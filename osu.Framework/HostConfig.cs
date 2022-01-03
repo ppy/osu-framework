@@ -19,6 +19,15 @@ namespace osu.Framework
         public bool BindIPC { get; set; }
 
         /// <summary>
+        /// Whether it runs in real time.
+        /// </summary>
+        /// <remarks>
+        /// This is particularly relevant for a <see cref="Platform.HeadlessGameHost"/>.
+        /// Any other host, such as <see cref="Platform.DesktopGameHost"/>, is assumed to run in real time.
+        /// </remarks>
+        public bool Realtime { get; set; }
+
+        /// <summary>
         /// Whether this is a portable installation.
         /// </summary>
         public bool PortableInstallation { get; set; }
