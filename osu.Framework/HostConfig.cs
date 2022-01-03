@@ -43,26 +43,12 @@ namespace osu.Framework
         /// </remarks>
         public bool BypassCompositor { get; set; }
 
-        public static HostConfig GameConfig(string gameName, bool bindIPC = false, bool portableInstallation = false)
+        public HostConfig()
         {
-            return new HostConfig
-            {
-                GameName = gameName,
-                BindIPC = bindIPC,
-                PortableInstallation = portableInstallation,
-                BypassCompositor = true,
-            };
-        }
-
-        public static HostConfig ApplicationConfig(string gameName, bool bindIPC = false, bool portableInstallation = false)
-        {
-            return new HostConfig
-            {
-                GameName = gameName,
-                BindIPC = bindIPC,
-                PortableInstallation = portableInstallation,
-                BypassCompositor = false,
-            };
+            GameName = @"";
+            BindIPC = false;
+            PortableInstallation = false;
+            BypassCompositor = true;
         }
     }
 }
