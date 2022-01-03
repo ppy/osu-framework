@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -414,7 +415,7 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                PerformAsync().Wait();
+                PerformAsync().WaitSafely();
             }
             catch (AggregateException ae)
             {
@@ -511,7 +512,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
-                    internalPerform().Wait();
+                    internalPerform().WaitSafely();
                     return;
                 }
 

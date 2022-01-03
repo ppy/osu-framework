@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -214,7 +215,7 @@ namespace osu.Framework.Graphics.Video
             {
                 try
                 {
-                    decodingTask.Wait();
+                    decodingTask.WaitSafely();
                 }
                 catch
                 {

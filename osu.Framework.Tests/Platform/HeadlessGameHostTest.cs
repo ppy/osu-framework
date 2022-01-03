@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Tests.IO;
@@ -77,7 +78,7 @@ namespace osu.Framework.Tests.Platform
                     isAudioThread = ThreadSafety.IsAudioThread;
                 }, TaskCreationOptions.LongRunning);
 
-                task.Wait();
+                task.WaitSafely();
 
                 Assert.That(!isDrawThread && !isUpdateThread && !isInputThread && !isAudioThread);
             }
@@ -107,7 +108,7 @@ namespace osu.Framework.Tests.Platform
                             return null;
                         };
 
-                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).WaitSafely();
 
                         received.Wait();
                     }
