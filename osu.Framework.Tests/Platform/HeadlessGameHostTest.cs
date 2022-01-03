@@ -96,7 +96,7 @@ namespace osu.Framework.Tests.Platform
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
 
-                void waitAction()
+                async void waitAction()
                 {
                     using (var received = new ManualResetEventSlim(false))
                     {
@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Platform
                             return null;
                         };
 
-                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).WaitSafely();
+                        await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
 
                         received.Wait();
                     }
