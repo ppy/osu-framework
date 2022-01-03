@@ -712,6 +712,12 @@ namespace osu.Framework.Tests.IO
             ThreadPool.GetMinThreads(out workerMin, out completionMin);
             ThreadPool.GetMaxThreads(out workerMax, out completionMax);
 
+            // Note that we explicitly choose two threads here to reproduce a classic thread pool deadlock scenario (which was surfacing due to a `.Wait()` call from within an `async` context).
+            // If set to one, a task required by the NUnit testing process will cause requests to never work.
+            // If set to above two, the deadlock will not reliably reproduce.
+
+            // Also note that the TPL thread pool generally gets much higher values than this (based on logical core count) and will expand with demand.
+            // This is explicitly testing for a case that came up on Github Actions due to limited processor count and refusal to expand the thread pool (for whatever reason).
             ThreadPool.SetMinThreads(2, 2);
             ThreadPool.SetMaxThreads(2, 2);
 
