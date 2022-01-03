@@ -37,7 +37,8 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
-        public HeadlessGameHost(HostConfig hostConfig) : base(hostConfig)
+        public HeadlessGameHost(HostConfig hostConfig)
+            : base(hostConfig.With(name: hostConfig.Name ?? Guid.NewGuid().ToString()))
         {
             realtime = hostConfig.Realtime;
         }

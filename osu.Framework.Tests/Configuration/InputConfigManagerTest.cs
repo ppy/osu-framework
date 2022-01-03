@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Configuration
         public class TestHeadlessGameHost : TestRunHeadlessGameHost
         {
             public TestHeadlessGameHost([CallerMemberName] string caller = "", bool bypassCleanup = false)
-                : base(caller, bypassCleanup: bypassCleanup)
+                : base(new HostConfig { Name = caller }, bypassCleanup: bypassCleanup)
             {
             }
 

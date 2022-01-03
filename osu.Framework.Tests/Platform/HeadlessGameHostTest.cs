@@ -47,7 +47,8 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            using (new TestRunHeadlessGameHost(
+                new HostConfig { Name = nameof(TestGameHostDisposalWhenNeverRun) }, true))
             {
                 // never call host.Run()
             }
@@ -57,7 +58,8 @@ namespace osu.Framework.Tests.Platform
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public void TestThreadSafetyResetOnEnteringThread()
         {
-            using (var host = new TestRunHeadlessGameHost(nameof(TestThreadSafetyResetOnEnteringThread)))
+            using (var host = new TestRunHeadlessGameHost(
+                new HostConfig { Name = nameof(TestThreadSafetyResetOnEnteringThread) }))
             {
                 bool isDrawThread = false;
                 bool isUpdateThread = false;
@@ -139,7 +141,7 @@ namespace osu.Framework.Tests.Platform
         public class TestRunHeadlessGameHostWithOverriddenExit : TestRunHeadlessGameHost
         {
             public TestRunHeadlessGameHostWithOverriddenExit(string gameName)
-                : base(gameName)
+                : base(new HostConfig { Name = gameName })
             {
             }
 

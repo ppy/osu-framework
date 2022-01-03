@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -20,8 +21,16 @@ namespace osu.Framework.Testing
 
         public static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
 
+        [Obsolete("Use TestRunHeadlessGameHost(HostConfig, bool) instead.")]
         public TestRunHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false, bool bypassCleanup = false)
             : base(name, bindIPC, realtime, portableInstallation)
+        {
+            this.bypassCleanup = bypassCleanup;
+            UserStoragePaths = TemporaryTestDirectory.Yield();
+        }
+
+        public TestRunHeadlessGameHost(HostConfig hostConfig, bool bypassCleanup = false)
+            : base(hostConfig)
         {
             this.bypassCleanup = bypassCleanup;
             UserStoragePaths = TemporaryTestDirectory.Yield();

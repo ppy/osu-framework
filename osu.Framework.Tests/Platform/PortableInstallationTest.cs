@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Platform
         {
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
-            using (var nonPortable = new TestRunHeadlessGameHost(@"non-portable"))
+            using (var nonPortable = new TestRunHeadlessGameHost(new HostConfig { Name = @"non-portable" }))
             {
                 nonPortable.Run(new TestGame());
                 Assert.AreNotEqual(startupStorage.GetFullPath(FrameworkConfigManager.FILENAME), nonPortable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
