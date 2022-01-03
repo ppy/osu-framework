@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 
 #nullable enable
@@ -101,7 +102,7 @@ namespace osu.Framework.Platform
                         {
                             try
                             {
-                                var message = receive(stream, token).Result;
+                                var message = receive(stream, token).WaitSafelyForResult();
 
                                 if (message == null)
                                     continue;

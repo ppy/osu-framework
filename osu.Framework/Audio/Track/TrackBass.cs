@@ -266,7 +266,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool Seek(double seek) => SeekAsync(seek).Result;
+        public override bool Seek(double seek) => SeekAsync(seek).WaitSafelyForResult();
 
         public async Task<bool> SeekAsync(double seek)
         {

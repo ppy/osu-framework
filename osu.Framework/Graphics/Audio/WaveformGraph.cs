@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -198,8 +199,8 @@ namespace osu.Framework.Graphics.Audio
 
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
-                    var points = w.Result.GetPoints();
-                    int channels = w.Result.GetChannels();
+                    var points = w.WaitSafelyForResult().GetPoints();
+                    int channels = w.WaitSafelyForResult().GetChannels();
                     double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
                     double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
                     double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
@@ -212,7 +213,7 @@ namespace osu.Framework.Graphics.Audio
                         resampledMaxMidIntensity = maxMidIntensity;
                         resampledMaxLowIntensity = maxLowIntensity;
 
-                        OnWaveformRegenerated(w.Result);
+                        OnWaveformRegenerated(w.WaitSafelyForResult());
 
                         Invalidate(Invalidation.DrawNode);
                     });

@@ -9,6 +9,9 @@ namespace osu.Framework.Extensions
 {
     public static class TaskExtensions
     {
+        /// <summary>
+        /// Safe alternative to Task.Wait which ensures the calling thread is not a thread pool thread.
+        /// </summary>
         public static void WaitSafely(this Task task)
         {
             if (Thread.CurrentThread.IsThreadPoolThread)
@@ -16,6 +19,19 @@ namespace osu.Framework.Extensions
 
 #pragma warning disable RS0030
             task.Wait();
+#pragma warning restore RS0030
+        }
+
+        /// <summary>
+        /// Safe alternative to Task.Result which ensures the calling thread is not a thread pool thread.
+        /// </summary>
+        public static T WaitSafelyForResult<T>(this Task<T> task)
+        {
+            if (Thread.CurrentThread.IsThreadPoolThread)
+                throw new InvalidOperationException($"Can't use {nameof(WaitSafelyForResult)} from inside an async operation.");
+
+#pragma warning disable RS0030
+            return task.Result;
 #pragma warning restore RS0030
         }
     }
