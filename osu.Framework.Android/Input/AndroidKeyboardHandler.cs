@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
@@ -13,11 +14,31 @@ namespace osu.Framework.Android.Input
     {
         protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Keyboard };
 
-        protected override IEnumerable<InputEventType> HandledEventTypes => new[] { InputEventType.KeyDown, InputEventType.KeyUp };
-
         public AndroidKeyboardHandler(AndroidGameView view)
             : base(view)
         {
+        }
+
+        public override bool Initialize(GameHost host)
+        {
+            if (!base.Initialize(host))
+                return false;
+
+            Enabled.BindValueChanged(enabled =>
+            {
+                if (enabled.NewValue)
+                {
+                    View.KeyDown += HandleKeyDown;
+                    View.KeyUp += HandleKeyUp;
+                }
+                else
+                {
+                    View.KeyDown -= HandleKeyDown;
+                    View.KeyUp -= HandleKeyUp;
+                }
+            }, true);
+
+            return true;
         }
 
         public override bool IsActive => true;

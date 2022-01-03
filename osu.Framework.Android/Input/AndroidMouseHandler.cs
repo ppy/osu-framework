@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Input;
@@ -21,12 +22,37 @@ namespace osu.Framework.Android.Input
 
         protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.Touchpad };
 
-        protected override IEnumerable<InputEventType> HandledEventTypes
-            => new[] { InputEventType.GenericMotion, InputEventType.Hover, InputEventType.KeyDown, InputEventType.KeyUp, InputEventType.Touch };
-
         public AndroidMouseHandler(AndroidGameView view)
             : base(view)
         {
+        }
+
+        public override bool Initialize(GameHost host)
+        {
+            if (!base.Initialize(host))
+                return false;
+
+            Enabled.BindValueChanged(enabled =>
+            {
+                if (enabled.NewValue)
+                {
+                    View.GenericMotion += HandleGenericMotion;
+                    View.Hover += HandleHover;
+                    View.KeyDown += HandleKeyDown;
+                    View.KeyUp += HandleKeyUp;
+                    View.Touch += HandleTouch;
+                }
+                else
+                {
+                    View.GenericMotion -= HandleGenericMotion;
+                    View.Hover -= HandleHover;
+                    View.KeyDown -= HandleKeyDown;
+                    View.KeyUp -= HandleKeyUp;
+                    View.Touch -= HandleTouch;
+                }
+            }, true);
+
+            return true;
         }
 
         protected override void OnKeyDown(Keycode keycode, KeyEvent e)

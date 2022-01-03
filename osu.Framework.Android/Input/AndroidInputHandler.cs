@@ -25,12 +25,6 @@ namespace osu.Framework.Android.Input
         protected abstract IEnumerable<InputSourceType> HandledEventSources { get; }
 
         /// <summary>
-        /// The <see cref="InputEventType"/>s that this <see cref="AndroidInputHandler"/> will handle.
-        /// </summary>
-        /// <remarks>For each <see cref="InputEventType"/> specified here, this <see cref="AndroidInputHandler"/> should override the appropriate method.</remarks>
-        protected abstract IEnumerable<InputEventType> HandledEventTypes { get; }
-
-        /// <summary>
         /// The view that this <see cref="AndroidInputHandler"/> is handling events from.
         /// </summary>
         protected readonly AndroidGameView View;
@@ -58,156 +52,76 @@ namespace osu.Framework.Android.Input
                 inputSourceBitmask |= inputSource;
             }
 
-            Enabled.BindValueChanged(enabled =>
-            {
-                if (enabled.NewValue)
-                {
-                    foreach (var eventType in HandledEventTypes)
-                        subscribeToEvent(eventType);
-                }
-                else
-                {
-                    foreach (var eventType in HandledEventTypes)
-                        unsubscribeFromEvent(eventType);
-                }
-            }, true);
-
             return true;
         }
 
         /// <summary>
-        /// Invoked on every <see cref="InputEventType.CapturedPointer"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
+        /// Invoked on every <see cref="AndroidGameView.CapturedPointer"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="InputEventType.CapturedPointer"/> must be specified in <see cref="HandledEventTypes"/> to receive events here.
+        /// Subscribe <see cref="HandleCapturedPointer"/> to <see cref="View"/>.<see cref="AndroidGameView.CapturedPointer"/> to receive events here.
         /// </remarks>
         protected virtual void OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
-            throw new NotSupportedException($"{nameof(InputEventType.CapturedPointer)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
+            throw new NotSupportedException($"{nameof(HandleCapturedPointer)} subscribed to {nameof(View.CapturedPointer)} but the relevant method was not overriden.");
         }
 
         /// <summary>
-        /// Invoked on every <see cref="InputEventType.GenericMotion"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
+        /// Invoked on every <see cref="AndroidGameView.GenericMotion"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="InputEventType.GenericMotion"/> must be specified in <see cref="HandledEventTypes"/> to receive events here.
+        /// Subscribe <see cref="HandleGenericMotion"/> to <see cref="View"/>.<see cref="AndroidGameView.GenericMotion"/> to receive events here.
         /// </remarks>
         protected virtual void OnGenericMotion(MotionEvent genericMotionEvent)
         {
-            throw new NotSupportedException($"{nameof(InputEventType.GenericMotion)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
+            throw new NotSupportedException($"{nameof(HandleGenericMotion)} subscribed to {nameof(View.GenericMotion)} but the relevant method was not overriden.");
         }
 
         /// <summary>
-        /// Invoked on every <see cref="InputEventType.Hover"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
+        /// Invoked on every <see cref="AndroidGameView.Hover"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="InputEventType.Hover"/> must be specified in <see cref="HandledEventTypes"/> to receive events here.
+        /// Subscribe <see cref="HandleHover"/> to <see cref="View"/>.<see cref="AndroidGameView.Hover"/> to receive events here.
         /// </remarks>
         protected virtual void OnHover(MotionEvent hoverEvent)
         {
-            throw new NotSupportedException($"{nameof(InputEventType.Hover)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
+            throw new NotSupportedException($"{nameof(HandleHover)} subscribed to {nameof(View.Hover)} but the relevant method was not overriden.");
         }
 
         /// <summary>
-        /// Invoked on every <see cref="InputEventType.KeyDown"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
+        /// Invoked on every <see cref="AndroidGameView.KeyDown"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="InputEventType.KeyDown"/> must be specified in <see cref="HandledEventTypes"/> to receive events here.
+        /// Subscribe <see cref="HandleKeyDown"/> to <see cref="View"/>.<see cref="AndroidGameView.KeyDown"/> to receive events here.
         /// </remarks>
         protected virtual void OnKeyDown(Keycode keycode, KeyEvent e)
         {
-            throw new NotSupportedException($"{nameof(InputEventType.KeyDown)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
+            throw new NotSupportedException($"{nameof(HandleKeyDown)} subscribed to {nameof(View.KeyDown)} but the relevant method was not overriden.");
         }
 
         /// <summary>
-        /// Invoked on every <see cref="InputEventType.KeyUp"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
+        /// Invoked on every <see cref="AndroidGameView.KeyUp"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="InputEventType.KeyUp"/> must be specified in <see cref="HandledEventTypes"/> to receive events here.
+        /// Subscribe <see cref="HandleKeyUp"/> to <see cref="View"/>.<see cref="AndroidGameView.KeyUp"/> to receive events here.
         /// </remarks>
         protected virtual void OnKeyUp(Keycode keycode, KeyEvent e)
         {
-            throw new NotSupportedException($"{nameof(InputEventType.KeyUp)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
+            throw new NotSupportedException($"{nameof(HandleKeyUp)} subscribed to {nameof(View.KeyUp)} but the relevant method was not overriden.");
         }
 
         /// <summary>
-        /// Invoked on every <see cref="InputEventType.Touch"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
+        /// Invoked on every <see cref="AndroidGameView.Touch"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="InputEventType.Touch"/> must be specified in <see cref="HandledEventTypes"/> to receive events here.
+        /// Subscribe <see cref="HandleTouch"/> to <see cref="View"/>.<see cref="AndroidGameView.Touch"/> to receive events here.
         /// </remarks>
         protected virtual void OnTouch(MotionEvent touchEvent)
         {
-            throw new NotSupportedException($"{nameof(InputEventType.Touch)} specified in {nameof(HandledEventTypes)} but the relevant method was not overriden.");
+            throw new NotSupportedException($"{nameof(HandleTouch)} subscribed to {nameof(View.Touch)} but the relevant method was not overriden.");
         }
 
         #region Event handlers
-
-        private void subscribeToEvent(InputEventType eventType)
-        {
-            switch (eventType)
-            {
-                case InputEventType.CapturedPointer:
-                    View.CapturedPointer += handleCapturedPointer;
-                    break;
-
-                case InputEventType.GenericMotion:
-                    View.GenericMotion += handleGenericMotion;
-                    break;
-
-                case InputEventType.Hover:
-                    View.Hover += handleHover;
-                    break;
-
-                case InputEventType.KeyDown:
-                    View.KeyDown += handleKeyDown;
-                    break;
-
-                case InputEventType.KeyUp:
-                    View.KeyUp += handleKeyUp;
-                    break;
-
-                case InputEventType.Touch:
-                    View.Touch += handleTouch;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(eventType), eventType, $"Invalid {nameof(InputEventType)}.");
-            }
-        }
-
-        private void unsubscribeFromEvent(InputEventType eventType)
-        {
-            switch (eventType)
-            {
-                case InputEventType.CapturedPointer:
-                    View.CapturedPointer -= handleCapturedPointer;
-                    break;
-
-                case InputEventType.GenericMotion:
-                    View.GenericMotion -= handleGenericMotion;
-                    break;
-
-                case InputEventType.Hover:
-                    View.Hover -= handleHover;
-                    break;
-
-                case InputEventType.KeyDown:
-                    View.KeyDown -= handleKeyDown;
-                    break;
-
-                case InputEventType.KeyUp:
-                    View.KeyUp -= handleKeyUp;
-                    break;
-
-                case InputEventType.Touch:
-                    View.Touch -= handleTouch;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(eventType), eventType, $"Invalid {nameof(InputEventType)}.");
-            }
-        }
 
         /// <summary>
         /// Checks whether the <paramref name="inputEvent"/> should be handled by this <see cref="AndroidInputHandler"/>.
@@ -220,7 +134,10 @@ namespace osu.Framework.Android.Input
             return inputEvent != null && inputSourceBitmask.HasFlagFast(inputEvent.Source);
         }
 
-        private void handleCapturedPointer(object sender, View.CapturedPointerEventArgs e)
+        /// <summary>
+        /// Handler for <see cref="AndroidGameView.CapturedPointer"/> events.
+        /// </summary>
+        protected void HandleCapturedPointer(object sender, View.CapturedPointerEventArgs e)
         {
             if (shouldHandleEvent(e.Event))
             {
@@ -229,7 +146,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleGenericMotion(object sender, View.GenericMotionEventArgs e)
+        /// <summary>
+        /// Handler for <see cref="AndroidGameView.GenericMotion"/> events.
+        /// </summary>
+        protected void HandleGenericMotion(object sender, View.GenericMotionEventArgs e)
         {
             if (shouldHandleEvent(e.Event))
             {
@@ -238,7 +158,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleHover(object sender, View.HoverEventArgs e)
+        /// <summary>
+        /// Handler for <see cref="AndroidGameView.Hover"/> events.
+        /// </summary>
+        protected void HandleHover(object sender, View.HoverEventArgs e)
         {
             if (shouldHandleEvent(e.Event))
             {
@@ -247,7 +170,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleKeyDown(Keycode keycode, KeyEvent e)
+        /// <summary>
+        /// Handler for <see cref="AndroidGameView.KeyDown"/> events.
+        /// </summary>
+        protected void HandleKeyDown(Keycode keycode, KeyEvent e)
         {
             if (shouldHandleEvent(e))
             {
@@ -255,7 +181,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleKeyUp(Keycode keycode, KeyEvent e)
+        /// <summary>
+        /// Handler for <see cref="AndroidGameView.KeyUp"/> events.
+        /// </summary>
+        protected void HandleKeyUp(Keycode keycode, KeyEvent e)
         {
             if (shouldHandleEvent(e))
             {
@@ -263,7 +192,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleTouch(object sender, View.TouchEventArgs e)
+        /// <summary>
+        /// Handler for <see cref="AndroidGameView.Touch"/> events.
+        /// </summary>
+        protected void HandleTouch(object sender, View.TouchEventArgs e)
         {
             if (shouldHandleEvent(e.Event))
             {
@@ -273,47 +205,5 @@ namespace osu.Framework.Android.Input
         }
 
         #endregion
-
-        /// <summary>
-        /// Types of <see cref="InputEvent"/>s that are provided by <see cref="View"/> and <see cref="AndroidGameView"/>.
-        /// </summary>
-        protected enum InputEventType
-        {
-            /// <summary>
-            /// Event type for <see cref="View.CapturedPointer"/>.
-            /// </summary>
-            /// <remarks>Relevant method to override: <see cref="OnCapturedPointer"/>.</remarks>
-            CapturedPointer,
-
-            /// <summary>
-            /// Event type for <see cref="View.GenericMotion"/>.
-            /// </summary>
-            /// <remarks>Relevant method to override: <see cref="OnGenericMotion"/>.</remarks>
-            GenericMotion,
-
-            /// <summary>
-            /// Event type for <see cref="View.Hover"/>.
-            /// </summary>
-            /// <remarks>Relevant method to override: <see cref="OnHover"/>.</remarks>
-            Hover,
-
-            /// <summary>
-            /// Event type for <see cref="AndroidGameView.KeyDown"/>.
-            /// </summary>
-            /// <remarks>Relevant method to override: <see cref="OnKeyDown"/>.</remarks>
-            KeyDown,
-
-            /// <summary>
-            /// Event type for <see cref="AndroidGameView.KeyUp"/>.
-            /// </summary>
-            /// <remarks>Relevant method to override: <see cref="OnKeyUp"/>.</remarks>
-            KeyUp,
-
-            /// <summary>
-            /// Event type for <see cref="View.Touch"/>.
-            /// </summary>
-            /// <remarks>Relevant method to override: <see cref="OnTouch"/>.</remarks>
-            Touch
-        }
     }
 }

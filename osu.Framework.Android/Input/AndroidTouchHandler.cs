@@ -7,6 +7,7 @@ using Android.Views;
 using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Input;
 
@@ -18,11 +19,31 @@ namespace osu.Framework.Android.Input
 
         protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.BluetoothStylus, InputSourceType.Stylus, InputSourceType.Touchscreen };
 
-        protected override IEnumerable<InputEventType> HandledEventTypes => new[] { InputEventType.Hover, InputEventType.Touch };
-
         public AndroidTouchHandler(AndroidGameView view)
             : base(view)
         {
+        }
+
+        public override bool Initialize(GameHost host)
+        {
+            if (!base.Initialize(host))
+                return false;
+
+            Enabled.BindValueChanged(enabled =>
+            {
+                if (enabled.NewValue)
+                {
+                    View.Hover += HandleHover;
+                    View.Touch += HandleTouch;
+                }
+                else
+                {
+                    View.Hover -= HandleHover;
+                    View.Touch -= HandleTouch;
+                }
+            }, true);
+
+            return true;
         }
 
         protected override void OnTouch(MotionEvent touchEvent)
