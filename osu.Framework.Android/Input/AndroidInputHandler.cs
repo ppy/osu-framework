@@ -32,7 +32,7 @@ namespace osu.Framework.Android.Input
         /// <summary>
         /// Bitmask of all <see cref="HandledEventSources"/>.
         /// </summary>
-        private InputSourceType inputSourceBitmask;
+        private InputSourceType eventSourceBitmask;
 
         protected AndroidInputHandler(AndroidGameView view)
         {
@@ -45,11 +45,11 @@ namespace osu.Framework.Android.Input
                 return false;
 
             // compute the bitmask for later use.
-            foreach (var inputSource in HandledEventSources)
+            foreach (var eventSource in HandledEventSources)
             {
                 // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 // (InputSourceType is a flags enum, but is not properly marked as such)
-                inputSourceBitmask |= inputSource;
+                eventSourceBitmask |= eventSource;
             }
 
             return true;
@@ -131,7 +131,7 @@ namespace osu.Framework.Android.Input
         /// <remarks>Should be checked before handling events.</remarks>
         private bool shouldHandleEvent([NotNullWhen(true)] InputEvent? inputEvent)
         {
-            return inputEvent != null && inputSourceBitmask.HasFlagFast(inputEvent.Source);
+            return inputEvent != null && eventSourceBitmask.HasFlagFast(inputEvent.Source);
         }
 
         /// <summary>
