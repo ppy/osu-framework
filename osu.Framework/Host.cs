@@ -1,11 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux;
 using osu.Framework.Platform.MacOS;
 using osu.Framework.Platform.Windows;
-using System;
 
 namespace osu.Framework
 {
@@ -45,7 +45,7 @@ namespace osu.Framework
 
                 default:
                     throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({RuntimeInfo.OS}).");
-            };
+            }
         }
     }
 }
