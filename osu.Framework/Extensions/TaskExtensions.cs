@@ -27,7 +27,11 @@ namespace osu.Framework.Extensions
         /// </summary>
         public static T WaitSafelyForResult<T>(this Task<T> task)
         {
-            if (Thread.CurrentThread.IsThreadPoolThread)
+            // We commonly access `.Result` from within `ContinueWith`, which is a safe usage (the task is guaranteed to be completed).
+            // Unfortunately, the only way to allow these usages is to check whether the task is completed or not here.
+            // This does mean that there could be edge cases where this safety is skipped (ie. if the majority of executions complete
+            // immediately).
+            if (Thread.CurrentThread.IsThreadPoolThread && !task.IsCompleted)
                 throw new InvalidOperationException($"Can't use {nameof(WaitSafelyForResult)} from inside an async operation.");
 
 #pragma warning disable RS0030
