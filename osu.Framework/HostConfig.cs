@@ -45,7 +45,7 @@ namespace osu.Framework
 
         public HostConfig()
         {
-            Name = @"";
+            Name = null;
             BindIPC = false;
             Realtime = true;
             PortableInstallation = false;
