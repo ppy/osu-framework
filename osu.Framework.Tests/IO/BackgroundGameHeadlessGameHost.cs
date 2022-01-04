@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.IO
     public class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
     {
         [Obsolete("Use BackgroundGameHeadlessGameHost(HostConfig) instead.")]
-        public BackgroundGameHeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+        public BackgroundGameHeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : this(new HostConfig
             {
                 Name = gameName,
@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.IO
         {
         }
 
-        public BackgroundGameHeadlessGameHost(HostConfig hostConfig)
+        public BackgroundGameHeadlessGameHost(HostConfig hostConfig = null)
             : base(hostConfig)
         {
             var testGame = new TestGame();
