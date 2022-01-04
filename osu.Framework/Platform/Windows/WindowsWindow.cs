@@ -42,22 +42,24 @@ namespace osu.Framework.Platform.Windows
             // enable window message events to use with `OnSDLEvent` below.
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
 
-            OnSDLEvent += e =>
+            OnSDLEvent += handleSDLEvent;
+        }
+
+        private void handleSDLEvent(SDL.SDL_Event e)
+        {
+            if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
+
+            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
+            var m = wmMsg.msg.win;
+
+            switch (m.msg)
             {
-                if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
-
-                var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
-                var m = wmMsg.msg.win;
-
-                switch (m.msg)
-                {
-                    case Imm.WM_IME_STARTCOMPOSITION:
-                    case Imm.WM_IME_COMPOSITION:
-                    case Imm.WM_IME_ENDCOMPOSITION:
-                        handleImeMessage(m.hwnd, m.msg, m.lParam);
-                        break;
-                }
-            };
+                case Imm.WM_IME_STARTCOMPOSITION:
+                case Imm.WM_IME_COMPOSITION:
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    handleImeMessage(m.hwnd, m.msg, m.lParam);
+                    break;
+            }
         }
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
