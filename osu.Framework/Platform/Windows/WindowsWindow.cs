@@ -45,6 +45,8 @@ namespace osu.Framework.Platform.Windows
             OnSDLEvent += handleSDLEvent;
         }
 
+        #region IME handling
+
         private void handleSDLEvent(SDL.SDL_Event e)
         {
             if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
@@ -128,6 +130,8 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
         }
+
+        #endregion
 
         protected override Size SetBorderless()
         {
