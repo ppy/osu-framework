@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using JetBrains.Annotations;
+
 namespace osu.Framework
 {
     /// <summary>
@@ -11,6 +13,10 @@ namespace osu.Framework
         /// <summary>
         /// Name of the game or application.
         /// </summary>
+        /// <remarks>
+        /// This property may be null. Host types like <see cref="Platform.HeadlessGameHost"/> fallback to a custom GUID string when it occurs.
+        /// </remarks>
+        [CanBeNull]
         public string Name { get; set; }
 
         /// <summary>
