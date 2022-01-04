@@ -23,8 +23,8 @@ namespace osu.Framework.Platform
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
 
-        protected DesktopGameHost(HostConfig hostConfig)
-            : base(hostConfig.Name)
+        protected DesktopGameHost(HostConfig hostConfig = null)
+            : base((hostConfig ??= new HostConfig { Name = @"" }).Name)
         {
             bindIPCPort = hostConfig.BindIPC;
             IsPortableInstallation = hostConfig.PortableInstallation;
