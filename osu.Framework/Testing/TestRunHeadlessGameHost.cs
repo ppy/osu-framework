@@ -33,8 +33,8 @@ namespace osu.Framework.Testing
         {
         }
 
-        public TestRunHeadlessGameHost(HostOptions hostOptions = null, bool bypassCleanup = false)
-            : base(hostOptions)
+        public TestRunHeadlessGameHost(HostOptions options = null, bool bypassCleanup = false)
+            : base(options)
         {
             this.bypassCleanup = bypassCleanup;
             UserStoragePaths = TemporaryTestDirectory.Yield();

@@ -26,8 +26,8 @@ namespace osu.Framework.Tests.IO
         {
         }
 
-        public BackgroundGameHeadlessGameHost(HostOptions hostOptions = null)
-            : base(hostOptions)
+        public BackgroundGameHeadlessGameHost(HostOptions options = null)
+            : base(options)
         {
             var testGame = new TestGame();
 
