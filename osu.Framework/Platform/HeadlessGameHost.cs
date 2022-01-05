@@ -36,16 +36,15 @@ namespace osu.Framework.Platform
             {
                 Name = gameName,
                 BindIPC = bindIPC,
-                Realtime = realtime,
                 PortableInstallation = portableInstallation,
-            })
+            }, realtime)
         {
         }
 
-        public HeadlessGameHost(HostOptions options = null)
+        public HeadlessGameHost(HostOptions options = null, bool realtime = true)
             : base(options ?? new HostOptions { Name = Guid.NewGuid().ToString() })
         {
-            realtime = Options.Realtime;
+            this.realtime = realtime;
         }
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)

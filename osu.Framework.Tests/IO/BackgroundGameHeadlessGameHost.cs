@@ -20,14 +20,13 @@ namespace osu.Framework.Tests.IO
             {
                 Name = gameName,
                 BindIPC = bindIPC,
-                Realtime = realtime,
                 PortableInstallation = portableInstallation,
-            })
+            }, realtime)
         {
         }
 
-        public BackgroundGameHeadlessGameHost(HostOptions options = null)
-            : base(options)
+        public BackgroundGameHeadlessGameHost(HostOptions options = null, bool realtime = true)
+            : base(options, realtime: realtime)
         {
             var testGame = new TestGame();
 

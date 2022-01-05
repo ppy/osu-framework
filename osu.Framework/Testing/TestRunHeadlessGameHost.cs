@@ -12,6 +12,7 @@ namespace osu.Framework.Testing
 {
     /// <summary>
     /// A GameHost which writes to the system temporary directory, attempting to clean up after the test run completes.
+    /// Also runs in non-realtime (allowing faster test execution) by default.
     /// </summary>
     public class TestRunHeadlessGameHost : HeadlessGameHost
     {
@@ -27,14 +28,13 @@ namespace osu.Framework.Testing
             {
                 Name = name,
                 BindIPC = bindIPC,
-                Realtime = realtime,
                 PortableInstallation = portableInstallation,
-            }, bypassCleanup)
+            }, bypassCleanup, realtime)
         {
         }
 
-        public TestRunHeadlessGameHost(HostOptions options = null, bool bypassCleanup = false)
-            : base(options)
+        public TestRunHeadlessGameHost(HostOptions options = null, bool bypassCleanup = false, bool realtime = false)
+            : base(options, realtime)
         {
             this.bypassCleanup = bypassCleanup;
             UserStoragePaths = TemporaryTestDirectory.Yield();
