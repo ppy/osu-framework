@@ -29,7 +29,7 @@ namespace osu.Framework.Testing
                 BindIPC = bindIPC,
                 Realtime = realtime,
                 PortableInstallation = portableInstallation,
-            })
+            }, bypassCleanup)
         {
         }
 
