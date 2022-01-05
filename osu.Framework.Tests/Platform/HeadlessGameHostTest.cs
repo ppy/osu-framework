@@ -47,8 +47,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (new TestRunHeadlessGameHost(
-                new HostOptions { Name = nameof(TestGameHostDisposalWhenNeverRun) }, true))
+            using (new TestRunHeadlessGameHost(new HostOptions { Name = nameof(TestGameHostDisposalWhenNeverRun) }, true))
             {
                 // never call host.Run()
             }
@@ -58,8 +57,7 @@ namespace osu.Framework.Tests.Platform
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public void TestThreadSafetyResetOnEnteringThread()
         {
-            using (var host = new TestRunHeadlessGameHost(
-                new HostOptions { Name = nameof(TestThreadSafetyResetOnEnteringThread) }))
+            using (var host = new TestRunHeadlessGameHost(new HostOptions { Name = nameof(TestThreadSafetyResetOnEnteringThread) }))
             {
                 bool isDrawThread = false;
                 bool isUpdateThread = false;
@@ -88,16 +86,8 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(new HostOptions
-            {
-                Name = @"server",
-                BindIPC = true,
-            }))
-            using (var client = new HeadlessGameHost(new HostOptions
-            {
-                Name = @"client",
-                BindIPC = true,
-            }))
+            using (var server = new BackgroundGameHeadlessGameHost(new HostOptions { Name = @"server", BindIPC = true }))
+            using (var client = new HeadlessGameHost(new HostOptions { Name = @"client", BindIPC = true }))
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");

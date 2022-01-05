@@ -15,11 +15,7 @@ namespace osu.Framework.Tests
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
 
-            using (GameHost host = Host.GetSuitableHost(new HostOptions
-            {
-                Name = @"visual-tests",
-                PortableInstallation = portable,
-            }))
+            using (GameHost host = Host.GetSuitableHost(new HostOptions { Name = @"visual-tests", PortableInstallation = portable }))
             {
                 if (benchmark)
                     host.Run(new AutomatedVisualTestGame());

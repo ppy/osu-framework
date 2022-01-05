@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.IO
 
             try
             {
-                using (var host = new TestRunHeadlessGameHost(new HostOptions()))
+                using (var host = new TestRunHeadlessGameHost())
                 {
                     var game = new TestGame();
                     game.Schedule(() => throw new TestException());
@@ -96,7 +96,7 @@ namespace osu.Framework.Tests.IO
         /// <param name="fireCount">How many exceptions to fire.</param>
         private void runWithIgnoreCount(int ignoreCount, int fireCount)
         {
-            using (var host = new TestRunHeadlessGameHost(new HostOptions()))
+            using (var host = new TestRunHeadlessGameHost())
             {
                 host.ExceptionThrown += ex => ignoreCount-- > 0;
 
@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.IO
         {
             Assert.Throws<TestException>(() =>
             {
-                using (var host = new TestRunHeadlessGameHost(new HostOptions()))
+                using (var host = new TestRunHeadlessGameHost())
                     host.Run(new CrashTestGame());
             });
         }
@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGameUnobservedExceptionDoesntCrashGame()
         {
-            using (var host = new TestRunHeadlessGameHost(new HostOptions()))
+            using (var host = new TestRunHeadlessGameHost())
             {
                 TaskCrashTestGame game = new TaskCrashTestGame();
                 host.Run(game);
@@ -171,7 +171,7 @@ namespace osu.Framework.Tests.IO
 
             Logger.NewEntry += logTest;
 
-            using (new BackgroundGameHeadlessGameHost(new HostOptions()))
+            using (new BackgroundGameHeadlessGameHost())
             {
                 // see https://tpodolak.com/blog/2015/08/10/tpl-exception-handling-and-unobservedtaskexception-issue/
                 // needs to be in a separate method so the Task gets GC'd.

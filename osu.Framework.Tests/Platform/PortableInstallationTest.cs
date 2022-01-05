@@ -18,11 +18,7 @@ namespace osu.Framework.Tests.Platform
         {
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
-            using (var portable = new HeadlessGameHost(new HostOptions
-            {
-                Name = @"portable",
-                PortableInstallation = true,
-            }))
+            using (var portable = new HeadlessGameHost(new HostOptions { Name = @"portable", PortableInstallation = true }))
             {
                 portable.Run(new TestGame());
                 Assert.AreEqual(startupStorage.GetFullPath(FrameworkConfigManager.FILENAME), portable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
