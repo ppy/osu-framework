@@ -286,6 +286,8 @@ namespace osu.Framework.Logging
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
 
+        private readonly Queue<string> pendingFileOutput = new Queue<string>();
+
         private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
         {
             if (!Enabled || level < Level)
@@ -356,23 +358,39 @@ namespace osu.Framework.Logging
                 if (!Enabled)
                     return;
 
-                scheduler.Add(delegate
+                lock (pendingFileOutput)
                 {
-                    try
-                    {
-                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
-                        using (var writer = new StreamWriter(stream))
-                        {
-                            foreach (string line in lines)
-                                writer.WriteLine(line);
-                        }
-                    }
-                    catch
-                    {
-                    }
-                });
+                    foreach (string l in lines)
+                        pendingFileOutput.Enqueue(l);
+                }
+
+                scheduler.AddOnce(writePendingLines);
 
                 writer_idle.Reset();
+            }
+        }
+
+        private void writePendingLines()
+        {
+            string[] lines;
+
+            lock (pendingFileOutput)
+            {
+                lines = pendingFileOutput.ToArray();
+                pendingFileOutput.Clear();
+            }
+
+            try
+            {
+                using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                using (var writer = new StreamWriter(stream))
+                {
+                    foreach (string line in lines)
+                        writer.WriteLine(line);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -394,7 +412,17 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                scheduler.Add(() => Storage.Delete(Filename));
+                scheduler.Add(() =>
+                {
+                    try
+                    {
+                        Storage.Delete(Filename);
+                    }
+                    catch
+                    {
+                        // may fail if the file/directory was already cleaned up, ie. during test runs.
+                    }
+                });
                 writer_idle.Reset();
             }
         }

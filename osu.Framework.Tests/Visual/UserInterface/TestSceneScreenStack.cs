@@ -223,12 +223,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreenSlow screen1 = null;
             TestScreen screen2 = null;
 
-            AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
-            AddStep("exit slow", () => screen1.Exit());
+            AddStep("push screen1", () => baseScreen.Push(screen1 = new TestScreenSlow()));
+            AddStep("exit screen1", () => screen1.Exit());
+
+            AddAssert("base not current (waiting load of screen1)", () => !baseScreen.IsCurrentScreen());
+
             AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("wait for screen to load", () => screen1.LoadState >= LoadState.Ready);
-            AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
-            AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
+
+            AddUntilStep("base became current again", () => baseScreen.IsCurrentScreen());
+            AddAssert("base screen was suspended", () => baseScreen.SuspendedTo == screen1);
+            AddAssert("base screen was resumed", () => baseScreen.ResumedFrom == screen1);
+
+            AddAssert("screen1 not current", () => !screen1.IsCurrentScreen());
+            AddAssert("screen1 was not added to hierarchy", () => !screen1.IsLoaded);
+            AddAssert("screen1 was not entered", () => screen1.EnteredFrom == null);
+            AddAssert("screen1 was not exited", () => screen1.ExitedTo == null);
+
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
             AddUntilStep("ensure new current", () => screen2.IsCurrentScreen());
         }
@@ -827,8 +838,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
             AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
             AddStep("exit slow", () => screen2.Exit());
+
+            AddAssert("ensure screen 1 not current", () => !screen1.IsCurrentScreen());
+
             AddStep("allow load", () => screen2.AllowLoad.Set());
             AddUntilStep("wait for screen 2 to load", () => screen2.LoadState >= LoadState.Ready);
+
+            AddUntilStep("wait for screen 1 to become current again", () => screen1.IsCurrentScreen());
             AddAssert("screen 1 did receive suspending", () => screen1.SuspendedTo == screen2);
             AddAssert("screen 1 did receive resumed", () => screen1.ResumedFrom == screen2);
         }
@@ -1056,8 +1072,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderColour = Color4.Red;
                 Masking = true;
             }
-
-            public override string ToString() => Name;
 
             protected override void OnFocus(FocusEvent e)
             {

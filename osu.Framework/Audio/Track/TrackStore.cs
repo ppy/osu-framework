@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
@@ -52,7 +53,8 @@ namespace osu.Framework.Audio.Track
             return trackBass;
         }
 
-        public Task<Track> GetAsync(string name) => Task.Run(() => Get(name));
+        public Task<Track> GetAsync(string name, CancellationToken cancellationToken = default) =>
+            Task.Run(() => Get(name), cancellationToken);
 
         public Stream GetStream(string name) => store.GetStream(name);
 

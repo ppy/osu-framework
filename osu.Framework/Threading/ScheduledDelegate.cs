@@ -89,7 +89,7 @@ namespace osu.Framework.Threading
 
                 State = RunState.Running;
 
-                Task();
+                InvokeTask();
 
                 // task may have been cancelled during execution.
                 if (State == RunState.Cancelled)
@@ -99,6 +99,8 @@ namespace osu.Framework.Threading
                 State = RunState.Complete;
             }
         }
+
+        protected virtual void InvokeTask() => Task();
 
         /// <summary>
         /// Cancel a task.

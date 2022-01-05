@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -248,7 +249,7 @@ namespace osu.Framework.Tests.Visual.Localisation
 
             public string Get(string key) => translations.TryGetValue(key, out string value) ? value : null;
 
-            public Task<string> GetAsync(string key) => Task.FromResult(Get(key));
+            public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult(Get(key));
 
             public Stream GetStream(string name) => throw new NotSupportedException();
 

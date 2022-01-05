@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Network
 {
@@ -30,7 +31,7 @@ namespace osu.Framework.IO.Network
             Filename = filename;
         }
 
-        protected override void Complete(Exception e = null)
+        protected override Task Complete(Exception e = null)
         {
             ResponseStream?.Close();
 
@@ -46,7 +47,7 @@ namespace osu.Framework.IO.Network
                 }
             }
 
-            base.Complete(e);
+            return base.Complete(e);
         }
     }
 }
