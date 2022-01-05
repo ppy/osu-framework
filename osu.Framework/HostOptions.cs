@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using JetBrains.Annotations;
+#nullable enable
 
 namespace osu.Framework
 {
@@ -16,8 +16,7 @@ namespace osu.Framework
         /// <remarks>
         /// This property may be null. Host types like <see cref="Platform.HeadlessGameHost"/> fallback to a custom GUID string when it occurs.
         /// </remarks>
-        [CanBeNull]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Whether to bind the IPC port.
@@ -31,7 +30,7 @@ namespace osu.Framework
         /// This is particularly relevant for a <see cref="Platform.HeadlessGameHost"/>.
         /// Any other host, such as <see cref="Platform.DesktopGameHost"/>, is assumed to run in real time.
         /// </remarks>
-        public bool Realtime { get; set; }
+        public bool Realtime { get; set; } = true;
 
         /// <summary>
         /// Whether this is a portable installation.
@@ -39,7 +38,7 @@ namespace osu.Framework
         public bool PortableInstallation { get; set; }
 
         /// <summary>
-        /// Whether to bypass the compositor.
+        /// Whether to bypass the compositor. Defaults to <c>true</c>.
         /// </summary>
         /// <remarks>
         /// On Linux, the compositor re-buffers the application to apply various window effects,
@@ -47,15 +46,6 @@ namespace osu.Framework
         /// though normal applications would generally benefit from letting the window effects untouched. <br/>
         /// If the SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR environment variable is set, this property will have no effect.
         /// </remarks>
-        public bool BypassCompositor { get; set; }
-
-        public HostOptions()
-        {
-            Name = null;
-            BindIPC = false;
-            Realtime = true;
-            PortableInstallation = false;
-            BypassCompositor = true;
-        }
+        public bool BypassCompositor { get; set; } = true;
     }
 }
