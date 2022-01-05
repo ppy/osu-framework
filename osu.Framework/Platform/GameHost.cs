@@ -276,6 +276,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public string Name { get; }
 
+        [NotNull]
         public HostOptions Options { get; private set; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
@@ -286,7 +287,7 @@ namespace osu.Framework.Platform
         {
             Options = options ?? new HostOptions();
 
-            Name = Options?.Name ?? string.Empty;
+            Name = Options.Name;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
