@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Platform
         public void TestGameHostDisposalWhenNeverRun()
         {
             using (new TestRunHeadlessGameHost(
-                new HostConfig { Name = nameof(TestGameHostDisposalWhenNeverRun) }, true))
+                new HostOptions { Name = nameof(TestGameHostDisposalWhenNeverRun) }, true))
             {
                 // never call host.Run()
             }
@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Platform
         public void TestThreadSafetyResetOnEnteringThread()
         {
             using (var host = new TestRunHeadlessGameHost(
-                new HostConfig { Name = nameof(TestThreadSafetyResetOnEnteringThread) }))
+                new HostOptions { Name = nameof(TestThreadSafetyResetOnEnteringThread) }))
             {
                 bool isDrawThread = false;
                 bool isUpdateThread = false;
@@ -88,12 +88,12 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(new HostConfig
+            using (var server = new BackgroundGameHeadlessGameHost(new HostOptions
             {
                 Name = @"server",
                 BindIPC = true,
             }))
-            using (var client = new HeadlessGameHost(new HostConfig
+            using (var client = new HeadlessGameHost(new HostOptions
             {
                 Name = @"client",
                 BindIPC = true,
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Platform
         public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost
         {
             public ExceptionDuringSetupGameHost(string gameName)
-                : base(new HostConfig { Name = gameName })
+                : base(new HostOptions { Name = gameName })
             {
             }
 
@@ -149,7 +149,7 @@ namespace osu.Framework.Tests.Platform
         public class TestRunHeadlessGameHostWithOverriddenExit : TestRunHeadlessGameHost
         {
             public TestRunHeadlessGameHostWithOverriddenExit(string gameName)
-                : base(new HostConfig { Name = gameName })
+                : base(new HostOptions { Name = gameName })
             {
             }
 

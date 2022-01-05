@@ -23,7 +23,7 @@ namespace osu.Framework.Testing
 
         [Obsolete("Use TestRunHeadlessGameHost(HostConfig, bool) instead.")]
         public TestRunHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false, bool bypassCleanup = false)
-            : this(new HostConfig
+            : this(new HostOptions
             {
                 Name = name,
                 BindIPC = bindIPC,
@@ -33,8 +33,8 @@ namespace osu.Framework.Testing
         {
         }
 
-        public TestRunHeadlessGameHost(HostConfig hostConfig, bool bypassCleanup = false)
-            : base(hostConfig)
+        public TestRunHeadlessGameHost(HostOptions hostOptions, bool bypassCleanup = false)
+            : base(hostOptions)
         {
             this.bypassCleanup = bypassCleanup;
             UserStoragePaths = TemporaryTestDirectory.Yield();

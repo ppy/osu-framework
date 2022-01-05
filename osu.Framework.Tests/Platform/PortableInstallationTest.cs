@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Platform
         {
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
-            using (var portable = new HeadlessGameHost(new HostConfig
+            using (var portable = new HeadlessGameHost(new HostOptions
             {
                 Name = @"portable",
                 PortableInstallation = true,
@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Platform
             Assert.IsTrue(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
             // subsequent startups should detect the portable config and continue running in portable mode, even though it is not explicitly specified
-            using (var portable = new HeadlessGameHost(new HostConfig { Name = @"portable" }))
+            using (var portable = new HeadlessGameHost(new HostOptions { Name = @"portable" }))
             {
                 portable.Run(new TestGame());
                 Assert.AreEqual(startupStorage.GetFullPath(FrameworkConfigManager.FILENAME), portable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Platform
         {
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
-            using (var nonPortable = new TestRunHeadlessGameHost(new HostConfig { Name = @"non-portable" }))
+            using (var nonPortable = new TestRunHeadlessGameHost(new HostOptions { Name = @"non-portable" }))
             {
                 nonPortable.Run(new TestGame());
                 Assert.AreNotEqual(startupStorage.GetFullPath(FrameworkConfigManager.FILENAME), nonPortable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));

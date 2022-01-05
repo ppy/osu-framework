@@ -23,11 +23,11 @@ namespace osu.Framework.Platform
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
 
-        protected DesktopGameHost(HostConfig hostConfig = null)
-            : base((hostConfig ??= new HostConfig { Name = @"" }).Name)
+        protected DesktopGameHost(HostOptions options = null)
+            : base(options)
         {
-            bindIPCPort = hostConfig.BindIPC;
-            IsPortableInstallation = hostConfig.PortableInstallation;
+            bindIPCPort = options.BindIPC;
+            IsPortableInstallation = options.PortableInstallation;
         }
 
         protected sealed override Storage GetDefaultGameStorage()

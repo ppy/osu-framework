@@ -8,7 +8,7 @@ namespace osu.Framework
     /// <summary>
     /// Various configuration properties for a <see cref="Host"/>.
     /// </summary>
-    public class HostConfig
+    public class HostOptions
     {
         /// <summary>
         /// Name of the game or application.
@@ -49,25 +49,13 @@ namespace osu.Framework
         /// </remarks>
         public bool BypassCompositor { get; set; }
 
-        public HostConfig()
+        public HostOptions()
         {
             Name = null;
             BindIPC = false;
             Realtime = true;
             PortableInstallation = false;
             BypassCompositor = true;
-        }
-
-        public HostConfig With(string name = null, bool? bindIPC = null, bool? realtime = null, bool? portableInstallation = null, bool? bypassCompositor = null)
-        {
-            return new HostConfig
-            {
-                Name = name ?? Name,
-                BindIPC = bindIPC ?? BindIPC,
-                Realtime = realtime ?? Realtime,
-                PortableInstallation = portableInstallation ?? PortableInstallation,
-                BypassCompositor = bypassCompositor ?? BypassCompositor,
-            };
         }
     }
 }

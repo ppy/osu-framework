@@ -32,7 +32,7 @@ namespace osu.Framework.Platform
 
         [Obsolete("Use HeadlessGameHost(HostConfig hostConfig) instead.")]
         public HeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : this(new HostConfig
+            : this(new HostOptions
             {
                 Name = gameName,
                 BindIPC = bindIPC,
@@ -42,10 +42,10 @@ namespace osu.Framework.Platform
         {
         }
 
-        public HeadlessGameHost(HostConfig hostConfig = null)
-            : base((hostConfig ??= new HostConfig()).With(name: hostConfig.Name ?? Guid.NewGuid().ToString()))
+        public HeadlessGameHost(HostOptions hostOptions = null)
+            : base((hostOptions ??= new HostOptions { Name = Guid.NewGuid().ToString() }))
         {
-            realtime = hostConfig.Realtime;
+            realtime = hostOptions.Realtime;
         }
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)

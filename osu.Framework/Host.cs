@@ -14,7 +14,7 @@ namespace osu.Framework
         [Obsolete("Use GetSuitableHost(HostConfig) instead.")]
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
         {
-            return GetSuitableHost(new HostConfig
+            return GetSuitableHost(new HostOptions
             {
                 Name = gameName,
                 BindIPC = bindIPC,
@@ -22,18 +22,18 @@ namespace osu.Framework
             });
         }
 
-        public static DesktopGameHost GetSuitableHost(HostConfig hostConfig)
+        public static DesktopGameHost GetSuitableHost(HostOptions hostOptions)
         {
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
-                    return new WindowsGameHost(hostConfig);
+                    return new WindowsGameHost(hostOptions);
 
                 case RuntimeInfo.Platform.Linux:
-                    return new LinuxGameHost(hostConfig);
+                    return new LinuxGameHost(hostOptions);
 
                 case RuntimeInfo.Platform.macOS:
-                    return new MacOSGameHost(hostConfig);
+                    return new MacOSGameHost(hostOptions);
 
                 default:
                     throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({RuntimeInfo.OS}).");

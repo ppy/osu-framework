@@ -280,9 +280,9 @@ namespace osu.Framework.Platform
 
         private bool suspended;
 
-        protected GameHost(string gameName = @"")
+        protected GameHost([CanBeNull] HostOptions options = null)
         {
-            Name = gameName;
+            Name = options?.Name ?? string.Empty;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
