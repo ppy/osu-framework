@@ -322,12 +322,15 @@ namespace osu.Framework.Audio
                 return false;
             }
 
-            Logger.Log($@"BASS Initialized
-                          BASS Version:               {Bass.Version}
-                          BASS FX Version:            {BassFx.Version}
-                          BASS MIX Version:           {BassMix.Version}
-                          Device:                     {device.Name}
-                          Drive:                      {device.Driver}");
+            Logger.Log($@"🔈 BASS initialised
+                          BASS version:           {Bass.Version}
+                          BASS FX version:        {BassFx.Version}
+                          BASS MIX version:       {BassMix.Version}
+                          Device:                 {device.Name}
+                          Driver:                 {device.Driver}
+                          Update period:          {Bass.UpdatePeriod} ms
+                          Device buffer length:   {Bass.DeviceBufferLength} ms
+                          Playback buffer length: {Bass.PlaybackBufferLength} ms");
 
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
