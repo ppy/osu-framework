@@ -23,8 +23,27 @@ namespace osu.Framework.Extensions
         }
 
         /// <summary>
+        /// Safe alternative to Task.Result which asserts that the task has already been completed (and thus will not block).
+        /// </summary>
+        /// <remarks>
+        /// If unsure that the task has completed, use <see cref="WaitSafelyForResult{T}"/> instead.
+        /// </remarks>
+        public static T GetCompletedResult<T>(this Task<T> task)
+        {
+            if (!task.IsCompleted)
+                throw new InvalidOperationException($"Can't use {nameof(GetCompletedResult)} when the task has not yet completed.");
+
+#pragma warning disable RS0030
+            return task.Result;
+#pragma warning restore RS0030
+        }
+
+        /// <summary>
         /// Safe alternative to Task.Result which ensures the calling thread is not a thread pool thread.
         /// </summary>
+        /// <remarks>
+        /// If sure that the task has completed, use <see cref="GetCompletedResult{T}"/> instead.
+        /// </remarks>
         public static T WaitSafelyForResult<T>(this Task<T> task)
         {
             // We commonly access `.Result` from within `ContinueWith`, which is a safe usage (the task is guaranteed to be completed).

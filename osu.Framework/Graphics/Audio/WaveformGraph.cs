@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.Audio
 
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(task =>
                 {
-                    var resampled = task.WaitSafelyForResult();
+                    var resampled = task.GetCompletedResult();
 
                     var points = resampled.GetPoints();
                     int channels = resampled.GetChannels();
