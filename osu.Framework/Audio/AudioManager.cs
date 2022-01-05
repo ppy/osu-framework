@@ -350,9 +350,11 @@ namespace osu.Framework.Audio
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
             Bass.UpdatePeriod = 5;
 
-            // reduce latency to a known sane minimum.
+            // reduce latency to a known sane minimum. this has a varying effect depending on the host platform - reducing further may be something we eventually want to look into.
             Bass.DeviceBufferLength = 10;
-            Bass.PlaybackBufferLength = 100;
+
+            // governs the buffer length of mixers, when buffering is enabled. setting to the minimum specified by bass (update_period + 1) but generally ends up higher than that.
+            Bass.PlaybackBufferLength = Bass.UpdatePeriod + 1;
 
             // ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
             Bass.DeviceNonStop = true;
