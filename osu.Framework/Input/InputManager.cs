@@ -730,7 +730,7 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
+            new MouseButtonInputFromTouch(MouseButton.Left, e.IsActive != false, e).Apply(CurrentState, this);
             return true;
         }
 
