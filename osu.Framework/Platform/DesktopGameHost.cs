@@ -26,8 +26,8 @@ namespace osu.Framework.Platform
         protected DesktopGameHost(HostOptions options = null)
             : base(options)
         {
-            bindIPCPort = options.BindIPC;
-            IsPortableInstallation = options.PortableInstallation;
+            bindIPCPort = Options.BindIPC;
+            IsPortableInstallation = Options.PortableInstallation;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
