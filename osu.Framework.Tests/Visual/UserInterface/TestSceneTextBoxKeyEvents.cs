@@ -182,6 +182,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
         }
 
+        [Test]
+        public void TestReleaseAndPressKeysInSameFrame()
+        {
+            AddStep("press and hold first key to insert text", () =>
+            {
+                textInput.Text("F");
+                InputManager.PressKey(Key.F);
+            });
+            AddAssert("KeyDown event consumed", () => textBox.KeyDownQueue.Dequeue() && textBox.KeyDownQueue.Count == 0);
+            AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "F" && textBox.UserConsumedTextQueue.Count == 0);
+
+            AddStep("release first key, press second key, and send text", () =>
+            {
+                InputManager.ReleaseKey(Key.F);
+                textInput.Text("S");
+                InputManager.PressKey(Key.S);
+            });
+            AddAssert("KeyDown event consumed", () => textBox.KeyDownQueue.Dequeue() && textBox.KeyDownQueue.Count == 0);
+            AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "S" && textBox.UserConsumedTextQueue.Count == 0);
+
+            AddStep("release key", () => InputManager.ReleaseKey(Key.S));
+            AddAssert("keys repeated", () => textBox.KeyDownRepeatQueue.Count != 0);
+            assertAllRepeatKeyDownEventsConsumed();
+        }
+
         [TearDownSteps]
         public void TearDownSteps()
         {
