@@ -5,4 +5,4 @@ T:System.IComparable;Don't use non-generic IComparable. Use generic version inst
 M:System.Enum.HasFlag(System.Enum);Use osu.Framework.Extensions.EnumExtensions.HasFlagFast<T>() instead.
 F:System.UriKind.RelativeOrAbsolute;Incompatible results when run on mono (see https://www.mono-project.com/docs/faq/known-issues/urikind-relativeorabsolute/). Use Validation.TryParseUri(string, out Uri?) instead.
 M:System.Threading.Tasks.Task.Wait();Don't use Task.Wait. Use Task.WaitSafely() to ensure we avoid deadlocks.
-P:System.Threading.Tasks.Task`1.Result;Don't use Task.Result. Use Task.WaitSafelyForResult() to ensure we avoid deadlocks.
+P:System.Threading.Tasks.Task`1.Result;Don't use Task.Result. Use Task.GetCompletedResult() to safely retrieve the result of a completed task, or Task.WaitSafelyForResult() to synchronously wait for and retrieve the result of a not-completed task in a way that ensures that it will not deadlock.
