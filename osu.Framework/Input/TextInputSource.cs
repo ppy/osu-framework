@@ -18,34 +18,14 @@ namespace osu.Framework.Input
         /// </summary>
         public bool ImeActive { get; private set; }
 
-        private readonly object pendingLock = new object();
-
-        private string pendingText = string.Empty;
-
         /// <summary>
         /// Counts how many times consumers have activated this <see cref="TextInputSource"/>.
         /// </summary>
         private int activationCounter;
 
         /// <summary>
-        /// Gets all the text that was input by the user since the last <see cref="GetPendingText"/> call.
-        /// </summary>
-        /// <remarks>
-        /// Should be periodically called to collect user-input text.
-        /// </remarks>
-        public string GetPendingText()
-        {
-            lock (pendingLock)
-            {
-                string oldPending = pendingText;
-                pendingText = string.Empty;
-                return oldPending;
-            }
-        }
-
-        /// <summary>
         /// Activates this <see cref="TextInputSource"/>.
-        /// User text input can be acquired through <see cref="GetPendingText"/>, <see cref="OnImeComposition"/> and <see cref="OnImeResult"/>.
+        /// User text input can be acquired through <see cref="OnTextInput"/>, <see cref="OnImeComposition"/> and <see cref="OnImeResult"/>.
         /// </summary>
         /// <remarks>
         /// Each <see cref="Activate"/> must be followed by a <see cref="Deactivate"/>.
@@ -76,15 +56,7 @@ namespace osu.Framework.Input
         public void Deactivate()
         {
             if (Interlocked.Decrement(ref activationCounter) == 0)
-            {
                 DeactivateTextInput();
-
-                lock (pendingLock)
-                {
-                    // clear out the pending text in case some of it wasn't consumed
-                    pendingText = string.Empty;
-                }
-            }
         }
 
         /// <summary>
@@ -105,6 +77,11 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Invoked on text input.
+        /// </summary>
+        public event Action<string> OnTextInput;
+
+        /// <summary>
         /// Invoked when IME composition starts or changes.
         /// </summary>
         /// <remarks>Empty string for text means that the composition has been cancelled.</remarks>
@@ -116,25 +93,11 @@ namespace osu.Framework.Input
         public event Action<string> OnImeResult;
 
         /// <summary>
-        /// Adds <paramref name="text"/> to the text pending to be collected by <see cref="GetPendingText"/>.
-        /// </summary>
-        /// <remarks>
-        /// Used for collecting inputted text from native implementations.
-        /// </remarks>
-        protected void AddPendingText(string text)
-        {
-            lock (pendingLock)
-            {
-                pendingText += text;
-            }
-        }
-
-        /// <summary>
         /// Activates the native implementation that provides text input.
         /// Should be overriden per-platform.
         /// </summary>
         /// <remarks>
-        /// An active native implementation should add user input text with <see cref="AddPendingText"/>.
+        /// An active native implementation should call <see cref="TriggerTextInput"/> on new text input
         /// and forward IME composition events through <see cref="TriggerImeComposition"/> and <see cref="TriggerImeResult"/>.
         /// </remarks>
         protected virtual void ActivateTextInput()
@@ -156,6 +119,11 @@ namespace osu.Framework.Input
         /// </summary>
         protected virtual void DeactivateTextInput()
         {
+        }
+
+        protected void TriggerTextInput(string text)
+        {
+            OnTextInput?.Invoke(text);
         }
 
         protected void TriggerImeComposition(string text, int start, int length)

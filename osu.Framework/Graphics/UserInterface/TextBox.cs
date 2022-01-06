@@ -221,16 +221,11 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.Paste:
-                    string pending = null;
+                    if (RecentTextInput)
+                        // the text has been pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        return true;
 
-                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    if (inputBound)
-                        pending = textInput.GetPendingText();
-
-                    if (string.IsNullOrEmpty(pending))
-                        pending = clipboard?.GetText();
-
-                    InsertString(pending);
+                    InsertString(clipboard?.GetText());
                     return true;
 
                 case PlatformAction.SelectAll:
@@ -927,48 +922,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
-        private bool consumingText;
-
         /// <summary>
-        /// Begin consuming text from an <see cref="TextInputSource"/>.
-        /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
+        /// Whether there was recent text input from a <see cref="TextInputSource"/>.
         /// </summary>
-        protected void BeginConsumingText()
-        {
-            consumingText = true;
-            Schedule(consumePendingText);
-        }
-
-        /// <summary>
-        /// Stops consuming text from an <see cref="TextInputSource"/>.
-        /// </summary>
-        protected void EndConsumingText()
-        {
-            consumingText = false;
-        }
-
-        /// <summary>
-        /// Consumes any pending characters and adds them to the textbox if not <see cref="ReadOnly"/>.
-        /// </summary>
-        private void consumePendingText()
-        {
-            if (!inputBound)
-            {
-                EndConsumingText();
-                return;
-            }
-
-            string pendingText = textInput.GetPendingText();
-
-            if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
-            {
-                InsertString(pendingText);
-                OnUserTextAdded(pendingText);
-            }
-
-            if (consumingText)
-                Schedule(consumePendingText);
-        }
+        /// <remarks>
+        /// If there was recent text input, all <see cref="OnKeyDown"/> should be blocked from propagating.
+        /// Cleared/set to <c>false</c> when all keys are released, or when input is unbound.
+        /// </remarks>
+        protected bool RecentTextInput;
 
         /// <summary>
         /// Whether there is a ongoing IME composition.
@@ -991,13 +952,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (ImeCompositionActive)
                 return true;
 
-            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
-                return false;
-
-            // we only care about keys which can result in text output.
-            if (keyProducesCharacter(e.Key))
-                BeginConsumingText();
-
             switch (e.Key)
             {
                 case Key.Escape:
@@ -1014,16 +968,16 @@ namespace osu.Framework.Graphics.UserInterface
                         Commit();
                     return true;
 
-                // avoid blocking certain keys which may be used during typing but don't produce characters.
+                // avoid blocking certain keys which we need propagated to a PlatformActionContainer,
+                // so that we can get them as appropriate `PlatformAction`s in OnPressed(KeyBindingPressEvent<PlatformAction>).
                 case Key.BackSpace:
                 case Key.Delete:
                     return false;
             }
 
-            return base.OnKeyDown(e) || consumingText;
+            // block on recent text input *after* handling the above keys so those keys can be used during text input.
+            return base.OnKeyDown(e) || RecentTextInput;
         }
-
-        private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0 && key <= Key.NonUSBackSlash) && key != Key.KeypadEnter;
 
         /// <summary>
         /// Removes focus from this <see cref="TextBox"/> if it currently has focus.
@@ -1064,7 +1018,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.HasAnyKeyPressed)
-                EndConsumingText();
+                RecentTextInput = false;
 
             base.OnKeyUp(e);
         }
@@ -1230,6 +1184,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             textInput.Activate();
+            textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
 
@@ -1244,8 +1199,18 @@ namespace osu.Framework.Graphics.UserInterface
             inputBound = false;
 
             textInput.Deactivate();
+            textInput.OnTextInput -= handleTextInput;
             textInput.OnImeComposition -= handleImeComposition;
             textInput.OnImeResult -= handleImeResult;
+
+            // in case keys are held and we lose focus, we should no longer block key events
+            RecentTextInput = false;
+        }
+
+        private void handleTextInput(string text)
+        {
+            Scheduler.Add(() => onTextInput(text));
+            RecentTextInput = true;
         }
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
@@ -1259,6 +1224,20 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 onImeComposition(result, result.Length, 0, false);
                 onImeResult(true, true);
+            });
+        }
+
+        private void onTextInput(string text)
+        {
+            InsertString(text);
+            OnUserTextAdded(text);
+
+            // clear the flag in the next frame if no buttons are pressed/held.
+            // needed in case a text event happens without an associated button press (and release).
+            Scheduler.AddOnce(() =>
+            {
+                if (!GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed)
+                    RecentTextInput = false;
             });
         }
 
