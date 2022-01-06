@@ -1247,7 +1247,7 @@ namespace osu.Framework.Graphics.UserInterface
             // needed in case a text event happens without an associated button press (and release).
             Scheduler.AddOnce(() =>
             {
-                if (!GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed)
+                if (RecentTextInput && !GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed)
                     RecentTextInput = false;
             });
         }
