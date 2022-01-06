@@ -713,6 +713,11 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// The number of touches which are currently down, causing a single cumulative "mouse down" state.
+        /// </summary>
+        private int mouseMappedTouchesDown;
+
+        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -730,7 +735,10 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, e.IsActive != false, e).Apply(CurrentState, this);
+            if (e.IsActive != null)
+                mouseMappedTouchesDown += (e.IsActive.Value ? 1 : -1);
+
+            new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown > 0, e).Apply(CurrentState, this);
             return true;
         }
 
