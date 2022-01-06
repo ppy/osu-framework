@@ -122,6 +122,11 @@ namespace osu.Framework.Graphics.UserInterface
         public event OnCommitHandler OnCommit;
 
         /// <summary>
+        /// Scheduler used for scheduling text input events coming from <see cref="textInput"/>.
+        /// </summary>
+        private readonly Scheduler textInputScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
+
+        /// <summary>
         /// Scheduler used for scheduling IME composition and result events coming from <see cref="textInput"/>.
         /// </summary>
         private readonly Scheduler imeCompositionScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
@@ -489,8 +494,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Update();
 
-            // update the scheduler before updating children as it might mutate TextFlow.
+            // update the schedulers before updating children as it might mutate TextFlow.
             // we want the character drawables to be up-to date for further calculations in `updateCursorAndLayout()`.
+            textInputScheduler.Update();
             imeCompositionScheduler.Update();
         }
 
@@ -975,6 +981,10 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
             }
 
+            // check for any pending text input.
+            // updating here will set RecentTextInput accordingly.
+            textInputScheduler.Update();
+
             // block on recent text input *after* handling the above keys so those keys can be used during text input.
             return base.OnKeyDown(e) || RecentTextInput;
         }
@@ -1209,8 +1219,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleTextInput(string text)
         {
-            Scheduler.Add(() => onTextInput(text));
-            RecentTextInput = true;
+            textInputScheduler.Add(() => onTextInput(text));
         }
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
@@ -1229,6 +1238,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void onTextInput(string text)
         {
+            RecentTextInput = true;
+
             InsertString(text);
             OnUserTextAdded(text);
 
