@@ -22,7 +22,7 @@ namespace osu.Framework.Testing
 
         public static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
 
-        [Obsolete("Use TestRunHeadlessGameHost(HostConfig, bool) instead.")]
+        [Obsolete("Use TestRunHeadlessGameHost(HostOptions, bool) instead.")]
         public TestRunHeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = false, bool portableInstallation = false, bool bypassCleanup = false)
             : this(gameName, new HostOptions
             {

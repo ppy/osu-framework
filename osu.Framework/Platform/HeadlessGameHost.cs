@@ -30,7 +30,7 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        [Obsolete("Use HeadlessGameHost(HostConfig hostConfig) instead.")]
+        [Obsolete("Use HeadlessGameHost(HostOptions, bool) instead.")]
         public HeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : this(gameName, new HostOptions
             {
