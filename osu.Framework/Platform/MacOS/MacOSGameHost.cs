@@ -15,8 +15,8 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(HostOptions options)
-            : base(options)
+        internal MacOSGameHost(string gameName, HostOptions options)
+            : base(gameName, options)
         {
         }
 

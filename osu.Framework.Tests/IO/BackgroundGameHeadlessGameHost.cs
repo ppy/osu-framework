@@ -16,17 +16,16 @@ namespace osu.Framework.Tests.IO
     {
         [Obsolete("Use BackgroundGameHeadlessGameHost(HostConfig) instead.")]
         public BackgroundGameHeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : this(new HostOptions
+            : this(gameName, new HostOptions
             {
-                Name = gameName,
                 BindIPC = bindIPC,
                 PortableInstallation = portableInstallation,
             }, realtime)
         {
         }
 
-        public BackgroundGameHeadlessGameHost(HostOptions options = null, bool realtime = true)
-            : base(options, realtime: realtime)
+        public BackgroundGameHeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName, options, realtime: realtime)
         {
             var testGame = new TestGame();
 

@@ -13,14 +13,6 @@ namespace osu.Framework
     public class HostOptions
     {
         /// <summary>
-        /// Name of the game or application.
-        /// </summary>
-        /// <remarks>
-        /// This property may be null. Host types like <see cref="Platform.HeadlessGameHost"/> fallback to a custom GUID string when it occurs.
-        /// </remarks>
-        public string Name { get; set; } = string.Empty;
-
-        /// <summary>
         /// Whether to bind the IPC port. See <see cref="IIpcHost"/> for more details on usage.
         /// </summary>
         public bool BindIPC { get; set; }

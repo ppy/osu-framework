@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Platform
         private class StorageLookupHeadlessGameHost : TestRunHeadlessGameHost
         {
             public StorageLookupHeadlessGameHost()
-                : base(new HostOptions { Name = game_name })
+                : base(game_name, new HostOptions())
             {
             }
 

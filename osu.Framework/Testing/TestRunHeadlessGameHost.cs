@@ -23,18 +23,17 @@ namespace osu.Framework.Testing
         public static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
 
         [Obsolete("Use TestRunHeadlessGameHost(HostConfig, bool) instead.")]
-        public TestRunHeadlessGameHost(string name, bool bindIPC = false, bool realtime = false, bool portableInstallation = false, bool bypassCleanup = false)
-            : this(new HostOptions
+        public TestRunHeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = false, bool portableInstallation = false, bool bypassCleanup = false)
+            : this(gameName, new HostOptions
             {
-                Name = name,
                 BindIPC = bindIPC,
                 PortableInstallation = portableInstallation,
             }, bypassCleanup, realtime)
         {
         }
 
-        public TestRunHeadlessGameHost(HostOptions options = null, bool bypassCleanup = false, bool realtime = false)
-            : base(options, realtime)
+        public TestRunHeadlessGameHost(string gameName = null, HostOptions options = null, bool bypassCleanup = false, bool realtime = false)
+            : base(gameName, options, realtime)
         {
             this.bypassCleanup = bypassCleanup;
             UserStoragePaths = TemporaryTestDirectory.Yield();

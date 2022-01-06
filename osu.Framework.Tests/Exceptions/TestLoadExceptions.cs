@@ -199,7 +199,7 @@ namespace osu.Framework.Tests.Exceptions
 
             try
             {
-                using (var host = new TestRunHeadlessGameHost(new HostOptions { Name = $"{GetType().Name}-{Guid.NewGuid()}" }))
+                using (var host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", new HostOptions()))
                 {
                     using (var game = new TestGame())
                     {

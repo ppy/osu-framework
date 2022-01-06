@@ -283,11 +283,11 @@ namespace osu.Framework.Platform
 
         private bool suspended;
 
-        protected GameHost([CanBeNull] HostOptions options = null)
+        protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
             Options = options ?? new HostOptions();
 
-            Name = Options.Name;
+            Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
