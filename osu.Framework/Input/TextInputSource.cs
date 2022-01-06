@@ -34,6 +34,8 @@ namespace osu.Framework.Input
         {
             if (Interlocked.Increment(ref activationCounter) == 1)
                 ActivateTextInput();
+            else
+                EnsureActivated();
         }
 
         /// <summary>
