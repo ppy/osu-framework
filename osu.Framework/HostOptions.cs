@@ -26,7 +26,7 @@ namespace osu.Framework
         public bool BindIPC { get; set; }
 
         /// <summary>
-        /// Whether this is a portable installation.
+        /// Whether this is a portable installation. Will cause all game files to be placed alongside the executable, rather than in the standard data directory.
         /// </summary>
         public bool PortableInstallation { get; set; }
 
