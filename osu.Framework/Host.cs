@@ -11,17 +11,17 @@ namespace osu.Framework
 {
     public static class Host
     {
-        [Obsolete("Use GetSuitableHost(HostConfig) instead.")]
+        [Obsolete("Use GetSuitableDesktopHost(string, HostOptions) instead.")]
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
         {
-            return GetSuitableHost(gameName, new HostOptions
+            return GetSuitableDesktopHost(gameName, new HostOptions
             {
                 BindIPC = bindIPC,
                 PortableInstallation = portableInstallation,
             });
         }
 
-        public static DesktopGameHost GetSuitableHost(string gameName, HostOptions hostOptions)
+        public static DesktopGameHost GetSuitableDesktopHost(string gameName, HostOptions hostOptions = null)
         {
             switch (RuntimeInfo.OS)
             {
