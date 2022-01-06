@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Platform;
+
 #nullable enable
 
 namespace osu.Framework
@@ -19,7 +21,7 @@ namespace osu.Framework
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Whether to bind the IPC port.
+        /// Whether to bind the IPC port. See <see cref="IIpcHost"/> for more details on usage.
         /// </summary>
         public bool BindIPC { get; set; }
 
