@@ -102,7 +102,7 @@ namespace osu.Framework.Platform
                         {
                             try
                             {
-                                var message = receive(stream, token).WaitSafelyForResult();
+                                var message = receive(stream, token).GetResultSafely();
 
                                 if (message == null)
                                     continue;

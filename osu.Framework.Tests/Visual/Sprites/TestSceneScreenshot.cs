@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             host.TakeScreenshotAsync().ContinueWith(t => Schedule(() =>
             {
-                var image = t.GetCompletedResult();
+                var image = t.GetResultSafely();
 
                 var tex = new Texture(image.Width, image.Height);
                 tex.SetData(new TextureUpload(image));

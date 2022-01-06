@@ -88,7 +88,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     {
                         if (openedDevices.All(x => x.Key != input.Id))
                         {
-                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).WaitSafelyForResult();
+                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).GetResultSafely();
                             newInput.MessageReceived += onMidiMessageReceived;
                             openedDevices[input.Id] = newInput;
 

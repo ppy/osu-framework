@@ -263,7 +263,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.
         /// </summary>
-        public List<Point> GetPoints() => GetPointsAsync().WaitSafelyForResult();
+        public List<Point> GetPoints() => GetPointsAsync().GetResultSafely();
 
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.

@@ -35,7 +35,7 @@ namespace osu.Framework.IO.Stores
         protected readonly ResourceStore<byte[]> Store;
 
         [CanBeNull]
-        protected BitmapFont Font => completionSource.Task.WaitSafelyForResult();
+        protected BitmapFont Font => completionSource.Task.GetResultSafely();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
