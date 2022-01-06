@@ -24,7 +24,7 @@ namespace osu.Framework.Platform.Linux
         internal LinuxGameHost(string gameName, HostOptions options)
             : base(gameName, options)
         {
-            BypassCompositor = options.BypassCompositor;
+            BypassCompositor = Options.BypassCompositor;
         }
 
         protected override void SetupForRun()
