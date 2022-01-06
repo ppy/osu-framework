@@ -11,7 +11,7 @@ namespace osu.Framework
 {
     public static class Host
     {
-        [Obsolete("Use GetSuitableDesktopHost(string, HostOptions) instead.")]
+        [Obsolete("Use GetSuitableDesktopHost(string, HostOptions) instead.")] // Can be removed 20220715
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
         {
             return GetSuitableDesktopHost(gameName, new HostOptions
