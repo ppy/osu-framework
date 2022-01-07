@@ -51,6 +51,7 @@ namespace osu.Framework.Android
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
             {
+                new AndroidMouseHandler(gameView),
                 new AndroidKeyboardHandler(gameView),
                 new AndroidTouchHandler(gameView),
                 new MidiHandler()
