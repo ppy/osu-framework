@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
                         linkedSource.Dispose();
                     }
                 });
-            }, CancellationToken.None);
+            }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
         /// <summary>

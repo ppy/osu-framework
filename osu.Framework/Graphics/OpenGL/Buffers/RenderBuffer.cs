@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~RenderBuffer()
         {
-            GLWrapper.ScheduleDisposal(() => Dispose(false));
+            GLWrapper.ScheduleDisposal(b => b.Dispose(false), this);
         }
 
         public void Dispose()

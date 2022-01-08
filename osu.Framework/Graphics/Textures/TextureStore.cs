@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -135,7 +136,7 @@ namespace osu.Framework.Graphics.Textures
             // handle the case where a lookup is already in progress.
             if (task != null)
             {
-                task.Wait();
+                task.WaitSafely();
 
                 // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
                 if (TryGetCached(key, out var cached))

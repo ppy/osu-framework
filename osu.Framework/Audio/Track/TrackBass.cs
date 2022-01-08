@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
@@ -206,7 +207,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            StopAsync().Wait();
+            StopAsync().WaitSafely();
         }
 
         public Task StopAsync() => EnqueueAction(() =>
@@ -229,7 +230,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Start();
 
-            StartAsync().Wait();
+            StartAsync().WaitSafely();
         }
 
         public Task StartAsync() => EnqueueAction(() =>
@@ -265,7 +266,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool Seek(double seek) => SeekAsync(seek).Result;
+        public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
         public async Task<bool> SeekAsync(double seek)
         {
