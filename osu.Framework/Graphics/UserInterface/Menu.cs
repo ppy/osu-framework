@@ -353,28 +353,33 @@ namespace osu.Framework.Graphics.UserInterface
                 var inputManager = GetContainingInputManager();
 
                 var itemAlignmentPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
-                var menuMaximumPosition = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(triggeringItem.DrawWidth + DrawWidth, triggeringItem.DrawHeight + DrawHeight), inputManager);
+
+                var menuMaximumPosition = triggeringItem.ToSpaceOfOtherDrawable(
+                    new Vector2(
+                        triggeringItem.DrawWidth + DrawWidth,
+                        triggeringItem.DrawHeight + DrawHeight), inputManager);
+                var menuMinimumPosition = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(-DrawWidth, -DrawHeight), inputManager);
 
                 if (Direction == Direction.Vertical)
                 {
-                    if (menuMaximumPosition.X > inputManager.DrawWidth)
+                    if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
                         X = -DrawWidth;
                     else
                         X = triggeringItem.DrawWidth;
 
-                    if (menuMaximumPosition.Y > inputManager.DrawHeight)
+                    if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
                         Y = itemAlignmentPosition.Y + triggeringItem.DrawHeight - DrawHeight;
                     else
                         Y = itemAlignmentPosition.Y;
                 }
                 else
                 {
-                    if (menuMaximumPosition.Y > inputManager.DrawHeight)
+                    if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
                         Y = -DrawHeight;
                     else
                         Y = triggeringItem.DrawHeight;
 
-                    if (menuMaximumPosition.X > inputManager.DrawWidth)
+                    if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
                         X = itemAlignmentPosition.X + triggeringItem.DrawWidth - DrawWidth;
                     else
                         X = itemAlignmentPosition.X;
