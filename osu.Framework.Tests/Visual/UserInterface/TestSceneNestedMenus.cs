@@ -31,6 +31,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
+            RelativePositionAxes = Axes.Both,
             Items = new[]
             {
                 generateRandomMenuItem("First"),
@@ -416,6 +417,46 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 var menu = Menus.GetSubMenu(index);
                 return menu.State == MenuState.Open && menu.ScreenSpaceDrawQuad.GetVertices().ToArray().All(v => Precision.AlmostBigger(ScreenSpaceDrawQuad.BottomRight.X, v.X, 1) && Precision.AlmostBigger(ScreenSpaceDrawQuad.BottomRight.Y, v.Y, 1));
+            });
+        }
+
+        [Test]
+        public void TestSubMenuOverflowPlayground([Values] Direction direction)
+        {
+            createMenu(direction);
+            AddStep("anchor menu to top left", () =>
+            {
+                var menu = Menus.GetSubMenu(0);
+                menu.Anchor = menu.Origin = Anchor.TopLeft;
+            });
+
+            AddStep("Click item", () => ClickItem(0, 1));
+            AddStep("Click item", () => ClickItem(1, 0));
+            AddStep("Click item", () => ClickItem(2, 0));
+            AddStep("Click item", () => ClickItem(3, 0));
+
+            AddSliderStep("set top-level menu width", 50, 250, 50, width =>
+            {
+                var menu = Menus?.GetSubMenu(0);
+                if (menu == null || menu.IsDisposed) return;
+
+                menu.Width = width;
+            });
+
+            AddSliderStep("move top-level menu X", 0, 1, 0f, x =>
+            {
+                var menu = Menus?.GetSubMenu(0);
+                if (menu == null || menu.IsDisposed) return;
+
+                menu.X = x;
+            });
+
+            AddSliderStep("move top-level menu Y", 0, 1, 0f, y =>
+            {
+                var menu = Menus?.GetSubMenu(0);
+                if (menu == null || menu.IsDisposed) return;
+
+                menu.Y = y;
             });
         }
 
