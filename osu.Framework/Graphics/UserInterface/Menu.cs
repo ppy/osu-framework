@@ -352,40 +352,56 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 var inputManager = GetContainingInputManager();
 
+                // This is the default position to which this menu should be anchored to the parent menu item which triggered it (top left of the triggering item)
                 var itemAlignmentPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
 
+                // The "maximum" position is the worst case position of the bottom right corner of this menu
+                // if this menu is anchored top-left to the triggering item.
                 var menuMaximumPosition = triggeringItem.ToSpaceOfOtherDrawable(
                     new Vector2(
                         triggeringItem.DrawWidth + DrawWidth,
                         triggeringItem.DrawHeight + DrawHeight), inputManager);
+
+                // The "minimum" position is the worst case position of the top left corner of this menu
+                // if this menu is anchored bottom-right to the parent menu item that triggered it.
                 var menuMinimumPosition = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(-DrawWidth, -DrawHeight), inputManager);
 
+                // We will be making anchor adjustments by changing the parent's "submenu container" to be positioned and anchored correctly to the parent menu.
+                // Therefore note that all X and Y adjustments below will occur in the parent menu's coordinates.
                 var parentSubmenuContainer = parentMenu.submenuContainer;
 
                 if (Direction == Direction.Vertical)
                 {
+                    // If this menu won't fit on the screen horizontally if it's anchored to the right of its triggering item, but it will fit when anchored to the left...
                     if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
                     {
+                        // switch the origin and position of the submenu container so that it's right-aligned to the left side of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
                         parentSubmenuContainer.X = 0;
                     }
                     else
                     {
+                        // otherwise, switch the origin and position of the submenu container so that it's left-aligned to the right side of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
                         parentSubmenuContainer.X = triggeringItem.DrawWidth;
                     }
 
+                    // If this menu won't fit on the screen vertically if its top edge is aligned to the top of the triggering item,
+                    // but it will fit if its bottom edge is aligned to the bottom of the triggering item...
                     if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
                     {
+                        // switch the origin and position of the submenu container so that it's bottom-aligned to the bottom of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
                         parentSubmenuContainer.Y = itemAlignmentPosition.Y + triggeringItem.DrawHeight;
                     }
                     else
                     {
+                        // otherwise, switch the origin and position of the submenu container so that it's top-aligned to the top of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
                         parentSubmenuContainer.Y = itemAlignmentPosition.Y;
                     }
                 }
+                // the "horizontal" case is the same as above, but with the axes everywhere swapped.
                 else
                 {
                     if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
