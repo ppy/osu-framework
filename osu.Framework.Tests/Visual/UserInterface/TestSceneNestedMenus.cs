@@ -8,6 +8,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -26,7 +27,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             rng = new Random(1337);
         }
 
-        private void createMenu() => CreateMenu(() => new ClickOpenMenu(TimePerAction)
+        private void createMenu(Direction direction = Direction.Vertical) => CreateMenu(() => new ClickOpenMenu(direction, TimePerAction)
         {
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
@@ -40,10 +41,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class ClickOpenMenu : BasicMenu
         {
-            protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay, false);
+            protected override Menu CreateSubMenu() => new ClickOpenMenu(Direction, HoverOpenDelay, false);
 
-            public ClickOpenMenu(double timePerAction, bool topLevel = true)
-                : base(Direction.Vertical, topLevel)
+            public ClickOpenMenu(Direction direction, double timePerAction, bool topLevel = true)
+                : base(direction, topLevel)
             {
                 HoverOpenDelay = timePerAction;
             }
@@ -381,6 +382,41 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Close menus", () => Menus.GetSubMenu(0).Close());
             AddAssert("Check selected index 4", () => Menus.GetSubStructure(1).GetSelectedIndex() == -1);
+        }
+
+        /// <summary>
+        /// Ensures that submenus don't overflow the visible bounds.
+        /// </summary>
+        [TestCase(Anchor.CentreRight, Direction.Vertical)]
+        [TestCase(Anchor.BottomRight, Direction.Vertical)]
+        [TestCase(Anchor.BottomLeft, Direction.Horizontal)]
+        [TestCase(Anchor.BottomRight, Direction.Horizontal)]
+        public void TestSubMenuOverflow(Anchor anchor, Direction direction)
+        {
+            createMenu(direction);
+            AddStep($"anchor menu {anchor}", () =>
+            {
+                var menu = Menus.GetSubMenu(0);
+                menu.Anchor = menu.Origin = anchor;
+            });
+
+            AddStep("Click item", () => ClickItem(0, 1));
+            menuOpenAndVisible(1);
+
+            AddStep("Click item", () => ClickItem(1, 0));
+            menuOpenAndVisible(2);
+
+            AddStep("Click item", () => ClickItem(2, 0));
+            menuOpenAndVisible(3);
+
+            AddStep("Click item", () => ClickItem(3, 0));
+            menuOpenAndVisible(4);
+
+            void menuOpenAndVisible(int index) => AddAssert("Menu is open and visible", () =>
+            {
+                var menu = Menus.GetSubMenu(index);
+                return menu.State == MenuState.Open && menu.ScreenSpaceDrawQuad.GetVertices().ToArray().All(v => Precision.AlmostBigger(ScreenSpaceDrawQuad.BottomRight.X, v.X, 1) && Precision.AlmostBigger(ScreenSpaceDrawQuad.BottomRight.Y, v.Y, 1));
+            });
         }
 
         #endregion
