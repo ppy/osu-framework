@@ -42,13 +42,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class ClickOpenMenu : BasicMenu
         {
-            protected override Menu CreateSubMenu() => new ClickOpenMenu(Direction, HoverOpenDelay, false);
+            private readonly int depth;
 
-            public ClickOpenMenu(Direction direction, double timePerAction, bool topLevel = true)
-                : base(direction, topLevel)
+            protected override Menu CreateSubMenu() => new ClickOpenMenu(Direction, HoverOpenDelay, depth + 1);
+
+            public ClickOpenMenu(Direction direction, double timePerAction, int depth = 0)
+                : base(direction, depth == 0)
             {
                 HoverOpenDelay = timePerAction;
+                this.depth = depth;
             }
+
+            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) =>
+                base.CreateDrawableMenuItem(item).With(drawableItem =>
+                {
+                    float hue = (float)depth / max_depth;
+                    drawableItem.BackgroundColour = Colour4.FromHSV(hue, 1, 0.3f);
+                    drawableItem.BackgroundColourHover = Colour4.FromHSV(hue, 0.6f, 0.5f);
+                });
         }
 
         #region Test Cases
