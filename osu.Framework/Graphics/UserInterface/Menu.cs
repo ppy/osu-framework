@@ -362,7 +362,10 @@ namespace osu.Framework.Graphics.UserInterface
                     else
                         X = triggeringItem.DrawWidth;
 
-                    Y = itemAlignmentPosition.Y;
+                    if (menuMaximumPosition.Y > inputManager.DrawHeight)
+                        Y = itemAlignmentPosition.Y + triggeringItem.DrawHeight - DrawHeight;
+                    else
+                        Y = itemAlignmentPosition.Y;
                 }
                 else
                 {
@@ -371,7 +374,10 @@ namespace osu.Framework.Graphics.UserInterface
                     else
                         Y = triggeringItem.DrawHeight;
 
-                    X = itemAlignmentPosition.X;
+                    if (menuMaximumPosition.X > inputManager.DrawWidth)
+                        X = itemAlignmentPosition.X + triggeringItem.DrawWidth - DrawWidth;
+                    else
+                        X = itemAlignmentPosition.X;
                 }
 
                 positionLayout.Validate();
