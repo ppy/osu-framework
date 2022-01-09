@@ -20,12 +20,12 @@ namespace osu.Framework.Configuration
         Auto = 0,
 
         /// <summary>
-        /// Locked landscape, with top-down goes from left to right on the portrait screen
+        /// Locked landscape, with device's screen rotated 90degree CLOCKWISE from default portrait orientation
         /// </summary>
         LandscapeLeft = 1,
 
         /// <summary>
-        /// Locked landscape, with top-down goes from right to left on the portrait screen
+        /// Locked landscape, with device's screen rotated 90degree COUNTER-CLOCKWISE from default portrait orientation
         /// </summary>
         LandscapeRight = 1 << 1,
 
@@ -40,17 +40,17 @@ namespace osu.Framework.Configuration
         ReversePortrait = 1 << 3,
 
         /// <summary>
-        /// Landscape orientation, allows landscape screen rotation
+        /// Landscape orientation, allows any landscape screen rotation
         /// </summary>
         AnyLandscape = LandscapeLeft | LandscapeRight,
 
         /// <summary>
-        /// Portrait orientation, allows portrait screen rotation
+        /// Portrait orientation, allows any portrait screen rotation
         /// </summary>
         AnyPortrait = Portrait | ReversePortrait,
 
         /// <summary>
-        /// Allows all 4 orientation.
+        /// Allows all 4 orientation
         /// </summary>
         Any = AnyLandscape | AnyPortrait
     }
