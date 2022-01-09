@@ -350,9 +350,29 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (!positionLayout.IsValid && parentMenu != null)
             {
-                Position = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(
-                    Direction == Direction.Vertical ? triggeringItem.DrawWidth : 0,
-                    Direction == Direction.Horizontal ? triggeringItem.DrawHeight : 0), parentMenu);
+                var inputManager = GetContainingInputManager();
+
+                var itemAlignmentPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
+                var menuMaximumPosition = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(triggeringItem.DrawWidth + DrawWidth, triggeringItem.DrawHeight + DrawHeight), inputManager);
+
+                if (Direction == Direction.Vertical)
+                {
+                    if (menuMaximumPosition.X > inputManager.DrawWidth)
+                        X = -DrawWidth;
+                    else
+                        X = triggeringItem.DrawWidth;
+
+                    Y = itemAlignmentPosition.Y;
+                }
+                else
+                {
+                    if (menuMaximumPosition.Y > inputManager.DrawHeight)
+                        Y = -DrawHeight;
+                    else
+                        Y = triggeringItem.DrawHeight;
+
+                    X = itemAlignmentPosition.X;
+                }
 
                 positionLayout.Validate();
             }
@@ -452,6 +472,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             submenu.triggeringItem = item;
+            submenu.positionLayout.Invalidate();
 
             submenu.Items = item.Item.Items;
 
