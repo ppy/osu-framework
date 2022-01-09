@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Box background;
 
         private readonly Container<Menu> submenuContainer;
+        private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit);
 
         /// <summary>
         /// Constructs a menu.
@@ -122,6 +123,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             // The menu will provide a valid size for the items container based on our own size
             ItemsContainer.RelativeSizeAxes = Axes.Both & ~ItemsContainer.AutoSizeAxes;
+
+            AddLayout(positionLayout);
         }
 
         protected override void LoadComplete()
@@ -341,6 +344,20 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!positionLayout.IsValid && parentMenu != null)
+            {
+                Position = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(
+                    Direction == Direction.Vertical ? triggeringItem.DrawWidth : 0,
+                    Direction == Direction.Horizontal ? triggeringItem.DrawHeight : 0), parentMenu);
+
+                positionLayout.Validate();
+            }
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -421,7 +438,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The item which triggered opening us as a submenu.
         /// </summary>
-        private MenuItem triggeringItem;
+        private DrawableMenuItem triggeringItem;
 
         private void openSubmenuFor(DrawableMenuItem item)
         {
@@ -434,12 +451,9 @@ namespace osu.Framework.Graphics.UserInterface
                 submenu.StateChanged += submenuStateChanged;
             }
 
-            submenu.triggeringItem = item.Item;
+            submenu.triggeringItem = item;
 
             submenu.Items = item.Item.Items;
-            submenu.Position = item.ToSpaceOfOtherDrawable(new Vector2(
-                Direction == Direction.Vertical ? item.DrawWidth : 0,
-                Direction == Direction.Horizontal ? item.DrawHeight : 0), this);
 
             if (item.Item.Items.Count > 0)
             {
@@ -525,17 +539,17 @@ namespace osu.Framework.Graphics.UserInterface
         private void closeAll()
         {
             Close();
-            parentMenu?.closeFromChild(triggeringItem);
+            parentMenu?.closeFromChild(triggeringItem.Item);
         }
 
         private void closeFromChild(MenuItem source)
         {
             if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
 
-            if (triggeringItem?.Items?.Contains(source) ?? triggeringItem == null)
+            if (triggeringItem?.Item.Items?.Contains(source) ?? triggeringItem == null)
             {
                 Close();
-                parentMenu?.closeFromChild(triggeringItem);
+                parentMenu?.closeFromChild(triggeringItem.Item);
             }
         }
 
