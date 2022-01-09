@@ -360,32 +360,60 @@ namespace osu.Framework.Graphics.UserInterface
                         triggeringItem.DrawHeight + DrawHeight), inputManager);
                 var menuMinimumPosition = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(-DrawWidth, -DrawHeight), inputManager);
 
+                var parentSubmenuContainer = parentMenu.submenuContainer;
+
                 if (Direction == Direction.Vertical)
                 {
                     if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
-                        X = -DrawWidth;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
+                        parentSubmenuContainer.X = 0;
+                    }
                     else
-                        X = triggeringItem.DrawWidth;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
+                        parentSubmenuContainer.X = triggeringItem.DrawWidth;
+                    }
 
                     if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
-                        Y = itemAlignmentPosition.Y + triggeringItem.DrawHeight - DrawHeight;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
+                        parentSubmenuContainer.Y = itemAlignmentPosition.Y + triggeringItem.DrawHeight;
+                    }
                     else
-                        Y = itemAlignmentPosition.Y;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
+                        parentSubmenuContainer.Y = itemAlignmentPosition.Y;
+                    }
                 }
                 else
                 {
                     if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
-                        Y = -DrawHeight;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
+                        parentSubmenuContainer.Y = 0;
+                    }
                     else
-                        Y = triggeringItem.DrawHeight;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
+                        parentSubmenuContainer.Y = triggeringItem.DrawHeight;
+                    }
 
                     if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
-                        X = itemAlignmentPosition.X + triggeringItem.DrawWidth - DrawWidth;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
+                        parentSubmenuContainer.X = itemAlignmentPosition.X + triggeringItem.DrawWidth;
+                    }
                     else
-                        X = itemAlignmentPosition.X;
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
+                        parentSubmenuContainer.X = itemAlignmentPosition.X;
+                    }
                 }
 
                 positionLayout.Validate();
+
+                Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
             }
         }
 
