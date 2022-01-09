@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Box background;
 
         private readonly Container<Menu> submenuContainer;
-        private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit);
+        private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
 
         /// <summary>
         /// Constructs a menu.
