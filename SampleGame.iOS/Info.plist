@@ -38,5 +38,9 @@
 	<true/>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 </dict>
 </plist>

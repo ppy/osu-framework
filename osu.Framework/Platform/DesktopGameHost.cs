@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -23,7 +22,6 @@ namespace osu.Framework.Platform
 
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
-        private Thread ipcThread;
 
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
             : base(gameName)
@@ -69,20 +67,9 @@ namespace osu.Framework.Platform
                 return;
 
             ipcProvider = new TcpIpcProvider(IPC_PORT);
+            ipcProvider.MessageReceived += OnMessageReceived;
+
             IsPrimaryInstance = ipcProvider.Bind();
-
-            if (IsPrimaryInstance)
-            {
-                ipcProvider.MessageReceived += OnMessageReceived;
-
-                ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
-                {
-                    Name = "IPC",
-                    IsBackground = true
-                };
-
-                ipcThread.Start();
-            }
         }
 
         public bool IsPortableInstallation { get; }
@@ -134,7 +121,6 @@ namespace osu.Framework.Platform
         protected override void Dispose(bool isDisposing)
         {
             ipcProvider?.Dispose();
-            ipcThread?.Join(50);
             base.Dispose(isDisposing);
         }
     }

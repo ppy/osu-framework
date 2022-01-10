@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
@@ -27,8 +28,9 @@ namespace osu.Framework.IO.Stores
         /// Retrieves an object from the store asynchronously.
         /// </summary>
         /// <param name="name">The name of the object.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The object.</returns>
-        Task<T> GetAsync(string name);
+        Task<T> GetAsync(string name, CancellationToken cancellationToken = default);
 
         Stream GetStream(string name);
 

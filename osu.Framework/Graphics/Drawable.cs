@@ -2694,7 +2694,7 @@ namespace osu.Framework.Graphics
             string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
-                return $@"{Name} ({shortClass})";
+                return $@"{Name}({shortClass})";
             else
                 return shortClass;
         }

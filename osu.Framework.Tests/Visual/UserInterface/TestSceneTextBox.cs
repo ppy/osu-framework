@@ -3,6 +3,7 @@
 
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -180,7 +181,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
+            // <c>U+FF11</c> is the Unicode FULLWIDTH DIGIT ONE character, treated as a number by char.IsNumber()
+            AddStep(@"set number text", () => numbers.Text = "1h2e3l4l5o6\uFF11");
             AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
         }
 
@@ -806,7 +808,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class NumberTextBox : BasicTextBox
         {
-            protected override bool CanAddCharacter(char character) => char.IsNumber(character);
+            protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
         }
 
         private class CustomTextBox : BasicTextBox

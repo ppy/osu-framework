@@ -54,14 +54,6 @@ namespace osu.Framework.Extensions
         }
 
         /// <summary>
-        /// Try to get a value from the <paramref name="dictionary"/>. Returns a default(TValue) if the key does not exist.
-        /// </summary>
-        /// <param name="dictionary">The dictionary.</param>
-        /// <param name="lookup">The lookup key.</param>
-        [Obsolete("Use System.Collections.Generic.CollectionExtensions.GetValueOrDefault instead.")] // Can be removed 20220115
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.GetValueOrDefault(lookup);
-
-        /// <summary>
         /// Converts a rectangular array to a jagged array.
         /// <para>
         /// The jagged array will contain empty arrays if there are no columns in the rectangular array.
@@ -326,6 +318,18 @@ namespace osu.Framework.Extensions
         /// <returns>The path with DirectorySeparatorChar trimmed.</returns>
         public static string TrimDirectorySeparator(this string path)
             => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        /// <summary>
+        /// Whether this character is an ASCII digit (0-9).
+        /// </summary>
+        /// <remarks>
+        /// Useful for checking if a character plays well with <c>int.TryParse()</c>.
+        /// <see cref="char.IsNumber(char)"/> returns <c>true</c> for non-ASCII digits and other Unicode numbers;
+        /// we don't want that, so we explicitly check the character value.
+        /// </remarks>
+        /// <param name="character">The character to check.</param>
+        /// <returns>True if the character is an ASCII digit.</returns>
+        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
 
         /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.

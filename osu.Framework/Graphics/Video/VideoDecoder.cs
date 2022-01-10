@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.Video
         public void StartDecoding()
         {
             if (decodingTask != null)
-                throw new InvalidOperationException($"Cannot start decoding once already started. Call {nameof(StopDecoding)} first.");
+                throw new InvalidOperationException($"Cannot start decoding once already started. Call {nameof(StopDecodingAsync)} first.");
 
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
@@ -200,34 +200,23 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// Stops the decoding process. Optionally waits for the decoder thread to terminate.
+        /// Stops the decoding process.
         /// </summary>
-        /// <param name="waitForDecoderExit">True if this method should wait for the decoder thread to terminate, false otherwise.</param>
-        public void StopDecoding(bool waitForDecoderExit)
+        public Task StopDecodingAsync()
         {
             if (decodingTask == null)
-                return;
+                return Task.CompletedTask;
 
             decodingTaskCancellationTokenSource.Cancel();
 
-            if (waitForDecoderExit)
+            return decodingTask.ContinueWith(_ =>
             {
-                try
-                {
-                    decodingTask.Wait();
-                }
-                catch
-                {
-                    // Can throw an TaskCanceledException (inside of an AggregateException)
-                    // if the decoding task was enqueued but not running yet.
-                }
-            }
+                decodingTask = null;
+                decodingTaskCancellationTokenSource.Dispose();
+                decodingTaskCancellationTokenSource = null;
 
-            decodingTask = null;
-            decodingTaskCancellationTokenSource.Dispose();
-            decodingTaskCancellationTokenSource = null;
-
-            State = DecoderState.Ready;
+                State = DecoderState.Ready;
+            });
         }
 
         /// <summary>
@@ -839,45 +828,46 @@ namespace osu.Framework.Graphics.Video
 
             decoderCommands.Clear();
 
-            StopDecoding(true);
-
-            if (formatContext != null && inputOpened)
+            StopDecodingAsync().ContinueWith(_ =>
             {
-                fixed (AVFormatContext** ptr = &formatContext)
-                    ffmpeg.avformat_close_input(ptr);
-            }
+                if (formatContext != null && inputOpened)
+                {
+                    fixed (AVFormatContext** ptr = &formatContext)
+                        ffmpeg.avformat_close_input(ptr);
+                }
 
-            if (codecContext != null)
-            {
-                fixed (AVCodecContext** ptr = &codecContext)
-                    ffmpeg.avcodec_free_context(ptr);
-            }
+                if (codecContext != null)
+                {
+                    fixed (AVCodecContext** ptr = &codecContext)
+                        ffmpeg.avcodec_free_context(ptr);
+                }
 
-            seekCallback = null;
-            readPacketCallback = null;
+                seekCallback = null;
+                readPacketCallback = null;
 
-            videoStream.Dispose();
-            videoStream = null;
+                videoStream.Dispose();
+                videoStream = null;
 
-            if (swsContext != null)
-                ffmpeg.sws_freeContext(swsContext);
+                if (swsContext != null)
+                    ffmpeg.sws_freeContext(swsContext);
 
-            while (decodedFrames.TryDequeue(out var f))
-            {
-                ((VideoTexture)f.Texture.TextureGL).FlushUploads();
-                f.Texture.Dispose();
-            }
+                while (decodedFrames.TryDequeue(out var f))
+                {
+                    ((VideoTexture)f.Texture.TextureGL).FlushUploads();
+                    f.Texture.Dispose();
+                }
 
-            while (availableTextures.TryDequeue(out var t))
-                t.Dispose();
+                while (availableTextures.TryDequeue(out var t))
+                    t.Dispose();
 
-            while (hwTransferFrames.TryDequeue(out var hwF))
-                hwF.Dispose();
+                while (hwTransferFrames.TryDequeue(out var hwF))
+                    hwF.Dispose();
 
-            while (scalerFrames.TryDequeue(out var sf))
-                sf.Dispose();
+                while (scalerFrames.TryDequeue(out var sf))
+                    sf.Dispose();
 
-            handle.Dispose();
+                handle.Dispose();
+            });
         }
 
         #endregion

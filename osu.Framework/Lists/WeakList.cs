@@ -16,9 +16,20 @@ namespace osu.Framework.Lists
     public partial class WeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
+        /// <summary>
+        /// The number of items that can be added or removed from this <see cref="WeakList{T}"/> before the next <see cref="Add(T)"/> to cause the list to be trimmed.
+        /// </summary>
+        private const int opportunistic_trim_threshold = 100;
+
         private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
         private int listStart; // The inclusive starting index in the list.
         private int listEnd; // The exclusive ending index in the list.
+
+        /// <summary>
+        /// The number of items that have been added or removed from this <see cref="WeakList{T}"/> since it was last trimmed.
+        /// Upon reaching the <see cref="opportunistic_trim_threshold"/>, this list will be trimmed on the next <see cref="Add(T)"/>.
+        /// </summary>
+        private int countChangesSinceTrim;
 
         public void Add(T obj) => add(new InvalidatableWeakReference(obj));
 
@@ -26,10 +37,19 @@ namespace osu.Framework.Lists
 
         private void add(in InvalidatableWeakReference item)
         {
+            if (countChangesSinceTrim > opportunistic_trim_threshold)
+                trim();
+
             if (listEnd < list.Count)
+            {
                 list[listEnd] = item;
+                countChangesSinceTrim--;
+            }
             else
+            {
                 list.Add(item);
+                countChangesSinceTrim++;
+            }
 
             listEnd++;
         }
@@ -90,6 +110,8 @@ namespace osu.Framework.Lists
                 listStart++;
             else if (index == listEnd - 1)
                 listEnd--;
+
+            countChangesSinceTrim++;
         }
 
         public bool Contains(T item)
@@ -130,9 +152,23 @@ namespace osu.Framework.Lists
             return false;
         }
 
-        public void Clear() => listStart = listEnd = 0;
+        public void Clear()
+        {
+            listStart = listEnd = 0;
+            countChangesSinceTrim = list.Count;
+        }
 
         public ValidItemsEnumerator GetEnumerator()
+        {
+            trim();
+            return new ValidItemsEnumerator(this);
+        }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private void trim()
         {
             // Trim from the sides - items that have been removed.
             list.RemoveRange(listEnd, list.Count - listEnd);
@@ -144,13 +180,8 @@ namespace osu.Framework.Lists
             // After the trim, the valid range represents the full list.
             listStart = 0;
             listEnd = list.Count;
-
-            return new ValidItemsEnumerator(this);
+            countChangesSinceTrim = 0;
         }
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         private readonly struct InvalidatableWeakReference
         {

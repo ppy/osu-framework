@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
-        protected InputConfigManager InputConfig { get; private set; }
+        private InputConfigManager inputConfig { get; set; }
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -289,7 +289,10 @@ namespace osu.Framework.Platform
 
         public string FullPath => fullPathBacking.Value;
 
-        protected string Name { get; }
+        /// <summary>
+        /// The name of the game to be hosted.
+        /// </summary>
+        public string Name { get; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
@@ -349,6 +352,11 @@ namespace osu.Framework.Platform
 
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
+
+            // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
+            // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
+            // We force flushing the logger here to ensure logging completes.
+            Logger.Flush();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -1006,8 +1014,7 @@ namespace osu.Framework.Platform
                 threadRunner.SetCulture(culture);
             }, true);
 
-            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
-            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
+            inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
         private void updateFrameSyncMode()
@@ -1106,12 +1113,13 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
-            InputConfig?.Dispose();
+            inputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
             Window?.Dispose();
 
+            LoadingComponentsLogger.LogAndFlush();
             Logger.Flush();
         }
 

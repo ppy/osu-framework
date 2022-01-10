@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
@@ -12,7 +13,7 @@ namespace osu.Framework.IO.Stores
 {
     public class OnlineStore : IResourceStore<byte[]>
     {
-        public async Task<byte[]> GetAsync(string url)
+        public async Task<byte[]> GetAsync(string url, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(url);
 
@@ -20,7 +21,7 @@ namespace osu.Framework.IO.Stores
             {
                 using (WebRequest req = new WebRequest($@"{url}"))
                 {
-                    await req.PerformAsync().ConfigureAwait(false);
+                    await req.PerformAsync(cancellationToken).ConfigureAwait(false);
                     return req.GetResponseData();
                 }
             }

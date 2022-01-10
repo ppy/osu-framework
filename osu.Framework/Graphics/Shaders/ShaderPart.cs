@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Shaders
 
         ~ShaderPart()
         {
-            GLWrapper.ScheduleDisposal(() => Dispose(false));
+            GLWrapper.ScheduleDisposal(s => s.Dispose(false), this);
         }
 
         public void Dispose()

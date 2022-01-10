@@ -79,15 +79,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRemoveItem()
         {
-            addItems(5);
+            const int item_count = 5;
 
-            for (int i = 0; i < 5; i++)
+            addItems(item_count);
+
+            List<Drawable> items = null;
+
+            AddStep("get item references", () => items = new List<Drawable>(list.ItemMap.Values.ToList()));
+
+            for (int i = 0; i < item_count; i++)
             {
                 int localI = i;
 
                 AddStep($"remove item \"{i}\"", () => list.Items.Remove(localI));
                 AddAssert($"first item is not \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().FirstOrDefault()?.Model != localI);
             }
+
+            AddUntilStep("removed items were disposed", () => items.Count(i => i.IsDisposed) == item_count);
         }
 
         [Test]

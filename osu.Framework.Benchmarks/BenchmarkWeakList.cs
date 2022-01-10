@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Lists;
@@ -89,6 +90,64 @@ namespace osu.Framework.Benchmarks
 
             weakList.Clear();
             return weakList.ToArray();
+        }
+
+        [Benchmark]
+        public void ManyAddsAndRemoveFromStartWithNoEnumeration()
+        {
+            weakList = new WeakList<object>();
+
+            object obj = new object();
+            weakList.Add(obj);
+
+            for (int i = 0; i < ItemCount * 1000; i++)
+            {
+                weakList.Add(obj);
+                weakList.RemoveAt(0);
+
+                if (i % 1000 == 0)
+                    GC.Collect();
+            }
+        }
+
+        [Benchmark]
+        public void ManyAddsAndRemoveFromEndWithNoEnumeration()
+        {
+            weakList = new WeakList<object>();
+
+            object obj = new object();
+            weakList.Add(obj);
+
+            for (int i = 0; i < ItemCount * 1000; i++)
+            {
+                weakList.Add(obj);
+                weakList.RemoveAt(1);
+
+                if (i % 1000 == 0)
+                    GC.Collect();
+            }
+        }
+
+        [Benchmark]
+        public void ManyAddsAndRemoveFromMiddleWithNoEnumeration()
+        {
+            weakList = new WeakList<object>();
+
+            object obj = new object();
+            object obj2 = new object();
+
+            weakList.Add(new object());
+            weakList.Add(obj2);
+            weakList.Add(obj);
+
+            for (int i = 0; i < ItemCount * 1000; i++)
+            {
+                weakList.Remove(i % 2 == 0 ? obj2 : obj);
+                weakList.Add(i % 2 == 0 ? obj2 : obj);
+
+                if (i % 1000 == 0)
+                    GC.Collect();
+            }
         }
 
         private void init()
