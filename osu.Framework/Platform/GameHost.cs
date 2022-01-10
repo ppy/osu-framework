@@ -71,14 +71,21 @@ namespace osu.Framework.Platform
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
         /// <summary>
-        /// Lock the screen orientation to whatever the current screen orientation is on mobile devices.
-        /// Do nothing on other platforms.
+        /// Control the screen orientation on mobile platforms.
+        /// </summary>
+        public Bindable<ScreenOrientation> ScreenOrientation { get; private set; }
+
+        /// <summary>
+        /// Lock the screen orientation to whatever the current screen orientation is on mobile platforms.
         /// </summary>
         /// <remarks>
-        /// Will throw <see cref="InvalidOperationException"/> if value is changed while <see cref="FrameworkSetting.ScreenOrientation"/> setting is disabled<br/>
-        /// This also temporarily disable the effect of <see cref="FrameworkSetting.ScreenOrientation"/> setting without throwing exception.<br/>
-        /// The setting changed while this is locked will still be applied as usual when the lock is disabled again.
+        /// If <see cref="FrameworkSetting.ScreenOrientation"/> is changed while this is locked,
+        /// nothing will take effect immediately, however the setting will still be acknowledged,
+        /// and will take effect when this is unlocked again.
         /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Throw if value is changed while <see cref="FrameworkSetting.ScreenOrientation"/> setting is disabled
+        /// </exception>
         public readonly Bindable<bool> LockScreenOrientation = new Bindable<bool>();
 
         /// <summary>
@@ -163,12 +170,6 @@ namespace osu.Framework.Platform
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
         private ReadableKeyCombinationProvider readableKeyCombinationProvider;
-
-        [CanBeNull]
-        internal virtual ScreenOrientationManager CreateScreenOrientationManager(Bindable<ScreenOrientation> settingBindable, Bindable<bool> lockBindable) => null;
-
-        [CanBeNull]
-        private ScreenOrientationManager screenOrientationManager;
 
         /// <summary>
         /// The default initial path when requesting a user to select a file/folder.
@@ -926,8 +927,6 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private Bindable<ScreenOrientation> screenOrientation;
-
         private Bindable<ExecutionMode> executionMode;
 
         private Bindable<string> threadLocale;
@@ -950,8 +949,7 @@ namespace osu.Framework.Platform
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
 
-            screenOrientation = Config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
-            screenOrientationManager = CreateScreenOrientationManager(screenOrientation, LockScreenOrientation);
+            ScreenOrientation = Config.GetBindable<ScreenOrientation>(FrameworkSetting.ScreenOrientation);
 
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
             executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);

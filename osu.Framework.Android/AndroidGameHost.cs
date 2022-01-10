@@ -9,7 +9,6 @@ using Android.Content;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -46,9 +45,6 @@ namespace osu.Framework.Android
         public override bool CanExit => false;
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
-
-        internal override ScreenOrientationManager CreateScreenOrientationManager(Bindable<ScreenOrientation> settingBindable, Bindable<bool> lockBindable)
-            => new AndroidOrientationManager((AndroidGameActivity)gameView.Context, settingBindable, lockBindable);
 
         protected override TextInputSource CreateTextInput() => new AndroidTextInput(gameView);
 
