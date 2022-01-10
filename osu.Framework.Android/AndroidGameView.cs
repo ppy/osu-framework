@@ -3,6 +3,7 @@
 
 using System;
 using Android.Content;
+using Android.OS;
 using Android.Runtime;
 using Android.Text;
 using Android.Util;
@@ -16,6 +17,31 @@ namespace osu.Framework.Android
     public class AndroidGameView : osuTK.Android.AndroidGameView
     {
         public AndroidGameHost Host { get; private set; }
+
+        /// <summary>
+        /// Represents whether the mouse pointer is captured, as reported by Android through <see cref="OnPointerCaptureChange"/>.
+        /// </summary>
+        private bool pointerCaptured;
+
+        /// <summary>
+        /// Set Android's pointer capture.
+        /// </summary>
+        public bool PointerCapture
+        {
+            get => pointerCaptured;
+            set
+            {
+                // Pointer capture is only available on Android 8.0 and up
+                if (Build.VERSION.SdkInt < BuildVersionCodes.O) return;
+
+                if (pointerCaptured == value) return;
+
+                if (value)
+                    RequestPointerCapture();
+                else
+                    ReleasePointerCapture();
+            }
+        }
 
         private readonly Game game;
 
@@ -96,6 +122,12 @@ namespace osu.Framework.Android
         {
             KeyUp?.Invoke(keyCode, e);
             return true;
+        }
+
+        public override void OnPointerCaptureChange(bool hasCapture)
+        {
+            base.OnPointerCaptureChange(hasCapture);
+            pointerCaptured = hasCapture;
         }
 
         protected override void OnLoad(EventArgs e)

@@ -2,7 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using Android.OS;
 using Android.Views;
+using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -16,11 +19,34 @@ namespace osu.Framework.Android.Input
     /// </summary>
     public class AndroidMouseHandler : AndroidInputHandler
     {
+        /// <summary>
+        /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
+        /// </summary>
+        public BindableBool UseRelativeMode { get; } = new BindableBool(true)
+        {
+            Description = "Allows for sensitivity adjustment and tighter control of input",
+        };
+
+        public BindableDouble Sensitivity { get; } = new BindableDouble(1)
+        {
+            MinValue = 0.1,
+            MaxValue = 10,
+            Precision = 0.01,
+        };
+
         public override string Description => "Mouse";
 
         public override bool IsActive => true;
 
-        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.Touchpad };
+        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.MouseRelative, InputSourceType.Touchpad };
+
+        private AndroidGameWindow window;
+
+        /// <summary>
+        /// Whether a non-relative mouse event has ever been received.
+        /// This is used as a starting location for relative movement.
+        /// </summary>
+        private bool absolutePositionReceived;
 
         public AndroidMouseHandler(AndroidGameView view)
             : base(view)
@@ -32,10 +58,28 @@ namespace osu.Framework.Android.Input
             if (!base.Initialize(host))
                 return false;
 
+            if (!(host.Window is AndroidGameWindow androidWindow))
+                return false;
+
+            window = androidWindow;
+
+            window.CursorStateChanged += updatePointerCapture;
+
+            // it's possible that Android forcefully released capture if we were unfocused.
+            // so we update here when we get focus again.
+            View.FocusChange += (sender, args) =>
+            {
+                if (args.HasFocus)
+                    updatePointerCapture();
+            };
+
+            UseRelativeMode.BindValueChanged(_ => updatePointerCapture());
+
             Enabled.BindValueChanged(enabled =>
             {
                 if (enabled.NewValue)
                 {
+                    View.CapturedPointer += HandleCapturedPointer;
                     View.GenericMotion += HandleGenericMotion;
                     View.Hover += HandleHover;
                     View.KeyDown += HandleKeyDown;
@@ -44,15 +88,37 @@ namespace osu.Framework.Android.Input
                 }
                 else
                 {
+                    View.CapturedPointer -= HandleCapturedPointer;
                     View.GenericMotion -= HandleGenericMotion;
                     View.Hover -= HandleHover;
                     View.KeyDown -= HandleKeyDown;
                     View.KeyUp -= HandleKeyUp;
                     View.Touch -= HandleTouch;
                 }
+
+                updatePointerCapture();
             }, true);
 
             return true;
+        }
+
+        private void updatePointerCapture()
+        {
+            // Pointer capture is only available on Android 8.0 and up
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+                return;
+
+            bool shouldCapture =
+                // check whether this handler is actually enabled.
+                Enabled.Value
+                // check whether the consumer has requested to use relative mode when feasible.
+                && UseRelativeMode.Value
+                // relative mode requires at least one absolute input to arrive, to gain an additional position to work with.
+                && absolutePositionReceived
+                // relative mode shouldn't ever be enabled if the framework or a consumer has chosen not to hide the cursor.
+                && window.CursorState.HasFlagFast(CursorState.Hidden);
+
+            View.PointerCapture = shouldCapture;
         }
 
         protected override void OnKeyDown(Keycode keycode, KeyEvent e)
@@ -106,6 +172,28 @@ namespace osu.Framework.Android.Input
             }
         }
 
+        protected override void OnCapturedPointer(MotionEvent capturedPointerEvent)
+        {
+            switch (capturedPointerEvent.Action)
+            {
+                case MotionEventActions.Move:
+                    handleMouseMoveRelativeEvent(capturedPointerEvent);
+                    break;
+
+                case MotionEventActions.Scroll:
+                    handleMouseWheel(getEventScroll(capturedPointerEvent));
+                    break;
+
+                case MotionEventActions.ButtonPress:
+                    handleMouseDown(capturedPointerEvent.ActionButton.ToMouseButton());
+                    break;
+
+                case MotionEventActions.ButtonRelease:
+                    handleMouseUp(capturedPointerEvent.ActionButton.ToMouseButton());
+                    break;
+            }
+        }
+
         private Vector2 getEventScroll(MotionEvent e) => new Vector2(e.GetAxisValue(Axis.Hscroll), e.GetAxisValue(Axis.Vscroll));
 
         private void handleMouseMoveEvent(MotionEvent evt)
@@ -114,10 +202,26 @@ namespace osu.Framework.Android.Input
             for (int i = 0; i < evt.HistorySize; i++)
                 handleMouseMove(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
 
-            handleMouseMove(new Vector2(evt.RawX, evt.RawY));
+            handleMouseMove(new Vector2(evt.GetX(), evt.GetY()));
+
+            absolutePositionReceived = true;
+
+            // we may lose pointer capture if we lose focus / the app goes to the background,
+            // so we use this opportunity to update capture if the user has requested it.
+            updatePointerCapture();
+        }
+
+        private void handleMouseMoveRelativeEvent(MotionEvent evt)
+        {
+            for (int i = 0; i < evt.HistorySize; i++)
+                handleMouseMoveRelative(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
+
+            handleMouseMoveRelative(new Vector2(evt.GetX(), evt.GetY()));
         }
 
         private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
+
+        private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
 
         private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
 
