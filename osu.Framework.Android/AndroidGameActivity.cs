@@ -8,10 +8,9 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
-using Process = System.Diagnostics.Process;
+using ManagedBass;
 using NativeOrientation = Android.Content.PM.ScreenOrientation;
 using ConfigOrientation = osu.Framework.Configuration.ScreenOrientation;
-using ManagedBass
 
 namespace osu.Framework.Android
 {
