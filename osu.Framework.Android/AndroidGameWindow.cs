@@ -26,15 +26,13 @@ namespace osu.Framework.Android
 
         public event Action CursorStateChanged;
 
-        private CursorState cursorState = CursorState.Confined;
-
         public override CursorState CursorState
         {
-            get => cursorState;
+            get => base.CursorState;
             set
             {
                 // cursor should always be confined on mobile platforms, to have UserInputManager confine the cursor to window bounds
-                cursorState = value | CursorState.Confined;
+                base.CursorState = value | CursorState.Confined;
                 CursorStateChanged?.Invoke();
             }
         }
@@ -47,6 +45,7 @@ namespace osu.Framework.Android
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
+            CursorState |= CursorState.Confined;
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
