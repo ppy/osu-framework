@@ -18,9 +18,9 @@ namespace osu.Framework.Android
 
         public override bool Focused => true;
 
-        public override Framework.Platform.WindowState WindowState
+        public override Platform.WindowState WindowState
         {
-            get => Framework.Platform.WindowState.Normal;
+            get => Platform.WindowState.Normal;
             set { }
         }
 
