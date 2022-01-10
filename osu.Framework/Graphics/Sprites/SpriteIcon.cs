@@ -48,8 +48,8 @@ namespace osu.Framework.Graphics.Sprites
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
                         FillMode = FillMode.Fit,
-                        Y = 2,
-                        Colour = new Color4(0f, 0f, 0f, 0.2f),
+                        Position = shadowOffset,
+                        Colour = shadowColour
                     },
                     Alpha = shadow ? 1 : 0,
                 },
@@ -69,6 +69,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             base.LoadComplete();
             updateTexture();
+            updateShadow();
         }
 
         private IconUsage loadedIcon;
@@ -115,9 +116,51 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 shadow = value;
-                if (shadowVisibility != null)
-                    shadowVisibility.Alpha = value ? 1 : 0;
+
+                if (IsLoaded)
+                    updateShadow();
             }
+        }
+
+        private Color4 shadowColour = new Color4(0f, 0f, 0f, 0.2f);
+
+        /// <summary>
+        /// The colour of the shadow displayed around the icon. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
+        public Color4 ShadowColour
+        {
+            get => shadowColour;
+            set
+            {
+                shadowColour = value;
+
+                if (IsLoaded)
+                    updateShadow();
+            }
+        }
+
+        private Vector2 shadowOffset = new Vector2(0, 2f);
+
+        /// <summary>
+        /// The offset of the shadow displayed around the icon. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
+        public Vector2 ShadowOffset
+        {
+            get => shadowOffset;
+            set
+            {
+                shadowOffset = value;
+
+                if (IsLoaded)
+                    updateShadow();
+            }
+        }
+
+        private void updateShadow()
+        {
+            shadowVisibility.Alpha = shadow ? 1 : 0;
+            spriteShadow.Colour = shadowColour;
+            spriteShadow.Position = shadowOffset;
         }
 
         private IconUsage icon;
@@ -130,7 +173,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (icon.Equals(value)) return;
 
                 icon = value;
-                if (LoadState == LoadState.Loaded)
+                if (IsLoaded)
                     updateTexture();
             }
         }

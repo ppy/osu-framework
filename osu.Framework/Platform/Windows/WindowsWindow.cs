@@ -39,21 +39,19 @@ namespace osu.Framework.Platform.Windows
         {
             base.Create();
 
-            // enable WM events to use with `HandleSysWMEvent`
+            // enable window message events to use with `OnSDLEvent` below.
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+
+            OnSDLEvent += handleSDLEvent;
         }
 
-        public override void StartTextInput(bool allowIme)
-        {
-            base.StartTextInput(allowIme);
-            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
-        }
+        #region IME handling
 
-        public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
-
-        protected override void HandleSysWMEvent(SDL.SDL_SysWMEvent sysWM)
+        private void handleSDLEvent(SDL.SDL_Event e)
         {
-            var wmMsg = Marshal.PtrToStructure<SDL2Extensions.SDL_SysWMmsg>(sysWM.msg);
+            if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
+
+            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
             var m = wmMsg.msg.win;
 
             switch (m.msg)
@@ -66,20 +64,27 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
-        protected override unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        public override void StartTextInput(bool allowIme)
         {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
-                return;
+            base.StartTextInput(allowIme);
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
+        }
 
-            // block SDL text input if we already committed that text.
-            // keep in mind that the text provided by SDL may be shorter than our text.
-            if (lastFinalizedComposition != null && lastFinalizedComposition.StartsWith(text, StringComparison.Ordinal))
+        public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
+
+        protected override void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        {
+            // block SDL text input if there was a recent result from `handleImeMessage()`.
+            if (recentImeResult)
             {
-                lastFinalizedComposition = null;
+                recentImeResult = false;
                 return;
             }
 
-            ScheduleEvent(() => TriggerTextInput(text));
+            // also block if there is an ongoing composition (unlikely to occur).
+            if (imeCompositionActive) return;
+
+            base.HandleTextInputEvent(evtText);
         }
 
         protected override void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
@@ -87,42 +92,38 @@ namespace osu.Framework.Platform.Windows
             // handled by custom logic below
         }
 
-        private string lastComposition;
-        private string lastFinalizedComposition;
+        /// <summary>
+        /// Whether IME composition is active.
+        /// </summary>
+        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
+        private bool imeCompositionActive;
+
+        /// <summary>
+        /// Whether an IME result was recently posted.
+        /// </summary>
+        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
+        private bool recentImeResult;
 
         private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
         {
             switch (uMsg)
             {
                 case Imm.WM_IME_STARTCOMPOSITION:
-                    lastComposition = null;
+                    imeCompositionActive = true;
                     ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
                     break;
 
                 case Imm.WM_IME_COMPOSITION:
-                    using (var inputContext = new Imm.InputContext(hWnd))
+                    using (var inputContext = new Imm.InputContext(hWnd, lParam))
                     {
-                        if (Imm.TryGetImeResult(inputContext, lParam, out string resultText))
+                        if (inputContext.TryGetImeResult(out string resultText))
                         {
-                            if (string.IsNullOrEmpty(resultText) && !string.IsNullOrEmpty(lastComposition))
-                            {
-                                // These events are somewhat delayed as they go trough SDL's event queue,
-                                // so it's possible that the internal IME state has changed by the time we get the event,
-                                // especially so if a ongoing composition is finished and a new one is started with a single keystroke.
-                                // In case the internal IME state has changed and we get empty result text,
-                                // use the last composition as fallback.
-                                resultText = lastComposition;
-                            }
-
-                            lastComposition = null;
-                            lastFinalizedComposition = resultText;
-
+                            recentImeResult = true;
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
-                        if (Imm.TryGetImeComposition(inputContext, lParam, out string compositionText, out int start, out int length))
+                        if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
                         {
-                            lastComposition = compositionText;
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
                         }
                     }
@@ -130,11 +131,13 @@ namespace osu.Framework.Platform.Windows
                     break;
 
                 case Imm.WM_IME_ENDCOMPOSITION:
-                    lastComposition = null;
+                    imeCompositionActive = false;
                     ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
                     break;
             }
         }
+
+        #endregion
 
         protected override Size SetBorderless()
         {

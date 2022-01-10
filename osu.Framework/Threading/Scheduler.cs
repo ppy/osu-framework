@@ -218,6 +218,32 @@ namespace osu.Framework.Threading
         /// </summary>
         /// <remarks>If scheduled, the task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The work to be done.</param>
+        /// <param name="data">The data to be passed to the task.</param>
+        /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
+        /// <returns>The scheduled task, or <c>null</c> if the task was executed immediately.</returns>
+        [CanBeNull]
+        public ScheduledDelegate Add<T>([NotNull] Action<T> task, T data, bool forceScheduled = true)
+        {
+            if (!forceScheduled && IsMainThread)
+            {
+                //We are on the main thread already - don't need to schedule.
+                task.Invoke(data);
+                return null;
+            }
+
+            var del = new ScheduledDelegateWithData<T>(task, data);
+
+            lock (queueLock)
+                runQueue.Enqueue(del);
+
+            return del;
+        }
+
+        /// <summary>
+        /// Add a task to be scheduled.
+        /// </summary>
+        /// <remarks>If scheduled, the task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
+        /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
         /// <returns>The scheduled task, or <c>null</c> if the task was executed immediately.</returns>
         [CanBeNull]
@@ -251,6 +277,25 @@ namespace osu.Framework.Threading
 
             lock (queueLock)
                 timedTasks.AddInPlace(task);
+        }
+
+        /// <summary>
+        /// Add a task which will be run after a specified delay from the current clock time.
+        /// </summary>
+        /// <param name="task">The work to be done.</param>
+        /// <param name="data">The data to be passed to the task.</param>
+        /// <param name="timeUntilRun">Milliseconds until run.</param>
+        /// <param name="repeat">Whether this task should repeat.</param>
+        /// <returns>Whether this is the first queue attempt of this work.</returns>
+        public ScheduledDelegate AddDelayed<T>([NotNull] Action<T> task, T data, double timeUntilRun, bool repeat = false)
+        {
+            // We are locking here already to make sure we have no concurrent access to currentTime
+            lock (queueLock)
+            {
+                ScheduledDelegate del = new ScheduledDelegateWithData<T>(task, data, currentTime + timeUntilRun, repeat ? timeUntilRun : -1);
+                Add(del);
+                return del;
+            }
         }
 
         /// <summary>

@@ -2,13 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using Android.App;
-using Android.Content.PM;
 using osu.Framework;
 using osu.Framework.Android;
 
 namespace SampleGame.Android
 {
-    [Activity(MainLauncher = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize, Theme = "@android:style/Theme.NoTitleBar")]
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public class SampleGameActivity : AndroidGameActivity
     {
         protected override Game CreateGame() => new SampleGameGame();

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
 
@@ -36,7 +37,7 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public virtual async Task<byte[]> GetAsync(string name)
+        public virtual async Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(name);
 
@@ -45,7 +46,7 @@ namespace osu.Framework.IO.Stores
                 if (stream == null) return null;
 
                 byte[] buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer.AsMemory()).ConfigureAwait(false);
+                await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
                 return buffer;
             }
         }

@@ -16,8 +16,8 @@ namespace osu.Framework.Threading
         {
             Task = task;
             Data = data;
-
-            base.Task = () => Task(Data);
         }
+
+        protected override void InvokeTask() => Task(Data);
     }
 }

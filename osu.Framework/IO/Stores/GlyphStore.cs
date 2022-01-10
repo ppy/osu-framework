@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Graphics.Textures;
@@ -102,12 +103,14 @@ namespace osu.Framework.IO.Stores
             Debug.Assert(Baseline != null);
 
             var bmCharacter = Font.GetCharacter(character);
+
             return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
         public int GetKerning(char left, char right) => Font?.GetKerningAmount(left, right) ?? 0;
 
-        Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name) => Task.Run(() => ((IGlyphStore)this).Get(name[0]));
+        Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name, CancellationToken cancellationToken) =>
+            Task.Run(() => ((IGlyphStore)this).Get(name[0]), cancellationToken);
 
         CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(name[0]);
 
@@ -121,12 +124,16 @@ namespace osu.Framework.IO.Stores
             return Font.Characters.TryGetValue(name.Last(), out Character c) ? LoadCharacter(c) : null;
         }
 
-        public virtual async Task<TextureUpload> GetAsync(string name)
+        public virtual async Task<TextureUpload> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return !(await completionSource.Task.ConfigureAwait(false)).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
+            var bmFont = await completionSource.Task.ConfigureAwait(false);
+
+            return bmFont.Characters.TryGetValue(name.Last(), out Character c)
+                ? LoadCharacter(c)
+                : null;
         }
 
         protected int LoadedGlyphCount;

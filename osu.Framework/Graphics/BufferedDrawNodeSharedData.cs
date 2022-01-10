@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            GLWrapper.ScheduleDisposal(() => Dispose(true));
+            GLWrapper.ScheduleDisposal(d => d.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 
