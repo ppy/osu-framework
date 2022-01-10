@@ -22,6 +22,9 @@ namespace osu.Framework.Android.Input
         /// <summary>
         /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
+        /// <remarks>
+        /// Only available in Android 8.0 Oreo (<see cref="BuildVersionCodes.O"/>) and up.
+        /// </remarks>
         public BindableBool UseRelativeMode { get; } = new BindableBool(true)
         {
             Description = "Allows for sensitivity adjustment and tighter control of input",

@@ -10,6 +10,7 @@ using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using osu.Framework.Android.Input;
+using osu.Framework.Logging;
 using osuTK.Graphics;
 
 namespace osu.Framework.Android
@@ -26,13 +27,19 @@ namespace osu.Framework.Android
         /// <summary>
         /// Set Android's pointer capture.
         /// </summary>
+        /// <remarks>
+        /// Only available in Android 8.0 Oreo (<see cref="BuildVersionCodes.O"/>) and up.
+        /// </remarks>
         public bool PointerCapture
         {
             get => pointerCaptured;
             set
             {
-                // Pointer capture is only available on Android 8.0 and up
-                if (Build.VERSION.SdkInt < BuildVersionCodes.O) return;
+                if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+                {
+                    Logger.Log($"Tried to set {nameof(PointerCapture)} on an unsupported Android version.", level: LogLevel.Important);
+                    return;
+                }
 
                 if (pointerCaptured == value) return;
 
