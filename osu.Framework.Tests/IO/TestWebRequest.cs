@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.IO.Network;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
@@ -57,6 +58,23 @@ namespace osu.Framework.Tests.IO
             };
 
             testValidGetInternal(async, request, "osu-framework");
+        }
+
+        /// <summary>
+        /// Ensure that synchronous requests can be run without issue from within a TPL thread pool thread.
+        /// Not recommended as it would block the thread, but we've deemed to allow this for now.
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestValidGetFromTask()
+        {
+            string url = $"https://{host}/get";
+            var request = new JsonWebRequest<HttpBinGetResponse>(url)
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            Task.Run(() => testValidGetInternal(false, request, "osu-framework")).WaitSafely();
         }
 
         [Test, Retry(5)]
