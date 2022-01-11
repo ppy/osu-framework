@@ -424,19 +424,22 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
             SDL.SDL_SetEventFilter(eventFilterDelegate = (_, eventPtr) =>
             {
-                // ReSharper disable once PossibleNullReferenceException
-                var e = (SDL.SDL_Event)Marshal.PtrToStructure(eventPtr, typeof(SDL.SDL_Event));
+                var e = Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr);
+                OnSDLEvent?.Invoke(e);
 
+                return 1;
+            }, IntPtr.Zero);
+
+            // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
+            OnSDLEvent += e =>
+            {
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
                     updateWindowSize();
                 }
-
-                return 1;
-            }, IntPtr.Zero);
+            };
 
             while (Exists)
             {
@@ -581,7 +584,7 @@ namespace osu.Framework.Platform
         /// Resets internal state of the platform-native IME.
         /// This will clear its composition text and prepare it for new input.
         /// </summary>
-        public void ResetIme() => ScheduleCommand(() =>
+        public virtual void ResetIme() => ScheduleCommand(() =>
         {
             SDL.SDL_StopTextInput();
             SDL.SDL_StartTextInput();
@@ -642,11 +645,11 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_EventType.SDL_TEXTEDITING:
-                    handleTextEditingEvent(e.edit);
+                    HandleTextEditingEvent(e.edit);
                     break;
 
                 case SDL.SDL_EventType.SDL_TEXTINPUT:
-                    handleTextInputEvent(e.text);
+                    HandleTextInputEvent(e.text);
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYMAPCHANGED:
@@ -888,20 +891,20 @@ namespace osu.Framework.Platform
                 MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
         }
 
-        private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        protected virtual unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
             if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
                 return;
 
-            TextInput?.Invoke(text);
+            TriggerTextInput(text);
         }
 
-        private unsafe void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
+        protected virtual unsafe void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
         {
             if (!SDL2Extensions.TryGetStringFromBytePointer(evtEdit.text, out string text))
                 return;
 
-            TextEditing?.Invoke(text, evtEdit.start, evtEdit.length);
+            TriggerTextEditing(text, evtEdit.start, evtEdit.length);
         }
 
         private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
@@ -1433,10 +1436,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<string> TextInput;
 
+        protected void TriggerTextInput(string text) => TextInput?.Invoke(text);
+
         /// <summary>
         /// Invoked when an IME text editing event occurs.
         /// </summary>
         public event TextEditingDelegate TextEditing;
+
+        protected void TriggerTextEditing(string text, int start, int length) => TextEditing?.Invoke(text, start, length);
 
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged;
@@ -1460,6 +1467,11 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
+
+        /// <summary>
+        /// Invoked on every SDL event before it's posted to the event queue.
+        /// </summary>
+        protected event Action<SDL.SDL_Event> OnSDLEvent;
 
         #endregion
 
