@@ -322,12 +322,15 @@ namespace osu.Framework.Audio
                 return false;
             }
 
-            Logger.Log($@"BASS Initialized
-                          BASS Version:               {Bass.Version}
-                          BASS FX Version:            {BassFx.Version}
-                          BASS MIX Version:           {BassMix.Version}
-                          Device:                     {device.Name}
-                          Drive:                      {device.Driver}");
+            Logger.Log($@"🔈 BASS initialised
+                          BASS version:           {Bass.Version}
+                          BASS FX version:        {BassFx.Version}
+                          BASS MIX version:       {BassMix.Version}
+                          Device:                 {device.Name}
+                          Driver:                 {device.Driver}
+                          Update period:          {Bass.UpdatePeriod} ms
+                          Device buffer length:   {Bass.DeviceBufferLength} ms
+                          Playback buffer length: {Bass.PlaybackBufferLength} ms");
 
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
@@ -344,27 +347,27 @@ namespace osu.Framework.Audio
             if (Bass.CurrentDevice == device)
                 return true;
 
-            // reduce latency to a known sane minimum.
-            Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
-            Bass.Configure(ManagedBass.Configuration.PlaybackBufferLength, 100);
-
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
-            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
+            Bass.UpdatePeriod = 5;
+
+            // reduce latency to a known sane minimum.
+            Bass.DeviceBufferLength = 10;
+            Bass.PlaybackBufferLength = 100;
+
+            // ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
+            Bass.DeviceNonStop = true;
 
             // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
             Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
 
-            // Enable custom BASS_CONFIG_MP3_OLDGAPS flag for backwards compatibility.
-            Bass.Configure((ManagedBass.Configuration)68, 1);
-
             // For iOS devices, set the default audio policy to one that obeys the mute switch.
             Bass.Configure(ManagedBass.Configuration.IOSMixAudio, 5);
 
-            // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
-            Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
-
             // Always provide a default device. This should be a no-op, but we have asserts for this behaviour.
             Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);
+
+            // Enable custom BASS_CONFIG_MP3_OLDGAPS flag for backwards compatibility.
+            Bass.Configure((ManagedBass.Configuration)68, 1);
 
             // Disable BASS_CONFIG_DEV_TIMEOUT flag to keep BASS audio output from pausing on device processing timeout.
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
