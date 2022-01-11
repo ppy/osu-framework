@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ManagedBass;
 using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.Audio.Track
 {
@@ -262,7 +263,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.
         /// </summary>
-        public List<Point> GetPoints() => GetPointsAsync().Result;
+        public List<Point> GetPoints() => GetPointsAsync().GetResultSafely();
 
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.
@@ -280,7 +281,12 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets the number of channels represented by each <see cref="Point"/>.
         /// </summary>
-        public int GetChannels() => GetChannelsAsync().Result;
+        public int GetChannels()
+        {
+            readTask?.WaitSafely();
+
+            return channels;
+        }
 
         /// <summary>
         /// Gets the number of channels represented by each <see cref="Point"/>.

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Commons.Music.Midi;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -87,7 +88,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     {
                         if (openedDevices.All(x => x.Key != input.Id))
                         {
-                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).Result;
+                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).GetResultSafely();
                             newInput.MessageReceived += onMidiMessageReceived;
                             openedDevices[input.Id] = newInput;
 

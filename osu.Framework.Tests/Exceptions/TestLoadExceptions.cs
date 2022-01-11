@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -261,7 +262,7 @@ namespace osu.Framework.Tests.Exceptions
             [BackgroundDependencyLoader]
             private void load()
             {
-                Task.Delay((int)(1000 / Clock.Rate)).Wait();
+                Task.Delay((int)(1000 / Clock.Rate)).WaitSafely();
                 if (throws)
                     throw new AsyncTestException();
             }
