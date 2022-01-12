@@ -5,6 +5,9 @@ DEADLOCK_TIME=3600
 UPTIME=$(uptime -p)
 echo "Uptime: $UPTIME"
 
+find . -type d -name "bin" -print0 | xargs -0 rm -rf
+find . -type d -name "obj" -print0 | xargs -0 rm -rf
+
 rm -rf inspectcode
 dotnet tool restore
 
