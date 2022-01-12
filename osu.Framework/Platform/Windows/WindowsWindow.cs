@@ -64,6 +64,12 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
+        public override void StartTextInput(bool allowIme)
+        {
+            base.StartTextInput(allowIme);
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
+        }
+
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
 
         protected override void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)

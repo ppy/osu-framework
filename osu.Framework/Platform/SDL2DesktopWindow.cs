@@ -576,7 +576,7 @@ namespace osu.Framework.Platform
             MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
         }
 
-        public void StartTextInput() => ScheduleCommand(SDL.SDL_StartTextInput);
+        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL.SDL_StartTextInput);
 
         public void StopTextInput() => ScheduleCommand(SDL.SDL_StopTextInput);
 
