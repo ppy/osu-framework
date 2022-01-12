@@ -25,12 +25,8 @@ namespace osu.Framework.Graphics.Visualisation
         protected readonly FillFlowContainer MainHorizontalContent;
 
         private readonly FillFlowContainer header;
-        private readonly Container mainContent;
-        private readonly FillFlowContainer content;
 
-        protected override Container<Drawable> Content => content;
-
-        private Layout.LayoutValue layout = new Layout.LayoutValue(Invalidation.DrawSize, Layout.InvalidationSource.Child);
+        private float lastHeaderHeight = 0;
 
         protected ToolWindow(string title, string keyHelpText)
         {
@@ -47,17 +43,6 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                content = new FillFlowContainer
-                {
-                    AutoSizeAxes = Axes.X,
-                    RelativeSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical
-                },
-                new CursorContainer()
-            });
-
-            AddRange(new Drawable[]
-            {
                 header = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
@@ -88,8 +73,9 @@ namespace osu.Framework.Graphics.Visualisation
                         }
                     }
                 },
-                mainContent = new TooltipContainer
+                new TooltipContainer
                 {
+                    RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
                     Child = MainHorizontalContent = new FillFlowContainer
                     {
@@ -106,9 +92,8 @@ namespace osu.Framework.Graphics.Visualisation
                         }
                     }
                 },
+                new CursorContainer()
             });
-
-            AddLayout(layout);
         }
 
         protected void AddButton(string text, Action action)
@@ -133,10 +118,13 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-            if (!layout.IsValid)
+            float headerH = header.LayoutSize.Y;
+            if (lastHeaderHeight != headerH)
             {
-                mainContent.Height = Height - header.Height;
-                layout.Validate();
+                lastHeaderHeight = headerH;
+                var newPadding = MainHorizontalContent.Padding;
+                newPadding.Top = headerH;
+                MainHorizontalContent.Padding = newPadding;
             }
         }
     }
