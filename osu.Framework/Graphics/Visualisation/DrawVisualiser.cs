@@ -30,9 +30,6 @@ namespace osu.Framework.Graphics.Visualisation
         [Cached]
         private readonly TreeContainer treeContainer;
 
-        [Resolved]
-        private Game game { get; set; }
-
         private VisualisedDrawable highlightedTarget;
         private readonly DrawableInspector drawableInspector;
         private readonly InfoOverlay overlay;
@@ -54,7 +51,6 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     GoUpOneParent = goUpOneParent,
                     ToggleInspector = toggleInspector,
-                    InspectRoot = inspectRoot,
                 },
                 new CursorContainer()
             };
@@ -111,13 +107,6 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (drawableInspector.State.Value == Visibility.Visible)
                 setHighlight(targetVisualiser);
-        }
-
-        private void inspectRoot()
-        {
-            Target = game;
-            Searching = false;
-            overlay.Target = null;
         }
 
         protected override void LoadComplete()
