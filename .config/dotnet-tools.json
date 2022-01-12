@@ -15,7 +15,7 @@
       ]
     },
     "jetbrains.resharper.globaltools": {
-      "version": "2021.3.0-eap07",
+      "version": "2021.3.2",
       "commands": [
         "jb"
       ]
