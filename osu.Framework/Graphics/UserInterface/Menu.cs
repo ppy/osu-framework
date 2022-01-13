@@ -370,7 +370,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Therefore note that all X and Y adjustments below will occur in the parent menu's coordinates.
                 var parentSubmenuContainer = parentMenu.submenuContainer;
 
-                if (Direction == Direction.Vertical)
+                if (parentMenu.Direction == Direction.Vertical)
                 {
                     // If this menu won't fit on the screen horizontally if it's anchored to the right of its triggering item, but it will fit when anchored to the left...
                     if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
