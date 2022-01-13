@@ -105,6 +105,12 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
+        public override void Reset()
+        {
+            Sensitivity.SetDefault();
+            base.Reset();
+        }
+
         private void updatePointerCapture()
         {
             // Pointer capture is only available on Android 8.0 and up
