@@ -25,13 +25,11 @@ namespace osu.Framework.Tests.Threading
         [Test]
         public void TestLogOutputFromManyQueuedTasks([Values(false, true)] bool withFlushing)
         {
-            var performanceLogger = Logger.GetLogger(LoggingTarget.Performance);
+            int matchingLogCount = 0;
 
-            performanceLogger.Add(string.Empty);
+            Logger.NewEntry += logTest;
 
-            int operationCount = performanceLogger.TotalLogOperations;
-
-            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+            Assert.AreEqual(0, matchingLogCount);
 
             for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
             {
@@ -39,7 +37,7 @@ namespace osu.Framework.Tests.Threading
                 if (withFlushing) scheduler.Update();
             }
 
-            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+            Assert.AreEqual(0, matchingLogCount);
 
             for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
             {
@@ -47,7 +45,7 @@ namespace osu.Framework.Tests.Threading
                 if (withFlushing) scheduler.Update();
             }
 
-            Assert.AreEqual(operationCount + (withFlushing ? 0 : 1), performanceLogger.TotalLogOperations);
+            Assert.AreEqual(withFlushing ? 0 : 1, matchingLogCount);
 
             for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL; i++)
             {
@@ -55,19 +53,25 @@ namespace osu.Framework.Tests.Threading
                 if (withFlushing) scheduler.Update();
             }
 
-            Assert.AreEqual(operationCount + (withFlushing ? 0 : 2), performanceLogger.TotalLogOperations);
+            Assert.AreEqual(withFlushing ? 0 : 2, matchingLogCount);
+
+            Logger.NewEntry -= logTest;
+
+            void logTest(LogEntry entry)
+            {
+                if (entry.Target == LoggingTarget.Performance && entry.Message.Contains("tasks pending"))
+                    matchingLogCount++;
+            }
         }
 
         [Test]
         public void TestLogOutputFromManyQueuedScheduledTasks([Values(false, true)] bool withFlushing)
         {
-            var performanceLogger = Logger.GetLogger(LoggingTarget.Performance);
+            int matchingLogCount = 0;
 
-            performanceLogger.Add(string.Empty);
+            Logger.NewEntry += logTest;
 
-            int operationCount = performanceLogger.TotalLogOperations;
-
-            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+            Assert.AreEqual(0, matchingLogCount);
 
             for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
             {
@@ -75,7 +79,7 @@ namespace osu.Framework.Tests.Threading
                 if (withFlushing) scheduler.Update();
             }
 
-            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+            Assert.AreEqual(0, matchingLogCount);
 
             for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
             {
@@ -83,7 +87,7 @@ namespace osu.Framework.Tests.Threading
                 if (withFlushing) scheduler.Update();
             }
 
-            Assert.AreEqual(operationCount + (withFlushing ? 0 : 1), performanceLogger.TotalLogOperations);
+            Assert.AreEqual(withFlushing ? 0 : 1, matchingLogCount);
 
             for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL; i++)
             {
@@ -91,7 +95,15 @@ namespace osu.Framework.Tests.Threading
                 if (withFlushing) scheduler.Update();
             }
 
-            Assert.AreEqual(operationCount + (withFlushing ? 0 : 2), performanceLogger.TotalLogOperations);
+            Assert.AreEqual(withFlushing ? 0 : 2, matchingLogCount);
+
+            Logger.NewEntry -= logTest;
+
+            void logTest(LogEntry entry)
+            {
+                if (entry.Target == LoggingTarget.Performance && entry.Message.Contains("tasks pending"))
+                    matchingLogCount++;
+            }
         }
 
         [Test]
