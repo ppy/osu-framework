@@ -353,7 +353,7 @@ namespace osu.Framework.Graphics.UserInterface
                 var inputManager = GetContainingInputManager();
 
                 // This is the default position to which this menu should be anchored to the parent menu item which triggered it (top left of the triggering item)
-                var itemAlignmentPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
+                var triggeringItemTopLeftPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
 
                 // The "maximum" position is the worst case position of the bottom right corner of this menu
                 // if this menu is anchored top-left to the triggering item.
@@ -377,13 +377,13 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         // switch the origin and position of the submenu container so that it's right-aligned to the left side of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
-                        parentSubmenuContainer.X = 0;
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X;
                     }
                     else
                     {
                         // otherwise, switch the origin and position of the submenu container so that it's left-aligned to the right side of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
-                        parentSubmenuContainer.X = triggeringItem.DrawWidth;
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X + triggeringItem.DrawWidth;
                     }
 
                     // If this menu won't fit on the screen vertically if its top edge is aligned to the top of the triggering item,
@@ -392,13 +392,13 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         // switch the origin and position of the submenu container so that it's bottom-aligned to the bottom of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
-                        parentSubmenuContainer.Y = itemAlignmentPosition.Y + triggeringItem.DrawHeight;
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y + triggeringItem.DrawHeight;
                     }
                     else
                     {
                         // otherwise, switch the origin and position of the submenu container so that it's top-aligned to the top of the triggering item.
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
-                        parentSubmenuContainer.Y = itemAlignmentPosition.Y;
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y;
                     }
                 }
                 // the "horizontal" case is the same as above, but with the axes everywhere swapped.
@@ -407,23 +407,23 @@ namespace osu.Framework.Graphics.UserInterface
                     if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
                     {
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
-                        parentSubmenuContainer.Y = 0;
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y;
                     }
                     else
                     {
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
-                        parentSubmenuContainer.Y = triggeringItem.DrawHeight;
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y + triggeringItem.DrawHeight;
                     }
 
                     if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
                     {
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
-                        parentSubmenuContainer.X = itemAlignmentPosition.X + triggeringItem.DrawWidth;
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X + triggeringItem.DrawWidth;
                     }
                     else
                     {
                         parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
-                        parentSubmenuContainer.X = itemAlignmentPosition.X;
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X;
                     }
                 }
 
