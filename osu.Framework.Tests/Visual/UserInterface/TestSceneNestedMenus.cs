@@ -27,30 +27,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
             rng = new Random(1337);
         }
 
-        private void createMenu(Direction direction = Direction.Vertical) => CreateMenu(() => new ClickOpenMenu(direction, TimePerAction)
-        {
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-            RelativePositionAxes = Axes.Both,
-            Items = new[]
+        private void createMenu(Direction mainDirection = Direction.Vertical, Direction subMenuDirection = Direction.Vertical)
+            => CreateMenu(() => new ClickOpenMenu(mainDirection, subMenuDirection, TimePerAction)
             {
-                generateRandomMenuItem("First"),
-                generateRandomMenuItem("Second"),
-                generateRandomMenuItem("Third"),
-            }
-        });
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativePositionAxes = Axes.Both,
+                Items = new[]
+                {
+                    generateRandomMenuItem("First"),
+                    generateRandomMenuItem("Second"),
+                    generateRandomMenuItem("Third"),
+                }
+            });
 
         private class ClickOpenMenu : BasicMenu
         {
             private readonly int depth;
+            private readonly Direction subMenuDirection;
 
-            protected override Menu CreateSubMenu() => new ClickOpenMenu(Direction, HoverOpenDelay, depth + 1);
+            protected override Menu CreateSubMenu() => new ClickOpenMenu(subMenuDirection, subMenuDirection, HoverOpenDelay, depth + 1);
 
-            public ClickOpenMenu(Direction direction, double timePerAction, int depth = 0)
-                : base(direction, depth == 0)
+            public ClickOpenMenu(Direction mainDirection, Direction subMenuDirection, double timePerAction, int depth = 0)
+                : base(mainDirection, depth == 0)
             {
                 HoverOpenDelay = timePerAction;
                 this.depth = depth;
+                this.subMenuDirection = subMenuDirection;
             }
 
             protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) =>
@@ -432,9 +435,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestSubMenuOverflowPlayground([Values] Direction direction)
+        public void TestSubMenuOverflowPlayground([Values] Direction direction, [Values] Direction subMenuDirection)
         {
-            createMenu(direction);
+            createMenu(direction, subMenuDirection);
             AddStep("anchor menu to top left", () =>
             {
                 var menu = Menus.GetSubMenu(0);
