@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly FillFlowContainer header;
 
-        private float lastHeaderHeight = 0;
+        private float lastHeaderHeight;
 
         protected ToolWindow(string title, string keyHelpText)
         {
@@ -106,11 +106,6 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-        }
-
         protected override void PopIn() => this.FadeIn(100);
 
         protected override void PopOut() => this.FadeOut(100);
@@ -118,6 +113,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
             float headerH = header.LayoutSize.Y;
             if (lastHeaderHeight != headerH)
             {
