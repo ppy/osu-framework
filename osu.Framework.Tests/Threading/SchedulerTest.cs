@@ -3,6 +3,7 @@
 
 using System;
 using NUnit.Framework;
+using osu.Framework.Logging;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 
@@ -19,6 +20,78 @@ namespace osu.Framework.Tests.Threading
         public void Setup()
         {
             scheduler = new Scheduler(() => fromMainThread, new StopwatchClock(true));
+        }
+
+        [Test]
+        public void TestLogOutputFromManyQueuedTasks([Values(false, true)] bool withFlushing)
+        {
+            var performanceLogger = Logger.GetLogger(LoggingTarget.Performance);
+
+            performanceLogger.Add(string.Empty);
+
+            int operationCount = performanceLogger.TotalLogOperations;
+
+            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+
+            for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+            {
+                scheduler.Add(() => { });
+                if (withFlushing) scheduler.Update();
+            }
+
+            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+
+            for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+            {
+                scheduler.Add(() => { });
+                if (withFlushing) scheduler.Update();
+            }
+
+            Assert.AreEqual(operationCount + (withFlushing ? 0 : 1), performanceLogger.TotalLogOperations);
+
+            for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL; i++)
+            {
+                scheduler.Add(() => { });
+                if (withFlushing) scheduler.Update();
+            }
+
+            Assert.AreEqual(operationCount + (withFlushing ? 0 : 2), performanceLogger.TotalLogOperations);
+        }
+
+        [Test]
+        public void TestLogOutputFromManyQueuedScheduledTasks([Values(false, true)] bool withFlushing)
+        {
+            var performanceLogger = Logger.GetLogger(LoggingTarget.Performance);
+
+            performanceLogger.Add(string.Empty);
+
+            int operationCount = performanceLogger.TotalLogOperations;
+
+            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+
+            for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+            {
+                scheduler.AddDelayed(() => { }, 0);
+                if (withFlushing) scheduler.Update();
+            }
+
+            Assert.AreEqual(operationCount, performanceLogger.TotalLogOperations);
+
+            for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+            {
+                scheduler.AddDelayed(() => { }, 0);
+                if (withFlushing) scheduler.Update();
+            }
+
+            Assert.AreEqual(operationCount + (withFlushing ? 0 : 1), performanceLogger.TotalLogOperations);
+
+            for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL; i++)
+            {
+                scheduler.AddDelayed(() => { }, 0);
+                if (withFlushing) scheduler.Update();
+            }
+
+            Assert.AreEqual(operationCount + (withFlushing ? 0 : 2), performanceLogger.TotalLogOperations);
         }
 
         [Test]
