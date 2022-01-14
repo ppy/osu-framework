@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.Threading
         {
             int matchingLogCount = 0;
 
+            Logger.Enabled = true;
             Logger.NewEntry += logTest;
 
             Assert.AreEqual(0, matchingLogCount);
@@ -56,6 +57,7 @@ namespace osu.Framework.Tests.Threading
             Assert.AreEqual(withFlushing ? 0 : 2, matchingLogCount);
 
             Logger.NewEntry -= logTest;
+            Logger.Enabled = false;
 
             void logTest(LogEntry entry)
             {
@@ -70,6 +72,7 @@ namespace osu.Framework.Tests.Threading
             int matchingLogCount = 0;
 
             Logger.NewEntry += logTest;
+            Logger.Enabled = true;
 
             Assert.AreEqual(0, matchingLogCount);
 
@@ -98,6 +101,7 @@ namespace osu.Framework.Tests.Threading
             Assert.AreEqual(withFlushing ? 0 : 2, matchingLogCount);
 
             Logger.NewEntry -= logTest;
+            Logger.Enabled = false;
 
             void logTest(LogEntry entry)
             {
