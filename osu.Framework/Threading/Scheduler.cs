@@ -280,7 +280,7 @@ namespace osu.Framework.Threading
             {
                 timedTasks.AddInPlace(task);
                 if (timedTasks.Count % LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL == 0)
-                    Logger.Log($"{nameof(Scheduler)} has {timedTasks.Count} timed tasks pending", LoggingTarget.Performance);
+                    Logger.Log($"{this} has {timedTasks.Count} timed tasks pending", LoggingTarget.Performance);
             }
         }
 
