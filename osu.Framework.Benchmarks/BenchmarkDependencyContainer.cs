@@ -3,6 +3,7 @@
 
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -52,6 +53,7 @@ namespace osu.Framework.Benchmarks
 
         private class TestBdlReceiver : Drawable
         {
+            [UsedImplicitly] // params used implicitly
             [BackgroundDependencyLoader]
             private void load(Game game, TextureStore textures, AudioManager audio)
             {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
@@ -420,6 +421,7 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver12
         {
+            [UsedImplicitly] // param used implicitly
             [BackgroundDependencyLoader]
             private void load(int testObject)
             {
