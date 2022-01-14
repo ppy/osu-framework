@@ -28,7 +28,7 @@ namespace osu.Framework.Threading
 
         private readonly object queueLock = new object();
 
-        internal const int LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL = 100;
+        internal const int LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL = 1000;
 
         /// <summary>
         /// Whether there are any tasks queued to run (including delayed tasks in the future).
