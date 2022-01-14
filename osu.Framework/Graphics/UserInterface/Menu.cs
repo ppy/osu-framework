@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Box background;
 
         private readonly Container<Menu> submenuContainer;
+        private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
 
         /// <summary>
         /// Constructs a menu.
@@ -122,6 +123,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             // The menu will provide a valid size for the items container based on our own size
             ItemsContainer.RelativeSizeAxes = Axes.Both & ~ItemsContainer.AutoSizeAxes;
+
+            AddLayout(positionLayout);
         }
 
         protected override void LoadComplete()
@@ -341,6 +344,95 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!positionLayout.IsValid && parentMenu != null)
+            {
+                var inputManager = GetContainingInputManager();
+
+                // This is the default position to which this menu should be anchored to the parent menu item which triggered it (top left of the triggering item)
+                var triggeringItemTopLeftPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
+
+                // The "maximum" position is the worst case position of the bottom right corner of this menu
+                // if this menu is anchored top-left to the triggering item.
+                var menuMaximumPosition = triggeringItem.ToSpaceOfOtherDrawable(
+                    new Vector2(
+                        triggeringItem.DrawWidth + DrawWidth,
+                        triggeringItem.DrawHeight + DrawHeight), inputManager);
+
+                // The "minimum" position is the worst case position of the top left corner of this menu
+                // if this menu is anchored bottom-right to the parent menu item that triggered it.
+                var menuMinimumPosition = triggeringItem.ToSpaceOfOtherDrawable(new Vector2(-DrawWidth, -DrawHeight), inputManager);
+
+                // We will be making anchor adjustments by changing the parent's "submenu container" to be positioned and anchored correctly to the parent menu.
+                // Therefore note that all X and Y adjustments below will occur in the parent menu's coordinates.
+                var parentSubmenuContainer = parentMenu.submenuContainer;
+
+                if (parentMenu.Direction == Direction.Vertical)
+                {
+                    // If this menu won't fit on the screen horizontally if it's anchored to the right of its triggering item, but it will fit when anchored to the left...
+                    if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
+                    {
+                        // switch the origin and position of the submenu container so that it's right-aligned to the left side of the triggering item.
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X;
+                    }
+                    else
+                    {
+                        // otherwise, switch the origin and position of the submenu container so that it's left-aligned to the right side of the triggering item.
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X + triggeringItem.DrawWidth;
+                    }
+
+                    // If this menu won't fit on the screen vertically if its top edge is aligned to the top of the triggering item,
+                    // but it will fit if its bottom edge is aligned to the bottom of the triggering item...
+                    if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
+                    {
+                        // switch the origin and position of the submenu container so that it's bottom-aligned to the bottom of the triggering item.
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y + triggeringItem.DrawHeight;
+                    }
+                    else
+                    {
+                        // otherwise, switch the origin and position of the submenu container so that it's top-aligned to the top of the triggering item.
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y;
+                    }
+                }
+                // the "horizontal" case is the same as above, but with the axes everywhere swapped.
+                else
+                {
+                    if (menuMaximumPosition.Y > inputManager.DrawHeight && menuMinimumPosition.Y > 0)
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y0, Anchor.y2);
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y;
+                    }
+                    else
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.y2, Anchor.y0);
+                        parentSubmenuContainer.Y = triggeringItemTopLeftPosition.Y + triggeringItem.DrawHeight;
+                    }
+
+                    if (menuMaximumPosition.X > inputManager.DrawWidth && menuMinimumPosition.X > 0)
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x0, Anchor.x2);
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X + triggeringItem.DrawWidth;
+                    }
+                    else
+                    {
+                        parentSubmenuContainer.Origin = switchAxisAnchors(parentSubmenuContainer.Origin, Anchor.x2, Anchor.x0);
+                        parentSubmenuContainer.X = triggeringItemTopLeftPosition.X;
+                    }
+                }
+
+                positionLayout.Validate();
+
+                Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
+            }
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -421,7 +513,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The item which triggered opening us as a submenu.
         /// </summary>
-        private MenuItem triggeringItem;
+        private DrawableMenuItem triggeringItem;
 
         private void openSubmenuFor(DrawableMenuItem item)
         {
@@ -434,12 +526,10 @@ namespace osu.Framework.Graphics.UserInterface
                 submenu.StateChanged += submenuStateChanged;
             }
 
-            submenu.triggeringItem = item.Item;
+            submenu.triggeringItem = item;
+            submenu.positionLayout.Invalidate();
 
             submenu.Items = item.Item.Items;
-            submenu.Position = item.ToSpaceOfOtherDrawable(new Vector2(
-                Direction == Direction.Vertical ? item.DrawWidth : 0,
-                Direction == Direction.Horizontal ? item.DrawHeight : 0), this);
 
             if (item.Item.Items.Count > 0)
             {
@@ -525,17 +615,17 @@ namespace osu.Framework.Graphics.UserInterface
         private void closeAll()
         {
             Close();
-            parentMenu?.closeFromChild(triggeringItem);
+            parentMenu?.closeFromChild(triggeringItem.Item);
         }
 
         private void closeFromChild(MenuItem source)
         {
             if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
 
-            if (triggeringItem?.Items?.Contains(source) ?? triggeringItem == null)
+            if (triggeringItem?.Item.Items?.Contains(source) ?? triggeringItem == null)
             {
                 Close();
-                parentMenu?.closeFromChild(triggeringItem);
+                parentMenu?.closeFromChild(triggeringItem.Item);
             }
         }
 
