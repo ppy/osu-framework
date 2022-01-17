@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Threading
         {
             int matchingLogCount = 0;
 
-            using (var storage = new TemporaryNativeStorage(nameof(TestLogOutputFromManyQueuedTasks)))
+            using (var storage = new TemporaryNativeStorage(nameof(TestLogOutputFromManyQueuedScheduledTasks)))
             {
                 Logger.Storage = storage;
                 Logger.Enabled = true;
