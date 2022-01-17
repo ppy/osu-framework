@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
@@ -34,7 +35,7 @@ namespace osu.Framework.IO.Stores
         protected readonly ResourceStore<byte[]> Store;
 
         [CanBeNull]
-        protected BitmapFont Font => completionSource.Task.Result;
+        protected BitmapFont Font => completionSource.Task.GetResultSafely();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 

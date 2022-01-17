@@ -17,10 +17,12 @@ namespace osu.Framework.Android
     {
         protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard
                                                                | ConfigChanges.KeyboardHidden
+                                                               | ConfigChanges.Navigation
                                                                | ConfigChanges.Orientation
                                                                | ConfigChanges.ScreenLayout
                                                                | ConfigChanges.ScreenSize
                                                                | ConfigChanges.SmallestScreenSize
+                                                               | ConfigChanges.Touchscreen
                                                                | ConfigChanges.UiMode;
 
         protected const LaunchMode DEFAULT_LAUNCH_MODE = LaunchMode.SingleInstance;
