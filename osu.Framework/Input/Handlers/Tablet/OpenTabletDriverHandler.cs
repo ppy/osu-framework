@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #if NET5_0
+using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,6 +71,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
                             updateInputArea(device);
                             updateOutputArea(host.Window);
+
+                            Debug.Assert(device != null);
                             foreach (var endpoint in device.InputDevices)
                                 endpoint.Report += handleDeviceReport;
                         }
