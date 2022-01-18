@@ -83,6 +83,8 @@ namespace osu.Framework.Logging
         /// </summary>
         public string Filename => $@"{Name}.log";
 
+        public int TotalLogOperations => logCount.Value;
+
         private readonly GlobalStatistic<int> logCount;
 
         private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));

@@ -3,6 +3,8 @@
 
 using System;
 using NUnit.Framework;
+using osu.Framework.Logging;
+using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 
@@ -19,6 +21,106 @@ namespace osu.Framework.Tests.Threading
         public void Setup()
         {
             scheduler = new Scheduler(() => fromMainThread, new StopwatchClock(true));
+        }
+
+        [Test]
+        public void TestLogOutputFromManyQueuedTasks([Values(false, true)] bool withFlushing)
+        {
+            int matchingLogCount = 0;
+
+            using (var storage = new TemporaryNativeStorage(nameof(TestLogOutputFromManyQueuedTasks)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
+
+                Logger.NewEntry += logTest;
+
+                Assert.AreEqual(0, matchingLogCount);
+
+                for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+                {
+                    scheduler.Add(() => { });
+                    if (withFlushing) scheduler.Update();
+                }
+
+                Assert.AreEqual(0, matchingLogCount);
+
+                for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+                {
+                    scheduler.Add(() => { });
+                    if (withFlushing) scheduler.Update();
+                }
+
+                Assert.AreEqual(withFlushing ? 0 : 1, matchingLogCount);
+
+                for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL; i++)
+                {
+                    scheduler.Add(() => { });
+                    if (withFlushing) scheduler.Update();
+                }
+
+                Assert.AreEqual(withFlushing ? 0 : 2, matchingLogCount);
+
+                Logger.NewEntry -= logTest;
+                Logger.Enabled = false;
+                Logger.Flush();
+
+                void logTest(LogEntry entry)
+                {
+                    if (entry.Target == LoggingTarget.Performance && entry.Message.Contains("tasks pending"))
+                        matchingLogCount++;
+                }
+            }
+        }
+
+        [Test]
+        public void TestLogOutputFromManyQueuedScheduledTasks([Values(false, true)] bool withFlushing)
+        {
+            int matchingLogCount = 0;
+
+            using (var storage = new TemporaryNativeStorage(nameof(TestLogOutputFromManyQueuedScheduledTasks)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
+
+                Logger.NewEntry += logTest;
+
+                Assert.AreEqual(0, matchingLogCount);
+
+                for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+                {
+                    scheduler.AddDelayed(() => { }, 0);
+                    if (withFlushing) scheduler.Update();
+                }
+
+                Assert.AreEqual(0, matchingLogCount);
+
+                for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL / 2; i++)
+                {
+                    scheduler.AddDelayed(() => { }, 0);
+                    if (withFlushing) scheduler.Update();
+                }
+
+                Assert.AreEqual(withFlushing ? 0 : 1, matchingLogCount);
+
+                for (int i = 0; i < Scheduler.LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL; i++)
+                {
+                    scheduler.AddDelayed(() => { }, 0);
+                    if (withFlushing) scheduler.Update();
+                }
+
+                Assert.AreEqual(withFlushing ? 0 : 2, matchingLogCount);
+
+                Logger.NewEntry -= logTest;
+                Logger.Enabled = false;
+                Logger.Flush();
+
+                void logTest(LogEntry entry)
+                {
+                    if (entry.Target == LoggingTarget.Performance && entry.Message.Contains("tasks pending"))
+                        matchingLogCount++;
+                }
+            }
         }
 
         [Test]
