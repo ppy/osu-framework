@@ -14,7 +14,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             Pointer = pointer;
         }
 
-        public override IAbsolutePointer Pointer { get; }
+        public override IAbsolutePointer Pointer { get; set; }
     }
 }
 #endif

@@ -4,13 +4,13 @@
 #if NET5_0
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using JetBrains.Annotations;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
+using OpenTabletDriver.Plugin.Components;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Logging;
 using LogLevel = osu.Framework.Logging.LogLevel;
@@ -21,14 +21,15 @@ namespace osu.Framework.Input.Handlers.Tablet
     {
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
-        public TabletDriver()
+        public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
+            : base(deviceHub, reportParserProvider, configurationProvider)
         {
             Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
-            DevicesChanged += (sender, args) =>
+            deviceHub.DevicesChanged += (sender, args) =>
             {
                 // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
-                if (Tablet == null && args.Additions.Any())
-                    DetectTablet();
+                if (!Tablets.Any() && args.Additions.Any())
+                    Detect();
             };
         }
 
@@ -36,7 +37,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private CancellationTokenSource cancellationSource;
 
-        public void DetectTablet()
+        public override bool Detect()
         {
             lock (detectLock)
             {
@@ -49,36 +50,20 @@ namespace osu.Framework.Input.Handlers.Tablet
                     // wait a small delay as multiple devices may appear over a very short interval.
                     await Task.Delay(50, cancellationToken).ConfigureAwait(false);
 
-                    int foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+                    int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
 
                     if (foundVendor > 0)
                     {
                         Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
 
-                        foreach (var config in getConfigurations())
-                        {
-                            if (TryMatch(config))
-                                break;
-                        }
+                        base.Detect();
                     }
                 }, cancellationToken);
+
+                // ideally this would return if a tablet was detected, however it is not required.
+                // it is only used a hint that one or tablets were detected to be used by inheritors.
+                return true;
             }
-        }
-
-        private IEnumerable<TabletConfiguration> getConfigurations()
-        {
-            // Retrieve all embedded configurations
-            var asm = typeof(Driver).Assembly;
-            return asm.GetManifestResourceNames()
-                      .Where(path => path.Contains(".json"))
-                      .Select(path => deserialize(asm.GetManifestResourceStream(path)));
-        }
-
-        private TabletConfiguration deserialize(Stream stream)
-        {
-            using (var reader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(reader))
-                return new JsonSerializer().Deserialize<TabletConfiguration>(jsonReader);
         }
     }
 }
