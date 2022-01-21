@@ -490,7 +490,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private class GameThreadScheduler : Scheduler
+        private sealed class GameThreadScheduler : Scheduler
         {
             public GameThreadScheduler(GameThread thread)
                 : base(() => thread.IsCurrent, thread.Clock)

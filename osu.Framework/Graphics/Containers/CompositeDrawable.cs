@@ -1928,7 +1928,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
+        private sealed class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
         {
             public AutoSizeTransform()
                 : base(nameof(baseSize))
