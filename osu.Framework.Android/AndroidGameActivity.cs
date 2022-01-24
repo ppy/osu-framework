@@ -96,7 +96,6 @@ namespace osu.Framework.Android
 
                 host.ScreenOrientation.BindValueChanged(e =>
                 {
-                    // Don't do anything if orientation is locked
                     if (host.LockScreenOrientation.Value) return;
 
                     RunOnUiThread(() =>
@@ -106,7 +105,6 @@ namespace osu.Framework.Android
                 }, true);
                 host.LockScreenOrientation.BindValueChanged(e =>
                 {
-                    // Throw if consumer change locked state while ScreenOrientation bindable is disabled
                     if (host.ScreenOrientation.Disabled)
                         throw new InvalidOperationException("Can't change screen orientation lock when setting is disabled");
 
