@@ -103,21 +103,19 @@ namespace osu.Framework.Android
                     {
                         RequestedOrientation = configToNativeOrientationEnum(e.NewValue);
                     });
-                });
+                }, true);
                 host.LockScreenOrientation.BindValueChanged(e =>
                 {
                     // Throw if consumer change locked state while ScreenOrientation bindable is disabled
                     if (host.ScreenOrientation.Disabled)
                         throw new InvalidOperationException("Can't change screen orientation lock when setting is disabled");
 
-                    if (e.NewValue) // If locked
+                    RunOnUiThread(() =>
                     {
-                        RunOnUiThread(() =>
-                        {
-                            RequestedOrientation = NativeOrientation.Locked;
-                        });
-                    }
-                    else host.ScreenOrientation.TriggerChange();
+                        RequestedOrientation = e.NewValue
+                            ? NativeOrientation.Locked
+                            : configToNativeOrientationEnum(host.ScreenOrientation.Value);
+                    });
                 });
             };
         }
