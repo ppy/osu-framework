@@ -36,7 +36,7 @@ namespace osu.Framework.Threading
 
             Debug.Assert(scheduledDelegate != null);
 
-            while (scheduledDelegate.State == ScheduledDelegate.RunState.Waiting)
+            while (scheduledDelegate.State < ScheduledDelegate.RunState.Complete)
             {
                 if (scheduler.IsMainThread)
                     scheduler.Update();
