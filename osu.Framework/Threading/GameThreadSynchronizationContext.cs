@@ -9,8 +9,16 @@ using System.Threading;
 namespace osu.Framework.Threading
 {
     /// <summary>
-    /// A synchronisation context which posts all continuations to a scheduler instance.
+    /// A synchronisation context which posts all continuations to an isolated scheduler instance.
     /// </summary>
+    /// <remarks>
+    /// This implementation roughly follows the expectations set out for winforms/WPF as per
+    /// https://docs.microsoft.com/en-us/archive/msdn-magazine/2011/february/msdn-magazine-parallel-computing-it-s-all-about-the-synchronizationcontext.
+    /// - Calls to <see cref="Post"/> are guaranteed to run asynchronously.
+    /// - Calls to <see cref="Send"/> will run inline when they can.
+    /// - Order of execution is guaranteed (in our case, it is guaranteed over <see cref="Send"/> and <see cref="Post"/> calls alike).
+    /// - To enforce the above, calling <see cref="Send"/> will flush any pending work until the newly queued item has been completed.
+    /// </remarks>
     internal class GameThreadSynchronizationContext : SynchronizationContext
     {
         private readonly Scheduler scheduler;
@@ -22,13 +30,13 @@ namespace osu.Framework.Threading
             scheduler = new GameThreadScheduler(gameThread);
         }
 
-        public override void Send(SendOrPostCallback d, object? state)
+        public override void Send(SendOrPostCallback callback, object? state)
         {
-            var del = scheduler.Add(() => d(state));
+            var scheduledDelegate = scheduler.Add(() => callback(state));
 
-            Debug.Assert(del != null);
+            Debug.Assert(scheduledDelegate != null);
 
-            while (del.State == ScheduledDelegate.RunState.Waiting)
+            while (scheduledDelegate.State == ScheduledDelegate.RunState.Waiting)
             {
                 if (scheduler.IsMainThread)
                     scheduler.Update();
@@ -37,7 +45,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        public override void Post(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state));
+        public override void Post(SendOrPostCallback callback, object? state) => scheduler.Add(() => callback(state));
 
         public void RunWork() => scheduler.Update();
     }
