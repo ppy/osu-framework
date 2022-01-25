@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -53,6 +55,56 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("no tasks run", () => syncContext.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
             AddUntilStep("one new task run", () => syncContext.TotalTasksRun == initialTasksRun + 1);
+        }
+
+        [Test]
+        public void TestOrderOfExecutionFlushing()
+        {
+            List<int> ran = new List<int>();
+
+            AddStep("queue items", () =>
+            {
+                SynchronizationContext.Current?.Post(_ => ran.Add(1), null);
+                SynchronizationContext.Current?.Post(_ => ran.Add(2), null);
+                SynchronizationContext.Current?.Post(_ => ran.Add(3), null);
+
+                Assert.That(ran, Is.Empty);
+
+                SynchronizationContext.Current?.Send(_ => ran.Add(4), null);
+
+                Assert.That(ran, Is.EqualTo(new[] { 1, 2, 3, 4 }));
+            });
+        }
+
+        [Test]
+        public void TestOrderOfExecutionFlushingAsyncThread()
+        {
+            ManualResetEventSlim finished = new ManualResetEventSlim();
+            List<int> ran = new List<int>();
+
+            AddStep("queue items", () =>
+            {
+                var updateContext = SynchronizationContext.Current;
+
+                Debug.Assert(updateContext != null);
+
+                updateContext.Post(_ => ran.Add(1), null);
+                updateContext.Post(_ => ran.Add(2), null);
+                updateContext.Post(_ => ran.Add(3), null);
+
+                Assert.That(ran, Is.Empty);
+
+                Task.Factory.StartNew(() =>
+                {
+                    updateContext.Send(_ => ran.Add(4), null);
+
+                    Assert.That(ran, Is.EqualTo(new[] { 1, 2, 3, 4 }));
+
+                    finished.Set();
+                }, TaskCreationOptions.LongRunning);
+            });
+
+            AddUntilStep("wait for completion", () => finished.IsSet);
         }
 
         [Test]
