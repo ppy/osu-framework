@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("throw on update thread", () =>
             {
                 // ReSharper disable once AsyncVoidLambda
-                Scheduler.Add(async () =>
+                host.UpdateThread.Scheduler.Add(async () =>
                 {
                     Assert.That(ThreadSafety.IsUpdateThread);
 
