@@ -21,9 +21,12 @@ namespace osu.Framework.Threading
     /// </remarks>
     internal class GameThreadSynchronizationContext : SynchronizationContext
     {
-        private readonly Scheduler scheduler;
-
+        /// <summary>
+        /// The total tasks this synchronization context has run.
+        /// </summary>
         public int TotalTasksRun => scheduler.TotalTasksRun;
+
+        private readonly Scheduler scheduler;
 
         public GameThreadSynchronizationContext(GameThread gameThread)
         {
@@ -47,6 +50,9 @@ namespace osu.Framework.Threading
 
         public override void Post(SendOrPostCallback callback, object? state) => scheduler.Add(() => callback(state));
 
+        /// <summary>
+        /// Run any pending work queued against this synchronization context.
+        /// </summary>
         public void RunWork() => scheduler.Update();
     }
 }
