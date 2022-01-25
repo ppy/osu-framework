@@ -19,6 +19,8 @@ namespace osu.Framework.Threading
             this.scheduler = scheduler;
         }
 
-        public override void Post(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state), false);
+        public override void Send(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state), false);
+
+        public override void Post(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state), true);
     }
 }
