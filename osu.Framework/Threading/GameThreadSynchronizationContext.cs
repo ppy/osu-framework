@@ -9,15 +9,17 @@ using System.Threading;
 namespace osu.Framework.Threading
 {
     /// <summary>
-    /// A synchronisation context which posts all continuatiuons to a scheduler instance.
+    /// A synchronisation context which posts all continuations to a scheduler instance.
     /// </summary>
-    internal class SchedulerSynchronizationContext : SynchronizationContext
+    internal class GameThreadSynchronizationContext : SynchronizationContext
     {
         private readonly Scheduler scheduler;
 
-        public SchedulerSynchronizationContext(Scheduler scheduler)
+        public int TotalTasksRun => scheduler.TotalTasksRun;
+
+        public GameThreadSynchronizationContext(GameThread gameThread)
         {
-            this.scheduler = scheduler;
+            scheduler = new GameThreadScheduler(gameThread);
         }
 
         public override void Send(SendOrPostCallback d, object? state)
@@ -27,9 +29,16 @@ namespace osu.Framework.Threading
             Debug.Assert(del != null);
 
             while (del.State == ScheduledDelegate.RunState.Waiting)
-                scheduler.Update();
+            {
+                if (scheduler.IsMainThread)
+                    scheduler.Update();
+                else
+                    Thread.Sleep(1);
+            }
         }
 
         public override void Post(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state));
+
+        public void RunWork() => scheduler.Update();
     }
 }

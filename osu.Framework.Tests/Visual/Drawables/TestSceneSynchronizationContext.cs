@@ -10,6 +10,7 @@ using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
@@ -30,26 +31,28 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("has spun", () => box.Rotation == 180);
         }
 
+        private GameThreadSynchronizationContext syncContext => SynchronizationContext.Current as GameThreadSynchronizationContext;
+
         [Test]
         public void TestNoAsyncDoesntUseScheduler()
         {
             int initialTasksRun = 0;
-            AddStep("get initial run count", () => initialTasksRun = host.UpdateThread.Scheduler.TotalTasksRun);
+            AddStep("get initial run count", () => initialTasksRun = syncContext.TotalTasksRun);
             AddStep("add box", () => Child = box = new AsyncPerformingBox(false));
-            AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
+            AddAssert("no tasks run", () => syncContext.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
-            AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
+            AddAssert("no tasks run", () => syncContext.TotalTasksRun == initialTasksRun);
         }
 
         [Test]
         public void TestAsyncUsesScheduler()
         {
             int initialTasksRun = 0;
-            AddStep("get initial run count", () => initialTasksRun = host.UpdateThread.Scheduler.TotalTasksRun);
+            AddStep("get initial run count", () => initialTasksRun = syncContext.TotalTasksRun);
             AddStep("add box", () => Child = box = new AsyncPerformingBox(true));
-            AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
+            AddAssert("no tasks run", () => syncContext.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
-            AddUntilStep("one new task run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun + 1);
+            AddUntilStep("one new task run", () => syncContext.TotalTasksRun == initialTasksRun + 1);
         }
 
         [Test]
@@ -61,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("throw on update thread", () =>
             {
                 // ReSharper disable once AsyncVoidLambda
-                host.UpdateThread.Scheduler.Add(async () =>
+                Scheduler.Add(async () =>
                 {
                     Assert.That(ThreadSafety.IsUpdateThread);
 
