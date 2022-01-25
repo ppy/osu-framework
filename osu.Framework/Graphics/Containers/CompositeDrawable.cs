@@ -143,7 +143,6 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            ThreadSafety.IsUpdateThread = false;
             EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
 
             if (IsDisposed)
