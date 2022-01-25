@@ -143,7 +143,8 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            EnsureMutationAllowed(nameof(LoadComponentsAsync));
+            ThreadSafety.IsUpdateThread = false;
+            EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
 
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
@@ -1343,7 +1344,7 @@ namespace osu.Framework.Graphics.Containers
         protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
 
-        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed(nameof(InternalChildren));
+        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(InternalChildren)}");
 
         #endregion
 
