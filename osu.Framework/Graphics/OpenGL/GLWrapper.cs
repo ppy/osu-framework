@@ -396,6 +396,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
+        private static TextureUnit lastActiveTextureUnit;
+
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
         internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
 
@@ -441,7 +443,7 @@ namespace osu.Framework.Graphics.OpenGL
                 CurrentWrapModeT = wrapModeT;
             }
 
-            if (last_bound_texture[index] == textureId)
+            if (lastActiveTextureUnit == unit && last_bound_texture[index] == textureId)
                 return false;
 
             FlushCurrentBatch();
@@ -451,6 +453,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             last_bound_texture[index] = textureId;
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+            lastActiveTextureUnit = unit;
 
             FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             return true;
