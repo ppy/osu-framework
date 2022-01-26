@@ -24,8 +24,6 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer MainHorizontalContent;
 
-        private readonly FillFlowContainer header;
-
         protected ToolWindow(string title, string keyHelpText)
         {
             AutoSizeAxes = Axes.X;
@@ -56,7 +54,7 @@ namespace osu.Framework.Graphics.Visualisation
                     {
                         new Drawable[]
                         {
-                            header = new FillFlowContainer
+                            new FillFlowContainer
                             {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
