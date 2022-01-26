@@ -22,6 +22,7 @@ namespace osu.Framework.Configuration
         protected override void InitialiseDefaults()
         {
             SetDefault(FrameworkSetting.ShowLogOverlay, false);
+            SetDefault(FrameworkSetting.LogConsoleOutput, Logging.LogConsoleOutputSetting.Default);
 
             SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
             SetDefault(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
@@ -73,6 +74,7 @@ namespace osu.Framework.Configuration
     public enum FrameworkSetting
     {
         ShowLogOverlay,
+        LogConsoleOutput,
 
         AudioDevice,
         VolumeUniversal,

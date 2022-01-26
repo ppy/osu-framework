@@ -11,6 +11,7 @@ using osu.Framework.Development;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Logging
 {
@@ -30,6 +31,18 @@ namespace osu.Framework.Logging
         /// Whether logging is enabled. Setting this to false will disable all logging.
         /// </summary>
         public static bool Enabled = true;
+
+        /// <summary>
+        /// Whether to show output in console.
+        /// </summary>
+        public static readonly Bindable<LogConsoleOutputSetting> LogOutputConsole = new Bindable<LogConsoleOutputSetting>(LogConsoleOutputSetting.Default);
+
+        private static bool LogMessageToConsole => LogOutputConsole.Value switch
+        {
+            LogConsoleOutputSetting.Default => DebugUtils.IsDebugBuild,
+            LogConsoleOutputSetting.Always => true,
+            _ => false,
+        };
 
         /// <summary>
         /// The minimum log-level a logged message needs to have to be logged. Default is <see cref="LogLevel.Verbose"/>. Please note that setting this to <see cref="LogLevel.Debug"/>  will log input events, including keypresses when entering a password.
@@ -323,7 +336,7 @@ namespace osu.Framework.Logging
                     Exception = exception
                 });
 
-                if (DebugUtils.IsDebugBuild)
+                if (LogMessageToConsole)
                 {
                     static void consoleLog(string msg)
                     {
@@ -536,6 +549,22 @@ namespace osu.Framework.Logging
         /// Log-level for error messages. This is the highest level (lowest verbosity).
         /// </summary>
         Error
+    }
+
+    public enum LogConsoleOutputSetting
+    {
+        /// <summary>
+        /// Only logs to console when DebugUtils.IsDebugBuild is true.
+        /// </summary>
+        Default,
+        /// <summary>
+        /// Always logs to console.
+        /// </summary>
+        Always,
+        /// <summary>
+        /// Never logs to console.
+        /// </summary>
+        Never
     }
 
     /// <summary>
