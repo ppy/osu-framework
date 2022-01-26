@@ -43,11 +43,13 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
-                    RowDimensions = new[] {
+                    RowDimensions = new[]
+                    {
                         new Dimension(GridSizeMode.AutoSize),
                         new Dimension(GridSizeMode.Distributed),
                     },
-                    ColumnDimensions = new[] {
+                    ColumnDimensions = new[]
+                    {
                         new Dimension(GridSizeMode.AutoSize),
                     },
                     Content = new[]
