@@ -26,8 +26,6 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly FillFlowContainer header;
 
-        private float lastHeaderHeight;
-
         protected ToolWindow(string title, string keyHelpText)
         {
             AutoSizeAxes = Axes.X;
@@ -43,54 +41,75 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                header = new FillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical,
-                    Children = new Drawable[]
-                    {
-                        new TitleBar(title, keyHelpText, this),
-                        new Container //toolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    Colour = FrameworkColour.BlueGreenDark,
-                                    RelativeSizeAxes = Axes.Both,
-                                },
-                                ToolbarContent = new FillFlowContainer
-                                {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Spacing = new Vector2(5),
-                                    Padding = new MarginPadding(5),
-                                },
-                            },
-                        }
-                    }
-                },
-                new TooltipContainer
+                new GridContainer
                 {
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
-                    Child = MainHorizontalContent = new FillFlowContainer
+                    RowDimensions = new[] {
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.Distributed),
+                    },
+                    ColumnDimensions = new[] {
+                        new Dimension(GridSizeMode.AutoSize),
+                    },
+                    Content = new[]
                     {
-                        RelativeSizeAxes = Axes.Y,
-                        AutoSizeAxes = Axes.X,
-                        Direction = FillDirection.Horizontal,
-                        Children = new Drawable[]
+                        new Drawable[]
                         {
-                            ScrollContent = new BasicScrollContainer<Drawable>
+                            header = new FillFlowContainer
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Direction = FillDirection.Vertical,
+                                Children = new Drawable[]
+                                {
+                                    new TitleBar(title, keyHelpText, this),
+                                    new Container //toolbar
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Children = new Drawable[]
+                                        {
+                                            new Box
+                                            {
+                                                Colour = FrameworkColour.BlueGreenDark,
+                                                RelativeSizeAxes = Axes.Both,
+                                            },
+                                            ToolbarContent = new FillFlowContainer
+                                            {
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Spacing = new Vector2(5),
+                                                Padding = new MarginPadding(5),
+                                            },
+                                        },
+                                    }
+                                }
+                            },
+                        },
+                        new Drawable[]
+                        {
+                            new TooltipContainer
                             {
                                 RelativeSizeAxes = Axes.Y,
-                                Width = WIDTH
-                            }
+                                AutoSizeAxes = Axes.X,
+                                Child = MainHorizontalContent = new FillFlowContainer
+                                {
+                                    RelativeSizeAxes = Axes.Y,
+                                    AutoSizeAxes = Axes.X,
+                                    Direction = FillDirection.Horizontal,
+                                    Children = new Drawable[]
+                                    {
+                                        ScrollContent = new BasicScrollContainer<Drawable>
+                                        {
+                                            RelativeSizeAxes = Axes.Y,
+                                            Width = WIDTH
+                                        }
+                                    }
+                                }
+                            },
                         }
-                    }
+                    },
                 },
                 new CursorContainer()
             });
@@ -109,19 +128,5 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopIn() => this.FadeIn(100);
 
         protected override void PopOut() => this.FadeOut(100);
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            float headerH = header.LayoutSize.Y;
-            if (lastHeaderHeight != headerH)
-            {
-                lastHeaderHeight = headerH;
-                var newPadding = MainHorizontalContent.Padding;
-                newPadding.Top = headerH;
-                MainHorizontalContent.Padding = newPadding;
-            }
-        }
     }
 }
