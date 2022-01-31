@@ -1785,8 +1785,10 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            foreach (var member in layoutMembers)
+            for (int i = 0; i < layoutMembers.Count; i++)
             {
+                var member = layoutMembers[i];
+
                 // Only invalidate layout members that accept the given source.
                 if ((member.Source & source) == 0)
                     continue;
