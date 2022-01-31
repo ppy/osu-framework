@@ -13,6 +13,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool AllowWordNavigation => false;
 
+        protected override bool AllowIme => false;
+
         protected override Drawable AddCharacterToFlow(char c) => base.AddCharacterToFlow(MaskCharacter);
     }
 }

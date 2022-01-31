@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Threading
@@ -26,6 +27,8 @@ namespace osu.Framework.Threading
         private double currentTime => clock?.CurrentTime ?? 0;
 
         private readonly object queueLock = new object();
+
+        internal const int LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL = 1000;
 
         /// <summary>
         /// Whether there are any tasks queued to run (including delayed tasks in the future).
@@ -86,7 +89,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Returns whether we are on the main thread or not.
         /// </summary>
-        protected bool IsMainThread => isCurrentThread?.Invoke() ?? true;
+        internal bool IsMainThread => isCurrentThread?.Invoke() ?? true;
 
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
@@ -143,7 +146,7 @@ namespace osu.Framework.Threading
 
                         if (sd.RepeatInterval > 0)
                         {
-                            if (timedTasks.Count > 1000)
+                            if (timedTasks.Count > LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL)
                                 throw new ArgumentException("Too many timed tasks are in the queue!");
 
                             // schedule the next repeat of the task.
@@ -151,7 +154,7 @@ namespace osu.Framework.Threading
                             tasksToSchedule.Add(sd);
                         }
 
-                        if (!sd.Completed) runQueue.Enqueue(sd);
+                        if (!sd.Completed) enqueue(sd);
                     }
                 }
 
@@ -181,7 +184,7 @@ namespace osu.Framework.Threading
                     continue;
                 }
 
-                runQueue.Enqueue(task);
+                enqueue(task);
             }
         }
 
@@ -233,8 +236,7 @@ namespace osu.Framework.Threading
 
             var del = new ScheduledDelegateWithData<T>(task, data);
 
-            lock (queueLock)
-                runQueue.Enqueue(del);
+            enqueue(del);
 
             return del;
         }
@@ -258,8 +260,7 @@ namespace osu.Framework.Threading
 
             var del = new ScheduledDelegate(task);
 
-            lock (queueLock)
-                runQueue.Enqueue(del);
+            enqueue(del);
 
             return del;
         }
@@ -276,7 +277,11 @@ namespace osu.Framework.Threading
                 throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
 
             lock (queueLock)
+            {
                 timedTasks.AddInPlace(task);
+                if (timedTasks.Count % LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL == 0)
+                    Logger.Log($"{this} has {timedTasks.Count} timed tasks pending", LoggingTarget.Performance);
+            }
         }
 
         /// <summary>
@@ -337,7 +342,7 @@ namespace osu.Framework.Threading
                     return false;
                 }
 
-                runQueue.Enqueue(new ScheduledDelegateWithData<T>(task, data));
+                enqueue(new ScheduledDelegateWithData<T>(task, data));
             }
 
             return true;
@@ -356,10 +361,20 @@ namespace osu.Framework.Threading
                 if (runQueue.Any(sd => sd.Task == task))
                     return false;
 
-                runQueue.Enqueue(new ScheduledDelegate(task));
+                enqueue(new ScheduledDelegate(task));
             }
 
             return true;
+        }
+
+        private void enqueue(ScheduledDelegate task)
+        {
+            lock (queueLock)
+            {
+                runQueue.Enqueue(task);
+                if (runQueue.Count % LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL == 0)
+                    Logger.Log($"{this} has {runQueue.Count} tasks pending", LoggingTarget.Performance);
+            }
         }
     }
 }

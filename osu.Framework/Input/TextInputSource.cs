@@ -27,25 +27,28 @@ namespace osu.Framework.Input
         /// Activates this <see cref="TextInputSource"/>.
         /// User text input can be acquired through <see cref="OnTextInput"/>, <see cref="OnImeComposition"/> and <see cref="OnImeResult"/>.
         /// </summary>
+        /// <param name="allowIme">Whether input using IME should be allowed.</param>
         /// <remarks>
         /// Each <see cref="Activate"/> must be followed by a <see cref="Deactivate"/>.
         /// </remarks>
-        public void Activate()
+        public void Activate(bool allowIme)
         {
             if (Interlocked.Increment(ref activationCounter) == 1)
-                ActivateTextInput();
+                ActivateTextInput(allowIme);
             else
-                EnsureActivated();
+                // the latest consumer that activated should always take precedence in (dis)allowing IME.
+                EnsureActivated(allowIme);
         }
 
         /// <summary>
         /// Ensures that the native implementation that retrieves user text input is activated
         /// and that the user can start entering text.
         /// </summary>
-        public void EnsureActivated()
+        /// <param name="allowIme">Whether input using IME should be allowed.</param>
+        public void EnsureActivated(bool allowIme)
         {
             if (activationCounter >= 1)
-                EnsureTextInputActivated();
+                EnsureTextInputActivated(allowIme);
         }
 
         /// <summary>
@@ -98,11 +101,12 @@ namespace osu.Framework.Input
         /// Activates the native implementation that provides text input.
         /// Should be overriden per-platform.
         /// </summary>
+        /// <param name="allowIme">Whether input using IME should be allowed.</param>
         /// <remarks>
         /// An active native implementation should call <see cref="TriggerTextInput"/> on new text input
         /// and forward IME composition events through <see cref="TriggerImeComposition"/> and <see cref="TriggerImeResult"/>.
         /// </remarks>
-        protected virtual void ActivateTextInput()
+        protected virtual void ActivateTextInput(bool allowIme)
         {
         }
 
@@ -111,7 +115,7 @@ namespace osu.Framework.Input
         /// <remarks>
         /// Only called if the native implementation has been activated with <see cref="Activate"/>.
         /// </remarks>
-        protected virtual void EnsureTextInputActivated()
+        protected virtual void EnsureTextInputActivated(bool allowIme)
         {
         }
 

@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -411,7 +412,7 @@ namespace osu.Framework.IO.Network
             {
                 // Start a long-running task to ensure we don't block on a TPL thread pool thread.
                 // Unfortunately we can't use a full synchronous flow due to IPv4 fallback logic *requiring* the async path for now.
-                Task.Factory.StartNew(() => PerformAsync().Wait(), TaskCreationOptions.LongRunning).Wait();
+                Task.Factory.StartNew(() => PerformAsync().WaitSafely(), TaskCreationOptions.LongRunning).WaitSafely();
             }
             catch (AggregateException ae)
             {

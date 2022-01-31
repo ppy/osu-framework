@@ -276,12 +276,17 @@ namespace osu.Framework.Platform
         /// </summary>
         public string Name { get; }
 
+        [NotNull]
+        public HostOptions Options { get; private set; }
+
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         private bool suspended;
 
-        protected GameHost(string gameName = @"")
+        protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            Options = options ?? new HostOptions();
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings

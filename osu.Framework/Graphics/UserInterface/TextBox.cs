@@ -64,6 +64,18 @@ namespace osu.Framework.Graphics.UserInterface
         public virtual bool HandleLeftRightArrows => true;
 
         /// <summary>
+        /// Whether to allow IME input when this text box has input focus.
+        /// </summary>
+        /// <remarks>
+        /// This is just a hint to the native implementation, some might respect this,
+        /// while others will ignore and always have the IME (dis)allowed.
+        /// </remarks>
+        /// <example>
+        /// Useful for situations where IME input is not wanted, such as for passwords, numbers, or romanised text.
+        /// </example>
+        protected virtual bool AllowIme => true;
+
+        /// <summary>
         /// Check if a character can be added to this TextBox.
         /// </summary>
         /// <param name="character">The pending character.</param>
@@ -1164,7 +1176,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && inputBound)
-                textInput.EnsureActivated();
+                textInput.EnsureActivated(AllowIme);
 
             return !ReadOnly;
         }
@@ -1189,11 +1201,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (inputBound)
             {
-                textInput.EnsureActivated();
+                textInput.EnsureActivated(AllowIme);
                 return;
             }
 
-            textInput.Activate();
+            textInput.Activate(AllowIme);
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
