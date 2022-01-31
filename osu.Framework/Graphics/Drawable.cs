@@ -2011,7 +2011,7 @@ namespace osu.Framework.Graphics
 
                 case DoubleClickEvent doubleClick:
                     return OnDoubleClick(doubleClick);
-
+            
                 case DragStartEvent dragStart:
                     return OnDragStart(dragStart);
 

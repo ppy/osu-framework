@@ -350,7 +350,6 @@ namespace osu.Framework.Graphics.Visualisation
             RequestTarget?.Invoke(Target);
             return true;
         }
-
         private bool isExpanded = true;
 
         public void Expand()
