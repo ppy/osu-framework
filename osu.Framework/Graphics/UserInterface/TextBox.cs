@@ -6,22 +6,22 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using osu.Framework.Caching;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
-using osuTK;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Development;
 using osu.Framework.Extensions.PlatformActionExtensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Platform;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.Paste:
-                    if (RecentTextInput)
+                    if (textInputBlocking)
                         // the text has been pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
                         return true;
 
@@ -424,7 +424,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             imeCompositionScheduler.Add(() => onImeResult(userEvent, false));
 
-            if (inputBound)
+            if (textInputBound)
                 textInput.ResetIme();
 
             // importantly, we want to force-update all pending composition events,
@@ -442,7 +442,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
-            if (inputBound)
+            if (textInputBound)
                 textInput.ResetIme();
 
             imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
@@ -947,7 +947,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// If there was recent text input, all <see cref="OnKeyDown"/> should be blocked from propagating.
         /// Cleared/set to <c>false</c> when all keys are released, or when input is unbound.
         /// </remarks>
-        protected bool RecentTextInput;
+        private bool textInputBlocking;
 
         /// <summary>
         /// Whether there is a ongoing IME composition.
@@ -958,7 +958,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Full data about the composition events is processed by <see cref="handleImeComposition"/> "passively"
         /// so we shouldn't take any action on key events we receive.
         /// </remarks>
-        protected bool ImeCompositionActive => inputBound && textInput.ImeActive || imeCompositionLength > 0;
+        protected bool ImeCompositionActive => textInputBound && textInput.ImeActive || imeCompositionLength > 0;
 
         #region Input event handling
 
@@ -998,7 +998,7 @@ namespace osu.Framework.Graphics.UserInterface
             textInputScheduler.Update();
 
             // block on recent text input *after* handling the above keys so those keys can be used during text input.
-            return base.OnKeyDown(e) || RecentTextInput;
+            return base.OnKeyDown(e) || textInputBlocking;
         }
 
         /// <summary>
@@ -1039,9 +1039,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnKeyUp(KeyUpEvent e)
         {
-            if (!e.HasAnyKeyPressed)
-                RecentTextInput = false;
-
+            textInputScheduler.AddOnce(revertBlockingStateIfRequired);
             base.OnKeyUp(e);
         }
 
@@ -1175,7 +1173,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (!ReadOnly && inputBound)
+            if (!ReadOnly && textInputBound)
                 textInput.EnsureActivated(AllowIme);
 
             return !ReadOnly;
@@ -1195,11 +1193,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether <see cref="textInput"/> has been activated and bound to.
         /// </summary>
-        private bool inputBound;
+        private bool textInputBound;
 
         private void bindInput()
         {
-            if (inputBound)
+            if (textInputBound)
             {
                 textInput.EnsureActivated(AllowIme);
                 return;
@@ -1210,15 +1208,15 @@ namespace osu.Framework.Graphics.UserInterface
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
 
-            inputBound = true;
+            textInputBound = true;
         }
 
         private void unbindInput()
         {
-            if (!inputBound)
+            if (!textInputBound)
                 return;
 
-            inputBound = false;
+            textInputBound = false;
 
             textInput.Deactivate();
             textInput.OnTextInput -= handleTextInput;
@@ -1226,13 +1224,24 @@ namespace osu.Framework.Graphics.UserInterface
             textInput.OnImeResult -= handleImeResult;
 
             // in case keys are held and we lose focus, we should no longer block key events
-            RecentTextInput = false;
+            textInputBlocking = false;
         }
 
-        private void handleTextInput(string text)
+        private void handleTextInput(string text) => textInputScheduler.Add(t =>
         {
-            textInputScheduler.Add(() => onTextInput(text));
-        }
+            textInputBlocking = true;
+
+            InsertString(t);
+            OnUserTextAdded(t);
+
+            // clear the flag in the next frame if no buttons are pressed/held.
+            // needed in case a text event happens without an associated button press (and release).
+            // this could be the case for software keyboards, for instance.
+            Scheduler.AddOnce(revertBlockingStateIfRequired);
+        }, text);
+
+        private void revertBlockingStateIfRequired() =>
+            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
@@ -1245,22 +1254,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 onImeComposition(result, result.Length, 0, false);
                 onImeResult(true, true);
-            });
-        }
-
-        private void onTextInput(string text)
-        {
-            RecentTextInput = true;
-
-            InsertString(text);
-            OnUserTextAdded(text);
-
-            // clear the flag in the next frame if no buttons are pressed/held.
-            // needed in case a text event happens without an associated button press (and release).
-            Scheduler.AddOnce(() =>
-            {
-                if (RecentTextInput && !GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed)
-                    RecentTextInput = false;
             });
         }
 
@@ -1517,7 +1510,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private void updateImeWindowPosition()
         {
-            if (!cursorAndLayout.IsValid || !inputBound)
+            if (!cursorAndLayout.IsValid || !textInputBound)
                 return;
 
             int startIndex, endIndex;
