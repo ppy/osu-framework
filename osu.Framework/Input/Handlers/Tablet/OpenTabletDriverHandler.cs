@@ -2,10 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #if NET5_0
-using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
-using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
@@ -42,11 +40,6 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public override bool Initialize(GameHost host)
         {
-            var driverServiceCollection = new DriverServiceCollection()
-                .AddTransient<TabletDriver>();
-
-            var provider = driverServiceCollection.BuildServiceProvider();
-
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
@@ -59,7 +52,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 if (d.NewValue && tabletDriver == null)
                 {
-                    tabletDriver = provider.GetRequiredService<TabletDriver>();
+                    tabletDriver = TabletDriver.Create();
                     tabletDriver.TabletsChanged += (s, e) =>
                     {
                         device = e.Any() ? tabletDriver.InputDevices.First() : null;
@@ -71,12 +64,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
                             updateInputArea(device);
                             updateOutputArea(host.Window);
-
-                            Debug.Assert(device != null);
-                            foreach (var endpoint in device.InputDevices)
-                                endpoint.Report += handleDeviceReport;
                         }
                     };
+                    tabletDriver.DeviceReport += handleDeviceReport;
                     tabletDriver.Detect();
                 }
                 else if (!d.NewValue && tabletDriver != null)

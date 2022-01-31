@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Components;
@@ -17,7 +18,7 @@ using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
-    public class TabletDriver : Driver
+    public sealed class TabletDriver : Driver
     {
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
@@ -36,6 +37,8 @@ namespace osu.Framework.Input.Handlers.Tablet
         private readonly object detectLock = new object();
 
         private CancellationTokenSource cancellationSource;
+
+        public event EventHandler<IDeviceReport> DeviceReport;
 
         public override bool Detect()
         {
@@ -57,6 +60,19 @@ namespace osu.Framework.Input.Handlers.Tablet
                         Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
 
                         base.Detect();
+
+                        foreach (var device in InputDevices)
+                        {
+                            foreach (var endpoint in device.InputDevices)
+                            {
+                                endpoint.Report += DeviceReport;
+                                endpoint.ConnectionStateChanged += (sender, connected) =>
+                                {
+                                    if (!connected)
+                                        endpoint.Report -= DeviceReport;
+                                };
+                            }
+                        }
                     }
                 }, cancellationToken);
 
@@ -64,6 +80,16 @@ namespace osu.Framework.Input.Handlers.Tablet
                 // it is only used a hint that one or tablets were detected to be used by inheritors.
                 return true;
             }
+        }
+
+        public static TabletDriver Create()
+        {
+            IServiceCollection serviceCollection = new DriverServiceCollection()
+                .AddTransient<TabletDriver>();
+
+            var provider = serviceCollection.BuildServiceProvider();
+
+            return provider.GetRequiredService<TabletDriver>();
         }
     }
 }
