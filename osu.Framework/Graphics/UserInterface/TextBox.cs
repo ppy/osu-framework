@@ -994,7 +994,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             // check for any pending text input.
-            // updating here will set RecentTextInput accordingly.
+            // updating here will set `textInputBlocking` accordingly.
             textInputScheduler.Update();
 
             // block on recent text input *after* handling the above keys so those keys can be used during text input.
@@ -1039,7 +1039,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnKeyUp(KeyUpEvent e)
         {
-            textInputScheduler.AddOnce(revertBlockingStateIfRequired);
+            Scheduler.AddOnce(revertBlockingStateIfRequired);
             base.OnKeyUp(e);
         }
 
