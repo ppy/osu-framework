@@ -9,8 +9,6 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using ManagedBass;
-using NativeOrientation = Android.Content.PM.ScreenOrientation;
-using ConfigOrientation = osu.Framework.Configuration.ScreenOrientation;
 
 namespace osu.Framework.Android
 {
@@ -111,7 +109,7 @@ namespace osu.Framework.Android
                     RunOnUiThread(() =>
                     {
                         RequestedOrientation = e.NewValue
-                            ? NativeOrientation.Locked
+                            ? ScreenOrientation.Locked
                             : configToNativeOrientationEnum(host.ScreenOrientation.Value);
                     });
                 });
@@ -160,34 +158,34 @@ namespace osu.Framework.Android
         /// Convert screen orientation framework config enum to equivalent Android's native orientation enum
         /// </summary>
         /// <param name="orientation">Framework setting enum to convert</param>
-        /// <returns><see cref="NativeOrientation"/> enum to use with Android SDK</returns>
-        private static NativeOrientation configToNativeOrientationEnum(ConfigOrientation orientation)
+        /// <returns><see cref="ScreenOrientation"/> enum to use with Android SDK</returns>
+        private static ScreenOrientation configToNativeOrientationEnum(Configuration.ScreenOrientation orientation)
         {
             switch (orientation)
             {
-                case ConfigOrientation.AnyLandscape:
-                    return NativeOrientation.SensorLandscape;
+                case Configuration.ScreenOrientation.AnyLandscape:
+                    return ScreenOrientation.SensorLandscape;
 
-                case ConfigOrientation.AnyPortrait:
-                    return NativeOrientation.SensorPortrait;
+                case Configuration.ScreenOrientation.AnyPortrait:
+                    return ScreenOrientation.SensorPortrait;
 
-                case ConfigOrientation.LandscapeLeft:
-                    return NativeOrientation.ReverseLandscape;
+                case Configuration.ScreenOrientation.LandscapeLeft:
+                    return ScreenOrientation.ReverseLandscape;
 
-                case ConfigOrientation.LandscapeRight:
-                    return NativeOrientation.Landscape;
+                case Configuration.ScreenOrientation.LandscapeRight:
+                    return ScreenOrientation.Landscape;
 
-                case ConfigOrientation.Portrait:
-                    return NativeOrientation.Portrait;
+                case Configuration.ScreenOrientation.Portrait:
+                    return ScreenOrientation.Portrait;
 
-                case ConfigOrientation.ReversePortrait:
-                    return NativeOrientation.ReversePortrait;
+                case Configuration.ScreenOrientation.ReversePortrait:
+                    return ScreenOrientation.ReversePortrait;
 
-                case ConfigOrientation.Any:
-                    return NativeOrientation.FullSensor;
+                case Configuration.ScreenOrientation.Any:
+                    return ScreenOrientation.FullSensor;
 
-                case ConfigOrientation.Auto:
-                    return NativeOrientation.FullUser;
+                case Configuration.ScreenOrientation.Auto:
+                    return ScreenOrientation.FullUser;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(orientation), "Unknown framework config ScreenOrientation enum member");
