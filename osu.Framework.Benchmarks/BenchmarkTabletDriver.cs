@@ -3,8 +3,6 @@
 
 #if NET5_0
 using BenchmarkDotNet.Attributes;
-using Microsoft.Extensions.DependencyInjection;
-using OpenTabletDriver;
 using osu.Framework.Input.Handlers.Tablet;
 
 namespace osu.Framework.Benchmarks
@@ -15,12 +13,7 @@ namespace osu.Framework.Benchmarks
 
         public override void SetUp()
         {
-            var collection = new DriverServiceCollection()
-                .AddTransient<TabletDriver>();
-
-            var serviceProvider = collection.BuildServiceProvider();
-
-            driver = serviceProvider.GetRequiredService<TabletDriver>();
+            driver = TabletDriver.Create();
         }
 
         [Benchmark]
