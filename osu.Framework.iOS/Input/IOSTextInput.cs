@@ -18,7 +18,7 @@ namespace osu.Framework.iOS.Input
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
             if (text == " " || text.Trim().Length > 0)
-                AddPendingText(text);
+                TriggerTextInput(text);
         }
 
         protected override void ActivateTextInput(bool allowIme)
