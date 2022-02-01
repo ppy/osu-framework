@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -10,6 +11,7 @@ using Android.Runtime;
 using Android.Views;
 using ManagedBass;
 using Debug = System.Diagnostics.Debug;
+using Environment = System.Environment;
 
 namespace osu.Framework.Android
 {
@@ -66,7 +68,7 @@ namespace osu.Framework.Android
             // The default current directory on android is '/'.
             // On some devices '/' maps to the app data directory. On others it maps to the root of the internal storage.
             // In order to have a consistent current directory on all devices the full path of the app data directory is set as the current directory.
-            System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+            Environment.CurrentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
             base.OnCreate(savedInstanceState);
 
@@ -102,29 +104,24 @@ namespace osu.Framework.Android
                     });
                 }, true);
 
-                host.ScreenOrientation.BindValueChanged(e =>
-                {
-                    if (host.LockScreenOrientation.Value) return;
+                host.ScreenOrientation.BindValueChanged(e => updateOrientation(), true);
 
-                    RunOnUiThread(() =>
-                    {
-                        RequestedOrientation = configToNativeOrientationEnum(e.NewValue);
-                    });
-                }, true);
                 host.LockScreenOrientation.BindValueChanged(e =>
                 {
                     if (host.ScreenOrientation.Disabled)
                         throw new InvalidOperationException("Can't change screen orientation lock when setting is disabled");
 
-                    RunOnUiThread(() =>
-                    {
-                        RequestedOrientation = e.NewValue
-                            ? ScreenOrientation.Locked
-                            : configToNativeOrientationEnum(host.ScreenOrientation.Value);
-                    });
+                    updateOrientation();
                 });
             };
         }
+
+        private void updateOrientation() => RunOnUiThread(() =>
+        {
+            RequestedOrientation = gameView.Host.LockScreenOrientation.Value
+                ? ScreenOrientation.Locked
+                : configToNativeOrientationEnum(gameView.Host.ScreenOrientation.Value);
+        });
 
         protected override void OnPause()
         {
