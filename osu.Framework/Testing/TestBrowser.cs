@@ -26,7 +26,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
@@ -127,7 +126,7 @@ namespace osu.Framework.Testing
         private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, AudioManager audio)
+        private void load(Storage storage, GameHost host, AudioManager audio)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);

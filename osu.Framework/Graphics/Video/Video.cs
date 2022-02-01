@@ -10,7 +10,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Graphics.Shaders;
 using osuTK;
 
 namespace osu.Framework.Graphics.Video
@@ -105,7 +104,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost gameHost, FrameworkConfigManager config, ShaderManager shaders)
+        private void load(GameHost gameHost, FrameworkConfigManager config)
         {
             decoder = gameHost.CreateVideoDecoder(stream);
             decoder.Looping = Loop;

@@ -21,13 +21,13 @@ namespace osu.Framework.iOS.Input
                 AddPendingText(text);
         }
 
-        protected override void ActivateTextInput()
+        protected override void ActivateTextInput(bool allowIme)
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
         }
 
-        protected override void EnsureTextInputActivated()
+        protected override void EnsureTextInputActivated(bool allowIme)
         {
             // If the user has manually closed the keyboard, it will not be shown until another TextBox is focused.
             // Calling `view.KeyboardTextField.UpdateFirstResponder` over and over again won't work, due to how

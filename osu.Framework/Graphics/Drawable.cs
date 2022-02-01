@@ -1785,8 +1785,10 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            foreach (var member in layoutMembers)
+            for (int i = 0; i < layoutMembers.Count; i++)
             {
+                var member = layoutMembers[i];
+
                 // Only invalidate layout members that accept the given source.
                 if ((member.Source & source) == 0)
                     continue;
@@ -2584,14 +2586,14 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(Transforms)}");
 
         /// <summary>
         /// Check whether the current thread is valid for operating on thread-safe properties.
         /// </summary>
-        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <param name="action">The action to be performed, used only for describing failures in exception messages.</param>
         /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
-        internal void EnsureMutationAllowed(string member)
+        internal void EnsureMutationAllowed(string action)
         {
             switch (LoadState)
             {
@@ -2600,20 +2602,20 @@ namespace osu.Framework.Graphics
 
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load thread");
 
                     break;
 
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load or update threads");
 
                     break;
 
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the update thread");
 
                     break;
             }
@@ -2710,8 +2712,8 @@ namespace osu.Framework.Graphics
 
         public class InvalidThreadForMutationException : InvalidOperationException
         {
-            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
-                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
+            public InvalidThreadForMutationException(LoadState loadState, string action, string invalidThreadContextDescription)
+                : base($"Cannot {action} on a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
                        + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
             {
             }

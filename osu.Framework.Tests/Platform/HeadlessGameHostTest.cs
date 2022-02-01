@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), new HostOptions(), true))
             {
                 // never call host.Run()
             }
@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.Platform
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public void TestThreadSafetyResetOnEnteringThread()
         {
-            using (var host = new TestRunHeadlessGameHost(nameof(TestThreadSafetyResetOnEnteringThread)))
+            using (var host = new TestRunHeadlessGameHost(nameof(TestThreadSafetyResetOnEnteringThread), new HostOptions()))
             {
                 bool isDrawThread = false;
                 bool isUpdateThread = false;
@@ -87,8 +87,8 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
-            using (var client = new HeadlessGameHost(@"client", true))
+            using (var server = new BackgroundGameHeadlessGameHost(@"server", new HostOptions { BindIPC = true }))
+            using (var client = new HeadlessGameHost(@"client", new HostOptions { BindIPC = true }))
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Platform
         public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost
         {
             public ExceptionDuringSetupGameHost(string gameName)
-                : base(gameName)
+                : base(gameName, new HostOptions())
             {
             }
 
@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Platform
         public class TestRunHeadlessGameHostWithOverriddenExit : TestRunHeadlessGameHost
         {
             public TestRunHeadlessGameHostWithOverriddenExit(string gameName)
-                : base(gameName)
+                : base(gameName, new HostOptions())
             {
             }
 

@@ -390,8 +390,13 @@ namespace osu.Framework.Graphics.OpenGL
             vertex_buffers_in_use.RemoveAll(b => !b.InUse);
         }
 
+        internal static WrapMode CurrentWrapModeS { get; private set; }
+
+        internal static WrapMode CurrentWrapModeT { get; private set; }
+
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
+        private static TextureUnit lastActiveTextureUnit;
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
         internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
@@ -412,9 +417,6 @@ namespace osu.Framework.Graphics.OpenGL
             return didBind;
         }
 
-        internal static WrapMode CurrentWrapModeS;
-        internal static WrapMode CurrentWrapModeT;
-
         /// <summary>
         /// Binds a texture to draw with.
         /// </summary>
@@ -429,17 +431,19 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (wrapModeS != CurrentWrapModeS)
             {
+                // Will flush the current batch internally.
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
+                // Will flush the current batch internally.
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
                 CurrentWrapModeT = wrapModeT;
             }
 
-            if (last_bound_texture[index] == textureId)
+            if (lastActiveTextureUnit == unit && last_bound_texture[index] == textureId)
                 return false;
 
             FlushCurrentBatch();
@@ -449,6 +453,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             last_bound_texture[index] = textureId;
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+            lastActiveTextureUnit = unit;
 
             FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             return true;

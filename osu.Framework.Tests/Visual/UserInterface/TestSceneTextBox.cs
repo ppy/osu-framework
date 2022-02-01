@@ -809,6 +809,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private class NumberTextBox : BasicTextBox
         {
             protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
+
+            protected override bool AllowIme => false;
         }
 
         private class CustomTextBox : BasicTextBox
