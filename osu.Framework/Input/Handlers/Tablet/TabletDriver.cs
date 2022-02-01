@@ -38,7 +38,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private CancellationTokenSource cancellationSource;
 
-        public event EventHandler<IDeviceReport> DeviceReport;
+        public event EventHandler<IDeviceReport> DeviceReported;
 
         public override bool Detect()
         {
@@ -65,11 +65,11 @@ namespace osu.Framework.Input.Handlers.Tablet
                         {
                             foreach (var endpoint in device.InputDevices)
                             {
-                                endpoint.Report += DeviceReport;
+                                endpoint.Report += DeviceReported;
                                 endpoint.ConnectionStateChanged += (sender, connected) =>
                                 {
                                     if (!connected)
-                                        endpoint.Report -= DeviceReport;
+                                        endpoint.Report -= DeviceReported;
                                 };
                             }
                         }

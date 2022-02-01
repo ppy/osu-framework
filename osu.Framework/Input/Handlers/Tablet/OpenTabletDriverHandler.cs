@@ -66,7 +66,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                             updateOutputArea(host.Window);
                         }
                     };
-                    tabletDriver.DeviceReport += handleDeviceReport;
+                    tabletDriver.DeviceReported += handleDeviceReported;
                     tabletDriver.Detect();
                 }
                 else if (!d.NewValue && tabletDriver != null)
@@ -85,7 +85,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
-        private void handleDeviceReport(object sender, IDeviceReport report)
+        private void handleDeviceReported(object sender, IDeviceReport report)
         {
             switch (report)
             {
