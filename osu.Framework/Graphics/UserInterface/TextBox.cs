@@ -136,6 +136,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Scheduler used for scheduling text input events coming from <see cref="textInput"/>.
         /// </summary>
+        /// <remarks>
+        /// Used for scheduling text events so that the <see cref="Text"/> is updated on the update thread.
+        /// This scheduler is updated in two places / at two points in time:
+        ///  - Early in the update frame, in <see cref="OnKeyDown"/>, so that the key event is blocked. We assume a key event that comes right after a
+        ///    text event is associated with that text event and therefore should be blocked. In other words: to ensure consistent UX, if a user
+        ///    presses a key to input text then no other action (eg. from a keyboard shortcut) should be taken by the game, so we block it.
+        ///  - Later in the same update frame, in <see cref="Update"/>. In case there was no associated key event. This is mostly required for mobile platforms.
+        /// </remarks>
         private readonly Scheduler textInputScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         /// <summary>
@@ -941,11 +949,24 @@ namespace osu.Framework.Graphics.UserInterface
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
         /// <summary>
-        /// Whether there was recent text input from a <see cref="TextInputSource"/>.
+        /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
         /// </summary>
         /// <remarks>
-        /// If there was recent text input, all <see cref="OnKeyDown"/> should be blocked from propagating.
-        /// Cleared/set to <c>false</c> when all keys are released, or when input is unbound.
+        /// Blocking starts when a text events occurs and ends when all keys are released (or on the next frame if no keys are pressed).
+        ///
+        /// We currently eagerly block keydown events, blocking all key events until all keys are released.
+        /// This means that some key events will be (erroneously) blocked, even if they weren't associated with a text event.
+        /// This simplified logic is used because trying to associate each key event with a text event is error prone.
+        /// Some reasons as to why:
+        ///  - Text and key repeat rate are inherently different, since text repeat is handled by the OS, while <see cref="InputManager"/> handles key repeat.
+        ///  - The ordering of keydown and text events can vary between platforms.
+        ///  - The ordering of the events can vary even more because these events are propagated to the textbox differently:
+        ///     - Key events are propagated by <see cref="UserInputManager"/> at the beginning of each update frame.
+        ///     - Text events are propagated immediately when they're received, and are handled either by the <see cref="Update"/> call or <see cref="OnKeyDown"/>,
+        ///       whichever comes first. (Check usages of <see cref="textInputScheduler"/>.<see cref="Scheduler.Update"/> for specifics.)
+        ///     - This is especially problematic if the key and text events arrive in between the <see cref="UserInputManager"/> and <see cref="TextBox"/> updates.
+        ///
+        /// So we catch the first key that produced text and block until we get back to a sane state (all keys released).
         /// </remarks>
         private bool textInputBlocking;
 
@@ -1240,6 +1261,9 @@ namespace osu.Framework.Graphics.UserInterface
             Scheduler.AddOnce(revertBlockingStateIfRequired);
         }, text);
 
+        /// <summary>
+        /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
+        /// </summary>
         private void revertBlockingStateIfRequired() =>
             textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
 
