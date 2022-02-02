@@ -22,63 +22,53 @@ namespace osu.Framework.Input.Handlers.Tablet
     {
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
-        public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
-            : base(deviceHub, reportParserProvider, configurationProvider)
-        {
-            Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
-            deviceHub.DevicesChanged += (sender, args) =>
-            {
-                // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
-                if (!Tablets.Any() && args.Additions.Any())
-                    Detect();
-            };
-        }
-
-        private readonly object detectLock = new object();
-
         private CancellationTokenSource cancellationSource;
 
         public event EventHandler<IDeviceReport> DeviceReported;
 
-        public override bool Detect()
+        public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
+            : base(deviceHub, reportParserProvider, configurationProvider)
         {
-            lock (detectLock)
+            Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
+
+            deviceHub.DevicesChanged += (sender, args) =>
             {
-                cancellationSource?.Cancel();
-
-                var cancellationToken = (cancellationSource = new CancellationTokenSource()).Token;
-
-                Task.Run(async () =>
+                // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
+                if (!Tablets.Any() && args.Additions.Any())
                 {
-                    // wait a small delay as multiple devices may appear over a very short interval.
-                    await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+                    cancellationSource?.Cancel();
+                    cancellationSource = new CancellationTokenSource();
 
-                    int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+                    Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
+                }
+            };
+        }
 
-                    if (foundVendor > 0)
+        private async Task detectAsync(CancellationToken cancellationToken)
+        {
+            // wait a small delay as multiple devices may appear over a very short interval.
+            await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+
+            int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+
+            if (foundVendor > 0)
+            {
+                Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+
+                Detect();
+
+                foreach (var device in InputDevices)
+                {
+                    foreach (var endpoint in device.InputDevices)
                     {
-                        Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
-
-                        base.Detect();
-
-                        foreach (var device in InputDevices)
+                        endpoint.Report += DeviceReported;
+                        endpoint.ConnectionStateChanged += (sender, connected) =>
                         {
-                            foreach (var endpoint in device.InputDevices)
-                            {
-                                endpoint.Report += DeviceReported;
-                                endpoint.ConnectionStateChanged += (sender, connected) =>
-                                {
-                                    if (!connected)
-                                        endpoint.Report -= DeviceReported;
-                                };
-                            }
-                        }
+                            if (!connected)
+                                endpoint.Report -= DeviceReported;
+                        };
                     }
-                }, cancellationToken);
-
-                // ideally this would return if a tablet was detected, however it is not required.
-                // it is only used a hint that one or tablets were detected to be used by inheritors.
-                return true;
+                }
             }
         }
 
