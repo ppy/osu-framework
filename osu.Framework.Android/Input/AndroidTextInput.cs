@@ -25,13 +25,13 @@ namespace osu.Framework.Android.Input
 
         private void commitText(string text)
         {
-            TriggerImeResult(text);
+            TriggerTextInput(text);
         }
 
         private void keyDown(Keycode arg, KeyEvent e)
         {
             if (e.UnicodeChar != 0)
-                AddPendingText(((char)e.UnicodeChar).ToString());
+                TriggerTextInput(((char)e.UnicodeChar).ToString());
         }
 
         protected override void ActivateTextInput(bool allowIme)

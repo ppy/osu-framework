@@ -13,13 +13,13 @@ namespace osu.Framework.Benchmarks
 
         public override void SetUp()
         {
-            driver = new TabletDriver();
+            driver = TabletDriver.Create();
         }
 
         [Benchmark]
         public void DetectBenchmark()
         {
-            driver.DetectTablet();
+            driver.Detect();
         }
     }
 }
