@@ -3,11 +3,13 @@
 
 using System;
 using Android.Content;
+using Android.OS;
 using Android.Runtime;
 using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
+using JetBrains.Annotations;
 using osu.Framework.Android.Input;
 using osuTK.Graphics;
 
@@ -135,6 +137,35 @@ namespace osu.Framework.Android
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
         }
+
+        #region Safe area / display cutout handling
+
+        [CanBeNull]
+        private DisplayCutout displayCutout;
+
+        [CanBeNull]
+        internal DisplayCutout DisplayCutout
+        {
+            get => displayCutout;
+            set
+            {
+                if (value?.Equals(displayCutout) == true)
+                    return;
+
+                displayCutout = value;
+                OnResize(EventArgs.Empty);
+            }
+        }
+
+        public override WindowInsets OnApplyWindowInsets(WindowInsets insets)
+        {
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+                DisplayCutout = insets.DisplayCutout;
+
+            return base.OnApplyWindowInsets(insets);
+        }
+
+        #endregion
 
         #region Events
 
