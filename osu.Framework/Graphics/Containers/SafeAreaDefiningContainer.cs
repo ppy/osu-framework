@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         private GameHost host { get; set; }
 
-        private IBindable<MarginPadding> hostSafeArea;
+        private readonly IBindable<MarginPadding> hostSafeArea = new BindableSafeArea();
 
         protected override void LoadComplete()
         {
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Containers
             if (usesCustomBinding || host.Window == null)
                 return;
 
-            hostSafeArea = host.Window.SafeAreaPadding.GetBoundCopy();
+            hostSafeArea.BindTo(host.Window.SafeAreaPadding);
             hostSafeArea.BindValueChanged(_ => Scheduler.AddOnce(updateSafeAreaFromHost));
 
             updateSafeAreaFromHost();
