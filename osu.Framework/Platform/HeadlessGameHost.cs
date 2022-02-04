@@ -30,8 +30,18 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
+        [Obsolete("Use HeadlessGameHost(HostOptions, bool) instead.")] // Can be removed 20220715
+        public HeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : this(gameName, new HostOptions
+            {
+                BindIPC = bindIPC,
+                PortableInstallation = portableInstallation,
+            }, realtime)
+        {
+        }
+
+        public HeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName ?? Guid.NewGuid().ToString(), options)
         {
             this.realtime = realtime;
         }

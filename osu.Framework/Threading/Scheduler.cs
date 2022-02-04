@@ -89,7 +89,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Returns whether we are on the main thread or not.
         /// </summary>
-        protected bool IsMainThread => isCurrentThread?.Invoke() ?? true;
+        internal bool IsMainThread => isCurrentThread?.Invoke() ?? true;
 
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();

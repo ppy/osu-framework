@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
@@ -13,8 +14,18 @@ namespace osu.Framework.Tests.IO
     /// </summary>
     public class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
     {
-        public BackgroundGameHeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, realtime, portableInstallation)
+        [Obsolete("Use BackgroundGameHeadlessGameHost(string, HostOptions, bool) instead.")] // Can be removed 20220715
+        public BackgroundGameHeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : this(gameName, new HostOptions
+            {
+                BindIPC = bindIPC,
+                PortableInstallation = portableInstallation,
+            }, realtime)
+        {
+        }
+
+        public BackgroundGameHeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName, options, realtime: realtime)
         {
             var testGame = new TestGame();
 

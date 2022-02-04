@@ -26,7 +26,7 @@ namespace osu.Framework.Input
             }
             else
             {
-                AddPendingText(text);
+                TriggerTextInput(text);
             }
         }
 
