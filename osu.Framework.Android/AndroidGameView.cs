@@ -23,11 +23,14 @@ namespace osu.Framework.Android
     {
         public AndroidGameHost Host { get; private set; }
 
+        public readonly AndroidGameActivity Activity;
+
         private readonly Game game;
 
-        public AndroidGameView(Context context, Game game)
-            : base(context)
+        public AndroidGameView(AndroidGameActivity activity, Game game)
+            : base(activity)
         {
+            Activity = activity;
             this.game = game;
 
             init();
@@ -158,6 +161,16 @@ namespace osu.Framework.Android
 
                 if (cutout != null)
                     usableScreenArea = usableScreenArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
+            }
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.N && Activity.IsInMultiWindowMode)
+            {
+                // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
+                // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.
+
+                // `SystemWindowInsetTop` should be the correct inset here, but it doesn't correctly work (gives `0` even if the view is obstructed).
+                int statusBarHeight = RootWindowInsets?.StableInsetTop ?? 0;
+                usableScreenArea = usableScreenArea.Intersect(screenArea.Shrink(0, 0, statusBarHeight, 0));
             }
 
             // TODO: add rounded corners support (Android 12): https://developer.android.com/guide/topics/ui/look-and-feel/rounded-corners
