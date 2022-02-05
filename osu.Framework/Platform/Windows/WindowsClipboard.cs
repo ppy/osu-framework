@@ -2,8 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -46,6 +51,7 @@ namespace osu.Framework.Platform.Windows
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalFree(IntPtr hMem);
 
+        private const uint cf_dib = 8U;
         private const uint cf_unicodetext = 13U;
 
         public override string GetText()
@@ -134,6 +140,71 @@ namespace osu.Framework.Platform.Windows
                     if (SetClipboardData(cf_unicodetext, hGlobal).ToInt64() != 0)
                     {
                         // IMPORTANT: SetClipboardData takes ownership of hGlobal upon success.
+                        hGlobal = IntPtr.Zero;
+                    }
+                }
+                finally
+                {
+                    if (hGlobal != IntPtr.Zero)
+                        GlobalFree(hGlobal);
+                }
+            }
+            finally
+            {
+                CloseClipboard();
+            }
+        }
+
+        public override void SetImage(Image image)
+        {
+            byte[] array;
+
+            using (var stream = new MemoryStream())
+            {
+                var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
+                image.Save(stream, encoder);
+                array = stream.ToArray().Skip(14).ToArray();
+            }
+
+            try
+            {
+                if (!OpenClipboard(IntPtr.Zero))
+                    return;
+
+                EmptyClipboard();
+
+                IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
+                Marshal.Copy(array, 0, unmanagedPointer, array.Length);
+
+                const int gmem_movable = 0x0002;
+                const int gmem_zeroinit = 0x0040;
+                const int ghnd = gmem_movable | gmem_zeroinit;
+
+                var hGlobal = GlobalAlloc(ghnd, (UIntPtr)array.Length);
+
+                try
+                {
+                    var target = GlobalLock(hGlobal);
+                    if (target == IntPtr.Zero)
+                        return;
+
+                    try
+                    {
+                        unsafe
+                        {
+                            Buffer.MemoryCopy((void*)unmanagedPointer, (void*)target, array.Length, array.Length);
+                        }
+                    }
+                    finally
+                    {
+                        if (target != IntPtr.Zero)
+                            GlobalUnlock(target);
+
+                        Marshal.FreeHGlobal(unmanagedPointer);
+                    }
+
+                    if (SetClipboardData(cf_dib, hGlobal).ToInt64() != 0)
+                    {
                         hGlobal = IntPtr.Zero;
                     }
                 }
