@@ -11,6 +11,14 @@ namespace osu.Framework.Platform
 
         public abstract void SetText(string selectedText);
 
+        /// <summary>
+        /// Copy the image to the clipboard.
+        /// </summary>
+        /// <remarks>
+        /// Currently only supported on Windows.
+        /// </remarks>
+        /// <param name="image">The image to copy to the clipboard</param>
+        /// <returns>Whether the image was successfully copied or not</returns>
         public abstract bool SetImage(Image image);
     }
 }
