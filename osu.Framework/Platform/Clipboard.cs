@@ -5,10 +5,20 @@ using SixLabors.ImageSharp;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// This class allows placing and retrieving data from the clipboard
+    /// </summary>
     public abstract class Clipboard
     {
+        /// <summary>
+        /// Retrieve text from the clipboard
+        /// </summary>
         public abstract string GetText();
 
+        /// <summary>
+        /// Copy text to the clipboard
+        /// </summary>
+        /// <param name="selectedText">Text to copy to the clipboard</param>
         public abstract void SetText(string selectedText);
 
         /// <summary>
