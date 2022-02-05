@@ -58,6 +58,62 @@ namespace osu.Framework.Platform.Windows
         private const int gmem_zeroinit = 0x40;
         private const int ghnd = gmem_movable | gmem_zeroinit;
 
+        private bool setClipboard(IntPtr pointer, int bytes, uint format)
+        {
+            var success = false;
+
+            try
+            {
+                if (!OpenClipboard(IntPtr.Zero))
+                    return false;
+
+                EmptyClipboard();
+
+                // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
+                var hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
+
+                try
+                {
+                    var target = GlobalLock(hGlobal);
+                    if (target == IntPtr.Zero)
+                        return false;
+
+                    try
+                    {
+                        unsafe
+                        {
+                            Buffer.MemoryCopy((void*)pointer, (void*)target, bytes, bytes);
+                        }
+                    }
+                    finally
+                    {
+                        if (target != IntPtr.Zero)
+                            GlobalUnlock(target);
+
+                        Marshal.FreeHGlobal(pointer);
+                    }
+
+                    if (SetClipboardData(format, hGlobal).ToInt64() != 0)
+                    {
+                        // IMPORTANT: SetClipboardData takes ownership of hGlobal upon success.
+                        hGlobal = IntPtr.Zero;
+                        success = true;
+                    }
+                }
+                finally
+                {
+                    if (hGlobal != IntPtr.Zero)
+                        GlobalFree(hGlobal);
+                }
+            }
+            finally
+            {
+                CloseClipboard();
+            }
+
+            return success;
+        }
+
         public override string GetText()
         {
             if (!IsClipboardFormatAvailable(cf_unicodetext))
@@ -102,62 +158,14 @@ namespace osu.Framework.Platform.Windows
 
         public override void SetText(string selectedText)
         {
-            try
-            {
-                if (!OpenClipboard(IntPtr.Zero))
-                    return;
+            int bytes = (selectedText.Length + 1) * 2;
+            var source = Marshal.StringToHGlobalUni(selectedText);
 
-                EmptyClipboard();
-
-                uint bytes = ((uint)selectedText.Length + 1) * 2;
-
-                var source = Marshal.StringToHGlobalUni(selectedText);
-
-                // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
-                var hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
-
-                try
-                {
-                    var target = GlobalLock(hGlobal);
-                    if (target == IntPtr.Zero)
-                        return;
-
-                    try
-                    {
-                        unsafe
-                        {
-                            Buffer.MemoryCopy((void*)source, (void*)target, bytes, bytes);
-                        }
-                    }
-                    finally
-                    {
-                        if (target != IntPtr.Zero)
-                            GlobalUnlock(target);
-
-                        Marshal.FreeHGlobal(source);
-                    }
-
-                    if (SetClipboardData(cf_unicodetext, hGlobal).ToInt64() != 0)
-                    {
-                        // IMPORTANT: SetClipboardData takes ownership of hGlobal upon success.
-                        hGlobal = IntPtr.Zero;
-                    }
-                }
-                finally
-                {
-                    if (hGlobal != IntPtr.Zero)
-                        GlobalFree(hGlobal);
-                }
-            }
-            finally
-            {
-                CloseClipboard();
-            }
+            setClipboard(source, bytes, cf_unicodetext);
         }
 
         public override bool SetImage(Image image)
         {
-            bool success = false;
             byte[] array;
 
             using (var stream = new MemoryStream())
@@ -169,57 +177,10 @@ namespace osu.Framework.Platform.Windows
                 array = stream.ToArray().Skip(14).ToArray();
             }
 
-            try
-            {
-                if (!OpenClipboard(IntPtr.Zero))
-                    return false;
+            IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
+            Marshal.Copy(array, 0, unmanagedPointer, array.Length);
 
-                EmptyClipboard();
-
-                IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
-                Marshal.Copy(array, 0, unmanagedPointer, array.Length);
-
-                var hGlobal = GlobalAlloc(ghnd, (UIntPtr)array.Length);
-
-                try
-                {
-                    var target = GlobalLock(hGlobal);
-                    if (target == IntPtr.Zero)
-                        return false;
-
-                    try
-                    {
-                        unsafe
-                        {
-                            Buffer.MemoryCopy((void*)unmanagedPointer, (void*)target, array.Length, array.Length);
-                        }
-                    }
-                    finally
-                    {
-                        if (target != IntPtr.Zero)
-                            GlobalUnlock(target);
-
-                        Marshal.FreeHGlobal(unmanagedPointer);
-                    }
-
-                    if (SetClipboardData(cf_dib, hGlobal).ToInt64() != 0)
-                    {
-                        hGlobal = IntPtr.Zero;
-                        success = true;
-                    }
-                }
-                finally
-                {
-                    if (hGlobal != IntPtr.Zero)
-                        GlobalFree(hGlobal);
-                }
-            }
-            finally
-            {
-                CloseClipboard();
-            }
-
-            return success;
+            return setClipboard(unmanagedPointer, array.Length, cf_dib);
         }
     }
 }
