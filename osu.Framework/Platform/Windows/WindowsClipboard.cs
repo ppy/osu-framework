@@ -54,6 +54,10 @@ namespace osu.Framework.Platform.Windows
         private const uint cf_dib = 8U;
         private const uint cf_unicodetext = 13U;
 
+        private const int gmem_movable = 0x02;
+        private const int gmem_zeroinit = 0x40;
+        private const int ghnd = gmem_movable | gmem_zeroinit;
+
         public override string GetText()
         {
             if (!IsClipboardFormatAvailable(cf_unicodetext))
@@ -108,10 +112,6 @@ namespace osu.Framework.Platform.Windows
                 uint bytes = ((uint)selectedText.Length + 1) * 2;
 
                 var source = Marshal.StringToHGlobalUni(selectedText);
-
-                const int gmem_movable = 0x0002;
-                const int gmem_zeroinit = 0x0040;
-                const int ghnd = gmem_movable | gmem_zeroinit;
 
                 // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
                 var hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
@@ -175,10 +175,6 @@ namespace osu.Framework.Platform.Windows
 
                 IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
                 Marshal.Copy(array, 0, unmanagedPointer, array.Length);
-
-                const int gmem_movable = 0x0002;
-                const int gmem_zeroinit = 0x0040;
-                const int ghnd = gmem_movable | gmem_zeroinit;
 
                 var hGlobal = GlobalAlloc(ghnd, (UIntPtr)array.Length);
 
