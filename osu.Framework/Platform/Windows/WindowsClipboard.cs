@@ -163,6 +163,8 @@ namespace osu.Framework.Platform.Windows
             {
                 var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
                 image.Save(stream, encoder);
+                // The bitmap file header should not be included in clipboard
+                // https://en.wikipedia.org/wiki/BMP_file_format#File_structure
                 array = stream.ToArray().Skip(14).ToArray();
             }
 
