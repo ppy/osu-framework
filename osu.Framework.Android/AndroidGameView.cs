@@ -23,7 +23,7 @@ namespace osu.Framework.Android
     {
         public AndroidGameHost Host { get; private set; }
 
-        public readonly AndroidGameActivity Activity;
+        public AndroidGameActivity Activity { get; }
 
         private readonly Game game;
 
