@@ -11,6 +11,6 @@ namespace osu.Framework.Platform
 
         public abstract void SetText(string selectedText);
 
-        public abstract void SetImage(Image image);
+        public abstract bool SetImage(Image image);
     }
 }

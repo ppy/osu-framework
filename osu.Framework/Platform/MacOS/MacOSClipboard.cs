@@ -33,9 +33,9 @@ namespace osu.Framework.Platform.MacOS
             generalPasteboard.WriteObjects(NSArray.ArrayWithObject(Cocoa.ToNSString(selectedText)));
         }
 
-        public override void SetImage(Image image)
+        public override bool SetImage(Image image)
         {
-            throw new NotImplementedException();
+            return false;
         }
     }
 }

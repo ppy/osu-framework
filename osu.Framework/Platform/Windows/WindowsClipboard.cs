@@ -155,8 +155,9 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
-        public override void SetImage(Image image)
+        public override bool SetImage(Image image)
         {
+            bool success = false;
             byte[] array;
 
             using (var stream = new MemoryStream())
@@ -171,7 +172,7 @@ namespace osu.Framework.Platform.Windows
             try
             {
                 if (!OpenClipboard(IntPtr.Zero))
-                    return;
+                    return false;
 
                 EmptyClipboard();
 
@@ -184,7 +185,7 @@ namespace osu.Framework.Platform.Windows
                 {
                     var target = GlobalLock(hGlobal);
                     if (target == IntPtr.Zero)
-                        return;
+                        return false;
 
                     try
                     {
@@ -204,6 +205,7 @@ namespace osu.Framework.Platform.Windows
                     if (SetClipboardData(cf_dib, hGlobal).ToInt64() != 0)
                     {
                         hGlobal = IntPtr.Zero;
+                        success = true;
                     }
                 }
                 finally
@@ -216,6 +218,8 @@ namespace osu.Framework.Platform.Windows
             {
                 CloseClipboard();
             }
+
+            return success;
         }
     }
 }

@@ -24,9 +24,9 @@ namespace osu.Framework.iOS
 
         public override void SetText(string selectedText) => gameView.InvokeOnMainThread(() => UIPasteboard.General.String = selectedText);
 
-        public override void SetImage(Image image)
+        public override bool SetImage(Image image)
         {
-            throw new NotImplementedException();
+            return false;
         }
     }
 }

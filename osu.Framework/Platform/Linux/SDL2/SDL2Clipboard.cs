@@ -12,9 +12,9 @@ namespace osu.Framework.Platform.Linux.SDL2
 
         public override void SetText(string selectedText) => SDL.SDL_SetClipboardText(selectedText);
 
-        public override void SetImage(Image image)
+        public override bool SetImage(Image image)
         {
-            throw new System.NotImplementedException();
+            return false;
         }
     }
 }
