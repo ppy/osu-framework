@@ -384,7 +384,7 @@ namespace osu.Framework.Input
             if (potentialFocusTarget == FocusedDrawable)
                 return true;
 
-            if (potentialFocusTarget != null && !isDrawableValidForFocus(potentialFocusTarget))
+            if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
 
             var previousFocus = FocusedDrawable;
