@@ -132,6 +132,46 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkFocused(() => focusBottomRight);
         }
 
+        /// <summary>
+        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a non-present drawable returns <see langword="false"/>.
+        /// </summary>
+        [Test]
+        public void NotPresentDrawableCannotReceiveFocus()
+        {
+            checkFocused(() => requestingFocus);
+
+            AddStep("hide top left", () => focusTopLeft.Alpha = 0);
+            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+
+            checkFocused(() => requestingFocus);
+        }
+
+        /// <summary>
+        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable of a non-present parent returns <see langword="false"/>.
+        /// </summary>
+        [Test]
+        public void DrawableOfNotPresentParentCannotReceiveFocus()
+        {
+            checkFocused(() => requestingFocus);
+
+            AddStep("wrap top left in hidden container", () =>
+            {
+                Container container;
+
+                Add(container = new Container
+                {
+                    Alpha = 0,
+                    RelativeSizeAxes = Axes.Both,
+                });
+
+                Remove(focusTopLeft);
+                container.Add(focusTopLeft);
+            });
+            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+
+            checkFocused(() => requestingFocus);
+        }
+
         [Test]
         public void ShowOverlayInteractions()
         {
