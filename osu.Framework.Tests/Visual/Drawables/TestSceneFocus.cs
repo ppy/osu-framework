@@ -133,10 +133,24 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
+        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
+        /// </summary>
+        [Test]
+        public void DisabledFocusDrawableCannotReceiveFocusViaChangeFocus()
+        {
+            checkFocused(() => requestingFocus);
+
+            AddStep("disable focus from top left", () => focusTopLeft.AllowAcceptingFocus = false);
+            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+
+            checkFocused(() => requestingFocus);
+        }
+
+        /// <summary>
         /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a non-present drawable returns <see langword="false"/>.
         /// </summary>
         [Test]
-        public void NotPresentDrawableCannotReceiveFocus()
+        public void NotPresentDrawableCannotReceiveFocusViaChangeFocus()
         {
             checkFocused(() => requestingFocus);
 
@@ -150,7 +164,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable of a non-present parent returns <see langword="false"/>.
         /// </summary>
         [Test]
-        public void DrawableOfNotPresentParentCannotReceiveFocus()
+        public void DrawableOfNotPresentParentCannotReceiveFocusViaChangeFocus()
         {
             checkFocused(() => requestingFocus);
 
@@ -346,7 +360,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             protected override bool OnClick(ClickEvent e) => true;
 
-            public override bool AcceptsFocus => true;
+            public bool AllowAcceptingFocus = true;
+
+            public override bool AcceptsFocus => AllowAcceptingFocus;
 
             protected override void OnFocus(FocusEvent e)
             {
