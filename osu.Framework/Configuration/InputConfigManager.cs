@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -88,7 +89,7 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Binds to all <see cref="IBindable{T}"/>s that the <see cref="InputHandlers"/> expose,
+        /// Binds to all <see cref="Bindable{T}"/>s that the <see cref="InputHandlers"/> expose,
         /// and calls <see cref="ConfigManager.QueueBackgroundSave"/> when their values change.
         /// </summary>
         private void bindToHandlersBindables()
@@ -97,13 +98,13 @@ namespace osu.Framework.Configuration
             {
                 foreach (var property in handler.GetType().GetProperties())
                 {
-                    // get the underlying IBindable<T> for this property.
-                    var bindableType = property.PropertyType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IBindable<>));
+                    // get the underlying Bindable<T> for this property.
+                    var bindableType = property.PropertyType.EnumerateBaseTypes().FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Bindable<>));
 
                     // ignore if this isn't a bindable.
                     if (bindableType == null) continue;
 
-                    // get the type that this IBindable<T> encapsulates.
+                    // get the type that this Bindable<T> encapsulates.
                     var encapsulatedType = bindableType.GetGenericArguments()[0];
 
                     var subscribeMethod = typeof(InputConfigManager).GetMethod(nameof(subscribe), BindingFlags.NonPublic | BindingFlags.Instance);
@@ -116,6 +117,6 @@ namespace osu.Framework.Configuration
             }
         }
 
-        private void subscribe<T>(IBindable<T> bindable) => bindable.BindValueChanged(_ => QueueBackgroundSave());
+        private void subscribe<T>(Bindable<T> bindable) => bindable.BindValueChanged(_ => QueueBackgroundSave());
     }
 }
