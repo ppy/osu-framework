@@ -78,7 +78,8 @@ namespace osu.Framework.Tests.Configuration
         public void TestModifyingSettingsSavesToDisk()
         {
             string beforeChange = null;
-            string afterChange = null;
+            string afterSensitivityChange = null;
+            string afterEnabledChange = null;
             string afterExit;
 
             using (var host = new TestHeadlessGameHost(bypassCleanup: true))
@@ -104,7 +105,18 @@ namespace osu.Framework.Tests.Configuration
                     using (var stream = storage.GetStream(InputConfigManager.FILENAME))
                     using (var sr = new StreamReader(stream))
                     {
-                        afterChange = sr.ReadToEnd();
+                        afterSensitivityChange = sr.ReadToEnd();
+                    }
+
+                    h.AvailableInputHandlers.OfType<MouseHandler>().First().Enabled.Value = true;
+
+                    // let the InputConfigManager QueueBackgroundSave() debounce
+                    Thread.Sleep(200);
+
+                    using (var stream = storage.GetStream(InputConfigManager.FILENAME))
+                    using (var sr = new StreamReader(stream))
+                    {
+                        afterEnabledChange = sr.ReadToEnd();
                     }
                 }));
             }
@@ -119,8 +131,17 @@ namespace osu.Framework.Tests.Configuration
             storage.Delete(FrameworkConfigManager.FILENAME);
             storage.Delete(InputConfigManager.FILENAME);
 
-            Assert.False(beforeChange.Equals(afterChange, StringComparison.Ordinal));
-            Assert.True(afterChange.Equals(afterExit, StringComparison.Ordinal));
+            // the handler is disabled by default because it failed to initialize (no SDL2DesktopWindow to bind events)
+            assertConfigMatches(beforeChange, "1.0", "false");
+            assertConfigMatches(afterSensitivityChange, "5.0", "false");
+            assertConfigMatches(afterEnabledChange, "5.0", "true");
+            assertConfigMatches(afterExit, "5.0", "true");
+        }
+
+        private void assertConfigMatches(string file, string sensitivity, string enabled)
+        {
+            Assert.True(file.Contains($"\"Sensitivity\":{sensitivity}"));
+            Assert.True(file.Contains($"\"Enabled\":{enabled}"));
         }
 
         public class TestHeadlessGameHost : TestRunHeadlessGameHost
