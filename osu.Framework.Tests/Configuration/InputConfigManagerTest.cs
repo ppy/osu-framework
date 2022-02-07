@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -70,6 +72,55 @@ namespace osu.Framework.Tests.Configuration
             }
 
             Assert.AreEqual(5, sensitivity);
+        }
+
+        [Test]
+        public void TestModifyingSettingsSavesToDisk()
+        {
+            string beforeChange = null;
+            string afterChange = null;
+            string afterExit;
+
+            using (var host = new TestHeadlessGameHost(bypassCleanup: true))
+            {
+                host.Run(new TestGame((h, config) =>
+                {
+                    storage = h.Storage;
+
+                    // let the InputConfigManager save and close the file
+                    Thread.Sleep(100);
+
+                    using (var stream = storage.GetStream(InputConfigManager.FILENAME))
+                    using (var sr = new StreamReader(stream))
+                    {
+                        beforeChange = sr.ReadToEnd();
+                    }
+
+                    h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = 5;
+
+                    // let the InputConfigManager QueueBackgroundSave() debounce
+                    Thread.Sleep(200);
+
+                    using (var stream = storage.GetStream(InputConfigManager.FILENAME))
+                    using (var sr = new StreamReader(stream))
+                    {
+                        afterChange = sr.ReadToEnd();
+                    }
+                }));
+            }
+
+            using (var stream = storage.GetStream(InputConfigManager.FILENAME))
+            using (var sr = new StreamReader(stream))
+            {
+                afterExit = sr.ReadToEnd();
+            }
+
+            // delete the files so the test can have a clean slate next time it's run.
+            storage.Delete(FrameworkConfigManager.FILENAME);
+            storage.Delete(InputConfigManager.FILENAME);
+
+            Assert.False(beforeChange.Equals(afterChange, StringComparison.Ordinal));
+            Assert.True(afterChange.Equals(afterExit, StringComparison.Ordinal));
         }
 
         public class TestHeadlessGameHost : TestRunHeadlessGameHost
