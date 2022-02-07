@@ -3,8 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
+using osu.Framework.Bindables;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -16,9 +20,6 @@ namespace osu.Framework.Configuration
     /// <summary>
     /// Handles serialisation/deserialisation of a provided collection of <see cref="InputHandler"/>s.
     /// </summary>
-    /// <remarks>
-    /// Only saves settings on disposal currently.
-    /// </remarks>
     [Serializable]
     internal class InputConfigManager : ConfigManager
     {
@@ -40,6 +41,8 @@ namespace osu.Framework.Configuration
             InputHandlers = inputHandlers;
 
             Load();
+
+            bindToHandlersBindables();
         }
 
         protected override bool PerformSave()
@@ -83,5 +86,36 @@ namespace osu.Framework.Configuration
                 }
             }
         }
+
+        /// <summary>
+        /// Binds to all <see cref="IBindable{T}"/>s that the <see cref="InputHandlers"/> expose,
+        /// and calls <see cref="ConfigManager.QueueBackgroundSave"/> when their values change.
+        /// </summary>
+        private void bindToHandlersBindables()
+        {
+            foreach (var handler in InputHandlers)
+            {
+                foreach (var property in handler.GetType().GetProperties())
+                {
+                    // get the underlying IBindable<T> for this property.
+                    var bindableType = property.PropertyType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IBindable<>));
+
+                    // ignore if this isn't a bindable.
+                    if (bindableType == null) continue;
+
+                    // get the type that this IBindable<T> encapsulates.
+                    var encapsulatedType = bindableType.GetGenericArguments()[0];
+
+                    var subscribeMethod = typeof(InputConfigManager).GetMethod(nameof(subscribe), BindingFlags.NonPublic | BindingFlags.Instance);
+                    Debug.Assert(subscribeMethod != null);
+
+                    // call `subscribe` with the type and bindable.
+                    subscribeMethod.MakeGenericMethod(encapsulatedType)
+                                   .Invoke(this, new[] { property.GetValue(handler) });
+                }
+            }
+        }
+
+        private void subscribe<T>(IBindable<T> bindable) => bindable.BindValueChanged(_ => QueueBackgroundSave());
     }
 }
