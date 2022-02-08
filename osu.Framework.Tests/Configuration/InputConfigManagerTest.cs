@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -74,6 +73,38 @@ namespace osu.Framework.Tests.Configuration
             Assert.AreEqual(5, sensitivity);
         }
 
+        /// <summary>
+        /// Verifies that <see cref="InputConfigManager"/> saves when any public-facing bindables of <see cref="InputHandler"/>s are changed.
+        /// </summary>
+        [Test]
+        public void TestChangingSettingsSaves()
+        {
+            var handler = new MouseHandler();
+            var config = new TestInputConfigManager(new[] { handler });
+
+            handler.Sensitivity.Value = 5;
+            Thread.Sleep(150); // wait for QueueBackgroundSave() debounce.
+            Assert.AreEqual(config.TimesSaved, 1);
+
+            handler.Enabled.Value = !handler.Enabled.Value;
+            Thread.Sleep(150);
+            Assert.AreEqual(config.TimesSaved, 2);
+
+            handler.Reset();
+            Thread.Sleep(150);
+            Assert.AreEqual(config.TimesSaved, 3);
+
+            for (int i = 0; i < 10; i++)
+            {
+                handler.Sensitivity.Value += 0.1;
+                Thread.Sleep(20);
+                Assert.AreEqual(config.TimesSaved, 3);
+            }
+
+            Thread.Sleep(150);
+            Assert.AreEqual(config.TimesSaved, 4);
+        }
+
         public class TestHeadlessGameHost : TestRunHeadlessGameHost
         {
             public TestHeadlessGameHost([CallerMemberName] string caller = "", bool bypassCleanup = false)
@@ -109,6 +140,26 @@ namespace osu.Framework.Tests.Configuration
             {
                 base.Update();
                 Exit();
+            }
+        }
+
+        private class TestInputConfigManager : InputConfigManager
+        {
+            public int TimesSaved;
+
+            public TestInputConfigManager(IReadOnlyList<InputHandler> inputHandlers)
+                : base(null!, inputHandlers)
+            {
+            }
+
+            protected override void PerformLoad()
+            {
+            }
+
+            protected override bool PerformSave()
+            {
+                TimesSaved++;
+                return true;
             }
         }
     }
