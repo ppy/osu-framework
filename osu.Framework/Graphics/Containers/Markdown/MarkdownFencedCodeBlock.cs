@@ -41,8 +41,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 textFlowContainer = CreateTextFlow(),
             };
 
-            foreach (var line in fencedCodeBlock.Lines.Lines)
-                textFlowContainer.AddParagraph(line.ToString());
+            if (fencedCodeBlock.Lines.Count > 0)
+            {
+                foreach (var line in fencedCodeBlock.Lines.Lines)
+                    textFlowContainer.AddParagraph(line.ToString());
+            }
         }
 
         protected virtual Drawable CreateBackground() => new Box
