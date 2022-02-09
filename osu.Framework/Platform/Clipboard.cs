@@ -24,7 +24,6 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Retrieve image from the clipboard.
-        /// Why the fuck am I doing this?
         /// </summary>
         /// <remarks>
         /// Currently only supported on Windows.
