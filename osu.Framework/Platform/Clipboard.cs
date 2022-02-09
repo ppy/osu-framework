@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform
 {
@@ -20,6 +21,16 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="selectedText">Text to copy to the clipboard</param>
         public abstract void SetText(string selectedText);
+
+        /// <summary>
+        /// Retrieve image from the clipboard.
+        /// Why the fuck am I doing this?
+        /// </summary>
+        /// <remarks>
+        /// Currently only supported on Windows.
+        /// </remarks>
+        public abstract Image<TPixel> GetImage<TPixel>()
+            where TPixel : unmanaged, IPixel<TPixel>;
 
         /// <summary>
         /// Copy the image to the clipboard.

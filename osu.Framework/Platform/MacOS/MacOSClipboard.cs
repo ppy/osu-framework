@@ -33,6 +33,11 @@ namespace osu.Framework.Platform.MacOS
             generalPasteboard.WriteObjects(NSArray.ArrayWithObject(Cocoa.ToNSString(selectedText)));
         }
 
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return null;
+        }
+
         public override bool SetImage(Image image)
         {
             return false;

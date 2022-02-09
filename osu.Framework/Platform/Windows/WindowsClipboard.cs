@@ -9,6 +9,7 @@ using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -57,6 +58,8 @@ namespace osu.Framework.Platform.Windows
         private const int gmem_movable = 0x02;
         private const int gmem_zeroinit = 0x40;
         private const int ghnd = gmem_movable | gmem_zeroinit;
+
+        private readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
         private bool setClipboard(IntPtr pointer, int bytes, uint format)
         {
@@ -114,19 +117,19 @@ namespace osu.Framework.Platform.Windows
             return success;
         }
 
-        public override string GetText()
+        private T getClipboard<T>(uint format, Func<byte[], T> transform)
         {
-            if (!IsClipboardFormatAvailable(cf_unicodetext))
-                return null;
+            if (!IsClipboardFormatAvailable(format))
+                return default;
 
             try
             {
                 if (!OpenClipboard(IntPtr.Zero))
-                    return null;
+                    return default;
 
-                IntPtr handle = GetClipboardData(cf_unicodetext);
+                IntPtr handle = GetClipboardData(format);
                 if (handle == IntPtr.Zero)
-                    return null;
+                    return default;
 
                 IntPtr pointer = IntPtr.Zero;
 
@@ -135,14 +138,14 @@ namespace osu.Framework.Platform.Windows
                     pointer = GlobalLock(handle);
 
                     if (pointer == IntPtr.Zero)
-                        return null;
+                        return default;
 
                     int size = GlobalSize(handle);
                     byte[] buff = new byte[size];
 
                     Marshal.Copy(pointer, buff, 0, size);
 
-                    return Encoding.Unicode.GetString(buff).TrimEnd('\0');
+                    return transform(buff);
                 }
                 finally
                 {
@@ -156,12 +159,30 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
+        public override string GetText()
+        {
+            return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
+        }
+
         public override void SetText(string selectedText)
         {
             int bytes = (selectedText.Length + 1) * 2;
             var source = Marshal.StringToHGlobalUni(selectedText);
 
             setClipboard(source, bytes, cf_unicodetext);
+        }
+
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return getClipboard(cf_dib, bytes =>
+            {
+                byte[] buff = new byte[bytes.Length + 14];
+
+                bmp_header_field.CopyTo(buff, 0);
+                bytes.CopyTo(buff, 14);
+
+                return Image.Load<TPixel>(buff);
+            });
         }
 
         public override bool SetImage(Image image)

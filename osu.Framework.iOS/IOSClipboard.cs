@@ -24,6 +24,11 @@ namespace osu.Framework.iOS
 
         public override void SetText(string selectedText) => gameView.InvokeOnMainThread(() => UIPasteboard.General.String = selectedText);
 
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return null;
+        }
+
         public override bool SetImage(Image image)
         {
             return false;
