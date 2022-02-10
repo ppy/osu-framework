@@ -10,7 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    [Ignore("This test cannot be run in headless mode (a window instance is required).")]
+    [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
     public class TestSceneClipboard : FrameworkTestScene
     {
         private GameHost host;
