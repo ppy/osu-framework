@@ -7,7 +7,4 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
     <ProjectReference Include="..\SampleGame\SampleGame.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" />
-  </ItemGroup>
 </Project>

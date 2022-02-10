@@ -13,7 +13,6 @@
     <!-- The following two are unused, but resolves warning MSB3277. -->
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.CodeDom" Version="6.0.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

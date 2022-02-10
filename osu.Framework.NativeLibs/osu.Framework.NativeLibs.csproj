@@ -27,7 +27,4 @@
       <PackagePath>lib\$(TargetFramework)</PackagePath>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" />
-  </ItemGroup>
 </Project>
