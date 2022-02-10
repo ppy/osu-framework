@@ -237,9 +237,9 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.ThrowsAsync<ArgumentException>(() => request.PerformAsync());
+                Assert.ThrowsAsync<NotSupportedException>(() => request.PerformAsync());
             else
-                Assert.Throws<ArgumentException>(request.Perform);
+                Assert.Throws<NotSupportedException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
