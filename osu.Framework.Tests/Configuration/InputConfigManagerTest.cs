@@ -83,26 +83,25 @@ namespace osu.Framework.Tests.Configuration
             var config = new TestInputConfigManager(new[] { handler });
 
             handler.Sensitivity.Value = 5;
-            Thread.Sleep(150); // wait for QueueBackgroundSave() debounce.
-            Assert.AreEqual(config.TimesSaved, 1);
+            Assert.IsTrue(config.SaveEvent.WaitOne(200)); // wait for QueueBackgroundSave() debounce.
+            Assert.AreEqual(1, config.TimesSaved);
 
             handler.Enabled.Value = !handler.Enabled.Value;
-            Thread.Sleep(150);
-            Assert.AreEqual(config.TimesSaved, 2);
+            Assert.IsTrue(config.SaveEvent.WaitOne(200));
+            Assert.AreEqual(2, config.TimesSaved);
 
             handler.Reset();
-            Thread.Sleep(150);
-            Assert.AreEqual(config.TimesSaved, 3);
+            Assert.IsTrue(config.SaveEvent.WaitOne(200));
+            Assert.AreEqual(3, config.TimesSaved);
 
             for (int i = 0; i < 10; i++)
             {
                 handler.Sensitivity.Value += 0.1;
-                Thread.Sleep(20);
-                Assert.AreEqual(config.TimesSaved, 3);
+                Assert.AreEqual(3, config.TimesSaved);
             }
 
-            Thread.Sleep(150);
-            Assert.AreEqual(config.TimesSaved, 4);
+            Assert.IsTrue(config.SaveEvent.WaitOne(200));
+            Assert.AreEqual(4, config.TimesSaved);
         }
 
         public class TestHeadlessGameHost : TestRunHeadlessGameHost
@@ -147,6 +146,8 @@ namespace osu.Framework.Tests.Configuration
         {
             public int TimesSaved;
 
+            public readonly AutoResetEvent SaveEvent = new AutoResetEvent(false);
+
             public TestInputConfigManager(IReadOnlyList<InputHandler> inputHandlers)
                 : base(null!, inputHandlers)
             {
@@ -159,6 +160,7 @@ namespace osu.Framework.Tests.Configuration
             protected override bool PerformSave()
             {
                 TimesSaved++;
+                SaveEvent.Set();
                 return true;
             }
         }
