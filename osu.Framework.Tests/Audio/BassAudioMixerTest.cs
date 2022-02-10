@@ -175,19 +175,26 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestTrackReferenceLostWhenTrackIsDisposed()
         {
-            track.Dispose();
+            var trackReference = testDisposeTrackWithoutReference();
 
             // The first update disposes the track, the second one removes the track from the TrackStore.
             bass.Update();
             bass.Update();
 
-            var trackReference = new WeakReference<TrackBass>(track);
-            track = null;
-
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
             Assert.That(!trackReference.TryGetTarget(out _));
+        }
+
+        private WeakReference<TrackBass> testDisposeTrackWithoutReference()
+        {
+            var weakRef = new WeakReference<TrackBass>(track);
+
+            track.Dispose();
+            track = null;
+
+            return weakRef;
         }
 
         [Test]
