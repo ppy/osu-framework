@@ -58,11 +58,56 @@ namespace osu.Framework.Platform.Windows
         private const int gmem_zeroinit = 0x40;
         private const int ghnd = gmem_movable | gmem_zeroinit;
 
-        private readonly byte[] bmp_header_field = { 0x42, 0x4D };
+        private static readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
-        private bool setClipboard(IntPtr pointer, int bytes, uint format)
+        public override string GetText()
         {
-            var success = false;
+            return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
+        }
+
+        public override void SetText(string selectedText)
+        {
+            int bytes = (selectedText.Length + 1) * 2;
+            var source = Marshal.StringToHGlobalUni(selectedText);
+
+            setClipboard(source, bytes, cf_unicodetext);
+        }
+
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return getClipboard(cf_dib, bytes =>
+            {
+                byte[] buff = new byte[bytes.Length + 14];
+
+                bmp_header_field.CopyTo(buff, 0);
+                bytes.CopyTo(buff, 14);
+
+                return Image.Load<TPixel>(buff);
+            });
+        }
+
+        public override bool SetImage(Image image)
+        {
+            byte[] array;
+
+            using (var stream = new MemoryStream())
+            {
+                var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
+                image.Save(stream, encoder);
+                // The bitmap file header should not be included in clipboard
+                // https://en.wikipedia.org/wiki/BMP_file_format#File_structure
+                array = stream.ToArray().Skip(14).ToArray();
+            }
+
+            IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
+            Marshal.Copy(array, 0, unmanagedPointer, array.Length);
+
+            return setClipboard(unmanagedPointer, array.Length, cf_dib);
+        }
+
+        private static bool setClipboard(IntPtr pointer, int bytes, uint format)
+        {
+            bool success = false;
 
             try
             {
@@ -116,7 +161,7 @@ namespace osu.Framework.Platform.Windows
             return success;
         }
 
-        private T getClipboard<T>(uint format, Func<byte[], T> transform)
+        private static T getClipboard<T>(uint format, Func<byte[], T> transform)
         {
             if (!IsClipboardFormatAvailable(format))
                 return default;
@@ -156,51 +201,6 @@ namespace osu.Framework.Platform.Windows
             {
                 CloseClipboard();
             }
-        }
-
-        public override string GetText()
-        {
-            return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
-        }
-
-        public override void SetText(string selectedText)
-        {
-            int bytes = (selectedText.Length + 1) * 2;
-            var source = Marshal.StringToHGlobalUni(selectedText);
-
-            setClipboard(source, bytes, cf_unicodetext);
-        }
-
-        public override Image<TPixel> GetImage<TPixel>()
-        {
-            return getClipboard(cf_dib, bytes =>
-            {
-                byte[] buff = new byte[bytes.Length + 14];
-
-                bmp_header_field.CopyTo(buff, 0);
-                bytes.CopyTo(buff, 14);
-
-                return Image.Load<TPixel>(buff);
-            });
-        }
-
-        public override bool SetImage(Image image)
-        {
-            byte[] array;
-
-            using (var stream = new MemoryStream())
-            {
-                var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
-                image.Save(stream, encoder);
-                // The bitmap file header should not be included in clipboard
-                // https://en.wikipedia.org/wiki/BMP_file_format#File_structure
-                array = stream.ToArray().Skip(14).ToArray();
-            }
-
-            IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
-            Marshal.Copy(array, 0, unmanagedPointer, array.Length);
-
-            return setClipboard(unmanagedPointer, array.Length, cf_dib);
         }
     }
 }
