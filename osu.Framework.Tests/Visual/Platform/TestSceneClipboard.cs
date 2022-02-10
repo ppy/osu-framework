@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddAssert("compare images", () =>
             {
-                if (originalImage.Width != clipboardImage.Width && originalImage.Height != clipboardImage.Height)
+                if (originalImage.Width != clipboardImage.Width || originalImage.Height != clipboardImage.Height)
                     return false;
 
                 for (int x = 0; x < originalImage.Width; x++)
