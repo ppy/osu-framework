@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Platform;
+using SixLabors.ImageSharp;
 using UIKit;
 
 namespace osu.Framework.iOS
