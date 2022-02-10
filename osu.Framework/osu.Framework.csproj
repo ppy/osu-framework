@@ -37,7 +37,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.187" />
-    <PackageReference Include="StbiSharp" Version="1.0.13" />
+    <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.501-alpha" />
 
     <!-- Any version ahead of this will cause AOT issues with iOS
@@ -47,6 +47,7 @@
     <!-- Any version ahead of this will cause runtime issues on iOS
          See https://github.com/xoofx/markdig/issues/564 -->
     <PackageReference Include="Markdig" Version="0.23.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.1221.0" />
