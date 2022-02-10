@@ -11,6 +11,7 @@ using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using osu.Framework.Android.Input;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
@@ -24,6 +25,8 @@ namespace osu.Framework.Android
         public AndroidGameHost Host { get; private set; }
 
         public AndroidGameActivity Activity { get; }
+
+        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         private readonly Game game;
 
@@ -120,12 +123,12 @@ namespace osu.Framework.Android
         [STAThread]
         public void RenderGame()
         {
+            LayoutChange += (_, __) => updateSafeArea();
+
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
             Host.Run(game);
             HostStarted?.Invoke(Host);
-
-            LayoutChange += (_, __) => updateSafeArea();
 
             // if this is run immediately, we'll have an invalid layout (Width == Height == 0).
             Host.InputThread.Scheduler.Add(updateSafeArea);
@@ -185,13 +188,13 @@ namespace osu.Framework.Android
 
             var usableViewArea = viewArea.Intersect(usableScreenArea);
 
-            SafeAreaChanged?.Invoke(new MarginPadding
+            SafeAreaPadding.Value = new MarginPadding
             {
                 Left = usableViewArea.Left - viewArea.Left,
                 Top = usableViewArea.Top - viewArea.Top,
                 Right = viewArea.Right - usableViewArea.Right,
                 Bottom = viewArea.Bottom - usableViewArea.Bottom,
-            });
+            };
         }
 
         public override bool OnCheckIsTextEditor() => true;
@@ -229,15 +232,6 @@ namespace osu.Framework.Android
         /// Invoked when the <see cref="game"/> has been started on the <see cref="Host"/>.
         /// </summary>
         public event Action<AndroidGameHost> HostStarted;
-
-        /// <summary>
-        /// Invoked when the safe area has changed.
-        /// </summary>
-        /// <remarks>
-        /// Usually because the screen orientation has changed, or when multi-window mode is activated.
-        /// Invoked once on startup.
-        /// </remarks>
-        public event Action<MarginPadding> SafeAreaChanged;
 
         #endregion
     }

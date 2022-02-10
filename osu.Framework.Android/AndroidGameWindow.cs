@@ -32,7 +32,7 @@ namespace osu.Framework.Android
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            view.SafeAreaChanged += safeArea => SafeAreaPadding.Value = safeArea;
+            SafeAreaPadding.BindTo(view.SafeAreaPadding);
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
