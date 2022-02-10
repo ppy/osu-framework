@@ -9,6 +9,7 @@ using System.Threading;
 using osu.Framework.Logging;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,6 +17,7 @@ using System.Text;
 
 namespace osu.Framework.Testing
 {
+    [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
     internal class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
