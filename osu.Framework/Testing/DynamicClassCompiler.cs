@@ -64,7 +64,7 @@ namespace osu.Framework.Testing
                 return;
             }
 
-#if NET5_0
+#if NET6_0
             referenceBuilder = new RoslynTypeReferenceBuilder();
 #else
             referenceBuilder = new EmptyTypeReferenceBuilder();

@@ -130,7 +130,7 @@ namespace osu.Framework.Statistics
         // ReSharper disable once UnusedParameter.Local
         private static unsafe Type getTypeFromHandle(IntPtr handle)
         {
-#if NET5_0
+#if NET6_0
             // This is super unsafe code which is dependent upon internal CLR structures.
             TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
             return __reftype(*(TypedReference*)&tr);
@@ -139,7 +139,7 @@ namespace osu.Framework.Statistics
 #endif
         }
 
-#if NET5_0
+#if NET6_0
         /// <summary>
         /// Matches the internal layout of <see cref="TypedReference"/>.
         /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs
