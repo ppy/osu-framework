@@ -22,7 +22,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
-    internal class BassAudioMixer : AudioMixer, IBassAudio
+    internal class BassAudioMixer : AudioMixer, IBassAudioChannel
     {
         /// <summary>
         /// The handle for this mixer.
@@ -37,22 +37,53 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// The list of channels which are currently active in the BASS mix.
         /// </summary>
-        private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
+        internal readonly List<IBassAudioChannel> ActiveChannels = new List<IBassAudioChannel>();
+
+        private readonly AudioMixer globalMixer;
+
+        private readonly bool floatingPoint;
 
         private const int frequency = 44100;
 
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public BassAudioMixer(AudioMixer? globalMixer, string identifier)
-            : base(globalMixer, identifier)
+        /// <param name="globalMixer"></param>
+        /// <param name="disableFloatingPoint">Whether the mixer should using 16-bit instead of 32-bit floating-point for sample data</param>
+        public BassAudioMixer(string identifier, AudioMixer? globalMixer, bool disableFloatingPoint = false)
+            : base(identifier)
         {
-            EnqueueAction(createMixer);
+            floatingPoint = !disableFloatingPoint;
+            this.globalMixer = globalMixer ?? this;
+            this.globalMixer.EnqueueAction(createMixer);
         }
 
         public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
+
+        public override float[] GetLevel(float length)
+        {
+            float[] levels = new float[2];
+
+            if (Mixer != null)
+                levels = Mixer.GetChannelLevel(this, length);
+            else
+                MixerGetLevel(levels, length, LevelRetrievalFlags.Stereo);
+
+            return levels;
+        }
+
+        public override float[] GetChannelLevel(IAudioChannel channel, float length)
+        {
+            float[] levels = new float[2];
+
+            if (!(channel is IBassAudioChannel bassAudioChannel))
+                return levels;
+
+            ChannelGetLevel(bassAudioChannel, levels, length, LevelRetrievalFlags.Stereo);
+
+            return levels;
+        }
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -78,7 +109,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            if (activeChannels.Remove(bassChannel))
+            if (ActiveChannels.Remove(bassChannel))
                 removeChannelFromBassMix(bassChannel);
         }
 
@@ -96,6 +127,8 @@ namespace osu.Framework.Audio.Mixing.Bass
         {
             if (Handle == 0 || channel.Handle == 0)
                 return false;
+
+            channel.MixerChannelPaused = false;
 
             AddChannelToBassMix(channel);
             BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
@@ -119,6 +152,8 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public bool ChannelPause(IBassAudioChannel channel, bool flushMixer = false)
         {
+            channel.MixerChannelPaused = true;
+
             bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
 
             if (flushMixer)
@@ -188,7 +223,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the level (peak amplitude) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <remarks>See: <see cref="BassMix.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to get the levels of.</param>
         /// <param name="levels">The array in which the levels are to be returned.</param>
         /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
@@ -200,7 +235,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the immediate sample data (or an FFT representation of it) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
+        /// <remarks>See: <see cref="BassMix.ChannelGetData(int, float[], int)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the data of.</param>
         /// <param name="buffer">float[] to write the data to.</param>
         /// <param name="length">Number of bytes wanted, and/or <see cref="T:ManagedBass.DataFlags"/>.</param>
@@ -235,18 +270,31 @@ namespace osu.Framework.Audio.Mixing.Bass
             => BassMix.ChannelRemoveSync(channel.Handle, sync);
 
         /// <summary>
+        /// Retrieves the level (peak amplitude) of the mixer output.
+        /// </summary>
+        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <param name="levels">The array in which the levels are to be returned.</param>
+        /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
+        /// <param name="flags">What levels to retrieve.</param>
+        /// <returns><c>true</c> if successful, false otherwise.</returns>
+        public bool MixerGetLevel([In, Out] float[] levels, float length, LevelRetrievalFlags flags)
+            => ManagedBass.Bass.ChannelGetLevel(Handle, levels, length, flags);
+
+        /// <summary>
         /// Frees a channel's resources.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
         /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool StreamFree(IBassAudioChannel channel)
         {
-            Remove(channel, false);
+            Remove(channel);
             return ManagedBass.Bass.StreamFree(channel.Handle);
         }
 
-        public void UpdateDevice(int deviceIndex)
+        internal override void UpdateDevice(int deviceIndex)
         {
+            base.UpdateDevice(deviceIndex);
+
             if (Handle == 0)
                 createMixer();
             else
@@ -255,18 +303,33 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         protected override void UpdateState()
         {
-            for (int i = 0; i < activeChannels.Count; i++)
+            for (int i = 0; i < ActiveChannels.Count; i++)
             {
-                var channel = activeChannels[i];
+                var channel = ActiveChannels[i];
                 if (channel.IsActive)
                     continue;
 
-                activeChannels.RemoveAt(i--);
+                ActiveChannels.RemoveAt(i--);
+
+                if (channel is BassAudioMixer bassAudioMixer && bassAudioMixer.IsDisposed)
+                    continue;
+
                 removeChannelFromBassMix(channel);
             }
 
-            FrameStatistics.Add(StatisticsCounterType.MixChannels, activeChannels.Count);
+            FrameStatistics.Add(StatisticsCounterType.MixChannels, ActiveChannels.Count);
             base.UpdateState();
+        }
+
+        private void recreateMixer()
+        {
+            if (Handle != 0)
+            {
+                ManagedBass.Bass.StreamFree(Handle);
+                Handle = 0;
+            }
+
+            createMixer();
         }
 
         private void createMixer()
@@ -279,7 +342,15 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+            BassFlags flags = BassFlags.MixerNonStop;
+
+            if (floatingPoint)
+                flags |= BassFlags.Float;
+
+            if (Mixer != null)
+                flags |= BassFlags.Decode;
+
+            Handle = BassMix.CreateMixerStream(frequency, 2, flags);
             if (Handle == 0)
                 return;
 
@@ -287,10 +358,30 @@ namespace osu.Framework.Audio.Mixing.Bass
             ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
 
             // Register all channels that were previously played prior to the mixer being loaded.
-            var toAdd = activeChannels.ToArray();
-            activeChannels.Clear();
+            var toAdd = ActiveChannels.ToArray();
+            ActiveChannels.Clear();
+
             foreach (var channel in toAdd)
-                AddChannelToBassMix(channel);
+            {
+                // ensure mixers added via setter are added to Items for future re-init
+                if (channel is BassAudioMixer mixer && !mixer.IsDisposed && mixer.Handle == 0)
+                    AddItem(mixer);
+                else
+                    AddChannelToBassMix(channel);
+            }
+
+            // Todo: Check if still required.
+            // Initialize sub-mixers that were added prior to this mixer being initialized.
+            foreach (var item in Items)
+            {
+                if (item is BassAudioMixer mixer && !mixer.IsDisposed)
+                {
+                    if (mixer.Handle == 0)
+                        mixer.createMixer();
+
+                    AddChannelToBassMix(mixer);
+                }
+            }
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
@@ -310,7 +401,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 flags |= BassFlags.MixerChanPause;
 
             if (BassMix.MixerAddChannel(Handle, channel.Handle, flags))
-                activeChannels.Add(channel);
+                ActiveChannels.Add(channel);
         }
 
         /// <summary>
@@ -434,10 +525,6 @@ namespace osu.Framework.Audio.Mixing.Bass
         {
             base.Dispose(disposing);
 
-            // Move all contained channels back to the default mixer.
-            foreach (var channel in activeChannels.ToArray())
-                Remove(channel);
-
             if (Handle != 0)
             {
                 ManagedBass.Bass.StreamFree(Handle);
@@ -457,5 +544,92 @@ namespace osu.Framework.Audio.Mixing.Bass
                 Effect = effect;
             }
         }
+
+        #region Mixing
+
+        private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
+
+        public override AudioMixer? Mixer
+        {
+            get => base.Mixer;
+            set
+            {
+                if (Mixer == value)
+                    return;
+
+                var oldBassMixer = Mixer as BassAudioMixer;
+                var newBassMixer = value as BassAudioMixer;
+
+                if (oldBassMixer == null && newBassMixer == null)
+                    return;
+
+                // Todo: This needs to be set here because recreateMixer() can be invoked in-line.
+                // Path: AudioMixer.Add() -> Mixer.set() -> recreateMixer().
+                base.Mixer = value;
+
+                // - null -> Mixer
+                //      Remove  on newBassMixer
+                //      Create  on newBassMixer
+                //      Add     on newBassMixer
+                // - Mixer -> Mixer
+                //      Remove  on newBassMixer
+                //
+                //      Add     on newBassMixer
+                // - Mixer -> null
+                //      Remove  on local mixer
+                //      Create  on local mixer
+                //
+                // - null -> null
+                //      Do nothing.
+
+                if (newBassMixer != null)
+                    newBassMixer.EnqueueAction(() => oldBassMixer?.RemoveInternal(this));
+                else
+                    globalMixer.EnqueueAction(() => oldBassMixer?.RemoveInternal(this));
+
+                // If the output target of this mixer changes from being another mixer to direct out (or vice-versa), the mixer needs to be recreated (with the decode flag set accordingly)
+                if (oldBassMixer == null || newBassMixer == null)
+                {
+                    // ensure we're not about to create a routing loop
+                    AudioMixer? parentMixer = value;
+                    bool loopDetected = false;
+
+                    while (parentMixer != null)
+                    {
+                        if (parentMixer == this)
+                        {
+                            loopDetected = true;
+                            break;
+                        }
+
+                        parentMixer = parentMixer.Mixer;
+                    }
+
+                    if (loopDetected)
+                        throw new InvalidOperationException("Mixer loop detected");
+
+                    if (newBassMixer != null)
+                    {
+                        newBassMixer.AddItem(this);
+                        oldBassMixer?.RemoveItem(this);
+                    }
+
+                    if (newBassMixer != null)
+                        newBassMixer.EnqueueAction(recreateMixer);
+                    else
+                        globalMixer.EnqueueAction(recreateMixer);
+                }
+
+                newBassMixer?.EnqueueAction(() => newBassMixer.AddInternal(this));
+            }
+        }
+
+        bool IBassAudioChannel.IsActive => !IsDisposed;
+
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = false;
+
+        BassAudioMixer IBassAudioChannel.Mixer => bassMixer;
+
+        #endregion
     }
 }

@@ -111,6 +111,8 @@ namespace osu.Framework.Audio.Track
 
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
+        public float[] GetLevel(float length) => Mixer?.GetChannelLevel(this, length) ?? new float[2];
+
         protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);

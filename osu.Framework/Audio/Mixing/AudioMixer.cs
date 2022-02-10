@@ -3,30 +3,26 @@
 
 #nullable enable
 
+using System;
+using System.Threading.Tasks;
 using ManagedBass;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/>s into one output.
     /// </summary>
-    public abstract class AudioMixer : AudioComponent, IAudioMixer
+    public abstract class AudioMixer : AudioCollectionManager<AudioComponent>, IAudioMixer, IAudioChannel
     {
         public readonly string Identifier;
-
-        private readonly AudioMixer? globalMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer">The global <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
-        /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        protected AudioMixer(AudioMixer? globalMixer, string identifier)
+        protected AudioMixer(string identifier)
         {
-            this.globalMixer = globalMixer;
             Identifier = identifier;
         }
 
@@ -40,38 +36,30 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 // Ensure the channel is removed from its current mixer.
-                channel.Mixer?.Remove(channel, false);
+                channel.Mixer?.Remove(channel);
 
-                AddInternal(channel);
+                if (!(channel is AudioMixer))
+                    AddInternal(channel);
 
                 channel.Mixer = this;
             });
         }
 
-        public void Remove(IAudioChannel channel) => Remove(channel, true);
-
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
         /// </summary>
         /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
-        /// <param name="returnToDefault">Whether <paramref name="channel"/> should be returned to the default mixer.</param>
-        protected void Remove(IAudioChannel channel, bool returnToDefault)
+        public void Remove(IAudioChannel channel)
         {
-            // If this is the default mixer, prevent removal.
-            if (returnToDefault && globalMixer == null)
-                return;
-
             channel.EnqueueAction(() =>
             {
                 if (channel.Mixer != this)
                     return;
 
-                RemoveInternal(channel);
-                channel.Mixer = null;
+                if (!(channel is AudioMixer))
+                    RemoveInternal(channel);
 
-                // Add the channel back to the default mixer so audio can always be played.
-                if (returnToDefault)
-                    globalMixer.AsNonNull().Add(channel);
+                channel.Mixer = null;
             });
         }
 
@@ -86,5 +74,19 @@ namespace osu.Framework.Audio.Mixing
         /// </summary>
         /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
         protected abstract void RemoveInternal(IAudioChannel channel);
+
+        public abstract float[] GetLevel(float length);
+
+        public abstract float[] GetChannelLevel(IAudioChannel channel, float length);
+
+        #region IAudioChannel
+
+        public virtual AudioMixer? Mixer { get; set; }
+
+        internal new Task EnqueueAction(Action action) => base.EnqueueAction(action);
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
+
+        #endregion
     }
 }

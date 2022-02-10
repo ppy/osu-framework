@@ -44,6 +44,8 @@ namespace osu.Framework.Audio.Sample
 
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
+        public abstract float[] GetLevel(float length);
+
         #region Mixing
 
         protected virtual AudioMixer? Mixer { get; set; }

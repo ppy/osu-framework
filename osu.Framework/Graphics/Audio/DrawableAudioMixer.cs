@@ -11,13 +11,15 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Audio
 {
-    public class DrawableAudioMixer : AudioContainer, IAudioMixer
+    public class DrawableAudioMixer : AudioContainer
     {
+        private AudioMixer globalMixer;
         private AudioMixer mixer;
 
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
+            globalMixer = audio.GlobalMixer;
             mixer = audio.CreateAudioMixer(Name);
             mixer.Effects.BindTo(Effects);
         }
@@ -38,11 +40,11 @@ namespace osu.Framework.Graphics.Audio
         public void Remove(IAudioChannel channel)
         {
             if (LoadState < LoadState.Ready)
-                Schedule(() => mixer.Remove(channel));
+                Schedule(() => globalMixer.Add(channel));
             else
             {
                 Debug.Assert(mixer != null);
-                mixer.Remove(channel);
+                globalMixer.Add(channel);
             }
         }
 
