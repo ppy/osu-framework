@@ -415,7 +415,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             cancellationSource.Cancel();
-            request.PerformAsync(cancellationSource.Token);
+            request.PerformAsync(cancellationSource.Token).WaitSafely();
 
             Assert.ThrowsAsync<InvalidOperationException>(() => request.PerformAsync(cancellationSource.Token));
 
