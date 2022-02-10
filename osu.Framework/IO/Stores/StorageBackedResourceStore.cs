@@ -32,7 +32,11 @@ namespace osu.Framework.IO.Stores
                 if (stream == null) return null;
 
                 byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
+                int readBytes = stream.Read(buffer, 0, buffer.Length);
+
+                if (readBytes < buffer.Length)
+                    throw new EndOfStreamException();
+
                 return buffer;
             }
         }
@@ -46,7 +50,11 @@ namespace osu.Framework.IO.Stores
                 if (stream == null) return null;
 
                 byte[] buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
+                int readBytes = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
+
+                if (readBytes < buffer.Length)
+                    throw new EndOfStreamException();
+
                 return buffer;
             }
         }
