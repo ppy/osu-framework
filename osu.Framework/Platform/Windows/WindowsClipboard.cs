@@ -9,7 +9,6 @@ using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform.Windows
 {
