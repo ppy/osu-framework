@@ -83,15 +83,15 @@ namespace osu.Framework.Tests.Configuration
             var config = new TestInputConfigManager(new[] { handler });
 
             handler.Sensitivity.Value = 5;
-            Assert.IsTrue(config.SaveEvent.WaitOne(200)); // wait for QueueBackgroundSave() debounce.
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000)); // wait for QueueBackgroundSave() debounce.
             Assert.AreEqual(1, config.TimesSaved);
 
             handler.Enabled.Value = !handler.Enabled.Value;
-            Assert.IsTrue(config.SaveEvent.WaitOne(200));
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000));
             Assert.AreEqual(2, config.TimesSaved);
 
             handler.Reset();
-            Assert.IsTrue(config.SaveEvent.WaitOne(200));
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000));
             Assert.AreEqual(3, config.TimesSaved);
 
             for (int i = 0; i < 10; i++)
@@ -100,7 +100,7 @@ namespace osu.Framework.Tests.Configuration
                 Assert.AreEqual(3, config.TimesSaved);
             }
 
-            Assert.IsTrue(config.SaveEvent.WaitOne(200));
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000));
             Assert.AreEqual(4, config.TimesSaved);
         }
 
