@@ -25,7 +25,7 @@ namespace osu.Framework.Extensions
                 return stream.ReadBytesToArray((int)stream.Length);
             }
 
-            return stream.ReadArbitraryBytesToArray();
+            return stream.ReadAllRemainingBytesToArray();
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace osu.Framework.Extensions
         /// <param name="stream">The stream to read.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The full byte content.</returns>
-        public static Task<byte[]> ReadAllBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken)
+        public static Task<byte[]> ReadAllBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream.CanSeek)
             {
@@ -43,7 +43,7 @@ namespace osu.Framework.Extensions
                 return stream.ReadBytesToArrayAsync((int)stream.Length, cancellationToken);
             }
 
-            return stream.ReadArbitraryBytesToArrayAsync(cancellationToken);
+            return stream.ReadAllRemainingBytesToArrayAsync(cancellationToken);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace osu.Framework.Extensions
         /// <param name="length">The length to read.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The full byte content.</returns>
-        public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken)
+        public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken = default)
         {
             byte[] buffer = new byte[16 * 1024];
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="stream">The stream to read.</param>
         /// <returns>The full byte content.</returns>
-        public static byte[] ReadArbitraryBytesToArray(this Stream stream)
+        public static byte[] ReadAllRemainingBytesToArray(this Stream stream)
         {
             byte[] buffer = new byte[16 * 1024];
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Extensions
                 while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
                     ms.Write(buffer, 0, read);
 
-                return ms.GetBuffer();
+                return ms.ToArray();
             }
         }
 
@@ -131,7 +131,7 @@ namespace osu.Framework.Extensions
         /// <param name="stream">The stream to read.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The full byte content.</returns>
-        public static async Task<byte[]> ReadArbitraryBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken)
+        public static async Task<byte[]> ReadAllRemainingBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
             byte[] buffer = new byte[16 * 1024];
 
@@ -142,7 +142,7 @@ namespace osu.Framework.Extensions
                 while ((read = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false)) > 0)
                     await ms.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
 
-                return ms.GetBuffer();
+                return ms.ToArray();
             }
         }
     }
