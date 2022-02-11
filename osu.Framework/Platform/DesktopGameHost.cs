@@ -102,7 +102,7 @@ namespace osu.Framework.Platform
             new InputHandler[]
             {
                 new KeyboardHandler(),
-#if NET5_0
+#if NET6_0
                 // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
                 new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif
