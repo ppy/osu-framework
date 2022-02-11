@@ -56,18 +56,19 @@ namespace osu.Framework.Extensions
         {
             byte[] buffer = new byte[16 * 1024];
 
+            int remainingRead = length;
+
             using (var ms = new MemoryStream(length))
             {
                 int read;
-                int totalRead = 0;
 
-                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                while ((read = stream.Read(buffer, 0, Math.Min(remainingRead, buffer.Length))) > 0)
                 {
                     ms.Write(buffer, 0, read);
-                    totalRead += read;
+                    remainingRead -= read;
                 }
 
-                if (totalRead != length)
+                if (remainingRead != 0)
                     throw new EndOfStreamException();
 
                 return ms.GetBuffer();
@@ -85,18 +86,19 @@ namespace osu.Framework.Extensions
         {
             byte[] buffer = new byte[16 * 1024];
 
+            int remainingRead = length;
+
             using (var ms = new MemoryStream(length))
             {
                 int read;
-                int totalRead = 0;
 
-                while ((read = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false)) > 0)
+                while ((read = await stream.ReadAsync(buffer, 0, Math.Min(buffer.Length, remainingRead), cancellationToken).ConfigureAwait(false)) > 0)
                 {
                     await ms.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
-                    totalRead += read;
+                    remainingRead -= read;
                 }
 
-                if (totalRead != length)
+                if (remainingRead != 0)
                     throw new EndOfStreamException();
 
                 return ms.GetBuffer();
