@@ -93,16 +93,16 @@ namespace osu.Framework.Android
             };
         }
 
-        protected override void OnPause()
+        protected override void OnStop()
         {
-            base.OnPause();
+            base.OnStop();
             gameView.Host?.Suspend();
             Bass.Pause();
         }
 
-        protected override void OnResume()
+        protected override void OnRestart()
         {
-            base.OnResume();
+            base.OnRestart();
             gameView.Host?.Resume();
             Bass.Start();
         }
