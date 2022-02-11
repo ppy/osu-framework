@@ -75,14 +75,12 @@ namespace osu.Framework.Android
 
         public override void OpenUrlExternally(string url)
         {
-            var activity = (Activity)gameView.Context;
-
-            if (activity?.PackageManager == null) return;
+            if (gameView.Activity.PackageManager == null) return;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
             {
-                if (intent.ResolveActivity(activity.PackageManager) != null)
-                    activity.StartActivity(intent);
+                if (intent.ResolveActivity(gameView.Activity.PackageManager) != null)
+                    gameView.Activity.StartActivity(intent);
             }
         }
 
