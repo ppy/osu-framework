@@ -18,9 +18,13 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static byte[] ReadAllBytesToArray(this Stream stream)
         {
-            Debug.Assert(stream.Length < int.MaxValue);
+            if (stream.CanSeek)
+            {
+                Debug.Assert(stream.Length < int.MaxValue);
+                return stream.ReadBytesToArray((int)stream.Length);
+            }
 
-            return stream.ReadBytesToArray((int)stream.Length);
+            return stream.ReadArbitraryBytesToArray();
         }
 
         /// <summary>
@@ -31,9 +35,13 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static Task<byte[]> ReadAllBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken)
         {
-            Debug.Assert(stream.Length < int.MaxValue);
+            if (stream.CanSeek)
+            {
+                Debug.Assert(stream.Length < int.MaxValue);
+                return stream.ReadBytesToArrayAsync((int)stream.Length, cancellationToken);
+            }
 
-            return stream.ReadBytesToArrayAsync((int)stream.Length, cancellationToken);
+            return stream.ReadArbitraryBytesToArrayAsync(cancellationToken);
         }
 
         /// <summary>
@@ -94,6 +102,47 @@ namespace osu.Framework.Extensions
 
                 if (totalRead != length)
                     throw new EndOfStreamException();
+
+                return ms.GetBuffer();
+            }
+        }
+
+        /// <summary>
+        /// Read all bytes from a non-seekable stream.
+        /// </summary>
+        /// <param name="stream">The stream to read.</param>
+        /// <returns>The full byte content.</returns>
+        public static byte[] ReadArbitraryBytesToArray(this Stream stream)
+        {
+            byte[] buffer = new byte[16 * 1024];
+
+            using (var ms = new MemoryStream())
+            {
+                int read;
+
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    ms.Write(buffer, 0, read);
+
+                return ms.GetBuffer();
+            }
+        }
+
+        /// <summary>
+        /// Read all bytes from a non-seekable stream.
+        /// </summary>
+        /// <param name="stream">The stream to read.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The full byte content.</returns>
+        public static async Task<byte[]> ReadArbitraryBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken)
+        {
+            byte[] buffer = new byte[16 * 1024];
+
+            using (var ms = new MemoryStream())
+            {
+                int read;
+
+                while ((read = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false)) > 0)
+                    await ms.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
 
                 return ms.GetBuffer();
             }
