@@ -20,6 +20,7 @@ namespace osu.Framework.Extensions
         {
             if (stream.CanSeek)
             {
+                stream.Seek(0, SeekOrigin.Begin);
                 Debug.Assert(stream.Length < int.MaxValue);
                 return stream.ReadBytesToArray((int)stream.Length);
             }
@@ -37,6 +38,7 @@ namespace osu.Framework.Extensions
         {
             if (stream.CanSeek)
             {
+                stream.Seek(0, SeekOrigin.Begin);
                 Debug.Assert(stream.Length < int.MaxValue);
                 return stream.ReadBytesToArrayAsync((int)stream.Length, cancellationToken);
             }
