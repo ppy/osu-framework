@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
@@ -101,8 +102,10 @@ namespace osu.Framework.IO.Stores
         {
             int pageWidth = page.Size.Width;
 
-            if (readBuffer == null || readBuffer.Length < pageWidth * character.Height)
-                readBuffer = new byte[pageWidth * character.Height];
+            int characterByteRegion = pageWidth * character.Height;
+
+            if (readBuffer == null || readBuffer.Length < characterByteRegion)
+                readBuffer = new byte[characterByteRegion];
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
@@ -110,7 +113,9 @@ namespace osu.Framework.IO.Stores
                 source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
 
             source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
-            source.Read(readBuffer, 0, pageWidth * character.Height);
+            int readBytes = source.Read(readBuffer, 0, characterByteRegion);
+
+            Debug.Assert(readBytes == characterByteRegion);
 
             // the spritesheet may have unused pixels trimmed
             int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);

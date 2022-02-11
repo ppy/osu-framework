@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
@@ -37,7 +37,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.187" />
-    <PackageReference Include="StbiSharp" Version="1.0.13" />
+    <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.501-alpha" />
 
     <!-- Any version ahead of this will cause AOT issues with iOS
