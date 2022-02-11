@@ -52,12 +52,9 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static byte[] ReadBytesToArray(this Stream stream, int length)
         {
-            if (stream is MemoryStream ms && length == ms.GetBuffer().Length)
-                return ms.GetBuffer();
-
             byte[] buffer = new byte[16 * 1024];
 
-            using (ms = new MemoryStream(length))
+            using (var ms = new MemoryStream(length))
             {
                 int read;
                 int totalRead = 0;
@@ -84,12 +81,9 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken)
         {
-            if (stream is MemoryStream ms && length == ms.GetBuffer().Length)
-                return ms.GetBuffer();
-
             byte[] buffer = new byte[16 * 1024];
 
-            using (ms = new MemoryStream(length))
+            using (var ms = new MemoryStream(length))
             {
                 int read;
                 int totalRead = 0;
