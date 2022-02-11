@@ -58,6 +58,10 @@ namespace osu.Framework.Platform.Windows
         private const int gmem_zeroinit = 0x40;
         private const int ghnd = gmem_movable | gmem_zeroinit;
 
+        // The bitmap file header should not be included in clipboard.
+        // See https://docs.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats for more details.
+        private const int bitmap_file_header_length = 14;
+
         private static readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
         public override string GetText()
@@ -77,10 +81,10 @@ namespace osu.Framework.Platform.Windows
         {
             return getClipboard(cf_dib, bytes =>
             {
-                byte[] buff = new byte[bytes.Length + 14];
+                byte[] buff = new byte[bytes.Length + bitmap_file_header_length];
 
                 bmp_header_field.CopyTo(buff, 0);
-                bytes.CopyTo(buff, 14);
+                bytes.CopyTo(buff, bitmap_file_header_length);
 
                 return Image.Load<TPixel>(buff);
             });
@@ -94,9 +98,7 @@ namespace osu.Framework.Platform.Windows
             {
                 var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
                 image.Save(stream, encoder);
-                // The bitmap file header should not be included in clipboard
-                // https://en.wikipedia.org/wiki/BMP_file_format#File_structure
-                array = stream.ToArray().Skip(14).ToArray();
+                array = stream.ToArray().Skip(bitmap_file_header_length).ToArray();
             }
 
             IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
