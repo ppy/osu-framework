@@ -184,10 +184,12 @@ namespace osu.Framework.Platform
         {
             const int header_length = sizeof(int);
 
-            if (stream.Length < header_length)
-                return null;
+            byte[] header = new byte[header_length];
 
-            byte[] header = await stream.ReadBytesToArrayAsync(header_length, cancellationToken).ConfigureAwait(false);
+            int read = await stream.ReadAsync(header.AsMemory(), cancellationToken).ConfigureAwait(false);
+
+            if (read < header_length)
+                return null;
 
             int contentLength = BitConverter.ToInt32(header, 0);
 
