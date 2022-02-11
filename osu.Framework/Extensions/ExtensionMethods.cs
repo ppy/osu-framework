@@ -428,7 +428,7 @@ namespace osu.Framework.Extensions
 
                 while ((read = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false)) > 0)
                 {
-                    ms.Write(buffer, 0, read);
+                    await ms.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
                     totalRead += read;
                 }
 
