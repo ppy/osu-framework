@@ -46,4 +46,15 @@
     <Reference Include="Mono.Android" />
     <Reference Include="Java.Interop" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
+      <Project>{4D112E30-462B-4264-B44D-53B61ABB185E}</Project>
+      <Name>osu.Framework.Android</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
+      <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
+      <Name>osu.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>

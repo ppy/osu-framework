@@ -16,18 +16,9 @@
     <None Include="Properties\AndroidManifest.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
-      <Project>{4D112E30-462B-4264-B44D-53B61ABB185E}</Project>
-      <Name>osu.Framework.Android</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
-      <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
-      <Name>osu.Framework</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SampleGame\SampleGame.csproj">
       <Project>{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}</Project>
       <Name>SampleGame</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>

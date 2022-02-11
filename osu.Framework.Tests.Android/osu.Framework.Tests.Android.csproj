@@ -24,17 +24,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
-      <Project>{4d112e30-462b-4264-b44d-53b61abb185e}</Project>
-      <Name>osu.Framework.Android</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
-      <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
-      <Name>osu.Framework</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System.Numerics" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>
