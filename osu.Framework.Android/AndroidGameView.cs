@@ -218,7 +218,7 @@ namespace osu.Framework.Android
 
             int[] location = new int[2];
             GetLocationOnScreen(location);
-            var viewArea = new RectangleI(location[0], location[1], (this as View).Width, (this as View).Height);
+            var viewArea = new RectangleI(location[0], location[1], ((View)this).Width, ((View)this).Height);
 
             // intersect with the usable area and treat the the difference as unsafe.
 
