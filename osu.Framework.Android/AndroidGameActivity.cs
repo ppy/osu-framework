@@ -8,6 +8,7 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using ManagedBass;
+using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
 {
@@ -34,9 +35,14 @@ namespace osu.Framework.Android
         /// </summary>
         public SystemUiFlags UIVisibilityFlags
         {
-            get => (SystemUiFlags)Window.DecorView.SystemUiVisibility;
+            get
+            {
+                Debug.Assert(Window != null);
+                return (SystemUiFlags)Window.DecorView.SystemUiVisibility;
+            }
             set
             {
+                Debug.Assert(Window != null);
                 systemUiFlags = value;
                 Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
             }
@@ -65,6 +71,8 @@ namespace osu.Framework.Android
 
             UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
 
+            Debug.Assert(Window != null);
+
             // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
             Window.DecorView.SystemUiVisibilityChange += (_, e) =>
@@ -76,7 +84,10 @@ namespace osu.Framework.Android
             };
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            {
+                Debug.Assert(Window.Attributes != null);
                 Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+            }
 
             gameView.HostStarted += host =>
             {
