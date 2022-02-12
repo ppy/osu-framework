@@ -190,7 +190,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the state of the OS cursor.
         /// </summary>
-        public CursorState CursorState
+        public virtual CursorState CursorState
         {
             get => cursorState;
             set
