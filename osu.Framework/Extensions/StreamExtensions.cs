@@ -14,38 +14,40 @@ namespace osu.Framework.Extensions
         private const int buffer_size = 16 * 1024; // Matches generally what .NET uses internally.
 
         /// <summary>
-        /// Read the full content of a stream.
+        /// Read the full content of a seekable stream.
         /// </summary>
+        /// <remarks>
+        /// For a non-seekable stream, use <see cref="ReadAllRemainingBytesToArray"/> instead.
+        /// </remarks>
         /// <param name="stream">The stream to read.</param>
         /// <returns>The full byte content.</returns>
         public static byte[] ReadAllBytesToArray(this Stream stream)
         {
-            if (stream.CanSeek)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                Debug.Assert(stream.Length < int.MaxValue);
-                return stream.ReadBytesToArray((int)stream.Length);
-            }
+            if (!stream.CanSeek)
+                throw new ArgumentException($"Stream must be seekable to use this function. Consider using {nameof(ReadAllRemainingBytesToArray)} instead.", nameof(stream));
 
-            return stream.ReadAllRemainingBytesToArray();
+            stream.Seek(0, SeekOrigin.Begin);
+            Debug.Assert(stream.Length < int.MaxValue);
+            return stream.ReadBytesToArray((int)stream.Length);
         }
 
         /// <summary>
-        /// Read the full content of a stream.
+        /// Read the full content of a seekable stream.
         /// </summary>
+        /// <remarks>
+        /// For a non-seekable stream, use <see cref="ReadAllRemainingBytesToArray"/> instead.
+        /// </remarks>
         /// <param name="stream">The stream to read.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The full byte content.</returns>
         public static Task<byte[]> ReadAllBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
-            if (stream.CanSeek)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                Debug.Assert(stream.Length < int.MaxValue);
-                return stream.ReadBytesToArrayAsync((int)stream.Length, cancellationToken);
-            }
+            if (!stream.CanSeek)
+                throw new ArgumentException($"Stream must be seekable to use this function. Consider using {nameof(ReadAllRemainingBytesToArray)} instead.", nameof(stream));
 
-            return stream.ReadAllRemainingBytesToArrayAsync(cancellationToken);
+            stream.Seek(0, SeekOrigin.Begin);
+            Debug.Assert(stream.Length < int.MaxValue);
+            return stream.ReadBytesToArrayAsync((int)stream.Length, cancellationToken);
         }
 
         /// <summary>
