@@ -162,14 +162,12 @@ namespace osu.Framework.Android
         public void RenderGame()
         {
             LayoutChange += (_, __) => updateSafeArea();
+            updateSafeArea();
 
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
             Host.Run(game);
             HostStarted?.Invoke(Host);
-
-            // if this is run immediately, we'll have an invalid layout (Width == Height == 0).
-            Host.InputThread.Scheduler.Add(updateSafeArea);
         }
 
         private bool handleException(Exception ex)
@@ -220,7 +218,7 @@ namespace osu.Framework.Android
 
             int[] location = new int[2];
             GetLocationOnScreen(location);
-            var viewArea = new RectangleI(location[0], location[1], Width, Height);
+            var viewArea = new RectangleI(location[0], location[1], (this as View).Width, (this as View).Height);
 
             // intersect with the usable area and treat the the difference as unsafe.
 
