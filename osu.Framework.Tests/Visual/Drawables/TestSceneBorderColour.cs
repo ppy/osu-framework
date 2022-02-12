@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osuTK;
@@ -12,7 +13,17 @@ namespace osu.Framework.Tests.Visual.Drawables
     public class TestSceneBorderColour : FrameworkTestScene
     {
         [Test]
-        public void TestSolidBorder()
+        public void TestSolidBorder() => createBorderTest(Colour4.Blue, Colour4.Red);
+
+        [Test]
+        public void TestVerticalGradientBorder() => createBorderTest(Colour4.Green, ColourInfo.GradientVertical(Colour4.Black, Colour4.White));
+
+        [Test]
+        public void TestHorizontalGradientBorder() => createBorderTest(
+            ColourInfo.GradientVertical(Colour4.White, Colour4.Black),
+            ColourInfo.GradientHorizontal(Colour4.Red, Colour4.Blue));
+
+        private void createBorderTest(ColourInfo fillColour, ColourInfo borderColour)
         {
             Container container = null;
 
@@ -23,11 +34,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Size = new Vector2(200),
                 Masking = true,
                 BorderThickness = 5,
-                BorderColour = Colour4.Red,
+                BorderColour = borderColour,
                 Child = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Colour4.Blue
+                    Colour = fillColour
                 }
             });
 

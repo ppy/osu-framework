@@ -1530,13 +1530,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private SRGBColour borderColour = Color4.Black;
+        private ColourInfo borderColour = Color4.Black;
 
         /// <summary>
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public SRGBColour BorderColour
+        public ColourInfo BorderColour
         {
             get => borderColour;
             protected set
