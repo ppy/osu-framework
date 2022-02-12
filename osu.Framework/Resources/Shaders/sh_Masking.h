@@ -59,9 +59,9 @@ highp float distanceFromDrawingRect(mediump vec2 texCoord)
 	return max(xyDistance.x, xyDistance.y);
 }
 
-lowp vec4 getBorderColourAt(mediump vec2 texCoord)
+lowp vec4 getBorderColour()
 {
-    highp vec2 relativeTexCoord = texCoord / (v_TexRect.zw - v_TexRect.xy);
+    highp vec2 relativeTexCoord = v_MaskingPosition / (g_MaskingRect.zw - g_MaskingRect.xy);
     lowp vec4 top = mix(g_BorderColour[0], g_BorderColour[2], relativeTexCoord.x);
     lowp vec4 bottom = mix(g_BorderColour[1], g_BorderColour[3], relativeTexCoord.x);
     return mix(top, bottom, relativeTexCoord.y);
@@ -112,7 +112,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
 
-	lowp vec4 borderColour = getBorderColourAt(texCoord);
+	lowp vec4 borderColour = getBorderColour();
 
 	if (colourWeight <= 0.0)
 	{
