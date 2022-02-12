@@ -23,9 +23,21 @@ namespace osu.Framework.Tests.Visual.Drawables
             ColourInfo.GradientVertical(Colour4.White, Colour4.Black),
             ColourInfo.GradientHorizontal(Colour4.Red, Colour4.Blue));
 
+        [Test]
+        public void TestAllFourCorners() => createBorderTest(
+            Colour4.Aquamarine,
+            new ColourInfo
+            {
+                TopLeft = Colour4.Red,
+                TopRight = Colour4.Yellow,
+                BottomLeft = Colour4.Magenta,
+                BottomRight = Colour4.Blue
+            });
+
         private void createBorderTest(ColourInfo fillColour, ColourInfo borderColour)
         {
             Container container = null;
+            Box box = null;
 
             AddStep("create box with solid border", () => Child = container = new Container
             {
@@ -35,12 +47,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Masking = true,
                 BorderThickness = 5,
                 BorderColour = borderColour,
-                Child = new Box
+                Child = box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = fillColour
                 }
             });
+
+            AddToggleStep("switch fill to border colour", useBorderColour => box.Colour = useBorderColour ? borderColour : fillColour);
 
             AddSliderStep("change corner radius", 0, 100, 0, radius =>
             {
