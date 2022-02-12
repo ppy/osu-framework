@@ -74,6 +74,8 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
+        public abstract bool Focused { get; }
+
         public abstract IBindable<bool> IsActive { get; }
 
         public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
@@ -326,7 +328,7 @@ namespace osu.Framework.Platform
             set => OsuTKGameWindow.Title = $"{value} (legacy osuTK)";
         }
 
-        public virtual bool Focused => OsuTKGameWindow.Focused;
+        bool INativeWindow.Focused => OsuTKGameWindow.Focused;
 
         public bool Visible
         {
