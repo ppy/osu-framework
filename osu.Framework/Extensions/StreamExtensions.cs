@@ -71,7 +71,12 @@ namespace osu.Framework.Extensions
                 if (remainingRead != 0)
                     throw new EndOfStreamException();
 
-                return ms.GetBuffer();
+                byte[] bytes = ms.GetBuffer();
+
+                // We are guaranteed that the buffer is the correct length due to the above length checks along with the ctor length specification.
+                Debug.Assert(bytes.Length == length);
+
+                return bytes;
             }
         }
 
