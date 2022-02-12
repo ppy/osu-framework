@@ -79,7 +79,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether this <see cref="OsuTKWindow"/> is active (in the foreground).
         /// </summary>
-        public IBindable<bool> IsActive => isActive;
+        public virtual IBindable<bool> IsActive => isActive;
 
         public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
 

@@ -8,6 +8,7 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using ManagedBass;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Android
 {
@@ -28,6 +29,11 @@ namespace osu.Framework.Android
         protected const LaunchMode DEFAULT_LAUNCH_MODE = LaunchMode.SingleInstance;
 
         protected abstract Game CreateGame();
+
+        /// <summary>
+        /// Whether this <see cref="AndroidGameActivity"/> is active (in the foreground).
+        /// </summary>
+        public BindableBool IsActive { get; } = new BindableBool();
 
         /// <summary>
         /// The visibility flags for the system UI (status and navigation bars)
@@ -105,6 +111,12 @@ namespace osu.Framework.Android
             base.OnResume();
             gameView.Host?.Resume();
             Bass.Start();
+        }
+
+        public override void OnWindowFocusChanged(bool hasFocus)
+        {
+            base.OnWindowFocusChanged(hasFocus);
+            IsActive.Value = hasFocus;
         }
 
         public override void OnBackPressed()
