@@ -11,41 +11,33 @@
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidApplication>True</AndroidApplication>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
-    <!-- This does not take effect, unlike osu game repo.  -->
-    <!--<TargetFrameworkVersion>v10.0</TargetFrameworkVersion>-->
+    <TargetFrameworkVersion>v10.0</TargetFrameworkVersion>
     <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AndroidSupportedAbis>armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
     <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
     <MandroidI18n>cjk,mideast,other,rare,west</MandroidI18n>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugSymbols>True</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>False</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AndroidManagedSymbols>false</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+    <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugSymbols>false</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <AndroidManagedSymbols>false</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
   </PropertyGroup>
-  <ItemGroup>
-    <AndroidNativeLibrary Include="..\osu.Framework.Android\armeabi-v7a\*.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\osu.Framework.Android\arm64-v8a\*.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-  </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Net.Http" />
@@ -54,4 +46,15 @@
     <Reference Include="Mono.Android" />
     <Reference Include="Java.Interop" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
+      <Project>{4D112E30-462B-4264-B44D-53B61ABB185E}</Project>
+      <Name>osu.Framework.Android</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
+      <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
+      <Name>osu.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>
