@@ -11,6 +11,8 @@ namespace osu.Framework.Extensions
 {
     public static class StreamExtensions
     {
+        private const int buffer_size = 16 * 1024; // Matches generally what .NET uses internally.
+
         /// <summary>
         /// Read the full content of a stream.
         /// </summary>
@@ -54,7 +56,7 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static byte[] ReadBytesToArray(this Stream stream, int length)
         {
-            byte[] buffer = new byte[16 * 1024];
+            byte[] buffer = new byte[buffer_size];
 
             int remainingRead = length;
 
@@ -89,7 +91,7 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken = default)
         {
-            byte[] buffer = new byte[16 * 1024];
+            byte[] buffer = new byte[buffer_size];
 
             int remainingRead = length;
 
@@ -117,7 +119,7 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static byte[] ReadAllRemainingBytesToArray(this Stream stream)
         {
-            byte[] buffer = new byte[16 * 1024];
+            byte[] buffer = new byte[buffer_size];
 
             using (var ms = new MemoryStream())
             {
@@ -138,7 +140,7 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static async Task<byte[]> ReadAllRemainingBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
-            byte[] buffer = new byte[16 * 1024];
+            byte[] buffer = new byte[buffer_size];
 
             using (var ms = new MemoryStream())
             {
