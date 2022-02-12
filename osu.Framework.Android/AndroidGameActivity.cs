@@ -63,7 +63,7 @@ namespace osu.Framework.Android
 
             SetContentView(gameView = new AndroidGameView(this, CreateGame()));
 
-            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation;
+            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
 
             // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.

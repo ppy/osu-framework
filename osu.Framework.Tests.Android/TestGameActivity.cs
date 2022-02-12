@@ -13,12 +13,5 @@ namespace osu.Framework.Tests.Android
     {
         protected override Game CreateGame()
             => new VisualTestGame();
-
-        protected override void OnCreate(Bundle savedInstanceState)
-        {
-            base.OnCreate(savedInstanceState);
-
-            Window.AddFlags(WindowManagerFlags.Fullscreen);
-        }
     }
 }
