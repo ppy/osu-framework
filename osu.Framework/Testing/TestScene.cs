@@ -465,7 +465,7 @@ namespace osu.Framework.Testing
             private readonly Action onExitRequest;
 
             public TestSceneHost(string name, Action onExitRequest)
-                : base(name)
+                : base(name, new HostOptions())
             {
                 this.onExitRequest = onExitRequest;
             }

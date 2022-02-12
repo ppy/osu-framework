@@ -9,6 +9,7 @@ using System.Threading;
 using osu.Framework.Logging;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,6 +17,7 @@ using System.Text;
 
 namespace osu.Framework.Testing
 {
+    [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
     internal class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
@@ -64,7 +66,7 @@ namespace osu.Framework.Testing
                 return;
             }
 
-#if NET5_0
+#if NET6_0
             referenceBuilder = new RoslynTypeReferenceBuilder();
 #else
             referenceBuilder = new EmptyTypeReferenceBuilder();

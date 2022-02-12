@@ -6,22 +6,22 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using osu.Framework.Caching;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
-using osuTK;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Development;
 using osu.Framework.Extensions.PlatformActionExtensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Platform;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -62,6 +62,18 @@ namespace osu.Framework.Graphics.UserInterface
         /// Whether this TextBox should accept left and right arrow keys for navigation.
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
+
+        /// <summary>
+        /// Whether to allow IME input when this text box has input focus.
+        /// </summary>
+        /// <remarks>
+        /// This is just a hint to the native implementation, some might respect this,
+        /// while others will ignore and always have the IME (dis)allowed.
+        /// </remarks>
+        /// <example>
+        /// Useful for situations where IME input is not wanted, such as for passwords, numbers, or romanised text.
+        /// </example>
+        protected virtual bool AllowIme => true;
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -120,6 +132,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// This usually happens on pressing enter, but can also be triggered on focus loss automatically, via <see cref="CommitOnFocusLost"/>.
         /// </summary>
         public event OnCommitHandler OnCommit;
+
+        /// <summary>
+        /// Scheduler used for scheduling text input events coming from <see cref="textInput"/>.
+        /// </summary>
+        /// <remarks>
+        /// Used for scheduling text events so that the <see cref="Text"/> is updated on the update thread.
+        /// This scheduler is updated in two places / at two points in time:
+        ///  - Early in the update frame, in <see cref="OnKeyDown"/>, so that the key event is blocked. We assume a key event that comes right after a
+        ///    text event is associated with that text event and therefore should be blocked. In other words: to ensure consistent UX, if a user
+        ///    presses a key to input text then no other action (eg. from a keyboard shortcut) should be taken by the game, so we block it.
+        ///  - Later in the same update frame, in <see cref="Update"/>. In case there was no associated key event. This is mostly required for mobile platforms.
+        /// </remarks>
+        private readonly Scheduler textInputScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         /// <summary>
         /// Scheduler used for scheduling IME composition and result events coming from <see cref="textInput"/>.
@@ -221,16 +246,11 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.Paste:
-                    string pending = null;
+                    if (textInputBlocking)
+                        // the text has been pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        return true;
 
-                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    if (inputBound)
-                        pending = textInput.GetPendingText();
-
-                    if (string.IsNullOrEmpty(pending))
-                        pending = clipboard?.GetText();
-
-                    InsertString(pending);
+                    InsertString(clipboard?.GetText());
                     return true;
 
                 case PlatformAction.SelectAll:
@@ -412,7 +432,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             imeCompositionScheduler.Add(() => onImeResult(userEvent, false));
 
-            if (inputBound)
+            if (textInputBound)
                 textInput.ResetIme();
 
             // importantly, we want to force-update all pending composition events,
@@ -430,7 +450,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
-            if (inputBound)
+            if (textInputBound)
                 textInput.ResetIme();
 
             imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
@@ -494,8 +514,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Update();
 
-            // update the scheduler before updating children as it might mutate TextFlow.
+            // update the schedulers before updating children as it might mutate TextFlow.
             // we want the character drawables to be up-to date for further calculations in `updateCursorAndLayout()`.
+            textInputScheduler.Update();
             imeCompositionScheduler.Update();
         }
 
@@ -927,48 +948,27 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
-        private bool consumingText;
-
         /// <summary>
-        /// Begin consuming text from an <see cref="TextInputSource"/>.
-        /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
+        /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
         /// </summary>
-        protected void BeginConsumingText()
-        {
-            consumingText = true;
-            Schedule(consumePendingText);
-        }
-
-        /// <summary>
-        /// Stops consuming text from an <see cref="TextInputSource"/>.
-        /// </summary>
-        protected void EndConsumingText()
-        {
-            consumingText = false;
-        }
-
-        /// <summary>
-        /// Consumes any pending characters and adds them to the textbox if not <see cref="ReadOnly"/>.
-        /// </summary>
-        private void consumePendingText()
-        {
-            if (!inputBound)
-            {
-                EndConsumingText();
-                return;
-            }
-
-            string pendingText = textInput.GetPendingText();
-
-            if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
-            {
-                InsertString(pendingText);
-                OnUserTextAdded(pendingText);
-            }
-
-            if (consumingText)
-                Schedule(consumePendingText);
-        }
+        /// <remarks>
+        /// Blocking starts when a text events occurs and ends when all keys are released (or on the next frame if no keys are pressed).
+        ///
+        /// We currently eagerly block keydown events, blocking all key events until all keys are released.
+        /// This means that some key events will be (erroneously) blocked, even if they weren't associated with a text event.
+        /// This simplified logic is used because trying to associate each key event with a text event is error prone.
+        /// Some reasons as to why:
+        ///  - Text and key repeat rate are inherently different, since text repeat is handled by the OS, while <see cref="InputManager"/> handles key repeat.
+        ///  - The ordering of keydown and text events can vary between platforms.
+        ///  - The ordering of the events can vary even more because these events are propagated to the textbox differently:
+        ///     - Key events are propagated by <see cref="UserInputManager"/> at the beginning of each update frame.
+        ///     - Text events are propagated immediately when they're received, and are handled either by the <see cref="Update"/> call or <see cref="OnKeyDown"/>,
+        ///       whichever comes first. (Check usages of <see cref="textInputScheduler"/>.<see cref="Scheduler.Update"/> for specifics.)
+        ///     - This is especially problematic if the key and text events arrive in between the <see cref="UserInputManager"/> and <see cref="TextBox"/> updates.
+        ///
+        /// So we catch the first key that produced text and block until we get back to a sane state (all keys released).
+        /// </remarks>
+        private bool textInputBlocking;
 
         /// <summary>
         /// Whether there is a ongoing IME composition.
@@ -979,7 +979,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Full data about the composition events is processed by <see cref="handleImeComposition"/> "passively"
         /// so we shouldn't take any action on key events we receive.
         /// </remarks>
-        protected bool ImeCompositionActive => inputBound && textInput.ImeActive || imeCompositionLength > 0;
+        protected bool ImeCompositionActive => textInputBound && textInput.ImeActive || imeCompositionLength > 0;
 
         #region Input event handling
 
@@ -990,13 +990,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (ImeCompositionActive)
                 return true;
-
-            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
-                return false;
-
-            // we only care about keys which can result in text output.
-            if (keyProducesCharacter(e.Key))
-                BeginConsumingText();
 
             switch (e.Key)
             {
@@ -1014,16 +1007,20 @@ namespace osu.Framework.Graphics.UserInterface
                         Commit();
                     return true;
 
-                // avoid blocking certain keys which may be used during typing but don't produce characters.
+                // avoid blocking certain keys which we need propagated to a PlatformActionContainer,
+                // so that we can get them as appropriate `PlatformAction`s in OnPressed(KeyBindingPressEvent<PlatformAction>).
                 case Key.BackSpace:
                 case Key.Delete:
                     return false;
             }
 
-            return base.OnKeyDown(e) || consumingText;
-        }
+            // check for any pending text input.
+            // updating here will set `textInputBlocking` accordingly.
+            textInputScheduler.Update();
 
-        private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0 && key <= Key.NonUSBackSlash) && key != Key.KeypadEnter;
+            // block on recent text input *after* handling the above keys so those keys can be used during text input.
+            return base.OnKeyDown(e) || textInputBlocking;
+        }
 
         /// <summary>
         /// Removes focus from this <see cref="TextBox"/> if it currently has focus.
@@ -1063,9 +1060,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnKeyUp(KeyUpEvent e)
         {
-            if (!e.HasAnyKeyPressed)
-                EndConsumingText();
-
+            Scheduler.AddOnce(revertBlockingStateIfRequired);
             base.OnKeyUp(e);
         }
 
@@ -1199,8 +1194,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (!ReadOnly && inputBound)
-                textInput.EnsureActivated();
+            if (!ReadOnly && textInputBound)
+                textInput.EnsureActivated(AllowIme);
 
             return !ReadOnly;
         }
@@ -1219,34 +1214,58 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether <see cref="textInput"/> has been activated and bound to.
         /// </summary>
-        private bool inputBound;
+        private bool textInputBound;
 
         private void bindInput()
         {
-            if (inputBound)
+            if (textInputBound)
             {
-                textInput.EnsureActivated();
+                textInput.EnsureActivated(AllowIme);
                 return;
             }
 
-            textInput.Activate();
+            textInput.Activate(AllowIme);
+            textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
 
-            inputBound = true;
+            textInputBound = true;
         }
 
         private void unbindInput()
         {
-            if (!inputBound)
+            if (!textInputBound)
                 return;
 
-            inputBound = false;
+            textInputBound = false;
 
             textInput.Deactivate();
+            textInput.OnTextInput -= handleTextInput;
             textInput.OnImeComposition -= handleImeComposition;
             textInput.OnImeResult -= handleImeResult;
+
+            // in case keys are held and we lose focus, we should no longer block key events
+            textInputBlocking = false;
         }
+
+        private void handleTextInput(string text) => textInputScheduler.Add(t =>
+        {
+            textInputBlocking = true;
+
+            InsertString(t);
+            OnUserTextAdded(t);
+
+            // clear the flag in the next frame if no buttons are pressed/held.
+            // needed in case a text event happens without an associated button press (and release).
+            // this could be the case for software keyboards, for instance.
+            Scheduler.AddOnce(revertBlockingStateIfRequired);
+        }, text);
+
+        /// <summary>
+        /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
+        /// </summary>
+        private void revertBlockingStateIfRequired() =>
+            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
@@ -1515,7 +1534,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private void updateImeWindowPosition()
         {
-            if (!cursorAndLayout.IsValid || !inputBound)
+            if (!cursorAndLayout.IsValid || !textInputBound)
                 return;
 
             int startIndex, endIndex;

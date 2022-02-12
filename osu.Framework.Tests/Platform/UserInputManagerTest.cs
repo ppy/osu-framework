@@ -25,8 +25,8 @@ namespace osu.Framework.Tests.Platform
         {
             public Drawable CurrentRoot => Root;
 
-            public TestHeadlessGameHost(string hostname, bool bindIPC)
-                : base(hostname, bindIPC)
+            public TestHeadlessGameHost(string gameName, bool bindIPC)
+                : base(gameName, new HostOptions { BindIPC = bindIPC })
             {
             }
         }

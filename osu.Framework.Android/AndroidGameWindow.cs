@@ -46,6 +46,7 @@ namespace osu.Framework.Android
         public override void SetupWindow(FrameworkConfigManager config)
         {
             CursorState |= CursorState.Confined;
+            SafeAreaPadding.BindTo(view.SafeAreaPadding);
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]

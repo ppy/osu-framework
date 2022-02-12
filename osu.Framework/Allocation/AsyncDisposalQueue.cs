@@ -6,21 +6,24 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// A queue which batches object disposal on threadpool threads.
+    /// A queue which batches object disposal on locally managed threads.
     /// </summary>
     internal static class AsyncDisposalQueue
     {
         private static readonly GlobalStatistic<string> last_disposal = GlobalStatistics.Get<string>("Drawable", "Last disposal");
 
-        private static readonly List<IDisposable> disposal_queue = new List<IDisposable>();
-
         private static Task runTask;
 
+        private static readonly List<IDisposable> disposal_queue = new List<IDisposable>();
+
         private static readonly ManualResetEventSlim processing_reset_event = new ManualResetEventSlim(true);
+
+        private static readonly ThreadedTaskScheduler scheduler = new ThreadedTaskScheduler(1, "Disposal queue");
 
         private static int runningTasks;
 
@@ -41,7 +44,7 @@ namespace osu.Framework.Allocation
                 processing_reset_event.Reset();
             }
 
-            runTask = Task.Run(() =>
+            runTask = Task.Factory.StartNew(() =>
             {
                 try
                 {
@@ -58,8 +61,8 @@ namespace osu.Framework.Allocation
                         ref var item = ref itemsToDispose[i];
 
                         last_disposal.Value = item.ToString();
-                        item.Dispose();
 
+                        item.Dispose();
                         item = null;
                     }
                 }
@@ -71,7 +74,7 @@ namespace osu.Framework.Allocation
                             processing_reset_event.Set();
                     }
                 }
-            });
+            }, CancellationToken.None, TaskCreationOptions.None, scheduler);
         }
 
         /// <summary>

@@ -26,6 +26,8 @@
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.187" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so" />
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\arm64-v8a\*.so" />
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\armeabi-v7a\*.so" />
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\x86\*.so" />
   </ItemGroup>
 </Project>

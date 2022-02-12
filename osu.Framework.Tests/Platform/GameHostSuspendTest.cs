@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Platform
             private readonly ExecutionMode threadMode;
 
             public ExecutionModeGameHost(string name, ExecutionMode threadMode)
-                : base(name)
+                : base(name, new HostOptions())
             {
                 this.threadMode = threadMode;
             }
