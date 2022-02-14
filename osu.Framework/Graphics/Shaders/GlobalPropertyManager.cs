@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");
             global_properties[(int)GlobalProperty.CornerExponent] = new UniformMapping<float>("g_CornerExponent");
             global_properties[(int)GlobalProperty.BorderThickness] = new UniformMapping<float>("g_BorderThickness");
-            global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Vector4>("g_BorderColour");
+            global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Matrix4>("g_BorderColour");
             global_properties[(int)GlobalProperty.MaskingBlendRange] = new UniformMapping<float>("g_MaskingBlendRange");
             global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
             global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
