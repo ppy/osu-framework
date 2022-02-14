@@ -235,10 +235,16 @@ Task("Build")
     .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
-Task("DeployFramework")
+Task("DeployFrameworkDesktop")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
+    .IsDependentOn("PackTemplate")
+    .IsDependentOn("Publish");
+
+Task("DeployFrameworkXamarin")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
     .IsDependentOn("PackTemplate")
