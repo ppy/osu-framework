@@ -1,6 +1,7 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 
@@ -13,7 +14,13 @@ namespace osu.Framework.Graphics.Shapes
     {
         public Box()
         {
-            Texture = Texture.WhitePixel;
+            base.Texture = Texture.WhitePixel;
+        }
+
+        public override Texture Texture
+        {
+            get => base.Texture;
+            set => throw new InvalidOperationException($"The texture of a {nameof(Box)} cannot be set.");
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [Resolved]
         private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
 
-        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
+        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition)
         {
             this.cell = cell;
             this.definition = definition;
@@ -65,16 +65,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case TableColumnAlign.Center:
                     textFlow.TextAnchor = Anchor.Centre;
                     break;
+
                 case TableColumnAlign.Right:
                     textFlow.TextAnchor = Anchor.CentreRight;
                     break;
+
                 default:
                     textFlow.TextAnchor = Anchor.CentreLeft;
                     break;
             }
         }
 
-        public MarkdownTextFlowContainer CreateTextFlow()
+        public virtual MarkdownTextFlowContainer CreateTextFlow()
         {
             var flow = parentFlowComponent.CreateTextFlow();
             flow.Padding = new MarginPadding(10);

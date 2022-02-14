@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osuTK.Graphics;
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The blending mode of the glow. Default is additive.
         /// </summary>
-        public BlendingParameters Blending = BlendingMode.Additive;
+        public BlendingParameters Blending = BlendingParameters.Additive;
 
         /// <summary>
         /// Whether to draw the glow <see cref="EffectPlacement.InFront"/> or <see cref="EffectPlacement.Behind"/> the glowing
@@ -44,12 +44,6 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool PadExtent;
 
-        /// <summary>
-        /// True if the effect should be cached. This is an optimization, but can cause issues if the drawable changes the way it looks without changing its size.
-        /// Turned off by default.
-        /// </summary>
-        public bool CacheDrawnEffect;
-
         public BufferedContainer ApplyTo(Drawable drawable) => drawable.WithEffect(new BlurEffect
         {
             Strength = Strength,
@@ -58,7 +52,6 @@ namespace osu.Framework.Graphics.Effects
             Blending = Blending,
             Placement = Placement,
             PadExtent = PadExtent,
-            CacheDrawnEffect = CacheDrawnEffect,
 
             DrawOriginal = true,
         });

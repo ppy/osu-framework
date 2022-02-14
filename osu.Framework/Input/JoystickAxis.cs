@@ -1,16 +1,23 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 namespace osu.Framework.Input
 {
-    public struct JoystickAxis
+    public readonly struct JoystickAxis
     {
-        public readonly int Axis;
+        /// <summary>
+        /// The source of this axis.
+        /// </summary>
+        public readonly JoystickAxisSource Source;
+
+        /// <summary>
+        /// The value of this axis.
+        /// </summary>
         public readonly float Value;
 
-        public JoystickAxis(int axis, float value)
+        public JoystickAxis(JoystickAxisSource source, float value)
         {
-            Axis = axis;
+            Source = source;
             Value = value;
         }
     }

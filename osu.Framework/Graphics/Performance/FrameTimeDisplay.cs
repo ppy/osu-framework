@@ -1,14 +1,15 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.MathUtils;
+using osu.Framework.Statistics;
 using osu.Framework.Timing;
+using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -46,66 +47,83 @@ namespace osu.Framework.Graphics.Performance
         }
 
         private float aimWidth;
+
         private double displayFps;
-        private double displayFrameTime;
+
+        private double rollingElapsed;
+
+        private int framesSinceLastUpdate;
+
+        private double elapsedSinceLastUpdate;
+        private double lastUpdateLocalTime;
+        private double lastFrameFramesPerSecond;
 
         private const int updates_per_second = 10;
 
-        protected override void LoadComplete()
+        protected override void Update()
         {
-            base.LoadComplete();
+            base.Update();
 
-            double lastUpdate = 0;
-
-            Scheduler.AddDelayed(() =>
+            if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
             {
-                if (!Counting) return;
+                ClearTransforms();
 
-                if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
-                {
-                    ClearTransforms();
+                if (aimWidth == 0)
+                    Size = counter.DrawSize;
+                else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
+                    this.ResizeTo(counter.DrawSize, 200, Easing.OutQuint);
+                else
+                    this.Delay(500).ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
 
-                    if (aimWidth == 0)
-                        Size = counter.DrawSize;
-                    else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
-                        this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
-                    else
-                        this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+                aimWidth = counter.DrawWidth;
+            }
 
-                    aimWidth = counter.DrawWidth;
-                }
+            if (Clock.CurrentTime - lastUpdateLocalTime > 1000.0 / updates_per_second)
+                updateDisplay();
+        }
 
-                double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
+        private void updateDisplay()
+        {
+            double dampRate = Math.Max(Clock.CurrentTime - lastUpdateLocalTime, 0) / 1000;
 
-                displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
-                displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
+            displayFps = Interpolation.Damp(displayFps, lastFrameFramesPerSecond, 0.01, dampRate);
 
-                lastUpdate = clock.CurrentTime;
+            if (framesSinceLastUpdate > 0)
+            {
+                rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
+            }
 
-                counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
-                               + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
-            }, 1000.0 / updates_per_second, true);
+            lastUpdateLocalTime = Clock.CurrentTime;
+
+            framesSinceLastUpdate = 0;
+            elapsedSinceLastUpdate = 0;
+
+            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms)"
+                           + (clock.Throttling ? $"{(clock.MaximumUpdateHz > 0 && clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞"),4}hz" : string.Empty);
         }
 
         private class CounterText : SpriteText
         {
             public CounterText()
             {
-                FixedWidth = true;
+                Font = FrameworkFont.Regular.With(fixedWidth: true);
             }
 
-            protected override bool UseFixedWidthForCharacter(char c)
+            protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };
+        }
+
+        public void NewFrame(FrameStatistics frame)
+        {
+            if (!Counting) return;
+
+            foreach (var pair in frame.CollectedTimes)
             {
-                switch (c)
-                {
-                    case ',':
-                    case '.':
-                    case ' ':
-                        return false;
-                }
-
-                return true;
+                if (pair.Key != PerformanceCollectionType.Sleep)
+                    elapsedSinceLastUpdate += pair.Value;
             }
+
+            framesSinceLastUpdate++;
+            lastFrameFramesPerSecond = frame.FramesPerSecond;
         }
     }
 }

@@ -1,9 +1,9 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.IO;
-using osu.Framework.IO.File;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Network
 {
@@ -31,11 +31,23 @@ namespace osu.Framework.IO.Network
             Filename = filename;
         }
 
-        protected override void Complete(Exception e = null)
+        protected override Task Complete(Exception e = null)
         {
             ResponseStream?.Close();
-            if (e != null) FileSafety.FileDelete(Filename);
-            base.Complete(e);
+
+            if (e != null)
+            {
+                try
+                {
+                    File.Delete(Filename);
+                }
+                catch (Exception eOther)
+                {
+                    e = new AggregateException(e, eOther);
+                }
+            }
+
+            return base.Complete(e);
         }
     }
 }

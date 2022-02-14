@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
@@ -11,9 +12,9 @@ using osu.Framework.Extensions.TypeExtensions;
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// Marks a method as the loader-Method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
+    /// Marks a method as the (potentially asynchronous) initialization method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
     /// </summary>
-    [MeansImplicitUse]
+    [MeansImplicitUse(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     [AttributeUsage(AttributeTargets.Method)]
     public class BackgroundDependencyLoaderAttribute : Attribute
     {
@@ -22,14 +23,14 @@ namespace osu.Framework.Allocation
         private bool permitNulls { get; }
 
         /// <summary>
-        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// Marks this method as the (potentially asynchronous) initializer for a class in the context of dependency injection.
         /// </summary>
         public BackgroundDependencyLoaderAttribute()
         {
         }
 
         /// <summary>
-        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// Marks this method as the (potentially asynchronous) initializer for a class in the context of dependency injection.
         /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
         public BackgroundDependencyLoaderAttribute(bool permitNulls)
@@ -45,6 +46,7 @@ namespace osu.Framework.Allocation
             {
                 case 0:
                     return (_, __) => { };
+
                 case 1:
                     var method = loaderMethods[0];
 
@@ -52,31 +54,29 @@ namespace osu.Framework.Allocation
                     if (modifier != AccessModifier.Private)
                         throw new AccessModifierNotAllowedForLoaderMethodException(modifier, method);
 
-                    var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
+                    var attribute = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>();
+                    Debug.Assert(attribute != null);
+
+                    bool permitNulls = attribute.permitNulls;
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType)
+                                                 .Select(t => getDependency(t, type, permitNulls || t.IsNullable())).ToArray();
 
                     return (target, dc) =>
                     {
                         try
                         {
-                            method.Invoke(target, parameterGetters.Select(p => p(dc)).ToArray());
+                            object[] parameterArray = new object[parameterGetters.Length];
+                            for (int i = 0; i < parameterGetters.Length; i++)
+                                parameterArray[i] = parameterGetters[i](dc);
+
+                            method.Invoke(target, parameterArray);
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {
-                            switch (exc.InnerException)
-                            {
-                                case OperationCanceledException _:
-                                    // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
-                                    throw exc.InnerException;
-                                case DependencyInjectionException die:
-                                    // A nested activator has failed (multiple Invoke() calls) - propagate the original error
-                                    throw die;
-                            }
-
-                            // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
-                            throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
+                            ExceptionDispatchInfo.Capture(exc.InnerException).Throw();
                         }
                     };
+
                 default:
                     throw new MultipleDependencyLoaderMethodsException(type);
             }
@@ -84,9 +84,10 @@ namespace osu.Framework.Allocation
 
         private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
         {
-            var val = dc.Get(type);
+            object val = dc.Get(type);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
+
             return val;
         };
     }

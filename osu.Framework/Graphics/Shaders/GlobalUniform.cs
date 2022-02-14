@@ -1,12 +1,13 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.OpenGL;
+using System;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal class GlobalUniform<T> : IUniformWithValue<T>
-        where T : struct
+        where T : struct, IEquatable<T>
     {
         public Shader Owner { get; }
         public int Location { get; }
@@ -40,7 +41,7 @@ namespace osu.Framework.Graphics.Shaders
             PendingChange = null;
         }
 
-        ref T IUniformWithValue<T>.GetValueByRef() => ref PendingChange.Value;
+        ref T IUniformWithValue<T>.GetValueByRef() => ref PendingChange.GetValueByRef();
         T IUniformWithValue<T>.GetValue() => PendingChange.Value;
     }
 }

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osuTK;
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Colour
     /// ColourInfo contains information about the colours of all 4 vertices of a quad.
     /// These colours are always stored in linear space.
     /// </summary>
-    public struct ColourInfo : IEquatable<ColourInfo>
+    public struct ColourInfo : IEquatable<ColourInfo>, IEquatable<SRGBColour>
     {
         public SRGBColour TopLeft;
         public SRGBColour BottomLeft;
@@ -66,10 +66,11 @@ namespace osu.Framework.Graphics.Colour
 
         private SRGBColour singleColour
         {
-            get
+            readonly get
             {
                 if (!HasSingleColour)
                     throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
+
                 return TopLeft;
             }
 
@@ -80,7 +81,7 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
+        public readonly SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
@@ -127,7 +128,7 @@ namespace osu.Framework.Graphics.Colour
         /// </summary>
         /// <param name="alpha">The alpha parameter to multiply the alpha values of all vertices with.</param>
         /// <returns>The new ColourInfo.</returns>
-        public ColourInfo MultiplyAlpha(float alpha)
+        public readonly ColourInfo MultiplyAlpha(float alpha)
         {
             if (alpha == 1.0)
                 return this;
@@ -147,7 +148,7 @@ namespace osu.Framework.Graphics.Colour
             return result;
         }
 
-        public bool Equals(ColourInfo other)
+        public readonly bool Equals(ColourInfo other)
         {
             if (!HasSingleColour)
             {
@@ -164,15 +165,12 @@ namespace osu.Framework.Graphics.Colour
             return other.HasSingleColour && TopLeft.Equals(other.TopLeft);
         }
 
-        public bool Equals(SRGBColour other)
-        {
-            return HasSingleColour && TopLeft.Equals(other);
-        }
+        public readonly bool Equals(SRGBColour other) => HasSingleColour && TopLeft.Equals(other);
 
         /// <summary>
         /// The average colour of all corners.
         /// </summary>
-        public SRGBColour AverageColour
+        public readonly SRGBColour AverageColour
         {
             get
             {
@@ -187,28 +185,44 @@ namespace osu.Framework.Graphics.Colour
         /// <summary>
         /// The maximum alpha value of all four corners.
         /// </summary>
-        public float MaxAlpha
+        public readonly float MaxAlpha
         {
             get
             {
                 float max = TopLeft.Linear.A;
-                if (TopRight.Linear.A < max) max = TopRight.Linear.A;
-                if (BottomLeft.Linear.A < max) max = BottomLeft.Linear.A;
-                if (BottomRight.Linear.A < max) max = BottomRight.Linear.A;
+                if (TopRight.Linear.A > max) max = TopRight.Linear.A;
+                if (BottomLeft.Linear.A > max) max = BottomLeft.Linear.A;
+                if (BottomRight.Linear.A > max) max = BottomRight.Linear.A;
 
                 return max;
             }
         }
 
-        public override string ToString() =>
-            HasSingleColour ?
-            $@"{TopLeft} (Single)" :
-            $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
+        /// <summary>
+        /// The minimum alpha value of all four corners.
+        /// </summary>
+        public readonly float MinAlpha
+        {
+            get
+            {
+                float min = TopLeft.Linear.A;
+                if (TopRight.Linear.A < min) min = TopRight.Linear.A;
+                if (BottomLeft.Linear.A < min) min = BottomLeft.Linear.A;
+                if (BottomRight.Linear.A < min) min = BottomRight.Linear.A;
+
+                return min;
+            }
+        }
+
+        public override readonly string ToString() => HasSingleColour ? $@"{TopLeft} (Single)" : $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
 
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
         public static implicit operator SRGBColour(ColourInfo colour) => colour.singleColour;
 
         public static implicit operator ColourInfo(Color4 colour) => (SRGBColour)colour;
         public static implicit operator Color4(ColourInfo colour) => (SRGBColour)colour;
+
+        public static implicit operator ColourInfo(Colour4 colour) => (SRGBColour)colour;
+        public static implicit operator Colour4(ColourInfo colour) => (SRGBColour)colour;
     }
 }

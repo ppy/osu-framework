@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.TypeExtensions;
 using System;
@@ -52,6 +52,18 @@ namespace osu.Framework.Timing
             }
         }
 
+        public new void Reset()
+        {
+            resetAccumulatedRate();
+            base.Reset();
+        }
+
+        public new void Restart()
+        {
+            resetAccumulatedRate();
+            base.Restart();
+        }
+
         public void ResetSpeedAdjustments() => Rate = 1;
 
         public bool Seek(double position)
@@ -62,5 +74,11 @@ namespace osu.Framework.Timing
         }
 
         public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms)";
+
+        private void resetAccumulatedRate()
+        {
+            rateChangeAccumulated = 0;
+            rateChangeUsed = 0;
+        }
     }
 }

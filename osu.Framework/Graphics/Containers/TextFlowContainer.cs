@@ -1,12 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -18,6 +22,10 @@ namespace osu.Framework.Graphics.Containers
         private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
 
+        private readonly List<ITextPart> parts = new List<ITextPart>();
+
+        private readonly Cached partsCache = new Cached();
+
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
         /// </summary>
@@ -27,6 +35,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == firstLineIndent) return;
+
                 firstLineIndent = value;
 
                 layout.Invalidate();
@@ -44,6 +53,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == contentIndent) return;
+
                 contentIndent = value;
 
                 layout.Invalidate();
@@ -62,6 +72,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == paragraphSpacing) return;
+
                 paragraphSpacing = value;
 
                 layout.Invalidate();
@@ -80,6 +91,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == lineSpacing) return;
+
                 lineSpacing = value;
 
                 layout.Invalidate();
@@ -87,6 +99,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Anchor textAnchor = Anchor.TopLeft;
+
         /// <summary>
         /// The <see cref="Anchor"/> which text should flow from.
         /// </summary>
@@ -97,193 +110,267 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (textAnchor == value)
                     return;
+
                 textAnchor = value;
 
-                // Todo: This is temporary for now because we don't have an easy way to re-flow the container...
-                if (IsLoaded)
-                    throw new InvalidOperationException($"{nameof(TextAnchor)} may not change after the {nameof(TextFlowContainer)} is loaded.");
+                layout.Invalidate();
             }
         }
 
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
-        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
+        /// This will overwrite any existing text added using this method of <see cref="AddText(LocalisableString, Action{SpriteText})"/>
         /// </summary>
-        public string Text
+        public LocalisableString Text
         {
             set
             {
                 Clear();
+                parts.Clear();
+
                 AddText(value);
             }
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                layout.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
+        [Resolved]
+        internal LocalisationManager Localisation { get; private set; }
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            if (!layout.IsValid)
-            {
-                computeLayout();
-                layout.Validate();
-            }
-        }
-
-        protected override int Compare(Drawable x, Drawable y)
-        {
-            // FillFlowContainer will reverse the ordering of right-anchored words such that the (previously) first word would be
-            // the right-most word, whereas it should still be flowed left-to-right. This is achieved by reversing the comparator.
-            if (TextAnchor.HasFlag(Anchor.x2))
-                return base.Compare(y, x);
-            return base.Compare(x, y);
-        }
-
-        /// <summary>
-        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
-        /// </summary>
-        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
-        /// <param name="text">The text to add.</param>
-        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(text, creationParameters), true);
-
-        /// <summary>
-        /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
-        /// While default creation parameters are applied automatically, word wrapping is unavailable for contained words.
-        /// This should only be used when a specialised <see cref="SpriteText"/> type is requried.
-        /// </summary>
-        /// <param name="text">The text to add.</param>
-        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public void AddText(SpriteText text, Action<SpriteText> creationParameters = null)
-        {
-            base.Add(text);
-            defaultCreationParameters?.Invoke(text);
-            creationParameters?.Invoke(text);
-        }
-
-        /// <summary>
-        /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
-        /// </summary>
-        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
-        /// <param name="paragraph">The paragraph to add.</param>
-        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(paragraph, creationParameters), false);
-
-        /// <summary>
-        /// End current line and start a new one.
-        /// </summary>
-        public void NewLine() => base.Add(new NewLineContainer(false));
-
-        /// <summary>
-        /// End current paragraph and start a new one.
-        /// </summary>
-        public void NewParagraph() => base.Add(new NewLineContainer(true));
+        private readonly Bindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
 
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
         {
             this.defaultCreationParameters = defaultCreationParameters;
         }
 
-        protected virtual SpriteText CreateSpriteText() => new SpriteText();
-
-        internal SpriteText CreateSpriteTextWithLine(TextLine line)
+        protected override void LoadAsyncComplete()
         {
-            var spriteText = CreateSpriteText();
-            defaultCreationParameters?.Invoke(spriteText);
-            line.ApplyParameters(spriteText);
-            return spriteText;
+            base.LoadAsyncComplete();
+
+            localisationParameters.Value = Localisation.CurrentParameters.Value;
+            RecreateAllParts();
         }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            localisationParameters.BindValueChanged(_ => partsCache.Invalidate());
+            ((IBindable<LocalisationParameters>)localisationParameters).BindTo(Localisation.CurrentParameters);
+        }
+
+        protected override void InvalidateLayout()
+        {
+            base.InvalidateLayout();
+            layout.Invalidate();
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!partsCache.IsValid)
+                RecreateAllParts();
+        }
+
+        public override IEnumerable<Drawable> FlowingChildren
+        {
+            get
+            {
+                if ((TextAnchor & (Anchor.x2 | Anchor.y2)) == 0)
+                    return base.FlowingChildren;
+
+                var childArray = base.FlowingChildren.ToArray();
+
+                if ((TextAnchor & Anchor.x2) > 0)
+                    reverseHorizontal(childArray);
+                if ((TextAnchor & Anchor.y2) > 0)
+                    reverseVertical(childArray);
+
+                return childArray;
+            }
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            if (!layout.IsValid)
+            {
+                computeLayout();
+                layout.Validate();
+            }
+
+            base.UpdateAfterChildren();
+        }
+
+        protected override int Compare(Drawable x, Drawable y)
+        {
+            // FillFlowContainer will reverse the ordering of right-anchored words such that the (previously) first word would be
+            // the right-most word, whereas it should still be flowed left-to-right. This is achieved by reversing the comparator.
+            if (TextAnchor.HasFlagFast(Anchor.x2))
+                return base.Compare(y, x);
+
+            return base.Compare(x, y);
+        }
+
+        /// <summary>
+        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break.
+        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
+        /// </summary>
+        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
+        /// <param name="text">The text to add.</param>
+        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
+        public ITextPart AddText<TSpriteText>(LocalisableString text, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => AddPart(CreateChunkFor(text, true, () => new TSpriteText(), creationParameters));
+
+        /// <inheritdoc cref="AddText{TSpriteText}(LocalisableString,System.Action{TSpriteText})"/>
+        public ITextPart AddText(LocalisableString text, Action<SpriteText> creationParameters = null)
+            => AddPart(CreateChunkFor(text, true, CreateSpriteText, creationParameters));
+
+        /// <summary>
+        /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
+        /// While default creation parameters are applied automatically, word wrapping is unavailable for contained words.
+        /// This should only be used when a specialised <see cref="SpriteText"/> type is required.
+        /// </summary>
+        /// <param name="text">The text to add.</param>
+        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
+        public void AddText<TSpriteText>(TSpriteText text, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText
+        {
+            defaultCreationParameters?.Invoke(text);
+            creationParameters?.Invoke(text);
+            AddPart(new TextPartManual(text.Yield()));
+        }
+
+        /// <summary>
+        /// Add a new paragraph to this text flow. The \n character will create a line break
+        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
+        /// </summary>
+        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
+        /// <param name="paragraph">The paragraph to add.</param>
+        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
+        public ITextPart AddParagraph<TSpriteText>(LocalisableString paragraph, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => AddPart(CreateChunkFor(paragraph, false, () => new TSpriteText(), creationParameters));
+
+        /// <inheritdoc cref="AddParagraph{TSpriteText}(LocalisableString,Action{TSpriteText})"/>
+        public ITextPart AddParagraph(LocalisableString paragraph, Action<SpriteText> creationParameters = null)
+            => AddPart(CreateChunkFor(paragraph, false, CreateSpriteText, creationParameters));
+
+        /// <summary>
+        /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
+        /// </summary>
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
+
+        /// <summary>
+        /// End current line and start a new one.
+        /// </summary>
+        public void NewLine() => AddPart(new TextNewLine(false));
+
+        /// <summary>
+        /// End current paragraph and start a new one.
+        /// </summary>
+        public void NewParagraph() => AddPart(new TextNewLine(true));
+
+        protected internal virtual SpriteText CreateSpriteText() => new SpriteText();
+
+        internal void ApplyDefaultCreationParamters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
         public override void Add(Drawable drawable)
         {
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        internal virtual IEnumerable<Drawable> AddLine(TextLine line, bool newLineIsParagraph)
+        public override void Clear(bool disposeChildren)
         {
-            var sprites = new List<Drawable>();
-
-            // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
-            // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
-            if (!newLineIsParagraph)
-            {
-                var newLine = new NewLineContainer(true);
-                sprites.Add(newLine);
-                base.Add(newLine);
-            }
-
-            sprites.AddRange(AddString(line, newLineIsParagraph));
-
-            return sprites;
+            base.Clear(disposeChildren);
+            parts.Clear();
         }
 
-        internal IEnumerable<Drawable> AddString(TextLine line, bool newLineIsParagraph)
+        /// <summary>
+        /// Adds an <see cref="ITextPart"/> and its associated drawables to this <see cref="TextFlowContainer"/>.
+        /// </summary>
+        protected internal ITextPart AddPart(ITextPart part)
         {
-            bool first = true;
-            var sprites = new List<Drawable>();
-            foreach (string l in line.Text.Split('\n'))
-            {
-                if (!first)
-                {
-                    Drawable lastChild = Children.LastOrDefault();
-                    if (lastChild != null)
-                    {
-                        var newLine = new NewLineContainer(newLineIsParagraph);
-                        sprites.Add(newLine);
-                        base.Add(newLine);
-                    }
-                }
+            parts.Add(part);
 
-                foreach (string word in SplitWords(l))
-                {
-                    if (string.IsNullOrEmpty(word)) continue;
+            // if the parts cached is already invalid, there's no need to recreate the new addition. it will be created as part of the next validation.
+            if (partsCache.IsValid)
+                recreatePart(part);
 
-                    var textSprite = CreateSpriteTextWithLine(line);
-                    textSprite.Text = word;
-                    sprites.Add(textSprite);
-                    base.Add(textSprite);
-                }
-
-                first = false;
-            }
-
-            return sprites;
+            return part;
         }
 
-        protected string[] SplitWords(string text)
+        /// <summary>
+        /// Removes an <see cref="ITextPart"/> from this text flow.
+        /// </summary>
+        /// <returns>Whether <see cref="ITextPart"/> was successfully removed from the flow.</returns>
+        public bool RemovePart(ITextPart partToRemove)
         {
-            var words = new List<string>();
-            var builder = new StringBuilder();
+            if (!parts.Remove(partToRemove))
+                return false;
 
-            for (var i = 0; i < text.Length; i++)
-            {
-                if (i == 0 || char.IsSeparator(text[i - 1]) || char.IsControl(text[i - 1]))
-                {
-                    words.Add(builder.ToString());
-                    builder.Clear();
-                }
-
-                builder.Append(text[i]);
-            }
-
-            if (builder.Length > 0)
-                words.Add(builder.ToString());
-
-            return words.ToArray();
+            partsCache.Invalidate();
+            return true;
         }
 
-        private Cached layout = new Cached();
+        protected virtual void RecreateAllParts()
+        {
+            // manual parts need to be manually removed before clearing contents,
+            // to avoid accidentally disposing of them in the process.
+            foreach (var manualPart in parts.OfType<TextPartManual>())
+                RemoveRange(manualPart.Drawables);
+
+            // make sure not to clear the list of parts by accident.
+            base.Clear(true);
+
+            foreach (var part in parts)
+                recreatePart(part);
+
+            partsCache.Validate();
+        }
+
+        private void recreatePart(ITextPart part)
+        {
+            part.RecreateDrawablesFor(this);
+            foreach (var drawable in part.Drawables)
+                base.Add(drawable);
+        }
+
+        private void reverseHorizontal(Drawable[] children)
+        {
+            int reverseStartIndex = 0;
+
+            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (!(children[i] is NewLineContainer))
+                    continue;
+
+                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
+                reverseStartIndex = i + 1;
+            }
+
+            // Extra loop for the last newline boundary (or all children if there are no newlines)
+            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
+        }
+
+        private void reverseVertical(Drawable[] children)
+        {
+            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
+            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
+            Array.Reverse(children);
+            reverseHorizontal(children);
+        }
+
+        private readonly Cached layout = new Cached();
 
         private void computeLayout()
         {
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
+
             foreach (var c in Children)
             {
                 c.Anchor = TextAnchor;
@@ -303,6 +390,7 @@ namespace osu.Framework.Graphics.Containers
                             childrenByLine.Add(curLine);
                         curLine = new List<Drawable>();
                     }
+
                     curLine.Add(c);
                 }
             }
@@ -312,6 +400,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool isFirstLine = true;
             float lastLineHeight = 0f;
+
             foreach (var line in childrenByLine)
             {
                 bool isFirstChild = true;
@@ -359,23 +448,6 @@ namespace osu.Framework.Graphics.Containers
             public NewLineContainer(bool newParagraph)
             {
                 IndicatesNewParagraph = newParagraph;
-            }
-        }
-
-        internal class TextLine
-        {
-            public readonly string Text;
-            internal readonly Action<SpriteText> CreationParameters;
-
-            public TextLine(string text, Action<SpriteText> creationParameters = null)
-            {
-                Text = text;
-                CreationParameters = creationParameters;
-            }
-
-            public void ApplyParameters(SpriteText spriteText)
-            {
-                CreationParameters?.Invoke(spriteText);
             }
         }
     }

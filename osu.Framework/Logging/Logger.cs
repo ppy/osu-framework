@@ -1,15 +1,15 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
@@ -59,7 +59,54 @@ namespace osu.Framework.Logging
         public static Storage Storage
         {
             private get => storage;
-            set => storage = value ?? throw new ArgumentNullException(nameof(value));
+            set
+            {
+                storage = value ?? throw new ArgumentNullException(nameof(value));
+
+                // clear static loggers so they are correctly purged at the new storage location.
+                static_loggers.Clear();
+            }
+        }
+
+        /// <summary>
+        /// The target for which this logger logs information. This will only be null if the logger has a name.
+        /// </summary>
+        public LoggingTarget? Target { get; }
+
+        /// <summary>
+        /// The name of the logger.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the name of the file that this logger is logging to.
+        /// </summary>
+        public string Filename => $@"{Name}.log";
+
+        public int TotalLogOperations => logCount.Value;
+
+        private readonly GlobalStatistic<int> logCount;
+
+        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
+
+        private Logger(LoggingTarget target = LoggingTarget.Runtime)
+            : this(target.ToString(), false)
+        {
+            Target = target;
+        }
+
+        private Logger(string name, bool checkedReserved)
+        {
+            name = name.ToLower();
+
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
+
+            if (checkedReserved && reserved_names.Contains(name))
+                throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
+
+            Name = name;
+            logCount = GlobalStatistics.Get<int>(nameof(Logger), Name);
         }
 
         /// <summary>
@@ -129,9 +176,10 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
-            log(message, target, null, level);
+            log(message, target, null, level, outputToListeners: outputToListeners);
         }
 
         /// <summary>
@@ -140,19 +188,20 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="name">The logger name (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose)
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
-            log(message, null, name, level);
+            log(message, null, name, level, outputToListeners: outputToListeners);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null)
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null, bool outputToListeners = true)
         {
             try
             {
                 if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level, exception);
+                    GetLogger(target.Value).Add(message, level, exception, outputToListeners);
                 else
-                    GetLogger(loggerName).Add(message, level, exception);
+                    GetLogger(loggerName).Add(message, level, exception, outputToListeners);
             }
             catch
             {
@@ -192,12 +241,7 @@ namespace osu.Framework.Logging
         /// </summary>
         /// <param name="target">The logging target.</param>
         /// <returns>The logger responsible for the given logging target.</returns>
-        public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime)
-        {
-            // there can be no name conflicts between LoggingTarget-based Loggers and named loggers because
-            // every name that would coincide with a LoggingTarget-value is reserved and cannot be used (see ctor).
-            return GetLogger(target.ToString());
-        }
+        public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime) => GetLogger(target.ToString());
 
         /// <summary>
         /// For classes that regularly log to the same target, this method may be preferred over the static Log method.
@@ -208,10 +252,11 @@ namespace osu.Framework.Logging
         {
             lock (static_sync_lock)
             {
-                var nameLower = name.ToLower();
+                string nameLower = name.ToLower();
+
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
-                    static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name);
+                    static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name, true);
                     l.clear();
                 }
 
@@ -220,45 +265,14 @@ namespace osu.Framework.Logging
         }
 
         /// <summary>
-        /// The target for which this logger logs information. This will only be null if the logger has a name.
-        /// </summary>
-        public LoggingTarget? Target { get; }
-
-        /// <summary>
-        /// The name of the logger. This will only have a value if <see cref="Target"/> is null.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Gets the name of the file that this logger is logging to.
-        /// </summary>
-        public string Filename => $@"{(Target?.ToString() ?? Name).ToLower()}.log";
-
-        private Logger(LoggingTarget target = LoggingTarget.Runtime)
-        {
-            Target = target;
-        }
-
-        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
-
-        private Logger(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
-
-            if (reserved_names.Contains(name.ToLower()))
-                throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
-
-            Name = name;
-        }
-
-        /// <summary>
         /// Logs a new message with the <see cref="LogLevel.Debug"/> and will only be logged if your project is built in the Debug configuration. Please note that the default setting for <see cref="Level"/> is <see cref="LogLevel.Verbose"/> so unless you increase the <see cref="Level"/> to <see cref="LogLevel.Debug"/> messages printed with this method will not appear in the output.
         /// </summary>
         /// <param name="message">The message that should be logged.</param>
-        [Conditional("DEBUG")]
         public void Debug(string message = @"")
         {
+            if (!DebugUtils.IsDebugBuild)
+                return;
+
             Add(message, LogLevel.Debug);
         }
 
@@ -268,10 +282,13 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null) =>
-            add(message, level, exception, OutputToListeners);
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true) =>
+            add(message, level, exception, outputToListeners && OutputToListeners);
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
+
+        private readonly Queue<string> pendingFileOutput = new Queue<string>();
 
         private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
         {
@@ -279,6 +296,8 @@ namespace osu.Framework.Logging
                 return;
 
             ensureHeader();
+
+            logCount.Value++;
 
             message = ApplyFilters(message);
 
@@ -291,7 +310,7 @@ namespace osu.Framework.Logging
             IEnumerable<string> lines = logOutput
                                         .Replace(@"\r\n", @"\n")
                                         .Split('\n')
-                                        .Select(s => $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}");
+                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} [{level.ToString().ToLower()}]: {s.Trim()}");
 
             if (outputToListeners)
             {
@@ -306,7 +325,7 @@ namespace osu.Framework.Logging
 
                 if (DebugUtils.IsDebugBuild)
                 {
-                    void consoleLog(string msg)
+                    static void consoleLog(string msg)
                     {
                         // fire to all debug listeners (like visual studio's output window)
                         System.Diagnostics.Debug.Print(msg);
@@ -316,11 +335,11 @@ namespace osu.Framework.Logging
 
                     bool bypassRateLimit = level >= LogLevel.Verbose;
 
-                    foreach (var line in lines)
+                    foreach (string line in lines)
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
-                            consoleLog($"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {line}");
+                            consoleLog($"[{Name.ToLower()}] {line}");
 
                             if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
                                 consoleLog($"Console output is being limited. Please check {Filename} for full logs.");
@@ -341,21 +360,39 @@ namespace osu.Framework.Logging
                 if (!Enabled)
                     return;
 
-                scheduler.Add(delegate
+                lock (pendingFileOutput)
                 {
-                    try
-                    {
-                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
-                        using (var writer = new StreamWriter(stream))
-                            foreach (var line in lines)
-                                writer.WriteLine(line);
-                    }
-                    catch
-                    {
-                    }
-                });
+                    foreach (string l in lines)
+                        pendingFileOutput.Enqueue(l);
+                }
+
+                scheduler.AddOnce(writePendingLines);
 
                 writer_idle.Reset();
+            }
+        }
+
+        private void writePendingLines()
+        {
+            string[] lines;
+
+            lock (pendingFileOutput)
+            {
+                lines = pendingFileOutput.ToArray();
+                pendingFileOutput.Clear();
+            }
+
+            try
+            {
+                using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                using (var writer = new StreamWriter(stream))
+                {
+                    foreach (string line in lines)
+                        writer.WriteLine(line);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -377,7 +414,17 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                scheduler.Add(() => Storage.Delete(Filename));
+                scheduler.Add(() =>
+                {
+                    try
+                    {
+                        Storage.Delete(Filename);
+                    }
+                    catch
+                    {
+                        // may fail if the file/directory was already cleaned up, ie. during test runs.
+                    }
+                });
                 writer_idle.Reset();
             }
         }
@@ -387,12 +434,13 @@ namespace osu.Framework.Logging
         private void ensureHeader()
         {
             if (headerAdded) return;
+
             headerAdded = true;
 
             add("----------------------------------------------------------", outputToListeners: false);
-            add($"{Target} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
-            add($"{GameIdentifier} {VersionIdentifier}", outputToListeners: false);
-            add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
+            add($"{Name} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
+            add($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}", outputToListeners: false);
+            add($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ", outputToListeners: false);
             add("----------------------------------------------------------", outputToListeners: false);
         }
 
@@ -403,10 +451,10 @@ namespace osu.Framework.Logging
 
         private static readonly ManualResetEvent writer_idle = new ManualResetEvent(true);
 
-        private static readonly Timer timer;
-
         static Logger()
         {
+            Timer timer = null;
+
             // timer has a very low overhead.
             timer = new Timer(_ =>
             {
@@ -414,7 +462,8 @@ namespace osu.Framework.Logging
                     writer_idle.Set();
 
                 // reschedule every 50ms. avoids overlapping callbacks.
-                timer.Change(50, Timeout.Infinite);
+                // ReSharper disable once AccessToModifiedClosure
+                timer?.Change(50, Timeout.Infinite);
             }, null, 0, Timeout.Infinite);
         }
 
@@ -426,7 +475,7 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                writer_idle.WaitOne(500);
+                writer_idle.WaitOne(2000);
                 NewEntry = null;
             }
         }

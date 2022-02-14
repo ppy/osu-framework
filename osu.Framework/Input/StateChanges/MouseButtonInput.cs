@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using osu.Framework.Input.States;
@@ -25,5 +25,11 @@ namespace osu.Framework.Input.StateChanges
         }
 
         protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
+
+        public override void Apply(InputState state, IInputStateChangeHandler handler)
+        {
+            state.Mouse.LastSource = this;
+            base.Apply(state, handler);
+        }
     }
 }

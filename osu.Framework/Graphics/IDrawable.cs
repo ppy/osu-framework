@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osu.Framework.Graphics.Containers;
@@ -28,6 +28,11 @@ namespace osu.Framework.Graphics
         /// of this drawable.
         /// </summary>
         DrawInfo DrawInfo { get; }
+
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
+        /// </summary>
+        DrawColourInfo DrawColourInfo { get; }
 
         /// <summary>
         /// The screen-space quad this drawable occupies.
@@ -97,5 +102,11 @@ namespace osu.Framework.Graphics
         /// Hide sprite instantly.
         /// </summary>
         void Hide();
+
+        /// <summary>
+        /// The current invalidation ID of this <see cref="Drawable"/>.
+        /// Incremented every time the <see cref="DrawNode"/> should be re-validated.
+        /// </summary>
+        long InvalidationID { get; }
     }
 }

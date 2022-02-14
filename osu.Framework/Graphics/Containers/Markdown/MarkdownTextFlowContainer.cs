@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -31,11 +31,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected void AddDrawable(Drawable drawable)
             => base.AddText("[" + AddPlaceholder(drawable) + "]");
 
-        public new void AddText(string text, Action<SpriteText> creationParameters = null)
-            => base.AddText(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
+        public void AddText(string text, Action<SpriteText> creationParameters = null)
+            => base.AddText(Escape(text), creationParameters);
 
-        public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
-            => base.AddParagraph(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
+        public ITextPart AddParagraph(string text, Action<SpriteText> creationParameters = null)
+            => base.AddParagraph(Escape(text), creationParameters);
 
         public void AddInlineText(ContainerInline container)
         {
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 switch (single)
                 {
                     case LiteralInline literal:
-                        var text = literal.Content.ToString();
+                        string text = literal.Content.ToString();
 
                         if (container.GetPrevious(literal) is HtmlInline && container.GetNext(literal) is HtmlInline)
                             AddHtmlInLineText(text, literal);
@@ -59,46 +59,59 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                                     var emphases = new List<string>();
 
-                                    while (parent != null && parent is EmphasisInline e)
+                                    while (parent is EmphasisInline e)
                                     {
-                                        emphases.Add(e.IsDouble ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
+                                        emphases.Add(e.DelimiterCount == 2 ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
                                         parent = parent.Parent;
                                     }
 
                                     addEmphasis(text, emphases);
 
                                     break;
+
                                 case LinkInline linkInline:
                                 {
                                     if (!linkInline.IsImage)
                                         AddLinkText(text, linkInline);
                                     break;
                                 }
+
                                 default:
                                     AddText(text);
                                     break;
                             }
                         }
+
                         break;
+
                     case CodeInline codeInline:
                         AddCodeInLine(codeInline);
                         break;
+
                     case LinkInline linkInline when linkInline.IsImage:
                         AddImage(linkInline);
                         break;
+
                     case HtmlInline _:
                     case HtmlEntityInline _:
                         // Handled by the next literal
                         break;
+
                     case LineBreakInline lineBreak:
                         if (lineBreak.IsHard)
                             NewParagraph();
                         else
                             NewLine();
                         break;
+
                     case ContainerInline innerContainer:
                         AddInlineText(innerContainer);
                         break;
+
+                    case AutolinkInline autoLink:
+                        AddAutoLink(autoLink);
+                        break;
+
                     default:
                         AddNotImplementedInlineText(single);
                         break;
@@ -115,6 +128,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddLinkText(string text, LinkInline linkInline)
             => AddDrawable(new MarkdownLinkText(text, linkInline));
 
+        protected virtual void AddAutoLink(AutolinkInline autolinkInline)
+            => AddDrawable(new MarkdownLinkText(autolinkInline));
+
         protected virtual void AddCodeInLine(CodeInline codeInline)
             => AddText(codeInline.Content, t => { t.Colour = Color4.Orange; });
 
@@ -129,7 +145,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             bool hasItalic = false;
             bool hasBold = false;
 
-            foreach (var e in emphases)
+            foreach (string e in emphases)
             {
                 switch (e)
                 {
@@ -137,6 +153,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     case "_":
                         hasItalic = true;
                         break;
+
                     case "**":
                     case "__":
                         hasBold = true;
@@ -150,6 +167,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AddDrawable(textDrawable);
         }
 
+        protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
+
         /// <summary>
         /// Creates an emphasised <see cref="SpriteText"/>.
         /// </summary>
@@ -160,13 +179,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var textDrawable = CreateSpriteText();
 
-            string font = "OpenSans-";
-            if (bold)
-                font += "Bold";
-            if (italic)
-                font += "Italic";
-
-            textDrawable.Font = font.Trim('-');
+            textDrawable.Font = textDrawable.Font.With(weight: bold ? "Bold" : null, italics: italic);
 
             return textDrawable;
         }

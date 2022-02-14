@@ -1,16 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
-using System;
 using System.Collections.Generic;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
     public class InputThread : GameThread
     {
-        public InputThread(Action onNewFrame)
-            : base(onNewFrame, "Input")
+        public InputThread()
+            : base(name: "Input")
         {
         }
 
@@ -19,8 +19,24 @@ namespace osu.Framework.Threading
             StatisticsCounterType.MouseEvents,
             StatisticsCounterType.KeyEvents,
             StatisticsCounterType.JoystickEvents,
+            StatisticsCounterType.MidiEvents,
+            StatisticsCounterType.TabletEvents,
         };
 
-        public void RunUpdate() => ProcessFrame();
+        protected override void PrepareForWork()
+        {
+            // Intentionally inhibiting the base implementation which spawns a native thread.
+            // Therefore, we need to run Initialize inline.
+            Initialize(true);
+        }
+
+        public override bool IsCurrent => ThreadSafety.IsInputThread;
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsInputThread = true;
+        }
     }
 }

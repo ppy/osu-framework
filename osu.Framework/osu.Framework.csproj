@@ -1,67 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
     <AssemblyName>osu.Framework</AssemblyName>
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
-    <Product>osu!framework</Product>
-    <LangVersion>7.2</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;NU5104</NoWarn>
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>
     <PackageId>ppy.osu.Framework</PackageId>
-    <Authors>ppy Pty Ltd</Authors>
-    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
-    <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Label="Sourcelink3" Condition=" '($EnableSourceLink)' == 'true' ">
+  <PropertyGroup Label="Sourcelink3" Condition=" '$(EnableSourceLink)' == 'true' ">
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
-  </PropertyGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Markdig" Version="0.15.4" />
-    <PackageReference Include="FFmpeg.AutoGen" Version="4.1.0.1" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime;build;native;contentfiles;analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="SharpFNT" Version="1.0.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
-    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.10.0" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.45" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="ppy.Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" />
-    <PackageReference Include="NUnit" Version="3.11.0" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="ManagedBass" Version="2.0.4" />
-    <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
+    <PackageReference Include="managed-midi" Version="1.9.14" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="NuGet.ProjectModel" Version="5.11.0" />
+    <PackageReference Include="SharpFNT" Version="2.0.0" />
+    <!-- Preview version of ImageSharp causes NU5104. -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="ManagedBass" Version="3.1.0" />
+    <PackageReference Include="ManagedBass.Fx" Version="3.1.0" />
+    <PackageReference Include="ManagedBass.Mix" Version="3.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.187" />
+    <PackageReference Include="StbiSharp" Version="1.1.0" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.501-alpha" />
+
+    <!-- Any version ahead of this will cause AOT issues with iOS
+         See https://github.com/mono/mono/issues/21188 -->
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401" />
+
+    <!-- Any version ahead of this will cause runtime issues on iOS
+         See https://github.com/xoofx/markdig/issues/564 -->
+    <PackageReference Include="Markdig" Version="0.23.0" />
   </ItemGroup>
-  <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.1221.0" />
+    <!-- DO NOT use ProjectReference for native packaging project.
+         See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
+    <PackageReference Include="OpenTabletDriver" Version="0.6.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.11.0">
+      <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->
+    </PackageReference>
   </ItemGroup>
 </Project>

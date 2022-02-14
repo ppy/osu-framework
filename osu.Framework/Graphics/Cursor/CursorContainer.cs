@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.Cursor
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
-            State = Visibility.Visible;
+            State.Value = Visibility.Visible;
         }
 
         [BackgroundDependencyLoader]
@@ -33,7 +34,8 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-        public override bool PropagatePositionalInputSubTree => IsPresent; // make sure we are still updating position during possible fade out.
+        // make sure we always receive positional input, regardless of our visibility state.
+        public override bool PropagatePositionalInputSubTree => true;
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {

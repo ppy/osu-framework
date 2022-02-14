@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics;
@@ -30,7 +30,8 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private Stopwatch elapsedTime;
 
-        public UntilStepButton(Func<bool> waitUntilTrueDelegate)
+        public UntilStepButton(Func<bool> waitUntilTrueDelegate, bool isSetupStep = false)
+            : base(isSetupStep)
         {
             updateText();
             LightColour = Color4.Sienna;
@@ -39,8 +40,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 invocations++;
 
-                if (elapsedTime == null)
-                    elapsedTime = Stopwatch.StartNew();
+                elapsedTime ??= Stopwatch.StartNew();
 
                 updateText();
 
@@ -50,7 +50,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     success = true;
                     Success();
                 }
-                else if (elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
+                else if (!Debugger.IsAttached && elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
                     throw new TimeoutException($"\"{Text}\" timed out");
 
                 Action?.Invoke();
@@ -80,6 +80,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private void updateText() => base.Text = $@"{Text} ({invocations} tries)";
 
-        public override string ToString() => "Repeat: " + base.ToString();
+        public override string ToString() => "Until: " + base.ToString();
     }
 }

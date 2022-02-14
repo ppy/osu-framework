@@ -1,40 +1,41 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
-    /// A texture which updates the reference count of the underlying <see cref="TextureGL"/> on ctor and disposal.
+    /// A texture which shares a common reference count with all other textures using the same <see cref="TextureGL"/>.
     /// </summary>
-    public class TextureWithRefCount : Texture
+    internal class TextureWithRefCount : Texture
     {
-        public TextureWithRefCount(TextureGL textureGl)
+        private readonly ReferenceCount count;
+
+        public TextureWithRefCount(TextureGL textureGl, ReferenceCount count)
             : base(textureGl)
         {
-            textureGl.Reference();
-        }
+            this.count = count;
 
-        internal int ReferenceCount => base.TextureGL.ReferenceCount;
+            count.Increment();
+        }
 
         public sealed override TextureGL TextureGL
         {
             get
             {
-                var tex = base.TextureGL;
-                if (tex.ReferenceCount <= 0)
+                if (!Available)
                     throw new InvalidOperationException($"Attempting to access a {nameof(TextureWithRefCount)}'s underlying texture after all references are lost.");
-                return tex;
+
+                return base.TextureGL;
             }
         }
 
-        // Can't reference our own TextureGL here as an exception may be thrown
-        public sealed override bool Available => !isDisposed && !base.TextureGL.IsDisposed;
-        private bool isDisposed;
-
-        #region Disposal
+        // The base property invokes the overridden TextureGL property, which will throw an exception if not available
+        // So this property is redirected to reference the intended member
+        public sealed override bool Available => base.TextureGL.Available;
 
         ~TextureWithRefCount()
         {
@@ -42,18 +43,59 @@ namespace osu.Framework.Graphics.Textures
             Dispose(false);
         }
 
+        public bool IsDisposed { get; private set; }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
 
-            if (isDisposed)
+            if (IsDisposed)
                 return;
-            isDisposed = true;
 
-            base.TextureGL.Dereference();
-            if (isDisposing) GC.SuppressFinalize(this);
+            IsDisposed = true;
+
+            count.Decrement();
         }
 
-        #endregion
+        public class ReferenceCount
+        {
+            private readonly object lockObject;
+            private readonly Action onAllReferencesLost;
+
+            private int referenceCount;
+
+            /// <summary>
+            /// Creates a new <see cref="ReferenceCount"/>.
+            /// </summary>
+            /// <param name="lockObject">The <see cref="object"/> which locks will be taken out on.</param>
+            /// <param name="onAllReferencesLost">A delegate to invoke after all references have been lost.</param>
+            public ReferenceCount(object lockObject, Action onAllReferencesLost)
+            {
+                this.lockObject = lockObject;
+                this.onAllReferencesLost = onAllReferencesLost;
+            }
+
+            /// <summary>
+            /// Increments the reference count.
+            /// </summary>
+            public void Increment()
+            {
+                lock (lockObject)
+                    Interlocked.Increment(ref referenceCount);
+            }
+
+            /// <summary>
+            /// Decrements the reference count, invoking <see cref="onAllReferencesLost"/> if there are no remaining references.
+            /// The delegate is invoked while a lock on the provided <see cref="lockObject"/> is held.
+            /// </summary>
+            public void Decrement()
+            {
+                lock (lockObject)
+                {
+                    if (Interlocked.Decrement(ref referenceCount) == 0)
+                        onAllReferencesLost?.Invoke();
+                }
+            }
+        }
     }
 }

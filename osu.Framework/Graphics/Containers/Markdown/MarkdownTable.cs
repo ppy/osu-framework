@@ -1,12 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.Tables;
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -20,12 +20,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownTable : CompositeDrawable
     {
-        private TableContainer tableContainer;
+        private GridContainer tableContainer;
 
         private readonly Table table;
 
-        private Cached columnDefinitionCache = new Cached();
-        private Cached rowDefinitionCache = new Cached();
+        private readonly LayoutValue columnDefinitionCache = new LayoutValue(Invalidation.DrawSize, conditions: (s, _) => s.Parent != null);
+        private readonly LayoutValue rowDefinitionCache = new LayoutValue(Invalidation.DrawSize, conditions: (s, _) => s.Parent != null);
 
         public MarkdownTable(Table table)
         {
@@ -34,7 +34,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
 
-            table.Normalize();
+            table.NormalizeUsingHeaderRow();
+
+            AddLayout(columnDefinitionCache);
+            AddLayout(rowDefinitionCache);
         }
 
         [BackgroundDependencyLoader]
@@ -55,25 +58,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 rows.Add(row);
             }
 
-            InternalChild = tableContainer = new TableContainer
+            InternalChild = tableContainer = new GridContainer
             {
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
-                Content = rows.Select(x => x.ToArray()).ToArray(),
+                Content = rows.Select(x => x.ToArray()).ToArray()
             };
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            var result = base.Invalidate(invalidation, source, shallPropagate);
-
-            if ((invalidation & Invalidation.DrawSize) > 0 && Parent != null)
-            {
-                result &= columnDefinitionCache.Invalidate();
-                result &= rowDefinitionCache.Invalidate();
-            }
-
-            return result;
         }
 
         protected override void Update()
@@ -103,12 +93,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (table.Count == 0)
                 return;
 
-            Span<float> columnWidths = stackalloc float[tableContainer.Content[0].Length];
+            Span<float> columnWidths = stackalloc float[tableContainer.Content[0].Count];
 
             // Compute the maximum width of each column
-            for (int r = 0; r < tableContainer.Content.Length; r++)
-            for (int c = 0; c < tableContainer.Content[r].Length; c++)
-                columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
+            for (int r = 0; r < tableContainer.Content.Count; r++)
+            {
+                for (int c = 0; c < tableContainer.Content[r].Count; c++)
+                    columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
+            }
 
             float totalWidth = 0;
             for (int i = 0; i < columnWidths.Length; i++)
@@ -137,24 +129,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (table.Count == 0)
                 return;
 
-            var rowDefinitions = new Dimension[tableContainer.Content.Length];
-            for (int r = 0; r < tableContainer.Content.Length; r++)
+            var rowDefinitions = new Dimension[tableContainer.Content.Count];
+            for (int r = 0; r < tableContainer.Content.Count; r++)
                 rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).ContentHeight));
 
             tableContainer.RowDimensions = rowDefinitions;
         }
 
-        protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
-        {
-            return new MarkdownTableCell(cell, definition, isHeading);
-        }
-
-        private class TableContainer : GridContainer
-        {
-            public new Axes AutoSizeAxes
-            {
-                set => base.AutoSizeAxes = value;
-            }
-        }
+        protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading) => new MarkdownTableCell(cell, definition);
     }
 }

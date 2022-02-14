@@ -1,44 +1,31 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Statistics;
+#nullable enable
+
 using System;
+using System.Threading.Tasks;
+using osu.Framework.Audio.Mixing;
+using osu.Framework.Statistics;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class SampleChannel : AdjustableAudioComponent
+    public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel, IAudioChannel
     {
-        protected bool WasStarted;
+        internal Action<SampleChannel>? OnPlay;
 
-        protected Sample Sample { get; set; }
-
-        private readonly Action<SampleChannel> onPlay;
-
-        protected SampleChannel(Sample sample, Action<SampleChannel> onPlay)
-        {
-            Sample = sample ?? throw new ArgumentNullException(nameof(sample));
-            this.onPlay = onPlay;
-        }
-
-        public virtual void Play(bool restart = true)
+        public virtual void Play()
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not play disposed samples.");
+                throw new ObjectDisposedException(ToString(), "Can not play disposed sample channels.");
 
-            onPlay(this);
-            WasStarted = true;
+            Played = true;
+            OnPlay?.Invoke(this);
         }
 
         public virtual void Stop()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not stop disposed samples.");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            Stop();
-            base.Dispose(disposing);
         }
 
         protected override void UpdateState()
@@ -47,10 +34,36 @@ namespace osu.Framework.Audio.Sample
             base.UpdateState();
         }
 
+        public bool Played { get; private set; }
+
         public abstract bool Playing { get; }
 
-        public virtual bool Played => WasStarted && !Playing;
+        public virtual bool Looping { get; set; }
 
-        public override bool IsAlive => base.IsAlive && !Played;
+        public override bool IsAlive => base.IsAlive && Playing;
+
+        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
+
+        #region Mixing
+
+        protected virtual AudioMixer? Mixer { get; set; }
+
+        AudioMixer? IAudioChannel.Mixer
+        {
+            get => Mixer;
+            set => Mixer = value;
+        }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
+
+        #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+                Stop();
+
+            base.Dispose(disposing);
+        }
     }
 }

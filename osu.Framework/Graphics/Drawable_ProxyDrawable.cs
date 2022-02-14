@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 
@@ -11,13 +12,15 @@ namespace osu.Framework.Graphics
     {
         private class ProxyDrawable : Drawable
         {
-            private readonly ulong[] drawNodeValidationIds = new ulong[3];
+            private readonly ulong[] drawNodeValidationIds = new ulong[GLWrapper.MAX_DRAW_NODES];
             private readonly DrawNode[] originalDrawNodes;
 
             internal ProxyDrawable(Drawable original)
             {
                 Original = original;
                 originalDrawNodes = (original as ProxyDrawable)?.originalDrawNodes ?? original.drawNodes;
+
+                original.LifetimeChanged += _ => LifetimeChanged?.Invoke(this);
             }
 
             internal override void ValidateProxyDrawNode(int treeIndex, ulong frame)
@@ -46,14 +49,24 @@ namespace osu.Framework.Graphics
 
             internal sealed override Drawable Original { get; }
 
-            public override bool RemoveWhenNotAlive => base.RemoveWhenNotAlive && Original.RemoveWhenNotAlive;
+            public override bool RemoveWhenNotAlive => Original.RemoveWhenNotAlive;
 
-            protected internal override bool ShouldBeAlive => base.ShouldBeAlive && Original.ShouldBeAlive;
+            protected internal override bool ShouldBeAlive => Original.ShouldBeAlive;
+
+            public override double LifetimeStart => Original.LifetimeStart;
+
+            public override double LifetimeEnd => Original.LifetimeEnd;
 
             // We do not want to receive updates. That is the business of the original drawable.
             public override bool IsPresent => false;
 
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds) => Original.UpdateSubTreeMasking(this, maskingBounds);
+            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+            {
+                if (Original.IsDisposed)
+                    return false;
+
+                return Original.UpdateSubTreeMasking(this, maskingBounds);
+            }
 
             private class ProxyDrawNode : DrawNode
             {
@@ -68,23 +81,35 @@ namespace osu.Framework.Graphics
                 /// </summary>
                 public ulong FrameCount;
 
-                private readonly ProxyDrawable proxyDrawable;
+                protected new ProxyDrawable Source => (ProxyDrawable)base.Source;
 
                 public ProxyDrawNode(ProxyDrawable proxyDrawable)
+                    : base(proxyDrawable)
                 {
-                    this.proxyDrawable = proxyDrawable;
                 }
 
+                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+
                 public override void Draw(Action<TexturedVertex2D> vertexAction)
+                    => getCurrentFrameSource()?.Draw(vertexAction);
+
+                protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
+
+                private DrawNode getCurrentFrameSource()
                 {
-                    var target = proxyDrawable.originalDrawNodes[DrawNodeIndex];
+                    var target = Source.originalDrawNodes[DrawNodeIndex];
+
                     if (target == null)
-                        return;
+                        return null;
 
-                    if (proxyDrawable.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
-                        return;
+                    if (Source.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
+                        return null;
 
-                    target.Draw(vertexAction);
+                    if (target.IsDisposed)
+                        return null;
+
+                    return target;
                 }
             }
         }

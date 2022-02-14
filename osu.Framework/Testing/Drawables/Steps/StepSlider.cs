@@ -1,20 +1,21 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK.Graphics;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using System;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Input.Events;
+using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public class StepSlider<T> : SliderBar<T>
-        where T : struct, IComparable, IConvertible
+        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         private readonly Box selection;
         private readonly Box background;
@@ -47,17 +48,14 @@ namespace osu.Framework.Testing.Drawables.Steps
                 spriteText = new SpriteText
                 {
                     Depth = -1,
+                    Padding = new MarginPadding(5),
+                    Font = FrameworkFont.Regular.With(size: 14),
                     Origin = Anchor.CentreLeft,
                     Anchor = Anchor.CentreLeft,
                 },
             });
 
-            CornerRadius = 2;
             Masking = true;
-
-            spriteText.Anchor = Anchor.CentreLeft;
-            spriteText.Origin = Anchor.CentreLeft;
-            spriteText.Padding = new MarginPadding(5);
 
             // Bind to the underlying sliderbar
             var currentNumber = (BindableNumber<T>)Current;
@@ -67,21 +65,24 @@ namespace osu.Framework.Testing.Drawables.Steps
             currentNumber.SetDefault();
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            var flash = new Box
+            // Reset value via right click. This shouldn't happen if a drag (via left button) is in progress.
+            if (!IsDragged && e.Button == MouseButton.Right)
             {
-                RelativeSizeAxes = Axes.Both,
-                Colour = Color4.RoyalBlue,
-                Blending = BlendingMode.Additive,
-                Alpha = 0.6f,
-            };
+                Current.SetDefault();
+                Flash();
+                Reset();
+            }
 
-            Add(flash);
-            flash.FadeOut(200).Expire();
+            return base.OnMouseDown(e);
+        }
 
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            Flash();
             Success();
-            return base.OnDragEnd(e);
+            base.OnDragEnd(e);
         }
 
         protected override void UpdateValue(float normalizedValue)
@@ -93,6 +94,27 @@ namespace osu.Framework.Testing.Drawables.Steps
             selection.ResizeWidthTo(normalizedValue);
         }
 
+        protected void Flash()
+        {
+            var flash = new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Colour = Color4.RoyalBlue,
+                Blending = BlendingParameters.Additive,
+                Alpha = 0.6f,
+            };
+
+            Add(flash);
+            flash.FadeOut(200).Expire();
+        }
+
+        protected void Reset()
+        {
+            background.Alpha = 1f;
+            selection.Alpha = 1f;
+            spriteText.Alpha = 1f;
+        }
+
         protected void Success()
         {
             background.Alpha = 0.4f;
@@ -100,6 +122,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             spriteText.Alpha = 0.8f;
         }
 
-        public override string ToString() => spriteText.Text;
+        public override string ToString() => spriteText.Text.ToString();
     }
 }

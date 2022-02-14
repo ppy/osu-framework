@@ -1,0 +1,13 @@
+{
+  "solution": {
+    "path": "osu-framework.sln",
+    "projects": [
+      "SampleGame.iOS\\SampleGame.iOS.csproj",
+      "SampleGame\\SampleGame.csproj",
+      "osu.Framework.iOS\\osu.Framework.iOS.csproj",
+      "osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
+      "osu.Framework.Tests.iOS\\osu.Framework.Tests.iOS.csproj",
+      "osu.Framework\\osu.Framework.csproj"
+    ]
+  }
+}

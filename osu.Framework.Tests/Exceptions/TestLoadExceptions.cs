@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
@@ -198,17 +200,21 @@ namespace osu.Framework.Tests.Exceptions
 
             try
             {
-                using (var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
+                using (var host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", new HostOptions()))
                 {
-                    storage = host.Storage;
                     using (var game = new TestGame())
                     {
-                        game.Schedule(() => logic(game));
-                        host.UpdateThread.Scheduler.AddDelayed(() =>
+                        game.Schedule(() =>
                         {
-                            if (exitCondition?.Invoke(game) == true)
-                                host.Exit();
-                        }, 0, true);
+                            storage = host.Storage;
+                            host.UpdateThread.Scheduler.AddDelayed(() =>
+                            {
+                                if (exitCondition?.Invoke(game) == true)
+                                    host.Exit();
+                            }, 0, true);
+
+                            logic(game);
+                        });
 
                         host.Run(game);
                     }
@@ -256,7 +262,7 @@ namespace osu.Framework.Tests.Exceptions
             [BackgroundDependencyLoader]
             private void load()
             {
-                Task.Delay((int)(1000 / Clock.Rate)).Wait();
+                Task.Delay((int)(1000 / Clock.Rate)).WaitSafely();
                 if (throws)
                     throw new AsyncTestException();
             }

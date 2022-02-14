@@ -1,0 +1,47 @@
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+  <PropertyGroup Label="Project">
+    <TargetFramework>xamarinios10</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyTitle>osu!framework iOS</AssemblyTitle>
+    <AssemblyName>osu.Framework.iOS</AssemblyName>
+    <RootNamespace>osu.Framework.iOS</RootNamespace>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
+  </PropertyGroup>
+  <PropertyGroup Label="Nuget">
+    <Title>osu!framework iOS</Title>
+    <PackageId>ppy.osu.Framework.iOS</PackageId>
+    <PackageTags>osu game framework</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="Xamarin.iOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.187" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)*.a">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+      <WithCulture>False</WithCulture>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup Label="Dllmaps (local)">
+    <!-- Without separate dll configs and using BundleResource, dllmaps won't work properly
+         See https://github.com/ManagedBass/ManagedBass/issues/76 -->
+    <BundleResource Include="$(MSBuildThisFileDirectory)*.dll.config" />
+  </ItemGroup>
+  <ItemGroup Label="Dllmaps (package)">
+    <None Include="$(MSBuildThisFileDirectory)*.dll.config" Pack="true" PackagePath="dllmaps" />
+    <Content Include="$(MSBuildThisFileDirectory)osu.Framework.iOS.Dllmaps.props" Pack="true" PackagePath="build\$(PackageId).props" />
+  </ItemGroup>
+</Project>

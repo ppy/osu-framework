@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -18,9 +18,9 @@ namespace osu.Framework.Tests.IO
 
             var deserialized = JsonConvert.DeserializeObject<SortedList<int>>(JsonConvert.SerializeObject(original));
 
-            Assert.AreEqual(original.Count, deserialized.Count, "Counts are not equal");
+            Assert.AreEqual(original.Count, deserialized?.Count, "Counts are not equal");
             for (int i = 0; i < original.Count; i++)
-                Assert.AreEqual(original[i], deserialized[i], $"Item at index {i} differs");
+                Assert.AreEqual(original[i], deserialized?[i], $"Item at index {i} differs");
         }
 
         [Test]
@@ -31,9 +31,9 @@ namespace osu.Framework.Tests.IO
 
             var deserialized = JsonConvert.DeserializeObject<SortedList<int>>(JsonConvert.SerializeObject(original));
 
-            Assert.AreEqual(original.Count, deserialized.Count, "Counts are not equal");
+            Assert.AreEqual(original.Count, deserialized?.Count, "Counts are not equal");
             for (int i = 0; i < original.Count; i++)
-                Assert.AreEqual(original[i], deserialized[i], $"Item at index {i} differs");
+                Assert.AreEqual(original[i], deserialized?[i], $"Item at index {i} differs");
         }
 
         [Test]
@@ -42,13 +42,13 @@ namespace osu.Framework.Tests.IO
             var original = new SortedList<int>();
             var deserialized = JsonConvert.DeserializeObject<SortedList<int>>(JsonConvert.SerializeObject(original));
 
-            Assert.AreEqual(original.Count, deserialized.Count, "Counts are not equal");
+            Assert.AreEqual(original.Count, deserialized?.Count, "Counts are not equal");
         }
 
         [Test]
         public void TestCustomComparer()
         {
-            int compare(int i1, int i2) => i2.CompareTo(i1);
+            static int compare(int i1, int i2) => i2.CompareTo(i1);
 
             var original = new SortedList<int>(compare);
             original.AddRange(new[] { 1, 2, 3, 4, 5, 6 });

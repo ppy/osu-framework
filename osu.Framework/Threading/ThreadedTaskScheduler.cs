@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -20,22 +20,32 @@ namespace osu.Framework.Threading
 
         private readonly ImmutableArray<Thread> threads;
 
+        private readonly string name;
+
+        private bool isDisposed;
+
+        private int runningTaskCount;
+
+        public string GetStatusString() => $"{name} concurrency:{MaximumConcurrencyLevel} running:{runningTaskCount} pending:{pendingTaskCount}";
+
         /// <summary>
         /// Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.
         /// </summary>
         /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
-        public ThreadedTaskScheduler(int numberOfThreads)
+        /// <param name="name">The thread name to give threads in this pool.</param>
+        public ThreadedTaskScheduler(int numberOfThreads, string name)
         {
             if (numberOfThreads < 1)
                 throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
 
+            this.name = name;
             tasks = new BlockingCollection<Task>();
 
             threads = Enumerable.Range(0, numberOfThreads).Select(i =>
             {
                 var thread = new Thread(processTasks)
                 {
-                    Name = "LoadComponentThreadPool",
+                    Name = $"{nameof(ThreadedTaskScheduler)} ({name})",
                     IsBackground = true
                 };
 
@@ -51,7 +61,19 @@ namespace osu.Framework.Threading
         /// </summary>
         private void processTasks()
         {
-            foreach (var t in tasks.GetConsumingEnumerable()) TryExecuteTask(t);
+            try
+            {
+                foreach (var t in tasks.GetConsumingEnumerable())
+                {
+                    Interlocked.Increment(ref runningTaskCount);
+                    TryExecuteTask(t);
+                    Interlocked.Decrement(ref runningTaskCount);
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // tasks may have been disposed. there's no easy way to check on this other than catch for it.
+            }
         }
 
         /// <summary>
@@ -72,13 +94,26 @@ namespace osu.Framework.Threading
         /// <param name="task">The task to be executed.</param>
         /// <param name="taskWasPreviouslyQueued">Whether the task was previously queued.</param>
         /// <returns>true if the task was successfully inlined; otherwise, false.</returns>
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-        {
-            return threads.Contains(Thread.CurrentThread) && TryExecuteTask(task);
-        }
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) => threads.Contains(Thread.CurrentThread) && TryExecuteTask(task);
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
         public override int MaximumConcurrencyLevel => threads.Length;
+
+        private int pendingTaskCount
+        {
+            get
+            {
+                try
+                {
+                    return tasks.Count;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // tasks may have been disposed. there's no easy way to check on this other than catch for it.
+                    return 0;
+                }
+            }
+        }
 
         /// <summary>
         /// Cleans up the scheduler by indicating that no more tasks will be queued.
@@ -86,10 +121,15 @@ namespace osu.Framework.Threading
         /// </summary>
         public void Dispose()
         {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
             tasks.CompleteAdding();
 
             foreach (var thread in threads)
-                thread.Join();
+                thread.Join(TimeSpan.FromSeconds(10));
 
             tasks.Dispose();
         }

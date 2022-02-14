@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Globalization;
@@ -18,6 +18,6 @@ namespace osu.Framework.Timing
         /// </summary>
         public double Current;
 
-        public override string ToString() => Math.Truncate(Current).ToString(CultureInfo.InvariantCulture);
+        public override readonly string ToString() => Math.Truncate(Current).ToString(CultureInfo.InvariantCulture);
     }
 }

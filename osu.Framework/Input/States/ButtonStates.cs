@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections;
@@ -16,25 +16,25 @@ namespace osu.Framework.Input.States
     public class ButtonStates<TButton> : IEnumerable<TButton>
         where TButton : struct
     {
-        private List<TButton> pressedButtons = new List<TButton>();
+        private HashSet<TButton> pressedButtons = new HashSet<TButton>();
 
         public ButtonStates<TButton> Clone()
         {
             var clone = (ButtonStates<TButton>)MemberwiseClone();
-            clone.pressedButtons = new List<TButton>(pressedButtons);
+            clone.pressedButtons = new HashSet<TButton>(pressedButtons);
             return clone;
         }
 
         /// <summary>
-        /// Finds whether a <see cref="TButton"/> is currently pressed.
+        /// Finds whether a <typeparamref name="TButton"/> is currently pressed.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to check.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to check.</param>
         public bool IsPressed(TButton button) => pressedButtons.Contains(button);
 
         /// <summary>
-        /// Sets the state of a <see cref="TButton"/>.
+        /// Sets the state of a <typeparamref name="TButton"/>.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to set the state of.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to set the state of.</param>
         /// <param name="pressed">Whether <paramref name="button"/> should be pressed.</param>
         /// <returns>Whether the state of <paramref name="button"/> actually changed.</returns>
         public bool SetPressed(TButton button, bool pressed)
@@ -49,7 +49,7 @@ namespace osu.Framework.Input.States
             return true;
         }
 
-        public bool HasAnyButtonPressed => pressedButtons.Any();
+        public bool HasAnyButtonPressed => pressedButtons.Count > 0;
 
         /// <summary>
         /// Enumerates the differences between ourselves and a previous <see cref="ButtonStates{TButton}"/>.
@@ -57,7 +57,31 @@ namespace osu.Framework.Input.States
         /// <param name="lastButtons">The previous <see cref="ButtonStates{TButton}"/>.</param>
         public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
-            return new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
+            if (!lastButtons.HasAnyButtonPressed)
+            {
+                // if no buttons pressed anywhere, use static to avoid alloc.
+                return !HasAnyButtonPressed ? ButtonStateDifference.EMPTY : new ButtonStateDifference(Array.Empty<TButton>(), pressedButtons.ToArray());
+            }
+
+            if (!HasAnyButtonPressed)
+                return new ButtonStateDifference(lastButtons.pressedButtons.ToArray(), Array.Empty<TButton>());
+
+            List<TButton> released = new List<TButton>();
+            List<TButton> pressed = new List<TButton>();
+
+            foreach (var b in pressedButtons)
+            {
+                if (!lastButtons.pressedButtons.Contains(b))
+                    pressed.Add(b);
+            }
+
+            foreach (var b in lastButtons.pressedButtons)
+            {
+                if (!pressedButtons.Contains(b))
+                    released.Add(b);
+            }
+
+            return new ButtonStateDifference(released.ToArray(), pressed.ToArray());
         }
 
         /// <summary>
@@ -67,13 +91,11 @@ namespace osu.Framework.Input.States
         public void Set(ButtonStates<TButton> other)
         {
             pressedButtons.Clear();
-            pressedButtons.AddRange(other.pressedButtons);
+            foreach (var b in other.pressedButtons)
+                pressedButtons.Add(b);
         }
 
-        public override string ToString()
-        {
-            return $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
-        }
+        public override string ToString() => $@"{GetType().ReadableName()}({string.Join(' ', pressedButtons)})";
 
         public IEnumerator<TButton> GetEnumerator() => ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -81,12 +103,14 @@ namespace osu.Framework.Input.States
         // for collection initializer
         public void Add(TButton button) => SetPressed(button, true);
 
-        public struct ButtonStateDifference
+        public readonly struct ButtonStateDifference
         {
-            public readonly IEnumerable<TButton> Released;
-            public readonly IEnumerable<TButton> Pressed;
+            public readonly TButton[] Released;
+            public readonly TButton[] Pressed;
 
-            public ButtonStateDifference(IEnumerable<TButton> released, IEnumerable<TButton> pressed)
+            public static readonly ButtonStateDifference EMPTY = new ButtonStateDifference(Array.Empty<TButton>(), Array.Empty<TButton>());
+
+            public ButtonStateDifference(TButton[] released, TButton[] pressed)
             {
                 Released = released;
                 Pressed = pressed;

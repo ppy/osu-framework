@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -14,15 +15,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureGLAtlasWhite(TextureGLSingle parent)
             : base(new RectangleI(0, 0, 1, 1), parent)
         {
+            Opacity = Opacity.Opaque;
         }
 
-        public override bool Bind()
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             //we can use the special white space from any atlas texture.
-            if (GLWrapper.AtlasTextureIsBound)
+            if (GLWrapper.AtlasTextureIsBound(unit))
                 return true;
 
-            return base.Bind();
+            return base.Bind(unit, wrapModeS, wrapModeT);
         }
     }
 }

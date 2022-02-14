@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
 using System.Reflection;
@@ -36,7 +36,8 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new SpriteText
                     {
                         Padding = new MarginPadding(5),
-                        Text = "Assembly:"
+                        Font = FrameworkFont.Condensed,
+                        Text = "Assembly"
                     },
                     assemblyDropdown = new AssemblyDropdown
                     {
@@ -46,9 +47,8 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new BasicCheckbox
                     {
                         LabelText = "Run all steps",
-                        LabelPadding = new MarginPadding { Left = 5, Right = 10 },
-                        AutoSizeAxes = Axes.Y,
-                        Width = 140,
+                        RightHandedCheckbox = true,
+                        AutoSizeAxes = Axes.Both,
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         Current = browser.RunAllSteps
@@ -67,7 +67,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
                 foreach (var item in MenuItems.ToArray())
                 {
-                    if (item.Text.Value.Contains("dynamic"))
+                    if (item.Text.Value.ToString().Contains("dynamic"))
                         RemoveDropdownItem(item.Value);
                 }
 

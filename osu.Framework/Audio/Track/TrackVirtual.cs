@@ -1,27 +1,25 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Timing;
-using osuTK;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackVirtual : Track
+    public sealed class TrackVirtual : Track
     {
         private readonly StopwatchClock clock = new StopwatchClock();
 
         private double seekOffset;
 
-        public TrackVirtual()
+        public TrackVirtual(double length)
         {
-            Length = double.PositiveInfinity;
+            Length = length;
         }
 
         public override bool Seek(double seek)
         {
-            double current = CurrentTime;
-
-            seekOffset = seek;
+            seekOffset = Math.Clamp(seek, 0, Length);
 
             lock (clock)
             {
@@ -31,13 +29,14 @@ namespace osu.Framework.Audio.Track
                     clock.Reset();
             }
 
-            seekOffset = MathHelper.Clamp(seekOffset, 0, Length);
-
-            return current != seekOffset;
+            return seekOffset == seek;
         }
 
         public override void Start()
         {
+            if (Length == 0)
+                return;
+
             lock (clock) clock.Start();
         }
 
@@ -66,7 +65,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                lock (clock) return seekOffset + clock.CurrentTime;
+                lock (clock) return Math.Min(Length, seekOffset + clock.CurrentTime);
             }
         }
 
@@ -76,8 +75,16 @@ namespace osu.Framework.Audio.Track
 
             lock (clock)
             {
-                if (CurrentTime >= Length)
-                    Stop();
+                if (clock.IsRunning && CurrentTime >= Length)
+                {
+                    if (Looping)
+                        Restart();
+                    else
+                    {
+                        Stop();
+                        RaiseCompleted();
+                    }
+                }
             }
         }
 
@@ -86,7 +93,15 @@ namespace osu.Framework.Audio.Track
             base.OnStateChanged();
 
             lock (clock)
-                clock.Rate = Tempo;
+                clock.Rate = Rate;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+                Stop();
+
+            base.Dispose(disposing);
         }
     }
 }

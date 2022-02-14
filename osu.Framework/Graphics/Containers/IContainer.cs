@@ -1,9 +1,10 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     public interface IContainerEnumerable<out T> : IContainer
-        where T : IDrawable
+        where T : class, IDrawable
     {
         IReadOnlyList<T> Children { get; }
 
@@ -25,9 +26,13 @@ namespace osu.Framework.Graphics.Containers
     }
 
     public interface IContainerCollection<in T> : IContainer
-        where T : IDrawable
+        where T : class, IDrawable
     {
         IReadOnlyList<T> Children { set; }
+
+        T Child { set; }
+
+        IEnumerable<T> ChildrenEnumerable { set; }
 
         void Add(T drawable);
         void AddRange(IEnumerable<T> collection);

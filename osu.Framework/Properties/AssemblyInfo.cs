@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
 
@@ -7,5 +7,9 @@ using System.Runtime.CompilerServices;
 // Note, that we omit visual tests as they are meant to test the framework
 // behavior "in the wild".
 
+[assembly: InternalsVisibleTo("osu.Framework.Android")]
+[assembly: InternalsVisibleTo("osu.Framework.Benchmarks")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
+[assembly: InternalsVisibleTo("osu.Framework.Tests.iOS")]
+[assembly: InternalsVisibleTo("osu.Framework.Tests.Android")]

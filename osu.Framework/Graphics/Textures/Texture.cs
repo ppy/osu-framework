@@ -1,8 +1,10 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.IO;
+using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
@@ -16,7 +18,8 @@ namespace osu.Framework.Graphics.Textures
     public class Texture : IDisposable
     {
         // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
-        private static readonly Lazy<TextureWhitePixel> white_pixel = new Lazy<TextureWhitePixel>(() => new TextureAtlas(3, 3, true).WhitePixel);
+        private static readonly Lazy<TextureWhitePixel> white_pixel = new Lazy<TextureWhitePixel>(() =>
+            new TextureAtlas(TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
 
         public static Texture WhitePixel => white_pixel.Value;
 
@@ -26,12 +29,23 @@ namespace osu.Framework.Graphics.Textures
         public string AssetName;
 
         /// <summary>
+        /// A lookup key used by <see cref="TextureStore"/>s.
+        /// </summary>
+        internal string LookupKey;
+
+        /// <summary>
         /// At what multiple of our expected resolution is our underlying texture?
         /// </summary>
         public float ScaleAdjust = 1;
 
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
+
+        public Opacity Opacity => TextureGL.Opacity;
+
+        public WrapMode WrapModeS => TextureGL.WrapModeS;
+
+        public WrapMode WrapModeT => TextureGL.WrapModeT;
 
         /// <summary>
         /// Create a new texture.
@@ -45,6 +59,28 @@ namespace osu.Framework.Graphics.Textures
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
+        }
+
+        /// <summary>
+        /// Crop the texture.
+        /// </summary>
+        /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
+        /// <param name="relativeSizeAxes">Which axes have a relative size in [0,1] in relation to the texture size.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>The cropped texture.</returns>
+        public Texture Crop(RectangleF cropRectangle, Axes relativeSizeAxes = Axes.None, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        {
+            if (relativeSizeAxes != Axes.None)
+            {
+                Vector2 scale = new Vector2(
+                    relativeSizeAxes.HasFlagFast(Axes.X) ? Width : 1,
+                    relativeSizeAxes.HasFlagFast(Axes.Y) ? Height : 1
+                );
+                cropRectangle *= scale;
+            }
+
+            return new Texture(new TextureGLSub(cropRectangle, TextureGL, wrapModeS, wrapModeT));
         }
 
         /// <summary>
@@ -110,23 +146,41 @@ namespace osu.Framework.Graphics.Textures
             return texRect;
         }
 
-        public RectangleF GetTextureRect(RectangleF? textureRect = null)
-        {
-            return TextureGL.GetTextureRect(TextureBounds(textureRect));
-        }
+        public RectangleF GetTextureRect(RectangleF? textureRect = null) => TextureGL.GetTextureRect(TextureBounds(textureRect));
 
-        public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        /// <summary>
+        /// Draws a triangle to the screen.
+        /// </summary>
+        /// <param name="vertexTriangle">The triangle to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle in texture space.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
+        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                   Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, TextureBounds(textureCoords));
         }
 
-        public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        /// <summary>
+        /// Draws a quad to the screen.
+        /// </summary>
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle in texture space.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
+        internal void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                               Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage, blendRangeOverride);
+            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride, TextureBounds(textureCoords));
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
@@ -134,7 +188,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Whether <see cref="TextureGL"/> is in a usable state.
         /// </summary>
-        public virtual bool Available => !TextureGL.IsDisposed;
+        public virtual bool Available => TextureGL.Available;
 
         #region Disposal
 
@@ -143,6 +197,7 @@ namespace osu.Framework.Graphics.Textures
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)

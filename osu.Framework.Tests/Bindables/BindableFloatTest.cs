@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -20,6 +20,29 @@ namespace osu.Framework.Tests.Bindables
         {
             var bindable = new BindableFloat { Value = value };
             Assert.AreEqual(value, bindable.Value);
+        }
+
+        [TestCase(-1.0f, 1.0f)]
+        [TestCase(1.1f, 1.0f)]
+        [TestCase(-1.1f, 1.0f)]
+        [TestCase(-1.00f, 1.00f, 0.01f)]
+        [TestCase(1.01f, 1.00f, 0.01f)]
+        [TestCase(-1.01f, 1.00f, 0.01f)]
+        [TestCase(0.99f, 1.00f, 0.01f)]
+        [TestCase(-0.99f, 1.00f, 0.01f)]
+        [TestCase(105.123f, 105.122f, 0.001f)]
+        [TestCase(-105.123f, 105.122f, 0.001f)]
+        [TestCase(-105.122f, 105.122f, 0.001f)]
+        public void TestDefaultCheck(float value, float def, float? precision = null)
+        {
+            var bindable = new BindableFloat { Value = def, Default = def };
+            if (precision.HasValue)
+                bindable.Precision = precision.Value;
+
+            Assert.IsTrue(bindable.IsDefault);
+
+            bindable.Value = value;
+            Assert.IsFalse(bindable.IsDefault);
         }
 
         [TestCase("0", 0f)]

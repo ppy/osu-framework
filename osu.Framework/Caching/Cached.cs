@@ -1,17 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
 using System;
 
 namespace osu.Framework.Caching
 {
-    public static class StaticCached
-    {
-        internal static bool BypassCache = false;
-    }
-
-    public struct Cached<T>
+    public class Cached<T>
     {
         private T value;
 
@@ -19,22 +14,21 @@ namespace osu.Framework.Caching
         {
             get
             {
-                if (!isValid)
+                if (!IsValid)
                     throw new InvalidOperationException($"May not query {nameof(Value)} of an invalid {nameof(Cached<T>)}.");
+
                 return value;
             }
 
             set
             {
                 this.value = value;
-                isValid = true;
+                IsValid = true;
                 FrameStatistics.Increment(StatisticsCounterType.Refreshes);
             }
         }
 
-        private bool isValid;
-
-        public bool IsValid => !StaticCached.BypassCache && isValid;
+        public bool IsValid { get; private set; }
 
         public static implicit operator T(Cached<T> value) => value.Value;
 
@@ -44,9 +38,9 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (isValid)
+            if (IsValid)
             {
-                isValid = false;
+                IsValid = false;
                 FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
             }
@@ -55,11 +49,9 @@ namespace osu.Framework.Caching
         }
     }
 
-    public struct Cached
+    public class Cached
     {
-        private bool isValid;
-
-        public bool IsValid => !StaticCached.BypassCache && isValid;
+        public bool IsValid { get; private set; }
 
         /// <summary>
         /// Invalidate the cache of this object.
@@ -67,9 +59,9 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (isValid)
+            if (IsValid)
             {
-                isValid = false;
+                IsValid = false;
                 FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
             }
@@ -79,7 +71,7 @@ namespace osu.Framework.Caching
 
         public void Validate()
         {
-            isValid = true;
+            IsValid = true;
             FrameStatistics.Increment(StatisticsCounterType.Refreshes);
         }
     }

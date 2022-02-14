@@ -1,13 +1,10 @@
 clone_depth: 1
 version: '{build}'
+image: Visual Studio 2019
+test: off
 skip_non_tags: true
-image: Visual Studio 2017
-configuration: Release
 build_script:
-  - ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
-  - dotnet pack /p:Version=%APPVEYOR_BUILD_VERSION% /p:GenerateDocumentationFile=true
-artifacts:
-  - path: osu.Framework/bin/Release/*.nupkg
+  - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFramework
 deploy:
   - provider: Environment
     name: nuget

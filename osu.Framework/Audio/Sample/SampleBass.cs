@@ -1,40 +1,34 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using ManagedBass;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
+#nullable enable
+
+using osu.Framework.Audio.Mixing.Bass;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleBass : Sample, IBassAudio
+    internal sealed class SampleBass : Sample
     {
-        private volatile int sampleId;
+        public int SampleId => factory.SampleId;
 
-        public override bool IsLoaded => sampleId != 0;
+        public override bool IsLoaded => factory.IsLoaded;
 
-        public SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
-            : base(concurrency)
+        private readonly SampleBassFactory factory;
+        private readonly BassAudioMixer mixer;
+
+        internal SampleBass(SampleBassFactory factory, BassAudioMixer mixer)
         {
-            if (customPendingActions != null)
-                PendingActions = customPendingActions;
+            this.factory = factory;
+            this.mixer = mixer;
 
-            EnqueueAction(() => { sampleId = Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying); });
+            PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
         }
 
-        protected override void Dispose(bool disposing)
+        protected override SampleChannel CreateChannel()
         {
-            Bass.SampleFree(sampleId);
-            base.Dispose(disposing);
+            var channel = new SampleChannelBass(this);
+            mixer.Add(channel);
+            return channel;
         }
-
-        void IBassAudio.UpdateDevice(int deviceIndex)
-        {
-            if (IsLoaded)
-                // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-                Bass.ChannelSetDevice(sampleId, deviceIndex);
-        }
-
-        public int CreateChannel() => Bass.SampleGetChannel(sampleId);
     }
 }

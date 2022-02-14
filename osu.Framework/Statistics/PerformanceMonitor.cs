@@ -1,13 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Allocation;
-using osu.Framework.MathUtils;
-using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.ObjectPool;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Utils;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -19,45 +22,78 @@ namespace osu.Framework.Statistics
 
         private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
 
-        private readonly BackgroundStackTraceCollector traceCollector;
+        private BackgroundStackTraceCollector traceCollector;
 
         private FrameStatistics currentFrame;
 
         private const int max_pending_frames = 10;
 
-        internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
-        internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
-        private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
+        private readonly string threadName;
 
-        internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
+        internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
+
+        internal readonly ObjectPool<FrameStatistics> FramesPool =
+            new DefaultObjectPoolProvider { MaximumRetained = max_pending_frames }
+                .Create(new DefaultPooledObjectPolicy<FrameStatistics>());
+
+        internal bool[] ActiveCounters { get; } = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
+
+        private bool enablePerformanceProfiling;
 
         public bool EnablePerformanceProfiling
         {
-            get => traceCollector.Enabled;
-            set => traceCollector.Enabled = value;
+            set
+            {
+                enablePerformanceProfiling = value;
+                updateEnabledState();
+            }
         }
 
         private double consumptionTime;
 
-        internal ThrottledFrameClock Clock;
+        private readonly IBindable<bool> isActive;
 
-        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz ?? double.MaxValue);
+        internal readonly ThrottledFrameClock Clock;
 
-        internal PerformanceMonitor(ThrottledFrameClock clock, Thread thread, IEnumerable<StatisticsCounterType> counters)
+        private Thread thread;
+
+        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz > 0 ? Clock.MaximumUpdateHz : double.MaxValue);
+
+        internal PerformanceMonitor(GameThread thread, IEnumerable<StatisticsCounterType> counters)
         {
-            Clock = clock;
-            currentFrame = FramesHeap.ReserveObject();
+            Clock = thread.Clock;
+            threadName = thread.Name;
+
+            isActive = thread.IsActive.GetBoundCopy();
+            isActive.BindValueChanged(_ => updateEnabledState());
+
+            currentFrame = FramesPool.Get();
 
             foreach (var c in counters)
-                activeCounters[(int)c] = true;
+                ActiveCounters[(int)c] = true;
 
             for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
             {
                 var t = (PerformanceCollectionType)i;
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
             }
+        }
 
-            traceCollector = new BackgroundStackTraceCollector(thread, ourClock);
+        /// <summary>
+        /// Switch target thread to <see cref="Thread.CurrentThread"/>.
+        /// </summary>
+        public void MakeCurrent()
+        {
+            var current = Thread.CurrentThread;
+
+            if (current == thread)
+                return;
+
+            thread = Thread.CurrentThread;
+
+            traceCollector?.Dispose();
+            traceCollector = new BackgroundStackTraceCollector(thread, ourClock, threadName);
+            updateEnabledState();
         }
 
         /// <summary>
@@ -92,7 +128,9 @@ namespace osu.Framework.Statistics
 
         private readonly int[] lastAmountGarbageCollects = new int[3];
 
-        public bool HandleGC = true;
+        public bool HandleGC;
+
+        private readonly Dictionary<StatisticsCounterType, GlobalStatistic<long>> globalStatistics = new Dictionary<StatisticsCounterType, GlobalStatistic<long>>();
 
         /// <summary>
         /// Resets all frame statistics. Run exactly once per frame.
@@ -100,17 +138,28 @@ namespace osu.Framework.Statistics
         public void NewFrame()
         {
             // Reset the counters we keep track of
-            for (int i = 0; i < activeCounters.Length; ++i)
-                if (activeCounters[i])
+            for (int i = 0; i < ActiveCounters.Length; ++i)
+            {
+                if (ActiveCounters[i])
                 {
-                    currentFrame.Counts[(StatisticsCounterType)i] = FrameStatistics.COUNTERS[i];
+                    long count = FrameStatistics.COUNTERS[i];
+                    var type = (StatisticsCounterType)i;
+
+                    if (!globalStatistics.TryGetValue(type, out var global))
+                        globalStatistics[type] = global = GlobalStatistics.Get<long>(threadName, type.ToString());
+
+                    global.Value = count;
+                    currentFrame.Counts[type] = count;
+                    currentFrame.FramesPerSecond = Clock.FramesPerSecond;
+
                     FrameStatistics.COUNTERS[i] = 0;
                 }
+            }
 
             if (PendingFrames.Count < max_pending_frames - 1)
             {
                 PendingFrames.Enqueue(currentFrame);
-                currentFrame = FramesHeap.ReserveObject();
+                currentFrame = FramesPool.Get();
             }
 
             currentFrame.Clear();
@@ -120,6 +169,7 @@ namespace osu.Framework.Statistics
                 for (int i = 0; i < lastAmountGarbageCollects.Length; ++i)
                 {
                     int amountCollections = GC.CollectionCount(i);
+
                     if (lastAmountGarbageCollects[i] != amountCollections)
                     {
                         lastAmountGarbageCollects[i] = amountCollections;
@@ -132,11 +182,20 @@ namespace osu.Framework.Statistics
             averageFrameTime = Interpolation.Damp(averageFrameTime, Clock.ElapsedFrameTime, 0.01, dampRate);
 
             //check for dropped (stutter) frames
-            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
+            traceCollector?.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
 
-            //reset frame totals
-            currentCollectionTypeStack.Clear();
             consumeStopwatchElapsedTime();
+        }
+
+        public void EndFrame()
+        {
+            traceCollector?.EndFrame();
+        }
+
+        private void updateEnabledState()
+        {
+            if (traceCollector != null)
+                traceCollector.Enabled = enablePerformanceProfiling && isActive.Value;
         }
 
         private double averageFrameTime;
@@ -145,7 +204,9 @@ namespace osu.Framework.Statistics
         {
             double last = consumptionTime;
 
-            consumptionTime = traceCollector.LastConsumptionTime = ourClock.CurrentTime;
+            consumptionTime = ourClock.CurrentTime;
+            if (traceCollector != null)
+                traceCollector.LastConsumptionTime = consumptionTime;
 
             return consumptionTime - last;
         }
@@ -161,13 +222,8 @@ namespace osu.Framework.Statistics
             if (!isDisposed)
             {
                 isDisposed = true;
-                traceCollector.Dispose();
+                traceCollector?.Dispose();
             }
-        }
-
-        ~PerformanceMonitor()
-        {
-            Dispose(false);
         }
 
         public void Dispose()

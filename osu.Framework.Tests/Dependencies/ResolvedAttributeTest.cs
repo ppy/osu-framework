@@ -1,11 +1,13 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Testing.Dependencies;
+
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -202,10 +204,11 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver1
         {
-#pragma warning disable 649
+#pragma warning disable 649, IDE0032
             private BaseObject obj;
-#pragma warning restore 649
+#pragma warning restore 649, IDE0032
 
+            // ReSharper disable once ConvertToAutoProperty
             public BaseObject Obj => obj;
         }
 

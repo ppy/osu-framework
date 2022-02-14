@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK.Graphics;
 using osuTK.Input;
@@ -9,24 +9,25 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.Events;
 using osuTK;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
     internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
+        internal const int HEIGHT = 100;
+
         protected const int WIDTH = 800;
-        protected const int HEIGHT = 100;
 
         private const int amount_count_steps = 5;
 
@@ -52,6 +53,8 @@ namespace osu.Framework.Graphics.Performance
 
         private readonly Container mainContainer;
         private readonly Container timeBarsContainer;
+
+        private readonly ArrayPool<Rgba32> uploadPool;
 
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
@@ -81,6 +84,7 @@ namespace osu.Framework.Graphics.Performance
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
                         break;
+
                     case FrameStatisticsMode.Full:
                         mainContainer.AutoSizeAxes = Axes.None;
                         mainContainer.Size = new Vector2(WIDTH, HEIGHT);
@@ -92,17 +96,18 @@ namespace osu.Framework.Graphics.Performance
                         break;
                 }
 
-                Running = true;
+                Running = state != FrameStatisticsMode.None;
                 Expanded = false;
 
                 StateChanged?.Invoke(State);
             }
         }
 
-        public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
+        public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
             monitor = thread.Monitor;
+            this.uploadPool = uploadPool;
 
             Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
@@ -129,6 +134,7 @@ namespace osu.Framework.Graphics.Performance
                                 Origin = Anchor.BottomCentre,
                                 Anchor = Anchor.CentreLeft,
                                 Rotation = -90,
+                                Font = FrameworkFont.Regular,
                             },
                             !hasCounters
                                 ? new Container { Width = 2 }
@@ -143,7 +149,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(atlas.Add(1, HEIGHT)),
+                                            Texture = new Texture(1, HEIGHT, true),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -177,8 +183,8 @@ namespace osu.Framework.Graphics.Performance
                                 RelativeSizeAxes = Axes.Both,
                                 Children = timeBars = new[]
                                 {
-                                    new TimeBar(atlas),
-                                    new TimeBar(atlas),
+                                    new TimeBar(),
+                                    new TimeBar(),
                                 },
                             },
                             frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
@@ -205,20 +211,23 @@ namespace osu.Framework.Graphics.Performance
                                             {
                                                 Colour = getColour(t),
                                                 Text = t.ToString(),
-                                                Alpha = 0
+                                                Alpha = 0,
+                                                Font = FrameworkFont.Regular,
                                             },
                                     },
                                     new SpriteText
                                     {
                                         Padding = new MarginPadding { Left = 4 },
-                                        Text = $@"{visible_ms_range}ms"
+                                        Text = $@"{visible_ms_range}ms",
+                                        Font = FrameworkFont.Regular,
                                     },
                                     new SpriteText
                                     {
                                         Padding = new MarginPadding { Left = 4 },
                                         Text = @"0ms",
                                         Anchor = Anchor.BottomLeft,
-                                        Origin = Anchor.BottomLeft
+                                        Origin = Anchor.BottomLeft,
+                                        Font = FrameworkFont.Regular,
                                     }
                                 }
                             }
@@ -232,18 +241,20 @@ namespace osu.Framework.Graphics.Performance
         private void load()
         {
             //initialise background
-            var column = new Image<Rgba32>(1, HEIGHT);
+            var columnUpload = new ArrayPoolTextureUpload(1, HEIGHT);
             var fullBackground = new Image<Rgba32>(WIDTH, HEIGHT);
 
-            addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_ms_steps);
+            addArea(null, null, HEIGHT, amount_ms_steps, columnUpload);
 
             for (int i = 0; i < HEIGHT; i++)
-            for (int k = 0; k < WIDTH; k++)
-                fullBackground[k, i] = column[0, i];
+            {
+                for (int k = 0; k < WIDTH; k++)
+                    fullBackground[k, i] = columnUpload.RawData[i];
+            }
 
-            addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_count_steps);
+            addArea(null, null, HEIGHT, amount_count_steps, columnUpload);
 
-            counterBarBackground?.Texture.SetData(new TextureUpload(column));
+            counterBarBackground?.Texture.SetData(columnUpload);
             Schedule(() =>
             {
                 foreach (var t in timeBars)
@@ -277,10 +288,8 @@ namespace osu.Framework.Graphics.Performance
 
                 frameTimeDisplay.Counting = running;
 
-                // dequeue all pending frames on state change.
-                while (monitor.PendingFrames.TryDequeue(out _))
-                {
-                }
+                // clear all pending frames on state change.
+                monitor.PendingFrames.Clear();
             }
         }
 
@@ -305,7 +314,6 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             switch (e.Key)
@@ -313,6 +321,7 @@ namespace osu.Framework.Graphics.Performance
                 case Key.ControlLeft:
                     Expanded = true;
                     break;
+
                 case Key.ShiftLeft:
                     Running = false;
                     break;
@@ -321,19 +330,20 @@ namespace osu.Framework.Graphics.Performance
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             switch (e.Key)
             {
                 case Key.ControlLeft:
                     Expanded = false;
                     break;
+
                 case Key.ShiftLeft:
                     Running = true;
                     break;
             }
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)
@@ -342,12 +352,10 @@ namespace osu.Framework.Graphics.Performance
                 addEvent(gcLevel);
         }
 
-        private readonly BufferStack<Rgba32> timeBarImages = new BufferStack<Rgba32>(100);
-
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var upload = new BufferStackTextureUpload(1, HEIGHT, timeBarImages)
+            var upload = new ArrayPoolTextureUpload(1, HEIGHT, uploadPool)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -355,18 +363,20 @@ namespace osu.Framework.Graphics.Performance
             int currentHeight = HEIGHT;
 
             for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
-                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.RawData, amount_ms_steps);
-            addArea(frame, null, currentHeight, upload.RawData, amount_ms_steps);
+                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, amount_ms_steps, upload);
+            addArea(frame, null, currentHeight, amount_ms_steps, upload);
 
             timeBar.Sprite.Texture.SetData(upload);
 
-            timeBars[timeBarIndex].MoveToX(WIDTH - timeBarX);
-            timeBars[(timeBarIndex + 1) % timeBars.Length].MoveToX(-timeBarX);
+            timeBars[timeBarIndex].X = WIDTH - timeBarX;
+            timeBars[(timeBarIndex + 1) % timeBars.Length].X = -timeBarX;
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-            foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
+            foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
+            {
                 if (e is Box && e.DrawPosition.X <= timeBarX)
                     e.Expire();
+            }
         }
 
         private void applyFrameCounts(FrameStatistics frame)
@@ -395,7 +405,8 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
-                    monitor.FramesHeap.FreeObject(frame);
+                    frameTimeDisplay.NewFrame(frame);
+                    monitor.FramesPool.Return(frame);
                 }
             }
         }
@@ -406,6 +417,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.YellowGreen;
+
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
 #if DEBUG
@@ -414,10 +426,13 @@ namespace osu.Framework.Graphics.Performance
 #endif
                 case PerformanceCollectionType.Sleep:
                     return Color4.DarkBlue;
+
                 case PerformanceCollectionType.Scheduler:
                     return Color4.HotPink;
+
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
+
                 case PerformanceCollectionType.GLReset:
                     return Color4.Cyan;
             }
@@ -431,22 +446,28 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.BlueViolet;
+
                 case 1:
                     return Color4.YellowGreen;
+
                 case 2:
                     return Color4.HotPink;
+
                 case 3:
                     return Color4.Red;
+
                 case 4:
                     return Color4.Cyan;
+
                 case 5:
                     return Color4.Yellow;
+
                 case 6:
                     return Color4.SkyBlue;
             }
         }
 
-        private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, Span<Rgba32> image, int amountSteps)
+        private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, int amountSteps, ArrayPoolTextureUpload columnUpload)
         {
             int drawHeight;
 
@@ -469,6 +490,7 @@ namespace osu.Framework.Graphics.Performance
                 bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_ms_range;
 
                 float brightnessAdjust = 1;
+
                 if (!frameTimeType.HasValue)
                 {
                     int step = amountSteps / HEIGHT;
@@ -477,7 +499,7 @@ namespace osu.Framework.Graphics.Performance
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 
-                image[i] = new Rgba32(col.R * brightnessAdjust, col.G * brightnessAdjust, col.B * brightnessAdjust, col.A);
+                columnUpload.RawData[i] = new Rgba32(col.R * brightnessAdjust, col.G * brightnessAdjust, col.B * brightnessAdjust, col.A);
 
                 currentHeight--;
             }
@@ -489,12 +511,12 @@ namespace osu.Framework.Graphics.Performance
         {
             public readonly Sprite Sprite;
 
-            public TimeBar(TextureAtlas atlas)
+            public TimeBar()
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
+                Sprite.Texture = new Texture(WIDTH, HEIGHT, true) { TextureGL = { BypassTextureUploadQueueing = true } };
             }
         }
 
@@ -513,11 +535,12 @@ namespace osu.Framework.Graphics.Performance
                 set
                 {
                     if (expanded == value) return;
+
                     expanded = value;
 
                     if (expanded)
                     {
-                        this.ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
+                        this.ResizeTo(new Vector2(bar_width + text.Font.Size + 2, 1), 100);
                         text.FadeIn(100);
                     }
                     else
@@ -557,7 +580,7 @@ namespace osu.Framework.Graphics.Performance
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
                         Position = new Vector2(-bar_width - 1, 0),
-                        TextSize = 16,
+                        Font = FrameworkFont.Regular.With(size: 16),
                     },
                     box = new Box
                     {

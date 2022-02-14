@@ -1,0 +1,31 @@
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+  <PropertyGroup Label="Project">
+    <TargetFramework>monoandroid10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyTitle>osu!framework Android</AssemblyTitle>
+    <AssemblyName>osu.Framework.Android</AssemblyName>
+    <RootNamespace>osu.Framework.Android</RootNamespace>
+    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
+  </PropertyGroup>
+  <PropertyGroup Label="Nuget">
+    <Title>osu!framework Android</Title>
+    <PackageId>ppy.osu.Framework.Android</PackageId>
+    <PackageTags>osu game framework</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Java.Interop" />
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ppy.osuTK.Android" Version="1.0.187" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so" />
+  </ItemGroup>
+</Project>

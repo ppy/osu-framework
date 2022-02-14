@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -15,30 +17,69 @@ namespace osu.Framework.Platform
     {
         public const double CLOCK_RATE = 1000.0 / 30;
 
-        private readonly IFrameBasedClock customClock;
+        private readonly bool realtime;
+        private IFrameBasedClock customClock;
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
         public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
 
+        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
+        public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true)
-            : base(gameName, bindIPC)
-        {
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
-
-            UpdateThread.Scheduler.Update();
-        }
-
-        protected override void UpdateInitialize()
+        [Obsolete("Use HeadlessGameHost(HostOptions, bool) instead.")] // Can be removed 20220715
+        public HeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : this(gameName, new HostOptions
+            {
+                BindIPC = bindIPC,
+                PortableInstallation = portableInstallation,
+            }, realtime)
         {
         }
 
-        protected override void DrawInitialize()
+        public HeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName ?? Guid.NewGuid().ToString(), options)
         {
+            this.realtime = realtime;
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+        {
+            defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
+
+            base.SetupConfig(defaultOverrides);
+
+            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            {
+                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
+                Logger.Log($"Startup execution mode set to {mode} from envvar");
+            }
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+
+            // We want the draw thread to run, but it doesn't matter how fast it runs.
+            // This limiting is mostly to reduce CPU overhead.
+            MaximumDrawHz = 60;
+
+            if (!realtime)
+            {
+                customClock = new FramedClock(new FastClock(CLOCK_RATE));
+
+                // time is incremented per frame, rather than based on the real-world time.
+                // therefore our goal is to run frames as fast as possible.
+                MaximumUpdateHz = MaximumInactiveHz = 0;
+            }
+            else
+            {
+                // in realtime runs, set a sane upper limit to avoid cpu overhead from spinning.
+                MaximumUpdateHz = MaximumInactiveHz = 1000;
+            }
         }
 
         protected override void DrawFrame()
@@ -53,7 +94,7 @@ namespace osu.Framework.Platform
             base.UpdateFrame();
         }
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[] { };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => Array.Empty<InputHandler>();
 
         private class FastClock : IClock
         {
@@ -71,7 +112,7 @@ namespace osu.Framework.Platform
             }
 
             public double CurrentTime => time += increment;
-            public double Rate => CLOCK_RATE;
+            public double Rate => 1;
             public bool IsRunning => true;
         }
     }

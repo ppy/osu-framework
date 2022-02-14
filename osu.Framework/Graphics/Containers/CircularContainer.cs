@@ -1,12 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container which is rounded (via automatic corner-radius) on the shortest edge.
+    /// A container which is rounded (via automatic corner-radius and corner-exponent=2) on the shortest edge.
     /// </summary>
     public class CircularContainer : Container
     {

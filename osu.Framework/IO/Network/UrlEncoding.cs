@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Text;
 
@@ -13,6 +13,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             return UrlEncode(str, Encoding.UTF8, false);
         }
 
@@ -22,6 +23,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             return UrlEncode(str, Encoding.UTF8, true);
         }
 
@@ -31,6 +33,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             return Encoding.ASCII.GetString(UrlEncodeToBytes(str, e, paramEncode));
         }
 
@@ -40,6 +43,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             byte[] bytes = e.GetBytes(str);
             return urlEncodeBytesToBytesPublic(bytes, 0, bytes.Length, false, paramEncode);
         }
@@ -48,9 +52,11 @@ namespace osu.Framework.IO.Network
         {
             int num = 0;
             int num2 = 0;
+
             for (int i = 0; i < count; i++)
             {
                 char ch = (char)bytes[offset + i];
+
                 if (paramEncode && ch == ' ')
                 {
                     num++;
@@ -60,16 +66,20 @@ namespace osu.Framework.IO.Network
                     num2++;
                 }
             }
+
             if (!alwaysCreateReturnValue && num == 0 && num2 == 0)
             {
                 return bytes;
             }
+
             byte[] buffer = new byte[count + num2 * 2];
             int num4 = 0;
+
             for (int j = 0; j < count; j++)
             {
                 byte num6 = bytes[offset + j];
                 char ch2 = (char)num6;
+
                 if (IsSafe(ch2))
                 {
                     buffer[num4++] = num6;
@@ -85,6 +95,7 @@ namespace osu.Framework.IO.Network
                     buffer[num4++] = (byte)IntToHex(num6 & 15);
                 }
             }
+
             return buffer;
         }
 
@@ -94,6 +105,7 @@ namespace osu.Framework.IO.Network
             {
                 return true;
             }
+
             switch (ch)
             {
                 case '\'':
@@ -106,6 +118,7 @@ namespace osu.Framework.IO.Network
                 case '!':
                     return true;
             }
+
             return false;
         }
 
@@ -115,6 +128,7 @@ namespace osu.Framework.IO.Network
             {
                 return (char)(n + 0x30);
             }
+
             return (char)(n - 10 + 0x61);
         }
     }

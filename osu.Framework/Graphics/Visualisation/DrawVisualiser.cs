@@ -1,28 +1,38 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
+using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
-    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables
+    // Implementing IRequireHighFrequencyMousePosition is necessary to gain the ability to block high frequency mouse position updates.
+    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
     {
+        public Vector2 ToolPosition
+        {
+            get => treeContainer.Position;
+            set => treeContainer.Position = value;
+        }
+
         [Cached]
         private readonly TreeContainer treeContainer;
 
         private VisualisedDrawable highlightedTarget;
-
-        private readonly PropertyDisplay propertyDisplay;
-
+        private readonly DrawableInspector drawableInspector;
         private readonly InfoOverlay overlay;
-
         private InputManager inputManager;
 
         public DrawVisualiser()
@@ -33,56 +43,23 @@ namespace osu.Framework.Graphics.Visualisation
                 overlay = new InfoOverlay(),
                 treeContainer = new TreeContainer
                 {
+                    State = { BindTarget = State },
                     ChooseTarget = () =>
                     {
                         Searching = true;
                         Target = null;
                     },
-                    GoUpOneParent = delegate
-                    {
-                        Drawable lastHighlight = highlightedTarget?.Target;
-
-                        var parent = Target?.Parent;
-                        if (parent != null)
-                        {
-                            var lastVisualiser = targetVisualiser;
-
-                            Target = parent;
-                            lastVisualiser.SetContainer(targetVisualiser);
-
-                            targetVisualiser.Expand();
-                        }
-
-                        // Rehighlight the last highlight
-                        if (lastHighlight != null)
-                        {
-                            VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
-                            if (visualised != null)
-                            {
-                                propertyDisplay.State = Visibility.Visible;
-                                setHighlight(visualised);
-                            }
-                        }
-                    },
-                    ToggleProperties = delegate
-                    {
-                        if (targetVisualiser == null)
-                            return;
-
-                        propertyDisplay.ToggleVisibility();
-
-                        if (propertyDisplay.State == Visibility.Visible)
-                            setHighlight(targetVisualiser);
-                    },
+                    GoUpOneParent = goUpOneParent,
+                    ToggleInspector = toggleInspector,
                 },
                 new CursorContainer()
             };
 
-            propertyDisplay = treeContainer.PropertyDisplay;
+            drawableInspector = treeContainer.DrawableInspector;
 
-            propertyDisplay.StateChanged += visibility =>
+            drawableInspector.State.ValueChanged += v =>
             {
-                switch (visibility)
+                switch (v.NewValue)
                 {
                     case Visibility.Hidden:
                         // Dehighlight everything automatically if property display is closed
@@ -92,13 +69,53 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
+        private void goUpOneParent()
+        {
+            Drawable lastHighlight = highlightedTarget?.Target;
+
+            var parent = Target?.Parent;
+
+            if (parent != null)
+            {
+                var lastVisualiser = targetVisualiser;
+
+                Target = parent;
+                lastVisualiser.SetContainer(targetVisualiser);
+
+                targetVisualiser.Expand();
+            }
+
+            // Rehighlight the last highlight
+            if (lastHighlight != null)
+            {
+                VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
+
+                if (visualised != null)
+                {
+                    drawableInspector.Show();
+                    setHighlight(visualised);
+                }
+            }
+        }
+
+        private void toggleInspector()
+        {
+            if (targetVisualiser == null)
+                return;
+
+            drawableInspector.ToggleVisibility();
+
+            if (drawableInspector.State.Value == Visibility.Visible)
+                setHighlight(targetVisualiser);
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
             inputManager = GetContainingInputManager();
         }
 
-        protected override bool BlockPositionalInput => false;
+        protected override bool Handle(UIEvent e) => Searching;
 
         protected override void PopIn()
         {
@@ -109,6 +126,9 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopOut()
         {
             this.FadeOut(100);
+
+            setHighlight(null);
+            drawableInspector.Hide();
 
             recycleVisualisers();
         }
@@ -123,7 +143,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.HighlightTarget = d =>
             {
-                propertyDisplay.State = Visibility.Visible;
+                drawableInspector.Show();
 
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
@@ -132,21 +152,26 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.Depth = 0;
 
-            treeContainer.Child = targetVisualiser = visualiser;
+            treeContainer.Target = targetVisualiser = visualiser;
+            targetVisualiser.TopLevel = true;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
+
+            targetVisualiser.TopLevel = false;
             targetVisualiser = null;
-            treeContainer.Remove(visualiser);
+
+            treeContainer.Target = null;
 
             if (Target == null)
-                propertyDisplay.State = Visibility.Hidden;
+                drawableInspector.Hide();
         }
 
         private VisualisedDrawable targetVisualiser;
         private Drawable target;
+
         public Drawable Target
         {
             get => target;
@@ -175,12 +200,14 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
 
             updateCursorTarget();
+            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
         }
 
         private void updateCursorTarget()
         {
             Drawable drawableTarget = null;
             CompositeDrawable compositeTarget = null;
+            Quad? maskingQuad = null;
 
             findTarget(inputManager);
 
@@ -189,11 +216,23 @@ namespace osu.Framework.Graphics.Visualisation
             // Finds the targeted drawable and composite drawable. The search stops if a drawable is targeted.
             void findTarget(Drawable drawable)
             {
-                if (!isValidTarget(drawable))
+                if (drawable == this || drawable is Component)
+                    return;
+
+                if (!drawable.IsPresent)
+                    return;
+
+                if (drawable.AlwaysPresent && Precision.AlmostEquals(drawable.Alpha, 0f))
                     return;
 
                 if (drawable is CompositeDrawable composite)
                 {
+                    Quad? oldMaskingQuad = maskingQuad;
+
+                    // BufferedContainers implicitly mask via their frame buffer
+                    if (composite.Masking || composite is BufferedContainer)
+                        maskingQuad = composite.ScreenSpaceDrawQuad;
+
                     for (int i = composite.AliveInternalChildren.Count - 1; i >= 0; i--)
                     {
                         findTarget(composite.AliveInternalChildren[i]);
@@ -202,30 +241,53 @@ namespace osu.Framework.Graphics.Visualisation
                             return;
                     }
 
-                    if (compositeTarget == null)
-                        compositeTarget = composite;
+                    maskingQuad = oldMaskingQuad;
+
+                    if (!validForTarget(composite))
+                        return;
+
+                    compositeTarget ??= composite;
+
+                    // Allow targeting composites that don't have any content but display a border/glow
+
+                    if (!composite.Masking)
+                        return;
+
+                    if (composite.BorderThickness > 0 && composite.BorderColour.Linear.A > 0
+                        || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0)
+                    {
+                        drawableTarget = composite;
+                    }
                 }
-                else if (!(drawable is Component))
+                else
+                {
+                    if (!validForTarget(drawable))
+                        return;
+
+                    // Special case for full-screen overlays that act as input receptors, but don't display anything
+                    if (!hasCustomDrawNode(drawable))
+                        return;
+
                     drawableTarget = drawable;
+                }
             }
 
-            bool isValidTarget(Drawable drawable)
-            {
-                if (drawable is DrawVisualiser || drawable is CursorContainer || drawable is PropertyDisplay)
-                    return false;
+            // Valid if the drawable contains the mouse position and the position wouldn't be masked by the parent
+            bool validForTarget(Drawable drawable)
+                => drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position)
+                   && maskingQuad?.Contains(inputManager.CurrentState.Mouse.Position) != false;
+        }
 
-                if (!drawable.IsPresent)
-                    return false;
+        private static readonly Dictionary<Type, bool> has_custom_drawnode_cache = new Dictionary<Type, bool>();
 
-                bool containsCursor = drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position);
-                // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
-                // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
-                // is a good chance they have children poking out of their bounds, which we need to catch.
-                if (!containsCursor && !drawable.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position))
-                    return false;
+        private bool hasCustomDrawNode(Drawable drawable)
+        {
+            var type = drawable.GetType();
 
-                return true;
-            }
+            if (has_custom_drawnode_cache.TryGetValue(type, out bool existing))
+                return existing;
+
+            return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
         }
 
         public bool Searching { get; private set; }
@@ -241,17 +303,17 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (newHighlight == null)
             {
-                propertyDisplay.UpdateFrom(null);
+                drawableInspector.InspectedDrawable.Value = null;
                 return;
             }
 
             // Only update when property display is visible
-            if (propertyDisplay.State == Visibility.Visible)
+            if (drawableInspector.State.Value == Visibility.Visible)
             {
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
 
-                propertyDisplay.UpdateFrom(newHighlight.Target);
+                drawableInspector.InspectedDrawable.Value = newHighlight.Target;
             }
         }
 
@@ -276,12 +338,6 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnClick(e);
         }
 
-        protected override bool OnMouseMove(MouseMoveEvent e)
-        {
-            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return overlay.Target != null;
-        }
-
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
 
         public VisualisedDrawable GetVisualiserFor(Drawable drawable)
@@ -297,8 +353,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void recycleVisualisers()
         {
-            // May come from the disposal thread, in which case they won't ever be reused anyway
-            Schedule(() => treeContainer.Clear());
+            treeContainer.Target = null;
 
             // We don't really know where the visualised drawables are, so we have to dispose them manually
             // This is done as an optimisation so that events aren't handled while the visualiser is hidden
@@ -308,12 +363,6 @@ namespace osu.Framework.Graphics.Visualisation
 
             target = null;
             targetVisualiser = null;
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            recycleVisualisers();
         }
     }
 }

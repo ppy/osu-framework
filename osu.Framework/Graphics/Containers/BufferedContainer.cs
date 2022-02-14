@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osuTK.Graphics;
@@ -8,10 +8,9 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.MathUtils;
-using System;
-using System.Collections.Generic;
-using osu.Framework.Caching;
+using osu.Framework.Utils;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -26,7 +25,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
     {
-    };
+        /// <inheritdoc />
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+            : base(formats, pixelSnapping, cachedFrameBuffer)
+        {
+        }
+    }
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -35,7 +39,7 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer<T> : Container<T>, IBufferedContainer
+    public partial class BufferedContainer<T> : Container<T>, IBufferedContainer, IBufferedDrawable
         where T : Drawable
     {
         private bool drawOriginal;
@@ -55,7 +59,6 @@ namespace osu.Framework.Graphics.Containers
                 ForceRedraw();
             }
         }
-
 
         private Vector2 blurSigma = Vector2.Zero;
 
@@ -97,24 +100,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool pixelSnapping;
-
-        /// <summary>
-        /// Whether the framebuffer's position is snapped to the nearest pixel when blitting.
-        /// Since the framebuffer's texels have the same size as pixels, this amounts to setting
-        /// the texture filtering mode to "nearest".
-        /// </summary>
-        public bool PixelSnapping
-        {
-            get => pixelSnapping;
-            set
-            {
-                if (sharedData.FrameBuffers[0].IsInitialized || sharedData.FrameBuffers[1].IsInitialized)
-                    throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
-                pixelSnapping = value;
-            }
-        }
-
         private ColourInfo effectColour = Color4.White;
 
         /// <summary>
@@ -134,11 +119,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private BlendingParameters effectBlending;
+        private BlendingParameters effectBlending = BlendingParameters.Inherit;
 
         /// <summary>
-        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
-        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
+        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingType.Inherit"/>.
+        /// <see cref="BlendingType.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
         public BlendingParameters EffectBlending
@@ -146,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
             get => effectBlending;
             set
             {
-                if (effectBlending.Equals(value))
+                if (effectBlending == value)
                     return;
 
                 effectBlending = value;
@@ -191,17 +176,50 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Vector2 frameBufferScale = Vector2.One;
+
+        public Vector2 FrameBufferScale
+        {
+            get => frameBufferScale;
+            set
+            {
+                if (frameBufferScale == value)
+                    return;
+
+                frameBufferScale = value;
+                ForceRedraw();
+            }
+        }
+
         /// <summary>
-        /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
+        /// Whether the rendered framebuffer is being cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
         /// If false, then the framebuffer is re-rendered before it is blitted to the screen; equivalent
         /// to calling <see cref="ForceRedraw"/> every frame.
         /// </summary>
-        public bool CacheDrawnFrameBuffer;
+        public readonly bool UsingCachedFrameBuffer;
+
+        private bool redrawOnScale = true;
+
+        /// <summary>
+        /// Whether to redraw this <see cref="BufferedContainer"/> when the draw scale changes.
+        /// </summary>
+        public bool RedrawOnScale
+        {
+            get => redrawOnScale;
+            set
+            {
+                if (redrawOnScale == value)
+                    return;
+
+                redrawOnScale = value;
+                screenSpaceSizeBacking?.Invalidate();
+            }
+        }
 
         /// <summary>
         /// Forces a redraw of the framebuffer before it is blitted the next time.
-        /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
+        /// Only relevant if <see cref="UsingCachedFrameBuffer"/> is true.
         /// </summary>
         public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
@@ -214,121 +232,73 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        protected override bool CanBeFlattened => false;
+        public IShader TextureShader { get; private set; }
+
+        public IShader RoundedTextureShader { get; private set; }
+
+        private IShader blurShader;
+
+        private readonly BufferedContainerDrawNodeSharedData sharedData;
 
         /// <summary>
         /// Constructs an empty buffered container.
         /// </summary>
-        public BufferedContainer()
+        /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
+        /// <param name="pixelSnapping">
+        /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".
+        /// </param>
+        /// <param name="cachedFrameBuffer">
+        /// Whether the rendered framebuffer should be cached until <see cref="ForceRedraw"/> is called
+        /// or the size of the container (i.e. framebuffer) changes.
+        /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
+        /// </param>
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
         {
-            // The initial draw cannot be cached, and thus we need to initialize
-            // with a forced draw.
-            ForceRedraw();
+            UsingCachedFrameBuffer = cachedFrameBuffer;
+
+            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
+
+            AddLayout(screenSpaceSizeBacking);
         }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            sharedData.BlurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
-        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
-        private bool addChildDrawNodes;
-        internal override bool AddChildDrawNodes => addChildDrawNodes;
-
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
-            BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
+            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
 
-            n.Shared = sharedData;
-
-            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-            n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
-
-            n.UpdateVersion = updateVersion;
-            n.BackgroundColour = backgroundColour;
-
-            BlendingParameters localEffectBlending = EffectBlending;
-            if (localEffectBlending.Mode == BlendingMode.Inherit)
-                localEffectBlending.Mode = Blending.Mode;
-
-            if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
-                localEffectBlending.RGBEquation = Blending.RGBEquation;
-
-            if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
-                localEffectBlending.AlphaEquation = Blending.AlphaEquation;
-
-            n.EffectColour = effectColour;
-            n.EffectBlending = localEffectBlending;
-            n.EffectPlacement = effectPlacement;
-
-            n.DrawOriginal = drawOriginal;
-            n.BlurSigma = blurSigma;
-            n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
-            n.BlurRotation = blurRotation;
-
-            n.Formats.Clear();
-            n.Formats.AddRange(attachedFormats);
-
-            base.ApplyDrawNode(node);
-
-            // Our own draw node should contain our correct color, hence we have
-            // to undo our overridden DrawInfo getter here.
-            n.DrawColourInfo.Colour = base.DrawColourInfo.Colour;
-
-            // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
-            addChildDrawNodes = n.RequiresRedraw;
-        }
-
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
-        {
-            var result = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
-
-            // The framebuffers may be redrawn this time around, but will be cached the next time around
-            addChildDrawNodes = false;
+            childrenUpdateVersion = updateVersion;
 
             return result;
         }
 
-        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
-
-        /// <summary>
-        /// Attach an additional component to this <see cref="BufferedContainer{T}"/>. Such a component can e.g.
-        /// be a depth component, such that the framebuffer can hold fragment depth information.
-        /// </summary>
-        /// <param name="format">The component format to attach.</param>
-        public void Attach(RenderbufferInternalFormat format)
-        {
-            if (attachedFormats.Exists(f => f == format))
-                return;
-
-            attachedFormats.Add(format);
-        }
-
-        /// <summary>
-        /// Detaches an additional component of this <see cref="BufferedContainer{T}"/>.
-        /// </summary>
-        /// <param name="format">The component format to detach.</param>
-        public void Detach(RenderbufferInternalFormat format) => attachedFormats.Remove(format);
-
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
-        private Cached screenSpaceSizeBacking = new Cached();
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo
+        private readonly LayoutValue screenSpaceSizeBacking = new LayoutValue(Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
+            bool result = base.OnInvalidate(invalidation, source);
+
             if ((invalidation & Invalidation.DrawNode) > 0)
+            {
                 ++updateVersion;
+                result = true;
+            }
 
-            // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
-            if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
-                screenSpaceSizeBacking.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
+            return result;
         }
 
         private long childrenUpdateVersion = -1;
@@ -339,55 +309,71 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             // Invalidate drawn frame buffer every frame.
-            if (!CacheDrawnFrameBuffer)
+            if (!UsingCachedFrameBuffer)
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {
-                var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
+                Vector2 drawSize = ScreenSpaceDrawQuad.AABBFloat.Size;
 
-                if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
+                if (!RedrawOnScale)
+                {
+                    Matrix3 scaleMatrix = Matrix3.CreateScale(DrawInfo.MatrixInverse.ExtractScale());
+                    Vector2Extensions.Transform(ref drawSize, ref scaleMatrix, out drawSize);
+                }
+
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, drawSize))
                 {
                     ++updateVersion;
-                    lastScreenSpaceSize = screenSpaceSize;
+                    lastScreenSpaceSize = drawSize;
                 }
 
                 screenSpaceSizeBacking.Validate();
             }
         }
 
-        protected override void UpdateAfterChildren()
+        /// <summary>
+        /// The blending which <see cref="BufferedContainerDrawNode"/> uses for the effect.
+        /// </summary>
+        public BlendingParameters DrawEffectBlending
         {
-            base.UpdateAfterChildren();
+            get
+            {
+                BlendingParameters blending = EffectBlending;
 
-            childrenUpdateVersion = updateVersion;
+                blending.CopyFromParent(Blending);
+                blending.ApplyDefaultToInherited();
+
+                return blending;
+            }
         }
 
+        /// <summary>
+        /// Creates a view which can be added to a container to display the content of this <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <returns>The view.</returns>
+        public BufferedContainerView<T> CreateView() => new BufferedContainerView<T>(this, sharedData);
+
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
+
+        // Children should not receive the true colour to avoid colour doubling when the frame-buffers are rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo
         {
             get
             {
-                DrawColourInfo result = base.DrawColourInfo;
+                // Todo: This is incorrect.
+                var blending = Blending;
+                blending.ApplyDefaultToInherited();
 
-                // When drawing our children to the frame buffer we do not
-                // want their colour to be polluted by their parent (us!)
-                // since our own color will be applied on top when we render
-                // from the frame buffer to the back buffer later on.
-                result.Colour = ColourInfo.SingleColour(Color4.White);
-                return result;
+                return new DrawColourInfo(Color4.White, blending);
             }
         }
 
-        //protected override void Dispose(bool isDisposing)
-        //{
-        //     right now we are relying on the finalizer for correct disposal.
-        //     correct method would be to schedule these to update thread and
-        //     then to the draw thread.
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
 
-        //    foreach (FrameBuffer frameBuffer in frameBuffers)
-        //      frameBuffer.Dispose();
-
-        //    base.Dispose(isDisposing);
-        //}
+            sharedData.Dispose();
+        }
     }
 
     public enum EffectPlacement

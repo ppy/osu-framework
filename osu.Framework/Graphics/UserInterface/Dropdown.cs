@@ -1,16 +1,20 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Framework.Graphics.Containers;
-using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
+using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -18,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
+    public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -43,17 +47,45 @@ namespace osu.Framework.Graphics.UserInterface
             get => MenuItems.Select(i => i.Value);
             set
             {
-                ClearItems();
+                if (boundItemSource != null)
+                    throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
+
+                setItems(value);
+            }
+        }
+
+        private void setItems(IEnumerable<T> items)
+        {
+            clearItems();
+            if (items == null)
+                return;
+
+            foreach (var entry in items)
+                addDropdownItem(GenerateItemText(entry), entry);
+
+            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
+                Current.Value = itemMap.Keys.FirstOrDefault();
+            else
+                Current.TriggerChange();
+        }
+
+        private readonly IBindableList<T> itemSource = new BindableList<T>();
+        private IBindableList<T> boundItemSource;
+
+        /// <summary>
+        /// Allows the developer to assign an <see cref="IBindableList{T}"/> as the source
+        /// of items for this dropdown.
+        /// </summary>
+        public IBindableList<T> ItemSource
+        {
+            get => itemSource;
+            set
+            {
                 if (value == null)
-                    return;
+                    throw new ArgumentNullException(nameof(value));
 
-                foreach (var entry in value)
-                    AddDropdownItem(GenerateItemText(entry), entry);
-
-                if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
-                    Current.Value = itemMap.Keys.FirstOrDefault();
-                else
-                    Current.TriggerChange();
+                if (boundItemSource != null) itemSource.UnbindFrom(boundItemSource);
+                itemSource.BindTo(boundItemSource = value);
             }
         }
 
@@ -68,7 +100,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        protected void AddDropdownItem(string text, T value)
+        protected void AddDropdownItem(LocalisableString text, T value)
+        {
+            if (boundItemSource != null)
+                throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
+
+            addDropdownItem(text, value);
+        }
+
+        private void addDropdownItem(LocalisableString text, T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -91,6 +131,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value of the menu item to be removed.</param>
         public bool RemoveDropdownItem(T value)
         {
+            if (boundItemSource != null)
+                throw new InvalidOperationException($"Cannot manually remove items when an {nameof(ItemSource)} is bound.");
+
+            return removeDropdownItem(value);
+        }
+
+        private bool removeDropdownItem(T value)
+        {
             if (value == null)
                 return false;
 
@@ -103,34 +151,30 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual string GenerateItemText(T item)
+        protected virtual LocalisableString GenerateItemText(T item)
         {
             switch (item)
             {
                 case MenuItem i:
-                    return i.Text;
+                    return i.Text.Value;
+
                 case IHasText t:
                     return t.Text;
+
                 case Enum e:
-                    return e.GetDescription();
+                    return e.GetLocalisableDescription();
+
                 default:
                     return item?.ToString() ?? "null";
             }
         }
 
-        private readonly Bindable<T> current = new Bindable<T>();
+        private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                current.UnbindBindings();
-                current.BindTo(value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         private DropdownMenuItem<T> selectedItem;
@@ -140,7 +184,11 @@ namespace osu.Framework.Graphics.UserInterface
             get => selectedItem;
             set
             {
+                if (Current.Disabled)
+                    return;
+
                 selectedItem = value;
+
                 if (value != null)
                     Current.Value = value.Value;
             }
@@ -149,48 +197,110 @@ namespace osu.Framework.Graphics.UserInterface
         protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FillDirection.Vertical;
 
-            Children = new Drawable[]
+            InternalChild = new FillFlowContainer<Drawable>
             {
-                Header = CreateHeader(),
-                Menu = CreateMenu()
+                Children = new Drawable[]
+                {
+                    Header = CreateHeader(),
+                    Menu = CreateMenu()
+                },
+                Direction = FillDirection.Vertical,
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
             };
 
             Menu.RelativeSizeAxes = Axes.X;
 
             Header.Action = Menu.Toggle;
+            Header.ChangeSelection += selectionKeyPressed;
+            Menu.PreselectionConfirmed += preselectionConfirmed;
             Current.ValueChanged += selectionChanged;
+            Current.DisabledChanged += disabled =>
+            {
+                Header.Enabled.Value = !disabled;
+                if (disabled && Menu.State == MenuState.Open)
+                    Menu.State = MenuState.Closed;
+            };
+
+            ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
+        }
+
+        private void preselectionConfirmed(int selectedIndex)
+        {
+            SelectedItem = MenuItems.ElementAtOrDefault(selectedIndex);
+            Menu.State = MenuState.Closed;
+        }
+
+        private void selectionKeyPressed(DropdownHeader.DropdownSelectionAction action)
+        {
+            if (!MenuItems.Any())
+                return;
+
+            var dropdownMenuItems = MenuItems.ToList();
+
+            switch (action)
+            {
+                case DropdownHeader.DropdownSelectionAction.Previous:
+                    SelectedItem = dropdownMenuItems[Math.Clamp(dropdownMenuItems.IndexOf(SelectedItem) - 1, 0, dropdownMenuItems.Count - 1)];
+                    break;
+
+                case DropdownHeader.DropdownSelectionAction.Next:
+                    SelectedItem = dropdownMenuItems[Math.Clamp(dropdownMenuItems.IndexOf(SelectedItem) + 1, 0, dropdownMenuItems.Count - 1)];
+                    break;
+
+                case DropdownHeader.DropdownSelectionAction.First:
+                    SelectedItem = dropdownMenuItems[0];
+                    break;
+
+                case DropdownHeader.DropdownSelectionAction.Last:
+                    SelectedItem = dropdownMenuItems[^1];
+                    break;
+
+                default:
+                    throw new ArgumentException("Unexpected selection action type.", nameof(action));
+            }
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            Header.Label = SelectedItem?.Text.Value;
+            Header.Label = SelectedItem?.Text.Value ?? default;
         }
 
-        private void selectionChanged(T newSelection = default)
+        private void selectionChanged(ValueChangedEvent<T> args)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
-                && newSelection != null)
+            if (args.NewValue == null && SelectedItem != null)
             {
-                if (!itemMap.TryGetValue(newSelection, out selectedItem))
+                selectedItem = new DropdownMenuItem<T>(default, default);
+            }
+            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
+            {
+                if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(newSelection), newSelection);
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
                 }
             }
 
             Menu.SelectItem(selectedItem);
-            Header.Label = selectedItem.Text;
+            Header.Label = selectedItem.Text.Value;
         }
 
         /// <summary>
         /// Clear all the menu items.
         /// </summary>
         public void ClearItems()
+        {
+            if (boundItemSource != null)
+                throw new InvalidOperationException($"Cannot manually clear items when an {nameof(ItemSource)} is bound.");
+
+            clearItems();
+        }
+
+        private void clearItems()
         {
             itemMap.Clear();
             Menu.Clear();
@@ -224,21 +334,42 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(HoverEvent e) => true;
-
         /// <summary>
         /// Creates the menu body.
         /// </summary>
-        protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
+        protected abstract DropdownMenu CreateMenu();
 
         #region DropdownMenu
 
-        public class DropdownMenu : Menu
+        public abstract class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
-            public DropdownMenu()
+            protected DropdownMenu()
                 : base(Direction.Vertical)
             {
+                StateChanged += clearPreselection;
             }
+
+            public override void Add(MenuItem item)
+            {
+                base.Add(item);
+
+                var drawableDropdownMenuItem = (DrawableDropdownMenuItem)ItemsContainer.Single(drawableItem => drawableItem.Item == item);
+                drawableDropdownMenuItem.PreselectionRequested += PreselectItem;
+            }
+
+            private void clearPreselection(MenuState obj)
+            {
+                if (obj == MenuState.Closed)
+                    PreselectItem(null);
+            }
+
+            protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>();
+            protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
+
+            public DrawableDropdownMenuItem PreselectedItem => DrawableMenuItems.FirstOrDefault(c => c.IsPreSelected)
+                                                               ?? DrawableMenuItems.FirstOrDefault(c => c.IsSelected);
+
+            public event Action<int> PreselectionConfirmed;
 
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
@@ -246,7 +377,12 @@ namespace osu.Framework.Graphics.UserInterface
             /// <param name="item">The item to select.</param>
             public void SelectItem(DropdownMenuItem<T> item)
             {
-                Children.OfType<DrawableDropdownMenuItem>().ForEach(c => c.IsSelected = c.Item == item);
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
+                {
+                    c.IsSelected = c.Item == item;
+                    if (c.IsSelected)
+                        ContentContainer.ScrollIntoView(c);
+                });
             }
 
             /// <summary>
@@ -266,14 +402,34 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
+            protected void PreselectItem(int index) => PreselectItem(Items[Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
+
+            /// <summary>
+            /// Preselects an item from this <see cref="DropdownMenu"/>.
+            /// </summary>
+            /// <param name="item">The item to select.</param>
+            protected void PreselectItem(MenuItem item)
+            {
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
+                {
+                    c.IsPreSelected = c.Item == item;
+                    if (c.IsPreSelected)
+                        ContentContainer.ScrollIntoView(c);
+                });
+            }
+
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+
+            protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
             #region DrawableDropdownMenuItem
 
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-            public class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
-                public DrawableDropdownMenuItem(MenuItem item)
+                public event Action<DropdownMenuItem<T>> PreselectionRequested;
+
+                protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
                 }
@@ -287,7 +443,28 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         if (selected == value)
                             return;
+
                         selected = value;
+
+                        OnSelectChange();
+                    }
+                }
+
+                private bool preSelected;
+
+                /// <summary>
+                /// Denotes whether this menu item will be selected on <see cref="Key.Enter"/> press.
+                /// This property is related to selecting menu items using keyboard or hovering.
+                /// </summary>
+                public bool IsPreSelected
+                {
+                    get => preSelected;
+                    set
+                    {
+                        if (preSelected == value)
+                            return;
+
+                        preSelected = value;
 
                         OnSelectChange();
                     }
@@ -328,12 +505,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override void UpdateBackgroundColour()
                 {
-                    Background.FadeColour(IsHovered ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
+                    Background.FadeColour(IsPreSelected ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
                 }
 
                 protected override void UpdateForegroundColour()
                 {
-                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
+                    Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
                 protected override void LoadComplete()
@@ -342,9 +519,86 @@ namespace osu.Framework.Graphics.UserInterface
                     Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
                     Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
+
+                protected override bool OnHover(HoverEvent e)
+                {
+                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
+                    return base.OnHover(e);
+                }
             }
 
             #endregion
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                var drawableMenuItemsList = DrawableMenuItems.ToList();
+                if (!drawableMenuItemsList.Any())
+                    return base.OnKeyDown(e);
+
+                var currentPreselected = PreselectedItem;
+                int targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+
+                switch (e.Key)
+                {
+                    case Key.Up:
+                        PreselectItem(targetPreselectionIndex - 1);
+                        return true;
+
+                    case Key.Down:
+                        PreselectItem(targetPreselectionIndex + 1);
+                        return true;
+
+                    case Key.PageUp:
+                        var firstVisibleItem = VisibleMenuItems.First();
+
+                        if (currentPreselected == firstVisibleItem)
+                            PreselectItem(targetPreselectionIndex - VisibleMenuItems.Count());
+                        else
+                            PreselectItem(drawableMenuItemsList.IndexOf(firstVisibleItem));
+                        return true;
+
+                    case Key.PageDown:
+                        var lastVisibleItem = VisibleMenuItems.Last();
+
+                        if (currentPreselected == lastVisibleItem)
+                            PreselectItem(targetPreselectionIndex + VisibleMenuItems.Count());
+                        else
+                            PreselectItem(drawableMenuItemsList.IndexOf(lastVisibleItem));
+                        return true;
+
+                    case Key.Enter:
+                        PreselectionConfirmed?.Invoke(targetPreselectionIndex);
+                        return true;
+
+                    case Key.Escape:
+                        State = MenuState.Closed;
+                        return true;
+
+                    default:
+                        return base.OnKeyDown(e);
+                }
+            }
+
+            public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
+            {
+                switch (e.Action)
+                {
+                    case PlatformAction.MoveToListStart:
+                        PreselectItem(Items.FirstOrDefault());
+                        return true;
+
+                    case PlatformAction.MoveToListEnd:
+                        PreselectItem(Items.LastOrDefault());
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
+            public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
+            {
+            }
         }
 
         #endregion

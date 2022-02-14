@@ -1,5 +1,7 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -13,74 +15,71 @@ namespace osu.Framework.Timing
     public class ThrottledFrameClock : FramedClock
     {
         /// <summary>
-        /// The number of updated per second which is permitted.
+        /// The target number of updates per second. Only used when <see cref="Throttling"/> is <c>true</c>.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz = 1000.0;
+
+        /// <summary>
+        /// Whether throttling should be enabled. Defaults to <c>true</c>.
+        /// </summary>
+        public bool Throttling = true;
 
         /// <summary>
         /// The time spent in a Thread.Sleep state during the last frame.
         /// </summary>
-        public double SleptTime { get; private set; }
+        public double TimeSlept { get; private set; }
+
+        public override void ProcessFrame()
+        {
+            Debug.Assert(MaximumUpdateHz >= 0);
+
+            base.ProcessFrame();
+
+            if (Throttling)
+            {
+                if (MaximumUpdateHz > 0 && MaximumUpdateHz < double.MaxValue)
+                {
+                    throttle();
+                }
+                else
+                {
+                    // Even when running at unlimited frame-rate, we should call the scheduler
+                    // to give lower-priority background processes a chance to do work.
+                    TimeSlept = sleepAndUpdateCurrent(0);
+                }
+            }
+            else
+            {
+                TimeSlept = 0;
+            }
+
+            Debug.Assert(TimeSlept <= ElapsedFrameTime);
+        }
 
         private double accumulatedSleepError;
 
         private void throttle()
         {
-            bool shouldYield = true;
+            double excessFrameTime = 1000d / MaximumUpdateHz - ElapsedFrameTime;
 
-            //If we are limiting to a specific rate, and not enough time has passed for the next frame to be accepted we should pause here.
-            if (MaximumUpdateHz > 0)
-            {
-                double targetMilliseconds = MaximumUpdateHz > 0 ? 1000.0 / MaximumUpdateHz : 0;
+            TimeSlept = sleepAndUpdateCurrent((int)Math.Max(0, excessFrameTime + accumulatedSleepError));
 
-                if (ElapsedFrameTime < targetMilliseconds)
-                {
-                    double excessFrameTime = targetMilliseconds - ElapsedFrameTime;
+            accumulatedSleepError += excessFrameTime - TimeSlept;
 
-                    int timeToSleepFloored = (int)Math.Floor(excessFrameTime);
-
-                    Trace.Assert(timeToSleepFloored >= 0);
-
-                    accumulatedSleepError += excessFrameTime - timeToSleepFloored;
-                    int accumulatedSleepErrorCompensation = (int)Math.Round(accumulatedSleepError);
-
-                    // Can't sleep a negative amount of time
-                    accumulatedSleepErrorCompensation = Math.Max(accumulatedSleepErrorCompensation, -timeToSleepFloored);
-
-                    accumulatedSleepError -= accumulatedSleepErrorCompensation;
-                    timeToSleepFloored += accumulatedSleepErrorCompensation;
-
-                    // We don't want re-schedules with Thread.Sleep(0). We already have that case down below.
-                    if (timeToSleepFloored > 0)
-                    {
-                        Thread.Sleep(timeToSleepFloored);
-                        shouldYield = false;
-                    }
-
-                    // Sleep is not guaranteed to be an exact time. It only guaranteed to sleep AT LEAST the specified time. We also used some time to compute the above things, so this is also factored in here.
-                    double afterSleepTime = SourceTime;
-                    SleptTime = afterSleepTime - CurrentTime;
-                    accumulatedSleepError += timeToSleepFloored - (afterSleepTime - CurrentTime);
-                    CurrentTime = afterSleepTime;
-                }
-                else
-                {
-                    // We use the negative spareTime to compensate for framerate jitter slightly.
-                    double spareTime = ElapsedFrameTime - targetMilliseconds;
-                    SleptTime = 0;
-                    accumulatedSleepError = -spareTime;
-                }
-            }
-
-            // Call the scheduler to give lower-priority background processes a chance to do stuff.
-            if (shouldYield)
-                Thread.Sleep(0);
+            // Never allow the sleep error to become too negative and induce too many catch-up frames
+            accumulatedSleepError = Math.Max(-1000 / 30.0, accumulatedSleepError);
         }
 
-        public override void ProcessFrame()
+        private double sleepAndUpdateCurrent(int milliseconds)
         {
-            base.ProcessFrame();
-            throttle();
+            double before = CurrentTime;
+
+            Thread.Sleep(milliseconds);
+
+            return (CurrentTime = SourceTime) - before;
         }
     }
 }

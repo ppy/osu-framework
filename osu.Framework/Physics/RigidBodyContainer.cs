@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using System;
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Physics
 {
@@ -97,10 +98,8 @@ namespace osu.Framework.Physics
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
-            return (
-                (mat.M11 * mat.M11 + mat.M12 * mat.M12) * size.X * size.X +
-                (mat.M21 * mat.M21 + mat.M22 * mat.M22) * size.Y * size.Y
-            ) * Mass / 12;
+            return ((mat.M11 * mat.M11 + mat.M12 * mat.M12) * size.X * size.X +
+                    (mat.M21 * mat.M21 + mat.M22 * mat.M22) * size.Y * size.Y) * Mass / 12;
         }
 
         /// <summary>
@@ -129,6 +128,7 @@ namespace osu.Framework.Physics
                 float usableLength = Math.Max(length - 2 * cornerRadius, 0);
 
                 Vector2 normal = (b - a).PerpendicularRight.Normalized();
+
                 for (int j = 0; j < amount_side_steps; ++j)
                 {
                     Vertices.Add(a + dir * (cornerRadius + j * usableLength / (amount_side_steps - 1)));
@@ -137,10 +137,12 @@ namespace osu.Framework.Physics
             }
 
             const int amount_corner_steps = 10;
+
             if (cornerRadius > 0)
             {
                 // Rounded corners
-                Vector2[] offsets = {
+                Vector2[] offsets =
+                {
                     new Vector2(cornerRadius, cornerRadius),
                     new Vector2(-cornerRadius, cornerRadius),
                     new Vector2(-cornerRadius, -cornerRadius),
@@ -151,13 +153,13 @@ namespace osu.Framework.Physics
                 {
                     Vector2 a = corners[i];
 
-                    float startTheta = (i - 1) * (float)Math.PI / 2;
+                    float startTheta = (i - 1) * MathF.PI / 2;
 
                     for (int j = 0; j < amount_corner_steps; ++j)
                     {
-                        float theta = startTheta + j * (float)Math.PI / (2 * (amount_corner_steps - 1));
+                        float theta = startTheta + j * MathF.PI / (2 * (amount_corner_steps - 1));
 
-                        Vector2 normal = new Vector2((float)Math.Sin(theta), (float)Math.Cos(theta));
+                        Vector2 normal = new Vector2(MathF.Sin(theta), MathF.Cos(theta));
                         Vertices.Add(a + offsets[i] + normal * cornerRadius);
                         Normals.Add(normal);
                     }
@@ -208,6 +210,7 @@ namespace osu.Framework.Physics
                 return false;
 
             bool didCollide = false;
+
             for (int i = 0; i < Vertices.Count; ++i)
             {
                 if (other.BodyContains(Vector2Extensions.Transform(Vertices[i], SimulationToScreenSpace)))
@@ -253,7 +256,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
-            RotationRadians = MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
+            RotationRadians = MathUtils.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
             UpdateVertices();
@@ -266,7 +269,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
-            Rotation = MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
+            Rotation = MathUtils.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 
         /// <summary>

@@ -1,12 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Logging;
-using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.IO
 {
@@ -27,11 +27,20 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
-            Logger.NewEntry += logTest;
-            Logger.Error(new TestException(), "message");
-            Logger.NewEntry -= logTest;
+            using (var storage = new TemporaryNativeStorage(nameof(TestExceptionLogging)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
 
-            Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
+                Logger.NewEntry += logTest;
+                Logger.Error(new TestException(), "message");
+                Logger.NewEntry -= logTest;
+
+                Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
+
+                Logger.Enabled = false;
+                Logger.Flush();
+            }
         }
 
         [Test]
@@ -52,7 +61,7 @@ namespace osu.Framework.Tests.IO
 
             try
             {
-                using (var host = new HeadlessGameHost())
+                using (var host = new TestRunHeadlessGameHost())
                 {
                     var game = new TestGame();
                     game.Schedule(() => throw new TestException());
@@ -87,7 +96,7 @@ namespace osu.Framework.Tests.IO
         /// <param name="fireCount">How many exceptions to fire.</param>
         private void runWithIgnoreCount(int ignoreCount, int fireCount)
         {
-            using (var host = new HeadlessGameHost())
+            using (var host = new TestRunHeadlessGameHost())
             {
                 host.ExceptionThrown += ex => ignoreCount-- > 0;
 
@@ -106,7 +115,7 @@ namespace osu.Framework.Tests.IO
         {
             Assert.Throws<TestException>(() =>
             {
-                using (var host = new HeadlessGameHost())
+                using (var host = new TestRunHeadlessGameHost())
                     host.Run(new CrashTestGame());
             });
         }
@@ -117,6 +126,32 @@ namespace osu.Framework.Tests.IO
             {
                 base.Update();
                 throw new TestException();
+            }
+        }
+
+        [Test]
+        public void TestGameUnobservedExceptionDoesntCrashGame()
+        {
+            using (var host = new TestRunHeadlessGameHost())
+            {
+                TaskCrashTestGame game = new TaskCrashTestGame();
+                host.Run(game);
+            }
+        }
+
+        private class TaskCrashTestGame : Game
+        {
+            private int frameCount;
+
+            protected override void Update()
+            {
+                base.Update();
+
+                Task.Run(() => throw new TestException());
+
+                // only start counting frames once the task has completed, to allow some time for the unobserved exception to be handled.
+                if (frameCount++ > 10)
+                    Exit();
             }
         }
 
@@ -136,7 +171,7 @@ namespace osu.Framework.Tests.IO
 
             Logger.NewEntry += logTest;
 
-            using (new HeadlessGameHost())
+            using (new BackgroundGameHeadlessGameHost())
             {
                 // see https://tpodolak.com/blog/2015/08/10/tpl-exception-handling-and-unobservedtaskexception-issue/
                 // needs to be in a separate method so the Task gets GC'd.
@@ -178,6 +213,7 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
+            Logger.Enabled = true;
             Logger.NewEntry += logTest;
             Logger.Error(new TestExceptionWithInnerException(), "message", recursive: true);
             Logger.NewEntry -= logTest;

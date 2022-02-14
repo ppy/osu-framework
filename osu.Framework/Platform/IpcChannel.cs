@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Threading.Tasks;
@@ -9,7 +9,7 @@ namespace osu.Framework.Platform
     public class IpcChannel<T> : IDisposable
     {
         private readonly IIpcHost host;
-        public event Action<T> MessageReceived;
+        public event Func<T, IpcMessage> MessageReceived;
 
         public IpcChannel(IIpcHost host)
         {
@@ -23,11 +23,12 @@ namespace osu.Framework.Platform
             Value = message,
         });
 
-        private void handleMessage(IpcMessage message)
+        private IpcMessage handleMessage(IpcMessage message)
         {
             if (message.Type != typeof(T).AssemblyQualifiedName)
-                return;
-            MessageReceived?.Invoke((T)message.Value);
+                return null;
+
+            return MessageReceived?.Invoke((T)message.Value);
         }
 
         public void Dispose()

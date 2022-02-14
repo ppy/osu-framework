@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 
@@ -21,15 +23,31 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public class QuadVertexBuffer<T> : VertexBuffer<T>
         where T : struct, IEquatable<T>, IVertex
     {
-        public QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
-            : base(amountQuads * 4, usage)
+        private readonly int amountIndices;
+
+        private const int indices_per_quad = TextureGLSingle.VERTICES_PER_QUAD + 2;
+
+        /// <summary>
+        /// The maximum number of quads supported by this buffer.
+        /// </summary>
+        public const int MAX_QUADS = ushort.MaxValue / indices_per_quad;
+
+        internal QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
+            : base(amountQuads * TextureGLSingle.VERTICES_PER_QUAD, usage)
         {
-            int amountIndices = amountQuads * 6;
+            amountIndices = amountQuads * indices_per_quad;
+            Debug.Assert(amountIndices <= ushort.MaxValue);
+        }
+
+        protected override void Initialise()
+        {
+            base.Initialise();
+
             if (amountIndices > QuadIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountIndices];
 
-                for (ushort i = 0, j = 0; j < amountIndices; i += 4, j += 6)
+                for (ushort i = 0, j = 0; j < amountIndices; i += TextureGLSingle.VERTICES_PER_QUAD, j += indices_per_quad)
                 {
                     indices[j] = i;
                     indices[j + 1] = (ushort)(i + 1);

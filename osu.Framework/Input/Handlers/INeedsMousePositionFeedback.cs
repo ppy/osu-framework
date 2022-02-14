@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 
@@ -14,6 +14,7 @@ namespace osu.Framework.Input.Handlers
         /// Receives the final mouse position from an <see cref="InputManager"/>.
         /// </summary>
         /// <param name="position">The final mouse position.</param>
-        void FeedbackMousePositionChange(Vector2 position);
+        /// <param name="isSelfFeedback">Whether the feedback was triggered from this handler.</param>
+        void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback);
     }
 }
