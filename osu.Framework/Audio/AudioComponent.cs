@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
@@ -80,7 +81,7 @@ namespace osu.Framework.Audio
             while (!IsDisposed && PendingActions.TryDequeue(out Task task))
             {
                 task.RunSynchronously();
-                task.Wait();
+                task.WaitSafely();
             }
 
             if (!IsDisposed)
