@@ -146,15 +146,9 @@ namespace osu.Framework.Extensions
         /// <returns>The full byte content.</returns>
         public static async Task<byte[]> ReadAllRemainingBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
-            byte[] buffer = new byte[buffer_size];
-
             using (var ms = new MemoryStream())
             {
-                int read;
-
-                while ((read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
-                    await ms.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
-
+                await stream.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
                 return ms.ToArray();
             }
         }
