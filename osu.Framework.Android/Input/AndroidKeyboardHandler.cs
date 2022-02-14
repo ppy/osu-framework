@@ -81,10 +81,10 @@ namespace osu.Framework.Android.Input
                 return Key.A + code - first_letter_key;
 
             // function keys
-            const int first_funtion_key = (int)Keycode.F1;
+            const int first_function_key = (int)Keycode.F1;
             const int last_function_key = (int)Keycode.F12;
-            if (code >= first_funtion_key && code <= last_function_key)
-                return Key.F1 + code - first_funtion_key;
+            if (code >= first_function_key && code <= last_function_key)
+                return Key.F1 + code - first_function_key;
 
             // keypad keys
             const int first_keypad_key = (int)Keycode.Numpad0;
