@@ -11,16 +11,12 @@ namespace osu.Framework.Android.Input
     public class AndroidTextInput : TextInputSource
     {
         private readonly AndroidGameView view;
-        private readonly AndroidGameActivity activity;
         private readonly InputMethodManager inputMethodManager;
 
         public AndroidTextInput(AndroidGameView view)
         {
             this.view = view;
-            activity = (AndroidGameActivity)view.Context;
-
-            if (view.Context != null)
-                inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
+            inputMethodManager = view.Activity.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
         private void commitText(string text)
@@ -39,7 +35,7 @@ namespace osu.Framework.Android.Input
             view.KeyDown += keyDown;
             view.CommitText += commitText;
 
-            activity.RunOnUiThread(() =>
+            view.Activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
                 inputMethodManager?.ShowSoftInput(view, 0);
@@ -48,7 +44,7 @@ namespace osu.Framework.Android.Input
 
         protected override void EnsureTextInputActivated(bool allowIme)
         {
-            activity.RunOnUiThread(() =>
+            view.Activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
                 inputMethodManager?.ShowSoftInput(view, 0);
@@ -60,7 +56,7 @@ namespace osu.Framework.Android.Input
             view.KeyDown -= keyDown;
             view.CommitText -= commitText;
 
-            activity.RunOnUiThread(() =>
+            view.Activity.RunOnUiThread(() =>
             {
                 inputMethodManager?.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
                 view.ClearFocus();
