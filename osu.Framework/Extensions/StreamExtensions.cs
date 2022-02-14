@@ -21,6 +21,7 @@ namespace osu.Framework.Extensions
         /// </remarks>
         /// <param name="stream">The stream to read.</param>
         /// <returns>The full byte content.</returns>
+        /// <exception cref="ArgumentException">The <paramref name="stream"/> provided must allow seeking.</exception>
         public static byte[] ReadAllBytesToArray(this Stream stream)
         {
             if (!stream.CanSeek)
@@ -40,6 +41,7 @@ namespace osu.Framework.Extensions
         /// <param name="stream">The stream to read.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The full byte content.</returns>
+        /// <exception cref="ArgumentException">The <paramref name="stream"/> provided must allow seeking.</exception>
         public static Task<byte[]> ReadAllBytesToArrayAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
             if (!stream.CanSeek)
@@ -56,6 +58,7 @@ namespace osu.Framework.Extensions
         /// <param name="stream">The stream to read.</param>
         /// <param name="length">The length to read.</param>
         /// <returns>The full byte content.</returns>
+        /// <exception cref="EndOfStreamException">The <paramref name="length"/> specified exceeded the available data in the stream.</exception>
         public static byte[] ReadBytesToArray(this Stream stream, int length)
         {
             byte[] buffer = new byte[buffer_size];
@@ -91,6 +94,7 @@ namespace osu.Framework.Extensions
         /// <param name="length">The length to read.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The full byte content.</returns>
+        /// <exception cref="EndOfStreamException">The <paramref name="length"/> specified exceeded the available data in the stream.</exception>
         public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken = default)
         {
             byte[] buffer = new byte[buffer_size];
