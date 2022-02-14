@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -42,37 +43,15 @@ namespace osu.Framework.IO.Stores
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-            {
-                if (input == null)
-                    return null;
-
-                byte[] buffer = new byte[input.Length];
-                int readBytes = input.Read(buffer, 0, buffer.Length);
-
-                if (readBytes < input.Length)
-                    throw new EndOfStreamException();
-
-                return buffer;
-            }
+                return input?.ReadAllBytesToArray();
         }
 
-        public virtual async Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
+        public virtual Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-            {
-                if (input == null)
-                    return null;
-
-                byte[] buffer = new byte[input.Length];
-                int readBytes = await input.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
-
-                if (readBytes < input.Length)
-                    throw new EndOfStreamException();
-
-                return buffer;
-            }
+                return input?.ReadAllBytesToArrayAsync(cancellationToken);
         }
 
         /// <summary>
