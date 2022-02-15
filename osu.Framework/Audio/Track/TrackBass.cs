@@ -343,10 +343,7 @@ namespace osu.Framework.Audio.Track
 
         private void initializeSyncs()
         {
-            Debug.Assert(stopCallback == null
-                         && stopSync == null
-                         && endCallback == null
-                         && endSync == null);
+            Debug.Assert(stopCallback == null && stopSync == null && endCallback == null && endSync == null);
 
             stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
             endCallback = new SyncCallback((a, b, c, d) =>
@@ -373,21 +370,25 @@ namespace osu.Framework.Audio.Track
 
         private void cleanUpSyncs()
         {
-            Debug.Assert(stopCallback != null
-                         && stopSync != null
-                         && endCallback != null
-                         && endSync != null);
+            if (stopSync != null)
+            {
+                Debug.Assert(stopCallback != null);
 
-            bassMixer.ChannelRemoveSync(this, stopSync.Value);
-            bassMixer.ChannelRemoveSync(this, endSync.Value);
+                bassMixer.ChannelRemoveSync(this, stopSync.Value);
+                stopCallback.Dispose();
+            }
+
+            if (endSync != null)
+            {
+                Debug.Assert(endCallback != null);
+
+                bassMixer.ChannelRemoveSync(this, endSync.Value);
+                endCallback.Dispose();
+            }
 
             stopSync = null;
             endSync = null;
-
-            stopCallback.Dispose();
             stopCallback = null;
-
-            endCallback.Dispose();
             endCallback = null;
         }
 
