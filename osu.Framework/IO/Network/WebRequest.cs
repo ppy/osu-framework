@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET5_0
+#if NET6_0
 using System.Net.Sockets;
 #endif
 using System;
@@ -149,7 +149,7 @@ namespace osu.Framework.IO.Network
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         private static readonly HttpClient client = new HttpClient(
-#if NET5_0
+#if NET6_0
             new SocketsHttpHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
@@ -213,10 +213,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                byte[] data = new byte[ResponseStream.Length];
                 ResponseStream.Seek(0, SeekOrigin.Begin);
-                ResponseStream.Read(data, 0, data.Length);
-                return data;
+
+                return ResponseStream.ReadAllBytesToArray();
             }
             catch
             {
@@ -321,7 +320,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET5_0
+#if NET6_0
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
                             postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
@@ -429,7 +428,7 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET5_0
+#if NET6_0
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
@@ -765,7 +764,7 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET5_0
+#if NET6_0
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>

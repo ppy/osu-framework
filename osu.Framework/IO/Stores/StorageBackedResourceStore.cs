@@ -1,12 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.IO.Stores
@@ -28,27 +28,15 @@ namespace osu.Framework.IO.Stores
             this.LogIfNonBackgroundThread(name);
 
             using (Stream stream = storage.GetStream(name))
-            {
-                if (stream == null) return null;
-
-                byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
-                return buffer;
-            }
+                return stream?.ReadAllBytesToArray();
         }
 
-        public virtual async Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
+        public virtual Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(name);
 
             using (Stream stream = storage.GetStream(name))
-            {
-                if (stream == null) return null;
-
-                byte[] buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
-                return buffer;
-            }
+                return stream?.ReadAllBytesToArrayAsync(cancellationToken);
         }
 
         public Stream GetStream(string name)

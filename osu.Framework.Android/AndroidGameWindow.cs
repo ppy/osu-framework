@@ -24,6 +24,19 @@ namespace osu.Framework.Android
             set { }
         }
 
+        public event Action CursorStateChanged;
+
+        public override CursorState CursorState
+        {
+            get => base.CursorState;
+            set
+            {
+                // cursor should always be confined on mobile platforms, to have UserInputManager confine the cursor to window bounds
+                base.CursorState = value | CursorState.Confined;
+                CursorStateChanged?.Invoke();
+            }
+        }
+
         public AndroidGameWindow(AndroidGameView view)
             : base(view)
         {
@@ -32,6 +45,8 @@ namespace osu.Framework.Android
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
+            CursorState |= CursorState.Confined;
+            SafeAreaPadding.BindTo(view.SafeAreaPadding);
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]

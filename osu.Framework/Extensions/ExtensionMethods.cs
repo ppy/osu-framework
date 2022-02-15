@@ -156,7 +156,7 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                // the following warning disables are caused by netstandard2.1 and net5.0 differences
+                // the following warning disables are caused by netstandard2.1 and net6.0 differences
                 // the former declares Types as Type[], while the latter declares as Type?[]:
                 // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
                 // which trips some inspectcode errors which are only "valid" for the first of the two.
