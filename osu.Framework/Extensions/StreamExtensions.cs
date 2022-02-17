@@ -67,10 +67,12 @@ namespace osu.Framework.Extensions
 
             using (var ms = new MemoryStream(length))
             {
-                int read;
-
-                while ((read = stream.Read(buffer, 0, Math.Min(remainingRead, buffer.Length))) > 0)
+                while (remainingRead > 0)
                 {
+                    int read = stream.Read(buffer, 0, Math.Min(remainingRead, buffer.Length));
+                    if (read == 0)
+                        break;
+
                     ms.Write(buffer, 0, read);
                     remainingRead -= read;
                 }
@@ -103,10 +105,12 @@ namespace osu.Framework.Extensions
 
             using (var ms = new MemoryStream(length))
             {
-                int read;
-
-                while ((read = await stream.ReadAsync(buffer, 0, Math.Min(buffer.Length, remainingRead), cancellationToken).ConfigureAwait(false)) > 0)
+                while (remainingRead > 0)
                 {
+                    int read = await stream.ReadAsync(buffer, 0, Math.Min(buffer.Length, remainingRead), cancellationToken).ConfigureAwait(false);
+                    if (read == 0)
+                        break;
+
                     await ms.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
                     remainingRead -= read;
                 }
