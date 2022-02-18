@@ -20,5 +20,5 @@ using osu.Framework.Testing;
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Android")]
 
 #if NET6_0
-[assembly: MetadataUpdateHandler(typeof(DynamicClassCompilerStatics))]
+[assembly: MetadataUpdateHandler(typeof(HotReloadCallbackReceiver))]
 #endif

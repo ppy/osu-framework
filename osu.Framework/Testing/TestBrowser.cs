@@ -51,8 +51,6 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestScene> backgroundCompiler;
-
         private bool interactive;
 
         private readonly List<Assembly> assemblies;
@@ -247,19 +245,7 @@ namespace osu.Framework.Testing
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
             if (RuntimeInfo.IsDesktop)
-            {
-                backgroundCompiler = new DynamicClassCompiler<TestScene>();
-                backgroundCompiler.CompilationFinished += compileFinished;
-
-                try
-                {
-                    backgroundCompiler.Start();
-                }
-                catch
-                {
-                    //it's okay for this to fail for now.
-                }
-            }
+                HotReloadCallbackReceiver.CompilationFinished += compileFinished;
 
             foreach (Assembly asm in assemblies)
                 toolbar.AddAssembly(asm.GetName().Name, asm);
@@ -273,37 +259,30 @@ namespace osu.Framework.Testing
             }, true);
         }
 
+        private void compileFinished(Type[] updatedTypes) => Schedule(() =>
+        {
+            compilingNotice.FadeOut(800, Easing.InQuint);
+            compilingNotice.FadeColour(Color4.YellowGreen, 100);
+
+            if (CurrentTest == null)
+                return;
+
+            try
+            {
+                LoadTest(CurrentTest.GetType(), isDynamicLoad: true);
+            }
+            catch (Exception e)
+            {
+                compileFailed(e);
+            }
+        });
+
         private void compileFailed(Exception ex) => Schedule(() =>
         {
             Logger.Error(ex, "Error with dynamic compilation!");
 
             compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
             compilingNotice.FadeColour(Color4.Red, 100);
-        });
-
-        private void compileFinished(Type newType) => Schedule(() =>
-        {
-            compilingNotice.FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(Color4.YellowGreen, 100);
-
-            if (newType == null)
-                return;
-
-            int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
-
-            if (i < 0)
-                TestTypes.Add(newType);
-            else
-                TestTypes[i] = newType;
-
-            try
-            {
-                LoadTest(newType, isDynamicLoad: true);
-            }
-            catch (Exception e)
-            {
-                compileFailed(e);
-            }
         });
 
         protected override void LoadComplete()
@@ -550,7 +529,6 @@ namespace osu.Framework.Testing
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
-            backgroundCompiler?.SetRecompilationTarget(CurrentTest);
             runTests(onCompletion);
             updateButtons();
 
