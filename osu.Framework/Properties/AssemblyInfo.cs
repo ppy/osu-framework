@@ -3,6 +3,11 @@
 
 using System.Runtime.CompilerServices;
 
+#if NET6_0_OR_GREATER
+using System.Reflection.Metadata;
+using osu.Framework.Testing;
+#endif
+
 // We publish our internal attributes to other sub-projects of the framework.
 // Note, that we omit visual tests as they are meant to test the framework
 // behavior "in the wild".
@@ -13,3 +18,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.iOS")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Android")]
+
+#if NET6_0
+[assembly: MetadataUpdateHandler(typeof(DynamicClassCompilerStatics))]
+#endif

@@ -249,9 +249,7 @@ namespace osu.Framework.Testing
             if (RuntimeInfo.IsDesktop)
             {
                 backgroundCompiler = new DynamicClassCompiler<TestScene>();
-                backgroundCompiler.CompilationStarted += compileStarted;
                 backgroundCompiler.CompilationFinished += compileFinished;
-                backgroundCompiler.CompilationFailed += compileFailed;
 
                 try
                 {
@@ -274,18 +272,6 @@ namespace osu.Framework.Testing
                 audioRateAdjust.Value = e.NewValue;
             }, true);
         }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            backgroundCompiler?.Dispose();
-        }
-
-        private void compileStarted() => Schedule(() =>
-        {
-            compilingNotice.Show();
-            compilingNotice.FadeColour(Color4.White);
-        });
 
         private void compileFailed(Exception ex) => Schedule(() =>
         {
@@ -410,8 +396,6 @@ namespace osu.Framework.Testing
                 CurrentTest.Dispose();
             }
 
-            var lastTest = CurrentTest;
-
             CurrentTest = null;
 
             if (testType == null && TestTypes.Count > 0)
@@ -425,25 +409,6 @@ namespace osu.Framework.Testing
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
             Debug.Assert(newTest != null);
-
-            const string dynamic_prefix = "dynamic";
-
-            // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-            if (isDynamicLoad)
-            {
-                newTest.DynamicCompilationOriginal = lastTest?.DynamicCompilationOriginal ?? lastTest ?? newTest;
-                toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
-            }
-            else
-            {
-                TestTypes.RemoveAll(t =>
-                {
-                    Debug.Assert(t.Assembly.FullName != null);
-                    return t.Assembly.FullName.Contains(dynamic_prefix);
-                });
-
-                newTest.DynamicCompilationOriginal = newTest;
-            }
 
             Assembly.Value = testType.Assembly;
 
