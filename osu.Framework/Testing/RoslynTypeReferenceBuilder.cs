@@ -25,7 +25,18 @@ namespace osu.Framework.Testing
     {
         // The "Attribute" suffix disappears when used via a nuget package, so it is trimmed here.
         private static readonly string exclude_attribute_name = nameof(ExcludeFromDynamicCompileAttribute).Replace(nameof(Attribute), string.Empty);
-        private const string jetbrains_annotations_namespace = "JetBrains.Annotations";
+
+        private static readonly string[] banned_assemblies =
+        {
+            "Microsoft.NET.Build.Tasks"
+        };
+
+        // Some types are special reflection-only markers which are defined across multiple libraries to take advantage of tooling.
+        // Including assemblies containing these types would cause type conflicts since we're exposing all internal types to the dynamic class.
+        private static readonly string[] banned_types =
+        {
+            "JetBrains.Annotations"
+        };
 
         private readonly Logger logger;
 
@@ -83,11 +94,12 @@ namespace osu.Framework.Testing
                 if (string.IsNullOrEmpty(assembly.Location))
                     return;
 
+                if (!force && banned_assemblies.Any(banned => assembly.FullName?.Contains(banned) == true))
+                    return;
+
                 Type[] loadedTypes = assembly.GetLoadableTypes();
 
-                // JetBrains.Annotations is a special namespace that some libraries define to take advantage of R# annotations.
-                // Since internals are exposed to the compiler, these libraries would cause type conflicts and are thus excluded.
-                if (!force && loadedTypes.Any(t => t.Namespace == jetbrains_annotations_namespace))
+                if (!force && banned_types.Any(banned => loadedTypes.Any(t => t.FullName?.Contains(banned) == true)))
                     return;
 
                 bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i.Key) == true);
