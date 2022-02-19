@@ -118,10 +118,14 @@ namespace osu.Framework.Android
             Bass.Start();
         }
 
+        private bool allowExiting => gameView.Host?.AllowExitingAndroid.Result.Value ?? true;
+
         public override void OnBackPressed()
         {
-            // Avoid the default implementation that does close the app.
-            // This only happens when the back button could not be captured from OnKeyDown.
+            // This method is called only when the back button was not handled by OnKeyDown and OnKeyUp.
+            // Avoid the default implementation that closes the app. Return to the home screen instead.
+            if (allowExiting)
+                MoveTaskToBack(true);
         }
 
         // On some devices and keyboard combinations the OnKeyDown event does not propagate the key event to the view.
@@ -129,11 +133,19 @@ namespace osu.Framework.Android
 
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
+            if (keyCode == Keycode.Back && allowExiting)
+                // let the base handle it so we get the `OnBackPressed()` event.
+                return base.OnKeyDown(keyCode, e);
+
             return gameView.OnKeyDown(keyCode, e);
         }
 
         public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
+            if (keyCode == Keycode.Back && allowExiting)
+                // let the base handle it so we get the `OnBackPressed()` event.
+                return base.OnKeyUp(keyCode, e);
+
             return gameView.OnKeyUp(keyCode, e);
         }
 
