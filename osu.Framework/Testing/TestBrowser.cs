@@ -51,8 +51,6 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestScene> backgroundCompiler;
-
         private bool interactive;
 
         private readonly List<Assembly> assemblies;
@@ -250,21 +248,7 @@ namespace osu.Framework.Testing
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
             if (RuntimeInfo.IsDesktop)
-            {
-                backgroundCompiler = new DynamicClassCompiler<TestScene>();
-                backgroundCompiler.CompilationStarted += compileStarted;
-                backgroundCompiler.CompilationFinished += compileFinished;
-                backgroundCompiler.CompilationFailed += compileFailed;
-
-                try
-                {
-                    backgroundCompiler.Start();
-                }
-                catch
-                {
-                    //it's okay for this to fail for now.
-                }
-            }
+                HotReloadCallbackReceiver.CompilationFinished += compileFinished;
 
             foreach (Assembly asm in assemblies)
                 toolbar.AddAssembly(asm.GetName().Name, asm);
@@ -278,16 +262,22 @@ namespace osu.Framework.Testing
             }, true);
         }
 
-        protected override void Dispose(bool isDisposing)
+        private void compileFinished(Type[] updatedTypes) => Schedule(() =>
         {
-            base.Dispose(isDisposing);
-            backgroundCompiler?.Dispose();
-        }
+            compilingNotice.FadeOut(800, Easing.InQuint);
+            compilingNotice.FadeColour(Color4.YellowGreen, 100);
 
-        private void compileStarted() => Schedule(() =>
-        {
-            compilingNotice.Show();
-            compilingNotice.FadeColour(Color4.White);
+            if (CurrentTest == null)
+                return;
+
+            try
+            {
+                LoadTest(CurrentTest.GetType(), isDynamicLoad: true);
+            }
+            catch (Exception e)
+            {
+                compileFailed(e);
+            }
         });
 
         private void compileFailed(Exception ex) => Schedule(() =>
@@ -296,31 +286,6 @@ namespace osu.Framework.Testing
 
             compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
             compilingNotice.FadeColour(Color4.Red, 100);
-        });
-
-        private void compileFinished(Type newType) => Schedule(() =>
-        {
-            compilingNotice.FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(Color4.YellowGreen, 100);
-
-            if (newType == null)
-                return;
-
-            int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
-
-            if (i < 0)
-                TestTypes.Add(newType);
-            else
-                TestTypes[i] = newType;
-
-            try
-            {
-                LoadTest(newType, isDynamicLoad: true);
-            }
-            catch (Exception e)
-            {
-                compileFailed(e);
-            }
         });
 
         protected override void LoadComplete()
@@ -413,8 +378,6 @@ namespace osu.Framework.Testing
                 CurrentTest.Dispose();
             }
 
-            var lastTest = CurrentTest;
-
             CurrentTest = null;
 
             if (testType == null && TestTypes.Count > 0)
@@ -428,25 +391,6 @@ namespace osu.Framework.Testing
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
             Debug.Assert(newTest != null);
-
-            const string dynamic_prefix = "dynamic";
-
-            // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-            if (isDynamicLoad)
-            {
-                newTest.DynamicCompilationOriginal = lastTest?.DynamicCompilationOriginal ?? lastTest ?? newTest;
-                toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
-            }
-            else
-            {
-                TestTypes.RemoveAll(t =>
-                {
-                    Debug.Assert(t.Assembly.FullName != null);
-                    return t.Assembly.FullName.Contains(dynamic_prefix);
-                });
-
-                newTest.DynamicCompilationOriginal = newTest;
-            }
 
             Assembly.Value = testType.Assembly;
 
@@ -588,7 +532,6 @@ namespace osu.Framework.Testing
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
-            backgroundCompiler?.SetRecompilationTarget(CurrentTest);
             runTests(onCompletion);
             updateButtons();
 
