@@ -22,6 +22,18 @@ namespace osu.Framework.Tests.Visual.Sprites
             set
             {
                 useRoundedShader = value;
+
+                if (value == true)
+                {
+                    Masking = true;
+                    CornerRadius = 10f;
+                }
+                else
+                {
+                    Masking = false;
+                    CornerRadius = 0f;
+                }
+
                 Invalidate(Invalidation.DrawNode);
             }
         }
