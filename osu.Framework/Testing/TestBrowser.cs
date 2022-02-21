@@ -131,7 +131,10 @@ namespace osu.Framework.Testing
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
-            exit = host.Exit;
+            if (host.CanExit)
+                exit = host.Exit;
+            else if (host.CanSuspendToBackground)
+                exit = host.SuspendToBackground;
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 
@@ -355,7 +358,7 @@ namespace osu.Framework.Testing
                 switch (e.Key)
                 {
                     case Key.Escape:
-                        exit();
+                        exit?.Invoke();
                         return true;
                 }
             }
