@@ -71,15 +71,6 @@ namespace osu.Framework.Platform
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
         /// <summary>
-        /// Allow exiting the app on Android when the back button is pressed.
-        /// </summary>
-        /// <remarks>
-        /// If <c>true</c>, pressing back will return to the home screen (putting the app in background and suspending it).
-        /// If <c>false</c>, the back button will be treated as <see cref="InputKey.Escape"/>.
-        /// </remarks>
-        public readonly AggregateBindable<bool> AllowExitingAndroid = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
-
-        /// <summary>
         /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
         /// </summary>
         public virtual bool IsPrimaryInstance { get; protected set; } = true;
