@@ -132,7 +132,7 @@ namespace osu.Framework.Testing
             if (host.CanExit)
                 exit = host.Exit;
             else if (host.CanSuspendToBackground)
-                exit = host.SuspendToBackground;
+                exit = () => host.SuspendToBackground();
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 

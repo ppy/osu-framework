@@ -606,10 +606,10 @@ namespace osu.Framework.Platform
         /// This is provided as an alternative to <see cref="Exit"/> on hosts that can't exit (see <see cref="CanExit"/>).
         /// Should only be called if <see cref="CanSuspendToBackground"/> is <c>true</c>.
         /// </remarks>
-        public virtual void SuspendToBackground()
+        /// <returns><c>true</c> if the game was successfully suspended and minimized.</returns>
+        public virtual bool SuspendToBackground()
         {
-            if (!CanSuspendToBackground)
-                throw new InvalidOperationException($"Tried to call {nameof(SuspendToBackground)}() on a host that doesn't support it (see {nameof(CanSuspendToBackground)}).");
+            return false;
         }
 
         /// <summary>

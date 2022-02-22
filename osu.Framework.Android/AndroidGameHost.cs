@@ -92,10 +92,9 @@ namespace osu.Framework.Android
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new AndroidVideoDecoder(stream);
 
-        public override void SuspendToBackground()
+        public override bool SuspendToBackground()
         {
-            base.SuspendToBackground();
-            gameView.Activity.MoveTaskToBack(true);
+            return gameView.Activity.MoveTaskToBack(true);
         }
     }
 }
