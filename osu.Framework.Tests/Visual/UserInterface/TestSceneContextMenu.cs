@@ -39,12 +39,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestNestedMenuTransferredWithFadeOut()
         {
+            TestContextMenuContainerWithFade fadingMenuContainer = null;
             BoxWithNestedContextMenuItems box1 = null;
             BoxWithNestedContextMenuItems box2 = null;
 
             AddStep("setup", () =>
             {
-                Child = new TestContextMenuContainerWithFade
+                Child = fadingMenuContainer = new TestContextMenuContainerWithFade
                 {
                     RelativeSizeAxes = Axes.Both,
                     Child = new FillFlowContainer
@@ -62,14 +63,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             clickBoxStep(() => box1);
-            AddStep("hover over menu item", () => InputManager.MoveMouseTo(this.ChildrenOfType<Menu.DrawableMenuItem>().First()));
+            AddStep("hover over menu item", () => InputManager.MoveMouseTo(fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First()));
 
             clickBoxStep(() => box2);
-            AddStep("hover over menu item", () => InputManager.MoveMouseTo(this.ChildrenOfType<Menu.DrawableMenuItem>().First()));
+            AddStep("hover over menu item", () => InputManager.MoveMouseTo(fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First()));
 
             AddAssert("submenu opened and visible", () =>
             {
-                var subMenu = this.ChildrenOfType<Menu>().Last();
+                var subMenu = fadingMenuContainer.ChildrenOfType<Menu>().Last();
                 return subMenu.State == MenuState.Open && subMenu.IsPresent && !subMenu.IsMaskedAway;
             });
         }
