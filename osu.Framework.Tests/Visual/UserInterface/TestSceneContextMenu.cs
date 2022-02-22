@@ -70,8 +70,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("submenu opened and visible", () =>
             {
+                var targetItem = fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First();
                 var subMenu = fadingMenuContainer.ChildrenOfType<Menu>().Last();
-                return subMenu.State == MenuState.Open && subMenu.IsPresent && !subMenu.IsMaskedAway;
+
+                return subMenu.State == MenuState.Open && subMenu.IsPresent && !subMenu.IsMaskedAway && subMenu.ScreenSpaceDrawQuad.TopLeft.X > targetItem.ScreenSpaceDrawQuad.TopLeft.X;
             });
         }
 
