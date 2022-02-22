@@ -1002,7 +1002,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case Key.KeypadEnter:
                 case Key.Enter:
-                    // same rationale as comment above.
+                    // alt-enter is commonly used to toggle fullscreen.
+                    if (e.AltPressed)
+                        return false;
+
+                    // same rationale as comment in case statement comment above.
                     if (!e.Repeat)
                         Commit();
                     return true;
