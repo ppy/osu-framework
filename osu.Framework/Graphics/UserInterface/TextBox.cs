@@ -1006,7 +1006,7 @@ namespace osu.Framework.Graphics.UserInterface
                     if (e.AltPressed)
                         return false;
 
-                    // same rationale as comment in case statement comment above.
+                    // same rationale as comment in case statement above.
                     if (!e.Repeat)
                         Commit();
                     return true;
