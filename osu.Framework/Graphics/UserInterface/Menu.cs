@@ -348,7 +348,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Update();
 
-            if (!positionLayout.IsValid && parentMenu != null)
+            if (!positionLayout.IsValid && State == MenuState.Open && parentMenu != null)
             {
                 var inputManager = GetContainingInputManager();
 
