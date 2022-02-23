@@ -23,7 +23,7 @@ cd ffmpeg-4.3.3
 
 echo "-> Configuring..."
 ./configure --disable-programs --disable-doc --disable-static --disable-debug --enable-shared --arch=$arch --prefix=build-$arch --libdir=build-$arch/lib
-CORES=`sysctl -n hw.ncpu`
+CORES=$(sysctl -n hw.ncpu)
 echo "-> Building using $CORES threads..."
 make -j$CORES
 make install
