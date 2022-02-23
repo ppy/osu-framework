@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using Android.App;
-using Android.OS;
-using Android.Views;
 using osu.Framework.Android;
 
 namespace osu.Framework.Tests.Android

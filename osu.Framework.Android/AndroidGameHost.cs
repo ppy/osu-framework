@@ -44,6 +44,8 @@ namespace osu.Framework.Android
 
         public override bool CanExit => false;
 
+        public override bool CanSuspendToBackground => true;
+
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
         protected override TextInputSource CreateTextInput() => new AndroidTextInput(gameView);
@@ -89,5 +91,10 @@ namespace osu.Framework.Android
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new AndroidVideoDecoder(stream);
+
+        public override bool SuspendToBackground()
+        {
+            return gameView.Activity.MoveTaskToBack(true);
+        }
     }
 }
