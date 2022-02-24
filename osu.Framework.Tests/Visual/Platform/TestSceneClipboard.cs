@@ -1,0 +1,74 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Extensions;
+using osu.Framework.Platform;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
+namespace osu.Framework.Tests.Visual.Platform
+{
+    [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
+    public class TestSceneClipboard : FrameworkTestScene
+    {
+        private GameHost host;
+
+        private Image<Rgba32> originalImage;
+        private Image<Rgba32> clipboardImage;
+
+        private Clipboard clipboard => host.GetClipboard();
+
+        [BackgroundDependencyLoader]
+        private void load(GameHost host)
+        {
+            this.host = host;
+        }
+
+        [Test]
+        public void TestImageCopy()
+        {
+            AddStep("screenshot screen", () =>
+            {
+                host.TakeScreenshotAsync().ContinueWith(t =>
+                {
+                    var image = t.GetResultSafely();
+                    originalImage = image.Clone();
+                    image.Dispose();
+                });
+            });
+
+            AddUntilStep("screenshot taken", () => originalImage != null);
+
+            AddStep("copy image to clipboard", () =>
+            {
+                clipboard.SetImage(originalImage);
+            });
+
+            AddStep("retrieve image from clipboard", () =>
+            {
+                clipboardImage = clipboard.GetImage<Rgba32>();
+            });
+
+            AddAssert("image retrieved", () => clipboardImage != null);
+
+            AddAssert("compare images", () =>
+            {
+                if (originalImage.Width != clipboardImage.Width || originalImage.Height != clipboardImage.Height)
+                    return false;
+
+                for (int x = 0; x < originalImage.Width; x++)
+                {
+                    for (int y = 0; y < originalImage.Height; y++)
+                    {
+                        if (originalImage[x, y] != clipboardImage[x, y])
+                            return false;
+                    }
+                }
+
+                return true;
+            });
+        }
+    }
+}

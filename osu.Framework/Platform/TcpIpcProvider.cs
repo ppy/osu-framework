@@ -182,21 +182,21 @@ namespace osu.Framework.Platform
 
         private async Task<IpcMessage?> receive(Stream stream, CancellationToken cancellationToken = default)
         {
-            byte[] header = new byte[sizeof(int)];
-            int readBytes = await stream.ReadAsync(header.AsMemory(), cancellationToken).ConfigureAwait(false);
+            const int header_length = sizeof(int);
 
-            if (readBytes < header.Length)
-                throw new EndOfStreamException();
+            byte[] header = new byte[header_length];
 
-            int len = BitConverter.ToInt32(header, 0);
-            if (len == 0)
+            int read = await stream.ReadAsync(header.AsMemory(), cancellationToken).ConfigureAwait(false);
+
+            if (read < header_length)
                 return null;
 
-            byte[] data = new byte[len];
-            readBytes = await stream.ReadAsync(data.AsMemory(), cancellationToken).ConfigureAwait(false);
+            int contentLength = BitConverter.ToInt32(header, 0);
 
-            if (readBytes < data.Length)
-                throw new EndOfStreamException();
+            if (contentLength == 0)
+                return null;
+
+            byte[] data = await stream.ReadBytesToArrayAsync(contentLength, cancellationToken).ConfigureAwait(false);
 
             string str = Encoding.UTF8.GetString(data);
 

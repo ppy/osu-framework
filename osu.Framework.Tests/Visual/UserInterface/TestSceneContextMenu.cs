@@ -32,6 +32,51 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [SetUp]
         public void Setup() => Schedule(Clear);
 
+        /// <summary>
+        /// Tests an edge case where the submenu is visible and continues updating for a short period of time after right clicking another item.
+        /// In such a case, the submenu should not update its position unless it's open.
+        /// </summary>
+        [Test]
+        public void TestNestedMenuTransferredWithFadeOut()
+        {
+            TestContextMenuContainerWithFade fadingMenuContainer = null;
+            BoxWithNestedContextMenuItems box1 = null;
+            BoxWithNestedContextMenuItems box2 = null;
+
+            AddStep("setup", () =>
+            {
+                Child = fadingMenuContainer = new TestContextMenuContainerWithFade
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Horizontal,
+                        Spacing = new Vector2(10),
+                        Children = new[]
+                        {
+                            box1 = new BoxWithNestedContextMenuItems { Size = new Vector2(100) },
+                            box2 = new BoxWithNestedContextMenuItems { Size = new Vector2(100) }
+                        }
+                    }
+                };
+            });
+
+            clickBoxStep(() => box1);
+            AddStep("hover over menu item", () => InputManager.MoveMouseTo(fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First()));
+
+            clickBoxStep(() => box2);
+            AddStep("hover over menu item", () => InputManager.MoveMouseTo(fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First()));
+
+            AddAssert("submenu opened and visible", () =>
+            {
+                var targetItem = fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First();
+                var subMenu = fadingMenuContainer.ChildrenOfType<Menu>().Last();
+
+                return subMenu.State == MenuState.Open && subMenu.IsPresent && !subMenu.IsMaskedAway && subMenu.ScreenSpaceDrawQuad.TopLeft.X > targetItem.ScreenSpaceDrawQuad.TopLeft.X;
+            });
+        }
+
         [Test]
         public void TestMenuOpenedOnClick()
         {
@@ -287,11 +332,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public MenuItem[] ContextMenuItems => actions?.Select((a, i) => new MenuItem($"Item {i}", a)).ToArray();
         }
 
+        private class BoxWithNestedContextMenuItems : Box, IHasContextMenu
+        {
+            public MenuItem[] ContextMenuItems => new[]
+            {
+                new MenuItem("First")
+                {
+                    Items = new[]
+                    {
+                        new MenuItem("Second")
+                    }
+                },
+            };
+        }
+
         private class TestContextMenuContainer : BasicContextMenuContainer
         {
             public Menu CurrentMenu { get; private set; }
 
             protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
+        }
+
+        private class TestContextMenuContainerWithFade : BasicContextMenuContainer
+        {
+            protected override Menu CreateMenu() => new TestMenu();
+
+            private class TestMenu : BasicMenu
+            {
+                public TestMenu()
+                    : base(Direction.Vertical)
+                {
+                    ItemsContainer.Padding = new MarginPadding { Vertical = 2 };
+                }
+
+                protected override void AnimateClose() => this.FadeOut(1000, Easing.OutQuint);
+
+                protected override Menu CreateSubMenu() => new TestMenu();
+            }
         }
     }
 }

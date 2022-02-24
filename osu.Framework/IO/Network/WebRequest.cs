@@ -213,15 +213,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                byte[] data = new byte[ResponseStream.Length];
                 ResponseStream.Seek(0, SeekOrigin.Begin);
 
-                int readBytes = ResponseStream.Read(data, 0, data.Length);
-
-                if (readBytes < data.Length)
-                    throw new EndOfStreamException();
-
-                return data;
+                return ResponseStream.ReadAllBytesToArray();
             }
             catch
             {

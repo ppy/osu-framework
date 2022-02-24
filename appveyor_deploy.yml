@@ -1,10 +1,10 @@
 clone_depth: 1
 version: '{build}'
-image: Visual Studio 2019
+image: Visual Studio 2022
 test: off
 skip_non_tags: true
 build_script:
-  - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFramework
+  - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFrameworkDesktop
 deploy:
   - provider: Environment
     name: nuget

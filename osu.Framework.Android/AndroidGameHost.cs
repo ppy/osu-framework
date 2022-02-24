@@ -44,6 +44,8 @@ namespace osu.Framework.Android
 
         public override bool CanExit => false;
 
+        public override bool CanSuspendToBackground => true;
+
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
         protected override TextInputSource CreateTextInput() => new AndroidTextInput(gameView);
@@ -75,14 +77,12 @@ namespace osu.Framework.Android
 
         public override void OpenUrlExternally(string url)
         {
-            var activity = (Activity)gameView.Context;
-
-            if (activity?.PackageManager == null) return;
+            if (gameView.Activity.PackageManager == null) return;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
             {
-                if (intent.ResolveActivity(activity.PackageManager) != null)
-                    activity.StartActivity(intent);
+                if (intent.ResolveActivity(gameView.Activity.PackageManager) != null)
+                    gameView.Activity.StartActivity(intent);
             }
         }
 
@@ -91,5 +91,10 @@ namespace osu.Framework.Android
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new AndroidVideoDecoder(stream);
+
+        public override bool SuspendToBackground()
+        {
+            return gameView.Activity.MoveTaskToBack(true);
+        }
     }
 }

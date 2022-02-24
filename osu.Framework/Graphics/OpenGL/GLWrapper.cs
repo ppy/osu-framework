@@ -701,11 +701,27 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (maskingInfo.BorderThickness > 0)
             {
-                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
-                    maskingInfo.BorderColour.Linear.R,
-                    maskingInfo.BorderColour.Linear.G,
-                    maskingInfo.BorderColour.Linear.B,
-                    maskingInfo.BorderColour.Linear.A));
+                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Matrix4(
+                    // TopLeft
+                    maskingInfo.BorderColour.TopLeft.Linear.R,
+                    maskingInfo.BorderColour.TopLeft.Linear.G,
+                    maskingInfo.BorderColour.TopLeft.Linear.B,
+                    maskingInfo.BorderColour.TopLeft.Linear.A,
+                    // BottomLeft
+                    maskingInfo.BorderColour.BottomLeft.Linear.R,
+                    maskingInfo.BorderColour.BottomLeft.Linear.G,
+                    maskingInfo.BorderColour.BottomLeft.Linear.B,
+                    maskingInfo.BorderColour.BottomLeft.Linear.A,
+                    // TopRight
+                    maskingInfo.BorderColour.TopRight.Linear.R,
+                    maskingInfo.BorderColour.TopRight.Linear.G,
+                    maskingInfo.BorderColour.TopRight.Linear.B,
+                    maskingInfo.BorderColour.TopRight.Linear.A,
+                    // BottomRight
+                    maskingInfo.BorderColour.BottomRight.Linear.R,
+                    maskingInfo.BorderColour.BottomRight.Linear.G,
+                    maskingInfo.BorderColour.BottomRight.Linear.B,
+                    maskingInfo.BorderColour.BottomRight.Linear.A));
             }
 
             GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
@@ -985,7 +1001,7 @@ namespace osu.Framework.Graphics.OpenGL
         public float CornerExponent;
 
         public float BorderThickness;
-        public SRGBColour BorderColour;
+        public ColourInfo BorderColour;
 
         public float BlendRange;
         public float AlphaExponent;

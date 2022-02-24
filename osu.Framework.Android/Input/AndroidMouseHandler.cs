@@ -82,21 +82,27 @@ namespace osu.Framework.Android.Input
             {
                 if (enabled.NewValue)
                 {
-                    View.CapturedPointer += HandleCapturedPointer;
                     View.GenericMotion += HandleGenericMotion;
                     View.Hover += HandleHover;
                     View.KeyDown += HandleKeyDown;
                     View.KeyUp += HandleKeyUp;
                     View.Touch += HandleTouch;
+
+                    // Pointer capture is only available on Android 8.0 and up
+                    if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                        View.CapturedPointer += HandleCapturedPointer;
                 }
                 else
                 {
-                    View.CapturedPointer -= HandleCapturedPointer;
                     View.GenericMotion -= HandleGenericMotion;
                     View.Hover -= HandleHover;
                     View.KeyDown -= HandleKeyDown;
                     View.KeyUp -= HandleKeyUp;
                     View.Touch -= HandleTouch;
+
+                    // Pointer capture is only available on Android 8.0 and up
+                    if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                        View.CapturedPointer -= HandleCapturedPointer;
                 }
 
                 updatePointerCapture();
