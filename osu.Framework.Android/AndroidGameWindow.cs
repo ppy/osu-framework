@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osuTK;
@@ -16,7 +17,9 @@ namespace osu.Framework.Android
 
         public override IGraphicsContext Context => view.GraphicsContext;
 
-        public override bool Focused => true;
+        public override bool Focused => IsActive.Value;
+
+        public override IBindable<bool> IsActive { get; }
 
         public override Platform.WindowState WindowState
         {
@@ -41,6 +44,7 @@ namespace osu.Framework.Android
             : base(view)
         {
             this.view = view;
+            IsActive = view.Activity.IsActive.GetBoundCopy();
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
