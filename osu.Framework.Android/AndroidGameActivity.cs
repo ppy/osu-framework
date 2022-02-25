@@ -1,9 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
@@ -35,6 +37,16 @@ namespace osu.Framework.Android
         /// Whether this <see cref="AndroidGameActivity"/> is active (in the foreground).
         /// </summary>
         public BindableBool IsActive { get; } = new BindableBool();
+
+        /// <summary>
+        /// Whether the current screen is tablet-sized.
+        /// </summary>
+        /// <remarks>
+        /// This can potentially change when switching displays (eg. on folding phones).
+        /// Screens with at least medium width (as defined in https://developer.android.com/guide/topics/large-screens/support-different-screen-sizes)
+        /// are considered tablet-sized.
+        /// </remarks>
+        public BindableBool IsTablet { get; } = new BindableBool();
 
         /// <summary>
         /// The visibility flags for the system UI (status and navigation bars)
@@ -76,6 +88,8 @@ namespace osu.Framework.Android
             SetContentView(gameView = new AndroidGameView(this, CreateGame()));
 
             UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
+
+            updateIsTablet();
 
             Debug.Assert(Window != null);
 
@@ -152,6 +166,25 @@ namespace osu.Framework.Android
         public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             return gameView.OnKeyLongPress(keyCode, e);
+        }
+
+        public override void OnConfigurationChanged(global::Android.Content.Res.Configuration newConfig)
+        {
+            base.OnConfigurationChanged(newConfig);
+            updateIsTablet();
+        }
+
+        /// <summary>
+        /// Update <see cref="IsTablet"/> value.
+        /// </summary>
+        private void updateIsTablet()
+        {
+            if (WindowManager?.DefaultDisplay == null || Resources?.DisplayMetrics == null) return;
+
+            Point displaySize = new Point();
+            WindowManager.DefaultDisplay.GetSize(displaySize);
+            float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
+            IsTablet.Value = smallestWidthDp >= 600f;
         }
     }
 }
