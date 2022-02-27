@@ -12,6 +12,7 @@ using Android.Views;
 using ManagedBass;
 using osu.Framework.Bindables;
 using Debug = System.Diagnostics.Debug;
+using Res = Android.Content.Res;
 
 namespace osu.Framework.Android
 {
@@ -168,7 +169,7 @@ namespace osu.Framework.Android
             return gameView.OnKeyLongPress(keyCode, e);
         }
 
-        public override void OnConfigurationChanged(global::Android.Content.Res.Configuration newConfig)
+        public override void OnConfigurationChanged(Res.Configuration newConfig)
         {
             base.OnConfigurationChanged(newConfig);
             updateIsTablet();
