@@ -424,7 +424,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             #region DrawableDropdownMenuItem
 
-            // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
