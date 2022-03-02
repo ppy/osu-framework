@@ -269,7 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value ?? default;
         }
 
-        private void selectionChanged(ValueChangedEvent<T> args)
+        private void selectionChanged(ValueChangedEvent<T> args) => Schedule(() =>
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
@@ -287,7 +287,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.SelectItem(selectedItem);
             Header.Label = selectedItem.Text.Value;
-        }
+        });
 
         /// <summary>
         /// Clear all the menu items.
