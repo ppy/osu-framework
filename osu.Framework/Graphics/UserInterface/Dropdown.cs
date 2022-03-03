@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-            Current.ValueChanged += selectionChanged;
+            Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
@@ -269,7 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value ?? default;
         }
 
-        private void selectionChanged(ValueChangedEvent<T> args) => Scheduler.AddOnce(() =>
+        private void selectionChanged(ValueChangedEvent<T> args)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
@@ -287,7 +287,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.SelectItem(selectedItem);
             Header.Label = selectedItem.Text.Value;
-        });
+        }
 
         /// <summary>
         /// Clear all the menu items.
