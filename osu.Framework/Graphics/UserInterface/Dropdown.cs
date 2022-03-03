@@ -269,7 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value ?? default;
         }
 
-        private void selectionChanged(ValueChangedEvent<T> args) => Schedule(() =>
+        private void selectionChanged(ValueChangedEvent<T> args) => Scheduler.AddOnce(() =>
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
