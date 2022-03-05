@@ -60,6 +60,7 @@ namespace osu.Framework.Graphics.Video
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
         private DecodedFrame lastFrame;
+        private bool lastFrameShown;
 
         /// <summary>
         /// The total number of frames processed by this instance.
@@ -155,7 +156,11 @@ namespace osu.Framework.Graphics.Video
             {
                 if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
+                lastFrameShown = false;
+            }
 
+            if (!lastFrameShown && lastFrame != null)
+            {
                 var tex = lastFrame.Texture;
 
                 // Check if the new frame has been uploaded so we don't display an old frame
@@ -163,6 +168,7 @@ namespace osu.Framework.Graphics.Video
                 {
                     Sprite.Texture = tex;
                     UpdateSizing();
+                    lastFrameShown = true;
                 }
             }
 
