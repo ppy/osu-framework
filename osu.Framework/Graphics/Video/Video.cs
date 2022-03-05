@@ -121,11 +121,13 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            if (decoder.State == VideoDecoder.DecoderState.EndOfStream)
+            if (decoder.State == VideoDecoder.DecoderState.EndOfStream && availableFrames.Count == 0)
             {
                 // if at the end of the stream but our playback enters a valid time region again, a seek operation is required to get the decoder back on track.
-                if (PlaybackPosition < decoder.Duration)
+                if (PlaybackPosition < decoder.LastDecodedFrameTime)
+                {
                     seekIntoSync();
+                }
             }
 
             var peekFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
