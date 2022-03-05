@@ -72,6 +72,8 @@ namespace osu.Framework.Graphics.Video
             if (!(upload is VideoTextureUpload videoUpload))
                 return;
 
+            int width, height;
+
             // Do we need to generate a new texture?
             if (textureIds == null)
             {
@@ -87,22 +89,18 @@ namespace osu.Framework.Graphics.Video
 
                     if (i == 0)
                     {
-                        int width = videoUpload.Frame->width;
-                        int height = videoUpload.Frame->height;
-
-                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
-
-                        textureSize += width * height;
+                        width = videoUpload.Frame->width;
+                        height = videoUpload.Frame->height;
                     }
                     else
                     {
-                        int width = (videoUpload.Frame->width + 1) / 2;
-                        int height = (videoUpload.Frame->height + 1) / 2;
-
-                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
-
-                        textureSize += width * height;
+                        width = (videoUpload.Frame->width + 1) / 2;
+                        height = (videoUpload.Frame->height + 1) / 2;
                     }
+
+                    textureSize += width * height;
+
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
@@ -117,8 +115,19 @@ namespace osu.Framework.Graphics.Video
                 GLWrapper.BindTexture(textureIds[i]);
 
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[(uint)i]);
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1),
-                    PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[(uint)i]);
+
+                if (i == 0)
+                {
+                    width = videoUpload.Frame->width;
+                    height = videoUpload.Frame->height;
+                }
+                else
+                {
+                    width = (videoUpload.Frame->width + 1) / 2;
+                    height = (videoUpload.Frame->height + 1) / 2;
+                }
+
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, width, height, PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[(uint)i]);
             }
 
             GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
