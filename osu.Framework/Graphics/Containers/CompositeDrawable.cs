@@ -1273,6 +1273,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data) => SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)

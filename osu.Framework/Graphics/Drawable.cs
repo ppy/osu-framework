@@ -2625,6 +2625,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
+        protected internal ScheduledDelegate Schedule<T>(Action<T> action, T data) => Scheduler.AddDelayed(action, data, TransformDelay);
         protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
