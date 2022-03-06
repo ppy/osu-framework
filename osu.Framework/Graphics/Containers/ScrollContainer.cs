@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
+        public float ScrollbarMovementExtent => Math.Max(ChildSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
