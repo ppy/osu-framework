@@ -72,8 +72,6 @@ namespace osu.Framework.Graphics.Video
             if (!(upload is VideoTextureUpload videoUpload))
                 return;
 
-            int width, height;
-
             // Do we need to generate a new texture?
             if (textureIds == null)
             {
@@ -83,24 +81,17 @@ namespace osu.Framework.Graphics.Video
                 textureIds = new int[3];
                 GL.GenTextures(textureIds.Length, textureIds);
 
-                for (int i = 0; i < textureIds.Length; i++)
+                for (uint i = 0; i < textureIds.Length; i++)
                 {
                     GLWrapper.BindTexture(textureIds[i]);
 
-                    if (i == 0)
-                    {
-                        width = videoUpload.Frame->width;
-                        height = videoUpload.Frame->height;
-                    }
-                    else
-                    {
-                        width = (videoUpload.Frame->width + 1) / 2;
-                        height = (videoUpload.Frame->height + 1) / 2;
-                    }
+                    int width = videoUpload.GetPlaneWidth(i);
+                    int height = videoUpload.GetPlaneHeight(i);
 
                     textureSize += width * height;
 
-                    GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height,
+                        0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
@@ -110,24 +101,14 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            for (int i = 0; i < textureIds.Length; i++)
+            for (uint i = 0; i < textureIds.Length; i++)
             {
                 GLWrapper.BindTexture(textureIds[i]);
 
-                GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[(uint)i]);
+                GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[i]);
 
-                if (i == 0)
-                {
-                    width = videoUpload.Frame->width;
-                    height = videoUpload.Frame->height;
-                }
-                else
-                {
-                    width = (videoUpload.Frame->width + 1) / 2;
-                    height = (videoUpload.Frame->height + 1) / 2;
-                }
-
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, width, height, PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[(uint)i]);
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, videoUpload.GetPlaneWidth(i), videoUpload.GetPlaneHeight(i),
+                    PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[i]);
             }
 
             GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
