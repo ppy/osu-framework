@@ -183,7 +183,7 @@ namespace osu.Framework.Android
             if (WindowManager?.DefaultDisplay == null || Resources?.DisplayMetrics == null) return;
 
             Point displaySize = new Point();
-            WindowManager.DefaultDisplay.GetSize(displaySize);
+            WindowManager.DefaultDisplay.GetRealSize(displaySize);
             float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
             IsTablet.Value = smallestWidthDp >= 600f;
         }
