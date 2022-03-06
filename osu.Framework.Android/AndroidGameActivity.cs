@@ -182,6 +182,9 @@ namespace osu.Framework.Android
         {
             if (WindowManager?.DefaultDisplay == null || Resources?.DisplayMetrics == null) return;
 
+            // Width computed according to https://developer.android.com/guide/topics/large-screens/support-different-screen-sizes#java.
+            // Except that we use Display.GetRealSize() instead of WindowMetrics to support older devices and to get actual display size.
+
             Point displaySize = new Point();
             WindowManager.DefaultDisplay.GetRealSize(displaySize);
             float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
