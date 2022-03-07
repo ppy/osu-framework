@@ -1273,8 +1273,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data) => SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
-        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate ScheduleAfterChildren(Action action)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action);
+        }
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
