@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -58,15 +59,14 @@ namespace osu.Framework.Tests.Exceptions
                     runGameWithLogic(g =>
                     {
                         g.Scheduler.Add(() => Task.Run(() => throw new InvalidOperationException()));
+                        g.Scheduler.AddDelayed(() => collectAndFireUnobserved(), 1, true);
                     });
-
-                    collectAndFireUnobserved();
                 }, TaskCreationOptions.LongRunning).Wait(TimeSpan.FromSeconds(10));
 
                 Assert.True(completed, "Game execution was not aborted");
             });
 
-            Assert.True(exception?.Flatten().InnerExceptions.First() is InvalidOperationException);
+            Assert.True(exception?.AsSingular() is InvalidOperationException);
         }
 
         private static void collectAndFireUnobserved()

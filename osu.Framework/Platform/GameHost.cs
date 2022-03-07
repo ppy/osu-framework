@@ -22,6 +22,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -324,11 +325,13 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            var actualException = args.Exception.AsSingular();
+
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
-            logException(args.Exception, "unobserved");
+            logException(actualException, "unobserved");
 
             if (DebugUtils.IsNUnitRunning)
-                abortExecutionFromException(sender, args.Exception, false);
+                abortExecutionFromException(sender, actualException, false);
         }
 
         private void logException(Exception exception, string type)
