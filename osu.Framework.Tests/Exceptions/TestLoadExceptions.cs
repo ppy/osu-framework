@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -45,6 +46,33 @@ namespace osu.Framework.Tests.Exceptions
                     g.Exit();
                 });
             });
+        }
+
+        [Test]
+        public void TestUnobservedException()
+        {
+            var exception = Assert.Throws<AggregateException>(() =>
+            {
+                bool completed = Task.Factory.StartNew(() =>
+                {
+                    runGameWithLogic(g =>
+                    {
+                        g.Scheduler.Add(() => Task.Run(() => throw new InvalidOperationException()));
+                    });
+
+                    collectAndFireUnobserved();
+                }, TaskCreationOptions.LongRunning).Wait(TimeSpan.FromSeconds(10));
+
+                Assert.True(completed, "Game execution was not aborted");
+            });
+
+            Assert.True(exception?.Flatten().InnerExceptions.First() is InvalidOperationException);
+        }
+
+        private static void collectAndFireUnobserved()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         [Test]
