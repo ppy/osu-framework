@@ -1273,7 +1273,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
+        protected internal ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
         {
             if (TransformDelay > 0)
                 return SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
@@ -1281,7 +1281,7 @@ namespace osu.Framework.Graphics.Containers
             return SchedulerAfterChildren.Add(action, data);
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren(Action action)
+        protected internal ScheduledDelegate ScheduleAfterChildren(Action action)
         {
             if (TransformDelay > 0)
                 return SchedulerAfterChildren.AddDelayed(action, TransformDelay);
