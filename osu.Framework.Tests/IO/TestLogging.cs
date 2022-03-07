@@ -151,7 +151,11 @@ namespace osu.Framework.Tests.IO
 
                 // only start counting frames once the task has completed, to allow some time for the unobserved exception to be handled.
                 if (frameCount++ > 10)
+                {
+                    collectAndFireUnobserved();
+
                     Exit();
+                }
             }
         }
 
@@ -177,8 +181,7 @@ namespace osu.Framework.Tests.IO
                 // needs to be in a separate method so the Task gets GC'd.
                 performTaskException();
 
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                collectAndFireUnobserved();
             }
 
             Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
@@ -236,6 +239,22 @@ namespace osu.Framework.Tests.IO
 
         private class TestInnerException : Exception
         {
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Safety against any unobserved exceptions being left in the pipe.
+            collectAndFireUnobserved();
+        }
+
+        /// <summary>
+        /// Forcefully collect so the unobserved exception isn't handled by a future test execution.
+        /// </summary>
+        private static void collectAndFireUnobserved()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
     }
 }
