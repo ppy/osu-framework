@@ -325,6 +325,48 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
+        [Test]
+        public void TestScrollbarRespectsPadding()
+        {
+            const float container_height = 100;
+            const float box_height = 400;
+            const float padding = 10;
+
+            AddStep("Create scroll container", () =>
+            {
+                Add(new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(container_height),
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Colour4.Red,
+                        },
+                        scrollContainer = new BasicScrollContainer
+                        {
+                            Padding = new MarginPadding { Vertical = padding },
+                            RelativeSizeAxes = Axes.Both,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Child = new Box { Size = new Vector2(100, box_height) }
+                        },
+                    }
+                });
+            });
+
+            AddStep("Scroll to start", () => { scrollContainer.ScrollToStart(false); });
+
+            checkScrollbarPosition(0);
+
+            AddStep("Scroll to end", () => scrollContainer.ScrollToEnd(false));
+
+            checkScrollbarPosition(64);
+        }
+
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
             if (heightAdjust != null)
