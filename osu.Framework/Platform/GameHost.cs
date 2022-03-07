@@ -326,6 +326,9 @@ namespace osu.Framework.Platform
         {
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
             logException(args.Exception, "unobserved");
+
+            if (DebugUtils.IsNUnitRunning)
+                abortExecutionFromException(sender, args.Exception, false);
         }
 
         private void logException(Exception exception, string type)
