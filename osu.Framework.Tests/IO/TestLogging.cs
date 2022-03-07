@@ -162,7 +162,7 @@ namespace osu.Framework.Tests.IO
 
             void logTest(LogEntry entry)
             {
-                if (entry.Exception is AggregateException ex)
+                if (entry.Exception is TestException ex)
                 {
                     Assert.IsNull(resolvedException, "exception was forwarded more than once");
                     resolvedException = ex;
