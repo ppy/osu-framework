@@ -1168,6 +1168,7 @@ namespace osu.Framework.Platform
 
         public void SetupWindow(FrameworkConfigManager config)
         {
+            CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.ValueChanged += evt =>
             {
                 windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
