@@ -8,6 +8,8 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using ManagedBass;
+using osu.Framework.Bindables;
+using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
 {
@@ -30,13 +32,23 @@ namespace osu.Framework.Android
         protected abstract Game CreateGame();
 
         /// <summary>
+        /// Whether this <see cref="AndroidGameActivity"/> is active (in the foreground).
+        /// </summary>
+        public BindableBool IsActive { get; } = new BindableBool();
+
+        /// <summary>
         /// The visibility flags for the system UI (status and navigation bars)
         /// </summary>
         public SystemUiFlags UIVisibilityFlags
         {
-            get => (SystemUiFlags)Window.DecorView.SystemUiVisibility;
+            get
+            {
+                Debug.Assert(Window != null);
+                return (SystemUiFlags)Window.DecorView.SystemUiVisibility;
+            }
             set
             {
+                Debug.Assert(Window != null);
                 systemUiFlags = value;
                 Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
             }
@@ -63,7 +75,9 @@ namespace osu.Framework.Android
 
             SetContentView(gameView = new AndroidGameView(this, CreateGame()));
 
-            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation;
+            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
+
+            Debug.Assert(Window != null);
 
             // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
@@ -76,7 +90,10 @@ namespace osu.Framework.Android
             };
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            {
+                Debug.Assert(Window.Attributes != null);
                 Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+            }
 
             gameView.HostStarted += host =>
             {
@@ -93,18 +110,24 @@ namespace osu.Framework.Android
             };
         }
 
-        protected override void OnPause()
+        protected override void OnStop()
         {
-            base.OnPause();
+            base.OnStop();
             gameView.Host?.Suspend();
             Bass.Pause();
         }
 
-        protected override void OnResume()
+        protected override void OnRestart()
         {
-            base.OnResume();
+            base.OnRestart();
             gameView.Host?.Resume();
             Bass.Start();
+        }
+
+        public override void OnWindowFocusChanged(bool hasFocus)
+        {
+            base.OnWindowFocusChanged(hasFocus);
+            IsActive.Value = hasFocus;
         }
 
         public override void OnBackPressed()

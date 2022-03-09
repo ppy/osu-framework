@@ -143,6 +143,8 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
+            EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
@@ -1271,7 +1273,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate ScheduleAfterChildren(Action action)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action);
+        }
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
@@ -1341,7 +1357,7 @@ namespace osu.Framework.Graphics.Containers
         protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
 
-        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed(nameof(InternalChildren));
+        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(InternalChildren)}");
 
         #endregion
 
@@ -1528,13 +1544,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private SRGBColour borderColour = Color4.Black;
+        private ColourInfo borderColour = Color4.Black;
 
         /// <summary>
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public SRGBColour BorderColour
+        public ColourInfo BorderColour
         {
             get => borderColour;
             protected set

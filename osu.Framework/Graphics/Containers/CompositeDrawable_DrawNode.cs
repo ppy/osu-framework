@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     MaskingInfo info = maskingInfo.Value;
                     if (info.BorderThickness > 0)
-                        info.BorderColour *= DrawColourInfo.Colour.AverageColour;
+                        info.BorderColour = ColourInfo.Multiply(info.BorderColour, DrawColourInfo.Colour);
 
                     GLWrapper.PushMaskingInfo(info);
                 }

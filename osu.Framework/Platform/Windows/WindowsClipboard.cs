@@ -2,8 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -46,66 +51,72 @@ namespace osu.Framework.Platform.Windows
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalFree(IntPtr hMem);
 
+        private const uint cf_dib = 8U;
         private const uint cf_unicodetext = 13U;
+
+        private const int gmem_movable = 0x02;
+        private const int gmem_zeroinit = 0x40;
+        private const int ghnd = gmem_movable | gmem_zeroinit;
+
+        // The bitmap file header should not be included in clipboard.
+        // See https://docs.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats for more details.
+        private const int bitmap_file_header_length = 14;
+
+        private static readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
         public override string GetText()
         {
-            if (!IsClipboardFormatAvailable(cf_unicodetext))
-                return null;
-
-            try
-            {
-                if (!OpenClipboard(IntPtr.Zero))
-                    return null;
-
-                IntPtr handle = GetClipboardData(cf_unicodetext);
-                if (handle == IntPtr.Zero)
-                    return null;
-
-                IntPtr pointer = IntPtr.Zero;
-
-                try
-                {
-                    pointer = GlobalLock(handle);
-
-                    if (pointer == IntPtr.Zero)
-                        return null;
-
-                    int size = GlobalSize(handle);
-                    byte[] buff = new byte[size];
-
-                    Marshal.Copy(pointer, buff, 0, size);
-
-                    return Encoding.Unicode.GetString(buff).TrimEnd('\0');
-                }
-                finally
-                {
-                    if (pointer != IntPtr.Zero)
-                        GlobalUnlock(handle);
-                }
-            }
-            finally
-            {
-                CloseClipboard();
-            }
+            return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
         }
 
         public override void SetText(string selectedText)
         {
+            int bytes = (selectedText.Length + 1) * 2;
+            var source = Marshal.StringToHGlobalUni(selectedText);
+
+            setClipboard(source, bytes, cf_unicodetext);
+        }
+
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return getClipboard(cf_dib, bytes =>
+            {
+                byte[] buff = new byte[bytes.Length + bitmap_file_header_length];
+
+                bmp_header_field.CopyTo(buff, 0);
+                bytes.CopyTo(buff, bitmap_file_header_length);
+
+                return Image.Load<TPixel>(buff);
+            });
+        }
+
+        public override bool SetImage(Image image)
+        {
+            byte[] array;
+
+            using (var stream = new MemoryStream())
+            {
+                var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
+                image.Save(stream, encoder);
+                array = stream.ToArray().Skip(bitmap_file_header_length).ToArray();
+            }
+
+            IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
+            Marshal.Copy(array, 0, unmanagedPointer, array.Length);
+
+            return setClipboard(unmanagedPointer, array.Length, cf_dib);
+        }
+
+        private static bool setClipboard(IntPtr pointer, int bytes, uint format)
+        {
+            bool success = false;
+
             try
             {
                 if (!OpenClipboard(IntPtr.Zero))
-                    return;
+                    return false;
 
                 EmptyClipboard();
-
-                uint bytes = ((uint)selectedText.Length + 1) * 2;
-
-                var source = Marshal.StringToHGlobalUni(selectedText);
-
-                const int gmem_movable = 0x0002;
-                const int gmem_zeroinit = 0x0040;
-                const int ghnd = gmem_movable | gmem_zeroinit;
 
                 // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
                 var hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
@@ -114,13 +125,13 @@ namespace osu.Framework.Platform.Windows
                 {
                     var target = GlobalLock(hGlobal);
                     if (target == IntPtr.Zero)
-                        return;
+                        return false;
 
                     try
                     {
                         unsafe
                         {
-                            Buffer.MemoryCopy((void*)source, (void*)target, bytes, bytes);
+                            Buffer.MemoryCopy((void*)pointer, (void*)target, bytes, bytes);
                         }
                     }
                     finally
@@ -128,19 +139,64 @@ namespace osu.Framework.Platform.Windows
                         if (target != IntPtr.Zero)
                             GlobalUnlock(target);
 
-                        Marshal.FreeHGlobal(source);
+                        Marshal.FreeHGlobal(pointer);
                     }
 
-                    if (SetClipboardData(cf_unicodetext, hGlobal).ToInt64() != 0)
+                    if (SetClipboardData(format, hGlobal).ToInt64() != 0)
                     {
                         // IMPORTANT: SetClipboardData takes ownership of hGlobal upon success.
                         hGlobal = IntPtr.Zero;
+                        success = true;
                     }
                 }
                 finally
                 {
                     if (hGlobal != IntPtr.Zero)
                         GlobalFree(hGlobal);
+                }
+            }
+            finally
+            {
+                CloseClipboard();
+            }
+
+            return success;
+        }
+
+        private static T getClipboard<T>(uint format, Func<byte[], T> transform)
+        {
+            if (!IsClipboardFormatAvailable(format))
+                return default;
+
+            try
+            {
+                if (!OpenClipboard(IntPtr.Zero))
+                    return default;
+
+                IntPtr handle = GetClipboardData(format);
+                if (handle == IntPtr.Zero)
+                    return default;
+
+                IntPtr pointer = IntPtr.Zero;
+
+                try
+                {
+                    pointer = GlobalLock(handle);
+
+                    if (pointer == IntPtr.Zero)
+                        return default;
+
+                    int size = GlobalSize(handle);
+                    byte[] buff = new byte[size];
+
+                    Marshal.Copy(pointer, buff, 0, size);
+
+                    return transform(buff);
+                }
+                finally
+                {
+                    if (pointer != IntPtr.Zero)
+                        GlobalUnlock(handle);
                 }
             }
             finally

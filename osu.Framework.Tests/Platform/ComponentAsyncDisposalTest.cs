@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Platform
 
             var task = Task.Factory.StartNew(() =>
             {
-                using (host = new TestRunHeadlessGameHost(@"host", false))
+                using (host = new TestRunHeadlessGameHost("host", new HostOptions(), bypassCleanup: false))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();

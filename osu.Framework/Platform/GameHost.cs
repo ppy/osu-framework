@@ -104,7 +104,16 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
+        /// <remarks>Also see <see cref="CanSuspendToBackground"/>.</remarks>
         public virtual bool CanExit => true;
+
+        /// <summary>
+        /// Whether this host can suspend and minimize to background.
+        /// </summary>
+        /// <remarks>
+        /// This and <see cref="SuspendToBackground"/> are an alternative way to exit on hosts that have <see cref="CanExit"/> <c>false</c>.
+        /// </remarks>
+        public virtual bool CanSuspendToBackground => false;
 
         /// <summary>
         /// Whether memory constraints should be considered before performance concerns.
@@ -276,12 +285,17 @@ namespace osu.Framework.Platform
         /// </summary>
         public string Name { get; }
 
+        [NotNull]
+        public HostOptions Options { get; private set; }
+
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         private bool suspended;
 
-        protected GameHost(string gameName = @"")
+        protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            Options = options ?? new HostOptions();
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -578,10 +592,24 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
+        /// <remarks>Consider using <see cref="SuspendToBackground"/> on mobile platforms that can't exit normally.</remarks>
         public void Exit()
         {
             if (CanExit)
                 PerformExit(false);
+        }
+
+        /// <summary>
+        /// Suspends and minimizes the game to background.
+        /// </summary>
+        /// <remarks>
+        /// This is provided as an alternative to <see cref="Exit"/> on hosts that can't exit (see <see cref="CanExit"/>).
+        /// Should only be called if <see cref="CanSuspendToBackground"/> is <c>true</c>.
+        /// </remarks>
+        /// <returns><c>true</c> if the game was successfully suspended and minimized.</returns>
+        public virtual bool SuspendToBackground()
+        {
+            return false;
         }
 
         /// <summary>

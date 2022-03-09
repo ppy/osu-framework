@@ -10,6 +10,7 @@ namespace osu.Framework.Platform
         private readonly Toolkit toolkit;
 
         protected OsuTKGameHost()
+            : base(string.Empty)
         {
             toolkit = Toolkit.Init();
         }

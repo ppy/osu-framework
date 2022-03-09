@@ -336,9 +336,9 @@ namespace osu.Framework.Graphics.Video
             timeBaseInSeconds = stream->time_base.GetValue();
 
             if (stream->duration > 0)
-                Duration = stream->duration * timeBaseInSeconds * 1000;
+                Duration = stream->duration * timeBaseInSeconds * 1000.0;
             else
-                Duration = formatContext->duration / AGffmpeg.AV_TIME_BASE * 1000;
+                Duration = formatContext->duration / (double)AGffmpeg.AV_TIME_BASE * 1000.0;
         }
 
         private void recreateCodecContext()
@@ -739,7 +739,7 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NET5_0
+#if NET6_0
             AGffmpeg.GetOrLoadLibrary = name =>
             {
                 int version = AGffmpeg.LibraryVersionMap[name];

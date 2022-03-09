@@ -1,84 +1,85 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET5_0
+#if NET6_0
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
+using OpenTabletDriver.Plugin.Components;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Logging;
 using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
-    public class TabletDriver : Driver
+    public sealed class TabletDriver : Driver
     {
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
-        public TabletDriver()
+        private CancellationTokenSource cancellationSource;
+
+        public event EventHandler<IDeviceReport> DeviceReported;
+
+        public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
+            : base(deviceHub, reportParserProvider, configurationProvider)
         {
             Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
-            DevicesChanged += (sender, args) =>
+
+            deviceHub.DevicesChanged += (sender, args) =>
             {
                 // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
-                if (Tablet == null && args.Additions.Any())
-                    DetectTablet();
+                if (!Tablets.Any() && args.Additions.Any())
+                {
+                    cancellationSource?.Cancel();
+                    cancellationSource = new CancellationTokenSource();
+
+                    Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
+                }
             };
         }
 
-        private readonly object detectLock = new object();
-
-        private CancellationTokenSource cancellationSource;
-
-        public void DetectTablet()
+        private async Task detectAsync(CancellationToken cancellationToken)
         {
-            lock (detectLock)
+            // wait a small delay as multiple devices may appear over a very short interval.
+            await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+
+            int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+
+            if (foundVendor > 0)
             {
-                cancellationSource?.Cancel();
+                Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
 
-                var cancellationToken = (cancellationSource = new CancellationTokenSource()).Token;
+                Detect();
 
-                Task.Run(async () =>
+                foreach (var device in InputDevices)
                 {
-                    // wait a small delay as multiple devices may appear over a very short interval.
-                    await Task.Delay(50, cancellationToken).ConfigureAwait(false);
-
-                    int foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
-
-                    if (foundVendor > 0)
+                    foreach (var endpoint in device.InputDevices)
                     {
-                        Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
-
-                        foreach (var config in getConfigurations())
+                        endpoint.Report += DeviceReported;
+                        endpoint.ConnectionStateChanged += (sender, connected) =>
                         {
-                            if (TryMatch(config))
-                                break;
-                        }
+                            if (!connected)
+                                endpoint.Report -= DeviceReported;
+                        };
                     }
-                }, cancellationToken);
+                }
             }
         }
 
-        private IEnumerable<TabletConfiguration> getConfigurations()
+        public static TabletDriver Create()
         {
-            // Retrieve all embedded configurations
-            var asm = typeof(Driver).Assembly;
-            return asm.GetManifestResourceNames()
-                      .Where(path => path.Contains(".json"))
-                      .Select(path => deserialize(asm.GetManifestResourceStream(path)));
-        }
+            IServiceCollection serviceCollection = new DriverServiceCollection()
+                .AddTransient<TabletDriver>();
 
-        private TabletConfiguration deserialize(Stream stream)
-        {
-            using (var reader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(reader))
-                return new JsonSerializer().Deserialize<TabletConfiguration>(jsonReader);
+            var provider = serviceCollection.BuildServiceProvider();
+
+            return provider.GetRequiredService<TabletDriver>();
         }
     }
 }

@@ -34,7 +34,8 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-        public override bool PropagatePositionalInputSubTree => IsPresent; // make sure we are still updating position during possible fade out.
+        // make sure we always receive positional input, regardless of our visibility state.
+        public override bool PropagatePositionalInputSubTree => true;
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {

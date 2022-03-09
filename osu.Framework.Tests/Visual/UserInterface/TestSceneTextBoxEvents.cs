@@ -86,9 +86,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("press letter key to insert text", () =>
             {
-                // press a key so TextBox starts consuming text
+                // TextBox expects text input to arrive before the associated key press.
+                textInput.Text("W");
                 InputManager.Key(Key.W);
-                textInput.AddToPendingText("W");
             });
             AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
         }
@@ -365,8 +365,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertCompositionNotActive();
             AddStep("press key to insert normal text", () =>
             {
+                textInput.Text("W");
                 InputManager.Key(Key.W);
-                textInput.AddToPendingText("W");
             });
             AddAssert("user text consumed event not raised", () => textBox.UserConsumedTextQueue.Count == 0);
         }
@@ -419,13 +419,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("press key to insert normal text", () =>
             {
+                textInput.Text("W");
                 InputManager.Key(Key.W);
-                textInput.AddToPendingText("W");
             });
             AddAssert("user text consumed event raised", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
         }
 
-        private class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
+        public class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
         {
             public readonly Queue<bool> InputErrorQueue = new Queue<bool>();
             public readonly Queue<string> UserConsumedTextQueue = new Queue<string>();
@@ -460,7 +460,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public new bool ImeCompositionActive => base.ImeCompositionActive;
         }
 
-        private class ManualTextInputContainer : Container
+        public class ManualTextInputContainer : Container
         {
             [Cached(typeof(TextInputSource))]
             public readonly ManualTextInput TextInput;
@@ -471,9 +471,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class ManualTextInput : TextInputSource
+        public class ManualTextInput : TextInputSource
         {
-            public void AddToPendingText(string text) => AddPendingText(text);
+            public void Text(string text) => TriggerTextInput(text);
 
             public new void TriggerImeComposition(string text, int start, int length)
             {
@@ -494,7 +494,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private struct ImeCompositionEvent
+        public struct ImeCompositionEvent
         {
             public string NewComposition;
             public int RemovedTextLength;
@@ -507,7 +507,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                              SelectionMoved == other.SelectionMoved;
         }
 
-        private struct ImeResultEvent
+        public struct ImeResultEvent
         {
             public string Result;
             public bool Successful;
