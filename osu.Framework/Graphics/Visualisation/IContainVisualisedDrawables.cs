@@ -4,24 +4,24 @@
 namespace osu.Framework.Graphics.Visualisation
 {
     /// <summary>
-    /// An interface for <see cref="Drawable"/>s which can contain <see cref="VisualisedDrawable"/>s.
+    /// An interface for <see cref="Drawable"/>s which can contain <see cref="VisualisedElement"/>s.
     /// </summary>
-    internal interface IContainVisualisedDrawables
+    internal interface IContainVisualisedElements
     {
         /// <summary>
-        /// Adds a <see cref="VisualisedDrawable"/> to this <see cref="Drawable"/>'s hierarchy.
+        /// Adds a <see cref="VisualiserTreeNode"/> to this <see cref="Drawable"/>'s hierarchy.
         /// </summary>
         /// <remarks>
-        /// It is not necessary for this <see cref="Drawable"/> to contain the <see cref="VisualisedDrawable"/> as an immediate child,
-        /// but this <see cref="Drawable"/> will receive <see cref="RemoveVisualiser"/> if the <see cref="VisualisedDrawable"/> should ever be removed.
+        /// It is not necessary for this <see cref="Drawable"/> to contain the <see cref="VisualiserTreeNode"/> as an immediate child,
+        /// but this <see cref="Drawable"/> will receive <see cref="RemoveVisualiser"/> if the <see cref="VisualiserTreeNode"/> should ever be removed.
         /// </remarks>
-        /// <param name="visualiser">The <see cref="VisualisedDrawable"/> to add.</param>
-        void AddVisualiser(VisualisedDrawable visualiser);
+        /// <param name="visualiser">The <see cref="VisualiserTreeNode"/> to add.</param>
+        void AddVisualiser(VisualiserTreeNode visualiser);
 
         /// <summary>
-        /// Removes a <see cref="VisualisedDrawable"/> from this <see cref="Drawable"/>.
+        /// Removes a <see cref="VisualiserTreeNode"/> from this <see cref="Drawable"/>.
         /// </summary>
-        /// <param name="visualiser">The <see cref="VisualisedDrawable"/> to remove.</param>
-        void RemoveVisualiser(VisualisedDrawable visualiser);
+        /// <param name="visualiser">The <see cref="VisualiserTreeNode"/> to remove.</param>
+        void RemoveVisualiser(VisualiserTreeNode visualiser);
     }
 }

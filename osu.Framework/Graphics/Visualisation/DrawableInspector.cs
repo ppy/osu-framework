@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Visualisation
     internal class DrawableInspector : VisibilityContainer
     {
         [Cached]
-        public Bindable<Drawable> InspectedDrawable { get; private set; } = new Bindable<Drawable>();
+        public Bindable<object> InspectedTarget { get; } = new Bindable<object>();
 
         private const float width = 600;
 
@@ -71,7 +71,9 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void LoadComplete()
         {
             base.LoadComplete();
+            inspectorTabControl.RemoveItem(Tab.Transforms);
             inspectorTabControl.Current.BindValueChanged(showTab, true);
+            InspectedTarget.BindValueChanged(selectTarget, true);
         }
 
         private void showTab(ValueChangedEvent<Tab> tabChanged)
@@ -87,6 +89,18 @@ namespace osu.Framework.Graphics.Visualisation
                 case Tab.Transforms:
                     transformDisplay.Show();
                     break;
+            }
+        }
+
+        private void selectTarget(ValueChangedEvent<object> targetChanged)
+        {
+            if (targetChanged.NewValue is Drawable && !(targetChanged.OldValue is Drawable))
+            {
+                inspectorTabControl.AddItem(Tab.Transforms);
+            }
+            else if (!(targetChanged.NewValue is Drawable) && targetChanged.OldValue is Drawable)
+            {
+                inspectorTabControl.RemoveItem(Tab.Transforms);
             }
         }
 
