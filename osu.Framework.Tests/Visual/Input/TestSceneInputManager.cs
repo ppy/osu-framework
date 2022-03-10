@@ -180,8 +180,8 @@ namespace osu.Framework.Tests.Visual.Input
         [BackgroundDependencyLoader]
         private void load()
         {
-            AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
-            setCursorSensivityConfig(1);
+            AddSliderStep("Cursor sensitivity", 0.5, 5, 1, setCursorSensitivityConfig);
+            setCursorSensitivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             AddToggleStep("Toggle cursor visibility", setCursorVisibility);
@@ -191,7 +191,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("Reset handlers", () => host.ResetInputHandlers());
         }
 
-        private void setCursorSensivityConfig(double sensitivity)
+        private void setCursorSensitivityConfig(double sensitivity)
         {
             var mouseHandler = getMouseHandler();
 
