@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Size = new Vector2(350)
+                        Size = new Vector2(400)
                     }
                 }
             };
@@ -115,6 +115,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Easing Transform", delegate { transform(3); });
 
             AddToggleStep("Toggle masking", m => maskingContainer.Masking = m);
+            AddToggleStep("Toggle aspect ratio", r => clock.Size = r ? new Vector2(600, 400) : new Vector2(400));
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
         }
 
