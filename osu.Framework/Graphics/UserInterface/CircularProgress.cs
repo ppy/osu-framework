@@ -4,13 +4,15 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
+    public class CircularProgress : Sprite, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
@@ -23,22 +25,8 @@ namespace osu.Framework.Graphics.UserInterface
         public CircularProgress()
         {
             Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
+            Texture = Texture.WhitePixel;
         }
-
-        public IShader RoundedTextureShader { get; private set; }
-        public IShader TextureShader { get; private set; }
-
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
-        {
-            texture?.Dispose();
-            texture = null;
-
-            base.Dispose(isDisposing);
-        }
-
-        #endregion
 
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
@@ -52,25 +40,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-        }
-
-        private Texture texture = Texture.WhitePixel;
-
-        public Texture Texture
-        {
-            get => texture;
-            set
-            {
-                if (value == texture)
-                    return;
-
-                texture?.Dispose();
-                texture = value;
-
-                Invalidate(Invalidation.DrawNode);
-            }
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
         }
 
         private float innerRadius = 1;
@@ -87,6 +58,38 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private class CircularProgressDrawNode : SpriteDrawNode
+        {
+            public new CircularProgress Source => (CircularProgress)base.Source;
+
+            public CircularProgressDrawNode(CircularProgress source)
+                : base(source)
+            {
+            }
+
+            private float innerRadius;
+            private float progress;
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                innerRadius = Source.innerRadius;
+
+                progress = (float)Source.current.Value;
+                if (progress < 0f)
+                    progress *= -1f;
+            }
+
+            protected override void Blit(Action<TexturedVertex2D> vertexAction)
+            {
+                Shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
+                Shader.GetUniform<float>("progress").UpdateValue(ref progress);
+
+                base.Blit(vertexAction);
             }
         }
     }

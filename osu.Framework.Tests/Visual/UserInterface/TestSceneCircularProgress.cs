@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Fwd/Bwd Transform", delegate { transform(2); });
             AddStep("Easing Transform", delegate { transform(3); });
 
-            AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
+            AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
         }
 
         protected override void Update()
