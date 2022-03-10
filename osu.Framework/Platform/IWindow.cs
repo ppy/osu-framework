@@ -69,7 +69,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Area to which the mouse cursor is confined to when <see cref="CursorState"/> is <see cref="Platform.CursorState.Confined"/>.
         /// </summary>
-        /// <remarks>Will confine to the whole window by default (or when set to <c>null</c>).</remarks>
+        /// <remarks>
+        /// Will confine to the whole window by default (or when set to <c>null</c>).
+        /// Supported fully on desktop platforms, and on Android when relative mode is enabled.
+        /// </remarks>
         RectangleF? CursorConfineRect { get; set; }
 
         /// <summary>
