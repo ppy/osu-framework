@@ -78,10 +78,7 @@ namespace osu.Framework.Graphics.UserInterface
                 base.ApplyState();
 
                 innerRadius = Source.innerRadius;
-
-                progress = (float)Source.current.Value;
-                if (progress < 0f)
-                    progress *= -1f;
+                progress = Math.Abs((float)Source.current.Value);
             }
 
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
