@@ -27,10 +27,10 @@ bool insideProgressSector(vec2 pixelPos)
 bool insideProgress(vec2 pixelPos)
 {
     float innerBorder = 0.5 - (0.5 * innerRadius);
-    float outherBorder = 0.5;
+    float outerBorder = 0.5;
 
     float dstFromCentre = distance(pixelPos, vec2(0.5));
-    bool insideRing = dstFromCentre > innerBorder && dstFromCentre < outherBorder;
+    bool insideRing = dstFromCentre > innerBorder && dstFromCentre < outerBorder;
 
     return insideRing && insideProgressSector(pixelPos);
 }
@@ -44,7 +44,7 @@ void main(void)
     }
 
     vec2 resolution = vec2(v_TexRect[2] - v_TexRect[0], v_TexRect[3] - v_TexRect[1]);
-    vec2 pixelPos = v_TexCoord/resolution;
+    vec2 pixelPos = v_TexCoord / resolution;
     
     gl_FragColor = insideProgress(pixelPos) ? toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9)) : vec4(0.0);
 }
