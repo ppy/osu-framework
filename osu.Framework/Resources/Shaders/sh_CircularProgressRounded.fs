@@ -2,7 +2,7 @@
 #include "sh_Masking.h"
 #include "sh_TextureWrapping.h"
 
-#define PI 3.1415926538
+#define PI 3.1415926536
 
 varying mediump vec2 v_TexCoord;
 
@@ -25,7 +25,7 @@ bool insideProgressSector(vec2 pixelPos)
 
 bool insideProgress(vec2 pixelPos)
 {
-    float innerBorder = 0.5 - (0.5 * innerRadius);
+    float innerBorder = 0.5 * (1.0 - innerRadius);
     float outerBorder = 0.5;
 
     float dstFromCentre = distance(pixelPos, vec2(0.5));
@@ -42,7 +42,7 @@ void main(void)
         return;
     }
 
-    vec2 resolution = vec2(v_TexRect[2] - v_TexRect[0], v_TexRect[3] - v_TexRect[1]);
+    vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     vec2 pixelPos = v_TexCoord / resolution;
     
     if (!insideProgress(pixelPos))
