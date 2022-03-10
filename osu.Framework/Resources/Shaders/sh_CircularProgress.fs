@@ -1,7 +1,6 @@
 ﻿#include "sh_Utils.h"
 #include "sh_TextureWrapping.h"
-
-#define PI 3.1415926536
+#include "sh_CircularProgressUtils.h"
 
 varying lowp vec4 v_Colour;
 varying mediump vec2 v_TexCoord;
@@ -10,30 +9,6 @@ varying mediump vec4 v_TexRect;
 uniform lowp sampler2D m_Sampler;
 uniform mediump float progress;
 uniform mediump float innerRadius;
-
-bool insideProgressSector(vec2 pixelPos)
-{
-    if (progress >= 1.0)
-        return true;
-
-    float angle = atan(0.5 - pixelPos.y, 0.5 - pixelPos.x) - PI / 2.0;
-
-    if (angle < 0.0)
-        angle += 2.0 * PI;
-
-    return angle < 2.0 * PI * progress;
-}
-
-bool insideProgress(vec2 pixelPos)
-{
-    float innerBorder = 0.5 * (1.0 - innerRadius);
-    float outerBorder = 0.5;
-
-    float dstFromCentre = distance(pixelPos, vec2(0.5));
-    bool insideRing = dstFromCentre > innerBorder && dstFromCentre < outerBorder;
-
-    return insideRing && insideProgressSector(pixelPos);
-}
 
 void main(void)
 {
@@ -46,5 +21,5 @@ void main(void)
     vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     vec2 pixelPos = v_TexCoord / resolution;
     
-    gl_FragColor = insideProgress(pixelPos) ? toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9)) : vec4(0.0);
+    gl_FragColor = insideProgress(pixelPos, progress, innerRadius) ? toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9)) : vec4(0.0);
 }
