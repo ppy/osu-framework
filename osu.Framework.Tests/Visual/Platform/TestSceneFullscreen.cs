@@ -129,6 +129,8 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplayBindable.ToString()));
 
             AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
+
+            AddStep("set default display", () => window.CurrentDisplayBindable.SetDefault());
         }
 
         [Test]

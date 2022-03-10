@@ -14,6 +14,16 @@ namespace osu.Framework.Graphics.Video
     {
         public AVFrame* Frame => ffmpegFrame.Pointer;
 
+        public int GetPlaneWidth(uint plane)
+        {
+            return (plane == 0) ? Frame->width : (Frame->width + 1) / 2;
+        }
+
+        public int GetPlaneHeight(uint plane)
+        {
+            return (plane == 0) ? Frame->height : (Frame->height + 1) / 2;
+        }
+
         public ReadOnlySpan<Rgba32> Data => ReadOnlySpan<Rgba32>.Empty;
 
         public int Level => 0;
