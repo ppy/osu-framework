@@ -40,8 +40,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
         }
 
         private float innerRadius = 1;
