@@ -133,6 +133,7 @@ namespace osu.Framework.Platform
 
                 relativeMouseMode = value;
                 ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+                updateCursorConfinement();
             }
         }
 
@@ -162,6 +163,18 @@ namespace osu.Framework.Platform
         {
             get => CursorStateBindable.Value;
             set => CursorStateBindable.Value = value;
+        }
+
+        private RectangleF? cursorConfineRect;
+
+        public RectangleF? CursorConfineRect
+        {
+            get => cursorConfineRect;
+            set
+            {
+                cursorConfineRect = value;
+                updateCursorConfinement();
+            }
         }
 
         public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
@@ -233,8 +246,27 @@ namespace osu.Framework.Platform
         private void updateCursorVisibility(bool visible) =>
             ScheduleCommand(() => SDL.SDL_ShowCursor(visible ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
 
-        private void updateCursorConfined(bool confined) =>
+        /// <summary>
+        /// Updates OS cursor confinement based on the current <see cref="CursorState"/>, <see cref="CursorConfineRect"/> and <see cref="RelativeMouseMode"/>.
+        /// </summary>
+        private void updateCursorConfinement()
+        {
+            bool confined = CursorState.HasFlagFast(CursorState.Confined);
+
             ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, confined ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+
+            // Don't use SDL_SetWindowMouseRect when relative mode is enabled, as relative mode already confines the OS cursor to the window.
+            // This is fine for our use case, as UserInputManager will clamp the mouse position.
+            if (CursorConfineRect != null && confined && !RelativeMouseMode)
+            {
+                var rect = ((RectangleI)(CursorConfineRect / Scale)).ToSDLRect();
+                ScheduleCommand(() => SDL.SDL_SetWindowMouseRect(SDLWindowHandle, ref rect));
+            }
+            else
+            {
+                ScheduleCommand(() => SDL.SDL_SetWindowMouseRect(SDLWindowHandle, IntPtr.Zero));
+            }
+        }
 
         private WindowState windowState = WindowState.Normal;
 
@@ -378,7 +410,7 @@ namespace osu.Framework.Platform
             CursorStateBindable.ValueChanged += evt =>
             {
                 updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
-                updateCursorConfined(evt.NewValue.HasFlagFast(CursorState.Confined));
+                updateCursorConfinement();
             };
 
             populateJoysticks();
