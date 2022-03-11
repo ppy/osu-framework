@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
@@ -180,18 +181,21 @@ namespace osu.Framework.Tests.Visual.Input
         [BackgroundDependencyLoader]
         private void load()
         {
-            AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
-            setCursorSensivityConfig(1);
+            AddSliderStep("Cursor sensitivity", 0.5, 5, 1, setCursorSensitivityConfig);
+            setCursorSensitivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             AddToggleStep("Toggle cursor visibility", setCursorVisibility);
+            AddToggleStep("Toggle cursor confine rect", setCursorConfineRect);
 
             setRelativeMode(false);
             setConfineMouseModeConfig(false);
+            setCursorConfineRect(false);
+
             AddStep("Reset handlers", () => host.ResetInputHandlers());
         }
 
-        private void setCursorSensivityConfig(double sensitivity)
+        private void setCursorSensitivityConfig(double sensitivity)
         {
             var mouseHandler = getMouseHandler();
 
@@ -230,6 +234,22 @@ namespace osu.Framework.Tests.Visual.Input
         private void setConfineMouseModeConfig(bool enabled)
         {
             config.SetValue(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
+        }
+
+        private void setCursorConfineRect(bool enabled)
+        {
+            if (host.Window == null)
+                return;
+
+            host.Window.CursorConfineRect = enabled
+                ? new RectangleF
+                {
+                    X = host.Window.ClientSize.Width / 6f,
+                    Y = host.Window.ClientSize.Height / 6f,
+                    Width = host.Window.ClientSize.Width * 2 / 3f,
+                    Height = host.Window.ClientSize.Height * 2 / 3f,
+                }
+                : (RectangleF?)null;
         }
     }
 }
