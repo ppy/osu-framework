@@ -143,14 +143,16 @@ namespace osu.Framework.Platform.Windows
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            Size positionOffsetHack = new Size(1, 1);
+            // use the 1px hack we've always used, but only expand the width.
+            // we also trick the game into thinking the window has normal size: see SDL2DesktopWindow.Size
 
-            var newSize = CurrentDisplay.Bounds.Size + positionOffsetHack;
-            var newPosition = CurrentDisplay.Bounds.Location - positionOffsetHack;
+            WindowsBorderlessWidthHack = 1;
 
-            // for now let's use the same 1px hack that we've always used to force borderless.
+            var sizeOffset = new Size(WindowsBorderlessWidthHack, 0);
+            var newSize = CurrentDisplay.Bounds.Size + sizeOffset;
+
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            Position = newPosition;
+            Position = CurrentDisplay.Bounds.Location;
 
             return newSize;
         }

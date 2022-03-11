@@ -14,6 +14,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.Windows;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
 using osuTK;
@@ -147,12 +148,25 @@ namespace osu.Framework.Platform
             get => size;
             private set
             {
+                // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
+                value.Width -= WindowsBorderlessWidthHack;
+
                 if (value.Equals(size)) return;
 
                 size = value;
                 Resized?.Invoke();
             }
         }
+
+        /// <summary>
+        /// Amount of extra width added to window size when in borderless mode on Windows.
+        /// Some drivers required this to avoid the window switching to exclusive fullscreen automatically.
+        /// </summary>
+        /// <remarks>
+        /// Either <c>0</c> or <c>1</c>, depending on if the Windows borderless hack is active.
+        /// See <see cref="WindowsWindow.SetBorderless"/>.
+        /// </remarks>
+        protected int WindowsBorderlessWidthHack;
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
@@ -1056,6 +1070,8 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
+            WindowsBorderlessWidthHack = 0;
+
             // this reset is required even on changing from one fullscreen resolution to another.
             // if it is not included, the GL context will not get the correct size.
             // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
