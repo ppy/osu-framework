@@ -142,10 +142,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        public Size Size
+        public virtual Size Size
         {
             get => size;
-            private set
+            protected set
             {
                 if (value.Equals(size)) return;
 
