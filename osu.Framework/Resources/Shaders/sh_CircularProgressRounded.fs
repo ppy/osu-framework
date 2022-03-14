@@ -17,8 +17,8 @@ void main(void)
         return;
     }
 
-    vec2 resolution = v_TexRect.zw - v_TexRect.xy;
-    vec2 pixelPos = v_TexCoord / resolution;
+    mediump vec2 resolution = v_TexRect.zw - v_TexRect.xy;
+    highp vec2 pixelPos = v_TexCoord / resolution;
     
     if (!insideProgress(pixelPos, progress, innerRadius))
     {
@@ -26,6 +26,6 @@ void main(void)
         return;
     }
 
-    vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
+    highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
     gl_FragColor = getRoundedColor(toSRGB(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9)), wrappedCoord);
 }

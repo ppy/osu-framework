@@ -18,8 +18,8 @@ void main(void)
         return;
     }
 
-    vec2 resolution = v_TexRect.zw - v_TexRect.xy;
-    vec2 pixelPos = v_TexCoord / resolution;
+    mediump vec2 resolution = v_TexRect.zw - v_TexRect.xy;
+    highp vec2 pixelPos = v_TexCoord / resolution;
     
     gl_FragColor = insideProgress(pixelPos, progress, innerRadius) ? toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9)) : vec4(0.0);
 }
