@@ -1252,6 +1252,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
+            if (AutoSizeAxes != Axes.None && AutoSizeDuration > 0)
+                childrenSizeDependencies.Invalidate();
+
             if (!propagateChildren)
                 return;
 
