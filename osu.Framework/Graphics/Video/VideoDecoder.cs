@@ -594,10 +594,7 @@ namespace osu.Framework.Graphics.Video
                     if (transferResult < 0)
                     {
                         Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
-
-                        // only try to continue with HW decoder in case the frame was just misconfigured
-                        if (transferResult != -AGffmpeg.EINVAL)
-                            tryDisableHwDecoding(transferResult);
+                        tryDisableHwDecoding(transferResult);
 
                         hwTransferFrame.Dispose();
                         continue;
