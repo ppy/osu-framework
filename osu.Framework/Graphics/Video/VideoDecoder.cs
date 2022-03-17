@@ -80,6 +80,7 @@ namespace osu.Framework.Graphics.Video
 
         private bool inputOpened;
         private bool isDisposed;
+        private bool hwDecodingAllowed = true;
         private Stream videoStream;
 
         private double timeBaseInSeconds;
@@ -348,9 +349,10 @@ namespace osu.Framework.Graphics.Video
                 return;
 
             var codecParams = *stream->codecpar;
+            var targetHwDecoders = hwDecodingAllowed ? TargetHardwareVideoDecoders.Value : HardwareVideoDecoder.None;
             bool openSuccessful = false;
 
-            foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, TargetHardwareVideoDecoders.Value))
+            foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, targetHwDecoders))
             {
                 // free context in case it was allocated in a previous iteration or recreate call.
                 if (codecContext != null)
@@ -535,9 +537,14 @@ namespace osu.Framework.Graphics.Video
             // Note: EAGAIN can be returned if there's too many pending frames, which we have to read,
             // otherwise we would get stuck in an infinite loop.
             if (sendPacketResult == 0 || sendPacketResult == -AGffmpeg.EAGAIN)
+            {
                 readDecodedFrames(receiveFrame);
+            }
             else
+            {
                 Logger.Log($"Failed to send avcodec packet: {getErrorMessage(sendPacketResult)}");
+                tryDisableHwDecoding(sendPacketResult);
+            }
 
             return sendPacketResult;
         }
@@ -556,6 +563,7 @@ namespace osu.Framework.Graphics.Video
                     if (receiveFrameResult != -AGffmpeg.EAGAIN && receiveFrameResult != AGffmpeg.AVERROR_EOF)
                     {
                         Logger.Log($"Failed to receive frame from avcodec: {getErrorMessage(receiveFrameResult)}");
+                        tryDisableHwDecoding(receiveFrameResult);
                     }
 
                     break;
@@ -586,8 +594,8 @@ namespace osu.Framework.Graphics.Video
                     if (transferResult < 0)
                     {
                         Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
+                        tryDisableHwDecoding(transferResult);
 
-                        // dispose of the frame instead of enqueueing it in case that the failure was caused by it's configuration.
                         hwTransferFrame.Dispose();
                         continue;
                     }
@@ -678,6 +686,28 @@ namespace osu.Framework.Graphics.Video
             }
 
             return scalerFrame;
+        }
+
+        private void tryDisableHwDecoding(int errorCode)
+        {
+            if (!hwDecodingAllowed || TargetHardwareVideoDecoders.Value == HardwareVideoDecoder.None || codecContext == null || codecContext->hw_device_ctx == null)
+                return;
+
+            hwDecodingAllowed = false;
+
+            if (errorCode == -AGffmpeg.ENOMEM)
+            {
+                Logger.Log("Disabling hardware decoding of all videos due to a lack of memory");
+                TargetHardwareVideoDecoders.Value = HardwareVideoDecoder.None;
+
+                // `recreateCodecContext` will be called by the bindable hook
+            }
+            else
+            {
+                Logger.Log("Disabling hardware decoding of the current video due to an unexpected error");
+
+                decoderCommands.Enqueue(recreateCodecContext);
+            }
         }
 
         private string getErrorMessage(int errorCode)
