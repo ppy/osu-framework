@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
             {
                 updateQuadBatch();
 
@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Containers
                 if (quadBatch != null)
                     vertexAction = quadBatch.AddAction;
 
-                base.Draw(vertexAction);
+                base.Draw(vertexAction, ref drawState);
 
                 drawEdgeEffect();
 
@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(vertexAction);
+                        Children[i].Draw(vertexAction, ref drawState);
                 }
 
                 if (maskingInfo != null)

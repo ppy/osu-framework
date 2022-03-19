@@ -71,9 +71,9 @@ namespace osu.Framework.Graphics.Sprites
                 DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, textureCoords: TextureCoords);
         }
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
         {
-            base.Draw(vertexAction);
+            base.Draw(vertexAction, ref drawState);
 
             if (Texture?.Available != true)
                 return;

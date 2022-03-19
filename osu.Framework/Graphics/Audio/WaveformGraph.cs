@@ -298,9 +298,9 @@ namespace osu.Framework.Graphics.Audio
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
             {
-                base.Draw(vertexAction);
+                base.Draw(vertexAction, ref drawState);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;

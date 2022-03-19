@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(Action<TexturedVertex2D> vertexAction)
+        public sealed override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
         {
             if (RequiresRedraw)
             {
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics
                         GLWrapper.PushOrtho(screenSpaceDrawRectangle);
                         GLWrapper.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(vertexAction);
+                        Child.Draw(vertexAction, ref drawState);
 
                         GLWrapper.PopOrtho();
                     }
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
-            base.Draw(vertexAction);
+            base.Draw(vertexAction, ref drawState);
             DrawContents();
 
             Shader.Unbind();

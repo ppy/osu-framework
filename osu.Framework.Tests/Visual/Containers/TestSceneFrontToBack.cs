@@ -148,10 +148,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
             {
                 startQuery();
-                base.Draw(vertexAction);
+                base.Draw(vertexAction, ref drawState);
                 DrawSamples = endQuery();
             }
 

@@ -507,7 +507,8 @@ namespace osu.Framework.Platform
                     }
 
                     // Back pass
-                    buffer.Object.Draw(null);
+                    DrawState drawState = new DrawState();
+                    buffer.Object.Draw(null, ref drawState);
 
                     GLWrapper.PopDepthInfo();
 

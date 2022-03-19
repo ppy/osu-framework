@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Visualisation
                     textureReference = Source.textureReference;
                 }
 
-                public override void Draw(Action<TexturedVertex2D> vertexAction)
+                public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Visualisation
                             ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Color4.DarkGray, Color4.Red, 0, 200)
                             : Color4.Transparent);
 
-                    base.Draw(vertexAction);
+                    base.Draw(vertexAction, ref drawState);
 
                     // intentionally after draw to avoid counting our own bind.
                     Source.lastBindCount = texture.BindCount;
