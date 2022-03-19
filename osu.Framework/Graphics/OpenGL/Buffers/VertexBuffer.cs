@@ -2,12 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Development;
-using SixLabors.ImageSharp.Memory;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -16,10 +14,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         protected static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
-        private readonly BufferUsageHint usage;
+        private static readonly DepthWrappingVertex<T>[] upload_queue = new DepthWrappingVertex<T>[1024];
+        private static int upload_start = int.MaxValue;
+        private static int upload_length;
 
-        private Memory<DepthWrappingVertex<T>> vertexMemory;
-        private IMemoryOwner<DepthWrappingVertex<T>> memoryOwner;
+        private readonly BufferUsageHint usage;
 
         private int vboId = -1;
 
@@ -30,22 +29,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Size = amountVertices;
         }
 
-        /// <summary>
-        /// Sets the vertex at a specific index of this <see cref="VertexBuffer{T}"/>.
-        /// </summary>
-        /// <param name="vertexIndex">The index of the vertex.</param>
-        /// <param name="vertex">The vertex.</param>
-        /// <returns>Whether the vertex changed.</returns>
-        public bool SetVertex(int vertexIndex, T vertex)
+        public void EnqueueVertex(int index, T vertex)
         {
-            ref var currentVertex = ref getMemory().Span[vertexIndex];
+            if (upload_length == upload_queue.Length)
+                upload();
 
-            bool isNewVertex = !currentVertex.Vertex.Equals(vertex) || currentVertex.BackbufferDrawDepth != GLWrapper.BackbufferDrawDepth;
-
-            currentVertex.Vertex = vertex;
-            currentVertex.BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth;
-
-            return isNewVertex;
+            upload_start = Math.Min(upload_start, index);
+            upload_queue[upload_length++] = new DepthWrappingVertex<T>
+            {
+                Vertex = vertex,
+                BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth
+            };
         }
 
         /// <summary>
@@ -124,6 +118,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             LastUseResetId = GLWrapper.ResetId;
 
+            upload();
+
             Bind(true);
 
             int countVertices = endIndex - startIndex;
@@ -132,38 +128,19 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Unbind();
         }
 
-        public void Update()
+        private void upload()
         {
-            UpdateRange(0, Size);
-        }
+            if (upload_length == 0)
+                return;
 
-        public void UpdateRange(int startIndex, int endIndex)
-        {
             Bind(false);
-
-            int countVertices = endIndex - startIndex;
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * STRIDE), (IntPtr)(countVertices * STRIDE), ref getMemory().Span[startIndex]);
-
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(upload_start * STRIDE), (IntPtr)(upload_length * STRIDE), ref upload_queue[0]);
             Unbind();
 
-            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
-        }
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, upload_length);
 
-        private ref Memory<DepthWrappingVertex<T>> getMemory()
-        {
-            ThreadSafety.EnsureDrawThread();
-
-            if (!InUse)
-            {
-                memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(Size, AllocationOptions.Clean);
-                vertexMemory = memoryOwner.Memory;
-
-                GLWrapper.RegisterVertexBufferUse(this);
-            }
-
-            LastUseResetId = GLWrapper.ResetId;
-
-            return ref vertexMemory;
+            upload_start = int.MaxValue;
+            upload_length = 0;
         }
 
         public ulong LastUseResetId { get; private set; }
@@ -179,10 +156,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 GL.DeleteBuffer(vboId);
                 vboId = -1;
             }
-
-            memoryOwner?.Dispose();
-            memoryOwner = null;
-            vertexMemory = Memory<DepthWrappingVertex<T>>.Empty;
 
             LastUseResetId = 0;
         }

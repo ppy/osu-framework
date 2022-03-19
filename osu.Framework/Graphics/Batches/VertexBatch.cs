@@ -21,9 +21,6 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         public int Size { get; }
 
-        private int changeBeginIndex = -1;
-        private int changeEndIndex = -1;
-
         private int currentBufferIndex;
         private int currentVertexIndex;
         private int rollingVertexIndex;
@@ -63,7 +60,6 @@ namespace osu.Framework.Graphics.Batches
 
         public void ResetCounters()
         {
-            changeBeginIndex = -1;
             currentBufferIndex = 0;
             currentVertexIndex = 0;
             rollingVertexIndex = 0;
@@ -90,13 +86,7 @@ namespace osu.Framework.Graphics.Batches
             while (currentBufferIndex >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
 
-            if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
-            {
-                if (changeBeginIndex == -1)
-                    changeBeginIndex = currentVertexIndex;
-
-                changeEndIndex = currentVertexIndex + 1;
-            }
+            currentVertexBuffer.EnqueueVertex(currentVertexIndex, v);
 
             ++currentVertexIndex;
             ++rollingVertexIndex;
@@ -107,11 +97,7 @@ namespace osu.Framework.Graphics.Batches
             if (currentVertexIndex == 0)
                 return 0;
 
-            VertexBuffer<T> vertexBuffer = currentVertexBuffer;
-            if (changeBeginIndex >= 0)
-                vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
-
-            vertexBuffer.DrawRange(0, currentVertexIndex);
+            currentVertexBuffer.DrawRange(0, currentVertexIndex);
 
             int count = currentVertexIndex;
 
@@ -119,7 +105,6 @@ namespace osu.Framework.Graphics.Batches
             //TODO: let us know if we exceed and roll over to zero here.
             currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
             currentVertexIndex = 0;
-            changeBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
