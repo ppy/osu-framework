@@ -1,11 +1,10 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -26,13 +25,14 @@ namespace osu.Framework.Graphics.Visualisation
     {
         public Vector2 ToolPosition
         {
-            get => treeContainer.Position;
-            set => treeContainer.Position = value;
+            get => TabContainer.Position;
+            set => TabContainer.Position = value;
         }
 
-        private readonly DrawableTreeContainer treeContainer;
+        private readonly DrawableTreeContainer drawableTreeContainer;
+        public readonly TreeTabContainer TabContainer;
 
-        private DrawableInspector drawableInspector =>  treeContainer.DrawableInspector;
+        private DrawableInspector drawableInspector => drawableTreeContainer.DrawableInspector;
         private readonly InfoOverlay overlay;
         private InputManager inputManager = null!;
 
@@ -42,14 +42,17 @@ namespace osu.Framework.Graphics.Visualisation
             Children = new Drawable[]
             {
                 overlay = new InfoOverlay(),
-                treeContainer = new DrawableTreeContainer
-                {
-                    State = { BindTarget = State },
-                    ChooseTarget = () =>
+                TabContainer = new TreeTabContainer(
+                    drawableTreeContainer = new DrawableTreeContainer
                     {
-                        Target = null;
+                        ChooseTarget = () =>
+                        {
+                            Target = null;
+                        },
+                    })
+                    {
+                        State = { BindTarget = State }
                     },
-                },
                 new CursorContainer()
             };
         }
@@ -72,17 +75,14 @@ namespace osu.Framework.Graphics.Visualisation
         {
             this.FadeOut(100);
 
-            treeContainer.SetHighlight(null);
+            drawableTreeContainer.SetHighlight(null);
             drawableInspector.Hide();
 
             recycleVisualisers();
-
-            foreach (var subVisualiser in InternalChildren.OfType<ITreeContainer>())
-                subVisualiser.Hide();
         }
 
 
-        private VisualisedDrawable? targetVisualiser => treeContainer.TargetVisualiser;
+        private VisualisedDrawable? targetVisualiser => drawableTreeContainer.TargetVisualiser;
 
         internal void SetTarget(Drawable? target)
         {
@@ -91,8 +91,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable? Target
         {
-            get => treeContainer.Target;
-            set => treeContainer.Target = value;
+            get => drawableTreeContainer.Target;
+            set
+            {
+                if (value == null)
+                    TabContainer.SelectTarget();
+                else
+                    TabContainer.SpawnDrawableVisualiser(value);
+            }
         }
 
         private Drawable? cursorTarget;
@@ -238,20 +244,6 @@ namespace osu.Framework.Graphics.Visualisation
                 v.Dispose();
         }
 
-        public T SpawnVisualiser<T, TNode, TTarget>(TTarget? initTarget)
-            where T : TreeContainer<TNode, TTarget>, new()
-            where TNode : VisualisedElement
-            where TTarget : class
-        {
-            T visualiser = new T();
-            LoadComponentAsync(visualiser, v =>
-            {
-                AddInternal(visualiser);
-                visualiser.State.BindTo(State);
-                visualiser.Target = initTarget;
-                v.Show();
-            });
-            return visualiser;
-        }
+        public override string ToString() => "Draw Visualiser (inspecting will crash!)";
     }
 }

@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Visualisation
         private Bindable<object> inspectedTarget;
 
         [Resolved]
-        private ITreeContainer tree { get; set; }
+        private TreeContainer tree { get; set; }
 
         protected override Container<Drawable> Content => flow;
 
@@ -224,12 +224,12 @@ namespace osu.Framework.Graphics.Visualisation
             /// <summary>Indicates whether it's a stored value (static) or a computable property (dynamic)</summary>
             protected bool IsDynamic;
             protected bool IsShown;
-            private readonly ITreeContainer tree;
+            private readonly TreeContainer tree;
 
             protected abstract Type PropertyType { get; }
             protected abstract string PropertyName { get; }
 
-            protected PropertyItem(ITreeContainer tree)
+            protected PropertyItem(TreeContainer tree)
             {
                 this.tree = tree;
             }
@@ -403,7 +403,7 @@ namespace osu.Framework.Graphics.Visualisation
             protected override Type PropertyType { get; }
             protected override string PropertyName { get; }
 
-            public BasicPropertyItem(MemberInfo info, object d, ITreeContainer tree)
+            public BasicPropertyItem(MemberInfo info, object d, TreeContainer tree)
                 : base(tree)
             {
                 switch (info)
@@ -437,7 +437,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             private T value;
 
-            public VirtualPropertyItem(string name, T value, ITreeContainer tree)
+            public VirtualPropertyItem(string name, T value, TreeContainer tree)
                 : base(tree)
             {
                 PropertyName = name;

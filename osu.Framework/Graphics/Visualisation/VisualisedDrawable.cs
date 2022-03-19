@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         [Resolved]
-        protected ITreeContainer Tree { get; private set; } = null!;
+        protected TreeContainer Tree { get; private set; } = null!;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -533,9 +533,10 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Vector2 posInTree = ToSpaceOfOtherDrawable(Vector2.Zero, Tree);
 
-            if (posInTree.Y < -PreviewBox.DrawHeight || posInTree.Y > ((Drawable)Tree).Height)
+            if (posInTree.Y < -PreviewBox.DrawHeight || posInTree.Y > Tree.DrawHeight)
             {
                 Text.Text = string.Empty;
+                Text2.Text = string.Empty;
                 return;
             }
 
@@ -783,7 +784,9 @@ namespace osu.Framework.Graphics.Visualisation
         protected internal override VisualisedElement? AddChildVisualiser(object? element)
         {
             // Make sure to never add the DrawVisualiser (recursive scenario)
-            if (element == Tree) return null;
+            // The user can still bypass it through inspecting properties
+            // but there's not much we can do here.
+            if (element == Tree.Visualiser) return null;
 
             // Don't add individual characters of SpriteText
             if (Target is SpriteText) return null;

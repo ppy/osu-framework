@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Visual.Testing
                     new Box { Colour = Colour4.Green },
                     new Box { Colour = Colour4.Blue },
                 };
-                objTreeContainer = drawVisualiser.SpawnVisualiser<ObjectTreeContainer, VisualisedObject, object>(list);
+                objTreeContainer = drawVisualiser.TabContainer.SpawnObjectVisualiser(list);
             });
 
             AssertColours(stackalloc[]

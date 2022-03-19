@@ -1,10 +1,15 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 
 #nullable enable
@@ -12,26 +17,355 @@ using osu.Framework.Input.Events;
 namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
-    internal interface ITreeContainer : IDrawable, IContainVisualisedElements
+    internal class TreeTabContainer : EmptyToolWindow
     {
-        VisualisedElement GetVisualiserFor(object? target);
-        void RequestTarget(object? target);
-        void HighlightTarget(object target);
+        private readonly TabControl<TreeTab> tabControl;
+
+        public readonly DrawableTreeContainer DrawableTreeContainer;
+
+        public readonly Container<TreeContainer> TreeContainers;
+
+        public TreeTabContainer(DrawableTreeContainer drawableTreeContainer)
+            : base("Draw Visualiser", "(Ctrl+F1 to toggle)")
+        {
+            BodyContent.Add(new GridContainer
+            {
+                RelativeSizeAxes = Axes.Y,
+                AutoSizeAxes = Axes.X,
+                RowDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension()
+                },
+                ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.AutoSize, minSize: WIDTH)
+                },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        tabControl = new TreeTabControl
+                        {
+                            RelativeSizeAxes = Axes.X,
+                        },
+                        TreeContainers = new Container<TreeContainer>
+                        {
+                            RelativeSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.X,
+                        },
+                    }
+                }.Invert()
+            });
+
+            tabControl.Current.BindValueChanged(showTab, true);
+
+            DrawableTreeContainer = drawableTreeContainer;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            TreeContainers.Add(DrawableTreeContainer);
+            AddTab(current = new SearchingTab(DrawableTreeContainer));
+        }
+
+        private void showTab(ValueChangedEvent<TreeTab> tabChanged)
+        {
+            Current = tabChanged.NewValue;
+        }
+
+        protected void AddTab(TreeTab tab)
+        {
+            tabControl.AddItem(tab);
+            tabControl.Current.Value = tab;
+        }
+
+        private TreeTab current = null!;
+
+        public TreeTab Current
+        {
+            get => current;
+            set
+            {
+                if (current == value)
+                    return;
+
+                current.Tree.Hide();
+
+                current = value;
+                tabControl.Current.Value = value;
+
+                current.Tree.Show();
+                SetCurrentToolbar(current.Tree.Toolbar);
+                current.SetTarget();
+            }
+        }
+
+        public ObjectTreeContainer SpawnObjectVisualiser(object initTarget)
+        {
+            ObjectTreeContainer visualiser = new ObjectTreeContainer();
+            TreeContainers.Add(visualiser);
+            AddTab(new ObjectTreeTab(visualiser, initTarget));
+            return visualiser;
+        }
+
+        public void SpawnDrawableVisualiser(Drawable initTarget)
+        {
+            AddTab(new DrawableTreeTab(DrawableTreeContainer, initTarget));
+        }
+
+        public void SelectTarget()
+        {
+            if (current == null)
+                return;
+            Current = tabControl.Items[0];
+        }
+
+        private class TreeTabControl : TabControl<TreeTab>
+        {
+            public TreeTabControl()
+            {
+                AutoSizeAxes = Axes.Y;
+                TabContainer.AllowMultiline = true;
+                TabContainer.RelativeSizeAxes = Axes.X;
+                TabContainer.AutoSizeAxes = Axes.Y;
+            }
+
+            protected override Dropdown<TreeTab> CreateDropdown()
+                => new BasicTabControl<TreeTab>.BasicTabControlDropdown();
+
+            protected override TabItem<TreeTab> CreateTabItem(TreeTab value)
+                => new TreeTabItem(value)
+                {
+                    RequestClose = closeTab
+                };
+
+            private void closeTab(TreeTabItem tab)
+            {
+                RemoveTabItem(tab);
+            }
+        }
+
+        private class TreeTabItem : TabItem<TreeTab>
+        {
+            private Box background;
+            private SpriteText text;
+
+            public Action<TreeTabItem> RequestClose = null!;
+
+            public TreeTabItem(TreeTab value)
+                : base(value)
+            {
+                AutoSizeAxes = Axes.X;
+                Height = 20f;
+                AddRangeInternal(new Drawable[]
+                {
+                    background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.YellowGreenDark,
+                    },
+                    new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.X,
+                        RelativeSizeAxes = Axes.Y,
+                        Direction = FillDirection.Horizontal,
+                        Children = new Drawable[]
+                        {
+                            text = new SpriteText
+                            {
+                                Colour = Colour4.White,
+                                Font = FrameworkFont.Regular.With(size: 18),
+                            },
+                            new TabCloseButton
+                            {
+                                Action = () => RequestClose(this),
+                                Alpha = value is SearchingTab ? 0f : 1f,
+                            },
+                        }
+                    }
+                });
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                text.Text = Value.ToString();
+            }
+
+            protected override void OnActivated()
+                => background.Colour = FrameworkColour.YellowGreen;
+
+            protected override void OnDeactivated()
+                => background.Colour = FrameworkColour.YellowGreenDark;
+
+            private class TabCloseButton : ClickableContainer
+            {
+                private SpriteIcon icon;
+
+                public TabCloseButton()
+                {
+                    Margin = new MarginPadding { Left = 10f, Right = 2f };
+                    Size = new osuTK.Vector2(20f);
+                    InternalChild = icon = new SpriteIcon
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                        Scale = new osuTK.Vector2(0.65f),
+                        Icon = FontAwesome.Solid.Times,
+                        Colour = Colour4.OrangeRed,
+                    };
+                }
+            }
+        }
     }
 
-    internal abstract class TreeContainer<NodeType, TargetType> : ToolWindow, ITreeContainer
+    internal abstract class TreeTab
+    {
+        public abstract object Target { get; }
+        public abstract TreeContainer Tree { get; }
+
+        public override string ToString()
+        {
+            return Target.ToString() ?? "";
+        }
+
+        public abstract void SetTarget();
+    }
+
+    internal sealed class DrawableTreeTab : TreeTab
+    {
+        public Drawable TargetDrawable;
+        public readonly DrawableTreeContainer DrawableTree;
+
+        public override object Target => TargetDrawable;
+        public override TreeContainer Tree => DrawableTree;
+
+        public DrawableTreeTab(DrawableTreeContainer tree, Drawable target)
+        {
+            DrawableTree = tree;
+            TargetDrawable = target;
+        }
+
+        public override void SetTarget()
+        {
+            DrawableTree.Target = TargetDrawable;
+        }
+    }
+
+    internal sealed class SearchingTab : TreeTab
+    {
+        public readonly DrawableTreeContainer DrawableTree;
+
+        public override object Target => null!;
+        public override TreeContainer Tree => DrawableTree;
+
+        public SearchingTab(DrawableTreeContainer tree)
+        {
+            DrawableTree = tree;
+        }
+
+        public override void SetTarget()
+        {
+            DrawableTree.Target = null;
+        }
+
+        public override string ToString() => "Select drawable...";
+    }
+
+    internal sealed class ObjectTreeTab : TreeTab
+    {
+        public readonly ObjectTreeContainer ObjectTree;
+
+        public override object Target { get; }
+        public override TreeContainer Tree => ObjectTree;
+
+        public ObjectTreeTab(ObjectTreeContainer tree, object target)
+        {
+            ObjectTree = tree;
+            Target = target;
+            tree.Target = target;
+        }
+
+        public override void SetTarget()
+        {
+        }
+    }
+
+    [Cached]
+    internal abstract class TreeContainer : VisibilityContainer, IContainVisualisedElements
+    {
+        public VisualisedElement GetVisualiserFor(object? target) => GetVisualiserForImpl(target);
+
+        protected abstract VisualisedElement GetVisualiserForImpl(object? target);
+        public abstract void RequestTarget(object? target);
+        public abstract void HighlightTarget(object target);
+
+        public abstract void AddVisualiser(VisualiserTreeNode visualiser);
+        public abstract void RemoveVisualiser(VisualiserTreeNode visualiser);
+
+        [Resolved]
+        public DrawVisualiser Visualiser { get; private set; } = null!;
+
+        [Resolved]
+        public TreeTabContainer TabContainer { get; private set; } = null!;
+
+        public FillFlowContainer Toolbar { get; private set; } = null!;
+        protected TreeTabContainer Window { get; private set; } = null!;
+        protected readonly ScrollContainer<Drawable> ScrollContent;
+
+        private FillFlowContainer content;
+        protected override Container<Drawable> Content => content;
+
+        public TreeContainer()
+        {
+            RelativeSizeAxes = Axes.Y;
+            AutoSizeAxes = Axes.X;
+            AddInternal(content = new FillFlowContainer
+            {
+                RelativeSizeAxes = Axes.Y,
+                AutoSizeAxes = Axes.X,
+                Direction = FillDirection.Horizontal,
+                Child = ScrollContent = new BasicScrollContainer<Drawable>
+                {
+                    RelativeSizeAxes = Axes.Y,
+                    Width = EmptyToolWindow.WIDTH,
+                },
+            });
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(TreeTabContainer window)
+        {
+            Window = window;
+            Toolbar = Window.AddToolbar();
+        }
+
+        protected override void PopIn() => this.FadeIn(100);
+
+        protected override void PopOut() => this.FadeOut(100);
+
+        protected void AddButton(string text, Action action)
+        {
+            Debug.Assert(Window.ToolbarContent == Toolbar);
+
+            Window.AddButton(text, action);
+        }
+    }
+
+    internal abstract class TreeContainer<NodeType, TargetType> : TreeContainer
         where NodeType : VisualisedElement
         where TargetType : class
     {
         protected internal DrawableInspector DrawableInspector { get; protected set; }
 
-        [Resolved]
-        protected DrawVisualiser Visualiser { get; private set; } = null!;
-
-        protected TreeContainer(string title, string keyHelpText)
-            : base(title, keyHelpText)
+        protected TreeContainer()
         {
-            MainHorizontalContent.Add(DrawableInspector = new DrawableInspector());
+            Add(DrawableInspector = new DrawableInspector());
 
             DrawableInspector.State.ValueChanged += v =>
             {
@@ -87,34 +421,34 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnClick(ClickEvent e) => true;
 
-        void IContainVisualisedElements.AddVisualiser(VisualiserTreeNode _visualiser)
+        public override void AddVisualiser(VisualiserTreeNode _visualiser)
         {
             if (!(_visualiser is NodeType visualiser))
                 throw new InvalidOperationException("Top node must be a visualiser");
             AddVisualiser(visualiser);
         }
 
-        void IContainVisualisedElements.RemoveVisualiser(VisualiserTreeNode _visualiser)
+        public override void RemoveVisualiser(VisualiserTreeNode _visualiser)
         {
             if (!(_visualiser is NodeType visualiser))
                 throw new InvalidOperationException("Top node must be a visualiser");
             RemoveVisualiser(visualiser);
         }
 
-        public void RequestTarget(object? target)
+        public override void RequestTarget(object? target)
         {
             if (target is Drawable d)
             {
                 Visualiser.Target = d;
                 TargetVisualiser!.ExpandAll();
             }
-            else
+            else if (target != null)
             {
-                Visualiser.SpawnVisualiser<ObjectTreeContainer, VisualisedObject, object>(target);
+                TabContainer.SpawnObjectVisualiser(target);
             }
         }
 
-        public void HighlightTarget(object target)
+        public override void HighlightTarget(object target)
         {
             DrawableInspector.Show();
 
@@ -160,7 +494,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected void SetTarget(TargetType? target) => Target = target;
 
-        VisualisedElement ITreeContainer.GetVisualiserFor(object? target) => GetVisualiserFor((TargetType?)target);
+        protected sealed override VisualisedElement GetVisualiserForImpl(object? target) => GetVisualiserFor((TargetType?)target);
 
         public abstract NodeType GetVisualiserFor(TargetType? target);
 
@@ -198,7 +532,6 @@ namespace osu.Framework.Graphics.Visualisation
         public Action? ChooseTarget;
 
         public DrawableTreeContainer()
-            : base("Draw Visualiser", "(Ctrl+F1 to toggle)")
         {
             AddInternal(waitingText = new SpriteText
             {
@@ -224,7 +557,10 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 base.Target = value;
 
-                Visualiser.SetTarget(value);
+                if (Visualiser == null)
+                    Schedule(() => Visualiser!.SetTarget(value));
+                else
+                    Visualiser.SetTarget(value);
             }
         }
 
@@ -245,6 +581,7 @@ namespace osu.Framework.Graphics.Visualisation
                 var lastVisualiser = TargetVisualiser!;
 
                 Target = parent;
+                ((DrawableTreeTab)TabContainer.Current).TargetDrawable = parent;
                 lastVisualiser.SetContainer(TargetVisualiser);
 
                 TargetVisualiser!.Expand();
@@ -265,7 +602,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void inspectAsObject()
         {
-            Visualiser.SpawnVisualiser<ObjectTreeContainer, VisualisedObject, object>(Target);
+            if (Target != null)
+                TabContainer.SpawnObjectVisualiser(Target);
         }
 
         public override VisualisedDrawable GetVisualiserFor(Drawable? drawable)
@@ -276,11 +614,6 @@ namespace osu.Framework.Graphics.Visualisation
 
     internal class ObjectTreeContainer : TreeContainer<VisualisedObject, object>
     {
-        public ObjectTreeContainer()
-            : base("Tree visualiser", "(Esc to close)")
-        {
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -293,15 +626,9 @@ namespace osu.Framework.Graphics.Visualisation
         [Resolved]
         private Game game { get; set; } = null!;
 
-        protected sealed override bool StartHidden => false;
-        protected override void PopOut()
-        {
-            this.RemoveAndDisposeImmediately();
-        }
-
         private void inspectRoot()
         {
-            Target = game;
+            TabContainer.SpawnObjectVisualiser(game);
         }
 
         private void inspectAsDrawable()
