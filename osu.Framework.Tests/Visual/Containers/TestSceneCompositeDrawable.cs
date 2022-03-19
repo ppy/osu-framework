@@ -52,6 +52,41 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("bad change child depth call fails", () => Assert.Throws<InvalidOperationException>(() => parent.ChangeChildDepth(nestedChild, 10)));
         }
 
+        /// <summary>
+        /// Ensures that <see cref="CompositeDrawable.ClearTransforms"/> does not discard auto-sizing indefinitely.
+        /// </summary>
+        [Test]
+        public void TestClearTransformsOnDelayedAutoSize()
+        {
+            Container container = null;
+            bool clearedTransforms = false;
+
+            AddStep("create hierarchy", () =>
+            {
+                Child = container = new Container
+                {
+                    Masking = true,
+                    AutoSizeAxes = Axes.Both,
+                    AutoSizeDuration = 1000,
+                    Child = new Box { Size = new Vector2(100) },
+                };
+
+                clearedTransforms = false;
+
+                container.OnAutoSize += () => Schedule(() =>
+                {
+                    if (clearedTransforms)
+                        return;
+
+                    container.ClearTransforms();
+                    clearedTransforms = true;
+                });
+            });
+
+            AddAssert("transforms cleared", () => clearedTransforms);
+            AddUntilStep("container still autosized", () => container.Size == new Vector2(100));
+        }
+
         private class SortableComposite : CompositeDrawable
         {
             public SortableComposite()

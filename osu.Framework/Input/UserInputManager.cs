@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
@@ -38,7 +39,8 @@ namespace osu.Framework.Input
                     if (Host.Window != null && Host.Window.CursorState.HasFlagFast(CursorState.Confined))
                     {
                         var clientSize = Host.Window.ClientSize;
-                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(clientSize.Width - 1, clientSize.Height - 1));
+                        var cursorConfineRect = Host.Window.CursorConfineRect ?? new RectangleF(0, 0, clientSize.Width, clientSize.Height);
+                        mouse.Position = Vector2.Clamp(mouse.Position, cursorConfineRect.Location, cursorConfineRect.Location + cursorConfineRect.Size - Vector2.One);
                     }
 
                     break;
