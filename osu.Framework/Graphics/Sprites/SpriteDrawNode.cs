@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
-using System;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -72,9 +71,9 @@ namespace osu.Framework.Graphics.Sprites
                 DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, batch, textureCoords: TextureCoords);
         }
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+        public override void Draw(ref DrawState drawState)
         {
-            base.Draw(vertexAction, ref drawState);
+            base.Draw(ref drawState);
 
             if (Texture?.Available != true)
                 return;
@@ -88,9 +87,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
 
-        protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+        protected override void DrawOpaqueInterior(ref DrawState drawState)
         {
-            base.DrawOpaqueInterior(vertexAction, ref drawState);
+            base.DrawOpaqueInterior(ref drawState);
 
             if (Texture?.Available != true)
                 return;

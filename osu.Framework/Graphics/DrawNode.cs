@@ -81,9 +81,8 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
         /// </remarks>
-        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         /// <param name="drawState"></param>
-        public virtual void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+        public virtual void Draw(ref DrawState drawState)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
 
@@ -102,9 +101,8 @@ namespace osu.Framework.Graphics
         /// Other <see cref="DrawNode"/>s behind ourselves receive the incremented depth value before doing the same themselves, allowing early-z to take place during this pass.
         /// </remarks>
         /// <param name="depthValue">The previous depth value.</param>
-        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         /// <param name="drawState"></param>
-        internal virtual void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+        internal virtual void DrawOpaqueInteriorSubTree(DepthValue depthValue, ref DrawState drawState)
         {
             if (!depthValue.CanIncrement || !CanDrawOpaqueInterior)
             {
@@ -120,7 +118,7 @@ namespace osu.Framework.Graphics
             float previousDepthValue = depthValue;
             drawDepth = depthValue.Increment();
 
-            DrawOpaqueInterior(vertexAction, ref drawState);
+            DrawOpaqueInterior(ref drawState);
 
             // Decrement the depth.
             drawDepth = previousDepthValue;
@@ -134,9 +132,8 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
         /// </remarks>
-        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         /// <param name="drawState"></param>
-        protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+        protected virtual void DrawOpaqueInterior(ref DrawState drawState)
         {
             GLWrapper.SetDrawDepth(drawDepth);
         }

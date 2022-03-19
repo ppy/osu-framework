@@ -1,13 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
@@ -134,10 +132,10 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, ref DrawState drawState)
             {
                 startQuery();
-                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction, ref drawState);
+                base.DrawOpaqueInteriorSubTree(depthValue, ref drawState);
                 DrawOpaqueInteriorSubTreeSamples = endQuery();
             }
 
@@ -148,10 +146,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+            public override void Draw(ref DrawState drawState)
             {
                 startQuery();
-                base.Draw(vertexAction, ref drawState);
+                base.Draw(ref drawState);
                 DrawSamples = endQuery();
             }
 

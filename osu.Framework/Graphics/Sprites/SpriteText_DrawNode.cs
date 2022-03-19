@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -44,9 +43,9 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
+            public override void Draw(ref DrawState drawState)
             {
-                base.Draw(vertexAction, ref drawState);
+                base.Draw(ref drawState);
 
                 Shader.Bind();
 

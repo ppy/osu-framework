@@ -494,7 +494,7 @@ namespace osu.Framework.Platform
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null, ref drawState);
+                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, ref drawState);
 
                         GLWrapper.PopDepthInfo();
                         GL.ColorMask(true, true, true, true);
@@ -511,7 +511,7 @@ namespace osu.Framework.Platform
                     }
 
                     // Back pass
-                    buffer.Object.Draw(null, ref drawState);
+                    buffer.Object.Draw(ref drawState);
 
                     GLWrapper.PopDepthInfo();
 

@@ -1,9 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics
@@ -88,11 +86,11 @@ namespace osu.Framework.Graphics
                 {
                 }
 
-                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
-                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, vertexAction, ref drawState);
+                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, ref DrawState drawState)
+                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, ref drawState);
 
-                public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
-                    => getCurrentFrameSource()?.Draw(vertexAction, ref drawState);
+                public override void Draw(ref DrawState drawState)
+                    => getCurrentFrameSource()?.Draw(ref drawState);
 
                 protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
 
