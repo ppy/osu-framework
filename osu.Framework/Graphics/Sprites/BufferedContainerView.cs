@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -144,17 +145,17 @@ namespace osu.Framework.Graphics.Sprites
                 Shader.Bind();
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
-                    drawMainBuffer(vertexAction);
+                    drawMainBuffer(drawState.QuadBatch);
 
-                drawEffectBuffer(vertexAction);
+                drawEffectBuffer(drawState.QuadBatch);
 
                 if (sourceEffectPlacement == EffectPlacement.Behind)
-                    drawMainBuffer(vertexAction);
+                    drawMainBuffer(drawState.QuadBatch);
 
                 Shader.Unbind();
             }
 
-            private void drawMainBuffer(Action<TexturedVertex2D> vertexAction)
+            private void drawMainBuffer(QuadBatch<TexturedVertex2D> batch)
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -163,10 +164,10 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, batch);
             }
 
-            private void drawEffectBuffer(Action<TexturedVertex2D> vertexAction)
+            private void drawEffectBuffer(QuadBatch<TexturedVertex2D> batch)
             {
                 if (!shouldDrawEffectBuffer)
                     return;
@@ -175,7 +176,7 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, batch);
             }
 
             /// <summary>

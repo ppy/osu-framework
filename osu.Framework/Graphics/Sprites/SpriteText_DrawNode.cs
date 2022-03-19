@@ -70,10 +70,10 @@ namespace osu.Framework.Graphics.Sprites
                                 shadowQuad.TopRight + shadowOffset,
                                 shadowQuad.BottomLeft + shadowOffset,
                                 shadowQuad.BottomRight + shadowOffset),
-                            finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                            finalShadowColour, drawState.QuadBatch, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, drawState.QuadBatch, inflationPercentage: parts[i].InflationPercentage);
                 }
 
                 Shader.Unbind();

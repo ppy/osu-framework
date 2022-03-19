@@ -3,6 +3,7 @@
 
 using osuTK;
 using System;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
@@ -56,19 +57,19 @@ namespace osu.Framework.Graphics.Sprites
                 ConservativeScreenSpaceDrawQuad = Source.ConservativeScreenSpaceDrawQuad;
         }
 
-        protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
+        protected virtual void Blit(QuadBatch<TexturedVertex2D> batch)
         {
-            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
+            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, batch, null,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
                 null, TextureCoords);
         }
 
-        protected virtual void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+        protected virtual void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
         {
             if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
+                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, batch);
             else
-                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, textureCoords: TextureCoords);
+                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, batch, textureCoords: TextureCoords);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
@@ -80,7 +81,7 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader.Bind();
 
-            Blit(vertexAction);
+            Blit(drawState.QuadBatch);
 
             Shader.Unbind();
         }
@@ -96,7 +97,7 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureShader.Bind();
 
-            BlitOpaqueInterior(vertexAction);
+            BlitOpaqueInterior(drawState.QuadBatch);
 
             TextureShader.Unbind();
         }

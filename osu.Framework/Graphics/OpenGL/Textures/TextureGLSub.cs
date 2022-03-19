@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 using osu.Framework.Graphics.Colour;
@@ -71,16 +72,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
-        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                             Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
-            parent.DrawTriangle(vertexTriangle, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage, boundsInParent(textureCoords));
+            parent.DrawTriangle(vertexTriangle, drawColour, batch, textureRect: boundsInParent(textureRect), inflationPercentage: inflationPercentage, textureCoords: boundsInParent(textureCoords));
         }
 
-        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
-            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, boundsInParent(textureCoords));
+            parent.DrawQuad(vertexQuad, drawColour, batch, boundsInParent(textureRect), inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: boundsInParent(textureCoords));
         }
 
         internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)

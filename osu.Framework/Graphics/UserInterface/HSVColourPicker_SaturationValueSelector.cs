@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shaders;
@@ -255,10 +256,10 @@ namespace osu.Framework.Graphics.UserInterface
                         hue = Source.hue;
                     }
 
-                    protected override void Blit(Action<TexturedVertex2D> vertexAction)
+                    protected override void Blit(QuadBatch<TexturedVertex2D> batch)
                     {
                         Shader.GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(vertexAction);
+                        base.Blit(batch);
                     }
                 }
             }

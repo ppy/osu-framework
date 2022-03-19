@@ -152,15 +152,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="texture">The texture to fill the triangle with.</param>
         /// <param name="vertexTriangle">The triangle to draw.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="batch"></param>
+        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                     Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
+            => texture.DrawTriangle(vertexTriangle, drawColour, batch, textureRect, inflationPercentage, textureCoords);
 
         /// <summary>
         /// Draws a triangle to the screen.
@@ -168,30 +168,14 @@ namespace osu.Framework.Graphics
         /// <param name="texture">The texture to fill the triangle with.</param>
         /// <param name="vertexTriangle">The triangle to draw.</param>
         /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="batch"></param>
         /// <param name="textureRect">The texture rectangle.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                     Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
-
-        /// <summary>
-        /// Draws a quad to the screen.
-        /// </summary>
-        /// <param name="texture">The texture to fill the triangle with.</param>
-        /// <param name="vertexQuad">The quad to draw.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
-        /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
-        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
-        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
-            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: textureCoords);
+            => texture.DrawTriangle(vertexTriangle, drawColour, batch, textureRect, inflationPercentage, textureCoords);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -199,28 +183,44 @@ namespace osu.Framework.Graphics
         /// <param name="texture">The texture to fill the triangle with.</param>
         /// <param name="vertexQuad">The quad to draw.</param>
         /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="batch"></param>
         /// <param name="textureRect">The texture rectangle.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawQuad(TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
-            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: textureCoords);
+            => texture.DrawQuad(vertexQuad, drawColour, batch, textureRect, inflationPercentage, blendRangeOverride, textureCoords);
+
+        /// <summary>
+        /// Draws a quad to the screen.
+        /// </summary>
+        /// <param name="texture">The texture to fill the triangle with.</param>
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="batch"></param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void DrawQuad(TextureGL texture, Quad vertexQuad, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
+                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+            => texture.DrawQuad(vertexQuad, drawColour, batch, textureRect, inflationPercentage, blendRangeOverride, textureCoords);
 
         /// <summary>
         /// Clips a <see cref="IConvexPolygon"/> to the current masking area and draws the resulting triangles to the screen using the specified texture.
         /// </summary>
         /// <param name="polygon">The polygon to draw.</param>
         /// <param name="texture">The texture to fill the triangle with.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="batch"></param>
+        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the polygon's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawClipped<T>(ref T polygon, Texture texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawClipped<T>(ref T polygon, Texture texture, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                       Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where T : IConvexPolygon
         {
@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics
             Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
             for (int i = 2; i < clippedRegion.Length; i++)
-                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
+                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, batch, textureRect, inflationPercentage, textureCoords);
         }
 
         /// <summary>
@@ -239,13 +239,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="polygon">The polygon to draw.</param>
         /// <param name="texture">The texture to fill the triangle with.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="batch"></param>
+        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the polygon's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawClipped<T>(ref T polygon, TextureGL texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawClipped<T>(ref T polygon, TextureGL texture, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                       Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where T : IConvexPolygon
         {
@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics
             Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
             for (int i = 2; i < clippedRegion.Length; i++)
-                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
+                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, batch, textureRect, inflationPercentage, textureCoords);
         }
 
         /// <summary>
@@ -265,17 +265,17 @@ namespace osu.Framework.Graphics
         /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
         /// <param name="vertexQuad">The destination vertices.</param>
         /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="batch"></param>
         /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
-        protected void DrawFrameBuffer(FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawFrameBuffer(FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch,
                                        Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
             if (frameBuffer.Texture.Bind())
-                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, batch, textureRect, inflationPercentage, blendRangeOverride);
         }
 
         /// <summary>

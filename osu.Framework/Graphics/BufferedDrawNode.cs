@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -104,7 +105,7 @@ namespace osu.Framework.Graphics
                         GLWrapper.PopOrtho();
                     }
 
-                    PopulateContents();
+                    PopulateContents(drawState.QuadBatch);
                 }
 
                 SharedData.DrawVersion = GetDrawVersion();
@@ -113,7 +114,7 @@ namespace osu.Framework.Graphics
             Shader.Bind();
 
             base.Draw(vertexAction, ref drawState);
-            DrawContents();
+            DrawContents(drawState.QuadBatch);
 
             Shader.Unbind();
         }
@@ -122,16 +123,16 @@ namespace osu.Framework.Graphics
         /// Populates the contents of the effect buffers of <see cref="SharedData"/>.
         /// This is invoked after <see cref="Child"/> has been rendered to the main buffer.
         /// </summary>
-        protected virtual void PopulateContents()
+        protected virtual void PopulateContents(QuadBatch<TexturedVertex2D> batch)
         {
         }
 
         /// <summary>
         /// Draws the applicable effect buffers of <see cref="SharedData"/> to the back buffer.
         /// </summary>
-        protected virtual void DrawContents()
+        protected virtual void DrawContents(QuadBatch<TexturedVertex2D> batch)
         {
-            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
+            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour, batch);
         }
 
         /// <summary>

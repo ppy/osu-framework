@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
-            private void drawEdgeEffect()
+            private void drawEdgeEffect(QuadBatch<TexturedVertex2D> batch)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
                 DrawQuad(
                     Texture.WhitePixel,
                     screenSpaceMaskingQuad.Value,
-                    colour, null, null, null,
+                    colour, batch, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                     // masking blend range when rendering edge effects. This is needed for smooth inner edges
                     // with a hollow edge effect.
@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Containers
 
                 base.Draw(vertexAction, ref drawState);
 
-                drawEdgeEffect();
+                drawEdgeEffect(drawState.QuadBatch);
 
                 if (maskingInfo != null)
                 {

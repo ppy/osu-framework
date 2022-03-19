@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -42,20 +42,20 @@ namespace osu.Framework.Graphics.Shapes
             {
             }
 
-            protected override void Blit(Action<TexturedVertex2D> vertexAction)
+            protected override void Blit(QuadBatch<TexturedVertex2D> batch)
             {
-                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
+                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, batch, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
-            protected override void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+            protected override void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
             {
                 var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
                 if (GLWrapper.IsMaskingActive)
-                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, batch);
                 else
-                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour, batch);
             }
         }
     }
