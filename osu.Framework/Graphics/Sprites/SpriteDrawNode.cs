@@ -87,9 +87,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
 
-        protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+        protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction, ref DrawState drawState)
         {
-            base.DrawOpaqueInterior(vertexAction);
+            base.DrawOpaqueInterior(vertexAction, ref drawState);
 
             if (Texture?.Available != true)
                 return;

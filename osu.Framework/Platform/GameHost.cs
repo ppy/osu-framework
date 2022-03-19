@@ -483,6 +483,8 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
+                    DrawState drawState = new DrawState();
+
                     if (!bypassFrontToBackPass.Value)
                     {
                         depthValue.Reset();
@@ -492,13 +494,15 @@ namespace osu.Framework.Platform
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null, ref drawState);
 
                         GLWrapper.PopDepthInfo();
                         GL.ColorMask(true, true, true, true);
 
                         // The back pass doesn't write depth, but needs to depth test properly
                         GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+
+                        drawState = new DrawState();
                     }
                     else
                     {
@@ -507,7 +511,6 @@ namespace osu.Framework.Platform
                     }
 
                     // Back pass
-                    DrawState drawState = new DrawState();
                     buffer.Object.Draw(null, ref drawState);
 
                     GLWrapper.PopDepthInfo();
