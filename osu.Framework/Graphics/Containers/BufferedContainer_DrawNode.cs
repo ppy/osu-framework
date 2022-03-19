@@ -88,7 +88,8 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, batch);
+                using (batch.BeginUsage(ref BatchUsage, this))
+                    DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, ref BatchUsage);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawContents(batch);
@@ -114,7 +115,10 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
-                    DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), batch);
+
+                    using (batch.BeginUsage(ref BatchUsage, this))
+                        DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), ref BatchUsage);
+
                     blurShader.Unbind();
                 }
             }

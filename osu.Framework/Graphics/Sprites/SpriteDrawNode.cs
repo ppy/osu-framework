@@ -27,7 +27,6 @@ namespace osu.Framework.Graphics.Sprites
         protected new Sprite Source => (Sprite)base.Source;
 
         protected Quad ConservativeScreenSpaceDrawQuad;
-
         private bool hasOpaqueInterior;
 
         public SpriteDrawNode(Sprite source)
@@ -58,22 +57,28 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void Blit(QuadBatch<TexturedVertex2D> batch)
         {
-            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, batch, null,
-                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
-                null, TextureCoords);
+            using (batch.BeginUsage(ref BatchUsage, this))
+            {
+                DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage, null,
+                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
+                    null, TextureCoords);
+            }
         }
 
         protected virtual void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
         {
-            if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, batch);
-            else
-                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, batch, textureCoords: TextureCoords);
+            using (batch.BeginUsage(ref OpaqueInteriorBatchUsage, this))
+            {
+                if (GLWrapper.IsMaskingActive)
+                    DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage);
+                else
+                    DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage, textureCoords: TextureCoords);
+            }
         }
 
-        public override void Draw(ref DrawState drawState)
+        public override void Draw(DrawState drawState)
         {
-            base.Draw(ref drawState);
+            base.Draw(drawState);
 
             if (Texture?.Available != true)
                 return;
@@ -87,9 +92,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
 
-        protected override void DrawOpaqueInterior(ref DrawState drawState)
+        protected override void DrawOpaqueInterior(DrawState drawState)
         {
-            base.DrawOpaqueInterior(ref drawState);
+            base.DrawOpaqueInterior(drawState);
 
             if (Texture?.Available != true)
                 return;

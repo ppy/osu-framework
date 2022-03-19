@@ -1,7 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
@@ -14,6 +16,9 @@ namespace osu.Framework.Graphics
         protected IShader RoundedTextureShader { get; private set; }
 
         protected new ITexturedShaderDrawable Source => (ITexturedShaderDrawable)base.Source;
+
+        protected VertexBatchUsage<TexturedVertex2D> BatchUsage;
+        protected VertexBatchUsage<TexturedVertex2D> OpaqueInteriorBatchUsage;
 
         protected TexturedShaderDrawNode(ITexturedShaderDrawable source)
             : base(source)

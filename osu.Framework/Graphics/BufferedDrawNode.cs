@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(ref DrawState drawState)
+        public sealed override void Draw(DrawState drawState)
         {
             if (RequiresRedraw)
             {
@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics
                         GLWrapper.PushOrtho(screenSpaceDrawRectangle);
                         GLWrapper.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(ref drawState);
+                        Child.Draw(drawState);
 
                         GLWrapper.PopOrtho();
                     }
@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
-            base.Draw(ref drawState);
+            base.Draw(drawState);
             DrawContents(drawState.QuadBatch);
 
             Shader.Unbind();
@@ -132,7 +132,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void DrawContents(QuadBatch<TexturedVertex2D> batch)
         {
-            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour, batch);
+            using (batch.BeginUsage(ref BatchUsage, this))
+                DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour, ref BatchUsage);
         }
 
         /// <summary>
@@ -155,7 +156,8 @@ namespace osu.Framework.Graphics
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1, (int)frameBufferSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1,
+                (int)frameBufferSize.Y + 1);
 
             GLWrapper.PushMaskingInfo(new MaskingInfo
             {

@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     blueTex = Source.blueTex;
                 }
 
-                public override void Draw(ref DrawState drawState)
+                public override void Draw(DrawState drawState)
                 {
                     redTex.TextureGL.Bind(TextureUnit.Texture1);
                     greenTex.TextureGL.Bind(TextureUnit.Texture2);
@@ -125,7 +125,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     int unitId = unit - TextureUnit.Texture0;
                     Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
 
-                    base.Draw(ref drawState);
+                    base.Draw(drawState);
 
                     unitId = 0;
                     Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);

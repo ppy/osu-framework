@@ -122,6 +122,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void DrawRange(int startIndex, int endIndex)
         {
+            LastUseResetId = GLWrapper.ResetId;
+
             Bind(true);
 
             int countVertices = endIndex - startIndex;

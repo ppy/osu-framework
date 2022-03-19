@@ -8,5 +8,7 @@ namespace osu.Framework.Graphics.Batches
         int Draw();
 
         void ResetCounters();
+
+        internal void Advance();
     }
 }

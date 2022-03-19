@@ -44,18 +44,24 @@ namespace osu.Framework.Graphics.Shapes
 
             protected override void Blit(QuadBatch<TexturedVertex2D> batch)
             {
-                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, batch, null,
-                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
+                using (batch.BeginUsage(ref BatchUsage, this))
+                {
+                    DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref BatchUsage, null,
+                        new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
+                }
             }
 
             protected override void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
             {
-                var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
+                using (batch.BeginUsage(ref OpaqueInteriorBatchUsage, this))
+                {
+                    var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
-                if (GLWrapper.IsMaskingActive)
-                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, batch);
-                else
-                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour, batch);
+                    if (GLWrapper.IsMaskingActive)
+                        DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage);
+                    else
+                        DrawTriangle(Texture, triangle, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage);
+                }
             }
         }
     }

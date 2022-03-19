@@ -43,39 +43,42 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(ref DrawState drawState)
+            public override void Draw(DrawState drawState)
             {
-                base.Draw(ref drawState);
+                base.Draw(drawState);
 
-                Shader.Bind();
-
-                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
-                float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
-
-                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
-                //squared result for quadratic fall-off seems to give the best result.
-                var finalShadowColour = DrawColourInfo.Colour;
-                finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
-
-                for (int i = 0; i < parts.Count; i++)
+                using (drawState.QuadBatch.BeginUsage(ref BatchUsage, this))
                 {
-                    if (shadow)
-                    {
-                        var shadowQuad = parts[i].DrawQuad;
+                    Shader.Bind();
 
-                        DrawQuad(parts[i].Texture,
-                            new Quad(
-                                shadowQuad.TopLeft + shadowOffset,
-                                shadowQuad.TopRight + shadowOffset,
-                                shadowQuad.BottomLeft + shadowOffset,
-                                shadowQuad.BottomRight + shadowOffset),
-                            finalShadowColour, drawState.QuadBatch, inflationPercentage: parts[i].InflationPercentage);
+                    var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
+                    float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
+                    //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+                    //squared result for quadratic fall-off seems to give the best result.
+                    var finalShadowColour = DrawColourInfo.Colour;
+                    finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
+
+                    for (int i = 0; i < parts.Count; i++)
+                    {
+                        if (shadow)
+                        {
+                            var shadowQuad = parts[i].DrawQuad;
+
+                            DrawQuad(parts[i].Texture,
+                                new Quad(
+                                    shadowQuad.TopLeft + shadowOffset,
+                                    shadowQuad.TopRight + shadowOffset,
+                                    shadowQuad.BottomLeft + shadowOffset,
+                                    shadowQuad.BottomRight + shadowOffset),
+                                finalShadowColour, ref BatchUsage, inflationPercentage: parts[i].InflationPercentage);
+                        }
+
+                        DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, ref BatchUsage, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, drawState.QuadBatch, inflationPercentage: parts[i].InflationPercentage);
+                    Shader.Unbind();
                 }
-
-                Shader.Unbind();
             }
         }
 

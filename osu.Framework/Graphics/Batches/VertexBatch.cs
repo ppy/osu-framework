@@ -26,6 +26,8 @@ namespace osu.Framework.Graphics.Batches
 
         private int currentBufferIndex;
         private int currentVertexIndex;
+        private int rollingVertexIndex;
+        private ulong frameIndex;
 
         private readonly int maxBuffers;
 
@@ -38,8 +40,6 @@ namespace osu.Framework.Graphics.Batches
 
             Size = bufferSize;
             this.maxBuffers = maxBuffers;
-
-            AddAction = Add;
         }
 
         #region Disposal
@@ -66,6 +66,8 @@ namespace osu.Framework.Graphics.Batches
             changeBeginIndex = -1;
             currentBufferIndex = 0;
             currentVertexIndex = 0;
+            rollingVertexIndex = 0;
+            frameIndex++;
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
@@ -74,7 +76,7 @@ namespace osu.Framework.Graphics.Batches
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
         /// </summary>
         /// <param name="v">The vertex to add.</param>
-        public void Add(T v)
+        public void AddVertex(T v)
         {
             GLWrapper.SetActiveBatch(this);
 
@@ -97,13 +99,8 @@ namespace osu.Framework.Graphics.Batches
             }
 
             ++currentVertexIndex;
+            ++rollingVertexIndex;
         }
-
-        /// <summary>
-        /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
-        /// This is a cached delegate of <see cref="Add"/> that should be used in memory-critical locations such as <see cref="DrawNode"/>s.
-        /// </summary>
-        public readonly Action<T> AddAction;
 
         public int Draw()
         {
@@ -128,6 +125,100 @@ namespace osu.Framework.Graphics.Batches
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
 
             return count;
+        }
+
+        void IVertexBatch.Advance()
+        {
+            GLWrapper.SetActiveBatch(this);
+
+            if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
+            {
+                Draw();
+                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
+            }
+
+            // currentIndex will change after Draw() above, so this cannot be in an else-condition
+            while (currentBufferIndex >= VertexBuffers.Count)
+                VertexBuffers.Add(CreateVertexBuffer());
+
+            ++currentVertexIndex;
+            ++rollingVertexIndex;
+        }
+
+        public ref VertexBatchUsage<T> BeginUsage(ref VertexBatchUsage<T> usage, DrawNode node)
+        {
+            bool drawRequired =
+                // If this is a new usage...
+                usage.Batch != this
+                // Or the DrawNode was newly invalidated...
+                || usage.InvalidationID != node.InvalidationID
+                // Or another DrawNode was inserted (and drew vertices) before this one...
+                || usage.StartIndex != rollingVertexIndex
+                // Or this usage is more than 1 frame behind. For example, another DrawNode may have temporarily overwritten the vertices of this one in the batch.
+                || node.DrawIndex - usage.DrawIndex > 1;
+
+            // Some DrawNodes (e.g. PathDrawNode) can reuse the same usage in multiple passes. Attempt to allow this use case.
+            if (usage.Batch == this && usage.FrameIndex == frameIndex)
+            {
+                // Only allowed as long as the batch's current vertex index is at the end of the usage (no other usage happened in-between).
+                if (rollingVertexIndex != usage.StartIndex + usage.Count)
+                    throw new InvalidOperationException("Todo:");
+
+                return ref usage;
+            }
+
+            if (drawRequired)
+            {
+                usage = new VertexBatchUsage<T>(
+                    this,
+                    node.InvalidationID,
+                    rollingVertexIndex);
+            }
+
+            usage.DrawRequired = drawRequired;
+            usage.DrawIndex = node.DrawIndex;
+            usage.FrameIndex = frameIndex;
+
+            return ref usage;
+        }
+    }
+
+    public struct VertexBatchUsage<T> : IDisposable
+        where T : struct, IEquatable<T>, IVertex
+    {
+        internal readonly VertexBatch<T> Batch;
+        internal readonly long InvalidationID;
+        internal readonly int StartIndex;
+
+        internal ulong DrawIndex;
+        internal ulong FrameIndex;
+        internal bool DrawRequired;
+        internal int Count;
+
+        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex)
+        {
+            Batch = batch;
+            InvalidationID = invalidationID;
+            StartIndex = startIndex;
+
+            DrawIndex = 0;
+            FrameIndex = 0;
+            DrawRequired = false;
+            Count = 0;
+        }
+
+        public void Add(T vertex)
+        {
+            if (DrawRequired)
+                Batch.AddVertex(vertex);
+            else
+                ((IVertexBatch)Batch).Advance();
+
+            Count++;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

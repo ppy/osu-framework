@@ -134,9 +134,9 @@ namespace osu.Framework.Graphics.Sprites
                 sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
-            public override void Draw(ref DrawState drawState)
+            public override void Draw(DrawState drawState)
             {
-                base.Draw(ref drawState);
+                base.Draw(drawState);
 
                 if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
                     return;
@@ -162,8 +162,11 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, batch);
+                using (batch.BeginUsage(ref BatchUsage, this))
+                {
+                    GLWrapper.SetBlend(DrawColourInfo.Blending);
+                    DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage);
+                }
             }
 
             private void drawEffectBuffer(QuadBatch<TexturedVertex2D> batch)
@@ -175,7 +178,8 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, batch);
+                using (batch.BeginUsage(ref BatchUsage, this))
+                    DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage);
             }
 
             /// <summary>

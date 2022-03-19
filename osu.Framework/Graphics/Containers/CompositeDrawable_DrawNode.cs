@@ -116,6 +116,8 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
+            private VertexBatchUsage<TexturedVertex2D> batchUsage;
+
             private void drawEdgeEffect(QuadBatch<TexturedVertex2D> batch)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
@@ -150,14 +152,17 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                DrawQuad(
-                    Texture.WhitePixel,
-                    screenSpaceMaskingQuad.Value,
-                    colour, batch, null, null,
-                    // HACK HACK HACK. We re-use the unused vertex blend range to store the original
-                    // masking blend range when rendering edge effects. This is needed for smooth inner edges
-                    // with a hollow edge effect.
-                    new Vector2(maskingInfo.Value.BlendRange));
+                using (batch.BeginUsage(ref batchUsage, this))
+                {
+                    DrawQuad(
+                        Texture.WhitePixel,
+                        screenSpaceMaskingQuad.Value,
+                        colour, ref batchUsage, null, null,
+                        // HACK HACK HACK. We re-use the unused vertex blend range to store the original
+                        // masking blend range when rendering edge effects. This is needed for smooth inner edges
+                        // with a hollow edge effect.
+                        new Vector2(maskingInfo.Value.BlendRange));
+                }
 
                 Shader.Unbind();
 
@@ -177,7 +182,7 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
             }
 
-            public override void Draw(ref DrawState drawState)
+            public override void Draw(DrawState drawState)
             {
                 updateQuadBatch();
 
@@ -185,7 +190,7 @@ namespace osu.Framework.Graphics.Containers
                 if (quadBatch != null)
                     drawState = drawState.WithQuadBatch(quadBatch);
 
-                base.Draw(ref drawState);
+                base.Draw(drawState);
 
                 drawEdgeEffect(drawState.QuadBatch);
 
@@ -201,17 +206,17 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(ref drawState);
+                        Children[i].Draw(drawState);
                 }
 
                 if (maskingInfo != null)
                     GLWrapper.PopMaskingInfo();
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, ref DrawState drawState)
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, DrawState drawState)
             {
-                DrawChildrenOpaqueInteriors(depthValue, ref drawState);
-                base.DrawOpaqueInteriorSubTree(depthValue, ref drawState);
+                DrawChildrenOpaqueInteriors(depthValue, drawState);
+                base.DrawOpaqueInteriorSubTree(depthValue, drawState);
             }
 
             /// <summary>
@@ -220,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
             /// <param name="depthValue">The previous depth value.</param>
             /// <param name="drawState"></param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, ref DrawState drawState)
+            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, DrawState drawState)
             {
                 bool canIncrement = depthValue.CanIncrement;
 
@@ -241,7 +246,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                        Children[i].DrawOpaqueInteriorSubTree(depthValue, ref drawState);
+                        Children[i].DrawOpaqueInteriorSubTree(depthValue, drawState);
                 }
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.

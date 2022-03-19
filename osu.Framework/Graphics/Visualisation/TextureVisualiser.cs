@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.Visualisation
                     textureReference = Source.textureReference;
                 }
 
-                public override void Draw(ref DrawState drawState)
+                public override void Draw(DrawState drawState)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics.Visualisation
                             ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Color4.DarkGray, Color4.Red, 0, 200)
                             : Color4.Transparent);
 
-                    base.Draw(ref drawState);
+                    base.Draw(drawState);
 
                     // intentionally after draw to avoid counting our own bind.
                     Source.lastBindCount = texture.BindCount;
@@ -231,36 +231,39 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
 
-                    const float border_width = 4;
-
-                    // border
-                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, batch);
-
-                    var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
-
-                    // background
-                    DrawQuad(Texture, shrunkenQuad, Color4.Black, batch);
-
-                    float aspect = (float)texture.Width / texture.Height;
-
-                    if (aspect > 1)
+                    using (batch.BeginUsage(ref BatchUsage, this))
                     {
-                        float newHeight = shrunkenQuad.Height / aspect;
+                        const float border_width = 4;
 
-                        shrunkenQuad.Y += (shrunkenQuad.Height - newHeight) / 2;
-                        shrunkenQuad.Height = newHeight;
+                        // border
+                        DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, ref BatchUsage);
+
+                        var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
+
+                        // background
+                        DrawQuad(Texture, shrunkenQuad, Color4.Black, ref BatchUsage);
+
+                        float aspect = (float)texture.Width / texture.Height;
+
+                        if (aspect > 1)
+                        {
+                            float newHeight = shrunkenQuad.Height / aspect;
+
+                            shrunkenQuad.Y += (shrunkenQuad.Height - newHeight) / 2;
+                            shrunkenQuad.Height = newHeight;
+                        }
+                        else if (aspect < 1)
+                        {
+                            float newWidth = shrunkenQuad.Width / (1 / aspect);
+
+                            shrunkenQuad.X += (shrunkenQuad.Width - newWidth) / 2;
+                            shrunkenQuad.Width = newWidth;
+                        }
+
+                        // texture
+                        texture.Bind();
+                        DrawQuad(texture, shrunkenQuad, Color4.White, ref BatchUsage);
                     }
-                    else if (aspect < 1)
-                    {
-                        float newWidth = shrunkenQuad.Width / (1 / aspect);
-
-                        shrunkenQuad.X += (shrunkenQuad.Width - newWidth) / 2;
-                        shrunkenQuad.Width = newWidth;
-                    }
-
-                    // texture
-                    texture.Bind();
-                    DrawQuad(texture, shrunkenQuad, Color4.White, batch);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

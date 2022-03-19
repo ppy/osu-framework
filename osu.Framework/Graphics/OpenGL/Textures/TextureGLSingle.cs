@@ -32,9 +32,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int MAX_MIPMAP_LEVELS = 3;
 
-        private static readonly Action<TexturedVertex2D> default_quad_action = new QuadBatch<TexturedVertex2D>(100, 1000).AddAction;
-        private static readonly QuadBatch<TexturedVertex2D> default_quad_batch = new QuadBatch<TexturedVertex2D>(100, 1000);
-
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
         /// <summary>
@@ -72,7 +69,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
+        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None,
+                               Rgba32 initialisationColour = default)
             : base(wrapModeS, wrapModeT)
         {
             Width = width;
@@ -217,7 +215,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_TRIANGLE = 4;
 
-        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null,
+        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, ref VertexBatchUsage<TexturedVertex2D> batch, RectangleF? textureRect = null,
                                             Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (!Available)
@@ -242,8 +240,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
-
-            batch ??= default_quad_batch;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -290,7 +286,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_QUAD = 4;
 
-        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, QuadBatch<TexturedVertex2D> batch, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
+        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, ref VertexBatchUsage<TexturedVertex2D> batch, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (!Available)
@@ -316,8 +312,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
-
-            batch ??= default_quad_batch;
 
             batch.Add(new TexturedVertex2D
             {

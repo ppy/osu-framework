@@ -24,8 +24,10 @@ using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -56,6 +58,8 @@ namespace osu.Framework.Platform
         protected FrameworkConfigManager Config { get; private set; }
 
         private InputConfigManager inputConfig { get; set; }
+
+        private static readonly QuadBatch<TexturedVertex2D> default_quad_batch = new QuadBatch<TexturedVertex2D>(100, 1000);
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -483,9 +487,9 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                    DrawState drawState = new DrawState();
+                    DrawState drawState = new DrawState(default_quad_batch);
 
-                    if (!bypassFrontToBackPass.Value)
+                    if (false)
                     {
                         depthValue.Reset();
 
@@ -494,15 +498,13 @@ namespace osu.Framework.Platform
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, ref drawState);
+                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, drawState);
 
                         GLWrapper.PopDepthInfo();
                         GL.ColorMask(true, true, true, true);
 
                         // The back pass doesn't write depth, but needs to depth test properly
                         GLWrapper.PushDepthInfo(new DepthInfo(true, false));
-
-                        drawState = new DrawState();
                     }
                     else
                     {
@@ -511,7 +513,7 @@ namespace osu.Framework.Platform
                     }
 
                     // Back pass
-                    buffer.Object.Draw(ref drawState);
+                    buffer.Object.Draw(drawState);
 
                     GLWrapper.PopDepthInfo();
 
