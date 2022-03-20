@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics
         /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
         /// </remarks>
         /// <param name="drawState"></param>
-        public virtual void Draw(DrawState drawState)
+        public virtual void Draw(in DrawState drawState)
         {
             DrawIndex++;
 
@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <param name="depthValue">The previous depth value.</param>
         /// <param name="drawState"></param>
-        internal virtual void DrawOpaqueInteriorSubTree(DepthValue depthValue, DrawState drawState)
+        internal virtual void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
         {
             if (!depthValue.CanIncrement || !CanDrawOpaqueInterior)
             {
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics
         /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
         /// </remarks>
         /// <param name="drawState"></param>
-        protected virtual void DrawOpaqueInterior(DrawState drawState)
+        protected virtual void DrawOpaqueInterior(in DrawState drawState)
         {
             GLWrapper.SetDrawDepth(drawDepth);
         }

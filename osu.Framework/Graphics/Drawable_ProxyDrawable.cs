@@ -86,10 +86,10 @@ namespace osu.Framework.Graphics
                 {
                 }
 
-                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, DrawState drawState)
+                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
                     => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, drawState);
 
-                public override void Draw(DrawState drawState)
+                public override void Draw(in DrawState drawState)
                     => getCurrentFrameSource()?.Draw(drawState);
 
                 protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;

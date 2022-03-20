@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Sprites
                 sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
-            public override void Draw(DrawState drawState)
+            public override void Draw(in DrawState drawState)
             {
                 base.Draw(drawState);
 

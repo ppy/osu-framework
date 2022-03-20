@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(DrawState drawState)
+        public sealed override void Draw(in DrawState drawState)
         {
             if (RequiresRedraw)
             {

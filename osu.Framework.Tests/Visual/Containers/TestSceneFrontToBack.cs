@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, DrawState drawState)
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
             {
                 startQuery();
                 base.DrawOpaqueInteriorSubTree(depthValue, drawState);
@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(DrawState drawState)
+            public override void Draw(in DrawState drawState)
             {
                 startQuery();
                 base.Draw(drawState);

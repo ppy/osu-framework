@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(DrawState drawState)
+            public override void Draw(in DrawState drawState)
             {
                 base.Draw(drawState);
 

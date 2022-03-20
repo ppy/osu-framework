@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     blueTex = Source.blueTex;
                 }
 
-                public override void Draw(DrawState drawState)
+                public override void Draw(in DrawState drawState)
                 {
                     redTex.TextureGL.Bind(TextureUnit.Texture1);
                     greenTex.TextureGL.Bind(TextureUnit.Texture2);

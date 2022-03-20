@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.Visualisation
                     textureReference = Source.textureReference;
                 }
 
-                public override void Draw(DrawState drawState)
+                public override void Draw(in DrawState drawState)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;

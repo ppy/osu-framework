@@ -182,17 +182,16 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
             }
 
-            public override void Draw(DrawState drawState)
+            public override void Draw(in DrawState drawState)
             {
                 updateQuadBatch();
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
-                if (quadBatch != null)
-                    drawState = drawState.WithQuadBatch(quadBatch);
+                DrawState localDrawState = quadBatch != null ? drawState.WithQuadBatch(quadBatch) : drawState;
 
-                base.Draw(drawState);
+                base.Draw(localDrawState);
 
-                drawEdgeEffect(drawState.QuadBatch);
+                drawEdgeEffect(localDrawState.QuadBatch);
 
                 if (maskingInfo != null)
                 {
@@ -206,14 +205,14 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(drawState);
+                        Children[i].Draw(localDrawState);
                 }
 
                 if (maskingInfo != null)
                     GLWrapper.PopMaskingInfo();
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, DrawState drawState)
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
             {
                 DrawChildrenOpaqueInteriors(depthValue, drawState);
                 base.DrawOpaqueInteriorSubTree(depthValue, drawState);

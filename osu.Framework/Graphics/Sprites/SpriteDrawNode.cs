@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override void Draw(DrawState drawState)
+        public override void Draw(in DrawState drawState)
         {
             base.Draw(drawState);
 
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
 
-        protected override void DrawOpaqueInterior(DrawState drawState)
+        protected override void DrawOpaqueInterior(in DrawState drawState)
         {
             base.DrawOpaqueInterior(drawState);
 

@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Lines
                     addLineQuads(segment, texRect);
             }
 
-            public override void Draw(DrawState drawState)
+            public override void Draw(in DrawState drawState)
             {
                 base.Draw(drawState);
 

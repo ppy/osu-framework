@@ -299,7 +299,7 @@ namespace osu.Framework.Graphics.Audio
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
             private VertexBatchUsage<TexturedVertex2D> batchUsage;
 
-            public override void Draw(DrawState drawState)
+            public override void Draw(in DrawState drawState)
             {
                 base.Draw(drawState);
 
