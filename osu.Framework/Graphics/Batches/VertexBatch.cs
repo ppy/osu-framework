@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Batches
         public int Size { get; }
 
         private int currentBufferIndex;
-        private int currentVertexIndex;
         private int rollingVertexIndex;
         private ulong frameIndex;
 
@@ -61,12 +60,16 @@ namespace osu.Framework.Graphics.Batches
         public void ResetCounters()
         {
             currentBufferIndex = 0;
-            currentVertexIndex = 0;
             rollingVertexIndex = 0;
+            drawStart = 0;
+            drawCount = 0;
             frameIndex++;
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
+
+        private int drawStart;
+        private int drawCount;
 
         /// <summary>
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
@@ -76,58 +79,58 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
-            if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
-            {
-                Draw();
-                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
-            }
+            ensureHasBufferSpace();
+            currentVertexBuffer.EnqueueVertex(drawStart + drawCount, v);
 
-            // currentIndex will change after Draw() above, so this cannot be in an else-condition
-            while (currentBufferIndex >= VertexBuffers.Count)
-                VertexBuffers.Add(CreateVertexBuffer());
-
-            currentVertexBuffer.EnqueueVertex(currentVertexIndex, v);
-
-            ++currentVertexIndex;
+            ++drawCount;
             ++rollingVertexIndex;
-        }
-
-        public int Draw()
-        {
-            if (currentVertexIndex == 0)
-                return 0;
-
-            currentVertexBuffer.DrawRange(0, currentVertexIndex);
-
-            int count = currentVertexIndex;
-
-            // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
-            //TODO: let us know if we exceed and roll over to zero here.
-            currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
-            currentVertexIndex = 0;
-
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
-
-            return count;
         }
 
         void IVertexBatch.Advance()
         {
             GLWrapper.SetActiveBatch(this);
 
-            if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
+            ensureHasBufferSpace();
+
+            ++drawCount;
+            ++rollingVertexIndex;
+        }
+
+        public int Draw()
+        {
+            if (drawCount == 0)
+                return 0;
+
+            currentVertexBuffer.DrawRange(drawStart, drawStart + drawCount);
+
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, drawCount);
+
+            int lastDrawCount = drawCount;
+
+            drawStart += drawCount;
+            drawCount = 0;
+
+            return lastDrawCount;
+        }
+
+        private void ensureHasBufferSpace()
+        {
+            // Draw the current vertex buffer if no more vertices can be added to it.
+            if (VertexBuffers.Count > 0 && drawStart + drawCount >= currentVertexBuffer.Size)
             {
                 Draw();
+
+                // Move to a new vertex buffer.
+                currentBufferIndex++;
+                drawStart = 0;
+                drawCount = 0;
+
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
             }
 
-            // currentIndex will change after Draw() above, so this cannot be in an else-condition
             while (currentBufferIndex >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
-
-            ++currentVertexIndex;
-            ++rollingVertexIndex;
         }
 
         public ref VertexBatchUsage<T> BeginUsage(ref VertexBatchUsage<T> usage, DrawNode node)
