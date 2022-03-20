@@ -1,22 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Threading.Tasks;
+using System;
+using NUnit.Framework;
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Graphics.Visualisation.Tree;
 using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Tests.Visual.Bindables;
 using osu.Framework.Tests.Visual.Containers;
-using osuTK;
-using NUnit.Framework;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
@@ -90,20 +88,20 @@ namespace osu.Framework.Tests.Visual.Testing
             Colour4[] inColours = colours.ToArray();
             AddAssert("Check content", () =>
             {
-                if (!(objTreeContainer.TargetVisualiser is VisualisedList visList))
+                if (!(objTreeContainer.TargetVisualiser is ListElement visList))
                 {
                     Logger.Log("Not a list", level: LogLevel.Debug);
                     return false;
                 }
 
-                if (visList.Kind != VisualisedList.ViewKind.Observable)
+                if (visList.Kind != ListElement.ViewKind.Observable)
                 {
                     Logger.Log("List is not observable", level: LogLevel.Debug);
                     return false;
                 }
 
                 int idx = 0;
-                foreach (VisualiserTreeNode item in visList)
+                foreach (TreeNode item in visList)
                 {
                     if (idx == inColours.Length)
                     {
@@ -111,7 +109,7 @@ namespace osu.Framework.Tests.Visual.Testing
                         return false;
                     }
 
-                    if (!(item is VisualisedElement vis))
+                    if (!(item is ElementNode vis))
                     {
                         Logger.Log("List contains non-element nodes", level: LogLevel.Debug);
                         return false;

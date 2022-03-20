@@ -3,7 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
+
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -13,6 +14,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
+using osu.Framework.Graphics.Visualisation.Tree;
 using osuTK;
 
 #nullable enable
@@ -30,7 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         private readonly DrawableTreeContainer drawableTreeContainer;
-        public readonly TreeTabContainer TabContainer;
+        public readonly TabbedTreeWindow TabContainer;
 
         private DrawableInspector drawableInspector => drawableTreeContainer.DrawableInspector;
         private readonly InfoOverlay overlay;
@@ -42,7 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
             Children = new Drawable[]
             {
                 overlay = new InfoOverlay(),
-                TabContainer = new TreeTabContainer(
+                TabContainer = new TabbedTreeWindow(
                     drawableTreeContainer = new DrawableTreeContainer
                     {
                         ChooseTarget = () =>
