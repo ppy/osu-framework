@@ -123,6 +123,12 @@ namespace osu.Framework.Graphics.Visualisation
             Current = tabControl.Items[0];
         }
 
+        public new void Clear()
+        {
+            SelectTarget();
+            tabControl.Items = new[] { current };
+        }
+
         private class TreeTabControl : TabControl<TreeTab>
         {
             public TreeTabControl()

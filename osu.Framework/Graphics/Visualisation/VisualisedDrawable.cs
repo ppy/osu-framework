@@ -22,6 +22,7 @@ using osu.Framework.Graphics.UserInterface;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Extensions.TypeExtensions;
+using System.Runtime.CompilerServices;
 
 #nullable enable
 
@@ -261,7 +262,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected internal class VisualisedDrawableFlow : FillFlowContainer<VisualiserTreeNode>
         {
-            public override IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => -d.Depth).ThenBy(d => (d as VisualisedDrawable)?.TargetDrawable?.ChildID ?? 0f);
+            public override IEnumerable<Drawable> FlowingChildren
+                => from d in AliveInternalChildren
+                where d.IsPresent
+                orderby -d.Depth, (d as VisualisedDrawable)?.TargetDrawable?.ChildID ?? 0
+                select d;
 
             private TreeNodeHandle? currentHandle;
 
@@ -313,18 +318,22 @@ namespace osu.Framework.Graphics.Visualisation
 
         public void Add(object? obj)
         {
-            mutateStart();
-            var vis = Parent.AddChildVisualiser(obj);
-            flow.SetLayoutPosition(vis, ChildIndex);
-            ++ChildIndex;
-            mutateStop();
+            using (mutate())
+            {
+                var vis = Parent.AddChildVisualiser(obj);
+                if (vis == null)
+                    return;
+
+                insert(vis);
+            }
         }
 
         public void Remove()
         {
-            mutateStart();
-            Node.SetContainer(null);
-            mutateStop();
+            using (mutate())
+            {
+                Node.SetContainer(null);
+            }
         }
 
         public void Replace(object? obj)
@@ -345,20 +354,21 @@ namespace osu.Framework.Graphics.Visualisation
 
         public VisualiserTreeNode Detach()
         {
-            mutateStart();
-            var node = Node;
-            node.SetContainer(null);
-            mutateStop();
-            return node;
+            using (mutate())
+            {
+                var node = Node;
+                node.SetContainer(null);
+                return node;
+            }
         }
 
         public void Attach(VisualiserTreeNode node)
         {
-            mutateStart();
-            node.SetContainer(Parent);
-            flow.SetLayoutPosition(node, ChildIndex);
-            ++ChildIndex;
-            mutateStop();
+            using (mutate())
+            {
+                node.SetContainer(Parent);
+                insert(node);
+            }
         }
 
         public void Advance(int diff = 1)
@@ -384,6 +394,23 @@ namespace osu.Framework.Graphics.Visualisation
             Parent = null!;
         }
 
+        private void insert(VisualiserTreeNode vis)
+        {
+            //Logger.Log($"Current depth: {vis.Depth}", level: LogLevel.Debug);
+            //Logger.Log($"Target depth: {-ChildIndex}", level: LogLevel.Debug);
+            flow.ChangeChildDepth(vis, 1);
+            if (ChildIndex != 0)
+            {
+                for (int it = 1, end = ChildIndex; it != end; ++it)
+                    flow.ChangeChildDepth(flow[it], 1-it);
+                for (int it = ChildIndex, end = flow.Count; it != end; ++it)
+                    flow.ChangeChildDepth(flow[it], -it);
+            }
+            flow.ChangeChildDepth(vis, -ChildIndex);
+            //Logger.Log($"Depth after: {vis.Depth}", level: LogLevel.Debug);
+            ++ChildIndex;
+        }
+
         private void mutateStart()
         {
             flow.SetHandle(null);
@@ -392,6 +419,26 @@ namespace osu.Framework.Graphics.Visualisation
         private void mutateStop()
         {
             flow.SetHandle(this);
+        }
+
+        private MutateHandle mutate() => new MutateHandle(this);
+
+        private ref struct MutateHandle
+        {
+            private TreeNodeHandle handle;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public MutateHandle(TreeNodeHandle _handle)
+            {
+                handle = _handle;
+                handle.mutateStart();
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Dispose()
+            {
+                handle.mutateStop();
+            }
         }
     }
 
@@ -418,30 +465,22 @@ namespace osu.Framework.Graphics.Visualisation
         {
         }
 
+        protected virtual Drawable CreatePreviewBox(object? target)
+            => new Box
+            {
+                Colour = Color4.White,
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+            };
+
         [BackgroundDependencyLoader]
         private void load()
         {
-            var spriteTarget = Target as Sprite;
-
             LoadFrontDecorations();
 
             AddRange(new Drawable[]
             {
-                PreviewBox = spriteTarget?.Texture == null
-                    ? new Box
-                    {
-                        Colour = Color4.White,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                    }
-                    : new Sprite
-                    {
-                        // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
-                        Texture = new Texture(spriteTarget.Texture.TextureGL),
-                        Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                    },
+                PreviewBox = CreatePreviewBox(Target),
                 new FillFlowContainer
                 {
                     AutoSizeAxes = Axes.Both,
@@ -456,7 +495,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
             });
 
-            PreviewBox.Size = new Vector2(LINE_HEIGHT, LINE_HEIGHT);
+            PreviewBox.Size = new Vector2(LINE_HEIGHT);
 
             UpdateSpecifics();
         }
@@ -648,6 +687,22 @@ namespace osu.Framework.Graphics.Visualisation
             : base(d)
         {
             OnAddVisualiser += visualiser => visualiser.Depth = (visualiser as VisualisedDrawable)?.TargetDrawable?.Depth ?? 0;
+        }
+
+        protected override Drawable CreatePreviewBox(object? target)
+        {
+            Sprite? spriteTarget = target as Sprite;
+            if (spriteTarget?.Texture == null)
+                return base.CreatePreviewBox(target);
+
+            return new Sprite
+            {
+                // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
+                Texture = new Texture(spriteTarget.Texture.TextureGL),
+                Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+            };
         }
 
         protected override void LoadFrontDecorations()
@@ -991,32 +1046,38 @@ namespace osu.Framework.Graphics.Visualisation
                 list.BindCollectionChanged(updateChildrenHandler, true);
             }
 
+            private int indexOrFirst(int index)
+                => index != -1 ? index : 0;
+
+            private int ensureValidIndex(int index)
+                => index != -1 ? index : throw new ArgumentOutOfRangeException(nameof(index), "Index must be set");
+
             private void updateChildrenHandler(object? sender, NotifyCollectionChangedEventArgs args)
             {
                 switch (args.Action)
                 {
                     case NotifyCollectionChangedAction.Add:
                     {
-                        addChildren(args.NewStartingIndex, args.NewItems!);
+                        addChildren(indexOrFirst(args.NewStartingIndex), args.NewItems!);
                         break;
                     }
                     case NotifyCollectionChangedAction.Remove:
                     {
-                        removeChildren(args.OldStartingIndex, args.OldItems!);
+                        removeChildren(ensureValidIndex(args.OldStartingIndex), args.OldItems!);
                         break;
                     }
                     case NotifyCollectionChangedAction.Replace:
                     {
-                        using (var handle = ChildAnchor(args.NewStartingIndex))
+                        using (var handle = ChildAnchor(ensureValidIndex(args.NewStartingIndex)))
                             handle.Replace(args.NewItems![0]);
                         break;
                     }
                     case NotifyCollectionChangedAction.Move:
                     {
                         VisualiserTreeNode item;
-                        using (var handle = ChildAnchor(args.OldStartingIndex))
+                        using (var handle = ChildAnchor(ensureValidIndex(args.OldStartingIndex)))
                             item = handle.Detach();
-                        using (var handle = ChildAnchor(args.NewStartingIndex))
+                        using (var handle = ChildAnchor(ensureValidIndex(args.NewStartingIndex)))
                             handle.Attach(item);
                         break;
                     }

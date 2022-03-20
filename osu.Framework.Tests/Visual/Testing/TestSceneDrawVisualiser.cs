@@ -76,7 +76,11 @@ namespace osu.Framework.Tests.Visual.Testing
         [Test]
         public void SceneTest()
         {
-            AddStep("Init", () => drawVisualiser.Target = sceneTarget);
+            AddStep("Reset", () =>
+            {
+                drawVisualiser.TabContainer.Clear();
+                drawVisualiser.Target = sceneTarget;
+            });
             AddStep("Hide", () => drawVisualiser.Hide());
             AddStep("Show", () => drawVisualiser.Show());
         }
@@ -107,15 +111,22 @@ namespace osu.Framework.Tests.Visual.Testing
                         return false;
                     }
 
-                    if (!(item is VisualisedDrawable obj) || obj.TargetDrawable.GetType() != typeof(Box))
+                    if (!(item is VisualisedElement vis))
                     {
-                        Logger.Log("List item type does not match", level: LogLevel.Debug);
+                        Logger.Log("List contains non-element nodes", level: LogLevel.Debug);
                         return false;
                     }
 
-                    if (obj.TargetDrawable.Colour != inColours[idx])
+                    if (vis.Target.GetType() != typeof(TestBox))
                     {
-                        Logger.Log($"List item does not match at index {idx}, should be {inColours[idx]}, but is {obj.TargetDrawable.Colour}", level: LogLevel.Debug);
+                        Logger.Log($"List item type does not match: {vis.Target.GetType()}", level: LogLevel.Debug);
+                        return false;
+                    }
+
+                    var colour = ((Drawable)vis.Target).Colour;
+                    if (colour != inColours[idx])
+                    {
+                        Logger.Log($"List item does not match at index {idx}, should be {inColours[idx]}, but is {colour}", level: LogLevel.Debug);
                         return false;
                     }
                     ++idx;
@@ -128,15 +139,15 @@ namespace osu.Framework.Tests.Visual.Testing
         [Test]
         public void TestListVisualiser()
         {
-            BindableList<Box> list = null!;
+            BindableList<TestBox> list = null!;
 
             AddStep("Init test", () =>
             {
-                list = new BindableList<Box>
+                list = new BindableList<TestBox>
                 {
-                    new Box { Colour = Colour4.Red },
-                    new Box { Colour = Colour4.Green },
-                    new Box { Colour = Colour4.Blue },
+                    new TestBox { Colour = Colour4.Red },
+                    new TestBox { Colour = Colour4.Green },
+                    new TestBox { Colour = Colour4.Blue },
                 };
                 objTreeContainer = drawVisualiser.TabContainer.SpawnObjectVisualiser(list);
             });
@@ -151,8 +162,8 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("Populate list", () =>
             {
                 list.Clear();
-                list.Add(new Box { Colour = Colour4.Red });
-                list.Add(new Box { Colour = Colour4.Yellow });
+                list.Add(new TestBox { Colour = Colour4.Red });
+                list.Add(new TestBox { Colour = Colour4.Yellow });
             });
 
             AssertColours(stackalloc[]
@@ -165,9 +176,9 @@ namespace osu.Framework.Tests.Visual.Testing
             {
                 list.AddRange(new[]
                 {
-                    new Box { Colour = Colour4.Cyan },
-                    new Box { Colour = Colour4.Sienna },
-                    new Box { Colour = Colour4.Gold },
+                    new TestBox { Colour = Colour4.Cyan },
+                    new TestBox { Colour = Colour4.Sienna },
+                    new TestBox { Colour = Colour4.Gold },
                 });
             });
 
@@ -182,7 +193,7 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddStep("Insert", () =>
             {
-                list.Insert(2, new Box { Colour = Colour4.Snow });
+                list.Insert(2, new TestBox { Colour = Colour4.Snow });
             });
 
             AssertColours(stackalloc[]
@@ -224,7 +235,7 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddStep("Replace item", () =>
             {
-                list[0] = new Box { Colour = Colour4.RosyBrown };
+                list[0] = new TestBox { Colour = Colour4.RosyBrown };
             });
 
             AssertColours(stackalloc[]
@@ -234,6 +245,12 @@ namespace osu.Framework.Tests.Visual.Testing
                 Colour4.Gold,
                 Colour4.Snow,
             });
+        }
+
+        private class TestBox : Box
+        {
+            public override string ToString()
+                => $"TestBox {Colour}";
         }
     }
 }
