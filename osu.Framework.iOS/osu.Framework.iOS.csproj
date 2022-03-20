@@ -24,18 +24,24 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.178" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.187" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)\*.a" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)*.a">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+      <WithCulture>False</WithCulture>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="app.config" CopyToOutputDirectory="Always" />
+  <ItemGroup Label="Dllmaps (local)">
+    <!-- Without separate dll configs and using BundleResource, dllmaps won't work properly
+         See https://github.com/ManagedBass/ManagedBass/issues/76 -->
+    <BundleResource Include="$(MSBuildThisFileDirectory)*.dll.config" />
+  </ItemGroup>
+  <ItemGroup Label="Dllmaps (package)">
+    <None Include="$(MSBuildThisFileDirectory)*.dll.config" Pack="true" PackagePath="dllmaps" />
+    <Content Include="$(MSBuildThisFileDirectory)osu.Framework.iOS.Dllmaps.props" Pack="true" PackagePath="build\$(PackageId).props" />
   </ItemGroup>
 </Project>

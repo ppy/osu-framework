@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -83,13 +84,13 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             }
 
-            public bool OnPressed(TestAction action)
+            public bool OnPressed(KeyBindingPressEvent<TestAction> e)
             {
                 Pressed = true;
                 return true;
             }
 
-            public void OnReleased(TestAction action)
+            public void OnReleased(KeyBindingReleaseEvent<TestAction> e)
             {
                 Released = true;
             }

@@ -19,7 +19,7 @@ namespace osu.Framework.Benchmarks
 
             for (int i = 0; i < 1000; i++)
             {
-                foreach (var v in list)
+                foreach (int v in list)
                     sum += v;
             }
 
@@ -33,7 +33,7 @@ namespace osu.Framework.Benchmarks
 
             for (int i = 0; i < 1000; i++)
             {
-                foreach (var v in list.AsReadOnly())
+                foreach (int v in list.AsReadOnly())
                     sum += v;
             }
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Benchmarks
 
             for (int i = 0; i < 1000; i++)
             {
-                foreach (var v in list.AsSlimReadOnly())
+                foreach (int v in list.AsSlimReadOnly())
                     sum += v;
             }
 

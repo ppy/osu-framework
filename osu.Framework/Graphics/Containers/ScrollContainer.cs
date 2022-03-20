@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
+        public float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
@@ -530,7 +530,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (!scrollbarCache.IsValid)
             {
-                var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+                float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
                 if (size > 0)
                     Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
                 Scrollbar.FadeTo(ScrollbarVisible && AvailableContent - 1 > DisplayableContent ? 1 : 0, 200);
@@ -630,12 +630,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!IsHandlingKeyboardScrolling)
                 return false;
 
-            switch (action)
+            switch (e.Action)
             {
                 case PlatformAction.MoveBackwardLine:
                     ScrollToStart();
@@ -650,7 +650,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public void OnReleased(PlatformAction action)
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
     }

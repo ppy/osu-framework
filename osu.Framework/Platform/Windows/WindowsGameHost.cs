@@ -3,9 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -20,15 +21,19 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new WindowsReadableKeyCombinationProvider();
 
-#if NET5_0
+        public override IEnumerable<string> UserStoragePaths =>
+            // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
+
+#if NET6_0
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation)
+        internal WindowsGameHost(string gameName, HostOptions options)
+            : base(gameName, options)
         {
         }
 
@@ -36,12 +41,17 @@ namespace osu.Framework.Platform.Windows
         {
             if (Directory.Exists(filename))
             {
-                Process.Start("explorer.exe", filename);
+                // ensure the path always has one trailing DirectorySeparator so the native function opens the expected folder.
+                string folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
+
+                Explorer.OpenFolderAndSelectItem(folder);
                 return;
             }
 
             base.OpenFileExternally(filename);
         }
+
+        public override void PresentFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {

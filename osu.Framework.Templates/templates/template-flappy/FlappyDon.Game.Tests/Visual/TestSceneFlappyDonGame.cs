@@ -16,7 +16,7 @@ namespace FlappyDon.Game.Tests.Visual
         {
             game = new FlappyDonGame();
             game.SetHost(host);
-            Add(game);
+            AddGame(game);
         }
     }
 }

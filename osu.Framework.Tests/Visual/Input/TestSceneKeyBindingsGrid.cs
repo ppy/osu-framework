@@ -483,12 +483,12 @@ namespace osu.Framework.Tests.Visual.Input
                 Text += $", {OnScrollCount}, {LastScrollAmount}";
             }
 
-            public bool OnScroll(TestAction action, float amount, bool isPrecise)
+            public bool OnScroll(KeyBindingScrollEvent<TestAction> e)
             {
-                if (Action == action)
+                if (Action == e.Action)
                 {
                     ++OnScrollCount;
-                    LastScrollAmount = amount;
+                    LastScrollAmount = e.ScrollAmount;
                 }
 
                 return false;
@@ -543,30 +543,32 @@ namespace osu.Framework.Tests.Visual.Input
 
             private float alphaTarget = 0.5f;
 
-            public bool OnPressed(TestAction action)
+            public bool OnPressed(KeyBindingPressEvent<TestAction> e)
             {
-                if (Action == action)
+                if (Action == e.Action)
                 {
-                    if (Concurrency != SimultaneousBindingMode.All)
-                        Trace.Assert(OnPressedCount == OnReleasedCount);
-                    ++OnPressedCount;
+                    if (!e.Repeat)
+                    {
+                        if (Concurrency != SimultaneousBindingMode.All)
+                            Trace.Assert(OnPressedCount == OnReleasedCount);
+                        ++OnPressedCount;
 
-                    alphaTarget += 0.2f;
-                    Background.Alpha = alphaTarget;
+                        alphaTarget += 0.2f;
+                        Background.Alpha = alphaTarget;
+                    }
 
                     highlight.ClearTransforms();
                     highlight.Alpha = 1f;
                     highlight.FadeOut(200);
-
                     return true;
                 }
 
                 return false;
             }
 
-            public void OnReleased(TestAction action)
+            public void OnReleased(KeyBindingReleaseEvent<TestAction> e)
             {
-                if (Action == action)
+                if (Action == e.Action)
                 {
                     ++OnReleasedCount;
 

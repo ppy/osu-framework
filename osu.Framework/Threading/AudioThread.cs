@@ -53,7 +53,7 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                for (var i = 0; i < managers.Count; i++)
+                for (int i = 0; i < managers.Count; i++)
                 {
                     var m = managers[i];
                     m.Update();
@@ -76,13 +76,6 @@ namespace osu.Framework.Threading
         {
             lock (managers)
                 managers.Remove(manager);
-        }
-
-        internal void RegisterInitialisedDevice(int deviceId)
-        {
-            Debug.Assert(ThreadSafety.IsAudioThread);
-
-            initialised_devices.Add(deviceId);
         }
 
         protected override void OnExit()
@@ -109,28 +102,43 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            foreach (var d in initialised_devices.ToArray())
+            foreach (int d in initialised_devices.ToArray())
                 FreeDevice(d);
+        }
+
+        internal static bool InitDevice(int deviceId)
+        {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+            Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
+
+            // Try to initialise the device, or request a re-initialise.
+            if (Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
+            {
+                initialised_devices.Add(deviceId);
+                return true;
+            }
+
+            return false;
         }
 
         internal static void FreeDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
 
-            int lastDevice = Bass.CurrentDevice;
+            int selectedDevice = Bass.CurrentDevice;
 
-            // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
-            // Todo: Reproduce in native code and report to BASS at some point.
-            if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+            if (canFreeDevice(deviceId) && canSelectDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
             }
 
-            if (lastDevice != deviceId)
-                Bass.CurrentDevice = lastDevice;
+            if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
+                Bass.CurrentDevice = selectedDevice;
 
             initialised_devices.Remove(deviceId);
+
+            static bool canSelectDevice(int deviceId) => Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
         }
 
         /// <summary>
@@ -144,5 +152,11 @@ namespace osu.Framework.Threading
                 Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
+
+        /// <summary>
+        /// Whether a device can be freed.
+        /// On Linux, freeing device 0 is disallowed as it can cause deadlocks which don't surface immediately.
+        /// </summary>
+        private static bool canFreeDevice(int deviceId) => deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux;
     }
 }

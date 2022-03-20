@@ -21,13 +21,13 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/osu.Framework.Tests/bin/Debug/net5.0/osu.Framework.Tests.dll",
+                "${workspaceRoot}/osu.Framework.Tests/bin/Debug/net6.0/osu.Framework.Tests.dll",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Debug)",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
             "console": "internalConsole"
@@ -38,13 +38,47 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/osu.Framework.Tests/bin/Release/net5.0/osu.Framework.Tests.dll",
+                "${workspaceRoot}/osu.Framework.Tests/bin/Release/net6.0/osu.Framework.Tests.dll",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Release)",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Release/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Release/net6.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole"
+        },
+        {
+            "name": "SampleGame (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/SampleGame.Desktop/bin/Debug/net6.0/SampleGame.Desktop.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Debug)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/SampleGame.Desktop/bin/Debug/net6.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole"
+        },
+        {
+            "name": "SampleGame (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/SampleGame.Desktop/bin/Release/net6.0/SampleGame.Desktop.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Release)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/SampleGame.Desktop/bin/Release/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
             "console": "internalConsole"
@@ -55,15 +89,15 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/net5.0/osu.Framework.Benchmarks.dll",
+                "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/net6.0/osu.Framework.Benchmarks.dll",
                 "--filter",
                 "*",
             ],
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Build (Release)",
+            "preLaunchTask": "Build Benchmarks",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
         }

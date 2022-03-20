@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -72,10 +73,41 @@ namespace osu.Framework.Tests.Configuration
             Assert.AreEqual(5, sensitivity);
         }
 
+        /// <summary>
+        /// Verifies that <see cref="InputConfigManager"/> saves when any public-facing bindables of <see cref="InputHandler"/>s are changed.
+        /// </summary>
+        [Test]
+        public void TestChangingSettingsSaves()
+        {
+            var handler = new MouseHandler();
+            var config = new TestInputConfigManager(new[] { handler });
+
+            handler.Sensitivity.Value = 5;
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000)); // wait for QueueBackgroundSave() debounce.
+            Assert.AreEqual(1, config.TimesSaved);
+
+            handler.Enabled.Value = !handler.Enabled.Value;
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000));
+            Assert.AreEqual(2, config.TimesSaved);
+
+            handler.Reset();
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000));
+            Assert.AreEqual(3, config.TimesSaved);
+
+            for (int i = 0; i < 10; i++)
+            {
+                handler.Sensitivity.Value += 0.1;
+                Assert.AreEqual(3, config.TimesSaved);
+            }
+
+            Assert.IsTrue(config.SaveEvent.WaitOne(10000));
+            Assert.AreEqual(4, config.TimesSaved);
+        }
+
         public class TestHeadlessGameHost : TestRunHeadlessGameHost
         {
             public TestHeadlessGameHost([CallerMemberName] string caller = "", bool bypassCleanup = false)
-                : base(caller, bypassCleanup: bypassCleanup)
+                : base(caller, new HostOptions(), bypassCleanup: bypassCleanup)
             {
             }
 
@@ -107,6 +139,29 @@ namespace osu.Framework.Tests.Configuration
             {
                 base.Update();
                 Exit();
+            }
+        }
+
+        private class TestInputConfigManager : InputConfigManager
+        {
+            public int TimesSaved;
+
+            public readonly AutoResetEvent SaveEvent = new AutoResetEvent(false);
+
+            public TestInputConfigManager(IReadOnlyList<InputHandler> inputHandlers)
+                : base(null!, inputHandlers)
+            {
+            }
+
+            protected override void PerformLoad()
+            {
+            }
+
+            protected override bool PerformSave()
+            {
+                TimesSaved++;
+                SaveEvent.Set();
+                return true;
             }
         }
     }

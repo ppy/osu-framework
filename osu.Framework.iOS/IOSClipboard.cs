@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Platform;
+using SixLabors.ImageSharp;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -23,5 +24,15 @@ namespace osu.Framework.iOS
         }
 
         public override void SetText(string selectedText) => gameView.InvokeOnMainThread(() => UIPasteboard.General.String = selectedText);
+
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return null;
+        }
+
+        public override bool SetImage(Image image)
+        {
+            return false;
+        }
     }
 }

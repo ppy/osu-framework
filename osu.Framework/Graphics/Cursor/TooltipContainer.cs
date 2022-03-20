@@ -146,13 +146,15 @@ namespace osu.Framework.Graphics.Cursor
             {
                 currentlyDisplayed = target;
 
-                if (CurrentTooltip?.SetContent(getTargetContent(target)) != true)
-                {
-                    var newTooltip = getTooltip(target);
+                var proposedTooltip = getTooltip(target);
 
+                if (proposedTooltip.GetType() == CurrentTooltip.GetType())
+                    CurrentTooltip.SetContent(getTargetContent(target));
+                else
+                {
                     RemoveInternal((Drawable)CurrentTooltip);
-                    CurrentTooltip = newTooltip;
-                    AddInternal((Drawable)newTooltip);
+                    CurrentTooltip = proposedTooltip;
+                    AddInternal((Drawable)proposedTooltip);
                 }
 
                 if (hasValidTooltip(target))
@@ -177,7 +179,7 @@ namespace osu.Framework.Graphics.Cursor
 
         private bool hasValidTooltip(ITooltipContentProvider target)
         {
-            var targetContent = getTargetContent(target);
+            object targetContent = getTargetContent(target);
 
             if (targetContent is LocalisableString localisableString)
                 return !string.IsNullOrEmpty(localisableString.Data?.ToString());
@@ -305,7 +307,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : VisibilityContainer, ITooltip
+        public class Tooltip : VisibilityContainer, ITooltip<LocalisableString>
         {
             private readonly SpriteText text;
 
@@ -317,14 +319,7 @@ namespace osu.Framework.Graphics.Cursor
                 set => SetContent(value);
             }
 
-            public virtual bool SetContent(object content)
-            {
-                if (!(content is LocalisableString contentString))
-                    return false;
-
-                text.Text = contentString;
-                return true;
-            }
+            public virtual void SetContent(LocalisableString content) => text.Text = content;
 
             private const float text_size = 16;
 

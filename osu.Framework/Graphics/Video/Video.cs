@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Graphics.Shaders;
 using osuTK;
 
 namespace osu.Framework.Graphics.Video
@@ -60,6 +60,7 @@ namespace osu.Framework.Graphics.Video
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
         private DecodedFrame lastFrame;
+        private bool lastFrameShown;
 
         /// <summary>
         /// The total number of frames processed by this instance.
@@ -104,10 +105,13 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost gameHost, ShaderManager shaders)
+        private void load(GameHost gameHost, FrameworkConfigManager config)
         {
             decoder = gameHost.CreateVideoDecoder(stream);
             decoder.Looping = Loop;
+
+            config.BindWith(FrameworkSetting.HardwareVideoDecoder, decoder.TargetHardwareVideoDecoders);
+
             decoder.StartDecoding();
 
             Duration = decoder.Duration;
@@ -117,33 +121,48 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
-
-            if (nextFrame != null)
+            if (decoder.State == VideoDecoder.DecoderState.EndOfStream && availableFrames.Count == 0)
             {
-                bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
-                                    (!Loop ||
-                                     (Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
-                                      Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek)
-                                    );
-
-                // we are too far ahead or too far behind
-                if (tooFarBehind && decoder.CanSeek)
+                // if at the end of the stream but our playback enters a valid time region again, a seek operation is required to get the decoder back on track.
+                if (PlaybackPosition < decoder.LastDecodedFrameTime)
                 {
-                    Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
-                    decoder.Seek(PlaybackPosition);
-                    decoder.ReturnFrames(availableFrames);
-                    availableFrames.Clear();
+                    seekIntoSync();
                 }
             }
 
-            var frameTime = CurrentFrameTime;
+            var peekFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+            bool outOfSync = false;
+
+            if (peekFrame != null)
+            {
+                outOfSync = Math.Abs(PlaybackPosition - peekFrame.Time) > lenience_before_seek;
+
+                if (Loop)
+                {
+                    // handle looping bounds (as we could be in the roll-over process between loops).
+                    outOfSync &= Math.Abs(PlaybackPosition - decoder.Duration - peekFrame.Time) > lenience_before_seek &&
+                                 Math.Abs(PlaybackPosition + decoder.Duration - peekFrame.Time) > lenience_before_seek;
+                }
+            }
+
+            // we are too far ahead or too far behind
+            if (outOfSync && decoder.CanSeek)
+            {
+                Logger.Log($"Video too far out of sync ({peekFrame.Time}), seeking to {PlaybackPosition}");
+                seekIntoSync();
+            }
+
+            double frameTime = CurrentFrameTime;
 
             while (availableFrames.Count > 0 && checkNextFrameValid(availableFrames.Peek()))
             {
                 if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
+                lastFrameShown = false;
+            }
 
+            if (!lastFrameShown && lastFrame != null)
+            {
                 var tex = lastFrame.Texture;
 
                 // Check if the new frame has been uploaded so we don't display an old frame
@@ -151,6 +170,7 @@ namespace osu.Framework.Graphics.Video
                 {
                     Sprite.Texture = tex;
                     UpdateSizing();
+                    lastFrameShown = true;
                 }
             }
 
@@ -164,6 +184,13 @@ namespace osu.Framework.Graphics.Video
 
             if (frameTime != CurrentFrameTime)
                 FramesProcessed++;
+
+            void seekIntoSync()
+            {
+                decoder.Seek(PlaybackPosition);
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+            }
         }
 
         private bool checkNextFrameValid(DecodedFrame frame)
@@ -183,10 +210,19 @@ namespace osu.Framework.Graphics.Video
             base.Dispose(isDisposing);
 
             isDisposed = true;
-            decoder?.Dispose();
 
-            foreach (var f in availableFrames)
-                f.Texture.Dispose();
+            if (decoder != null)
+            {
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+
+                decoder.Dispose();
+            }
+            else
+            {
+                foreach (var f in availableFrames)
+                    f.Texture.Dispose();
+            }
         }
 
         protected override float GetFillAspectRatio() => Sprite.FillAspectRatio;

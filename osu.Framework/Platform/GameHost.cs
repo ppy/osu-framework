@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
 using osuTK.Graphics;
@@ -54,7 +55,7 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
-        protected InputConfigManager InputConfig { get; private set; }
+        private InputConfigManager inputConfig { get; set; }
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -69,7 +70,10 @@ namespace osu.Framework.Platform
         /// </remarks>
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
-        public bool IsPrimaryInstance { get; protected set; } = true;
+        /// <summary>
+        /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
+        /// </summary>
+        public virtual bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.
@@ -90,7 +94,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
-        public event Action<IpcMessage> MessageReceived;
+        public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
         /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
@@ -100,14 +104,23 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
+        /// <remarks>Also see <see cref="CanSuspendToBackground"/>.</remarks>
         public virtual bool CanExit => true;
+
+        /// <summary>
+        /// Whether this host can suspend and minimize to background.
+        /// </summary>
+        /// <remarks>
+        /// This and <see cref="SuspendToBackground"/> are an alternative way to exit on hosts that have <see cref="CanExit"/> <c>false</c>.
+        /// </remarks>
+        public virtual bool CanSuspendToBackground => false;
 
         /// <summary>
         /// Whether memory constraints should be considered before performance concerns.
         /// </summary>
         protected virtual bool LimitedMemoryEnvironment => false;
 
-        protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
+        protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
@@ -116,6 +129,20 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
         public abstract void OpenFileExternally(string filename);
+
+        /// <summary>
+        /// Requests to present a file externally in the platform's native file browser.
+        /// </summary>
+        /// <remarks>
+        /// This will open the parent folder and, (if available) highlight the file.
+        /// </remarks>
+        /// <example>
+        ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
+        ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
+        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
+        /// </example>
+        /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
+        public abstract void PresentFileExternally(string filename);
 
         /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
@@ -128,7 +155,20 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual IWindow CreateWindow() => null;
 
+        [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
+
+        protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
+
+        private ReadableKeyCombinationProvider readableKeyCombinationProvider;
+
+        /// <summary>
+        /// The default initial path when requesting a user to select a file/folder.
+        /// </summary>
+        /// <remarks>
+        /// Provides a sane starting point for user-accessible storage.
+        /// </remarks>
+        public virtual string InitialFileSelectorPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         /// <summary>
         /// Retrieve a storage for the specified location.
@@ -136,7 +176,10 @@ namespace osu.Framework.Platform
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
         public abstract Storage GetStorage(string path);
 
-        public abstract string UserStoragePath { get; }
+        /// <summary>
+        /// All valid user storage paths in order of usage priority.
+        /// </summary>
+        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -187,6 +230,12 @@ namespace osu.Framework.Platform
 
         private double maximumUpdateHz;
 
+        /// <summary>
+        /// The target number of update frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz
         {
             get => maximumUpdateHz;
@@ -195,12 +244,25 @@ namespace osu.Framework.Platform
 
         private double maximumDrawHz;
 
+        /// <summary>
+        /// The target number of draw frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
             set => DrawThread.ActiveHz = maximumDrawHz = value;
         }
 
+        /// <summary>
+        /// The target number of updates per second when the game window is inactive.
+        /// This is applied to all threads.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumInactiveHz
         {
             get => DrawThread.InactiveHz;
@@ -218,14 +280,22 @@ namespace osu.Framework.Platform
 
         public string FullPath => fullPathBacking.Value;
 
-        protected string Name { get; }
+        /// <summary>
+        /// The name of the game to be hosted.
+        /// </summary>
+        public string Name { get; }
+
+        [NotNull]
+        public HostOptions Options { get; private set; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         private bool suspended;
 
-        protected GameHost(string gameName = @"")
+        protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            Options = options ?? new HostOptions();
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -278,6 +348,11 @@ namespace osu.Framework.Platform
 
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
+
+            // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
+            // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
+            // We force flushing the logger here to ensure logging completes.
+            Logger.Flush();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -517,13 +592,36 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit() => PerformExit(false);
+        /// <remarks>Consider using <see cref="SuspendToBackground"/> on mobile platforms that can't exit normally.</remarks>
+        public void Exit()
+        {
+            if (CanExit)
+                PerformExit(false);
+        }
+
+        /// <summary>
+        /// Suspends and minimizes the game to background.
+        /// </summary>
+        /// <remarks>
+        /// This is provided as an alternative to <see cref="Exit"/> on hosts that can't exit (see <see cref="CanExit"/>).
+        /// Should only be called if <see cref="CanSuspendToBackground"/> is <c>true</c>.
+        /// </remarks>
+        /// <returns><c>true</c> if the game was successfully suspended and minimized.</returns>
+        public virtual bool SuspendToBackground()
+        {
+            return false;
+        }
 
         /// <summary>
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
+        /// <remarks>
+        /// Will never be called if <see cref="CanExit"/> is <see langword="false"/>.
+        /// </remarks>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected virtual void PerformExit(bool immediately)
+        protected virtual void PerformExit(bool immediately) => performExit(immediately);
+
+        private void performExit(bool immediately)
         {
             if (executionState == ExecutionState.Stopped || executionState == ExecutionState.Idle)
                 return;
@@ -534,24 +632,31 @@ namespace osu.Framework.Platform
                 exit();
             else
                 InputThread.Scheduler.Add(exit, false);
+
+            void exit()
+            {
+                Debug.Assert(ExecutionState == ExecutionState.Stopping);
+
+                Window?.Close();
+                threadRunner.Stop();
+
+                ExecutionState = ExecutionState.Stopped;
+                stoppedEvent.Set();
+            }
         }
 
-        /// <summary>
-        /// Exits the game. This must always be called from <see cref="InputThread"/>.
-        /// </summary>
-        private void exit()
-        {
-            Debug.Assert(ExecutionState == ExecutionState.Stopping);
-
-            Window?.Close();
-            threadRunner.Stop();
-
-            ExecutionState = ExecutionState.Stopped;
-            stoppedEvent.Set();
-        }
+        private static readonly SemaphoreSlim host_running_mutex = new SemaphoreSlim(1);
 
         public void Run(Game game)
         {
+            if (Thread.CurrentThread.IsThreadPoolThread)
+            {
+                // This is a common misuse of GameHost, where typically consumers will have a mutex waiting for the game to run.
+                // Exceptions thrown here will become unobserved, so any such mutexes will never be set.
+                // Instead, immediately terminate the application in order to notify of incorrect use in all cases.
+                Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
+            }
+
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
             if (LimitedMemoryEnvironment)
@@ -565,6 +670,9 @@ namespace osu.Framework.Platform
 
             try
             {
+                if (!host_running_mutex.Wait(10000))
+                    throw new TimeoutException($"This {nameof(GameHost)} could not start {game} because another {nameof(GameHost)} was already running.");
+
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -608,15 +716,18 @@ namespace osu.Framework.Platform
                 if (Window != null)
                 {
                     Window.SetupWindow(Config);
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     Window.Create();
+                    Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
                     currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
 
                     IsActive.BindTo(Window.IsActive);
                 }
+
+                Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
+                Dependencies.CacheAs(CreateTextInput());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -652,6 +763,7 @@ namespace osu.Framework.Platform
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
+                        Window.KeymapChanged += readableKeyCombinationProvider.OnKeymapChanged;
 
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).
@@ -671,8 +783,13 @@ namespace osu.Framework.Platform
             }
             finally
             {
-                // Close the window and stop all threads
-                PerformExit(true);
+                if (CanExit)
+                {
+                    // Close the window and stop all threads
+                    performExit(true);
+
+                    host_running_mutex.Release();
+                }
             }
         }
 
@@ -680,7 +797,33 @@ namespace osu.Framework.Platform
         /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
         /// </summary>
         /// <returns>The <see cref="Storage"/>.</returns>
-        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        protected virtual Storage GetDefaultGameStorage()
+        {
+            // first check all valid paths for any existing install.
+            foreach (string path in UserStoragePaths)
+            {
+                var storage = GetStorage(path);
+
+                // if an existing data directory exists for this application, prefer it immediately.
+                if (storage.ExistsDirectory(Name))
+                    return storage.GetStorageForDirectory(Name);
+            }
+
+            // if an existing directory could not be found, use the first path that can be created.
+            foreach (string path in UserStoragePaths)
+            {
+                try
+                {
+                    return GetStorage(path).GetStorageForDirectory(Name);
+                }
+                catch
+                {
+                    // may fail on directory creation.
+                }
+            }
+
+            throw new InvalidOperationException("No valid user storage path could be resolved.");
+        }
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
@@ -839,7 +982,7 @@ namespace osu.Framework.Platform
 
                 foreach (var handler in AvailableInputHandlers)
                 {
-                    var handlerType = handler.ToString();
+                    string handlerType = handler.ToString();
                     handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };
@@ -879,8 +1022,7 @@ namespace osu.Framework.Platform
                 threadRunner.SetCulture(culture);
             }, true);
 
-            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
-            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
+            inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
         private void updateFrameSyncMode()
@@ -944,7 +1086,7 @@ namespace osu.Framework.Platform
 
         public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
-        public abstract ITextInputSource GetTextInput();
+        protected virtual TextInputSource CreateTextInput() => new TextInputSource();
 
         #region IDisposable Support
 
@@ -979,12 +1121,13 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
-            InputConfig?.Dispose();
+            inputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
             Window?.Dispose();
 
+            LoadingComponentsLogger.LogAndFlush();
             Logger.Flush();
         }
 
@@ -1038,6 +1181,12 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.KeypadPlus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Minus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.KeypadMinus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Number0), PlatformAction.ZoomDefault),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Keypad0), PlatformAction.ZoomDefault),
         };
 
         /// <summary>

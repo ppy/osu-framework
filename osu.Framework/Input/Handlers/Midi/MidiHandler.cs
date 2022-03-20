@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Commons.Music.Midi;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -87,7 +88,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     {
                         if (openedDevices.All(x => x.Key != input.Id))
                         {
-                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).Result;
+                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).GetResultSafely();
                             newInput.MessageReceived += onMidiMessageReceived;
                             openedDevices[input.Id] = newInput;
 
@@ -121,7 +122,7 @@ namespace osu.Framework.Input.Handlers.Midi
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)
         {
             Debug.Assert(sender is IMidiInput);
-            var senderId = ((IMidiInput)sender).Details.Id;
+            string senderId = ((IMidiInput)sender).Details.Id;
 
             try
             {
@@ -133,7 +134,7 @@ namespace osu.Framework.Input.Handlers.Midi
             }
             catch (Exception exception)
             {
-                var dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
+                string dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
                 Logger.Error(exception, $"An exception occurred while reading MIDI data from sender {senderId}: {dataString}");
             }
         }
@@ -213,18 +214,30 @@ namespace osu.Framework.Input.Handlers.Midi
             // Ignore to receive messages from all channels
             switch (eventType & 0xF0)
             {
-                case MidiEvent.NoteOn when velocity != 0:
-                    Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
-                    PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
-                    FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+                case MidiEvent.NoteOn:
+                    if (velocity != 0)
+                        noteOn();
+                    else
+                        noteOff();
                     break;
 
                 case MidiEvent.NoteOff:
-                case MidiEvent.NoteOn when velocity == 0:
-                    Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
-                    PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
-                    FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+                    noteOff();
                     break;
+            }
+
+            void noteOff()
+            {
+                Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
+                FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+            }
+
+            void noteOn()
+            {
+                Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
+                FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
         }
     }

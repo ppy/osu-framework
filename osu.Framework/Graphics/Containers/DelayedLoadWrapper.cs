@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            var result = base.OnInvalidate(invalidation, source);
+            bool result = base.OnInvalidate(invalidation, source);
 
             // For every invalidation, we schedule a reset of IsIntersecting to the game.
             // This is done since UpdateSubTreeMasking() may not be invoked in the current frame, as a result of presence/masking changes anywhere in our super-tree.
@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.Containers
             // The scheduled delegate will be cancelled if this wrapper has its UpdateSubTreeMasking() invoked, as more accurate intersections can be computed there instead.
             if (isIntersectingResetDelegate == null)
             {
-                isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
+                isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(wrapper => wrapper.IsIntersecting = false, this, 0);
                 result = true;
             }
 

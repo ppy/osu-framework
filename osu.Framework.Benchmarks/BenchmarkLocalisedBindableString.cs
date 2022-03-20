@@ -31,14 +31,14 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void BenchmarkNonLocalised()
         {
-            var bindable = manager.GetLocalisedString("test");
+            var bindable = manager.GetLocalisedBindableString("test");
             bindable.UnbindAll();
         }
 
         [Benchmark]
         public void BenchmarkLocalised()
         {
-            var bindable = manager.GetLocalisedString(new TranslatableString("test", "test"));
+            var bindable = manager.GetLocalisedBindableString(new TranslatableString("test", "test"));
             bindable.UnbindAll();
         }
     }

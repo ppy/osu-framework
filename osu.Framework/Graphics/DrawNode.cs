@@ -1,17 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.OpenGL;
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Threading;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected IDrawable Source { get; private set; }
 
-        private readonly AtomicCounter referenceCount = new AtomicCounter();
+        private long referenceCount;
 
         /// <summary>
         /// The depth at which drawing should take place.
@@ -282,16 +282,16 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// All <see cref="DrawNode"/>s start with a reference count of 1.
         /// </remarks>
-        internal void Reference() => referenceCount.Increment();
+        internal void Reference() => Interlocked.Increment(ref referenceCount);
 
         protected internal bool IsDisposed { get; private set; }
 
         public void Dispose()
         {
-            if (referenceCount.Decrement() != 0)
+            if (Interlocked.Decrement(ref referenceCount) != 0)
                 return;
 
-            GLWrapper.ScheduleDisposal(() => Dispose(true));
+            GLWrapper.ScheduleDisposal(node => node.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 

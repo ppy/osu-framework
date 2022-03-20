@@ -27,26 +27,13 @@ namespace osu.Framework.Localisation
 
             private void updateValue()
             {
-                switch (text.Data)
+                Value = manager.GetLocalisedString(text);
+
+                if (parameters == null && text.Data is ILocalisableStringData)
                 {
-                    case string plain:
-                        Value = plain;
-                        break;
-
-                    case ILocalisableStringData data:
-                        if (parameters == null)
-                        {
-                            parameters = new Bindable<LocalisationParameters>();
-                            parameters.BindTo(manager.currentParameters);
-                            parameters.BindValueChanged(_ => updateValue());
-                        }
-
-                        Value = data.GetLocalised(parameters.Value);
-                        break;
-
-                    default:
-                        Value = string.Empty;
-                        break;
+                    parameters = new Bindable<LocalisationParameters>();
+                    parameters.BindTo(manager.currentParameters);
+                    parameters.BindValueChanged(_ => updateValue());
                 }
             }
 

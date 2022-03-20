@@ -14,6 +14,8 @@ namespace osu.Framework.iOS
 
         public override bool PrefersStatusBarHidden() => true;
 
+        public override bool PrefersHomeIndicatorAutoHidden => true;
+
         public override UIRectEdge PreferredScreenEdgesDeferringSystemGestures => UIRectEdge.All;
 
         public GameViewController(IOSGameView view, GameHost host)

@@ -378,6 +378,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("initial selection is correct", () => tabControl.Current.Value == expectedInitialSelection);
         }
 
+        [TestCase(true, TestEnum.Test1, true)]
+        [TestCase(false, TestEnum.Test1, true)]
+        [TestCase(true, TestEnum.Test9, true)]
+        [TestCase(false, TestEnum.Test9, false)]
+        public void TestInitialSort(bool autoSort, TestEnum? initialItem, bool expected)
+        {
+            StyledTabControl tabControlWithBindable = null;
+            Bindable<TestEnum?> testBindable = new Bindable<TestEnum?> { Value = initialItem };
+
+            AddStep("create tab control", () =>
+            {
+                tabControlContainer.Add(tabControlWithBindable = new StyledTabControl
+                {
+                    Size = new Vector2(200, 20),
+                    Items = items.Cast<TestEnum?>().ToList(),
+                    AutoSort = autoSort,
+                    Current = { BindTarget = testBindable }
+                });
+            });
+
+            AddUntilStep("wait for loaded", () => tabControlWithBindable.IsLoaded);
+            AddAssert($"Current selection {(expected ? "visible" : "not visible")}", () => tabControlWithBindable.SelectedTab.IsPresent == expected);
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;

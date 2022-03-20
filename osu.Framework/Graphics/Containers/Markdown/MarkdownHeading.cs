@@ -19,9 +19,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         private readonly HeadingBlock headingBlock;
 
-        [Resolved]
-        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
-
         public MarkdownHeading(HeadingBlock headingBlock)
         {
             this.headingBlock = headingBlock;
@@ -69,7 +66,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             public float FontSize;
 
-            protected override SpriteText CreateSpriteText()
+            protected internal override SpriteText CreateSpriteText()
                 => base.CreateSpriteText().With(t => t.Font = t.Font.With(size: FontSize));
         }
     }

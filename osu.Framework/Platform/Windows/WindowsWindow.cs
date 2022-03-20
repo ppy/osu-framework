@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using SDL2;
 
@@ -26,7 +27,7 @@ namespace osu.Framework.Platform.Windows
             try
             {
                 // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
-                SetProcessDpiAwareness(ProcessDpiAwareness.Process_System_DPI_Aware);
+                SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
             }
             catch
             {
@@ -34,18 +35,140 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
+        public override void Create()
+        {
+            base.Create();
+
+            // enable window message events to use with `OnSDLEvent` below.
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+
+            OnSDLEvent += handleSDLEvent;
+        }
+
+        #region IME handling
+
+        private void handleSDLEvent(SDL.SDL_Event e)
+        {
+            if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
+
+            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
+            var m = wmMsg.msg.win;
+
+            switch (m.msg)
+            {
+                case Imm.WM_IME_STARTCOMPOSITION:
+                case Imm.WM_IME_COMPOSITION:
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    handleImeMessage(m.hwnd, m.msg, m.lParam);
+                    break;
+            }
+        }
+
+        public override void StartTextInput(bool allowIme)
+        {
+            base.StartTextInput(allowIme);
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
+        }
+
+        public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
+
+        protected override void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        {
+            // block SDL text input if there was a recent result from `handleImeMessage()`.
+            if (recentImeResult)
+            {
+                recentImeResult = false;
+                return;
+            }
+
+            // also block if there is an ongoing composition (unlikely to occur).
+            if (imeCompositionActive) return;
+
+            base.HandleTextInputEvent(evtText);
+        }
+
+        protected override void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
+        {
+            // handled by custom logic below
+        }
+
+        /// <summary>
+        /// Whether IME composition is active.
+        /// </summary>
+        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
+        private bool imeCompositionActive;
+
+        /// <summary>
+        /// Whether an IME result was recently posted.
+        /// </summary>
+        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
+        private bool recentImeResult;
+
+        private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
+        {
+            switch (uMsg)
+            {
+                case Imm.WM_IME_STARTCOMPOSITION:
+                    imeCompositionActive = true;
+                    ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
+                    break;
+
+                case Imm.WM_IME_COMPOSITION:
+                    using (var inputContext = new Imm.InputContext(hWnd, lParam))
+                    {
+                        if (inputContext.TryGetImeResult(out string resultText))
+                        {
+                            recentImeResult = true;
+                            ScheduleEvent(() => TriggerTextInput(resultText));
+                        }
+
+                        if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
+                        {
+                            ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
+                        }
+                    }
+
+                    break;
+
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    imeCompositionActive = false;
+                    ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
+                    break;
+            }
+        }
+
+        #endregion
+
+        public override Size Size
+        {
+            protected set
+            {
+                // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
+                if (WindowState == WindowState.FullscreenBorderless)
+                    value.Width -= windows_borderless_width_hack;
+
+                base.Size = value;
+            }
+        }
+
+        /// <summary>
+        /// Amount of extra width added to window size when in borderless mode on Windows.
+        /// Some drivers require this to avoid the window switching to exclusive fullscreen automatically.
+        /// </summary>
+        private const int windows_borderless_width_hack = 1;
+
         protected override Size SetBorderless()
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            Size positionOffsetHack = new Size(1, 1);
+            // use the 1px hack we've always used, but only expand the width.
+            // we also trick the game into thinking the window has normal size: see Size setter override
 
-            var newSize = CurrentDisplay.Bounds.Size + positionOffsetHack;
-            var newPosition = CurrentDisplay.Bounds.Location - positionOffsetHack;
+            var sizeOffset = new Size(windows_borderless_width_hack, 0);
+            var newSize = CurrentDisplay.Bounds.Size + sizeOffset;
 
-            // for now let's use the same 1px hack that we've always used to force borderless.
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            Position = newPosition;
+            Position = CurrentDisplay.Bounds.Location;
 
             return newSize;
         }

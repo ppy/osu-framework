@@ -119,12 +119,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly GLDisposalQueue disposal_queue = new GLDisposalQueue();
 
-        internal static void ScheduleDisposal(Action disposalAction)
+        internal static void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
             if (host != null && host.TryGetTarget(out _))
-                disposal_queue.ScheduleDisposal(disposalAction);
+                disposal_queue.ScheduleDisposal(disposalAction, target);
             else
-                disposalAction.Invoke();
+                disposalAction.Invoke(target);
         }
 
         private static void checkPendingDisposals()
@@ -390,8 +390,13 @@ namespace osu.Framework.Graphics.OpenGL
             vertex_buffers_in_use.RemoveAll(b => !b.InUse);
         }
 
+        internal static WrapMode CurrentWrapModeS { get; private set; }
+
+        internal static WrapMode CurrentWrapModeT { get; private set; }
+
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
+        private static TextureUnit lastActiveTextureUnit;
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
         internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
@@ -412,9 +417,6 @@ namespace osu.Framework.Graphics.OpenGL
             return didBind;
         }
 
-        internal static WrapMode CurrentWrapModeS;
-        internal static WrapMode CurrentWrapModeT;
-
         /// <summary>
         /// Binds a texture to draw with.
         /// </summary>
@@ -425,21 +427,23 @@ namespace osu.Framework.Graphics.OpenGL
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
         public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
-            var index = GetTextureUnitId(unit);
+            int index = GetTextureUnitId(unit);
 
             if (wrapModeS != CurrentWrapModeS)
             {
+                // Will flush the current batch internally.
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
+                // Will flush the current batch internally.
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
                 CurrentWrapModeT = wrapModeT;
             }
 
-            if (last_bound_texture[index] == textureId)
+            if (lastActiveTextureUnit == unit && last_bound_texture[index] == textureId)
                 return false;
 
             FlushCurrentBatch();
@@ -449,6 +453,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             last_bound_texture[index] = textureId;
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+            lastActiveTextureUnit = unit;
 
             FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             return true;
@@ -696,11 +701,27 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (maskingInfo.BorderThickness > 0)
             {
-                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
-                    maskingInfo.BorderColour.Linear.R,
-                    maskingInfo.BorderColour.Linear.G,
-                    maskingInfo.BorderColour.Linear.B,
-                    maskingInfo.BorderColour.Linear.A));
+                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Matrix4(
+                    // TopLeft
+                    maskingInfo.BorderColour.TopLeft.Linear.R,
+                    maskingInfo.BorderColour.TopLeft.Linear.G,
+                    maskingInfo.BorderColour.TopLeft.Linear.B,
+                    maskingInfo.BorderColour.TopLeft.Linear.A,
+                    // BottomLeft
+                    maskingInfo.BorderColour.BottomLeft.Linear.R,
+                    maskingInfo.BorderColour.BottomLeft.Linear.G,
+                    maskingInfo.BorderColour.BottomLeft.Linear.B,
+                    maskingInfo.BorderColour.BottomLeft.Linear.A,
+                    // TopRight
+                    maskingInfo.BorderColour.TopRight.Linear.R,
+                    maskingInfo.BorderColour.TopRight.Linear.G,
+                    maskingInfo.BorderColour.TopRight.Linear.B,
+                    maskingInfo.BorderColour.TopRight.Linear.A,
+                    // BottomRight
+                    maskingInfo.BorderColour.BottomRight.Linear.R,
+                    maskingInfo.BorderColour.BottomRight.Linear.G,
+                    maskingInfo.BorderColour.BottomRight.Linear.B,
+                    maskingInfo.BorderColour.BottomRight.Linear.A));
             }
 
             GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
@@ -879,7 +900,7 @@ namespace osu.Framework.Graphics.OpenGL
             while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
+            ScheduleDisposal(GL.DeleteFramebuffer, frameBuffer);
         }
 
         private static int currentShader;
@@ -980,7 +1001,7 @@ namespace osu.Framework.Graphics.OpenGL
         public float CornerExponent;
 
         public float BorderThickness;
-        public SRGBColour BorderColour;
+        public ColourInfo BorderColour;
 
         public float BlendRange;
         public float AlphaExponent;

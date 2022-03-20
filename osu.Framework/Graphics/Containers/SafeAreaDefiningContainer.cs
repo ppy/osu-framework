@@ -35,12 +35,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        [Resolved]
+        private GameHost host { get; set; }
+
+        private readonly IBindable<MarginPadding> hostSafeArea = new BindableSafeArea();
+
+        protected override void LoadComplete()
         {
-            if (!usesCustomBinding && host.Window != null)
-                safeArea.BindTo(host.Window.SafeAreaPadding);
+            base.LoadComplete();
+
+            if (usesCustomBinding || host.Window == null)
+                return;
+
+            hostSafeArea.BindTo(host.Window.SafeAreaPadding);
+            hostSafeArea.BindValueChanged(_ => Scheduler.AddOnce(updateSafeAreaFromHost));
+
+            updateSafeAreaFromHost();
         }
+
+        private void updateSafeAreaFromHost() => safeArea.Value = hostSafeArea.Value;
 
         #region ISafeArea Implementation
 

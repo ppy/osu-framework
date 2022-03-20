@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
@@ -83,6 +82,8 @@ namespace osu.Framework.Logging
         /// Gets the name of the file that this logger is logging to.
         /// </summary>
         public string Filename => $@"{Name}.log";
+
+        public int TotalLogOperations => logCount.Value;
 
         private readonly GlobalStatistic<int> logCount;
 
@@ -251,7 +252,7 @@ namespace osu.Framework.Logging
         {
             lock (static_sync_lock)
             {
-                var nameLower = name.ToLower();
+                string nameLower = name.ToLower();
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
@@ -267,9 +268,11 @@ namespace osu.Framework.Logging
         /// Logs a new message with the <see cref="LogLevel.Debug"/> and will only be logged if your project is built in the Debug configuration. Please note that the default setting for <see cref="Level"/> is <see cref="LogLevel.Verbose"/> so unless you increase the <see cref="Level"/> to <see cref="LogLevel.Debug"/> messages printed with this method will not appear in the output.
         /// </summary>
         /// <param name="message">The message that should be logged.</param>
-        [Conditional("DEBUG")]
         public void Debug(string message = @"")
         {
+            if (!DebugUtils.IsDebugBuild)
+                return;
+
             Add(message, LogLevel.Debug);
         }
 
@@ -284,6 +287,8 @@ namespace osu.Framework.Logging
             add(message, level, exception, outputToListeners && OutputToListeners);
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
+
+        private readonly Queue<string> pendingFileOutput = new Queue<string>();
 
         private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
         {
@@ -330,7 +335,7 @@ namespace osu.Framework.Logging
 
                     bool bypassRateLimit = level >= LogLevel.Verbose;
 
-                    foreach (var line in lines)
+                    foreach (string line in lines)
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
@@ -355,23 +360,39 @@ namespace osu.Framework.Logging
                 if (!Enabled)
                     return;
 
-                scheduler.Add(delegate
+                lock (pendingFileOutput)
                 {
-                    try
-                    {
-                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
-                        using (var writer = new StreamWriter(stream))
-                        {
-                            foreach (var line in lines)
-                                writer.WriteLine(line);
-                        }
-                    }
-                    catch
-                    {
-                    }
-                });
+                    foreach (string l in lines)
+                        pendingFileOutput.Enqueue(l);
+                }
+
+                scheduler.AddOnce(writePendingLines);
 
                 writer_idle.Reset();
+            }
+        }
+
+        private void writePendingLines()
+        {
+            string[] lines;
+
+            lock (pendingFileOutput)
+            {
+                lines = pendingFileOutput.ToArray();
+                pendingFileOutput.Clear();
+            }
+
+            try
+            {
+                using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                using (var writer = new StreamWriter(stream))
+                {
+                    foreach (string line in lines)
+                        writer.WriteLine(line);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -393,7 +414,17 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                scheduler.Add(() => Storage.Delete(Filename));
+                scheduler.Add(() =>
+                {
+                    try
+                    {
+                        Storage.Delete(Filename);
+                    }
+                    catch
+                    {
+                        // may fail if the file/directory was already cleaned up, ie. during test runs.
+                    }
+                });
                 writer_idle.Reset();
             }
         }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
@@ -55,7 +56,8 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        public Task<Sample> GetAsync(string name) => Task.Run(() => Get(name));
+        public Task<Sample> GetAsync(string name, CancellationToken cancellationToken = default) =>
+            Task.Run(() => Get(name), cancellationToken);
 
         protected override void UpdateState()
         {

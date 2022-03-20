@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
@@ -69,7 +70,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="data">The sample data stream.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, bool quick = false)
+        internal TrackBass(Stream data, bool quick = false)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -188,7 +189,7 @@ namespace osu.Framework.Audio.Track
         {
             base.UpdateState();
 
-            var running = isRunningState(bassMixer.ChannelIsActive(this));
+            bool running = isRunningState(bassMixer.ChannelIsActive(this));
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
@@ -206,7 +207,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            StopAsync().Wait();
+            StopAsync().WaitSafely();
         }
 
         public Task StopAsync() => EnqueueAction(() =>
@@ -229,7 +230,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Start();
 
-            StartAsync().Wait();
+            StartAsync().WaitSafely();
         }
 
         public Task StartAsync() => EnqueueAction(() =>
@@ -265,7 +266,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool Seek(double seek) => SeekAsync(seek).Result;
+        public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
         public async Task<bool> SeekAsync(double seek)
         {
@@ -302,7 +303,7 @@ namespace osu.Framework.Audio.Track
         {
             Debug.Assert(CanPerformInline);
 
-            var bytePosition = bassMixer.ChannelGetPosition(this);
+            long bytePosition = bassMixer.ChannelGetPosition(this);
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 

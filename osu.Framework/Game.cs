@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Graphics.Visualisation.Audio;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
@@ -248,11 +249,15 @@ namespace osu.Framework
 
         private Bindable<ExecutionMode> executionMode;
 
-        public bool OnPressed(FrameworkAction action)
+        public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
-            switch (action)
+            if (e.Repeat)
+                return false;
+
+            switch (e.Action)
             {
                 case FrameworkAction.CycleFrameStatistics:
+
                     switch (FrameStatistics.Value)
                     {
                         case FrameStatisticsMode.None:
@@ -358,13 +363,16 @@ namespace osu.Framework
                 => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
 
-        public void OnReleased(FrameworkAction action)
+        public void OnReleased(KeyBindingReleaseEvent<FrameworkAction> e)
         {
         }
 
-        public virtual bool OnPressed(PlatformAction action)
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
-            switch (action)
+            if (e.Repeat)
+                return false;
+
+            switch (e.Action)
             {
                 case PlatformAction.Exit:
                     Host.Window?.Close();
@@ -374,7 +382,7 @@ namespace osu.Framework
             return false;
         }
 
-        public virtual void OnReleased(PlatformAction action)
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
 

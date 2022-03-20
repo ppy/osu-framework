@@ -39,54 +39,77 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                new FillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical,
-                    Children = new Drawable[]
-                    {
-                        new TitleBar(title, keyHelpText, this),
-                        new Container //toolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    Colour = FrameworkColour.BlueGreenDark,
-                                    RelativeSizeAxes = Axes.Both,
-                                },
-                                ToolbarContent = new FillFlowContainer
-                                {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Spacing = new Vector2(5),
-                                    Padding = new MarginPadding(5),
-                                },
-                            },
-                        }
-                    }
-                },
-                new TooltipContainer
+                new GridContainer
                 {
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
-                    Child = MainHorizontalContent = new FillFlowContainer
+                    RowDimensions = new[]
                     {
-                        RelativeSizeAxes = Axes.Y,
-                        AutoSizeAxes = Axes.X,
-                        Direction = FillDirection.Horizontal,
-                        Children = new Drawable[]
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.Distributed),
+                    },
+                    ColumnDimensions = new[]
+                    {
+                        new Dimension(GridSizeMode.AutoSize),
+                    },
+                    Content = new[]
+                    {
+                        new Drawable[]
                         {
-                            ScrollContent = new BasicScrollContainer<Drawable>
+                            new FillFlowContainer
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Direction = FillDirection.Vertical,
+                                Children = new Drawable[]
+                                {
+                                    new TitleBar(title, keyHelpText, this),
+                                    new Container //toolbar
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Children = new Drawable[]
+                                        {
+                                            new Box
+                                            {
+                                                Colour = FrameworkColour.BlueGreenDark,
+                                                RelativeSizeAxes = Axes.Both,
+                                            },
+                                            ToolbarContent = new FillFlowContainer
+                                            {
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Spacing = new Vector2(5),
+                                                Padding = new MarginPadding(5),
+                                            },
+                                        },
+                                    }
+                                }
+                            },
+                        },
+                        new Drawable[]
+                        {
+                            new TooltipContainer
                             {
                                 RelativeSizeAxes = Axes.Y,
-                                Width = WIDTH
-                            }
+                                AutoSizeAxes = Axes.X,
+                                Child = MainHorizontalContent = new FillFlowContainer
+                                {
+                                    RelativeSizeAxes = Axes.Y,
+                                    AutoSizeAxes = Axes.X,
+                                    Direction = FillDirection.Horizontal,
+                                    Children = new Drawable[]
+                                    {
+                                        ScrollContent = new BasicScrollContainer<Drawable>
+                                        {
+                                            RelativeSizeAxes = Axes.Y,
+                                            Width = WIDTH
+                                        }
+                                    }
+                                }
+                            },
                         }
-                    }
+                    },
                 },
                 new CursorContainer()
             });
@@ -100,14 +123,6 @@ namespace osu.Framework.Graphics.Visualisation
                 Text = text,
                 Action = action
             });
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            // Used instead of GridContainer due to grid container's autosize failing to reduce size after increase.
-            MainHorizontalContent.Padding = new MarginPadding { Top = TitleBar.HEIGHT + ToolbarContent.DrawHeight };
         }
 
         protected override void PopIn() => this.FadeIn(100);

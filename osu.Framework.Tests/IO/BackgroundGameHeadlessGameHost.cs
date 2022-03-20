@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
@@ -13,32 +14,24 @@ namespace osu.Framework.Tests.IO
     /// </summary>
     public class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
     {
-        private TestGame testGame;
-
-        public BackgroundGameHeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, realtime, portableInstallation)
-        {
-            using (var gameCreated = new ManualResetEventSlim(false))
+        [Obsolete("Use BackgroundGameHeadlessGameHost(string, HostOptions, bool) instead.")] // Can be removed 20220715
+        public BackgroundGameHeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : this(gameName, new HostOptions
             {
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        testGame = new TestGame();
-                        // ReSharper disable once AccessToDisposedClosure
-                        gameCreated.Set();
+                BindIPC = bindIPC,
+                PortableInstallation = portableInstallation,
+            }, realtime)
+        {
+        }
 
-                        Run(testGame);
-                    }
-                    catch
-                    {
-                        // may throw an unobserved exception if we don't handle here.
-                    }
-                });
+        public BackgroundGameHeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName, options, realtime: realtime)
+        {
+            var testGame = new TestGame();
 
-                gameCreated.Wait();
-                testGame.HasProcessed.Wait();
-            }
+            Task.Factory.StartNew(() => Run(testGame), TaskCreationOptions.LongRunning);
+
+            testGame.HasProcessed.Wait();
         }
 
         private class TestGame : Game

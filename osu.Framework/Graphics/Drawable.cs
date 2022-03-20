@@ -151,9 +151,9 @@ namespace osu.Framework.Graphics
                         {
                             a(target);
                         }
-                        catch
+                        catch (Exception e)
                         {
-                            // Execution should continue regardless of whether an unbind failed
+                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
                         }
                     }
                 };
@@ -1785,8 +1785,10 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            foreach (var member in layoutMembers)
+            for (int i = 0; i < layoutMembers.Count; i++)
             {
+                var member = layoutMembers[i];
+
                 // Only invalidate layout members that accept the given source.
                 if ((member.Source & source) == 0)
                     continue;
@@ -2440,7 +2442,7 @@ namespace osu.Framework.Graphics
             {
                 var type = drawable.GetType();
 
-                if (!cache.TryGetValue(type, out var value))
+                if (!cache.TryGetValue(type, out bool value))
                 {
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
@@ -2451,9 +2453,9 @@ namespace osu.Framework.Graphics
 
             private static bool compute([NotNull] Type type, bool positional)
             {
-                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
+                string[] inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
-                foreach (var inputMethod in inputMethods)
+                foreach (string inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
                     var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -2473,9 +2475,9 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                var inputProperties = positional ? positional_input_properties : non_positional_input_properties;
+                string[] inputProperties = positional ? positional_input_properties : non_positional_input_properties;
 
-                foreach (var inputProperty in inputProperties)
+                foreach (string inputProperty in inputProperties)
                 {
                     var property = type.GetProperty(inputProperty);
 
@@ -2584,14 +2586,14 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(Transforms)}");
 
         /// <summary>
         /// Check whether the current thread is valid for operating on thread-safe properties.
         /// </summary>
-        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <param name="action">The action to be performed, used only for describing failures in exception messages.</param>
         /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
-        internal void EnsureMutationAllowed(string member)
+        internal void EnsureMutationAllowed(string action)
         {
             switch (LoadState)
             {
@@ -2600,20 +2602,20 @@ namespace osu.Framework.Graphics
 
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load thread");
 
                     break;
 
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load or update threads");
 
                     break;
 
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the update thread");
 
                     break;
             }
@@ -2623,7 +2625,21 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate Schedule<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, data, TransformDelay);
+
+            return Scheduler.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate Schedule(Action action)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, TransformDelay);
+
+            return Scheduler.Add(action);
+        }
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
@@ -2694,7 +2710,7 @@ namespace osu.Framework.Graphics
             string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
-                return $@"{Name} ({shortClass})";
+                return $@"{Name}({shortClass})";
             else
                 return shortClass;
         }
@@ -2710,8 +2726,8 @@ namespace osu.Framework.Graphics
 
         public class InvalidThreadForMutationException : InvalidOperationException
         {
-            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
-                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
+            public InvalidThreadForMutationException(LoadState loadState, string action, string invalidThreadContextDescription)
+                : base($"Cannot {action} on a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
                        + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
             {
             }

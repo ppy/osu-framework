@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -163,7 +164,7 @@ namespace osu.Framework.Graphics.Audio
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            var result = base.OnInvalidate(invalidation, source);
+            bool result = base.OnInvalidate(invalidation, source);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
             {
@@ -196,13 +197,15 @@ namespace osu.Framework.Graphics.Audio
                 cancelSource = new CancellationTokenSource();
                 var token = cancelSource.Token;
 
-                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
+                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(task =>
                 {
-                    var points = w.Result.GetPoints();
-                    var channels = w.Result.GetChannels();
-                    var maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                    var maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                    var maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                    var resampled = task.GetResultSafely();
+
+                    var points = resampled.GetPoints();
+                    int channels = resampled.GetChannels();
+                    double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                    double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                    double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
 
                     Schedule(() =>
                     {
@@ -212,7 +215,7 @@ namespace osu.Framework.Graphics.Audio
                         resampledMaxMidIntensity = maxMidIntensity;
                         resampledMaxLowIntensity = maxLowIntensity;
 
-                        OnWaveformRegenerated(w.Result);
+                        OnWaveformRegenerated(resampled);
 
                         Invalidate(Invalidation.DrawNode);
                     });

@@ -97,8 +97,11 @@ namespace osu.Framework.Threading
         private CultureInfo culture;
 
         /// <summary>
-        /// The refresh rate this thread should run at when active. Only applies when the underlying clock is throttling.
+        /// The target number of updates per second when the game window is active.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double ActiveHz
         {
             get => activeHz;
@@ -112,8 +115,11 @@ namespace osu.Framework.Threading
         private double activeHz = DEFAULT_ACTIVE_HZ;
 
         /// <summary>
-        /// The refresh rate this thread should run at when inactive. Only applies when the underlying clock is throttling.
+        /// The target number of updates per second when the game window is inactive.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double InactiveHz
         {
             get => inactiveHz;
@@ -125,6 +131,8 @@ namespace osu.Framework.Threading
         }
 
         private double inactiveHz = DEFAULT_INACTIVE_HZ;
+
+        private readonly GameThreadSynchronizationContext synchronizationContext;
 
         internal PerformanceMonitor Monitor { get; }
 
@@ -157,7 +165,9 @@ namespace osu.Framework.Threading
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(this, StatisticsCounters);
+
             Scheduler = new GameThreadScheduler(this);
+            synchronizationContext = new GameThreadSynchronizationContext(this);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
@@ -267,6 +277,8 @@ namespace osu.Framework.Threading
         internal virtual void MakeCurrent()
         {
             ThreadSafety.ResetAllForCurrentThread();
+
+            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
         }
 
         /// <summary>
@@ -424,7 +436,10 @@ namespace osu.Framework.Threading
                 Monitor?.NewFrame();
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
+                {
                     Scheduler.Update();
+                    synchronizationContext.RunWork();
+                }
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
                     OnNewFrame?.Invoke();
@@ -475,14 +490,6 @@ namespace osu.Framework.Threading
                 }
 
                 state.Value = exitState;
-            }
-        }
-
-        private class GameThreadScheduler : Scheduler
-        {
-            public GameThreadScheduler(GameThread thread)
-                : base(() => thread.IsCurrent, thread.Clock)
-            {
             }
         }
     }

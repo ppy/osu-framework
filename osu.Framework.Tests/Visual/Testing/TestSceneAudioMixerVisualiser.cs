@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
@@ -18,7 +17,7 @@ namespace osu.Framework.Tests.Visual.Testing
         private TestAudioPlayingSource globalSource;
 
         [BackgroundDependencyLoader]
-        private void load(AudioManager audioManager)
+        private void load()
         {
             AudioMixerVisualiser visualiser;
 
@@ -74,7 +73,13 @@ namespace osu.Framework.Tests.Visual.Testing
                 sample = new DrawableSample(samples.Get("long.mp3"));
 
                 if (withMixer)
-                    InternalChild = new DrawableAudioMixer { Children = new Drawable[] { track, sample } };
+                {
+                    InternalChild = new DrawableAudioMixer
+                    {
+                        Name = "drawable mixer",
+                        Children = new Drawable[] { track, sample }
+                    };
+                }
                 else
                     InternalChildren = new Drawable[] { track, sample };
             }

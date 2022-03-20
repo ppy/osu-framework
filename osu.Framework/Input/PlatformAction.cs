@@ -44,5 +44,9 @@ namespace osu.Framework.Input
         DeleteForwardLine,
         SelectBackwardLine,
         SelectForwardLine,
+
+        ZoomIn,
+        ZoomOut,
+        ZoomDefault,
     }
 }

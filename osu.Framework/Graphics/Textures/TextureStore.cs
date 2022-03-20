@@ -7,8 +7,10 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -49,8 +51,6 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(await base.GetAsync(name).ConfigureAwait(false), wrapModeS, wrapModeT);
-
         private Texture getTexture(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(base.Get(name), wrapModeS, wrapModeT);
 
         private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
@@ -81,8 +81,9 @@ namespace osu.Framework.Graphics.Textures
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The texture.</returns>
-        public new Task<Texture> GetAsync(string name) => GetAsync(name, default, default);
+        public new Task<Texture> GetAsync(string name, CancellationToken cancellationToken) => GetAsync(name, default, default, cancellationToken);
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -90,9 +91,10 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture.</param>
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) =>
-            Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS, CancellationToken cancellationToken = default) =>
+            Task.Run(() => Get(name, wrapModeS, wrapModeT), cancellationToken); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -134,7 +136,7 @@ namespace osu.Framework.Graphics.Textures
             // handle the case where a lookup is already in progress.
             if (task != null)
             {
-                task.Wait();
+                task.WaitSafely();
 
                 // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
                 if (TryGetCached(key, out var cached))

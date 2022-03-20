@@ -12,31 +12,35 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneClosableMenu : MenuTestScene
     {
-        protected override Menu CreateMenu() => new AnimatedMenu(Direction.Vertical)
+        [SetUpSteps]
+        public void SetUpSteps()
         {
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-            State = MenuState.Open,
-            Items = new[]
+            CreateMenu(() => new AnimatedMenu(Direction.Vertical)
             {
-                new MenuItem("Item #1")
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                State = MenuState.Open,
+                Items = new[]
                 {
-                    Items = new[]
+                    new MenuItem("Item #1")
                     {
-                        new MenuItem("Sub-item #1"),
-                        new MenuItem("Sub-item #2"),
-                    }
-                },
-                new MenuItem("Item #2")
-                {
-                    Items = new[]
+                        Items = new[]
+                        {
+                            new MenuItem("Sub-item #1"),
+                            new MenuItem("Sub-item #2"),
+                        }
+                    },
+                    new MenuItem("Item #2")
                     {
-                        new MenuItem("Sub-item #1"),
-                        new MenuItem("Sub-item #2"),
-                    }
-                },
-            }
-        };
+                        Items = new[]
+                        {
+                            new MenuItem("Sub-item #1"),
+                            new MenuItem("Sub-item #2"),
+                        }
+                    },
+                }
+            });
+        }
 
         [Test]
         public void TestClickItemClosesMenus()

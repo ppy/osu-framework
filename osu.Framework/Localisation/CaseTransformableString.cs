@@ -36,7 +36,7 @@ namespace osu.Framework.Localisation
 
         public string GetLocalised(LocalisationParameters parameters)
         {
-            var stringData = getStringData(parameters);
+            string stringData = getStringData(parameters);
             var cultureText = parameters.Store?.EffectiveCulture?.TextInfo ?? CultureInfo.InvariantCulture.TextInfo;
 
             switch (Casing)

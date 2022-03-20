@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Platform.MacOS.Native;
+using SixLabors.ImageSharp;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -30,6 +31,16 @@ namespace osu.Framework.Platform.MacOS
         {
             generalPasteboard.ClearContents();
             generalPasteboard.WriteObjects(NSArray.ArrayWithObject(Cocoa.ToNSString(selectedText)));
+        }
+
+        public override Image<TPixel> GetImage<TPixel>()
+        {
+            return null;
+        }
+
+        public override bool SetImage(Image image)
+        {
+            return false;
         }
     }
 }

@@ -10,13 +10,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneUnclosableMenu : MenuTestScene
     {
-        protected override Menu CreateMenu() => new TestMenu
+        [SetUpSteps]
+        public void SetUpSteps()
         {
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-            State = MenuState.Open,
-            Items = new[] { new MenuItem("Item #1") { Items = new[] { new MenuItem("Sub-item #1") } } }
-        };
+            CreateMenu(() => new TestMenu
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                State = MenuState.Open,
+                Items = new[] { new MenuItem("Item #1") { Items = new[] { new MenuItem("Sub-item #1") } } }
+            });
+        }
 
         private class TestMenu : BasicMenu
         {

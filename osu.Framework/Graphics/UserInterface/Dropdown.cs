@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-            Current.ValueChanged += selectionChanged;
+            Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
@@ -424,7 +424,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             #region DrawableDropdownMenuItem
 
-            // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
@@ -536,7 +535,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return base.OnKeyDown(e);
 
                 var currentPreselected = PreselectedItem;
-                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+                int targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
@@ -579,9 +578,9 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public bool OnPressed(PlatformAction action)
+            public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
             {
-                switch (action)
+                switch (e.Action)
                 {
                     case PlatformAction.MoveToListStart:
                         PreselectItem(Items.FirstOrDefault());
@@ -596,7 +595,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public void OnReleased(PlatformAction action)
+            public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
             {
             }
         }

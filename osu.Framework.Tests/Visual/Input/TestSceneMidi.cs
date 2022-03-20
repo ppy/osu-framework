@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -11,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Midi;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
@@ -51,20 +51,20 @@ namespace osu.Framework.Tests.Visual.Input
 
         protected override bool OnMidiDown(MidiDownEvent e)
         {
-            Console.WriteLine(e);
+            Logger.Log(e.ToString());
             return base.OnMidiDown(e);
         }
 
         protected override void OnMidiUp(MidiUpEvent e)
         {
-            Console.WriteLine(e);
+            Logger.Log(e.ToString());
             base.OnMidiUp(e);
         }
 
         protected override bool Handle(UIEvent e)
         {
             if (!(e is MouseEvent))
-                Console.WriteLine("Event: " + e);
+                Logger.Log("Event: " + e);
             return base.Handle(e);
         }
 

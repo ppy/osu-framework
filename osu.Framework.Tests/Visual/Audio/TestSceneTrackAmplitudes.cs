@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual.Audio
         private void load(ITrackStore tracks)
         {
             bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
-            var length = bassTrack.CurrentAmplitudes.FrequencyAmplitudes.Length;
+            int length = bassTrack.CurrentAmplitudes.FrequencyAmplitudes.Length;
 
             Children = new Drawable[]
             {

@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A list of <see cref="Transform"/>s associated with the <see cref="TargetGrouping"/>.
         /// </summary>
-        public IEnumerable<Transform> Transforms => transforms;
+        public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
         /// The member this instance is tracking.
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly Transformable transformable;
 
-        private readonly Queue<Action> removalActions = new Queue<Action>();
+        private readonly Queue<(ITransformSequence sequence, Action<ITransformSequence> action)> removalActions = new Queue<(ITransformSequence, Action<ITransformSequence>)>();
 
         /// <summary>
         /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 var t = transforms[i];
 
-                var tCanRewind = !transformable.RemoveCompletedTransforms && t.Rewindable;
+                bool tCanRewind = !transformable.RemoveCompletedTransforms && t.Rewindable;
 
                 bool flushAppliedCache = false;
 
@@ -134,8 +134,8 @@ namespace osu.Framework.Graphics.Transforms
                             flushAppliedCache = true;
                             i--;
 
-                            if (u.OnAbort != null)
-                                removalActions.Enqueue(u.OnAbort);
+                            if (u.AbortTargetSequence != null)
+                                removalActions.Enqueue((u.AbortTargetSequence, s => s.TransformAborted()));
                         }
                         else
                             u.AppliedToEnd = true;
@@ -184,8 +184,8 @@ namespace osu.Framework.Graphics.Transforms
                             transforms.Add(t);
                             flushAppliedCache = true;
                         }
-                        else if (t.OnComplete != null)
-                            removalActions.Enqueue(t.OnComplete);
+                        else if (t.CompletionTargetSequence != null)
+                            removalActions.Enqueue((t.CompletionTargetSequence, s => s.TransformCompleted()));
                     }
                 }
 
@@ -233,8 +233,8 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);
-                    if (t.OnAbort != null)
-                        removalActions.Enqueue(t.OnAbort);
+                    if (t.AbortTargetSequence != null)
+                        removalActions.Enqueue((t.AbortTargetSequence, s => s.TransformAborted()));
                 }
             }
 
@@ -263,21 +263,36 @@ namespace osu.Framework.Graphics.Transforms
         {
             resetLastAppliedCache();
 
-            Transform[] toAbort;
-
             if (targetMember == null)
             {
-                toAbort = transforms.Where(t => t.StartTime >= time).ToArray();
-                transforms.RemoveAll(t => t.StartTime >= time);
+                for (int i = 0; i < transforms.Count; i++)
+                {
+                    var t = transforms[i];
+
+                    if (t.StartTime >= time)
+                    {
+                        transforms.RemoveAt(i--);
+                        if (t.AbortTargetSequence != null)
+                            removalActions.Enqueue((t.AbortTargetSequence, s => s.TransformAborted()));
+                    }
+                }
             }
             else
             {
-                toAbort = transforms.Where(t => t.TargetMember == targetMember && t.StartTime >= time).ToArray();
-                transforms.RemoveAll(t => t.TargetMember == targetMember && t.StartTime >= time);
+                for (int i = 0; i < transforms.Count; i++)
+                {
+                    var t = transforms[i];
+
+                    if (t.TargetMember == targetMember && t.StartTime >= time)
+                    {
+                        transforms.RemoveAt(i--);
+                        if (t.AbortTargetSequence != null)
+                            removalActions.Enqueue((t.AbortTargetSequence, s => s.TransformAborted()));
+                    }
+                }
             }
 
-            foreach (var t in toAbort)
-                t.OnAbort?.Invoke();
+            invokePendingRemovalActions();
         }
 
         /// <summary>
@@ -310,14 +325,14 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 t.Apply(t.EndTime);
-                t.OnComplete?.Invoke();
+                t.TriggerComplete();
             }
         }
 
         private void invokePendingRemovalActions()
         {
-            while (removalActions.TryDequeue(out var action))
-                action();
+            while (removalActions.TryDequeue(out var item))
+                item.action(item.sequence);
         }
 
         /// <summary>
@@ -360,7 +375,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private void resetLastAppliedCache()
         {
-            foreach (var tracked in targetMembers)
+            foreach (string tracked in targetMembers)
                 lastAppliedTransformIndices[tracked] = 0;
         }
     }

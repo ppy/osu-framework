@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -80,7 +81,7 @@ namespace osu.Framework.Benchmarks
 
         private void runFor(GlyphStore store)
         {
-            store.LoadFontAsync().Wait();
+            store.LoadFontAsync().WaitSafely();
 
             var props = typeof(FontAwesome.Solid).GetProperties(BindingFlags.Public | BindingFlags.Static);
 
@@ -90,7 +91,7 @@ namespace osu.Framework.Benchmarks
             {
                 foreach (var p in props)
                 {
-                    var propValue = p.GetValue(null);
+                    object propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     var icon = (IconUsage)propValue;

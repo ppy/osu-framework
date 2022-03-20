@@ -103,8 +103,8 @@ namespace osu.Framework.Statistics
         {
             while (!cancellation.IsCancellationRequested)
             {
-                var elapsed = clock.ElapsedMilliseconds - LastConsumptionTime;
-                var threshold = spikeRecordThreshold / 2;
+                double elapsed = clock.ElapsedMilliseconds - LastConsumptionTime;
+                double threshold = spikeRecordThreshold / 2;
 
                 if (targetThread.IsAlive && isCollecting && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                 {
@@ -140,10 +140,10 @@ namespace osu.Framework.Statistics
 
             isCollecting = true;
 
-            var frames = backgroundMonitorStackTrace;
+            string[] frames = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
 
-            var currentThreshold = spikeRecordThreshold;
+            double currentThreshold = spikeRecordThreshold;
 
             spikeRecordThreshold = newSpikeThreshold;
 
@@ -163,7 +163,7 @@ namespace osu.Framework.Statistics
             {
                 logMessage.AppendLine(@"| Stack trace:");
 
-                foreach (var f in frames)
+                foreach (string f in frames)
                     logMessage.AppendLine($@"|- {f}");
             }
             else
@@ -181,7 +181,7 @@ namespace osu.Framework.Statistics
         {
             try
             {
-#if NET5_0
+#if NET6_0
                 using (var target = DataTarget.CreateSnapshotAndAttach(Environment.ProcessId))
 #else
                 using (var target = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id))

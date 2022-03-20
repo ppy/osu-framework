@@ -16,11 +16,13 @@ namespace osu.Framework.Benchmarks
     {
         private ManualGameHost gameHost;
 
+        protected Game Game { get; private set; }
+
         [GlobalSetup]
         [OneTimeSetUp]
         public virtual void SetUp()
         {
-            gameHost = new ManualGameHost(CreateGame());
+            gameHost = new ManualGameHost(Game = CreateGame());
         }
 
         [GlobalCleanup]
@@ -49,9 +51,9 @@ namespace osu.Framework.Benchmarks
             private ManualThreadRunner threadRunner;
 
             public ManualGameHost(Game runnableGame)
-                : base("manual")
+                : base("manual", new HostOptions())
             {
-                Task.Run(() =>
+                Task.Factory.StartNew(() =>
                 {
                     try
                     {
@@ -61,7 +63,7 @@ namespace osu.Framework.Benchmarks
                     {
                         // may throw an unobserved exception if we don't handle here.
                     }
-                });
+                }, TaskCreationOptions.LongRunning);
 
                 // wait for the game to initialise before continuing with the benchmark process.
                 while (threadRunner?.HasRunOnce != true)

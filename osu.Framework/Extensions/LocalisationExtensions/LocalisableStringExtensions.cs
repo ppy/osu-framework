@@ -1,12 +1,23 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
+using System;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Extensions.LocalisationExtensions
 {
     public static class LocalisableStringExtensions
     {
+        /// <summary>
+        /// Returns a <see cref="LocalisableFormattableString"/> formatting the given <paramref name="value"/> to a string, along with an optional <paramref name="format"/> string.
+        /// </summary>
+        /// <param name="value">The value to format.</param>
+        /// <param name="format">The format string.</param>
+        public static LocalisableFormattableString ToLocalisableString(this IFormattable value, string? format = null)
+            => new LocalisableFormattableString(value, format);
+
         /// <summary>
         /// Returns a <see cref="CaseTransformableString"/> with the specified underlying localisable string uppercased.
         /// </summary>

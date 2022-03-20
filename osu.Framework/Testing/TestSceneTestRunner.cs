@@ -1,15 +1,17 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Testing
@@ -58,15 +60,6 @@ namespace osu.Framework.Testing
                 if (volume != null) volume.Value = volumeAtStartup;
             }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                host.MaximumDrawHz = int.MaxValue;
-                host.MaximumUpdateHz = int.MaxValue;
-                host.MaximumInactiveHz = int.MaxValue;
-            }
-
             /// <summary>
             /// Blocks execution until a provided <see cref="TestScene"/> runs to completion.
             /// </summary>
@@ -91,7 +84,8 @@ namespace osu.Framework.Testing
                 {
                     AddInternal(test);
 
-                    Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
+                    Logger.Log($@"💨 Class: {test.GetType().ReadableName()}");
+                    Logger.Log($@"🔶 Test:  {TestContext.CurrentContext.Test.Name}");
 
                     // Nunit will run the tests in the TestScene with the same TestScene instance so the TestScene
                     // needs to be removed before the host is exited, otherwise it will end up disposed

@@ -26,7 +26,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
@@ -51,8 +50,6 @@ namespace osu.Framework.Testing
         public readonly List<Type> TestTypes = new List<Type>();
 
         private ConfigManager<TestBrowserSetting> config;
-
-        private DynamicClassCompiler<TestScene> backgroundCompiler;
 
         private bool interactive;
 
@@ -127,12 +124,15 @@ namespace osu.Framework.Testing
         private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, AudioManager audio)
+        private void load(Storage storage, GameHost host, AudioManager audio)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
-            exit = host.Exit;
+            if (host.CanExit)
+                exit = host.Exit;
+            else if (host.CanSuspendToBackground)
+                exit = () => host.SuspendToBackground();
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 
@@ -224,6 +224,7 @@ namespace osu.Framework.Testing
                                     Masking = false,
                                     Child = leftFlowContainer = new SearchContainer<TestGroupButton>
                                     {
+                                        AllowNonContiguousMatching = true,
                                         Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
                                         AutoSizeAxes = Axes.Y,
@@ -247,21 +248,7 @@ namespace osu.Framework.Testing
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
             if (RuntimeInfo.IsDesktop)
-            {
-                backgroundCompiler = new DynamicClassCompiler<TestScene>();
-                backgroundCompiler.CompilationStarted += compileStarted;
-                backgroundCompiler.CompilationFinished += compileFinished;
-                backgroundCompiler.CompilationFailed += compileFailed;
-
-                try
-                {
-                    backgroundCompiler.Start();
-                }
-                catch
-                {
-                    //it's okay for this to fail for now.
-                }
-            }
+                HotReloadCallbackReceiver.CompilationFinished += compileFinished;
 
             foreach (Assembly asm in assemblies)
                 toolbar.AddAssembly(asm.GetName().Name, asm);
@@ -275,16 +262,22 @@ namespace osu.Framework.Testing
             }, true);
         }
 
-        protected override void Dispose(bool isDisposing)
+        private void compileFinished(Type[] updatedTypes) => Schedule(() =>
         {
-            base.Dispose(isDisposing);
-            backgroundCompiler?.Dispose();
-        }
+            compilingNotice.FadeOut(800, Easing.InQuint);
+            compilingNotice.FadeColour(Color4.YellowGreen, 100);
 
-        private void compileStarted() => Schedule(() =>
-        {
-            compilingNotice.Show();
-            compilingNotice.FadeColour(Color4.White);
+            if (CurrentTest == null)
+                return;
+
+            try
+            {
+                LoadTest(CurrentTest.GetType(), isDynamicLoad: true);
+            }
+            catch (Exception e)
+            {
+                compileFailed(e);
+            }
         });
 
         private void compileFailed(Exception ex) => Schedule(() =>
@@ -295,38 +288,13 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.Red, 100);
         });
 
-        private void compileFinished(Type newType) => Schedule(() =>
-        {
-            compilingNotice.FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(Color4.YellowGreen, 100);
-
-            if (newType == null)
-                return;
-
-            int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
-
-            if (i < 0)
-                TestTypes.Add(newType);
-            else
-                TestTypes[i] = newType;
-
-            try
-            {
-                LoadTest(newType, isDynamicLoad: true);
-            }
-            catch (Exception e)
-            {
-                compileFailed(e);
-            }
-        });
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
             if (CurrentTest == null)
             {
-                var lastTest = config.Get<string>(TestBrowserSetting.LastTest);
+                string lastTest = config.Get<string>(TestBrowserSetting.LastTest);
 
                 var foundTest = TestTypes.Find(t => t.FullName == lastTest);
 
@@ -355,7 +323,7 @@ namespace osu.Framework.Testing
                 switch (e.Key)
                 {
                     case Key.Escape:
-                        exit();
+                        exit?.Invoke();
                         return true;
                 }
             }
@@ -374,9 +342,12 @@ namespace osu.Framework.Testing
             new KeyBinding(new[] { InputKey.Control, InputKey.H }, TestBrowserAction.ToggleTestList),
         };
 
-        public bool OnPressed(TestBrowserAction action)
+        public bool OnPressed(KeyBindingPressEvent<TestBrowserAction> e)
         {
-            switch (action)
+            if (e.Repeat)
+                return false;
+
+            switch (e.Action)
             {
                 case TestBrowserAction.Search:
                     if (leftContainer.Width == 0) toggleTestList();
@@ -395,7 +366,7 @@ namespace osu.Framework.Testing
             return false;
         }
 
-        public void OnReleased(TestBrowserAction action)
+        public void OnReleased(KeyBindingReleaseEvent<TestBrowserAction> e)
         {
         }
 
@@ -406,8 +377,6 @@ namespace osu.Framework.Testing
                 testContentContainer.Remove(CurrentTest.Parent);
                 CurrentTest.Dispose();
             }
-
-            var lastTest = CurrentTest;
 
             CurrentTest = null;
 
@@ -422,25 +391,6 @@ namespace osu.Framework.Testing
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
             Debug.Assert(newTest != null);
-
-            const string dynamic_prefix = "dynamic";
-
-            // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-            if (isDynamicLoad)
-            {
-                newTest.DynamicCompilationOriginal = lastTest?.DynamicCompilationOriginal ?? lastTest ?? newTest;
-                toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
-            }
-            else
-            {
-                TestTypes.RemoveAll(t =>
-                {
-                    Debug.Assert(t.Assembly.FullName != null);
-                    return t.Assembly.FullName.Contains(dynamic_prefix);
-                });
-
-                newTest.DynamicCompilationOriginal = newTest;
-            }
 
             Assembly.Value = testType.Assembly;
 
@@ -478,7 +428,7 @@ namespace osu.Framework.Testing
 
             foreach (var m in newTest.GetType().GetMethods())
             {
-                var name = m.Name;
+                string name = m.Name;
 
                 if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
@@ -490,7 +440,7 @@ namespace osu.Framework.Testing
 
                 if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
                 {
-                    var count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                    object count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
                     Debug.Assert(count != null);
 
                     runCount += (int)count;
@@ -518,7 +468,7 @@ namespace osu.Framework.Testing
 
                                 List<object> choices = new List<object>();
 
-                                foreach (var choice in valueAttrib.GetData(p))
+                                foreach (object choice in valueAttrib.GetData(p))
                                     choices.Add(choice);
 
                                 valueMatrix.Add(choices);
@@ -557,13 +507,13 @@ namespace osu.Framework.Testing
                             throw new InvalidOperationException($"The value of the source member {tcs.SourceName} must be non-null.");
                         }
 
-                        foreach (var argument in sourceValue)
+                        foreach (object argument in sourceValue)
                         {
                             hadTestAttributeTest = true;
 
                             if (argument is IEnumerable argumentsEnumerable)
                             {
-                                var arguments = argumentsEnumerable.Cast<object>().ToArray();
+                                object[] arguments = argumentsEnumerable.Cast<object>().ToArray();
 
                                 CurrentTest.AddLabel($"{name}({string.Join(", ", arguments)}){repeatSuffix}");
                                 handleTestMethod(m, arguments);
@@ -582,7 +532,6 @@ namespace osu.Framework.Testing
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
-            backgroundCompiler?.SetRecompilationTarget(CurrentTest);
             runTests(onCompletion);
             updateButtons();
 
@@ -641,7 +590,7 @@ namespace osu.Framework.Testing
                     return (IEnumerable)sp.GetValue(null);
 
                 case MethodInfo sm:
-                    var methodParamsLength = sm.GetParameters().Length;
+                    int methodParamsLength = sm.GetParameters().Length;
                     if (methodParamsLength != (tcs.MethodParams?.Length ?? 0))
                         throw new InvalidOperationException($"The given source method parameters count doesn't match the method. (attribute has {tcs.MethodParams?.Length ?? 0}, method has {methodParamsLength})");
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.iOS;
 using UIKit;
 
 namespace SampleGame.iOS
@@ -12,7 +13,7 @@ namespace SampleGame.iOS
         {
             // if you want to use a different Application Delegate class from "AppDelegate"
             // you can specify it here.
-            UIApplication.Main(args, "GameUIApplication", "AppDelegate");
+            UIApplication.Main(args, typeof(GameUIApplication), typeof(AppDelegate));
         }
     }
 }

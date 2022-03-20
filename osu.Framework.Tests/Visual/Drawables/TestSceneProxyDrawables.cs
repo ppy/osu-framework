@@ -371,7 +371,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 // We want to be present for updates
                 isPresent = true;
 
-                var result = base.UpdateSubTree();
+                bool result = base.UpdateSubTree();
                 if (!result)
                     return false;
 

@@ -2,30 +2,48 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using Android.Views;
-using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
 {
-    public class AndroidKeyboardHandler : InputHandler
+    public class AndroidKeyboardHandler : AndroidInputHandler
     {
-        private readonly AndroidGameView view;
+        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Keyboard };
 
         public AndroidKeyboardHandler(AndroidGameView view)
+            : base(view)
         {
-            this.view = view;
-            view.KeyDown += keyDown;
-            view.KeyUp += keyUp;
+        }
+
+        public override bool Initialize(GameHost host)
+        {
+            if (!base.Initialize(host))
+                return false;
+
+            Enabled.BindValueChanged(enabled =>
+            {
+                if (enabled.NewValue)
+                {
+                    View.KeyDown += HandleKeyDown;
+                    View.KeyUp += HandleKeyUp;
+                }
+                else
+                {
+                    View.KeyDown -= HandleKeyDown;
+                    View.KeyUp -= HandleKeyUp;
+                }
+            }, true);
+
+            return true;
         }
 
         public override bool IsActive => true;
 
-        public override bool Initialize(GameHost host) => true;
-
-        private void keyDown(Keycode keycode, KeyEvent e)
+        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
@@ -33,7 +51,7 @@ namespace osu.Framework.Android.Input
                 PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
         }
 
-        private void keyUp(Keycode keycode, KeyEvent e)
+        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
@@ -63,10 +81,10 @@ namespace osu.Framework.Android.Input
                 return Key.A + code - first_letter_key;
 
             // function keys
-            const int first_funtion_key = (int)Keycode.F1;
+            const int first_function_key = (int)Keycode.F1;
             const int last_function_key = (int)Keycode.F12;
-            if (code >= first_funtion_key && code <= last_function_key)
-                return Key.F1 + code - first_funtion_key;
+            if (code >= first_function_key && code <= last_function_key)
+                return Key.F1 + code - first_function_key;
 
             // keypad keys
             const int first_keypad_key = (int)Keycode.Numpad0;
@@ -156,13 +174,6 @@ namespace osu.Framework.Android.Input
 
             // this is the worst case scenario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            view.KeyDown -= keyDown;
-            view.KeyUp -= keyUp;
-            base.Dispose(disposing);
         }
     }
 }

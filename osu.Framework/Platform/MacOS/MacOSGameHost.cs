@@ -15,38 +15,32 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation)
+        internal MacOSGameHost(string gameName, HostOptions options)
+            : base(gameName, options)
         {
         }
 
         protected override IWindow CreateWindow() => new MacOSWindow();
 
-        public override string UserStoragePath
+        public override IEnumerable<string> UserStoragePaths
         {
             get
             {
-                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-                string[] paths =
-                {
-                    xdg ?? Path.Combine(home, ".local", "share"),
-                    Path.Combine(home)
-                };
 
-                foreach (string path in paths)
-                {
-                    if (Directory.Exists(path))
-                        return path;
-                }
+                if (!string.IsNullOrEmpty(xdg))
+                    yield return xdg;
 
-                return paths[0];
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
+
+                foreach (string path in base.UserStoragePaths)
+                    yield return path;
             }
         }
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
-
         public override Clipboard GetClipboard() => new MacOSClipboard();
+
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
 
         protected override void Swap()
         {
@@ -110,6 +104,12 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Z), PlatformAction.Undo),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Delete), PlatformAction.Delete),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Plus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.KeypadPlus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Minus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.KeypadMinus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Number0), PlatformAction.ZoomDefault),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Keypad0), PlatformAction.ZoomDefault),
         };
     }
 }

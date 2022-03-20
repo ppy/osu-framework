@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Input
             {
             }
 
-            public bool OnPressed(TestKeyBinding action)
+            public bool OnPressed(KeyBindingPressEvent<TestKeyBinding> e)
             {
                 if (!keybindings)
                     return false;
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Input
                 return true;
             }
 
-            public void OnReleased(TestKeyBinding action)
+            public void OnReleased(KeyBindingReleaseEvent<TestKeyBinding> e)
             {
                 if (!keybindings)
                     return;

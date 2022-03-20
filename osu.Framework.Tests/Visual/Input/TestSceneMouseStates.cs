@@ -381,8 +381,8 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void checkEventCount(Type type, int change = 0, bool outer = false)
         {
-            eventCounts1.TryGetValue(type, out var count1);
-            eventCounts2.TryGetValue(type, out var count2);
+            eventCounts1.TryGetValue(type, out int count1);
+            eventCounts2.TryGetValue(type, out int count2);
 
             if (outer)
             {

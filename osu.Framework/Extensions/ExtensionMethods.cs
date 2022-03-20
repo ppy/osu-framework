@@ -54,14 +54,6 @@ namespace osu.Framework.Extensions
         }
 
         /// <summary>
-        /// Try to get a value from the <paramref name="dictionary"/>. Returns a default(TValue) if the key does not exist.
-        /// </summary>
-        /// <param name="dictionary">The dictionary.</param>
-        /// <param name="lookup">The lookup key.</param>
-        [Obsolete("Use System.Collections.Generic.CollectionExtensions.GetValueOrDefault instead.")] // Can be removed 20220115
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.GetValueOrDefault(lookup);
-
-        /// <summary>
         /// Converts a rectangular array to a jagged array.
         /// <para>
         /// The jagged array will contain empty arrays if there are no columns in the rectangular array.
@@ -99,8 +91,8 @@ namespace osu.Framework.Extensions
             if (jagged == null)
                 return null;
 
-            var rows = jagged.Length;
-            var cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
+            int rows = jagged.Length;
+            int cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
 
             var rectangular = new T[rows, cols];
 
@@ -164,7 +156,7 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                // the following warning disables are caused by netstandard2.1 and net5.0 differences
+                // the following warning disables are caused by netstandard2.1 and net6.0 differences
                 // the former declares Types as Type[], while the latter declares as Type?[]:
                 // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
                 // which trips some inspectcode errors which are only "valid" for the first of the two.
@@ -315,6 +307,29 @@ namespace osu.Framework.Extensions
         /// <returns>The standardised path string.</returns>
         public static string ToStandardisedPath(this string path)
             => path.Replace('\\', '/');
+
+        /// <summary>
+        /// Trim DirectorySeparatorChar from the end of the path.
+        /// </summary>
+        /// <remarks>
+        /// Trims both <see cref="Path.DirectorySeparatorChar"/> and <see cref="Path.AltDirectorySeparatorChar"/>.
+        /// </remarks>
+        /// <param name="path">The path string to trim.</param>
+        /// <returns>The path with DirectorySeparatorChar trimmed.</returns>
+        public static string TrimDirectorySeparator(this string path)
+            => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        /// <summary>
+        /// Whether this character is an ASCII digit (0-9).
+        /// </summary>
+        /// <remarks>
+        /// Useful for checking if a character plays well with <c>int.TryParse()</c>.
+        /// <see cref="char.IsNumber(char)"/> returns <c>true</c> for non-ASCII digits and other Unicode numbers;
+        /// we don't want that, so we explicitly check the character value.
+        /// </remarks>
+        /// <param name="character">The character to check.</param>
+        /// <returns>True if the character is an ASCII digit.</returns>
+        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
 
         /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
