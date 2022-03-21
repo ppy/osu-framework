@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics
         /// The depth at which drawing should take place.
         /// This is written to from the front-to-back pass and used in both passes.
         /// </summary>
-        private float drawDepth;
+        public float DrawDepth;
 
         /// <summary>
         /// Creates a new <see cref="DrawNode"/>.
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics
 
             // This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.
             // The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.
-            GLWrapper.SetDrawDepth(drawDepth);
+            GLWrapper.SetDrawDepth(DrawDepth);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <remarks>
         /// This is the front-to-back pass. The back-buffer depth test function used is GL_LESS.<br />
-        /// During this pass, the opaque interior is drawn BELOW ourselves. For this to occur, <see cref="drawDepth"/> is temporarily incremented and then decremented after drawing is complete.
+        /// During this pass, the opaque interior is drawn BELOW ourselves. For this to occur, <see cref="DrawDepth"/> is temporarily incremented and then decremented after drawing is complete.
         /// Other <see cref="DrawNode"/>s behind ourselves receive the incremented depth value before doing the same themselves, allowing early-z to take place during this pass.
         /// </remarks>
         /// <param name="depthValue">The previous depth value.</param>
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics
             if (!depthValue.CanIncrement || !CanDrawOpaqueInterior)
             {
                 // The back-to-front pass requires the depth value.
-                drawDepth = depthValue;
+                DrawDepth = depthValue;
                 return;
             }
 
@@ -120,12 +120,12 @@ namespace osu.Framework.Graphics
 
             // Increment the depth.
             float previousDepthValue = depthValue;
-            drawDepth = depthValue.Increment();
+            DrawDepth = depthValue.Increment();
 
             DrawOpaqueInterior(drawState);
 
             // Decrement the depth.
-            drawDepth = previousDepthValue;
+            DrawDepth = previousDepthValue;
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics
         /// <param name="drawState"></param>
         protected virtual void DrawOpaqueInterior(in DrawState drawState)
         {
-            GLWrapper.SetDrawDepth(drawDepth);
+            GLWrapper.SetDrawDepth(DrawDepth);
         }
 
         /// <summary>

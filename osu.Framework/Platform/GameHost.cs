@@ -489,7 +489,7 @@ namespace osu.Framework.Platform
 
                     DrawState drawState = new DrawState(default_quad_batch);
 
-                    if (false)
+                    if (!bypassFrontToBackPass.Value)
                     {
                         depthValue.Reset();
 

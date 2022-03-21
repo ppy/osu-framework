@@ -143,7 +143,9 @@ namespace osu.Framework.Graphics.Batches
                 // Or another DrawNode was inserted (and drew vertices) before this one...
                 || usage.StartIndex != rollingVertexIndex
                 // Or this usage is more than 1 frame behind. For example, another DrawNode may have temporarily overwritten the vertices of this one in the batch.
-                || node.DrawIndex - usage.DrawIndex > 1;
+                || node.DrawIndex - usage.DrawIndex > 1
+                // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
+                || node.DrawDepth != usage.DrawDepth;
 
             // Some DrawNodes (e.g. PathDrawNode) can reuse the same usage in multiple passes. Attempt to allow this use case.
             if (usage.Batch == this && usage.FrameIndex == frameIndex)
@@ -160,7 +162,8 @@ namespace osu.Framework.Graphics.Batches
                 usage = new VertexBatchUsage<T>(
                     this,
                     node.InvalidationID,
-                    rollingVertexIndex);
+                    rollingVertexIndex,
+                    node.DrawDepth);
             }
 
             usage.DrawRequired = drawRequired;
@@ -177,17 +180,19 @@ namespace osu.Framework.Graphics.Batches
         internal readonly VertexBatch<T> Batch;
         internal readonly long InvalidationID;
         internal readonly int StartIndex;
+        internal readonly float DrawDepth;
 
         internal ulong DrawIndex;
         internal ulong FrameIndex;
         internal bool DrawRequired;
         internal int Count;
 
-        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex)
+        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth)
         {
             Batch = batch;
             InvalidationID = invalidationID;
             StartIndex = startIndex;
+            DrawDepth = drawDepth;
 
             DrawIndex = 0;
             FrameIndex = 0;
