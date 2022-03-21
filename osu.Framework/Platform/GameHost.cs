@@ -127,14 +127,19 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
+        /// <remarks>
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// </remarks>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
-        public abstract void OpenFileExternally(string filename);
+        /// <returns>Whether the file was successfully opened.</returns>
+        public abstract bool OpenFileExternally(string filename);
 
         /// <summary>
         /// Requests to present a file externally in the platform's native file browser.
         /// </summary>
         /// <remarks>
         /// This will open the parent folder and, (if available) highlight the file.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
         /// </remarks>
         /// <example>
         ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
@@ -142,7 +147,8 @@ namespace osu.Framework.Platform
         ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
         /// </example>
         /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
-        public abstract void PresentFileExternally(string filename);
+        /// <returns>Whether the file was successfully presented.</returns>
+        public abstract bool PresentFileExternally(string filename);
 
         /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
