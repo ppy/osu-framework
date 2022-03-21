@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
@@ -10,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal abstract class ToolWindow : OverlayContainer
+    internal abstract class EmptyToolWindow : OverlayContainer
     {
         public const float WIDTH = 500;
         public const float HEIGHT = 600;
@@ -18,13 +20,12 @@ namespace osu.Framework.Graphics.Visualisation
         private const float button_width = 140;
         private const float button_height = 40;
 
-        protected readonly FillFlowContainer ToolbarContent;
+        private readonly Container toolbars;
+        public FillFlowContainer ToolbarContent { get; private set; }
 
-        protected readonly ScrollContainer<Drawable> ScrollContent;
+        protected readonly Container BodyContent;
 
-        protected readonly FillFlowContainer MainHorizontalContent;
-
-        protected ToolWindow(string title, string keyHelpText)
+        protected EmptyToolWindow(string title, string keyHelpText)
         {
             AutoSizeAxes = Axes.X;
             Height = HEIGHT;
@@ -64,7 +65,7 @@ namespace osu.Framework.Graphics.Visualisation
                                 Children = new Drawable[]
                                 {
                                     new TitleBar(title, keyHelpText, this),
-                                    new Container //toolbar
+                                    toolbars = new Container
                                     {
                                         RelativeSizeAxes = Axes.X,
                                         AutoSizeAxes = Axes.Y,
@@ -75,13 +76,6 @@ namespace osu.Framework.Graphics.Visualisation
                                                 Colour = FrameworkColour.BlueGreenDark,
                                                 RelativeSizeAxes = Axes.Both,
                                             },
-                                            ToolbarContent = new FillFlowContainer
-                                            {
-                                                RelativeSizeAxes = Axes.X,
-                                                AutoSizeAxes = Axes.Y,
-                                                Spacing = new Vector2(5),
-                                                Padding = new MarginPadding(5),
-                                            },
                                         },
                                     }
                                 }
@@ -89,24 +83,10 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                         new Drawable[]
                         {
-                            new TooltipContainer
+                            BodyContent = new TooltipContainer
                             {
                                 RelativeSizeAxes = Axes.Y,
                                 AutoSizeAxes = Axes.X,
-                                Child = MainHorizontalContent = new FillFlowContainer
-                                {
-                                    RelativeSizeAxes = Axes.Y,
-                                    AutoSizeAxes = Axes.X,
-                                    Direction = FillDirection.Horizontal,
-                                    Children = new Drawable[]
-                                    {
-                                        ScrollContent = new BasicScrollContainer<Drawable>
-                                        {
-                                            RelativeSizeAxes = Axes.Y,
-                                            Width = WIDTH
-                                        }
-                                    }
-                                }
                             },
                         }
                     },
@@ -115,7 +95,14 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected void AddButton(string text, Action action)
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            AddToolbar();
+        }
+
+        public void AddButton(string text, Action action)
         {
             ToolbarContent.Add(new BasicButton
             {
@@ -125,8 +112,67 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
+        public FillFlowContainer AddToolbar()
+        {
+            toolbars.Add(ToolbarContent = new FillFlowContainer
+            {
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Spacing = new Vector2(5),
+                Padding = new MarginPadding(5),
+            });
+
+            SetCurrentToolbar(ToolbarContent);
+            return ToolbarContent;
+        }
+
+        public void SetCurrentToolbar(FillFlowContainer newToolbar)
+        {
+            Debug.Assert(newToolbar.Parent == toolbars, "The passed toolbar is not in this set of toolbars");
+
+            ToolbarContent = newToolbar;
+            ToolbarContent.Show();
+
+            foreach (var toolbar in toolbars)
+            {
+                if (toolbar.ChildID == 1)
+                    continue; // Skip background box
+
+                if (toolbar == ToolbarContent)
+                    continue;
+
+                toolbar.Hide();
+            }
+        }
+
         protected override void PopIn() => this.FadeIn(100);
 
         protected override void PopOut() => this.FadeOut(100);
+    }
+
+    internal abstract class ToolWindow : EmptyToolWindow
+    {
+        protected readonly ScrollContainer<Drawable> ScrollContent;
+
+        protected readonly FillFlowContainer MainHorizontalContent;
+
+        protected ToolWindow(string title, string keyHelpText)
+            : base(title, keyHelpText)
+        {
+            BodyContent.Add(MainHorizontalContent = new FillFlowContainer
+            {
+                RelativeSizeAxes = Axes.Y,
+                AutoSizeAxes = Axes.X,
+                Direction = FillDirection.Horizontal,
+                Children = new Drawable[]
+                {
+                    ScrollContent = new BasicScrollContainer<Drawable>
+                    {
+                        RelativeSizeAxes = Axes.Y,
+                        Width = WIDTH
+                    }
+                }
+            });
+        }
     }
 }

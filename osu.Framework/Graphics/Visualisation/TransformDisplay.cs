@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Visualisation
     internal class TransformDisplay : Container
     {
         private readonly FillFlowContainer<DrawableTransform> flow;
-        private Bindable<Drawable> inspectedDrawable;
+        private Bindable<object> inspectedTarget;
 
         public TransformDisplay()
         {
@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         [BackgroundDependencyLoader]
-        private void load(Bindable<Drawable> inspected)
+        private void load(Bindable<object> inspected)
         {
-            inspectedDrawable = inspected.GetBoundCopy();
+            inspectedTarget = inspected.GetBoundCopy();
         }
 
         protected override void Update()
@@ -51,10 +51,10 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
             flow.Clear();
 
-            if (inspectedDrawable.Value == null)
+            if (!(inspectedTarget.Value is Drawable d))
                 return;
 
-            foreach (var t in inspectedDrawable.Value.Transforms)
+            foreach (var t in d.Transforms)
                 flow.Add(new DrawableTransform(t));
         }
     }

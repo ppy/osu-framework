@@ -7,15 +7,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Graphics.Visualisation.Tree;
+
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -23,13 +27,32 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
-        private Bindable<Drawable> inspectedDrawable;
+        private Bindable<object> inspectedTarget;
+
+        [Resolved]
+        private TreeContainer tree { get; set; }
 
         protected override Container<Drawable> Content => flow;
+
+        private PropertyDisplayMode displayMode = PropertyDisplayMode.ListAll;
+        public PropertyDisplayMode DisplayMode
+        {
+            get => displayMode;
+            set
+            {
+                if (displayMode == value)
+                    return;
+
+                displayMode = value;
+                updateProperties(inspectedTarget.Value);
+            }
+        }
 
         public PropertyDisplay()
         {
             RelativeSizeAxes = Axes.Both;
+
+            FillFlowContainer buttonContainer;
 
             AddRangeInternal(new Drawable[]
             {
@@ -38,83 +61,185 @@ namespace osu.Framework.Graphics.Visualisation
                     Colour = FrameworkColour.GreenDarker,
                     RelativeSizeAxes = Axes.Both,
                 },
-                new BasicScrollContainer<Drawable>
+                new GridContainer
                 {
-                    Padding = new MarginPadding(10),
                     RelativeSizeAxes = Axes.Both,
-                    ScrollbarOverlapsContent = false,
-                    Child = flow = new FillFlowContainer
+                    RowDimensions = new[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Direction = FillDirection.Vertical
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.Distributed),
+                    },
+                    ColumnDimensions = new[]
+                    {
+                        new Dimension(GridSizeMode.Relative, 1),
+                    },
+                    Content = new[]
+                    {
+                        new Drawable[]
+                        {
+                            buttonContainer = new FillFlowContainer
+                            {
+                                Direction = FillDirection.Horizontal,
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Spacing = new Vector2(7),
+                                Padding = new MarginPadding(10),
+                            },
+                        },
+                        new Drawable[]
+                        {
+                            new BasicScrollContainer<Drawable>
+                            {
+                                Padding = new MarginPadding(10) { Top = 0 },
+                                RelativeSizeAxes = Axes.Both,
+                                ScrollbarOverlapsContent = false,
+                                Child = flow = new FillFlowContainer
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
+                                    Direction = FillDirection.Vertical
+                                }
+                            },
+                        },
                     }
                 }
             });
+
+            void addButton(string text, Action action)
+            {
+                buttonContainer.Add(new BasicButton
+                {
+                    Size = new Vector2(100, 25),
+                    Text = text,
+                    Action = action,
+                });
+            }
+
+            addButton("show all", () => DisplayMode = PropertyDisplayMode.ListAll);
+            addButton("group by type", () => DisplayMode = PropertyDisplayMode.GroupByClass);
+            addButton("reset", () => updateProperties(inspectedTarget.Value));
         }
 
         [BackgroundDependencyLoader]
-        private void load(Bindable<Drawable> inspected)
+        private void load(Bindable<object> inspected)
         {
-            inspectedDrawable = inspected.GetBoundCopy();
+            inspectedTarget = inspected.GetBoundCopy();
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            inspectedDrawable.BindValueChanged(inspected => updateProperties(inspected.NewValue), true);
+            inspectedTarget.BindValueChanged(inspected => updateProperties(inspected.NewValue), true);
         }
 
-        private void updateProperties(IDrawable source)
+        private void updateProperties(object source)
         {
             Clear();
+            flow.FindClosestParent<BasicScrollContainer<Drawable>>().ScrollToStart();
 
             if (source == null)
                 return;
 
             var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
+            var typeMembers = new List<(Type, HashSet<MemberInfo>)>();
 
-            foreach (var type in source.GetType().EnumerateBaseTypes())
+            foreach (var type in source.GetType().EnumerateBaseTypes().Concat(source.GetType().GetInterfaces()))
             {
+                var members = new HashSet<MemberInfo>(new MemberInfoComparer());
+                typeMembers.Add((type, members));
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
                     .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
-                    .ForEach(m => allMembers.Add(m));
+                    .ForEach(m =>
+                    {
+                        allMembers.Add(m);
+                        members.Add(m);
+                    });
             }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
-            AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
-                               .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
-                               .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
-                               .Select(m => new PropertyItem(m, source)));
+            IEnumerable<PropertyItem> generateItems(IEnumerable<MemberInfo> members) =>
+                members.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
+                       .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
+                       .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
+                       .Select(m => new BasicPropertyItem(m, source, tree));
+
+            switch (displayMode)
+            {
+                case PropertyDisplayMode.ListAll:
+                    AddRange(generateItems(allMembers));
+                    break;
+                case PropertyDisplayMode.GroupByClass:
+                    foreach (var (type, member) in typeMembers)
+                    {
+                        Add(new PropertyGroupHeader(type.ReadableName()));
+                        Add(new VirtualPropertyItem<Type>("^type", type, tree));
+                        AddRange(generateItems(member));
+                    }
+                    break;
+            }
         }
 
-        private class PropertyItem : Container
+        private class PropertyGroupHeader : Container
         {
-            private readonly SpriteText valueText;
-            private readonly Box changeMarker;
-            private readonly Func<object> getValue;
+            private readonly SpriteText groupText;
 
-            public PropertyItem(MemberInfo info, IDrawable d)
+            public PropertyGroupHeader(string groupName)
             {
-                Type type;
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+                Padding = new MarginPadding { Vertical = 5 };
 
-                switch (info)
+                AddInternal(new Container
                 {
-                    case PropertyInfo propertyInfo:
-                        type = propertyInfo.PropertyType;
-                        getValue = () => propertyInfo.GetValue(d);
-                        break;
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Padding = new MarginPadding
+                    {
+                        Right = 6
+                    },
+                    Child = new FillFlowContainer<Drawable>
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Horizontal,
+                        Spacing = new Vector2(10f),
+                        Children = new Drawable[]
+                        {
+                            groupText = new SpriteText
+                            {
+                                Text = $"{groupName}:",
+                                Colour = Colour4.LightSkyBlue,
+                                Font = FrameworkFont.Regular
+                            },
+                        },
+                    }
+                });
+            }
+        }
 
-                    case FieldInfo fieldInfo:
-                        type = fieldInfo.FieldType;
-                        getValue = () => fieldInfo.GetValue(d);
-                        break;
+        private abstract class PropertyItem : Container
+        {
+            private SpriteText valueText;
+            private ClickableContainer valueSlot;
+            private Box changeMarker;
+            protected Func<object> GetValue;
+            /// <summary>Indicates whether it's a stored value (static) or a computable property (dynamic)</summary>
+            protected bool IsDynamic;
+            protected bool IsShown;
+            private readonly TreeContainer tree;
 
-                    default:
-                        throw new ArgumentException(@"Not a value member.", nameof(info));
-                }
+            protected abstract Type PropertyType { get; }
+            protected abstract string PropertyName { get; }
 
+            protected PropertyItem(TreeContainer tree)
+            {
+                this.tree = tree;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
 
@@ -128,32 +253,39 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Right = 6
                         },
-                        Child = new FillFlowContainer<SpriteText>
+                        Child = new FillFlowContainer<Drawable>
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
                             Direction = FillDirection.Horizontal,
                             Spacing = new Vector2(10f),
-                            Children = new[]
+                            Children = new Drawable[]
                             {
                                 new SpriteText
                                 {
-                                    Text = info.Name,
+                                    Text = PropertyName,
                                     Colour = FrameworkColour.Yellow,
                                     Font = FrameworkFont.Regular
                                 },
                                 new SpriteText
                                 {
-                                    Text = $@"[{type.Name}]:",
+                                    Text = $@"[{PropertyType.ReadableName()}]:",
                                     Colour = FrameworkColour.YellowGreen,
                                     Font = FrameworkFont.Regular
                                 },
-                                valueText = new SpriteText
+                                valueSlot = new ClickableContainer
                                 {
-                                    Colour = Color4.White,
-                                    Font = FrameworkFont.Regular
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
+                                    Action = activate,
+                                    Child = valueText = new SpriteText
+                                    {
+                                        Colour = IsShown ? Color4.White : Color4.Gray,
+                                        Font = FrameworkFont.Regular,
+                                        Text = "<click to show value>"
+                                    }
                                 },
-                            }
+                            },
                         }
                     },
                     changeMarker = new Box
@@ -161,12 +293,57 @@ namespace osu.Framework.Graphics.Visualisation
                         Size = new Vector2(4, 18),
                         Anchor = Anchor.CentreRight,
                         Origin = Anchor.CentreRight,
-                        Colour = Color4.Red
+                        Colour = Color4.Red,
+                        Alpha = 0f
                     }
                 });
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
 
                 // Update the value once
                 updateValue();
+            }
+
+            private void activate()
+            {
+                if (IsShown)
+                {
+                    tryInspect();
+                }
+                else
+                {
+                    IsShown = true;
+                    valueText.Colour = Color4.White;
+                }
+            }
+
+            private void tryInspect()
+            {
+                object value = GetValue();
+
+                // Strings and enums are not represented
+                if (value is null || value is string || value is Enum)
+                {
+                    return;
+                }
+                // Check for primitive type (not handling pointers)
+                if (new[]
+                {
+                    typeof(sbyte), typeof(byte),
+                    typeof(ushort), typeof(short),
+                    typeof(int), typeof(uint),
+                    typeof(long), typeof(ulong),
+                    typeof(float), typeof(double),
+                    typeof(char), typeof(bool),
+                }.Contains(value.GetType()))
+                {
+                    return;
+                }
+
+                tree.RequestTarget(value);
             }
 
             protected override void Update()
@@ -179,27 +356,99 @@ namespace osu.Framework.Graphics.Visualisation
 
             private void updateValue()
             {
-                object value;
+                if (!IsShown)
+                    return;
 
                 try
                 {
-                    value = getValue() ?? "<null>";
+                    object value;
+                    value = GetValue();
+                    lastValue = value;
+                    if (value is null)
+                    {
+                        valueText.Text = "<null>";
+                        valueText.Colour = Color4.Gray;
+                    }
+                    else
+                    {
+                        string str = value.ToString();
+                        if (string.IsNullOrWhiteSpace(str))
+                        {
+                            valueText.Text = "<blank>";
+                            valueText.Colour = Color4.Gray;
+                        }
+                        else
+                        {
+                            valueText.Text = str;
+                            valueText.Colour = Color4.White;
+                        }
+                    }
+
+                    // An alternative of object.Equals, which is banned.
+                    if (!EqualityComparer<object>.Default.Equals(value, lastValue))
+                    {
+                        changeMarker.ClearTransforms();
+                        changeMarker.Alpha = 0.8f;
+                        changeMarker.FadeOut(200);
+                    }
                 }
                 catch (Exception e)
                 {
-                    value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
+                    valueText.Text = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
+                    valueText.Colour = Color4.Red;
+                    IsShown = false;
                 }
+            }
+        }
 
-                // An alternative of object.Equals, which is banned.
-                if (!EqualityComparer<object>.Default.Equals(value, lastValue))
+        private class BasicPropertyItem : PropertyItem
+        {
+            protected override Type PropertyType { get; }
+            protected override string PropertyName { get; }
+
+            public BasicPropertyItem(MemberInfo info, object d, TreeContainer tree)
+                : base(tree)
+            {
+                switch (info)
                 {
-                    changeMarker.ClearTransforms();
-                    changeMarker.Alpha = 0.8f;
-                    changeMarker.FadeOut(200);
+                    case PropertyInfo propertyInfo:
+                        PropertyType = propertyInfo.PropertyType;
+                        GetValue = () => propertyInfo.GetValue(d);
+                        IsDynamic = true;
+                        IsShown = false;
+                        break;
+
+                    case FieldInfo fieldInfo:
+                        PropertyType = fieldInfo.FieldType;
+                        GetValue = () => fieldInfo.GetValue(d);
+                        IsDynamic = false;
+                        IsShown = true;
+                        break;
+
+                    default:
+                        throw new ArgumentException(@"Not a value member.", nameof(info));
                 }
 
-                lastValue = value;
-                valueText.Text = value.ToString();
+                PropertyName = info.Name;
+            }
+        }
+
+        private class VirtualPropertyItem<T> : PropertyItem
+        {
+            protected override Type PropertyType => typeof(T);
+            protected override string PropertyName { get; }
+
+            private T value;
+
+            public VirtualPropertyItem(string name, T value, TreeContainer tree)
+                : base(tree)
+            {
+                PropertyName = name;
+                this.value = value;
+
+                IsDynamic = false;
+                IsShown = true;
+                GetValue = () => this.value;
             }
         }
 
@@ -209,5 +458,11 @@ namespace osu.Framework.Graphics.Visualisation
 
             public int GetHashCode(MemberInfo obj) => obj.Name.GetHashCode();
         }
+    }
+
+    internal enum PropertyDisplayMode
+    {
+        ListAll, // Lists all properties, alphabetically
+        GroupByClass, // Groups properties by declaring class
     }
 }
