@@ -101,7 +101,7 @@ namespace osu.Framework.IO.Network
 
         public static bool IsSafe(char ch)
         {
-            if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9')
+            if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9'))
             {
                 return true;
             }

@@ -380,7 +380,7 @@ namespace osu.Framework.Platform
                 // 1. When the exceptioning thread is GameThread.Input.
                 // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
                 // 3. When the CLR is terminating. We can't guarantee the input thread is still running, and may delay application termination.
-                if (isTerminating || sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                if (isTerminating || (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread)))
                     return;
 
                 // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
