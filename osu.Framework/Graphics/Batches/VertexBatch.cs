@@ -77,55 +77,49 @@ namespace osu.Framework.Graphics.Batches
         /// <param name="v">The vertex to add.</param>
         public void AddVertex(T v)
         {
-            GLWrapper.SetActiveBatch(this);
-
             ensureHasBufferSpace();
             currentVertexBuffer.EnqueueVertex(drawStart + drawCount, v);
 
-            ++drawCount;
-            ++rollingVertexIndex;
+            Advance();
         }
 
-        void IVertexBatch.Advance()
+        internal void Advance()
         {
-            GLWrapper.SetActiveBatch(this);
-
-            ensureHasBufferSpace();
-
             ++drawCount;
             ++rollingVertexIndex;
         }
 
         public int Draw()
         {
-            if (drawCount == 0)
-                return 0;
+            int count = drawCount;
 
-            currentVertexBuffer.DrawRange(drawStart, drawStart + drawCount);
+            while (drawCount > 0)
+            {
+                int drawEnd = Math.Min(currentVertexBuffer.Size, drawStart + drawCount);
+                int currentDrawCount = drawEnd - drawStart;
 
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, drawCount);
+                currentVertexBuffer.DrawRange(drawStart, drawEnd);
+                drawStart += currentDrawCount;
+                drawCount -= currentDrawCount;
 
-            int lastDrawCount = drawCount;
+                if (drawStart == currentVertexBuffer.Size)
+                {
+                    drawStart = 0;
+                    currentBufferIndex++;
+                }
 
-            drawStart += drawCount;
-            drawCount = 0;
+                FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+                FrameStatistics.Add(StatisticsCounterType.VerticesDraw, currentDrawCount);
+            }
 
-            return lastDrawCount;
+            return count;
         }
 
         private void ensureHasBufferSpace()
         {
-            // Draw the current vertex buffer if no more vertices can be added to it.
-            if (VertexBuffers.Count > 0 && drawStart + drawCount >= currentVertexBuffer.Size)
+            if (VertexBuffers.Count > currentBufferIndex && drawStart + drawCount >= currentVertexBuffer.Size)
             {
                 Draw();
-
-                // Move to a new vertex buffer.
-                currentBufferIndex++;
-                drawStart = 0;
-                drawCount = 0;
-
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
             }
 
@@ -135,6 +129,8 @@ namespace osu.Framework.Graphics.Batches
 
         public ref VertexBatchUsage<T> BeginUsage(ref VertexBatchUsage<T> usage, DrawNode node)
         {
+            GLWrapper.SetActiveBatch(this);
+
             bool drawRequired =
                 // If this is a new usage...
                 usage.Batch != this
@@ -205,7 +201,7 @@ namespace osu.Framework.Graphics.Batches
             if (DrawRequired)
                 Batch.AddVertex(vertex);
             else
-                ((IVertexBatch)Batch).Advance();
+                Batch.Advance();
 
             Count++;
         }
