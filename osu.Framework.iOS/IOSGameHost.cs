@@ -103,9 +103,9 @@ namespace osu.Framework.iOS
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override void OpenFileExternally(string filename) => throw new NotImplementedException();
+        public override bool OpenFileExternally(string filename) => false;
 
-        public override void PresentFileExternally(string filename) => throw new NotImplementedException();
+        public override bool PresentFileExternally(string filename) => false;
 
         public override void OpenUrlExternally(string url)
         {

@@ -76,13 +76,20 @@ namespace osu.Framework.Platform
 
         public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
 
-        public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
+        public override bool OpenFileExternally(string filename)
+        {
+            openUsingShellExecute(filename);
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
 
-        public override void PresentFileExternally(string filename)
+        public override bool PresentFileExternally(string filename)
+        {
             // should be overriden to highlight/select the file in the folder if such native API exists.
-            => OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            return true;
+        }
 
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {

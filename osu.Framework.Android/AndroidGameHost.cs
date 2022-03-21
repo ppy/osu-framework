@@ -69,11 +69,9 @@ namespace osu.Framework.Android
             Application.Context.GetExternalFilesDir(string.Empty)!.ToString(),
         };
 
-        public override void OpenFileExternally(string filename)
-            => throw new NotImplementedException();
+        public override bool OpenFileExternally(string filename) => false;
 
-        public override void PresentFileExternally(string filename)
-            => throw new NotImplementedException();
+        public override bool PresentFileExternally(string filename) => false;
 
         public override void OpenUrlExternally(string url)
         {

@@ -22,9 +22,17 @@ namespace osu.Framework.Platform
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
-        public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+        public override bool OpenFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+            return true;
+        }
 
-        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+        public override bool PresentFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
