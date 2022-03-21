@@ -117,7 +117,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        /// <returns>Whether the file was successfully presented.</returns>
+        /// <returns>Whether the storage was successfully presented.</returns>
         public bool PresentExternally() => OpenFileExternally(string.Empty);
 
         /// <summary>
