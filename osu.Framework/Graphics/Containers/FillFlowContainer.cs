@@ -86,6 +86,29 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private float? intendedXSpacing = null;
+
+        /// <summary>
+        /// The intended final horizontal spacing between individual elements, used to calculate how
+        /// many elements are in a given row when <see cref="Direction"/> is set to
+        /// <see cref="FillDirection.Full"/>. This is intended to be used when a
+        /// <see cref="Spacing"/> transform would cause elements to jump between rows during the
+        /// transform, such as in https://github.com/ppy/osu/issues/9155.
+        /// If null or not set, <see cref="Spacing"/>'s X component is used.
+        /// </summary>
+        public float? IntendedXSpacing
+        {
+            get => intendedXSpacing;
+            set
+            {
+                if (intendedXSpacing == value)
+                    return;
+
+                intendedXSpacing = value;
+                InvalidateLayout();
+            }
+        }
+
         private Vector2 spacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
@@ -129,6 +152,10 @@ namespace osu.Framework.Graphics.Containers
             float rowHeight = 0;
             float rowBeginOffset = 0;
             var current = Vector2.Zero;
+            float intendedXSpacingDelta = (IntendedXSpacing ?? Spacing.X) - Spacing.X;
+            // The current X position if IntendedXSpacing was used instead of Spacing.X,
+            // for calculating when to move to a new row.
+            float intendedCurrentX = 0;
 
             // First pass, computing initial flow positions
             Vector2 size = Vector2.Zero;
@@ -180,12 +207,14 @@ namespace osu.Framework.Graphics.Containers
                         rowBeginOffset = spacingFactor(c).X * size.X;
                     }
 
-                    float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
+                    // How wide the row is if IntendedXSpacing was used.
+                    float intendedRowWidth = rowBeginOffset + intendedCurrentX + (1 - spacingFactor(c).X) * size.X;
 
                     //We've exceeded our allowed width, move to a new row
-                    if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
+                    if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(intendedRowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
                     {
                         current.X = 0;
+                        intendedCurrentX = 0;
                         current.Y += rowHeight;
 
                         layoutPositions[i] = current;
@@ -201,6 +230,7 @@ namespace osu.Framework.Graphics.Containers
 
                         // Compute offset to the middle of the row, to be applied in case of centre anchor
                         // in a second pass.
+                        float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
                         rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
                     }
 
@@ -224,6 +254,7 @@ namespace osu.Framework.Graphics.Containers
                     if (stride.Y > rowHeight)
                         rowHeight = stride.Y;
                     current.X += stride.X;
+                    intendedCurrentX += stride.X + intendedXSpacingDelta;
                 }
 
                 float height = layoutPositions[children.Length - 1].Y;
