@@ -37,6 +37,8 @@ namespace osu.Framework.Graphics.Containers
             private long updateVersion;
 
             private IShader blurShader;
+            private VertexBatchUsage<TexturedVertex2D> intermittentBatchUsage;
+            private VertexBatchUsage<TexturedVertex2D> finalBatchUsage;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
@@ -88,8 +90,8 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                using (batch.BeginUsage(ref BatchUsage, this))
-                    DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, ref BatchUsage);
+                using (batch.BeginUsage(ref finalBatchUsage, this))
+                    DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, ref finalBatchUsage);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawContents(batch);
@@ -116,8 +118,9 @@ namespace osu.Framework.Graphics.Containers
 
                     blurShader.Bind();
 
-                    using (batch.BeginUsage(ref BatchUsage, this))
-                        DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), ref BatchUsage);
+                    // The framebuffers are only drawn to while not cached, so a separate batch usage is required for the post-cached draws to not use the incorrect vertices.
+                    using (batch.BeginUsage(ref intermittentBatchUsage, this))
+                        DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), ref intermittentBatchUsage);
 
                     blurShader.Unbind();
                 }
