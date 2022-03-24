@@ -1,6 +1,6 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>monoandroid10.0</TargetFramework>
+    <TargetFramework>net6.0-android</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework Android</AssemblyTitle>
@@ -13,12 +13,6 @@
     <PackageId>ppy.osu.Framework.Android</PackageId>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Java.Interop" />
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
