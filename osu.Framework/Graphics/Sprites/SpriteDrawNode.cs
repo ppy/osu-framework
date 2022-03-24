@@ -57,6 +57,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void Blit(QuadBatch<TexturedVertex2D> batch)
         {
+            if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                return;
+
             using (batch.BeginUsage(ref BatchUsage, this))
             {
                 DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage, null,
@@ -67,6 +70,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
         {
+            if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                return;
+
             using (batch.BeginUsage(ref OpaqueInteriorBatchUsage, this))
             {
                 if (GLWrapper.IsMaskingActive)

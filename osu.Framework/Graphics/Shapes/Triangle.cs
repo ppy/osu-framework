@@ -44,6 +44,9 @@ namespace osu.Framework.Graphics.Shapes
 
             protected override void Blit(QuadBatch<TexturedVertex2D> batch)
             {
+                if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                    return;
+
                 using (batch.BeginUsage(ref BatchUsage, this))
                 {
                     DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref BatchUsage, null,
@@ -53,6 +56,9 @@ namespace osu.Framework.Graphics.Shapes
 
             protected override void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
             {
+                if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                    return;
+
                 using (batch.BeginUsage(ref OpaqueInteriorBatchUsage, this))
                 {
                     var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
