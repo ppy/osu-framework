@@ -81,6 +81,11 @@ namespace osu.Framework.Threading
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
         /// <summary>
+        /// A synchronisation context which posts to this thread.
+        /// </summary>
+        public SynchronizationContext SynchronizationContext => synchronizationContext;
+
+        /// <summary>
         /// The culture of this thread.
         /// </summary>
         public CultureInfo CurrentCulture
