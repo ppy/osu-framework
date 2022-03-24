@@ -190,7 +190,9 @@ namespace osu.Framework.Android
             // compute the usable screen area.
 
             var screenSize = new Point();
+#pragma warning disable 618 // GetRealSize is deprecated
             Display.GetRealSize(screenSize);
+#pragma warning restore 618
             var screenArea = new RectangleI(0, 0, screenSize.X, screenSize.Y);
             var usableScreenArea = screenArea;
 
@@ -208,7 +210,9 @@ namespace osu.Framework.Android
                 // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.
 
                 // `SystemWindowInsetTop` should be the correct inset here, but it doesn't correctly work (gives `0` even if the view is obstructed).
+#pragma warning disable 618 // StableInsetTop is deprecated
                 int statusBarHeight = RootWindowInsets?.StableInsetTop ?? 0;
+#pragma warning restore 618 //
                 usableScreenArea = usableScreenArea.Intersect(screenArea.Shrink(0, 0, statusBarHeight, 0));
             }
 

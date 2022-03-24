@@ -41,6 +41,7 @@ namespace osu.Framework.Android
         /// </summary>
         public SystemUiFlags UIVisibilityFlags
         {
+#pragma warning disable 618 // SystemUiVisibility is deprecated
             get
             {
                 Debug.Assert(Window != null);
@@ -51,6 +52,7 @@ namespace osu.Framework.Android
                 Debug.Assert(Window != null);
                 systemUiFlags = value;
                 Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+#pragma warning restore 618
             }
         }
 
