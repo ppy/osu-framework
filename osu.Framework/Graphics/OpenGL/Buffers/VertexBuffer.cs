@@ -14,6 +14,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         protected static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
+#if VBO_CONSISTENCY_CHECKS
+        internal readonly DepthWrappingVertex<T>[] Vertices;
+#endif
+
         private static readonly DepthWrappingVertex<T>[] upload_queue = new DepthWrappingVertex<T>[1024];
         private static int upload_start = int.MaxValue;
         private static int upload_length;
@@ -27,6 +31,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.usage = usage;
 
             Size = amountVertices;
+
+#if VBO_CONSISTENCY_CHECKS
+            Vertices = new DepthWrappingVertex<T>[amountVertices];
+#endif
         }
 
         public void EnqueueVertex(int index, T vertex)
@@ -41,6 +49,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 Vertex = vertex,
                 BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth
             };
+
+#if VBO_CONSISTENCY_CHECKS
+            Vertices[index] = upload_queue[upload_length - 1];
+#endif
         }
 
         /// <summary>

@@ -80,6 +80,10 @@ namespace osu.Framework.Graphics.Batches
             ensureHasBufferSpace();
             currentVertexBuffer.EnqueueVertex(drawStart + drawCount, v);
 
+#if VBO_CONSISTENCY_CHECKS
+            Trace.Assert(GetCurrentVertex().Equals(v));
+#endif
+
             Advance();
         }
 
@@ -88,6 +92,14 @@ namespace osu.Framework.Graphics.Batches
             ++drawCount;
             ++rollingVertexIndex;
         }
+
+#if VBO_CONSISTENCY_CHECKS
+        internal T GetCurrentVertex()
+        {
+            ensureHasBufferSpace();
+            return VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex;
+        }
+#endif
 
         public int Draw()
         {
@@ -201,7 +213,14 @@ namespace osu.Framework.Graphics.Batches
             if (DrawRequired)
                 Batch.AddVertex(vertex);
             else
+            {
+#if VBO_CONSISTENCY_CHECKS
+                if (!Batch.GetCurrentVertex().Equals(vertex))
+                    throw new InvalidOperationException("Vertex draw was skipped, but the contained vertex differs.");
+#endif
+
                 Batch.Advance();
+            }
 
             Count++;
         }
