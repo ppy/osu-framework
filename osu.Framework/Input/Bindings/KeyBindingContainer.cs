@@ -342,7 +342,7 @@ namespace osu.Framework.Input.Bindings
             // we either want multiple release events due to the simultaneous mode, or we only want one when we
             // - were pressed (as an action)
             // - are the last pressed binding with this action
-            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !EqualityComparer<T>.Default.Equals(b.GetAction<T>(), released)))
+            if (simultaneousMode == SimultaneousBindingMode.All || (pressedActions.Contains(released) && pressedBindings.All(b => !EqualityComparer<T>.Default.Equals(b.GetAction<T>(), released))))
             {
                 var releaseEvent = new KeyBindingReleaseEvent<T>(state, released);
 
