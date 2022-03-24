@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void EnqueueVertex(int index, T vertex)
         {
             // A new upload must be started if the queue can't hold any more vertices, or if the enqueued index is disjoint from the current to-be-uploaded set.
-            if (upload_length == upload_queue.Length || upload_start > 0 && index > upload_start + upload_length)
+            if (upload_length == upload_queue.Length || upload_length > 0 && index > upload_start + upload_length)
                 upload();
 
             upload_start = Math.Min(upload_start, index);
