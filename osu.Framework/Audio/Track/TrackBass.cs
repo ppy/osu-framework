@@ -195,7 +195,6 @@ namespace osu.Framework.Audio.Track
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
             isRunning = running || (isPlayed && !hasCompleted);
-
             updateCurrentTime();
 
             bassAmplitudeProcessor?.Update();
@@ -213,7 +212,7 @@ namespace osu.Framework.Audio.Track
         public Task StopAsync() => EnqueueAction(() =>
         {
             stopInternal();
-            isPlayed = false;
+            isRunning = isPlayed = false;
         });
 
         private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this, true);
@@ -236,7 +235,7 @@ namespace osu.Framework.Audio.Track
         public Task StartAsync() => EnqueueAction(() =>
         {
             if (startInternal())
-                isPlayed = true;
+                isRunning = isPlayed = true;
         });
 
         private bool startInternal()
