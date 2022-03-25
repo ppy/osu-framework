@@ -392,6 +392,23 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestIsRunningUpdatedAfterInlineStart()
+        {
+            bass.RunOnAudioThread(() => track.Start());
+            Assert.That(track.IsRunning, Is.True);
+        }
+
+        [Test]
+        public void TestIsRunningUpdatedAfterInlineStop()
+        {
+            track.StartAsync();
+            bass.Update();
+
+            bass.RunOnAudioThread(() => track.Stop());
+            Assert.That(track.IsRunning, Is.False);
+        }
+
+        [Test]
         public void TestCurrentTimeUpdatedAfterInlineSeek()
         {
             track.StartAsync();

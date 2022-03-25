@@ -88,5 +88,22 @@ namespace osu.Framework.Tests.Audio
 
             Assert.IsFalse(channel.Playing);
         }
+
+        [Test]
+        public void TestPlayingUpdatedAfterInlinePlay()
+        {
+            bass.RunOnAudioThread(() => channel = sample.Play());
+            Assert.That(channel.Playing, Is.True);
+        }
+
+        [Test]
+        public void TestPlayingUpdatedAfterInlineStop()
+        {
+            channel = sample.Play();
+            bass.Update();
+
+            bass.RunOnAudioThread(() => channel.Stop());
+            Assert.That(channel.Playing, Is.False);
+        }
     }
 }
