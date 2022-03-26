@@ -147,8 +147,8 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
-            if (resetIndex == -1)
-                resetIndex = GLWrapper.ResetIndex;
+            Debug.Assert(resetIndex == -1 || resetIndex == GLWrapper.ResetIndex);
+            resetIndex = GLWrapper.ResetIndex;
 
             bool drawRequired =
                 // If this is a new usage.

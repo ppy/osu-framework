@@ -59,7 +59,12 @@ namespace osu.Framework.Platform
 
         private InputConfigManager inputConfig { get; set; }
 
-        private static readonly QuadBatch<TexturedVertex2D> default_quad_batch = new QuadBatch<TexturedVertex2D>(100, 1000);
+        private static readonly QuadBatch<TexturedVertex2D>[] default_quad_batch =
+        {
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+        };
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -493,7 +498,7 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), buffer.Index);
 
-                    DrawState drawState = new DrawState(default_quad_batch);
+                    DrawState drawState = new DrawState(default_quad_batch[buffer.Index]);
 
                     if (!bypassFrontToBackPass.Value)
                     {
