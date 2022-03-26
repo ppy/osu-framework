@@ -1,14 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\osu.Framework.Android.props" />
   <PropertyGroup>
     <TargetFramework>net6.0-android</TargetFramework>
-    <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
     <OutputType>Exe</OutputType>
     <RootNamespace>SampleGame.Android</RootNamespace>
     <AssemblyName>SampleGame.Android</AssemblyName>
-    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
-    <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj" />
