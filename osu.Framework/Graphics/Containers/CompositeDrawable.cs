@@ -1119,12 +1119,14 @@ namespace osu.Framework.Graphics.Containers
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
         protected virtual bool CanBeFlattened =>
-            // Masking composite DrawNodes define the masking area for their children.
+            // Masking composite draw nodes define the masking area for their children.
             !Masking
             // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph.
             && !HasProxy
             // Custom draw nodes may provide custom drawing procedures.
-            && !hasCustomDrawNode;
+            && !hasCustomDrawNode
+            // Composites with local vertex batches require their own draw node.
+            && !ForceLocalVertexBatch;
 
         private const int amount_children_required_for_masking_check = 2;
 
