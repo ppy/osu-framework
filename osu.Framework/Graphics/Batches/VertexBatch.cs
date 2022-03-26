@@ -23,6 +23,8 @@ namespace osu.Framework.Graphics.Batches
 
         private int currentBufferIndex;
         private int rollingVertexIndex;
+
+        private int resetIndex = -1;
         private ulong frameIndex;
 
         private readonly int maxBuffers;
@@ -63,7 +65,9 @@ namespace osu.Framework.Graphics.Batches
             rollingVertexIndex = 0;
             drawStart = 0;
             drawCount = 0;
-            frameIndex++;
+
+            if (GLWrapper.ResetIndex == resetIndex)
+                frameIndex++;
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
@@ -143,6 +147,9 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
+            if (resetIndex == -1)
+                resetIndex = GLWrapper.ResetIndex;
+
             bool drawRequired =
                 // If this is a new usage.
                 usage.Batch != this
@@ -156,7 +163,7 @@ namespace osu.Framework.Graphics.Batches
                 || node.DrawDepth != usage.DrawDepth;
 
             // Some DrawNodes (e.g. PathDrawNode) can reuse the same usage in multiple passes. Attempt to allow this use case.
-            if (usage.Batch == this && usage.FrameIndex == frameIndex)
+            if (usage.Batch == this && frameIndex > 0 && usage.FrameIndex == frameIndex)
             {
                 // Only allowed as long as the batch's current vertex index is at the end of the usage (no other usage happened in-between).
                 if (rollingVertexIndex != usage.StartIndex + usage.Count)

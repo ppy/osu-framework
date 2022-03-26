@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         internal static ulong ResetId { get; private set; }
 
+        internal static int ResetIndex { get; private set; }
+
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         private static MaskingInfo currentMaskingInfo;
 
@@ -137,9 +139,10 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
         private static readonly GlobalStatistic<int> stat_texture_uploads_performed = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads performed");
 
-        internal static void Reset(Vector2 size)
+        internal static void Reset(Vector2 size, int resetIndex)
         {
             ResetId++;
+            ResetIndex = resetIndex;
 
             Trace.Assert(shader_stack.Count == 0);
 

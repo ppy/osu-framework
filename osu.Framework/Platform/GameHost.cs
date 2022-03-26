@@ -491,7 +491,7 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), buffer.Index);
 
                     DrawState drawState = new DrawState(default_quad_batch);
 
