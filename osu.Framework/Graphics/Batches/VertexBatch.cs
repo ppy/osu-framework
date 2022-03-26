@@ -144,14 +144,14 @@ namespace osu.Framework.Graphics.Batches
             GLWrapper.SetActiveBatch(this);
 
             bool drawRequired =
-                // If this is a new usage...
+                // If this is a new usage.
                 usage.Batch != this
-                // Or the DrawNode was newly invalidated...
+                // Or the DrawNode was newly invalidated.
                 || usage.InvalidationID != node.InvalidationID
-                // Or another DrawNode was inserted (and drew vertices) before this one...
+                // Or another DrawNode was inserted (and drew vertices) before this one.
                 || usage.StartIndex != rollingVertexIndex
-                // Or this usage is more than 1 frame behind. For example, another DrawNode may have temporarily overwritten the vertices of this one in the batch.
-                || node.DrawIndex - usage.DrawIndex > 1
+                // Or this usage has been skipped for 1 frame. Another DrawNode may have temporarily overwritten the vertices of this one in the batch.
+                || frameIndex - usage.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || node.DrawDepth != usage.DrawDepth;
 
@@ -171,12 +171,11 @@ namespace osu.Framework.Graphics.Batches
                     this,
                     node.InvalidationID,
                     rollingVertexIndex,
-                    node.DrawDepth);
+                    node.DrawDepth,
+                    frameIndex);
             }
 
             usage.DrawRequired = drawRequired;
-            usage.DrawIndex = node.DrawIndex;
-            usage.FrameIndex = frameIndex;
 
             return ref usage;
         }
@@ -189,20 +188,19 @@ namespace osu.Framework.Graphics.Batches
         internal readonly long InvalidationID;
         internal readonly int StartIndex;
         internal readonly float DrawDepth;
+        internal readonly ulong FrameIndex;
 
-        internal ulong DrawIndex;
-        internal ulong FrameIndex;
         internal bool DrawRequired;
         internal int Count;
 
-        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth)
+        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth, ulong frameIndex)
         {
             Batch = batch;
             InvalidationID = invalidationID;
             StartIndex = startIndex;
             DrawDepth = drawDepth;
+            FrameIndex = frameIndex;
 
-            DrawIndex = 0;
             FrameIndex = 0;
             DrawRequired = false;
             Count = 0;
