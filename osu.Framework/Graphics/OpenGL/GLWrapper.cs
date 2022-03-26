@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         internal static ulong ResetId { get; private set; }
 
+        internal static readonly ulong[] DrawNodeFrameIndices = new ulong[MAX_DRAW_NODES];
+
         internal static int ResetIndex { get; private set; }
 
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
@@ -143,6 +145,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             ResetId++;
             ResetIndex = resetIndex;
+            DrawNodeFrameIndices[ResetIndex]++;
 
             Trace.Assert(shader_stack.Count == 0);
 

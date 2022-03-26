@@ -24,9 +24,6 @@ namespace osu.Framework.Graphics.Batches
         private int currentBufferIndex;
         private int rollingVertexIndex;
 
-        private int resetIndex = -1;
-        private ulong frameIndex;
-
         private readonly int maxBuffers;
 
         private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
@@ -65,9 +62,6 @@ namespace osu.Framework.Graphics.Batches
             rollingVertexIndex = 0;
             drawStart = 0;
             drawCount = 0;
-
-            if (GLWrapper.ResetIndex == resetIndex)
-                frameIndex++;
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
@@ -147,8 +141,7 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
-            Debug.Assert(resetIndex == -1 || resetIndex == GLWrapper.ResetIndex);
-            resetIndex = GLWrapper.ResetIndex;
+            ulong frameIndex = GLWrapper.DrawNodeFrameIndices[GLWrapper.ResetIndex];
 
             bool drawRequired =
                 // If this is a new usage.
@@ -178,10 +171,10 @@ namespace osu.Framework.Graphics.Batches
                     this,
                     node.InvalidationID,
                     rollingVertexIndex,
-                    node.DrawDepth,
-                    frameIndex);
+                    node.DrawDepth);
             }
 
+            usage.FrameIndex = frameIndex;
             usage.DrawRequired = drawRequired;
 
             return ref usage;
@@ -195,18 +188,17 @@ namespace osu.Framework.Graphics.Batches
         internal readonly long InvalidationID;
         internal readonly int StartIndex;
         internal readonly float DrawDepth;
-        internal readonly ulong FrameIndex;
 
+        internal ulong FrameIndex;
         internal bool DrawRequired;
         internal int Count;
 
-        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth, ulong frameIndex)
+        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth)
         {
             Batch = batch;
             InvalidationID = invalidationID;
             StartIndex = startIndex;
             DrawDepth = drawDepth;
-            FrameIndex = frameIndex;
 
             FrameIndex = 0;
             DrawRequired = false;
