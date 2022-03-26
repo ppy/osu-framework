@@ -123,6 +123,11 @@ namespace osu.Framework.Graphics.Lines
 
             private void addLineQuads(Line line, RectangleF texRect)
             {
+                if (line.Direction == Vector2.Zero)
+                {
+                    return;
+                }
+
                 using (quadBatch.BeginUsage(ref quadBatchUsage, this))
                 {
                     Vector2 ortho = line.OrthogonalDirection;
