@@ -133,7 +133,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
+        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DisabledFocusDrawableCannotReceiveFocusViaChangeFocus()
@@ -147,7 +147,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a non-present drawable returns <see langword="false"/>.
+        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a non-present drawable returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void NotPresentDrawableCannotReceiveFocusViaChangeFocus()
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable of a non-present parent returns <see langword="false"/>.
+        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable of a non-present parent returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DrawableOfNotPresentParentCannotReceiveFocusViaChangeFocus()
