@@ -300,7 +300,7 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || (!tooltipTarget.IsHovered && !tooltipTarget.IsDragged);
 
         private ITooltip getTooltip(ITooltipContentProvider target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 
