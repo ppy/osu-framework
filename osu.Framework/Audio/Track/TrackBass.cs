@@ -215,7 +215,13 @@ namespace osu.Framework.Audio.Track
             isRunning = isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this, true);
+        private void stopInternal()
+        {
+            if (!isRunningState(bassMixer.ChannelIsActive(this)))
+                return;
+
+            bassMixer.ChannelPause(this, true);
+        }
 
         private int direction;
 
