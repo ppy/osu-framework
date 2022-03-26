@@ -69,11 +69,8 @@ jobs:
       - name: Instal .NET workloads
         run: dotnet workload install android
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1
-
-      - name: Build
-        run: msbuild osu-framework.Android.slnf /restore /p:Configuration=Debug
+      - name: Compile
+        run: dotnet build -c Debug osu-framework.Android.slnf
 
   build-only-ios:
     name: Build only (iOS)
