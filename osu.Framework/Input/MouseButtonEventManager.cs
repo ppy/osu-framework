@@ -55,11 +55,6 @@ namespace osu.Framework.Input
         public virtual float DoubleClickTime => 250;
 
         /// <summary>
-        /// The distance that must be moved until a dragged click becomes invalid.
-        /// </summary>
-        public virtual float ClickDragDistance => 10;
-
-        /// <summary>
         /// The position of the mouse when the last time the button is pressed.
         /// </summary>
         public Vector2? MouseDownPosition { get; protected set; }
