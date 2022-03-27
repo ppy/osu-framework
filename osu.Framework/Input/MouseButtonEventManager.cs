@@ -75,6 +75,11 @@ namespace osu.Framework.Input
         protected WeakReference<Drawable> ClickedDrawable = new WeakReference<Drawable>(null);
 
         /// <summary>
+        /// The drawable which handled the last MouseDown event.
+        /// </summary>
+        protected WeakReference<Drawable> PendingClickDrawable = new WeakReference<Drawable>(null);
+
+        /// <summary>
         /// Whether a drag operation has started and <see cref="DraggedDrawable"/> has been searched for.
         /// </summary>
         protected bool DragStarted;
@@ -88,10 +93,10 @@ namespace osu.Framework.Input
         {
             if (EnableDrag)
             {
-                if (!DragStarted)
+                if (!DragStarted && PendingClickDrawable.TryGetTarget(out Drawable target))
                 {
                     var mouse = state.Mouse;
-                    if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > ClickDragDistance)
+                    if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > target.DragTolerance)
                         handleDragStart(state);
                 }
 
@@ -108,6 +113,7 @@ namespace osu.Framework.Input
                 MouseDownPosition = state.Mouse.Position;
 
             Drawable handledBy = PropagateButtonEvent(targets, new MouseDownEvent(state, Button, MouseDownPosition));
+            PendingClickDrawable.SetTarget(handledBy);
 
             if (LastClickTime != null && GetCurrentTime() - LastClickTime < DoubleClickTime)
             {

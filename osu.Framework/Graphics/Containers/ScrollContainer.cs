@@ -327,7 +327,7 @@ namespace osu.Framework.Graphics.Containers
             // similar calculation to what is already done in MouseButtonEventManager.HandlePositionChange
             // handles the case where a drag was triggered on an axis we are not interested in.
             // can be removed if/when drag events are split out per axis or contain direction information.
-            dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
+            dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > Content.DragTolerance;
 
             scrollByOffset(scrollOffset, false);
         }

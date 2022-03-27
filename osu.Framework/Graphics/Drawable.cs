@@ -2519,6 +2519,11 @@ namespace osu.Framework.Graphics
         public bool IsDragged { get; internal set; }
 
         /// <summary>
+        /// The distance a pointer needs to move to start dragging this drawable.
+        /// </summary>
+        public virtual float DragTolerance => 10f;
+
+        /// <summary>
         /// Determines whether this drawable receives positional input when the mouse is at the
         /// given screen-space position.
         /// </summary>
