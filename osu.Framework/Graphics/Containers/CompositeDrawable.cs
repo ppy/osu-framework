@@ -1446,7 +1446,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 masking = value;
-                Invalidate(Invalidation.DrawNode);
+                Invalidate(Invalidation.Masking);
             }
         }
 
