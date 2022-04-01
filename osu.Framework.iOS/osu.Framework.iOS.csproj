@@ -25,7 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osuTK.iOS" Version="1.0.187" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
   </ItemGroup>
   <ItemGroup>
     <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
