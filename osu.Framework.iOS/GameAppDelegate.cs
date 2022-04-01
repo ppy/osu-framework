@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using AVFoundation;
 using Foundation;
 using SixLabors.ImageSharp.Formats.Png;
@@ -54,7 +55,7 @@ namespace osu.Framework.iOS
 
             try
             {
-                new PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
+                new PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null, CancellationToken.None);
             }
             catch
             {
