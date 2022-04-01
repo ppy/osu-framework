@@ -667,8 +667,8 @@ namespace osu.Framework.Platform
 
             if (LimitedMemoryEnvironment)
             {
-                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
-                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+                // recommended middle-ground https://github.com/SixLabors/docs/blob/main/articles/imagesharp/memorymanagement.md#configuring-the-pool-size
+                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = MemoryAllocator.Create(new MemoryAllocatorOptions { MaximumPoolSizeMegabytes = 1 });
             }
 
             if (ExecutionState != ExecutionState.Idle)
