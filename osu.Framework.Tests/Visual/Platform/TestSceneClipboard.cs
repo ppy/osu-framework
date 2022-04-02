@@ -29,12 +29,11 @@ namespace osu.Framework.Tests.Visual.Platform
             this.host = host;
         }
 
-        [SetUp]
-        public void SetUp() => Schedule(Clear);
-
         [Test]
         public void TestImage()
         {
+            AddStep("clear previous screenshots", Clear);
+
             AddStep("screenshot screen", () =>
             {
                 host.TakeScreenshotAsync().ContinueWith(t =>
