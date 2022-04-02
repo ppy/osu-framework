@@ -4,6 +4,9 @@
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -27,8 +30,10 @@ namespace osu.Framework.Tests.Visual.Platform
         }
 
         [Test]
-        public void TestImageCopy()
+        public void TestImage()
         {
+            AddStep("clear previous screenshots", Clear);
+
             AddStep("screenshot screen", () =>
             {
                 host.TakeScreenshotAsync().ContinueWith(t =>
@@ -48,7 +53,20 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("retrieve image from clipboard", () =>
             {
-                clipboardImage = clipboard.GetImage<Rgba32>();
+                var image = clipboard.GetImage<Rgba32>();
+                clipboardImage = image.Clone();
+
+                var texture = new Texture(image.Width, image.Height);
+                texture.SetData(new TextureUpload(image));
+
+                Child = new Sprite
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                    FillMode = FillMode.Fit,
+                    Texture = texture
+                };
             });
 
             AddAssert("image retrieved", () => clipboardImage != null);
