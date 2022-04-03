@@ -121,7 +121,7 @@ namespace osu.Framework.Android.Input
         private void updatePointerCapture()
         {
             // Pointer capture is only available on Android 8.0 and up
-            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            if (!OperatingSystem.IsAndroidVersionAtLeast(26))
                 return;
 
             bool shouldCapture =

@@ -46,7 +46,7 @@ namespace osu.Framework.Android
             get => pointerCaptured;
             set
             {
-                if (Build.VERSION.SdkInt < BuildVersionCodes.O || !OperatingSystem.IsAndroidVersionAtLeast(26))
+                if (!OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     Logger.Log($"Tried to set {nameof(PointerCapture)} on an unsupported Android version.", level: LogLevel.Important);
                     return;
