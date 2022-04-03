@@ -1022,6 +1022,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static bool operator ==(in MaskingInfo left, in MaskingInfo right) =>
             left.ScreenSpaceAABB == right.ScreenSpaceAABB &&
             left.MaskingRect == right.MaskingRect &&
+            left.ConservativeScreenSpaceQuad.Equals(right.ConservativeScreenSpaceQuad) &&
             left.ToMaskingSpace == right.ToMaskingSpace &&
             left.CornerRadius == right.CornerRadius &&
             left.CornerExponent == right.CornerExponent &&

@@ -2,7 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Tiff;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
@@ -19,7 +23,7 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, int arg);
+        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, int int1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, ulong ulong1);
@@ -28,7 +32,10 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr intPtr1, int int1);
+        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr ptr1, int int1);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr ptr1, ulong ulong11);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
@@ -47,9 +54,6 @@ namespace osu.Framework.Platform.MacOS.Native
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern bool SendBool(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern void SendVoid(IntPtr receiver, IntPtr selector, uint arg);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1);
@@ -85,8 +89,19 @@ namespace osu.Framework.Platform.MacOS.Native
         }
 
         private static readonly IntPtr sel_c_string_using_encoding = Selector.Get("cStringUsingEncoding:");
+        private static readonly IntPtr sel_tiff_representation = Selector.Get("TIFFRepresentation");
 
         public static string FromNSString(IntPtr handle) => Marshal.PtrToStringUni(SendIntPtr(handle, sel_c_string_using_encoding, (uint)NSStringEncoding.Unicode));
+
+        public static Image<TPixel> FromNSImage<TPixel>(IntPtr handle)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            if (handle == IntPtr.Zero)
+                return null;
+
+            var tiffRepresentation = new NSData(SendIntPtr(handle, sel_tiff_representation));
+            return Image.Load<TPixel>(tiffRepresentation.ToBytes());
+        }
 
         public static unsafe IntPtr ToNSString(string str)
         {
@@ -97,6 +112,21 @@ namespace osu.Framework.Platform.MacOS.Native
             {
                 var handle = SendIntPtr(Class.Get("NSString"), Selector.Get("alloc"));
                 return SendIntPtr(handle, Selector.Get("initWithCharacters:length:"), (IntPtr)ptrFirstChar, str.Length);
+            }
+        }
+
+        public static IntPtr ToNSImage(Image image)
+        {
+            if (image == null)
+                return IntPtr.Zero;
+
+            using (var stream = new MemoryStream())
+            {
+                image.Save(stream, TiffFormat.Instance);
+                byte[] array = stream.ToArray();
+
+                var handle = SendIntPtr(Class.Get("NSImage"), Selector.Get("alloc"));
+                return SendIntPtr(handle, Selector.Get("initWithData:"), NSData.FromBytes(array));
             }
         }
 

@@ -22,10 +22,10 @@ namespace osu.Framework.Extensions.ImageExtensions
 
         internal ReadOnlyPixelSpan(Image<TPixel> image)
         {
-            if (image.TryGetSinglePixelSpan(out var span))
+            if (image.DangerousTryGetSinglePixelMemory(out var memory))
             {
                 owner = null;
-                Span = span;
+                Span = memory.Span;
             }
             else
             {

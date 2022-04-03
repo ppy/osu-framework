@@ -40,8 +40,6 @@ namespace osu.Framework.Android
 
         protected override IWindow CreateWindow() => new AndroidGameWindow(gameView);
 
-        protected override bool LimitedMemoryEnvironment => true;
-
         public override bool CanExit => false;
 
         public override bool CanSuspendToBackground => true;
