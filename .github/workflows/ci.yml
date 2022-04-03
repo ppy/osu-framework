@@ -111,7 +111,7 @@ jobs:
         run: dotnet tool restore
 
       - name: Restore Packages
-        run: dotnet restore
+        run: dotnet restore osu-framework.Desktop.slnf
 
       - name: CodeFileSanity
         run: |
