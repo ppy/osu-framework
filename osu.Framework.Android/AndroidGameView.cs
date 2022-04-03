@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.Versioning;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
@@ -45,7 +46,7 @@ namespace osu.Framework.Android
             get => pointerCaptured;
             set
             {
-                if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+                if (Build.VERSION.SdkInt < BuildVersionCodes.O || !OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     Logger.Log($"Tried to set {nameof(PointerCapture)} on an unsupported Android version.", level: LogLevel.Important);
                     return;
@@ -142,6 +143,7 @@ namespace osu.Framework.Android
             return true;
         }
 
+        [SupportedOSPlatform("android26.0")]
         public override void OnPointerCaptureChange(bool hasCapture)
         {
             base.OnPointerCaptureChange(hasCapture);
@@ -196,7 +198,7 @@ namespace osu.Framework.Android
             var screenArea = new RectangleI(0, 0, screenSize.X, screenSize.Y);
             var usableScreenArea = screenArea;
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
                 var cutout = RootWindowInsets?.DisplayCutout;
 
@@ -204,7 +206,7 @@ namespace osu.Framework.Android
                     usableScreenArea = usableScreenArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
             }
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.N && Activity.IsInMultiWindowMode)
+            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode)
             {
                 // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
                 // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.

@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using Android.OS;
 using Android.Views;
@@ -89,7 +90,7 @@ namespace osu.Framework.Android.Input
                     View.Touch += HandleTouch;
 
                     // Pointer capture is only available on Android 8.0 and up
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                    if (OperatingSystem.IsAndroidVersionAtLeast(26))
                         View.CapturedPointer += HandleCapturedPointer;
                 }
                 else
@@ -101,7 +102,7 @@ namespace osu.Framework.Android.Input
                     View.Touch -= HandleTouch;
 
                     // Pointer capture is only available on Android 8.0 and up
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                    if (OperatingSystem.IsAndroidVersionAtLeast(26))
                         View.CapturedPointer -= HandleCapturedPointer;
                 }
 
@@ -171,41 +172,47 @@ namespace osu.Framework.Android.Input
 
         protected override void OnGenericMotion(MotionEvent genericMotionEvent)
         {
-            switch (genericMotionEvent.Action)
+            if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
-                case MotionEventActions.ButtonPress:
-                    handleMouseDown(genericMotionEvent.ActionButton.ToMouseButton());
-                    break;
+                switch (genericMotionEvent.Action)
+                {
+                    case MotionEventActions.ButtonPress:
+                        handleMouseDown(genericMotionEvent.ActionButton.ToMouseButton());
+                        break;
 
-                case MotionEventActions.ButtonRelease:
-                    handleMouseUp(genericMotionEvent.ActionButton.ToMouseButton());
-                    break;
+                    case MotionEventActions.ButtonRelease:
+                        handleMouseUp(genericMotionEvent.ActionButton.ToMouseButton());
+                        break;
 
-                case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(genericMotionEvent));
-                    break;
+                    case MotionEventActions.Scroll:
+                        handleMouseWheel(getEventScroll(genericMotionEvent));
+                        break;
+                }
             }
         }
 
         protected override void OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
-            switch (capturedPointerEvent.Action)
+            if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
-                case MotionEventActions.Move:
-                    handleMouseMoveRelativeEvent(capturedPointerEvent);
-                    break;
+                switch (capturedPointerEvent.Action)
+                {
+                    case MotionEventActions.Move:
+                        handleMouseMoveRelativeEvent(capturedPointerEvent);
+                        break;
 
-                case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(capturedPointerEvent));
-                    break;
+                    case MotionEventActions.Scroll:
+                        handleMouseWheel(getEventScroll(capturedPointerEvent));
+                        break;
 
-                case MotionEventActions.ButtonPress:
-                    handleMouseDown(capturedPointerEvent.ActionButton.ToMouseButton());
-                    break;
+                    case MotionEventActions.ButtonPress:
+                        handleMouseDown(capturedPointerEvent.ActionButton.ToMouseButton());
+                        break;
 
-                case MotionEventActions.ButtonRelease:
-                    handleMouseUp(capturedPointerEvent.ActionButton.ToMouseButton());
-                    break;
+                    case MotionEventActions.ButtonRelease:
+                        handleMouseUp(capturedPointerEvent.ActionButton.ToMouseButton());
+                        break;
+                }
             }
         }
 
