@@ -172,6 +172,9 @@ namespace osu.Framework.Android.Input
 
         protected override void OnGenericMotion(MotionEvent genericMotionEvent)
         {
+            // ActionButton is not available before API 23
+            // https://developer.android.com/reference/android/view/MotionEvent#getActionButton()
+
             if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
                 switch (genericMotionEvent.Action)
@@ -193,6 +196,9 @@ namespace osu.Framework.Android.Input
 
         protected override void OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
+            // ActionButton is not available before API 23
+            // https://developer.android.com/reference/android/view/MotionEvent#getActionButton()
+
             if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
                 switch (capturedPointerEvent.Action)
