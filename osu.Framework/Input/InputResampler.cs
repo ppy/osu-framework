@@ -69,7 +69,7 @@ namespace osu.Framework.Input
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion
             // but never update when its less than 2 pixels
-            if (distance < 10 && Vector2.Dot(direction, realDiff / realMovementDistance) > 0.7 || distance < 2)
+            if ((distance < 10 && Vector2.Dot(direction, realDiff / realMovementDistance) > 0.7) || distance < 2)
                 return Array.Empty<Vector2>();
 
             lastRelevantPosition = position;

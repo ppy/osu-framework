@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
             foreach (var type in source.GetType().EnumerateBaseTypes())
             {
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
+                    .Where(m => m is FieldInfo || (m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any()))
                     .ForEach(m => allMembers.Add(m));
             }
 
