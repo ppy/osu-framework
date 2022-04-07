@@ -236,7 +236,7 @@ namespace osu.Framework.Screens
                 IScreen exitSource = exitCandidate;
                 exitCandidate = CurrentScreen;
 
-                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false);
+                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false, destination: target);
 
                 if (exitBlocked)
                 {
@@ -277,8 +277,9 @@ namespace osu.Framework.Screens
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="shouldFireExitEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
         /// <param name="shouldFireResumeEvent">Whether <see cref="IScreen.OnResuming"/> should be fired on the resuming screen.</param>
+        /// <param name="destination">The final <see cref="IScreen"/> of an exit operation.</param>
         /// <returns>Whether the exit was blocked.</returns>
-        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
+        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true, IScreen destination = null)
         {
             if (stack.Count == 0)
                 return false;
@@ -296,7 +297,7 @@ namespace osu.Framework.Screens
 
                 // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
                 // OnExiting should still be called regardless.
-                bool blockRequested = toExit.OnExiting(new ScreenExitEvent(next));
+                bool blockRequested = toExit.OnExiting(new ScreenExitEvent(next, destination ?? next));
 
                 if ((source == null || toExit.ValidForResume) && blockRequested)
                     return true;

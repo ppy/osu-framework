@@ -10,9 +10,15 @@ namespace osu.Framework.Screens
         /// </summary>
         public IScreen Next;
 
-        public ScreenExitEvent(IScreen next)
+        /// <summary>
+        /// The final <see cref="IScreen"/> of an exit operation.
+        /// </summary>
+        public IScreen Destination;
+
+        public ScreenExitEvent(IScreen next, IScreen destination)
         {
             Next = next;
+            Destination = destination;
         }
     }
 }

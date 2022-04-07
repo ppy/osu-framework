@@ -504,6 +504,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
             AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 3 destination is screen 1", () => screen3.DestinationIs == screen1);
             AddAssert("screen 2 resumed not fired", () => screen2.ResumedFrom == null);
             AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd == double.MaxValue);
             AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
@@ -513,7 +514,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
             AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 3 destination is screen 1", () => screen3.DestinationIs == screen1);
             AddAssert("screen 2 exited fired", () => screen2.ExitedTo == screen1);
+            AddAssert("screen 2 destination is screen 1", () => screen2.DestinationIs == screen1);
             AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom == screen2);
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
@@ -982,6 +985,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public IScreen EnteredFrom;
             public IScreen ExitedTo;
+            public IScreen DestinationIs;
 
             public IScreen SuspendedTo;
             public IScreen ResumedFrom;
@@ -1116,6 +1120,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 attemptTransformMutation();
 
                 ExitedTo = e.Next;
+                DestinationIs = e.Destination;
                 Exited?.Invoke();
 
                 if (Exiting?.Invoke() == true)
