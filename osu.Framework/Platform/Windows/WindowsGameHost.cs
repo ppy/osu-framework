@@ -37,7 +37,7 @@ namespace osu.Framework.Platform.Windows
         {
         }
 
-        public override void OpenFileExternally(string filename)
+        public override bool OpenFileExternally(string filename)
         {
             if (Directory.Exists(filename))
             {
@@ -45,13 +45,17 @@ namespace osu.Framework.Platform.Windows
                 string folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
 
                 Explorer.OpenFolderAndSelectItem(folder);
-                return;
+                return true;
             }
 
-            base.OpenFileExternally(filename);
+            return base.OpenFileExternally(filename);
         }
 
-        public override void PresentFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
+        public override bool PresentFileExternally(string filename)
+        {
+            Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
+            return true;
+        }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {

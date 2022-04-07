@@ -5,6 +5,7 @@
 
 using System.Buffers;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Extensions.ImageExtensions
@@ -52,10 +53,10 @@ namespace osu.Framework.Extensions.ImageExtensions
             where TPixel : unmanaged, IPixel<TPixel>
         {
             var allocatedOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<TPixel>(image.Width * image.Height);
-            var allocatedSpan = allocatedOwner.Memory.Span;
+            var allocatedMemory = allocatedOwner.Memory;
 
             for (int r = 0; r < image.Height; r++)
-                image.GetPixelRowSpan(r).CopyTo(allocatedSpan.Slice(r * image.Width));
+                image.DangerousGetPixelRowMemory(r).CopyTo(allocatedMemory.Slice(r * image.Width));
 
             return allocatedOwner;
         }

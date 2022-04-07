@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
-        internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => FindClosestParent<IOnScreenOptimisingContainer>();
+        internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => this.FindClosestParent<IOnScreenOptimisingContainer>();
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
