@@ -77,6 +77,10 @@ namespace osu.Framework.Graphics.Animations
             frameData.Add(frame);
 
             OnFrameAdded(frame.Content, frame.Duration);
+
+            // This handles the case when the first frame is added, especially important after a `ClearFrames` operation.
+            if (frameData.Count == 1)
+                currentFrameCache.Invalidate();
         }
 
         /// <summary>
