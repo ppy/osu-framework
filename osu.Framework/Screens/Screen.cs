@@ -32,17 +32,17 @@ namespace osu.Framework.Screens
                 throw new InvalidOperationException($"Screens must always be added to a {nameof(ScreenStack)} (attempted to add {GetType()} to {Parent.GetType()})");
         }
 
-        public virtual void OnEntering(IScreen last)
+        public virtual void OnEntering(ScreenEnterEvent e)
         {
         }
 
-        public virtual bool OnExiting(IScreen next) => false;
+        public virtual bool OnExiting(ScreenExitEvent e) => false;
 
-        public virtual void OnResuming(IScreen last)
+        public virtual void OnResuming(ScreenResumeEvent e)
         {
         }
 
-        public virtual void OnSuspending(IScreen next)
+        public virtual void OnSuspending(ScreenSuspendEvent e)
         {
         }
     }

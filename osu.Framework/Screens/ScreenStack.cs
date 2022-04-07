@@ -112,7 +112,7 @@ namespace osu.Framework.Screens
             ScreenPushed?.Invoke(source, newScreen);
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
-            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
+            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(new ScreenEnterEvent(source));
 
             if (source == null)
             {
@@ -174,7 +174,7 @@ namespace osu.Framework.Screens
             void performSuspend()
             {
                 log($"suspended {getTypeString(from)} (waiting on {getTypeString(to)})");
-                from.OnSuspending(to);
+                from.OnSuspending(new ScreenSuspendEvent(to));
                 sourceDrawable.Expire();
             }
         }
@@ -296,7 +296,7 @@ namespace osu.Framework.Screens
 
                 // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
                 // OnExiting should still be called regardless.
-                bool blockRequested = toExit.OnExiting(next);
+                bool blockRequested = toExit.OnExiting(new ScreenExitEvent(next));
 
                 if ((source == null || toExit.ValidForResume) && blockRequested)
                     return true;
@@ -359,7 +359,7 @@ namespace osu.Framework.Screens
 
             if (CurrentScreen.ValidForResume)
             {
-                CurrentScreen.OnResuming(source);
+                CurrentScreen.OnResuming(new ScreenResumeEvent(source));
 
                 // Screens are expired when they are suspended - lifetime needs to be reset when resumed
                 CurrentScreen.AsDrawable().LifetimeEnd = double.MaxValue;

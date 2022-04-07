@@ -1085,22 +1085,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderThickness = 0;
             }
 
-            public override void OnEntering(IScreen last)
+            public override void OnEntering(ScreenEnterEvent e)
             {
                 attemptTransformMutation();
 
-                EnteredFrom = last;
+                EnteredFrom = e.Last;
                 Entered?.Invoke();
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)last).DummyBindable);
+                    DummyBindable.BindTo(((TestScreen)e.Last).DummyBindable);
                     LeasedCopy = DummyBindable.BeginLease(true);
                 }
 
-                base.OnEntering(last);
+                base.OnEntering(e);
 
-                if (last != null)
+                if (e.Last != null)
                 {
                     //only show the pop button if we are entered form another screen.
                     popButton.Alpha = 1;
@@ -1111,39 +1111,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 this.FadeIn(1000);
             }
 
-            public override bool OnExiting(IScreen next)
+            public override bool OnExiting(ScreenExitEvent e)
             {
                 attemptTransformMutation();
 
-                ExitedTo = next;
+                ExitedTo = e.Next;
                 Exited?.Invoke();
 
                 if (Exiting?.Invoke() == true)
                     return true;
 
                 this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
-                return base.OnExiting(next);
+                return base.OnExiting(e);
             }
 
-            public override void OnSuspending(IScreen next)
+            public override void OnSuspending(ScreenSuspendEvent e)
             {
                 attemptTransformMutation();
 
-                SuspendedTo = next;
+                SuspendedTo = e.Next;
                 Suspended?.Invoke();
 
-                base.OnSuspending(next);
+                base.OnSuspending(e);
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
-            public override void OnResuming(IScreen last)
+            public override void OnResuming(ScreenResumeEvent e)
             {
                 attemptTransformMutation();
 
-                ResumedFrom = last;
+                ResumedFrom = e.Last;
                 Resumed?.Invoke();
 
-                base.OnResuming(last);
+                base.OnResuming(e);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 
