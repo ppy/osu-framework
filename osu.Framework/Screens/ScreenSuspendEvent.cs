@@ -6,7 +6,7 @@ namespace osu.Framework.Screens
     public class ScreenSuspendEvent : ScreenEvent
     {
         /// <summary>
-        /// The new Screen.
+        /// The <see cref="IScreen"/> that will be entered next.
         /// </summary>
         public IScreen Next;
 

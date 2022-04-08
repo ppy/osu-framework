@@ -6,7 +6,7 @@ namespace osu.Framework.Screens
     public class ScreenResumeEvent : ScreenEvent
     {
         /// <summary>
-        /// The next Screen.
+        /// The <see cref="IScreen"/> which has exited.
         /// </summary>
         public IScreen Last;
 
