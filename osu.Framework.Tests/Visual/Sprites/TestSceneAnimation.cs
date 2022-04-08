@@ -265,7 +265,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("animation is not showing frame", () => animation.ChildrenOfType<Sprite>().First().Texture == null);
 
             AddStep("add one frame back", () => animation.AddFrame(lastFrame));
-            AddAssert("animation is showing frame", () => animation.ChildrenOfType<Sprite>().First().Texture != null);
+            AddAssert("animation is showing frame", () => animation.ChildrenOfType<Sprite>().First().Texture == lastFrame);
         }
 
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
