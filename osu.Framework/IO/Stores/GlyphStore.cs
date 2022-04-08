@@ -15,6 +15,7 @@ using osu.Framework.Logging;
 using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
@@ -153,11 +154,11 @@ namespace osu.Framework.IO.Stores
 
             for (int y = 0; y < character.Height; y++)
             {
-                var pixelRowSpan = image.GetPixelRowSpan(y);
+                var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
                 int readOffset = (character.Y + y) * page.Width + character.X;
 
                 for (int x = 0; x < character.Width; x++)
-                    pixelRowSpan[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
+                    pixelRowMemory.Span[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);

@@ -36,6 +36,20 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         private volatile bool enqueuedPlaybackStart;
 
+        public override bool Looping
+        {
+            get => base.Looping;
+            set
+            {
+                base.Looping = value;
+                setLoopFlag(Looping);
+            }
+        }
+
+        private bool hasChannel => channel != 0;
+
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
+
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
@@ -49,51 +63,16 @@ namespace osu.Framework.Audio.Sample
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                FrequencyChangedToZero = stopChannel,
+                FrequencyChangedToZero = stopInternal,
                 FrequencyChangedFromZero = () =>
                 {
                     // Only unpause if the channel has been played by the user.
                     if (userRequestedPlay)
-                        playChannel();
+                        playInternal();
                 },
             };
 
             ensureChannel();
-        }
-
-        public override void Play()
-        {
-            userRequestedPlay = true;
-
-            // Pin Playing and IsAlive to true so that the channel isn't killed by the next update. This is only reset after playback is started.
-            enqueuedPlaybackStart = true;
-
-            // Bring this channel alive, allowing it to receive updates.
-            base.Play();
-
-            playChannel();
-        }
-
-        internal override void OnStateChanged()
-        {
-            base.OnStateChanged();
-
-            if (!hasChannel)
-                return;
-
-            Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
-            Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
-            relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
-        }
-
-        public override bool Looping
-        {
-            get => base.Looping;
-            set
-            {
-                base.Looping = value;
-                setLoopFlag(Looping);
-            }
         }
 
         protected override void UpdateState()
@@ -126,54 +105,78 @@ namespace osu.Framework.Audio.Sample
             bassAmplitudeProcessor?.Update();
         }
 
+        public override void Play()
+        {
+            userRequestedPlay = true;
+
+            // Pin Playing and IsAlive to true so that the channel isn't killed by the next update. This is only reset after playback is started.
+            enqueuedPlaybackStart = true;
+
+            // Bring this channel alive, allowing it to receive updates.
+            base.Play();
+
+            EnqueueAction(() =>
+            {
+                if (playInternal())
+                    playing = true;
+
+                enqueuedPlaybackStart = false;
+            });
+        }
+
         public override void Stop()
         {
             userRequestedPlay = false;
 
             base.Stop();
 
-            stopChannel();
+            EnqueueAction(() =>
+            {
+                stopInternal();
+                playing = false;
+            });
         }
 
-        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
-
-        private bool hasChannel => channel != 0;
-
-        private void playChannel() => EnqueueAction(() =>
+        internal override void OnStateChanged()
         {
-            try
-            {
-                // Channel may have been freed via UpdateDevice().
-                ensureChannel();
+            base.OnStateChanged();
 
-                if (!hasChannel)
-                    return;
+            if (!hasChannel)
+                return;
 
-                // Ensure state is correct before starting.
-                InvalidateState();
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
+            relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
+        }
 
-                // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
-                // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
-                // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
-                    return;
+        private bool playInternal()
+        {
+            // Channel may have been freed via UpdateDevice().
+            ensureChannel();
 
-                playing = true;
+            if (!hasChannel)
+                return false;
 
-                if (!relativeFrequencyHandler.IsFrequencyZero)
-                    bassMixer.ChannelPlay(this);
-            }
-            finally
-            {
-                enqueuedPlaybackStart = false;
-            }
-        });
+            // Ensure state is correct before starting.
+            InvalidateState();
 
-        private void stopChannel() => EnqueueAction(() =>
+            // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
+            // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
+            // to indicate the natural stoppage of a sample as a result of having reaching the end.
+            if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
+                return false;
+
+            if (relativeFrequencyHandler.IsFrequencyZero)
+                return true;
+
+            return bassMixer.ChannelPlay(this);
+        }
+
+        private void stopInternal()
         {
             if (hasChannel)
                 bassMixer.ChannelPause(this);
-        });
+        }
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {

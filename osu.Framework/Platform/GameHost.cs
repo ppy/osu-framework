@@ -40,7 +40,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
-using SixLabors.ImageSharp.Memory;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using Size = System.Drawing.Size;
@@ -114,11 +113,6 @@ namespace osu.Framework.Platform
         /// This and <see cref="SuspendToBackground"/> are an alternative way to exit on hosts that have <see cref="CanExit"/> <c>false</c>.
         /// </remarks>
         public virtual bool CanSuspendToBackground => false;
-
-        /// <summary>
-        /// Whether memory constraints should be considered before performance concerns.
-        /// </summary>
-        protected virtual bool LimitedMemoryEnvironment => false;
 
         protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
@@ -667,12 +661,6 @@ namespace osu.Framework.Platform
             {
                 // Mono (netcore) throws for this property
                 GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            }
-
-            if (LimitedMemoryEnvironment)
-            {
-                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
-                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
             }
 
             if (ExecutionState != ExecutionState.Idle)

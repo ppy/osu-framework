@@ -425,6 +425,23 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestAddOnceInlineDelegate()
+        {
+            classInvocations = 0;
+
+            for (int i = 0; i < 10; i++)
+                invokeInlineDelegateAction();
+
+            scheduler.Update();
+            Assert.AreEqual(1, classInvocations);
+        }
+
+        private void invokeInlineDelegateAction()
+        {
+            scheduler.AddOnce(() => classInvocations++);
+        }
+
+        [Test]
         public void TestAddOnceInlineFunction()
         {
             int invocations = 0;
