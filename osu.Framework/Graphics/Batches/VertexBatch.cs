@@ -91,8 +91,12 @@ namespace osu.Framework.Graphics.Batches
             if (!GetCurrentVertex().Equals(vertex))
             {
                 if (group.UploadRequired)
+                {
+                    // This is non-fatal and is generally caused by NaN values in vertices.
                     throw new InvalidOperationException("Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
+                }
 
+                // This is fatal but should be approximately asserted to never happen via the heuristics in BeginGroup().
                 throw new InvalidOperationException("Vertex addition was skipped, but the contained vertex differs.");
             }
 #endif
