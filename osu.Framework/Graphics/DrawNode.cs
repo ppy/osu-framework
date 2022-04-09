@@ -40,8 +40,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected internal long InvalidationID { get; private set; }
 
-        public ulong DrawIndex { get; private set; }
-
         /// <summary>
         /// The <see cref="Drawable"/> which this <see cref="DrawNode"/> draws.
         /// </summary>
@@ -53,7 +51,7 @@ namespace osu.Framework.Graphics
         /// The depth at which drawing should take place.
         /// This is written to from the front-to-back pass and used in both passes.
         /// </summary>
-        public float DrawDepth;
+        internal float DrawDepth { get; private set; }
 
         /// <summary>
         /// Creates a new <see cref="DrawNode"/>.
@@ -86,8 +84,6 @@ namespace osu.Framework.Graphics
         /// <param name="drawState"></param>
         public virtual void Draw(in DrawState drawState)
         {
-            DrawIndex++;
-
             GLWrapper.SetBlend(DrawColourInfo.Blending);
 
             // This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.

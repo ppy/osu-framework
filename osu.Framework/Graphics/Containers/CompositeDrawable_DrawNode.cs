@@ -116,9 +116,9 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
-            private VertexGroup<TexturedVertex2D> vertices;
+            private VertexGroup<TexturedVertex2D> edgeEffectVertices;
 
-            private void drawEdgeEffect(QuadBatch<TexturedVertex2D> batch)
+            private void drawEdgeEffect(ref VertexGroup<TexturedVertex2D> vertices)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
@@ -152,14 +152,11 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                using (batch.BeginGroup(ref vertices, this))
-                {
-                    DrawQuad(ref vertices, Texture.WhitePixel, screenSpaceMaskingQuad.Value,
-                        // HACK HACK HACK. We re-use the unused vertex blend range to store the original
-                        // masking blend range when rendering edge effects. This is needed for smooth inner edges
-                        // with a hollow edge effect.
-                        colour, null, null, new Vector2(maskingInfo.Value.BlendRange));
-                }
+                DrawQuad(ref vertices, Texture.WhitePixel, screenSpaceMaskingQuad.Value,
+                    // HACK HACK HACK. We re-use the unused vertex blend range to store the original
+                    // masking blend range when rendering edge effects. This is needed for smooth inner edges
+                    // with a hollow edge effect.
+                    colour, null, null, new Vector2(maskingInfo.Value.BlendRange));
 
                 Shader.Unbind();
 
@@ -188,7 +185,8 @@ namespace osu.Framework.Graphics.Containers
 
                 base.Draw(localDrawState);
 
-                drawEdgeEffect(localDrawState.QuadBatch);
+                using (localDrawState.QuadBatch.BeginGroup(ref edgeEffectVertices, this))
+                    drawEdgeEffect(ref edgeEffectVertices);
 
                 if (maskingInfo != null)
                 {

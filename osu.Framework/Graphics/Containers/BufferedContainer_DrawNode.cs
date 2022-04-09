@@ -71,8 +71,8 @@ namespace osu.Framework.Graphics.Containers
                 {
                     GLWrapper.PushScissorState(false);
 
-                    if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation, ref vertices);
-                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90, ref vertices);
+                    if (blurRadius.X > 0) drawBlurredFrameBuffer(ref vertices, blurRadius.X, blurSigma.X, blurRotation);
+                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(ref vertices, blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
                     GLWrapper.PopScissorState();
                 }
@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Containers
                     base.DrawContents(ref vertices);
             }
 
-            private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation, ref VertexGroup<TexturedVertex2D> vertices)
+            private void drawBlurredFrameBuffer(ref VertexGroup<TexturedVertex2D> vertices, int kernelRadius, float sigma, float blurRotation)
             {
                 FrameBuffer current = SharedData.CurrentEffectBuffer;
                 FrameBuffer target = SharedData.GetNextEffectBuffer();
