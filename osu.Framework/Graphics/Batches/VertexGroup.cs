@@ -19,22 +19,22 @@ namespace osu.Framework.Graphics.Batches
         /// <summary>
         /// The <see cref="VertexBatch{T}"/> where vertices are to be added.
         /// </summary>
-        internal readonly VertexBatch<TVertex> Batch;
+        internal VertexBatch<TVertex> Batch;
 
         /// <summary>
         /// The <see cref="DrawNode"/> invalidation ID when this <see cref="VertexGroup{TVertex}"/> was last used.
         /// </summary>
-        internal readonly long InvalidationID;
+        internal long InvalidationID;
 
         /// <summary>
         /// The index inside the <see cref="VertexBatch{T}"/> where this <see cref="VertexGroup{TVertex}"/> last had its vertices placed.
         /// </summary>
-        internal readonly int StartIndex;
+        internal int StartIndex;
 
         /// <summary>
         /// The <see cref="DrawNode"/> draw depth when this <see cref="VertexGroup{TVertex}"/> was last used.
         /// </summary>
-        internal readonly float DrawDepth;
+        internal float DrawDepth;
 
         /// <summary>
         /// The draw frame when this <see cref="VertexGroup{TVertex}"/> was last used.
@@ -45,17 +45,6 @@ namespace osu.Framework.Graphics.Batches
         /// Whether this <see cref="VertexGroup{TVertex}"/> needs to add vertices to the <see cref="Batch"/>.
         /// </summary>
         internal bool DrawRequired;
-
-        public VertexGroup(VertexBatch<TVertex> batch, long invalidationID, int startIndex, float drawDepth)
-        {
-            Batch = batch;
-            InvalidationID = invalidationID;
-            StartIndex = startIndex;
-            DrawDepth = drawDepth;
-
-            FrameIndex = 0;
-            DrawRequired = false;
-        }
 
         public void Add(TVertex vertex)
         {

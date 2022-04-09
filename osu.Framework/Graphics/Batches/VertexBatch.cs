@@ -173,15 +173,10 @@ namespace osu.Framework.Graphics.Batches
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || node.DrawDepth != vertices.DrawDepth;
 
-            if (drawRequired)
-            {
-                vertices = new VertexGroup<T>(
-                    this,
-                    node.InvalidationID,
-                    rollingVertexIndex,
-                    node.DrawDepth);
-            }
-
+            vertices.Batch = this;
+            vertices.InvalidationID = node.InvalidationID;
+            vertices.StartIndex = rollingVertexIndex;
+            vertices.DrawDepth = node.DrawDepth;
             vertices.FrameIndex = frameIndex;
             vertices.DrawRequired = drawRequired;
 
