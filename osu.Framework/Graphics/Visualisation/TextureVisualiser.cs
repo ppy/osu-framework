@@ -226,44 +226,41 @@ namespace osu.Framework.Graphics.Visualisation
                     Source.lastBindCount = texture.BindCount;
                 }
 
-                protected override void Blit(QuadBatch<TexturedVertex2D> batch)
+                protected override void Blit(ref VertexGroup<TexturedVertex2D> vertices)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
 
-                    using (batch.BeginGroup(ref Vertices, this))
+                    const float border_width = 4;
+
+                    // border
+                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, ref vertices);
+
+                    var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
+
+                    // background
+                    DrawQuad(Texture, shrunkenQuad, Color4.Black, ref vertices);
+
+                    float aspect = (float)texture.Width / texture.Height;
+
+                    if (aspect > 1)
                     {
-                        const float border_width = 4;
+                        float newHeight = shrunkenQuad.Height / aspect;
 
-                        // border
-                        DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, ref Vertices);
-
-                        var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
-
-                        // background
-                        DrawQuad(Texture, shrunkenQuad, Color4.Black, ref Vertices);
-
-                        float aspect = (float)texture.Width / texture.Height;
-
-                        if (aspect > 1)
-                        {
-                            float newHeight = shrunkenQuad.Height / aspect;
-
-                            shrunkenQuad.Y += (shrunkenQuad.Height - newHeight) / 2;
-                            shrunkenQuad.Height = newHeight;
-                        }
-                        else if (aspect < 1)
-                        {
-                            float newWidth = shrunkenQuad.Width / (1 / aspect);
-
-                            shrunkenQuad.X += (shrunkenQuad.Width - newWidth) / 2;
-                            shrunkenQuad.Width = newWidth;
-                        }
-
-                        // texture
-                        texture.Bind();
-                        DrawQuad(texture, shrunkenQuad, Color4.White, ref Vertices);
+                        shrunkenQuad.Y += (shrunkenQuad.Height - newHeight) / 2;
+                        shrunkenQuad.Height = newHeight;
                     }
+                    else if (aspect < 1)
+                    {
+                        float newWidth = shrunkenQuad.Width / (1 / aspect);
+
+                        shrunkenQuad.X += (shrunkenQuad.Width - newWidth) / 2;
+                        shrunkenQuad.Width = newWidth;
+                    }
+
+                    // texture
+                    texture.Bind();
+                    DrawQuad(texture, shrunkenQuad, Color4.White, ref vertices);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

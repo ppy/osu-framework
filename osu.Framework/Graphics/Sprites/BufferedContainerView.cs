@@ -114,6 +114,7 @@ namespace osu.Framework.Graphics.Sprites
             private ColourInfo sourceEffectColour;
             private BlendingParameters sourceEffectBlending;
             private EffectPlacement sourceEffectPlacement;
+            private VertexGroup<TexturedVertex2D> vertices;
 
             public BufferSpriteDrawNode(BufferedContainerView<T> source)
                 : base(source)
@@ -162,10 +163,10 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                using (batch.BeginGroup(ref Vertices, this))
+                using (batch.BeginGroup(ref vertices, this))
                 {
                     GLWrapper.SetBlend(DrawColourInfo.Blending);
-                    DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref Vertices);
+                    DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref vertices);
                 }
             }
 
@@ -178,8 +179,8 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                using (batch.BeginGroup(ref Vertices, this))
-                    DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref Vertices);
+                using (batch.BeginGroup(ref vertices, this))
+                    DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref vertices);
             }
 
             /// <summary>

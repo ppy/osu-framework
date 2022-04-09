@@ -42,32 +42,26 @@ namespace osu.Framework.Graphics.Shapes
             {
             }
 
-            protected override void Blit(QuadBatch<TexturedVertex2D> batch)
+            protected override void Blit(ref VertexGroup<TexturedVertex2D> vertices)
             {
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                using (batch.BeginGroup(ref Vertices, this))
-                {
-                    DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref Vertices, null,
-                        new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
-                }
+                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref vertices, null,
+                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
-            protected override void BlitOpaqueInterior(QuadBatch<TexturedVertex2D> batch)
+            protected override void BlitOpaqueInterior(ref VertexGroup<TexturedVertex2D> vertices)
             {
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                using (batch.BeginGroup(ref OpaqueInteriorVertices, this))
-                {
-                    var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
+                var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
-                    if (GLWrapper.IsMaskingActive)
-                        DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, ref OpaqueInteriorVertices);
-                    else
-                        DrawTriangle(Texture, triangle, DrawColourInfo.Colour, ref OpaqueInteriorVertices);
-                }
+                if (GLWrapper.IsMaskingActive)
+                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, ref vertices);
+                else
+                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour, ref vertices);
             }
         }
     }

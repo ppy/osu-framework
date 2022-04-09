@@ -37,8 +37,6 @@ namespace osu.Framework.Graphics.Containers
             private long updateVersion;
 
             private IShader blurShader;
-            private VertexGroup<TexturedVertex2D> intermittentVertices;
-            private VertexGroup<TexturedVertex2D> finalVertices;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
@@ -65,39 +63,38 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void PopulateContents(QuadBatch<TexturedVertex2D> batch)
+            protected override void PopulateContents(ref VertexGroup<TexturedVertex2D> vertices)
             {
-                base.PopulateContents(batch);
+                base.PopulateContents(ref vertices);
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
                     GLWrapper.PushScissorState(false);
 
-                    if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation, batch);
-                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90, batch);
+                    if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation, ref vertices);
+                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90, ref vertices);
 
                     GLWrapper.PopScissorState();
                 }
             }
 
-            protected override void DrawContents(QuadBatch<TexturedVertex2D> batch)
+            protected override void DrawContents(ref VertexGroup<TexturedVertex2D> vertices)
             {
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                    base.DrawContents(batch);
+                    base.DrawContents(ref vertices);
 
                 GLWrapper.SetBlend(effectBlending);
 
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                using (batch.BeginGroup(ref finalVertices, this))
-                    DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, ref finalVertices);
+                DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, ref vertices);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                    base.DrawContents(batch);
+                    base.DrawContents(ref vertices);
             }
 
-            private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation, QuadBatch<TexturedVertex2D> batch)
+            private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation, ref VertexGroup<TexturedVertex2D> vertices)
             {
                 FrameBuffer current = SharedData.CurrentEffectBuffer;
                 FrameBuffer target = SharedData.GetNextEffectBuffer();
@@ -118,9 +115,7 @@ namespace osu.Framework.Graphics.Containers
 
                     blurShader.Bind();
 
-                    // The framebuffers are only drawn to while not cached, so a separate batch usage is required for the post-cached draws to not use the incorrect vertices.
-                    using (batch.BeginGroup(ref intermittentVertices, this))
-                        DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), ref intermittentVertices);
+                    DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), ref vertices);
 
                     blurShader.Unbind();
                 }
