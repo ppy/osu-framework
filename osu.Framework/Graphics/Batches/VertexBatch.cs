@@ -137,11 +137,22 @@ namespace osu.Framework.Graphics.Batches
                 VertexBuffers.Add(CreateVertexBuffer());
         }
 
+        /// <summary>
+        /// Begins a grouping of vertices.
+        /// </summary>
+        /// <param name="vertices">The grouping of vertices.</param>
+        /// <param name="node">The current <see cref="DrawNode"/>.</param>
+        /// <returns>The given <see cref="VertexGroup{TVertex}"/>.</returns>
+        /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is begun multiple times within a single frame without a sequential usage.</exception>
         public ref VertexGroup<T> BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
         {
-            GLWrapper.SetActiveBatch(this);
-
             ulong frameIndex = GLWrapper.DrawNodeFrameIndices[GLWrapper.ResetIndex];
+
+            // Prevent reusing the same grouping multiple times in the same draw frame.
+            if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
+                throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
+
+            GLWrapper.SetActiveBatch(this);
 
             bool drawRequired =
                 // If this is a new usage.
@@ -154,16 +165,6 @@ namespace osu.Framework.Graphics.Batches
                 || frameIndex - vertices.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || node.DrawDepth != vertices.DrawDepth;
-
-            // Some DrawNodes (e.g. PathDrawNode) can reuse the same usage in multiple passes. Attempt to allow this use case.
-            if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
-            {
-                // Only allowed as long as the batch's current vertex index is at the end of the usage (no other usage happened in-between).
-                if (rollingVertexIndex != vertices.StartIndex + vertices.Count)
-                    throw new InvalidOperationException("Todo:");
-
-                return ref vertices;
-            }
 
             if (drawRequired)
             {

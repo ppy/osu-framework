@@ -144,18 +144,21 @@ namespace osu.Framework.Graphics.Sprites
 
                 Shader.Bind();
 
-                if (sourceEffectPlacement == EffectPlacement.InFront)
-                    drawMainBuffer(drawState.QuadBatch);
+                using (drawState.QuadBatch.BeginGroup(ref vertices, this))
+                {
+                    if (sourceEffectPlacement == EffectPlacement.InFront)
+                        drawMainBuffer(ref vertices);
 
-                drawEffectBuffer(drawState.QuadBatch);
+                    drawEffectBuffer(ref vertices);
 
-                if (sourceEffectPlacement == EffectPlacement.Behind)
-                    drawMainBuffer(drawState.QuadBatch);
+                    if (sourceEffectPlacement == EffectPlacement.Behind)
+                        drawMainBuffer(ref vertices);
+                }
 
                 Shader.Unbind();
             }
 
-            private void drawMainBuffer(QuadBatch<TexturedVertex2D> batch)
+            private void drawMainBuffer(ref VertexGroup<TexturedVertex2D> vertices)
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -163,14 +166,11 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                using (batch.BeginGroup(ref vertices, this))
-                {
-                    GLWrapper.SetBlend(DrawColourInfo.Blending);
-                    DrawFrameBuffer(ref vertices, shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
-                }
+                GLWrapper.SetBlend(DrawColourInfo.Blending);
+                DrawFrameBuffer(ref vertices, shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
-            private void drawEffectBuffer(QuadBatch<TexturedVertex2D> batch)
+            private void drawEffectBuffer(ref VertexGroup<TexturedVertex2D> vertices)
             {
                 if (!shouldDrawEffectBuffer)
                     return;
@@ -179,8 +179,7 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                using (batch.BeginGroup(ref vertices, this))
-                    DrawFrameBuffer(ref vertices, shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                DrawFrameBuffer(ref vertices, shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>
