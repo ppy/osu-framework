@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Batches
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
         /// </summary>
         /// <param name="v">The vertex to add.</param>
-        public void AddVertex(T v)
+        internal void AddVertex(T v)
         {
             ensureHasBufferSpace();
             currentVertexBuffer.EnqueueVertex(drawStart + drawCount, v);
