@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Batches
         /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is begun multiple times within a single frame without a sequential usage.</exception>
         public ref VertexGroup<T> BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
         {
-            ulong frameIndex = GLWrapper.DrawNodeFrameIndices[GLWrapper.ResetIndex];
+            ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
             // Prevent reusing the same grouping multiple times in the same draw frame.
             if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
