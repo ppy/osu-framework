@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -104,34 +105,39 @@ namespace osu.Framework.IO.Stores
             int pageWidth = page.Size.Width;
 
             int characterByteRegion = pageWidth * character.Height;
+            byte[] readBuffer = ArrayPool<byte>.Shared.Rent(characterByteRegion);
 
-            if (readBuffer == null || readBuffer.Length < characterByteRegion)
-                readBuffer = new byte[characterByteRegion];
-
-            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
-
-            if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
-                source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
-
-            source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
-            int readBytes = source.Read(readBuffer, 0, characterByteRegion);
-
-            Debug.Assert(readBytes == characterByteRegion);
-
-            // the spritesheet may have unused pixels trimmed
-            int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
-            int readableWidth = Math.Min(character.Width, pageWidth - character.X);
-
-            for (int y = 0; y < character.Height; y++)
+            try
             {
-                var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
-                int readOffset = y * pageWidth + character.X;
+                var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
-                for (int x = 0; x < character.Width; x++)
-                    pixelRowMemory.Span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
+                    source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
+
+                source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
+                int readBytes = source.Read(readBuffer.AsSpan(0, characterByteRegion));
+
+                Debug.Assert(readBytes == characterByteRegion);
+
+                // the spritesheet may have unused pixels trimmed
+                int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
+                int readableWidth = Math.Min(character.Width, pageWidth - character.X);
+
+                for (int y = 0; y < character.Height; y++)
+                {
+                    var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
+                    int readOffset = y * pageWidth + character.X;
+
+                    for (int x = 0; x < character.Width; x++)
+                        pixelRowMemory.Span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                }
+
+                return new TextureUpload(image);
             }
-
-            return new TextureUpload(image);
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(readBuffer);
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -144,8 +150,6 @@ namespace osu.Framework.IO.Stores
                     h.Value?.Dispose();
             }
         }
-
-        private byte[] readBuffer;
 
         private class PageInfo
         {
