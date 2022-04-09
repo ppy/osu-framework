@@ -42,9 +42,10 @@ namespace osu.Framework.Graphics.Batches
         internal ulong FrameIndex;
 
         /// <summary>
-        /// Whether this <see cref="VertexGroup{TVertex}"/> needs to add vertices to the <see cref="Batch"/>.
+        /// Whether this <see cref="VertexGroup{TVertex}"/> needs to upload vertices to the <see cref="Batch"/>.
+        /// If <c>false</c>, uploads will be omitted either automatically via <see cref="Add"/> or more aggressively via manual calls to <see cref="TrySkip"/>.
         /// </summary>
-        internal bool DrawRequired;
+        internal bool UploadRequired;
 
         public void Add(TVertex vertex) => Batch.AddVertex(ref this, vertex);
 
@@ -53,7 +54,7 @@ namespace osu.Framework.Graphics.Batches
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             return false;
 #else
-            if (DrawRequired)
+            if (UploadRequired)
                 return false;
 
             Batch.Advance(count);

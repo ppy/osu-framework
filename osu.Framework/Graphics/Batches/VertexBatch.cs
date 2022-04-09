@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Batches
         /// <param name="vertex">The vertex to add.</param>
         internal void AddVertex(ref VertexGroup<T> group, T vertex)
         {
-            if (group.DrawRequired)
+            if (group.UploadRequired)
             {
                 ensureHasBufferSpace();
                 currentVertexBuffer.EnqueueVertex(drawStart + drawCount, vertex);
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Batches
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             if (!GetCurrentVertex().Equals(vertex))
             {
-                if (group.DrawRequired)
+                if (group.UploadRequired)
                     throw new InvalidOperationException("Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
 
                 throw new InvalidOperationException("Vertex addition was skipped, but the contained vertex differs.");
@@ -177,8 +177,9 @@ namespace osu.Framework.Graphics.Batches
 
             GLWrapper.SetActiveBatch(this);
 
-            bool drawRequired =
-                // If this is a new usage.
+            // Make sure to test in DEBUG when changing the following heuristics.
+            bool uploadRequired =
+                // If this is a new usage or has been moved to a new batch.
                 vertices.Batch != this
                 // Or the DrawNode was newly invalidated.
                 || vertices.InvalidationID != node.InvalidationID
@@ -194,7 +195,7 @@ namespace osu.Framework.Graphics.Batches
             vertices.StartIndex = rollingVertexIndex;
             vertices.DrawDepth = node.DrawDepth;
             vertices.FrameIndex = frameIndex;
-            vertices.DrawRequired = drawRequired;
+            vertices.UploadRequired = uploadRequired;
 
             return new VertexGroupUsage(this);
         }
