@@ -46,23 +46,11 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         internal bool DrawRequired;
 
-        public void Add(TVertex vertex)
-        {
-            if (DrawRequired)
-                Batch.AddVertex(vertex);
-            else
-            {
-#if VBO_CONSISTENCY_CHECKS
-                if (!Batch.GetCurrentVertex().Equals(vertex))
-                    throw new InvalidOperationException("Vertex draw was skipped, but the contained vertex differs.");
-#endif
-                Batch.Advance(1);
-            }
-        }
+        public void Add(TVertex vertex) => Batch.AddVertex(ref this, vertex);
 
         public bool TrySkip(int count)
         {
-#if VBO_CONSISTENCY_CHECKS
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             return false;
 #else
             if (DrawRequired)

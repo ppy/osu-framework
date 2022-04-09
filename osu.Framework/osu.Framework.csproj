@@ -8,7 +8,7 @@
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591;NU5104</NoWarn>
-    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS;VBO_CONSISTENCY_CHECKS</DefineConstants>
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>

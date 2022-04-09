@@ -77,14 +77,24 @@ namespace osu.Framework.Graphics.Batches
         /// <summary>
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
         /// </summary>
-        /// <param name="v">The vertex to add.</param>
-        internal void AddVertex(T v)
+        /// <param name="group">The vertex group.</param>
+        /// <param name="vertex">The vertex to add.</param>
+        internal void AddVertex(ref VertexGroup<T> group, T vertex)
         {
-            ensureHasBufferSpace();
-            currentVertexBuffer.EnqueueVertex(drawStart + drawCount, v);
+            if (group.DrawRequired)
+            {
+                ensureHasBufferSpace();
+                currentVertexBuffer.EnqueueVertex(drawStart + drawCount, vertex);
+            }
 
-#if VBO_CONSISTENCY_CHECKS
-            Trace.Assert(GetCurrentVertex().Equals(v));
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+            if (!GetCurrentVertex().Equals(vertex))
+            {
+                if (group.DrawRequired)
+                    throw new InvalidOperationException("Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
+
+                throw new InvalidOperationException("Vertex addition was skipped, but the contained vertex differs.");
+            }
 #endif
 
             Advance(1);
@@ -99,7 +109,7 @@ namespace osu.Framework.Graphics.Batches
             rollingVertexIndex += count;
         }
 
-#if VBO_CONSISTENCY_CHECKS
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         internal T GetCurrentVertex()
         {
             ensureHasBufferSpace();

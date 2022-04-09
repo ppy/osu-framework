@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         protected static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
-#if VBO_CONSISTENCY_CHECKS
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         internal readonly DepthWrappingVertex<T>[] Vertices;
 #endif
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             Size = amountVertices;
 
-#if VBO_CONSISTENCY_CHECKS
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             Vertices = new DepthWrappingVertex<T>[amountVertices];
 #endif
         }
@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth
             };
 
-#if VBO_CONSISTENCY_CHECKS
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             Vertices[index] = upload_queue[uploadLength - 1];
 #endif
         }
