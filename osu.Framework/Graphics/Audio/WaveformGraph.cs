@@ -297,7 +297,7 @@ namespace osu.Framework.Graphics.Audio
             }
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
-            private VertexBatchUsage<TexturedVertex2D> batchUsage;
+            private VertexGroup<TexturedVertex2D> vertices;
 
             public override void Draw(in DrawState drawState)
             {
@@ -306,7 +306,7 @@ namespace osu.Framework.Graphics.Audio
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
-                using (vertexBatch.BeginUsage(ref batchUsage, this))
+                using (vertexBatch.BeginGroup(ref vertices, this))
                 {
                     shader.Bind();
                     texture.TextureGL.Bind();
@@ -373,7 +373,7 @@ namespace osu.Framework.Graphics.Audio
                         }
 
                         quadToDraw *= DrawInfo.Matrix;
-                        DrawQuad(texture, quadToDraw, finalColour, ref batchUsage, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                        DrawQuad(texture, quadToDraw, finalColour, ref vertices, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                     }
 
                     shader.Unbind();

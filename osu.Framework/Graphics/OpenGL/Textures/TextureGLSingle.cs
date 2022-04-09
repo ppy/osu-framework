@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_TRIANGLE = 4;
 
-        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, ref VertexBatchUsage<TexturedVertex2D> batch, RectangleF? textureRect = null,
+        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, ref VertexGroup<TexturedVertex2D> vertices, RectangleF? textureRect = null,
                                             Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (!Available)
@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = inflationAmount,
                 Colour = topColour.Linear,
             });
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexTriangle.P1,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
@@ -264,7 +264,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
             });
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
@@ -272,7 +272,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = inflationAmount,
                 Colour = bottomColour.Linear,
             });
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexTriangle.P2,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_QUAD = 4;
 
-        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, ref VertexBatchUsage<TexturedVertex2D> batch, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
+        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, ref VertexGroup<TexturedVertex2D> vertices, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (!Available)
@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = blendRange,
                 Colour = drawColour.BottomLeft.Linear,
             });
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = blendRange,
                 Colour = drawColour.BottomRight.Linear,
             });
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Top),
@@ -337,7 +337,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = blendRange,
                 Colour = drawColour.TopRight.Linear,
             });
-            batch.Add(new TexturedVertex2D
+            vertices.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),

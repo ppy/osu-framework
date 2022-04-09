@@ -31,8 +31,8 @@ namespace osu.Framework.Graphics.Lines
             private float radius;
             private IShader pathShader;
 
-            private VertexBatchUsage<TexturedVertex3D> halfCircleBatchUsage;
-            private VertexBatchUsage<TexturedVertex3D> quadBatchUsage;
+            private VertexGroup<TexturedVertex3D> halfCircleVertices;
+            private VertexGroup<TexturedVertex3D> quadVertices;
 
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Lines
 
             private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
             {
-                using (halfCircleBatch.BeginUsage(ref halfCircleBatchUsage, this))
+                using (halfCircleBatch.BeginGroup(ref halfCircleVertices, this))
                 {
                     const float step = MathF.PI / MAX_RES;
 
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Lines
                     for (int i = 1; i <= amountPoints; i++)
                     {
                         // Center point
-                        halfCircleBatchUsage.Add(new TexturedVertex3D
+                        halfCircleVertices.Add(new TexturedVertex3D
                         {
                             Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                             TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Lines
                         });
 
                         // First outer point
-                        halfCircleBatchUsage.Add(new TexturedVertex3D
+                        halfCircleVertices.Add(new TexturedVertex3D
                         {
                             Position = new Vector3(current.X, current.Y, 0),
                             TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Lines
                         current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                         // Second outer point
-                        halfCircleBatchUsage.Add(new TexturedVertex3D
+                        halfCircleVertices.Add(new TexturedVertex3D
                         {
                             Position = new Vector3(current.X, current.Y, 0),
                             TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Lines
                     return;
                 }
 
-                using (quadBatch.BeginUsage(ref quadBatchUsage, this))
+                using (quadBatch.BeginGroup(ref quadVertices, this))
                 {
                     Vector2 ortho = line.OrthogonalDirection;
                     Line lineLeft = new Line(line.StartPoint + ortho * radius, line.EndPoint + ortho * radius);
@@ -138,13 +138,13 @@ namespace osu.Framework.Graphics.Lines
                     Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
                     Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
 
-                    quadBatchUsage.Add(new TexturedVertex3D
+                    quadVertices.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                         Colour = colourAt(lineRight.EndPoint)
                     });
-                    quadBatchUsage.Add(new TexturedVertex3D
+                    quadVertices.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -161,13 +161,13 @@ namespace osu.Framework.Graphics.Lines
 
                     for (int i = 0; i < 2; ++i)
                     {
-                        quadBatchUsage.Add(new TexturedVertex3D
+                        quadVertices.Add(new TexturedVertex3D
                         {
                             Position = firstMiddlePoint,
                             TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                             Colour = firstMiddleColour
                         });
-                        quadBatchUsage.Add(new TexturedVertex3D
+                        quadVertices.Add(new TexturedVertex3D
                         {
                             Position = secondMiddlePoint,
                             TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -175,13 +175,13 @@ namespace osu.Framework.Graphics.Lines
                         });
                     }
 
-                    quadBatchUsage.Add(new TexturedVertex3D
+                    quadVertices.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                         Colour = colourAt(lineLeft.EndPoint)
                     });
-                    quadBatchUsage.Add(new TexturedVertex3D
+                    quadVertices.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),

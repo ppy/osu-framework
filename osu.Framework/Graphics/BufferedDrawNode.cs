@@ -132,8 +132,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void DrawContents(QuadBatch<TexturedVertex2D> batch)
         {
-            using (batch.BeginUsage(ref BatchUsage, this))
-                DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour, ref BatchUsage);
+            using (batch.BeginGroup(ref Vertices, this))
+                DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour, ref Vertices);
         }
 
         /// <summary>

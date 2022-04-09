@@ -72,16 +72,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
-        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, ref VertexBatchUsage<TexturedVertex2D> batch, RectangleF? textureRect = null,
+        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, ref VertexGroup<TexturedVertex2D> vertices, RectangleF? textureRect = null,
                                             Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
-            parent.DrawTriangle(vertexTriangle, drawColour, ref batch, boundsInParent(textureRect), inflationPercentage, boundsInParent(textureCoords));
+            parent.DrawTriangle(vertexTriangle, drawColour, ref vertices, boundsInParent(textureRect), inflationPercentage, boundsInParent(textureCoords));
         }
 
-        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, ref VertexBatchUsage<TexturedVertex2D> batch, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
+        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, ref VertexGroup<TexturedVertex2D> vertices, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
-            parent.DrawQuad(vertexQuad, drawColour, ref batch, boundsInParent(textureRect), inflationPercentage, blendRangeOverride, boundsInParent(textureCoords));
+            parent.DrawQuad(vertexQuad, drawColour, ref vertices, boundsInParent(textureRect), inflationPercentage, blendRangeOverride, boundsInParent(textureCoords));
         }
 
         internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)

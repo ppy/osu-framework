@@ -60,9 +60,9 @@ namespace osu.Framework.Graphics.Sprites
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            using (batch.BeginUsage(ref BatchUsage, this))
+            using (batch.BeginGroup(ref Vertices, this))
             {
-                DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage, null,
+                DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, ref Vertices, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
                     null, TextureCoords);
             }
@@ -73,12 +73,12 @@ namespace osu.Framework.Graphics.Sprites
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            using (batch.BeginUsage(ref OpaqueInteriorBatchUsage, this))
+            using (batch.BeginGroup(ref OpaqueInteriorVertices, this))
             {
                 if (GLWrapper.IsMaskingActive)
-                    DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage);
+                    DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, ref OpaqueInteriorVertices);
                 else
-                    DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage, textureCoords: TextureCoords);
+                    DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, ref OpaqueInteriorVertices, textureCoords: TextureCoords);
             }
         }
 

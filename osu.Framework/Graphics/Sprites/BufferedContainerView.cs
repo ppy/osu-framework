@@ -162,10 +162,10 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                using (batch.BeginUsage(ref BatchUsage, this))
+                using (batch.BeginGroup(ref Vertices, this))
                 {
                     GLWrapper.SetBlend(DrawColourInfo.Blending);
-                    DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage);
+                    DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref Vertices);
                 }
             }
 
@@ -178,8 +178,8 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                using (batch.BeginUsage(ref BatchUsage, this))
-                    DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref BatchUsage);
+                using (batch.BeginGroup(ref Vertices, this))
+                    DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref Vertices);
             }
 
             /// <summary>

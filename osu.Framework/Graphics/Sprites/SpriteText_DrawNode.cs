@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(drawState);
 
-                using (drawState.QuadBatch.BeginUsage(ref BatchUsage, this))
+                using (drawState.QuadBatch.BeginGroup(ref Vertices, this))
                 {
                     Shader.Bind();
 
@@ -71,10 +71,10 @@ namespace osu.Framework.Graphics.Sprites
                                     shadowQuad.TopRight + shadowOffset,
                                     shadowQuad.BottomLeft + shadowOffset,
                                     shadowQuad.BottomRight + shadowOffset),
-                                finalShadowColour, ref BatchUsage, inflationPercentage: parts[i].InflationPercentage);
+                                finalShadowColour, ref Vertices, inflationPercentage: parts[i].InflationPercentage);
                         }
 
-                        DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, ref BatchUsage, inflationPercentage: parts[i].InflationPercentage);
+                        DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, ref Vertices, inflationPercentage: parts[i].InflationPercentage);
                     }
 
                     Shader.Unbind();

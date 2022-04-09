@@ -47,9 +47,9 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                using (batch.BeginUsage(ref BatchUsage, this))
+                using (batch.BeginGroup(ref Vertices, this))
                 {
-                    DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref BatchUsage, null,
+                    DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref Vertices, null,
                         new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
                 }
             }
@@ -59,14 +59,14 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                using (batch.BeginUsage(ref OpaqueInteriorBatchUsage, this))
+                using (batch.BeginGroup(ref OpaqueInteriorVertices, this))
                 {
                     var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
                     if (GLWrapper.IsMaskingActive)
-                        DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage);
+                        DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, ref OpaqueInteriorVertices);
                     else
-                        DrawTriangle(Texture, triangle, DrawColourInfo.Colour, ref OpaqueInteriorBatchUsage);
+                        DrawTriangle(Texture, triangle, DrawColourInfo.Colour, ref OpaqueInteriorVertices);
                 }
             }
         }

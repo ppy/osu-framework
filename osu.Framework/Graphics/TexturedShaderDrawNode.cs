@@ -17,8 +17,8 @@ namespace osu.Framework.Graphics
 
         protected new ITexturedShaderDrawable Source => (ITexturedShaderDrawable)base.Source;
 
-        protected VertexBatchUsage<TexturedVertex2D> BatchUsage;
-        protected VertexBatchUsage<TexturedVertex2D> OpaqueInteriorBatchUsage;
+        protected VertexGroup<TexturedVertex2D> Vertices;
+        protected VertexGroup<TexturedVertex2D> OpaqueInteriorVertices;
 
         protected TexturedShaderDrawNode(ITexturedShaderDrawable source)
             : base(source)

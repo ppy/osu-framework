@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Batches
                 VertexBuffers.Add(CreateVertexBuffer());
         }
 
-        public ref VertexBatchUsage<T> BeginUsage(ref VertexBatchUsage<T> usage, DrawNode node)
+        public ref VertexGroup<T> BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
         {
             GLWrapper.SetActiveBatch(this);
 
@@ -145,44 +145,44 @@ namespace osu.Framework.Graphics.Batches
 
             bool drawRequired =
                 // If this is a new usage.
-                usage.Batch != this
+                vertices.Batch != this
                 // Or the DrawNode was newly invalidated.
-                || usage.InvalidationID != node.InvalidationID
+                || vertices.InvalidationID != node.InvalidationID
                 // Or another DrawNode was inserted (and drew vertices) before this one.
-                || usage.StartIndex != rollingVertexIndex
+                || vertices.StartIndex != rollingVertexIndex
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have temporarily overwritten the vertices of this one in the batch.
-                || frameIndex - usage.FrameIndex > 1
+                || frameIndex - vertices.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
-                || node.DrawDepth != usage.DrawDepth;
+                || node.DrawDepth != vertices.DrawDepth;
 
             // Some DrawNodes (e.g. PathDrawNode) can reuse the same usage in multiple passes. Attempt to allow this use case.
-            if (usage.Batch == this && frameIndex > 0 && usage.FrameIndex == frameIndex)
+            if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
             {
                 // Only allowed as long as the batch's current vertex index is at the end of the usage (no other usage happened in-between).
-                if (rollingVertexIndex != usage.StartIndex + usage.Count)
+                if (rollingVertexIndex != vertices.StartIndex + vertices.Count)
                     throw new InvalidOperationException("Todo:");
 
-                return ref usage;
+                return ref vertices;
             }
 
             if (drawRequired)
             {
-                usage = new VertexBatchUsage<T>(
+                vertices = new VertexGroup<T>(
                     this,
                     node.InvalidationID,
                     rollingVertexIndex,
                     node.DrawDepth);
             }
 
-            usage.Count = 0;
-            usage.FrameIndex = frameIndex;
-            usage.DrawRequired = drawRequired;
+            vertices.Count = 0;
+            vertices.FrameIndex = frameIndex;
+            vertices.DrawRequired = drawRequired;
 
-            return ref usage;
+            return ref vertices;
         }
     }
 
-    public struct VertexBatchUsage<T> : IDisposable
+    public struct VertexGroup<T> : IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
         internal readonly VertexBatch<T> Batch;
@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.Batches
         internal bool DrawRequired;
         internal int Count;
 
-        public VertexBatchUsage(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth)
+        public VertexGroup(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth)
         {
             Batch = batch;
             InvalidationID = invalidationID;

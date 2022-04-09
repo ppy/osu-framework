@@ -231,17 +231,17 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
 
-                    using (batch.BeginUsage(ref BatchUsage, this))
+                    using (batch.BeginGroup(ref Vertices, this))
                     {
                         const float border_width = 4;
 
                         // border
-                        DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, ref BatchUsage);
+                        DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, ref Vertices);
 
                         var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                         // background
-                        DrawQuad(Texture, shrunkenQuad, Color4.Black, ref BatchUsage);
+                        DrawQuad(Texture, shrunkenQuad, Color4.Black, ref Vertices);
 
                         float aspect = (float)texture.Width / texture.Height;
 
@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         // texture
                         texture.Bind();
-                        DrawQuad(texture, shrunkenQuad, Color4.White, ref BatchUsage);
+                        DrawQuad(texture, shrunkenQuad, Color4.White, ref Vertices);
                     }
                 }
 

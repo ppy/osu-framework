@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.UserInterface
             : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
-        private VertexBatchUsage<TexturedVertex2D> batchUsage;
+        private VertexGroup<TexturedVertex2D> vertices;
 
         private void updateVertexBuffer()
         {
@@ -90,10 +90,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            using (halfCircleBatch.BeginUsage(ref batchUsage, this))
+            using (halfCircleBatch.BeginGroup(ref vertices, this))
             {
                 // First center point
-                batchUsage.Add(new TexturedVertex2D
+                vertices.Add(new TexturedVertex2D
                 {
                     Position = Vector2.Lerp(current, screenOrigin, innerRadius),
                     TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
                 });
 
                 // First outer point.
-                batchUsage.Add(new TexturedVertex2D
+                vertices.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
                     TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
                     current = Vector2Extensions.Transform(current, transformationMatrix);
 
                     // current center point
-                    batchUsage.Add(new TexturedVertex2D
+                    vertices.Add(new TexturedVertex2D
                     {
                         Position = Vector2.Lerp(current, screenOrigin, innerRadius),
                         TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.UserInterface
                     });
 
                     // current outer point
-                    batchUsage.Add(new TexturedVertex2D
+                    vertices.Add(new TexturedVertex2D
                     {
                         Position = new Vector2(current.X, current.Y),
                         TexturePosition = new Vector2(texRect.Left + normalisedOffset * texRect.Width, texRect.Bottom),
