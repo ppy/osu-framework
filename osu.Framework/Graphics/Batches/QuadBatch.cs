@@ -11,8 +11,15 @@ namespace osu.Framework.Graphics.Batches
     public class QuadBatch<T> : VertexBatch<T>
         where T : struct, IEquatable<T>, IVertex
     {
+        [Obsolete("Use `QuadBatch(int size)` instead.")] // Can be removed 2022-11-09
+        // ReSharper disable once UnusedParameter.Local
         public QuadBatch(int size, int maxBuffers)
-            : base(size, maxBuffers)
+            : this(size)
+        {
+        }
+
+        public QuadBatch(int size)
+            : base(size)
         {
             if (size > QuadVertexBuffer<T>.MAX_QUADS)
                 throw new OverflowException($"Attempted to initialise a {nameof(QuadVertexBuffer<T>)} with more than {nameof(QuadVertexBuffer<T>)}.{nameof(QuadVertexBuffer<T>.MAX_QUADS)} quads ({QuadVertexBuffer<T>.MAX_QUADS}).");

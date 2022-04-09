@@ -18,11 +18,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         internal readonly DepthWrappingVertex<T>[] Vertices;
 #endif
 
-        private static readonly DepthWrappingVertex<T>[] upload_queue = new DepthWrappingVertex<T>[1024];
-        private static int upload_start = int.MaxValue;
-        private static int upload_length;
-
         private readonly BufferUsageHint usage;
+        private static readonly DepthWrappingVertex<T>[] upload_queue = new DepthWrappingVertex<T>[1024];
+
+        // ReSharper disable once StaticMemberInGenericType
+        private static int uploadStart = int.MaxValue;
+
+        // ReSharper disable once StaticMemberInGenericType
+        private static int uploadLength;
 
         private int vboId = -1;
 
@@ -40,18 +43,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void EnqueueVertex(int index, T vertex)
         {
             // A new upload must be started if the queue can't hold any more vertices, or if the enqueued index is disjoint from the current to-be-uploaded set.
-            if (upload_length == upload_queue.Length || upload_length > 0 && index > upload_start + upload_length)
+            if (uploadLength == upload_queue.Length || uploadLength > 0 && index > uploadStart + uploadLength)
                 upload();
 
-            upload_start = Math.Min(upload_start, index);
-            upload_queue[upload_length++] = new DepthWrappingVertex<T>
+            uploadStart = Math.Min(uploadStart, index);
+            upload_queue[uploadLength++] = new DepthWrappingVertex<T>
             {
                 Vertex = vertex,
                 BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth
             };
 
 #if VBO_CONSISTENCY_CHECKS
-            Vertices[index] = upload_queue[upload_length - 1];
+            Vertices[index] = upload_queue[uploadLength - 1];
 #endif
         }
 
@@ -143,17 +146,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private void upload()
         {
-            if (upload_length == 0)
+            if (uploadLength == 0)
                 return;
 
             Bind(false);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(upload_start * STRIDE), (IntPtr)(upload_length * STRIDE), ref upload_queue[0]);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(uploadStart * STRIDE), (IntPtr)(uploadLength * STRIDE), ref upload_queue[0]);
             Unbind();
 
-            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, upload_length);
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, uploadLength);
 
-            upload_start = int.MaxValue;
-            upload_length = 0;
+            uploadStart = int.MaxValue;
+            uploadLength = 0;
         }
 
         public ulong LastUseResetId { get; private set; }

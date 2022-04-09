@@ -13,8 +13,15 @@ namespace osu.Framework.Graphics.Batches
     {
         private readonly PrimitiveType type;
 
+        [Obsolete("Use `LinearBatch(int size, PrimitiveType type)` instead.")] // Can be removed 2022-11-09
+        // ReSharper disable once UnusedParameter.Local
         public LinearBatch(int size, int maxBuffers, PrimitiveType type)
-            : base(size, maxBuffers)
+            : this(size, type)
+        {
+        }
+
+        public LinearBatch(int size, PrimitiveType type)
+            : base(size)
         {
             this.type = type;
         }

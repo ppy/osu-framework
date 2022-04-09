@@ -296,7 +296,7 @@ namespace osu.Framework.Graphics.Audio
                 highColour = Source.highColour ?? baseColour;
             }
 
-            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000);
             private VertexGroup<TexturedVertex2D> vertices;
 
             public override void Draw(in DrawState drawState)
