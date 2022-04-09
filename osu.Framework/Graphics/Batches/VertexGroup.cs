@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Batches
     /// Ensure to store this object in the <see cref="DrawNode"/>.
     /// </remarks>
     /// <typeparam name="TVertex">The vertex type.</typeparam>
-    public struct VertexGroup<TVertex> : IVertexGroup<TVertex>, IDisposable
+    public struct VertexGroup<TVertex> : IVertexGroup<TVertex>
         where TVertex : struct, IEquatable<TVertex>, IVertex
     {
         /// <summary>
@@ -71,10 +71,6 @@ namespace osu.Framework.Graphics.Batches
             Batch.Advance(count);
             return true;
 #endif
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

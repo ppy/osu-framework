@@ -72,6 +72,7 @@ namespace osu.Framework.Graphics.Batches
 
         private int drawStart;
         private int drawCount;
+        private bool groupInUse;
 
         /// <summary>
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
@@ -150,14 +151,19 @@ namespace osu.Framework.Graphics.Batches
         /// <param name="vertices">The grouping of vertices.</param>
         /// <param name="node">The current <see cref="DrawNode"/>.</param>
         /// <returns>The given <see cref="VertexGroup{TVertex}"/>.</returns>
-        /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is begun multiple times within a single frame without a sequential usage.</exception>
-        public ref VertexGroup<T> BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
+        /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
+        /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
+        public VertexGroupUsage BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
         {
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
-            // Prevent reusing the same grouping multiple times in the same draw frame.
+            // Disallow reusing the same group multiple times in the same draw frame.
             if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
                 throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
+
+            // Disallow nested usages.
+            if (groupInUse)
+                throw new InvalidOperationException($"Nesting of {nameof(VertexGroup<T>)}s is not allowed.");
 
             GLWrapper.SetActiveBatch(this);
 
@@ -180,7 +186,22 @@ namespace osu.Framework.Graphics.Batches
             vertices.FrameIndex = frameIndex;
             vertices.DrawRequired = drawRequired;
 
-            return ref vertices;
+            return new VertexGroupUsage(this);
+        }
+
+        public readonly ref struct VertexGroupUsage
+        {
+            private readonly VertexBatch<T> batch;
+
+            public VertexGroupUsage(VertexBatch<T> batch)
+            {
+                this.batch = batch;
+            }
+
+            public void Dispose()
+            {
+                batch.groupInUse = false;
+            }
         }
     }
 }
