@@ -25,6 +25,25 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Find the closest parent of a specified type.
+        /// </summary>
+        /// <remarks>
+        /// This can be a potentially expensive operation and should be used with discretion.
+        /// </remarks>
+        /// <typeparam name="T">The type to match.</typeparam>
+        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
+        public static T FindClosestParent<T>(this Drawable drawable) where T : class, IDrawable
+        {
+            while ((drawable = drawable.Parent) != null)
+            {
+                if (drawable is T match)
+                    return match;
+            }
+
+            return default;
+        }
+
+        /// <summary>
         /// Forces removal of this drawable from its parent, followed by immediate synchronous disposal.
         /// </summary>
         /// <remarks>

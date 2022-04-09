@@ -391,6 +391,35 @@ namespace osu.Framework.Tests.Audio
             Assert.Greater(track.Bitrate, 0);
         }
 
+        /// <summary>
+        /// Tests the case where a start call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// </summary>
+        [Test]
+        public void TestIsRunningUpdatedAfterInlineStart()
+        {
+            bass.RunOnAudioThread(() => track.Start());
+            Assert.That(track.IsRunning, Is.True);
+        }
+
+        /// <summary>
+        /// Tests the case where a stop call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// </summary>
+        [Test]
+        public void TestIsRunningUpdatedAfterInlineStop()
+        {
+            track.StartAsync();
+            bass.Update();
+
+            bass.RunOnAudioThread(() => track.Stop());
+            Assert.That(track.IsRunning, Is.False);
+        }
+
+        /// <summary>
+        /// Tests the case where a seek call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// </summary>
         [Test]
         public void TestCurrentTimeUpdatedAfterInlineSeek()
         {

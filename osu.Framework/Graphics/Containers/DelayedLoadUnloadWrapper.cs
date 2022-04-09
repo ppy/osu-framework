@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly LayoutValue<IFrameBasedClock> unloadClockBacking = new LayoutValue<IFrameBasedClock>(Invalidation.Parent);
 
-        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = FindClosestParent<Game>() == null ? Game.Clock : Clock);
+        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = this.FindClosestParent<Game>() == null ? Game.Clock : Clock);
 
         private void checkForUnload()
         {
