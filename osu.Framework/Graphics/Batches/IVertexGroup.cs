@@ -13,6 +13,10 @@ namespace osu.Framework.Graphics.Batches
     public interface IVertexGroup<in T>
         where T : struct, IEquatable<T>, IVertex
     {
+        /// <summary>
+        /// Adds a vertex to this group.
+        /// </summary>
+        /// <param name="vertex">The vertex to add.</param>
         void Add(T vertex);
     }
 }

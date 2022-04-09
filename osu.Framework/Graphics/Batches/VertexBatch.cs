@@ -175,7 +175,6 @@ namespace osu.Framework.Graphics.Batches
                     node.DrawDepth);
             }
 
-            vertices.Count = 0;
             vertices.FrameIndex = frameIndex;
             vertices.DrawRequired = drawRequired;
 
