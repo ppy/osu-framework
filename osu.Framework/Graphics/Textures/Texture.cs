@@ -157,8 +157,9 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="textureRect">The texture rectangle in texture space.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
-        internal void DrawTriangle(ref VertexGroup<TexturedVertex2D> vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                   Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+        internal void DrawTriangle<TVertexGroup>(ref TVertexGroup vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
+                                                 Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+            where TVertexGroup : IVertexGroup<TexturedVertex2D>
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
@@ -175,8 +176,9 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
-        internal void DrawQuad(ref VertexGroup<TexturedVertex2D> vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
-                               Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        internal void DrawQuad<TVertexGroup>(ref TVertexGroup vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
+                                             Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+            where TVertexGroup : IVertexGroup<TexturedVertex2D>
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 

@@ -2,11 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
 
@@ -72,14 +70,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
-        internal override void DrawTriangle(ref VertexGroup<TexturedVertex2D> vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+        internal override void DrawTriangle<TVertexGroup>(ref TVertexGroup vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
+                                                          Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             parent.DrawTriangle(ref vertices, vertexTriangle, drawColour, boundsInParent(textureRect), inflationPercentage, boundsInParent(textureCoords));
         }
 
-        internal override void DrawQuad(ref VertexGroup<TexturedVertex2D> vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        internal override void DrawQuad<TVertexGroup>(ref TVertexGroup vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
+                                                      Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             parent.DrawQuad(ref vertices, vertexQuad, drawColour, boundsInParent(textureRect), inflationPercentage, blendRangeOverride, boundsInParent(textureCoords));
         }

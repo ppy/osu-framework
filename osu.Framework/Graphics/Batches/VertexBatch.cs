@@ -182,7 +182,25 @@ namespace osu.Framework.Graphics.Batches
         }
     }
 
-    public struct VertexGroup<T> : IDisposable
+    public interface IVertexGroup<in T>
+    {
+        void Add(T vertex);
+    }
+
+    public readonly struct DelegatingVertexGroup<T> : IVertexGroup<T>
+        where T : struct, IEquatable<T>, IVertex
+    {
+        private readonly Action<T> action;
+
+        public DelegatingVertexGroup(Action<T> action)
+        {
+            this.action = action;
+        }
+
+        public void Add(T vertex) => action(vertex);
+    }
+
+    public struct VertexGroup<T> : IVertexGroup<T>, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
         internal readonly VertexBatch<T> Batch;
