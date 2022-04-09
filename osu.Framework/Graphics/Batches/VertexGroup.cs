@@ -67,9 +67,21 @@ namespace osu.Framework.Graphics.Batches
                 if (!Batch.GetCurrentVertex().Equals(vertex))
                     throw new InvalidOperationException("Vertex draw was skipped, but the contained vertex differs.");
 #endif
-
-                Batch.Advance();
+                Batch.Advance(1);
             }
+        }
+
+        public bool TrySkip(int count)
+        {
+#if VBO_CONSISTENCY_CHECKS
+            return false;
+#else
+            if (DrawRequired)
+                return false;
+
+            Batch.Advance(count);
+            return true;
+#endif
         }
 
         public void Dispose()

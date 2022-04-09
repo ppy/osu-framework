@@ -25,6 +25,10 @@ namespace osu.Framework.Graphics.Batches
             this.transformer = transformer;
         }
 
-        public void Add(TFrom vertex) => Unsafe.AsRef<VertexGroup<TTo>>(target).Add(transformer(vertex));
+        public void Add(TFrom vertex) => getGroup().Add(transformer(vertex));
+
+        public bool TrySkip(int count) => getGroup().TrySkip(count);
+
+        private ref VertexGroup<TTo> getGroup() => ref Unsafe.AsRef<VertexGroup<TTo>>(target);
     }
 }

@@ -18,5 +18,17 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         /// <param name="vertex">The vertex to add.</param>
         void Add(T vertex);
+
+        /// <summary>
+        /// Attempts to skip a number of vertices from the batch.
+        /// </summary>
+        /// <remarks>
+        /// If this returns <c>true</c>, any calls to <see cref="Add"/> must be omitted for the relevant vertices.
+        /// <br />
+        /// IMPORTANT: Other states such as active textures and shaders must be brought into the correct states regardless of return value.
+        /// </remarks>
+        /// <param name="count">The number of vertices to skip.</param>
+        /// <returns>Whether the vertices were skipped.</returns>
+        bool TrySkip(int count);
     }
 }

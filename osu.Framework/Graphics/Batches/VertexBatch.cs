@@ -86,13 +86,16 @@ namespace osu.Framework.Graphics.Batches
             Trace.Assert(GetCurrentVertex().Equals(v));
 #endif
 
-            Advance();
+            Advance(1);
         }
 
-        internal void Advance()
+        /// <summary>
+        /// Advances the vertex counter.
+        /// </summary>
+        internal void Advance(int count)
         {
-            ++drawCount;
-            ++rollingVertexIndex;
+            drawCount += count;
+            rollingVertexIndex += count;
         }
 
 #if VBO_CONSISTENCY_CHECKS

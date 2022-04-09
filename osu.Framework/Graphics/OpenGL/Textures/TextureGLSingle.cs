@@ -220,6 +220,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
+            if (vertices.TrySkip(VERTICES_PER_TRIANGLE))
+                return;
+
             RectangleF texRect = GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
 
@@ -290,6 +293,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
+
+            if (vertices.TrySkip(VERTICES_PER_QUAD))
+                return;
 
             RectangleF texRect = GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
