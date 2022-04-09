@@ -6,10 +6,17 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
 {
-    public struct VertexGroup<T> : IVertexGroup<T>, IDisposable
-        where T : struct, IEquatable<T>, IVertex
+    /// <summary>
+    /// A grouping of vertices in a <see cref="DrawNode"/>.
+    /// </summary>
+    /// <remarks>
+    /// Ensure to store this object in the <see cref="DrawNode"/>.
+    /// </remarks>
+    /// <typeparam name="TVertex">The vertex type.</typeparam>
+    public struct VertexGroup<TVertex> : IVertexGroup<TVertex>, IDisposable
+        where TVertex : struct, IEquatable<TVertex>, IVertex
     {
-        internal readonly VertexBatch<T> Batch;
+        internal readonly VertexBatch<TVertex> Batch;
         internal readonly long InvalidationID;
         internal readonly int StartIndex;
         internal readonly float DrawDepth;
@@ -18,7 +25,7 @@ namespace osu.Framework.Graphics.Batches
         internal bool DrawRequired;
         internal int Count;
 
-        public VertexGroup(VertexBatch<T> batch, long invalidationID, int startIndex, float drawDepth)
+        public VertexGroup(VertexBatch<TVertex> batch, long invalidationID, int startIndex, float drawDepth)
         {
             Batch = batch;
             InvalidationID = invalidationID;
@@ -30,7 +37,7 @@ namespace osu.Framework.Graphics.Batches
             Count = 0;
         }
 
-        public void Add(T vertex)
+        public void Add(TVertex vertex)
         {
             if (DrawRequired)
                 Batch.AddVertex(vertex);
