@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void DrawContents(ref VertexGroup<TexturedVertex2D> vertices)
         {
-            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour, ref vertices);
+            DrawFrameBuffer(ref vertices, SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
         /// <summary>

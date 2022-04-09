@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour, ref vertices);
+                DrawFrameBuffer(ref vertices, SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawContents(ref vertices);
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
 
                     blurShader.Bind();
 
-                    DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), ref vertices);
+                    DrawFrameBuffer(ref vertices, current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
 
                     blurShader.Unbind();
                 }

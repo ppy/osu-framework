@@ -154,14 +154,11 @@ namespace osu.Framework.Graphics.Containers
 
                 using (batch.BeginGroup(ref vertices, this))
                 {
-                    DrawQuad(
-                        Texture.WhitePixel,
-                        screenSpaceMaskingQuad.Value,
-                        colour, ref vertices, null, null,
+                    DrawQuad(ref vertices, Texture.WhitePixel, screenSpaceMaskingQuad.Value,
                         // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                         // masking blend range when rendering edge effects. This is needed for smooth inner edges
                         // with a hollow edge effect.
-                        new Vector2(maskingInfo.Value.BlendRange));
+                        colour, null, null, new Vector2(maskingInfo.Value.BlendRange));
                 }
 
                 Shader.Unbind();

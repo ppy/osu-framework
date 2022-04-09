@@ -373,7 +373,7 @@ namespace osu.Framework.Graphics.Audio
                         }
 
                         quadToDraw *= DrawInfo.Matrix;
-                        DrawQuad(texture, quadToDraw, finalColour, ref vertices, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                        DrawQuad(ref vertices, texture, quadToDraw, finalColour, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                     }
 
                     shader.Unbind();

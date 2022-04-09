@@ -68,16 +68,14 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             var shadowQuad = parts[i].DrawQuad;
 
-                            DrawQuad(parts[i].Texture,
-                                new Quad(
-                                    shadowQuad.TopLeft + shadowOffset,
-                                    shadowQuad.TopRight + shadowOffset,
-                                    shadowQuad.BottomLeft + shadowOffset,
-                                    shadowQuad.BottomRight + shadowOffset),
-                                finalShadowColour, ref vertices, inflationPercentage: parts[i].InflationPercentage);
+                            DrawQuad(ref vertices, parts[i].Texture, new Quad(
+                                shadowQuad.TopLeft + shadowOffset,
+                                shadowQuad.TopRight + shadowOffset,
+                                shadowQuad.BottomLeft + shadowOffset,
+                                shadowQuad.BottomRight + shadowOffset), finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                         }
 
-                        DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, ref vertices, inflationPercentage: parts[i].InflationPercentage);
+                        DrawQuad(ref vertices, parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
                     Shader.Unbind();

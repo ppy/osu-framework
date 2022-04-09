@@ -234,12 +234,12 @@ namespace osu.Framework.Graphics.Visualisation
                     const float border_width = 4;
 
                     // border
-                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, ref vertices);
+                    DrawQuad(ref vertices, Texture, ScreenSpaceDrawQuad, drawColour);
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // background
-                    DrawQuad(Texture, shrunkenQuad, Color4.Black, ref vertices);
+                    DrawQuad(ref vertices, Texture, shrunkenQuad, Color4.Black);
 
                     float aspect = (float)texture.Width / texture.Height;
 
@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                     // texture
                     texture.Bind();
-                    DrawQuad(texture, shrunkenQuad, Color4.White, ref vertices);
+                    DrawQuad(ref vertices, texture, shrunkenQuad, Color4.White);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

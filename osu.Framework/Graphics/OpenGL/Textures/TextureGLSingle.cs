@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_TRIANGLE = 4;
 
-        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, ref VertexGroup<TexturedVertex2D> vertices, RectangleF? textureRect = null,
+        internal override void DrawTriangle(ref VertexGroup<TexturedVertex2D> vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
                                             Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (!Available)
@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_QUAD = 4;
 
-        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, ref VertexGroup<TexturedVertex2D> vertices, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
+        internal override void DrawQuad(ref VertexGroup<TexturedVertex2D> vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (!Available)

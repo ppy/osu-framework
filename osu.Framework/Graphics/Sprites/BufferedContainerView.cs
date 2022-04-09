@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Sprites
                 using (batch.BeginGroup(ref vertices, this))
                 {
                     GLWrapper.SetBlend(DrawColourInfo.Blending);
-                    DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref vertices);
+                    DrawFrameBuffer(ref vertices, shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
                 }
             }
 
@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Sprites
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
                 using (batch.BeginGroup(ref vertices, this))
-                    DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, ref vertices);
+                    DrawFrameBuffer(ref vertices, shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>

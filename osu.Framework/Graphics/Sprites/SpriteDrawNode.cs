@@ -62,9 +62,9 @@ namespace osu.Framework.Graphics.Sprites
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, ref vertices, null,
-                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
-                null, TextureCoords);
+            DrawQuad(ref vertices, Texture,
+                ScreenSpaceDrawQuad,
+                DrawColourInfo.Colour, null, new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), null, TextureCoords);
         }
 
         protected virtual void BlitOpaqueInterior(ref VertexGroup<TexturedVertex2D> vertices)
@@ -73,9 +73,9 @@ namespace osu.Framework.Graphics.Sprites
                 return;
 
             if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, ref opaqueVertices);
+                DrawClipped(ref opaqueVertices, ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
             else
-                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, ref opaqueVertices, textureCoords: TextureCoords);
+                DrawQuad(ref opaqueVertices, Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
         public override void Draw(in DrawState drawState)

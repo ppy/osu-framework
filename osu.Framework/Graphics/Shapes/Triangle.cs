@@ -47,8 +47,8 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, ref vertices, null,
-                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
+                DrawTriangle(ref vertices, Texture,
+                    toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
             protected override void BlitOpaqueInterior(ref VertexGroup<TexturedVertex2D> vertices)
@@ -59,9 +59,9 @@ namespace osu.Framework.Graphics.Shapes
                 var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
                 if (GLWrapper.IsMaskingActive)
-                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, ref vertices);
+                    DrawClipped(ref vertices, ref triangle, Texture, DrawColourInfo.Colour);
                 else
-                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour, ref vertices);
+                    DrawTriangle(ref vertices, Texture, triangle, DrawColourInfo.Colour);
             }
         }
     }
