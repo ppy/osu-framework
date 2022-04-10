@@ -19,7 +19,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 #endif
 
         private readonly BufferUsageHint usage;
+
         private static readonly DepthWrappingVertex<T>[] upload_queue = new DepthWrappingVertex<T>[1024];
+
+        // ReSharper disable once StaticMemberInGenericType
+        private static readonly GlobalStatistic<int> vertex_memory_statistic = GlobalStatistics.Get<int>("Native", $"{nameof(VertexBuffer<T>)}");
 
         // ReSharper disable once StaticMemberInGenericType
         private static int uploadStart = int.MaxValue;
@@ -77,8 +81,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 VertexUtils<DepthWrappingVertex<T>>.Bind();
 
             int size = Size * STRIDE;
-
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
+            vertex_memory_statistic.Value += size;
 
             GLWrapper.RegisterVertexBufferUse(this);
         }
@@ -174,6 +178,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 GL.DeleteBuffer(VboId);
                 VboId = -1;
+
+                vertex_memory_statistic.Value -= Size * STRIDE;
             }
 
             LastUseResetId = 0;
