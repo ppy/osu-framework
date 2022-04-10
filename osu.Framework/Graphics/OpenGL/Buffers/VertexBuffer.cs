@@ -179,6 +179,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 GL.DeleteBuffer(VboId);
                 VboId = -1;
 
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+                Vertices.AsSpan().Clear();
+#endif
+
                 vertex_memory_statistic.Value -= Size * STRIDE;
             }
 
