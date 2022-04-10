@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader.Bind();
 
-            using (drawState.QuadBatch.BeginGroup(ref vertices, this))
+            using (drawState.BeginQuads(this, ref vertices))
                 Blit(ref vertices);
 
             Shader.Unbind();
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureShader.Bind();
 
-            using (drawState.QuadBatch.BeginGroup(ref opaqueVertices, this))
+            using (drawState.BeginQuads(this, ref opaqueVertices))
                 BlitOpaqueInterior(ref opaqueVertices);
 
             TextureShader.Unbind();

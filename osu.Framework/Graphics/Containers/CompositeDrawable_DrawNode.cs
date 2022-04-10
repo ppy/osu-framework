@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Containers
 
                 base.Draw(localDrawState);
 
-                using (localDrawState.QuadBatch.BeginGroup(ref edgeEffectVertices, this))
+                using (localDrawState.BeginQuads(this, ref edgeEffectVertices))
                     drawEdgeEffect(ref edgeEffectVertices);
 
                 if (maskingInfo != null)

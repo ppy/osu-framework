@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            using (halfCircleBatch.BeginGroup(ref vertices, this))
+            using (halfCircleBatch.BeginVertices(this, ref vertices))
             {
                 // First center point
                 vertices.Add(new TexturedVertex2D

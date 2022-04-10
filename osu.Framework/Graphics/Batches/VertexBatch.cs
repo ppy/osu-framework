@@ -70,9 +70,9 @@ namespace osu.Framework.Graphics.Batches
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
+        internal bool GroupInUse;
         private int drawStart;
         private int drawCount;
-        private bool groupInUse;
 
         /// <summary>
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
@@ -162,12 +162,12 @@ namespace osu.Framework.Graphics.Batches
         /// <summary>
         /// Begins a grouping of vertices.
         /// </summary>
+        /// <param name="node">The owner of the vertices.</param>
         /// <param name="vertices">The grouping of vertices.</param>
-        /// <param name="node">The current <see cref="DrawNode"/>.</param>
-        /// <returns>The given <see cref="VertexGroup{TVertex}"/>.</returns>
+        /// <returns>A usage of the <see cref="VertexGroup{TVertex}"/>.</returns>
         /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
         /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
-        public VertexGroupUsage BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
+        public VertexGroupUsage<T> BeginVertices(DrawNode node, ref VertexGroup<T> vertices)
         {
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
             int currentVboId = currentBufferIndex >= VertexBuffers.Count ? -1 : currentVertexBuffer.VboId;
@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Batches
                 throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
 
             // Disallow nested usages.
-            if (groupInUse)
+            if (GroupInUse)
                 throw new InvalidOperationException($"Nesting of {nameof(VertexGroup<T>)}s is not allowed.");
 
             GLWrapper.SetActiveBatch(this);
@@ -205,22 +205,7 @@ namespace osu.Framework.Graphics.Batches
             vertices.FrameIndex = frameIndex;
             vertices.UploadRequired = uploadRequired;
 
-            return new VertexGroupUsage(this);
-        }
-
-        public readonly ref struct VertexGroupUsage
-        {
-            private readonly VertexBatch<T> batch;
-
-            public VertexGroupUsage(VertexBatch<T> batch)
-            {
-                this.batch = batch;
-            }
-
-            public void Dispose()
-            {
-                batch.groupInUse = false;
-            }
+            return new VertexGroupUsage<T>(this);
         }
     }
 }

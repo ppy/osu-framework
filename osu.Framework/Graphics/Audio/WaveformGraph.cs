@@ -306,7 +306,7 @@ namespace osu.Framework.Graphics.Audio
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
-                using (vertexBatch.BeginGroup(ref vertices, this))
+                using (vertexBatch.BeginVertices(this, ref vertices))
                 {
                     shader.Bind();
                     texture.TextureGL.Bind();

@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics.Lines
                 // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
-                using (halfCircleBatch.BeginGroup(ref halfCircleVertices, this))
+                using (halfCircleBatch.BeginVertices(this, ref halfCircleVertices))
                 {
                     addLineCap(ref halfCircleVertices, line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
 
@@ -207,7 +207,7 @@ namespace osu.Framework.Graphics.Lines
                     addLineCap(ref halfCircleVertices, line.EndPoint, theta, MathF.PI, texRect);
                 }
 
-                using (quadBatch.BeginGroup(ref quadVertices, this))
+                using (quadBatch.BeginVertices(this, ref quadVertices))
                 {
                     foreach (Line segment in segments)
                         addLineQuads(ref quadVertices, segment, texRect);

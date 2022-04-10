@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics
                     }
 
                     // The framebuffers are only drawn to while not cached, so a group separate from the final group is required for this intermediate use.
-                    using (drawState.QuadBatch.BeginGroup(ref intermediateVertices, this))
+                    using (drawState.BeginQuads(this, ref intermediateVertices))
                         PopulateContents(ref intermediateVertices);
                 }
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics
 
             base.Draw(drawState);
 
-            using (drawState.QuadBatch.BeginGroup(ref finalVertices, this))
+            using (drawState.BeginQuads(this, ref finalVertices))
                 DrawContents(ref finalVertices);
 
             Shader.Unbind();

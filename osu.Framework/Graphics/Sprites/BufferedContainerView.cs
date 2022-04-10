@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 Shader.Bind();
 
-                using (drawState.QuadBatch.BeginGroup(ref vertices, this))
+                using (drawState.BeginQuads(this, ref vertices))
                 {
                     if (sourceEffectPlacement == EffectPlacement.InFront)
                         drawMainBuffer(ref vertices);
