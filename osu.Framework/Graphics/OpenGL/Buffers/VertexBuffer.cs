@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         // ReSharper disable once StaticMemberInGenericType
         private static int uploadLength;
 
-        private int vboId = -1;
+        internal int VboId { get; private set; } = -1;
 
         protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
@@ -70,14 +70,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             ThreadSafety.EnsureDrawThread();
 
-            GL.GenBuffers(1, out vboId);
+            GL.GenBuffers(1, out int id);
+            VboId = id;
 
-            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
+            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, VboId))
                 VertexUtils<DepthWrappingVertex<T>>.Bind();
 
             int size = Size * STRIDE;
 
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
+
+            GLWrapper.RegisterVertexBufferUse(this);
         }
 
         ~VertexBuffer()
@@ -108,10 +111,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
 
-            if (vboId == -1)
+            if (VboId == -1)
                 Initialise();
 
-            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
+            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, VboId))
                 VertexUtils<DepthWrappingVertex<T>>.Bind();
         }
 
@@ -165,12 +168,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         void IVertexBuffer.Free()
         {
-            if (vboId != -1)
+            if (VboId != -1)
             {
                 Unbind();
 
-                GL.DeleteBuffer(vboId);
-                vboId = -1;
+                GL.DeleteBuffer(VboId);
+                VboId = -1;
             }
 
             LastUseResetId = 0;

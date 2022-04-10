@@ -170,6 +170,7 @@ namespace osu.Framework.Graphics.Batches
         public VertexGroupUsage BeginGroup(ref VertexGroup<T> vertices, DrawNode node)
         {
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
+            int currentVboId = currentBufferIndex >= VertexBuffers.Count ? -1 : currentVertexBuffer.VboId;
 
             // Disallow reusing the same group multiple times in the same draw frame.
             if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
@@ -192,10 +193,13 @@ namespace osu.Framework.Graphics.Batches
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have temporarily overwritten the vertices of this one in the batch.
                 || frameIndex - vertices.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
-                || node.DrawDepth != vertices.DrawDepth;
+                || node.DrawDepth != vertices.DrawDepth
+                // Or the vertex buffer was recreated within the same batch.
+                || currentVboId == -1 || vertices.VboId != currentVboId;
 
             vertices.Batch = this;
             vertices.InvalidationID = node.InvalidationID;
+            vertices.VboId = currentVboId;
             vertices.StartIndex = rollingVertexIndex;
             vertices.DrawDepth = node.DrawDepth;
             vertices.FrameIndex = frameIndex;
