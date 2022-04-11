@@ -18,6 +18,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Threading;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
@@ -201,6 +202,8 @@ namespace osu.Framework.Platform
                 }
             }
         }
+
+        public RectangleF? CursorConfineRect { get; set; }
 
         /// <summary>
         /// We do not support directly using <see cref="Cursor"/>.

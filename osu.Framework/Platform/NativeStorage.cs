@@ -68,11 +68,11 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenFileExternally(string filename) =>
-            host?.OpenFileExternally(GetFullPath(filename));
+        public override bool OpenFileExternally(string filename) =>
+            host?.OpenFileExternally(GetFullPath(filename)) == true;
 
-        public override void PresentFileExternally(string filename) =>
-            host?.PresentFileExternally(GetFullPath(filename));
+        public override bool PresentFileExternally(string filename) =>
+            host?.PresentFileExternally(GetFullPath(filename)) == true;
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {

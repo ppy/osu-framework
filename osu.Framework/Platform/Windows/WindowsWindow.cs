@@ -139,18 +139,36 @@ namespace osu.Framework.Platform.Windows
 
         #endregion
 
+        public override Size Size
+        {
+            protected set
+            {
+                // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
+                if (WindowState == WindowState.FullscreenBorderless)
+                    value.Width -= windows_borderless_width_hack;
+
+                base.Size = value;
+            }
+        }
+
+        /// <summary>
+        /// Amount of extra width added to window size when in borderless mode on Windows.
+        /// Some drivers require this to avoid the window switching to exclusive fullscreen automatically.
+        /// </summary>
+        private const int windows_borderless_width_hack = 1;
+
         protected override Size SetBorderless()
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            Size positionOffsetHack = new Size(1, 1);
+            // use the 1px hack we've always used, but only expand the width.
+            // we also trick the game into thinking the window has normal size: see Size setter override
 
-            var newSize = CurrentDisplay.Bounds.Size + positionOffsetHack;
-            var newPosition = CurrentDisplay.Bounds.Location - positionOffsetHack;
+            var sizeOffset = new Size(windows_borderless_width_hack, 0);
+            var newSize = CurrentDisplay.Bounds.Size + sizeOffset;
 
-            // for now let's use the same 1px hack that we've always used to force borderless.
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            Position = newPosition;
+            Position = CurrentDisplay.Bounds.Location;
 
             return newSize;
         }

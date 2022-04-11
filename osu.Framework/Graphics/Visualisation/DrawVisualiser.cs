@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -253,8 +253,8 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!composite.Masking)
                         return;
 
-                    if (composite.BorderThickness > 0 && composite.BorderColour.MaxAlpha > 0
-                        || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0)
+                    if ((composite.BorderThickness > 0 && composite.BorderColour.MaxAlpha > 0)
+                        || (composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0))
                     {
                         drawableTarget = composite;
                     }

@@ -1313,7 +1313,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON;
+        public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON);
 
         private bool alwaysPresent;
 
@@ -1466,7 +1466,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
+        protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
@@ -1500,27 +1500,6 @@ namespace osu.Framework.Graphics
                     UpdateClock(parent.Clock);
                 }
             }
-        }
-
-        /// <summary>
-        /// Find the closest parent of a specified type.
-        /// </summary>
-        /// <remarks>
-        /// This can be a potentially expensive operation and should be used with discretion.
-        /// </remarks>
-        /// <typeparam name="T">The type to match.</typeparam>
-        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : class, IDrawable
-        {
-            Drawable cursor = this;
-
-            while ((cursor = cursor.Parent) != null)
-            {
-                if (cursor is T match)
-                    return match;
-            }
-
-            return default;
         }
 
         /// <summary>
@@ -2625,7 +2604,21 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate Schedule<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, data, TransformDelay);
+
+            return Scheduler.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate Schedule(Action action)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, TransformDelay);
+
+            return Scheduler.Add(action);
+        }
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.

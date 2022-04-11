@@ -111,12 +111,14 @@ namespace osu.Framework.Platform
         /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
         /// <param name="filename">The relative path to the file which should be opened.</param>
-        public abstract void OpenFileExternally(string filename);
+        /// <returns>Whether the file was successfully opened.</returns>
+        public abstract bool OpenFileExternally(string filename);
 
         /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        public void PresentExternally() => OpenFileExternally(string.Empty);
+        /// <returns>Whether the storage was successfully presented.</returns>
+        public bool PresentExternally() => OpenFileExternally(string.Empty);
 
         /// <summary>
         /// Requests to present a file externally in the platform's native file browser.
@@ -125,6 +127,7 @@ namespace osu.Framework.Platform
         /// This will open the parent folder and, (if available) highlight the file.
         /// </remarks>
         /// <param name="filename">Relative path to the file.</param>
-        public abstract void PresentFileExternally(string filename);
+        /// <returns>Whether the file was successfully presented.</returns>
+        public abstract bool PresentFileExternally(string filename);
     }
 }

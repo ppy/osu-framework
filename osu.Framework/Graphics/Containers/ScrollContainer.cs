@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
+        public float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
@@ -502,7 +502,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if (Current < Target && Target < 0 || Current > Target && Target > ScrollableExtent)
+                if ((Current < Target && Target < 0) || (Current > Target && Target > ScrollableExtent))
                     localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.

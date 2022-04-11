@@ -1119,12 +1119,14 @@ namespace osu.Framework.Graphics.Containers
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
         protected virtual bool CanBeFlattened =>
-            // Masking composite DrawNodes define the masking area for their children.
+            // Masking composite draw nodes define the masking area for their children.
             !Masking
             // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph.
             && !HasProxy
             // Custom draw nodes may provide custom drawing procedures.
-            && !hasCustomDrawNode;
+            && !hasCustomDrawNode
+            // Composites with local vertex batches require their own draw node.
+            && !ForceLocalVertexBatch;
 
         private const int amount_children_required_for_masking_check = 2;
 
@@ -1252,6 +1254,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
+            if (AutoSizeAxes != Axes.None && AutoSizeDuration > 0)
+                childrenSizeDependencies.Invalidate();
+
             if (!propagateChildren)
                 return;
 
@@ -1273,7 +1278,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate ScheduleAfterChildren(Action action)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action);
+        }
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {

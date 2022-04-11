@@ -60,6 +60,7 @@ namespace osu.Framework.Graphics.Video
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
         private DecodedFrame lastFrame;
+        private bool lastFrameShown;
 
         /// <summary>
         /// The total number of frames processed by this instance.
@@ -120,11 +121,13 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            if (decoder.State == VideoDecoder.DecoderState.EndOfStream)
+            if (decoder.State == VideoDecoder.DecoderState.EndOfStream && availableFrames.Count == 0)
             {
                 // if at the end of the stream but our playback enters a valid time region again, a seek operation is required to get the decoder back on track.
-                if (PlaybackPosition < decoder.Duration)
+                if (PlaybackPosition < decoder.LastDecodedFrameTime)
+                {
                     seekIntoSync();
+                }
             }
 
             var peekFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
@@ -155,7 +158,11 @@ namespace osu.Framework.Graphics.Video
             {
                 if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
+                lastFrameShown = false;
+            }
 
+            if (!lastFrameShown && lastFrame != null)
+            {
                 var tex = lastFrame.Texture;
 
                 // Check if the new frame has been uploaded so we don't display an old frame
@@ -163,6 +170,7 @@ namespace osu.Framework.Graphics.Video
                 {
                     Sprite.Texture = tex;
                     UpdateSizing();
+                    lastFrameShown = true;
                 }
             }
 
