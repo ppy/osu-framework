@@ -378,21 +378,16 @@ namespace osu.Framework.Audio.Track
 
         private void cleanUpSyncs()
         {
-            Debug.Assert(stopCallback != null
-                         && stopSync != null
-                         && endCallback != null
-                         && endSync != null);
-
-            bassMixer.ChannelRemoveSync(this, stopSync.Value);
-            bassMixer.ChannelRemoveSync(this, endSync.Value);
+            if (stopSync != null) bassMixer.ChannelRemoveSync(this, stopSync.Value);
+            if (endSync != null) bassMixer.ChannelRemoveSync(this, endSync.Value);
 
             stopSync = null;
             endSync = null;
 
-            stopCallback.Dispose();
+            stopCallback?.Dispose();
             stopCallback = null;
 
-            endCallback.Dispose();
+            endCallback?.Dispose();
             endCallback = null;
         }
 
