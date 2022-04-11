@@ -130,13 +130,16 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
-        public void TestGameUnobservedExceptionDoesntCrashGame()
+        public void TestGameUnobservedThrowsUnderNUnit()
         {
-            using (var host = new TestRunHeadlessGameHost())
+            Assert.Throws<TestException>(() =>
             {
-                TaskCrashTestGame game = new TaskCrashTestGame();
-                host.Run(game);
-            }
+                using (var host = new TestRunHeadlessGameHost())
+                {
+                    TaskCrashTestGame game = new TaskCrashTestGame();
+                    host.Run(game);
+                }
+            });
         }
 
         private class TaskCrashTestGame : Game
