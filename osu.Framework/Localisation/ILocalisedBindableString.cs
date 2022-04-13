@@ -3,6 +3,8 @@
 
 using osu.Framework.Bindables;
 
+#nullable enable
+
 namespace osu.Framework.Localisation
 {
     /// <summary>
