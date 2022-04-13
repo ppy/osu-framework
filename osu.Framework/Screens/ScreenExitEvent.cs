@@ -11,7 +11,7 @@ namespace osu.Framework.Screens
         public IScreen Next;
 
         /// <summary>
-        /// The final <see cref="IScreen"/> of an exit operation.
+        /// The final <see cref="IScreen"/> of this exit operation.
         /// </summary>
         public IScreen Destination;
 
