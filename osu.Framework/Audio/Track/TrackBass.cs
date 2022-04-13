@@ -24,7 +24,7 @@ namespace osu.Framework.Audio.Track
     {
         public const int BYTES_PER_SAMPLE = 4;
 
-        private AsyncBufferStream? dataStream;
+        private Stream? dataStream;
 
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
@@ -133,8 +133,21 @@ namespace osu.Framework.Audio.Track
 
         private int prepareStream(Stream data, bool quick)
         {
-            //encapsulate incoming stream with async buffer if it isn't already.
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+            switch (data)
+            {
+                case MemoryStream _:
+                case UnmanagedMemoryStream _:
+                case AsyncBufferStream _:
+                    // Buffering memory stream is definitely unworthy.
+                    dataStream = data;
+                    break;
+
+                default:
+                    // It would be most likely a FileStream.
+                    // Is it benenitial to buffer over OS and .NET file buffering?
+                    dataStream = new AsyncBufferStream(data, quick ? 8 : -1);
+                    break;
+            }
 
             fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
