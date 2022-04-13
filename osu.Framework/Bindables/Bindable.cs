@@ -130,7 +130,7 @@ namespace osu.Framework.Bindables
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
 
-        private WeakReference<Bindable<T>> weakReferenceInstance;
+        private WeakReference<Bindable<T>>? weakReferenceInstance;
 
         private WeakReference<Bindable<T>> weakReference => weakReferenceInstance ??= new WeakReference<Bindable<T>>(this);
 
@@ -139,7 +139,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         [UsedImplicitly]
         private Bindable()
-            : this(default)
+            : this(default!)
         {
         }
 
@@ -147,12 +147,15 @@ namespace osu.Framework.Bindables
         /// Creates a new bindable instance initialised with a default value.
         /// </summary>
         /// <param name="defaultValue">The initial and default value for this bindable.</param>
-        public Bindable(T defaultValue = default)
+        /// <remarks>Consider to pass a default value for non-nullable T.</remarks>
+        public Bindable(T defaultValue = default!)
         {
-            value = Default = defaultValue;
+            // It lacks a way to represent "warn if called with non-nullable T".
+            // Not verifying to avoid breaking tons of existing usages.
+            value = this.defaultValue = defaultValue;
         }
 
-        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
+        protected LockedWeakList<Bindable<T>>? Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -254,7 +257,7 @@ namespace osu.Framework.Bindables
 
                 default:
                     if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                        Value = (T)Enum.Parse(underlyingType, input.ToString()!);
                     else
                         Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
 
@@ -376,7 +379,7 @@ namespace osu.Framework.Bindables
             tThem.removeWeakReference(weakReference);
         }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public override string ToString() => value?.ToString() ?? string.Empty;
 
@@ -409,7 +412,8 @@ namespace osu.Framework.Bindables
 
         void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
-            Value = serializer.Deserialize<T>(reader);
+            // Deserialize returns null for json literal "null".
+            Value = serializer.Deserialize<T>(reader)!;
         }
 
         private LeasedBindable<T>? leasedBindable;
