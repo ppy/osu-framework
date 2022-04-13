@@ -9,6 +9,8 @@ using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Lists;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     public class BindableList<T> : IBindableList<T>, IBindable, IParseable, IList<T>, IList
@@ -16,12 +18,12 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when this <see cref="BindableList{T}"/> changes.
         /// </summary>
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
         /// </summary>
-        public event Action<bool> DisabledChanged;
+        public event Action<bool>? DisabledChanged;
 
         private readonly List<T> collection = new List<T>();
 
@@ -29,13 +31,13 @@ namespace osu.Framework.Bindables
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 
-        private LockedWeakList<BindableList<T>> bindings;
+        private LockedWeakList<BindableList<T>>? bindings;
 
         /// <summary>
         /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
         /// </summary>
         /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableList{T}"/>.</param>
-        public BindableList(IEnumerable<T> items = null)
+        public BindableList(IEnumerable<T>? items = null)
         {
             if (items != null)
                 collection.AddRange(items);
@@ -54,7 +56,7 @@ namespace osu.Framework.Bindables
             set => setIndex(index, value, null);
         }
 
-        private void setIndex(int index, T item, BindableList<T> caller)
+        private void setIndex(int index, T item, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -84,7 +86,7 @@ namespace osu.Framework.Bindables
         public void Add(T item)
             => add(item, null);
 
-        private void add(T item, BindableList<T> caller)
+        private void add(T item, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -120,7 +122,7 @@ namespace osu.Framework.Bindables
         public void Insert(int index, T item)
             => insert(index, item, null);
 
-        private void insert(int index, T item, BindableList<T> caller)
+        private void insert(int index, T item, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -147,7 +149,7 @@ namespace osu.Framework.Bindables
         public void Clear()
             => clear(null);
 
-        private void clear(BindableList<T> caller)
+        private void clear(BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -190,7 +192,7 @@ namespace osu.Framework.Bindables
         public bool Remove(T item)
             => remove(item, null);
 
-        private bool remove(T item, BindableList<T> caller)
+        private bool remove(T item, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -231,7 +233,7 @@ namespace osu.Framework.Bindables
             removeRange(index, count, null);
         }
 
-        private void removeRange(int index, int count, BindableList<T> caller)
+        private void removeRange(int index, int count, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -264,7 +266,7 @@ namespace osu.Framework.Bindables
         public void RemoveAt(int index)
             => removeAt(index, null);
 
-        private void removeAt(int index, BindableList<T> caller)
+        private void removeAt(int index, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -293,7 +295,7 @@ namespace osu.Framework.Bindables
         public int RemoveAll(Predicate<T> match)
             => removeAll(match, null);
 
-        private int removeAll(Predicate<T> match, BindableList<T> caller)
+        private int removeAll(Predicate<T> match, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -347,25 +349,25 @@ namespace osu.Framework.Bindables
 
         #region IList
 
-        object IList.this[int index]
+        object? IList.this[int index]
         {
             get => this[index];
-            set => this[index] = (T)value;
+            set => this[index] = (T)value!;
         }
 
-        int IList.Add(object value)
+        int IList.Add(object? value)
         {
-            Add((T)value);
+            Add((T)value!);
             return Count - 1;
         }
 
-        bool IList.Contains(object value) => Contains((T)value);
+        bool IList.Contains(object? value) => Contains((T)value!);
 
-        int IList.IndexOf(object value) => IndexOf((T)value);
+        int IList.IndexOf(object? value) => IndexOf((T)value!);
 
-        void IList.Insert(int index, object value) => Insert(index, (T)value);
+        void IList.Insert(int index, object? value) => Insert(index, (T)value!);
 
-        void IList.Remove(object value) => Remove((T)value);
+        void IList.Remove(object? value) => Remove((T)value!);
 
         bool IList.IsFixedSize => false;
 
@@ -488,7 +490,7 @@ namespace osu.Framework.Bindables
 
         #region IHasDescription
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         #endregion IHasDescription
 
@@ -502,7 +504,7 @@ namespace osu.Framework.Bindables
         public void AddRange(IEnumerable<T> items)
             => addRange(items as IList ?? items.ToArray(), null);
 
-        private void addRange(IList items, BindableList<T> caller)
+        private void addRange(IList items, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -530,7 +532,7 @@ namespace osu.Framework.Bindables
         public void Move(int oldIndex, int newIndex)
             => move(oldIndex, newIndex, null);
 
-        private void move(int oldIndex, int newIndex, BindableList<T> caller)
+        private void move(int oldIndex, int newIndex, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
