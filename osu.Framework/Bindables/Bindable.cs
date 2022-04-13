@@ -11,6 +11,8 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -22,17 +24,17 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event Action<ValueChangedEvent<T>> ValueChanged;
+        public event Action<ValueChangedEvent<T>>? ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
-        public event Action<bool> DisabledChanged;
+        public event Action<bool>? DisabledChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
         /// </summary>
-        public event Action<ValueChangedEvent<T>> DefaultChanged;
+        public event Action<ValueChangedEvent<T>>? DefaultChanged;
 
         private T value;
 
@@ -57,7 +59,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             if (!bypassChecks)
                 throwIfLeased();
@@ -88,7 +90,7 @@ namespace osu.Framework.Bindables
                 // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
 
                 if (Disabled)
-                    throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
+                    throw new InvalidOperationException($"Can not set value to \"{value}\" as bindable is disabled.");
 
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
@@ -96,7 +98,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             this.value = value;
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
@@ -114,7 +116,7 @@ namespace osu.Framework.Bindables
                 // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Default.
 
                 if (Disabled)
-                    throw new InvalidOperationException($"Can not set default value to \"{value.ToString()}\" as bindable is disabled.");
+                    throw new InvalidOperationException($"Can not set default value to \"{value}\" as bindable is disabled.");
 
                 if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
 
@@ -122,7 +124,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             defaultValue = value;
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
@@ -359,8 +361,7 @@ namespace osu.Framework.Bindables
 
         internal virtual void UnbindAllInternal()
         {
-            if (isLeased)
-                leasedBindable.Return();
+            leasedBindable?.Return();
 
             UnbindEvents();
             UnbindBindings();
@@ -411,7 +412,7 @@ namespace osu.Framework.Bindables
             Value = serializer.Deserialize<T>(reader);
         }
 
-        private LeasedBindable<T> leasedBindable;
+        private LeasedBindable<T>? leasedBindable;
 
         private bool isLeased => leasedBindable != null;
 
