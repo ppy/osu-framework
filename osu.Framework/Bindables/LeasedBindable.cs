@@ -3,7 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
+
+#nullable enable
 
 namespace osu.Framework.Bindables
 {
@@ -14,13 +15,13 @@ namespace osu.Framework.Bindables
     /// <typeparam name="T"></typeparam>
     public class LeasedBindable<T> : Bindable<T>, ILeasedBindable<T>
     {
-        private readonly Bindable<T> source;
+        private readonly Bindable<T>? source;
 
-        private readonly T valueBeforeLease;
+        private readonly T valueBeforeLease = default!;
         private readonly bool disabledBeforeLease;
         private readonly bool revertValueOnReturn;
 
-        internal LeasedBindable([NotNull] Bindable<T> source, bool revertValueOnReturn)
+        internal LeasedBindable(Bindable<T> source, bool revertValueOnReturn)
         {
             BindTo(source);
 
@@ -37,7 +38,7 @@ namespace osu.Framework.Bindables
             Disabled = true;
         }
 
-        private LeasedBindable(T defaultValue = default)
+        private LeasedBindable(T defaultValue = default!)
             : base(defaultValue)
         {
             // used for GetBoundCopy, where we don't want a source.

@@ -4,13 +4,15 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     public abstract class RangeConstrainedBindable<T> : Bindable<T>
     {
-        public event Action<T> MinValueChanged;
+        public event Action<T>? MinValueChanged;
 
-        public event Action<T> MaxValueChanged;
+        public event Action<T>? MaxValueChanged;
 
         private T minValue;
 
@@ -62,7 +64,7 @@ namespace osu.Framework.Bindables
         public bool HasDefinedRange => !EqualityComparer<T>.Default.Equals(MinValue, DefaultMinValue) ||
                                        !EqualityComparer<T>.Default.Equals(MaxValue, DefaultMaxValue);
 
-        protected RangeConstrainedBindable(T defaultValue = default)
+        protected RangeConstrainedBindable(T defaultValue = default!)
             : base(defaultValue)
         {
             minValue = DefaultMinValue;
@@ -116,7 +118,7 @@ namespace osu.Framework.Bindables
             TriggerMaxValueChange(this, false);
         }
 
-        protected void TriggerMinValueChange(RangeConstrainedBindable<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMinValueChange(RangeConstrainedBindable<T>? source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = minValue;
@@ -136,7 +138,7 @@ namespace osu.Framework.Bindables
                 MinValueChanged?.Invoke(minValue);
         }
 
-        protected void TriggerMaxValueChange(RangeConstrainedBindable<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMaxValueChange(RangeConstrainedBindable<T>? source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;

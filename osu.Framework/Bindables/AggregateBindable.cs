@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -29,7 +31,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <typeparamref name="T"/> values and returning one output.</param>
         /// <param name="resultBindable">An optional newly constructed bindable to use for <see cref="Result"/>. The initial value of this bindable is used as the initial value for the aggregate.</param>
-        public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T> resultBindable = null)
+        public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T>? resultBindable = null)
         {
             this.aggregateFunction = aggregateFunction;
             result = resultBindable ?? new Bindable<T>();
@@ -75,10 +77,10 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private WeakRefPair findExistingPair(IBindable<T> bindable) =>
+        private WeakRefPair? findExistingPair(IBindable<T> bindable) =>
             sourceMapping.FirstOrDefault(p => p.WeakReference.TryGetTarget(out var target) && target == bindable);
 
-        private void recalculateAggregate(ValueChangedEvent<T> obj = null)
+        private void recalculateAggregate(ValueChangedEvent<T>? obj = null)
         {
             T calculated = initialValue;
 

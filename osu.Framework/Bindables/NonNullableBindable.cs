@@ -3,6 +3,8 @@
 
 using System;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     public class NonNullableBindable<T> : Bindable<T>

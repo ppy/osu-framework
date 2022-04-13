@@ -4,6 +4,8 @@
 using System;
 using System.Drawing;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>

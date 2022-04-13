@@ -3,6 +3,8 @@
 
 using System;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -11,7 +13,7 @@ namespace osu.Framework.Bindables
     /// <typeparam name="T">The type of our stored <see cref="Bindable{T}.Value"/>.</typeparam>
     public class BindableWithCurrent<T> : Bindable<T>, IBindableWithCurrent<T>
     {
-        private Bindable<T> currentBound;
+        private Bindable<T>? currentBound;
 
         public Bindable<T> Current
         {
@@ -26,9 +28,10 @@ namespace osu.Framework.Bindables
             }
         }
 
-        public BindableWithCurrent(T defaultValue = default)
+        public BindableWithCurrent(T defaultValue = default!)
             : base(defaultValue)
         {
+            // Not verifying, as base Bindable constructor
         }
 
         protected override Bindable<T> CreateInstance() => new BindableWithCurrent<T>();

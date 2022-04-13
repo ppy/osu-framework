@@ -5,6 +5,8 @@ using System;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Utils;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>

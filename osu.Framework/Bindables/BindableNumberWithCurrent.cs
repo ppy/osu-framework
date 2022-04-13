@@ -3,6 +3,8 @@
 
 using System;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -12,7 +14,7 @@ namespace osu.Framework.Bindables
     public class BindableNumberWithCurrent<T> : BindableNumber<T>, IBindableWithCurrent<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
-        private BindableNumber<T> currentBound;
+        private BindableNumber<T>? currentBound;
 
         public Bindable<T> Current
         {
