@@ -21,8 +21,8 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is entering from a parent <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="e">The <see cref="ScreenEnterEvent"/> containing information about the screen event.</param>
-        void OnEntering(ScreenEnterEvent e);
+        /// <param name="e">The <see cref="ScreenTransitionEvent"/> containing information about the screen event.</param>
+        void OnEntering(ScreenTransitionEvent e);
 
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is exiting to a parent <see cref="IScreen"/>.
@@ -34,14 +34,14 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is entered from a child <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="e">The <see cref="ScreenResumeEvent"/> containing information about the screen event.</param>
-        void OnResuming(ScreenResumeEvent e);
+        /// <param name="e">The <see cref="ScreenTransitionEvent"/> containing information about the screen event.</param>
+        void OnResuming(ScreenTransitionEvent e);
 
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is exited to a child <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="e">The <see cref="ScreenSuspendEvent"/> containing information about the screen event.</param>
-        void OnSuspending(ScreenSuspendEvent e);
+        /// <param name="e">The <see cref="ScreenTransitionEvent"/> containing information about the screen event.</param>
+        void OnSuspending(ScreenTransitionEvent e);
     }
 
     public static class ScreenExtensions

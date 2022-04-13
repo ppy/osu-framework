@@ -3,21 +3,19 @@
 
 namespace osu.Framework.Screens
 {
-    public class ScreenExitEvent : ScreenEvent
+    /// <summary>
+    /// Denotes a screen exit event.
+    /// </summary>
+    public class ScreenExitEvent : ScreenTransitionEvent
     {
-        /// <summary>
-        /// The <see cref="IScreen"/> that will be resumed next.
-        /// </summary>
-        public IScreen Next;
-
         /// <summary>
         /// The final <see cref="IScreen"/> of this exit operation.
         /// </summary>
-        public IScreen Destination;
+        public IScreen Destination { get; }
 
-        public ScreenExitEvent(IScreen next, IScreen destination)
+        public ScreenExitEvent(IScreen last, IScreen next, IScreen destination)
+            : base(last, next)
         {
-            Next = next;
             Destination = destination;
         }
     }

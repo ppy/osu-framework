@@ -1089,7 +1089,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderThickness = 0;
             }
 
-            public override void OnEntering(ScreenEnterEvent e)
+            public override void OnEntering(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
@@ -1130,7 +1130,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 return base.OnExiting(e);
             }
 
-            public override void OnSuspending(ScreenSuspendEvent e)
+            public override void OnSuspending(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
@@ -1141,7 +1141,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
-            public override void OnResuming(ScreenResumeEvent e)
+            public override void OnResuming(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
