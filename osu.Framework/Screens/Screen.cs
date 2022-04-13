@@ -32,17 +32,31 @@ namespace osu.Framework.Screens
                 throw new InvalidOperationException($"Screens must always be added to a {nameof(ScreenStack)} (attempted to add {GetType()} to {Parent.GetType()})");
         }
 
-        public virtual void OnEntering(ScreenEnterEvent e)
+#pragma warning disable CS0618
+        public virtual void OnEntering(ScreenEnterEvent e) => OnEntering(e.Last);
+
+        public virtual bool OnExiting(ScreenExitEvent e) => OnExiting(e.Next);
+
+        public virtual void OnResuming(ScreenResumeEvent e) => OnResuming(e.Last);
+
+        public virtual void OnSuspending(ScreenSuspendEvent e) => OnSuspending(e.Next);
+#pragma warning restore CS0618
+
+        [Obsolete("Override OnEntering(ScreenEnterEvent) instead.")] // Can be removed 20221013
+        public virtual void OnEntering(IScreen last)
         {
         }
 
-        public virtual bool OnExiting(ScreenExitEvent e) => false;
+        [Obsolete("Override OnExiting(ScreenExitEvent) instead.")] // Can be removed 20221013
+        public virtual bool OnExiting(IScreen next) => false;
 
-        public virtual void OnResuming(ScreenResumeEvent e)
+        [Obsolete("Override OnResuming(ScreenResumeEvent) instead.")] // Can be removed 20221013
+        public virtual void OnResuming(IScreen last)
         {
         }
 
-        public virtual void OnSuspending(ScreenSuspendEvent e)
+        [Obsolete("Override OnSuspending(ScreenSuspendEvent) instead.")] // Can be removed 20221013
+        public virtual void OnSuspending(IScreen next)
         {
         }
     }
