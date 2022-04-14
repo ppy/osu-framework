@@ -91,8 +91,9 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<CustomObj>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized?.Bindable1.Value);
-            Assert.AreEqual(toSerialize.Bindable2.Value, deserialized?.Bindable2.Value);
+            Assert.NotNull(deserialized);
+            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized.Bindable1.Value);
+            Assert.AreEqual(toSerialize.Bindable2.Value, deserialized.Bindable2.Value);
         }
 
         [Test]
@@ -109,8 +110,9 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<Bindable<CustomObj>>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Value.Bindable1.Value, deserialized?.Value.Bindable1.Value);
-            Assert.AreEqual(toSerialize.Value.Bindable2.Value, deserialized?.Value.Bindable2.Value);
+            Assert.NotNull(deserialized);
+            Assert.AreEqual(toSerialize.Value.Bindable1.Value, deserialized.Value.Bindable1.Value);
+            Assert.AreEqual(toSerialize.Value.Bindable2.Value, deserialized.Value.Bindable2.Value);
         }
 
         [Test]
