@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -1010,6 +1011,12 @@ namespace osu.Framework.Platform.SDL2
 
             str = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
             return true;
+        }
+
+        public static DisplayMode ToDisplayMode(this SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
+        {
+            SDL.SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
+            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
     }
 }
