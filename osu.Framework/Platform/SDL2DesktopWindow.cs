@@ -13,6 +13,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
@@ -1102,8 +1103,57 @@ namespace osu.Framework.Platform
 
             updateMaximisedState();
 
-            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
-                currentDisplayMode.Value = mode.ToDisplayMode(displayIndex, -1);
+            switch (windowState)
+            {
+                case WindowState.Fullscreen:
+                    if (!updateDisplayMode(true))
+                        updateDisplayMode(false);
+                    break;
+
+                case WindowState.Normal:
+                case WindowState.FullscreenBorderless:
+                case WindowState.Maximised:
+                case WindowState.Minimised:
+                    if (!updateDisplayMode(false))
+                        updateDisplayMode(true);
+                    break;
+            }
+
+            bool updateDisplayMode(bool queryFullscreenMode)
+            {
+                // TODO: displayIndex should be valid here at all times.
+                // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
+                // related to order of operations in `updateWindowSpecifics()`.
+                int localIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
+
+                if (localIndex != displayIndex)
+                    Logger.Log($"Stored displayIndex ({displayIndex}) doesn't match real index ({localIndex})");
+
+                if (queryFullscreenMode)
+                {
+                    if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
+                    {
+                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex, -1);
+                        Logger.Log($"Updated display mode (from fullscreen) to: {currentDisplayMode.Value}");
+                        return true;
+                    }
+
+                    Logger.Log($"Failed to get display mode (from fullscreen). Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
+                    return false;
+                }
+                else
+                {
+                    if (SDL.SDL_GetCurrentDisplayMode(localIndex, out var mode) >= 0)
+                    {
+                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex, -1);
+                        Logger.Log($"Updated display mode (from desktop) to: {currentDisplayMode.Value}");
+                        return true;
+                    }
+
+                    Logger.Log($"Failed to get display mode (from desktop). Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
+                    return false;
+                }
+            }
         }
 
         private void updateMaximisedState()
