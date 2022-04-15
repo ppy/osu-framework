@@ -130,39 +130,6 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
-        public void TestGameUnobservedThrowsUnderNUnit()
-        {
-            Assert.Throws<TestException>(() =>
-            {
-                using (var host = new TestRunHeadlessGameHost())
-                {
-                    TaskCrashTestGame game = new TaskCrashTestGame();
-                    host.Run(game);
-                }
-            });
-        }
-
-        private class TaskCrashTestGame : Game
-        {
-            private int frameCount;
-
-            protected override void Update()
-            {
-                base.Update();
-
-                Task.Run(() => throw new TestException());
-
-                // only start counting frames once the task has completed, to allow some time for the unobserved exception to be handled.
-                if (frameCount++ > 10)
-                {
-                    collectAndFireUnobserved();
-
-                    Exit();
-                }
-            }
-        }
-
-        [Test]
         public void TestTaskExceptionLogging()
         {
             Exception resolvedException = null;
