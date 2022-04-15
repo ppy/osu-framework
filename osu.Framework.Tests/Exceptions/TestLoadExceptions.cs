@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Exceptions
         {
             var exception = Assert.Throws<AggregateException>(() =>
             {
-                bool completed = Task.Factory.StartNew(() =>
+                Task.Factory.StartNew(() =>
                 {
                     runGameWithLogic(g =>
                     {
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Exceptions
                     });
                 }, TaskCreationOptions.LongRunning).Wait(TimeSpan.FromSeconds(10));
 
-                Assert.True(completed, "Game execution was not aborted");
+                Assert.Fail("Game execution was not aborted");
             });
 
             Assert.True(exception?.AsSingular() is InvalidOperationException);
