@@ -144,10 +144,14 @@ namespace osu.Framework.Tests.Visual.Platform
             AddAssert("mode has valid RefreshRate", () => displayMode.RefreshRate != 0);
 
             // TODO: the current display bounds should match even in fullscreen, this doesn't seem to work currently
+
             if (checkResolutionAgainstFullscreen)
                 AddAssert("Size matches fullscreen resolution", () => displayMode.Size == configSizeFullscreen.Value);
             else
-                AddAssert("Size matches display resolution", () => displayMode.Size == currentDisplay.Bounds.Size);
+                AddAssert("Size matches bindable display resolution", () => displayMode.Size == currentDisplay.Bounds.Size);
+
+            // this shouldn't work, but it does...
+            AddAssert("Size matches actual display resolution", () => displayMode.Size == window.Displays.ElementAt(displayMode.DisplayIndex).Bounds.Size);
         }
 
         private void setFullscreenResolution(int w, int h)
