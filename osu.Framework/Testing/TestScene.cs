@@ -195,7 +195,7 @@ namespace osu.Framework.Testing
                 if (loadableStep != null)
                 {
                     if (actionRepetition == 0)
-                        Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.Text}");
+                        Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep.Text}");
 
                     scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();

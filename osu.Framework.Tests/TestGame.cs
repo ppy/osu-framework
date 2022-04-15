@@ -18,6 +18,6 @@ namespace osu.Framework.Tests
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TestGame).Assembly), "Resources"));
         }
 
-        protected override bool OnExiting() => BlockExit.Value;
+        protected override bool OnExiting() => !BlockExit.Value;
     }
 }
