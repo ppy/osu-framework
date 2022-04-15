@@ -6,8 +6,6 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -35,29 +33,12 @@ namespace osu.Framework.Testing
         {
             private const double time_between_tests = 200;
 
-            private Bindable<double> volume;
-            private double volumeAtStartup;
-
             [Resolved]
             private GameHost host { get; set; }
 
             public TestRunner()
             {
                 RelativeSizeAxes = Axes.Both;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(FrameworkConfigManager config)
-            {
-                volume = config.GetBindable<double>(FrameworkSetting.VolumeUniversal);
-                volumeAtStartup = volume.Value;
-                volume.Value = 0;
-            }
-
-            internal override void UnbindAllBindables()
-            {
-                base.UnbindAllBindables();
-                if (volume != null) volume.Value = volumeAtStartup;
             }
 
             /// <summary>
