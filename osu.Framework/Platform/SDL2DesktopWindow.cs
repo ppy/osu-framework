@@ -1127,7 +1127,7 @@ namespace osu.Framework.Platform
                 int localIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
 
                 if (localIndex != displayIndex)
-                    Logger.Log($"Stored displayIndex ({displayIndex}) doesn't match real index ({localIndex})");
+                    Logger.Log($"Stored display index ({displayIndex}) doesn't match current index ({localIndex})");
 
                 if (queryFullscreenMode)
                 {
