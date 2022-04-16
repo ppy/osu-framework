@@ -1107,14 +1107,13 @@ namespace osu.Framework.Platform
             {
                 case WindowState.Fullscreen:
                     if (!updateDisplayMode(true))
+                        // if we failed to get the fullscreen mode, query the desktop mode so that we always have an up-to-date display mode.
                         updateDisplayMode(false);
                     break;
 
-                case WindowState.Normal:
-                case WindowState.FullscreenBorderless:
-                case WindowState.Maximised:
-                case WindowState.Minimised:
+                default:
                     if (!updateDisplayMode(false))
+                        // if we failed to get the desktop mode, query the fullscreen mode so that we always have an up-to-date display mode.
                         updateDisplayMode(true);
                     break;
             }
