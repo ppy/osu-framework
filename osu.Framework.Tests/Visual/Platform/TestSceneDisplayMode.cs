@@ -136,14 +136,16 @@ namespace osu.Framework.Tests.Visual.Platform
             AddAssert("display has current mode", () => currentDisplay.DisplayModes.Any(mode => modesSimilar(mode, displayMode)));
             AddAssert("mode has valid RefreshRate", () => displayMode.RefreshRate != 0);
 
-            // TODO: the current display bounds should match even in fullscreen, this doesn't seem to work currently
-
             if (checkResolutionAgainstFullscreen)
-                AddAssert("Size matches fullscreen resolution", () => displayMode.Size == configSizeFullscreen.Value);
-            else
+                AddAssert("Size matches config fullscreen resolution", () => displayMode.Size == configSizeFullscreen.Value);
+
+            if (!checkResolutionAgainstFullscreen)
+                // This assert should be equivalent to the one under it, but `currentDisplay` is not updated when only the resolution changes.
+                // Since the display resolution doesn't change in windowed and borderless, we can safely check this.
+                // In fullscreen, the display resolution changes, so we can't check against `currentDisplay`.
+                // TODO: fix CurrentDisplayBindable not updating when resolution changes
                 AddAssert("Size matches bindable display resolution", () => displayMode.Size == currentDisplay.Bounds.Size);
 
-            // this shouldn't work, but it does...
             AddAssert("Size matches actual display resolution", () => displayMode.Size == window.Displays.ElementAt(displayMode.DisplayIndex).Bounds.Size);
         }
 
