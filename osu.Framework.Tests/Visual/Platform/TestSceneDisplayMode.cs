@@ -102,12 +102,6 @@ namespace osu.Framework.Tests.Visual.Platform
         [TestCase(WindowMode.Fullscreen)]
         public void TestDisplayModeSanity(WindowMode? windowMode)
         {
-            if (window == null)
-            {
-                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
-                return;
-            }
-
             switch (windowMode)
             {
                 case null: // test startup
