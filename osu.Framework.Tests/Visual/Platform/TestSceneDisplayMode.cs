@@ -15,7 +15,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    [System.ComponentModel.Description("For complete validation, this test should run be with different WindowModes at startup, and with different resolutions in Fullscreen")]
+    [System.ComponentModel.Description("For complete validation, run this with different window modes and resolutions at startup.")]
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public class TestSceneDisplayMode : FrameworkTestScene
     {
