@@ -94,7 +94,7 @@ namespace osu.Framework.iOS
             {
                 new IOSTouchHandler(gameView),
                 keyboardHandler = new IOSKeyboardHandler(gameView),
-                rawKeyboardHandler = new IOSRawKeyboardHandler(),
+                rawKeyboardHandler = new IOSRawKeyboardHandler(gameView),
                 new IOSMouseHandler(gameView),
                 new MidiHandler()
             };

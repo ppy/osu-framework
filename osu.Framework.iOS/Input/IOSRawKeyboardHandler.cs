@@ -1,7 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System.Linq;
+using Foundation;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -12,128 +13,437 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSRawKeyboardHandler : InputHandler
     {
+        private readonly IOSGameView view;
+
         internal bool KeyboardActive = true;
+
         public override bool IsActive => KeyboardActive;
+
+        public IOSRawKeyboardHandler(IOSGameView view)
+        {
+            this.view = view;
+        }
 
         public override bool Initialize(GameHost host)
         {
-            if (!(UIApplication.SharedApplication is GameUIApplication game))
-                return false;
-
-            game.KeyEvent += (keyCode, isDown) =>
-            {
-                if (IsActive && keyMap.ContainsKey(keyCode))
-                    PendingInputs.Enqueue(new KeyboardKeyInput(keyMap[keyCode], isDown));
-            };
-
+            view.HandlePresses += handlePresses;
             return true;
         }
 
-        private readonly Dictionary<int, Key> keyMap = new Dictionary<int, Key>
+        private bool handlePresses(NSSet<UIPress> presses, UIPressesEvent evt)
         {
-            { 4, Key.A },
-            { 5, Key.B },
-            { 6, Key.C },
-            { 7, Key.D },
-            { 8, Key.E },
-            { 9, Key.F },
-            { 10, Key.G },
-            { 11, Key.H },
-            { 12, Key.I },
-            { 13, Key.J },
-            { 14, Key.K },
-            { 15, Key.L },
-            { 16, Key.M },
-            { 17, Key.N },
-            { 18, Key.O },
-            { 19, Key.P },
-            { 20, Key.Q },
-            { 21, Key.R },
-            { 22, Key.S },
-            { 23, Key.T },
-            { 24, Key.U },
-            { 25, Key.V },
-            { 26, Key.W },
-            { 27, Key.X },
-            { 28, Key.Y },
-            { 29, Key.Z },
-            { 30, Key.Number1 },
-            { 31, Key.Number2 },
-            { 32, Key.Number3 },
-            { 33, Key.Number4 },
-            { 34, Key.Number5 },
-            { 35, Key.Number6 },
-            { 36, Key.Number7 },
-            { 37, Key.Number8 },
-            { 38, Key.Number9 },
-            { 39, Key.Number0 },
-            { 40, Key.Enter },
-            { 41, Key.Escape },
-            { 42, Key.BackSpace },
-            { 43, Key.Tab },
-            { 44, Key.Space },
-            { 45, Key.Minus },
-            { 46, Key.Plus },
-            { 47, Key.BracketLeft },
-            { 48, Key.BracketRight },
-            { 49, Key.BackSlash },
-            { 51, Key.Semicolon },
-            { 52, Key.Quote },
-            { 53, Key.Grave },
-            { 54, Key.Comma },
-            { 55, Key.Period },
-            { 56, Key.Slash },
-            { 57, Key.CapsLock },
-            { 58, Key.F1 },
-            { 59, Key.F2 },
-            { 60, Key.F3 },
-            { 61, Key.F4 },
-            { 62, Key.F5 },
-            { 63, Key.F6 },
-            { 64, Key.F7 },
-            { 65, Key.F8 },
-            { 66, Key.F9 },
-            { 67, Key.F10 },
-            { 68, Key.F11 },
-            { 69, Key.F12 },
-            { 74, Key.Home },
-            { 75, Key.PageUp },
-            { 76, Key.Delete },
-            { 77, Key.End },
-            { 78, Key.PageDown },
-            { 79, Key.Right },
-            { 80, Key.Left },
-            { 81, Key.Down },
-            { 82, Key.Up },
-            { 83, Key.NumLock },
-            { 84, Key.KeypadDivide },
-            { 85, Key.KeypadMultiply },
-            { 86, Key.KeypadMinus },
-            { 87, Key.KeypadPlus },
-            { 89, Key.Keypad1 },
-            { 90, Key.Keypad2 },
-            { 91, Key.Keypad3 },
-            { 92, Key.Keypad4 },
-            { 93, Key.Keypad5 },
-            { 94, Key.Keypad6 },
-            { 95, Key.Keypad7 },
-            { 96, Key.Keypad8 },
-            { 97, Key.Keypad9 },
-            { 98, Key.Keypad0 },
-            { 99, Key.KeypadDecimal },
-            { 101, Key.Menu },
-            { 104, Key.PrintScreen },
-            { 105, Key.ScrollLock },
-            { 106, Key.Pause },
-            { 117, Key.Insert },
-            { 224, Key.ControlLeft },
-            { 225, Key.ShiftLeft },
-            { 226, Key.AltLeft },
-            { 227, Key.WinLeft },
-            { 228, Key.ControlRight },
-            { 229, Key.ShiftRight },
-            { 230, Key.AltRight },
-            { 231, Key.WinRight }
-        };
+            if (!IsActive)
+                return false;
+
+            bool hasArrowKeys = false;
+
+            foreach (var press in presses.Cast<UIPress>())
+            {
+                if (press.Key == null)
+                    continue;
+
+                var key = keyFromCode(press.Key.KeyCode);
+                if (key == Key.Unknown)
+                    continue;
+
+                switch (press.Phase)
+                {
+                    case UIPressPhase.Began:
+                        PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
+                        break;
+
+                    case UIPressPhase.Ended:
+                    case UIPressPhase.Cancelled:
+                        PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
+                        break;
+                }
+
+                hasArrowKeys |= press.Type == UIPressType.UpArrow ||
+                                press.Type == UIPressType.DownArrow ||
+                                press.Type == UIPressType.LeftArrow ||
+                                press.Type == UIPressType.RightArrow;
+            }
+
+            return hasArrowKeys;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            view.HandlePresses -= handlePresses;
+            base.Dispose(disposing);
+        }
+
+        private static Key keyFromCode(UIKeyboardHidUsage usage)
+        {
+            switch (usage)
+            {
+                case UIKeyboardHidUsage.KeyboardA:
+                    return Key.A;
+
+                case UIKeyboardHidUsage.KeyboardB:
+                    return Key.B;
+
+                case UIKeyboardHidUsage.KeyboardC:
+                    return Key.C;
+
+                case UIKeyboardHidUsage.KeyboardD:
+                    return Key.D;
+
+                case UIKeyboardHidUsage.KeyboardE:
+                    return Key.E;
+
+                case UIKeyboardHidUsage.KeyboardF:
+                    return Key.F;
+
+                case UIKeyboardHidUsage.KeyboardG:
+                    return Key.G;
+
+                case UIKeyboardHidUsage.KeyboardH:
+                    return Key.H;
+
+                case UIKeyboardHidUsage.KeyboardI:
+                    return Key.I;
+
+                case UIKeyboardHidUsage.KeyboardJ:
+                    return Key.J;
+
+                case UIKeyboardHidUsage.KeyboardK:
+                    return Key.K;
+
+                case UIKeyboardHidUsage.KeyboardL:
+                    return Key.L;
+
+                case UIKeyboardHidUsage.KeyboardM:
+                    return Key.M;
+
+                case UIKeyboardHidUsage.KeyboardN:
+                    return Key.N;
+
+                case UIKeyboardHidUsage.KeyboardO:
+                    return Key.O;
+
+                case UIKeyboardHidUsage.KeyboardP:
+                    return Key.P;
+
+                case UIKeyboardHidUsage.KeyboardQ:
+                    return Key.Q;
+
+                case UIKeyboardHidUsage.KeyboardR:
+                    return Key.R;
+
+                case UIKeyboardHidUsage.KeyboardS:
+                    return Key.S;
+
+                case UIKeyboardHidUsage.KeyboardT:
+                    return Key.T;
+
+                case UIKeyboardHidUsage.KeyboardU:
+                    return Key.U;
+
+                case UIKeyboardHidUsage.KeyboardV:
+                    return Key.V;
+
+                case UIKeyboardHidUsage.KeyboardW:
+                    return Key.W;
+
+                case UIKeyboardHidUsage.KeyboardX:
+                    return Key.X;
+
+                case UIKeyboardHidUsage.KeyboardY:
+                    return Key.Y;
+
+                case UIKeyboardHidUsage.KeyboardZ:
+                    return Key.Z;
+
+                case UIKeyboardHidUsage.Keyboard1:
+                    return Key.Number1;
+
+                case UIKeyboardHidUsage.Keyboard2:
+                    return Key.Number2;
+
+                case UIKeyboardHidUsage.Keyboard3:
+                    return Key.Number3;
+
+                case UIKeyboardHidUsage.Keyboard4:
+                    return Key.Number4;
+
+                case UIKeyboardHidUsage.Keyboard5:
+                    return Key.Number5;
+
+                case UIKeyboardHidUsage.Keyboard6:
+                    return Key.Number6;
+
+                case UIKeyboardHidUsage.Keyboard7:
+                    return Key.Number7;
+
+                case UIKeyboardHidUsage.Keyboard8:
+                    return Key.Number8;
+
+                case UIKeyboardHidUsage.Keyboard9:
+                    return Key.Number9;
+
+                case UIKeyboardHidUsage.Keyboard0:
+                    return Key.Number0;
+
+                case UIKeyboardHidUsage.KeyboardReturnOrEnter:
+                    return Key.Enter;
+
+                case UIKeyboardHidUsage.KeyboardEscape:
+                    return Key.Escape;
+
+                case UIKeyboardHidUsage.KeyboardDeleteOrBackspace:
+                    return Key.BackSpace;
+
+                case UIKeyboardHidUsage.KeyboardTab:
+                    return Key.Tab;
+
+                case UIKeyboardHidUsage.KeyboardSpacebar:
+                    return Key.Space;
+
+                case UIKeyboardHidUsage.KeyboardHyphen:
+                    return Key.Minus;
+
+                case UIKeyboardHidUsage.KeyboardEqualSign:
+                    return Key.Plus;
+
+                case UIKeyboardHidUsage.KeyboardOpenBracket:
+                    return Key.BracketLeft;
+
+                case UIKeyboardHidUsage.KeyboardCloseBracket:
+                    return Key.BracketRight;
+
+                case UIKeyboardHidUsage.KeyboardBackslash:
+                    return Key.BackSlash;
+
+                case UIKeyboardHidUsage.KeyboardSemicolon:
+                    return Key.Semicolon;
+
+                case UIKeyboardHidUsage.KeyboardQuote:
+                    return Key.Quote;
+
+                case UIKeyboardHidUsage.KeyboardGraveAccentAndTilde:
+                    return Key.Tilde;
+
+                case UIKeyboardHidUsage.KeyboardComma:
+                    return Key.Comma;
+
+                case UIKeyboardHidUsage.KeyboardPeriod:
+                    return Key.Period;
+
+                case UIKeyboardHidUsage.KeyboardSlash:
+                    return Key.Slash;
+
+                case UIKeyboardHidUsage.KeyboardCapsLock:
+                    return Key.CapsLock;
+
+                case UIKeyboardHidUsage.KeyboardF1:
+                    return Key.F1;
+
+                case UIKeyboardHidUsage.KeyboardF2:
+                    return Key.F2;
+
+                case UIKeyboardHidUsage.KeyboardF3:
+                    return Key.F3;
+
+                case UIKeyboardHidUsage.KeyboardF4:
+                    return Key.F4;
+
+                case UIKeyboardHidUsage.KeyboardF5:
+                    return Key.F5;
+
+                case UIKeyboardHidUsage.KeyboardF6:
+                    return Key.F6;
+
+                case UIKeyboardHidUsage.KeyboardF7:
+                    return Key.F7;
+
+                case UIKeyboardHidUsage.KeyboardF8:
+                    return Key.F8;
+
+                case UIKeyboardHidUsage.KeyboardF9:
+                    return Key.F9;
+
+                case UIKeyboardHidUsage.KeyboardF10:
+                    return Key.F10;
+
+                case UIKeyboardHidUsage.KeyboardF11:
+                    return Key.F11;
+
+                case UIKeyboardHidUsage.KeyboardF12:
+                    return Key.F12;
+
+                // case UIKeyboardHidUsage.KeyboardPrintScreen:
+                //     return Key.PrintScreen;
+                //
+                // case UIKeyboardHidUsage.KeyboardScrollLock:
+                //     return Key.ScrollLock;
+                //
+                // case UIKeyboardHidUsage.KeyboardPause:
+                //     return Key.Pause;
+                //
+                // case UIKeyboardHidUsage.KeyboardInsert:
+                //     return Key.Insert;
+
+                case UIKeyboardHidUsage.KeyboardHome:
+                    return Key.Home;
+
+                case UIKeyboardHidUsage.KeyboardPageUp:
+                    return Key.PageUp;
+
+                case UIKeyboardHidUsage.KeyboardDeleteForward:
+                    return Key.Delete;
+
+                case UIKeyboardHidUsage.KeyboardEnd:
+                    return Key.End;
+
+                case UIKeyboardHidUsage.KeyboardPageDown:
+                    return Key.PageDown;
+
+                case UIKeyboardHidUsage.KeyboardRightArrow:
+                    return Key.Right;
+
+                case UIKeyboardHidUsage.KeyboardLeftArrow:
+                    return Key.Left;
+
+                case UIKeyboardHidUsage.KeyboardDownArrow:
+                    return Key.Down;
+
+                case UIKeyboardHidUsage.KeyboardUpArrow:
+                    return Key.Up;
+
+                case UIKeyboardHidUsage.KeypadNumLock:
+                    return Key.NumLock;
+
+                case UIKeyboardHidUsage.KeypadSlash:
+                    return Key.KeypadDivide;
+
+                case UIKeyboardHidUsage.KeypadAsterisk:
+                    return Key.KeypadMultiply;
+
+                case UIKeyboardHidUsage.KeypadHyphen:
+                    return Key.KeypadMinus;
+
+                case UIKeyboardHidUsage.KeypadPlus:
+                    return Key.KeypadPlus;
+
+                case UIKeyboardHidUsage.KeypadEnter:
+                    return Key.KeypadEnter;
+
+                case UIKeyboardHidUsage.Keypad1:
+                    return Key.Keypad1;
+
+                case UIKeyboardHidUsage.Keypad2:
+                    return Key.Keypad2;
+
+                case UIKeyboardHidUsage.Keypad3:
+                    return Key.Keypad3;
+
+                case UIKeyboardHidUsage.Keypad4:
+                    return Key.Keypad4;
+
+                case UIKeyboardHidUsage.Keypad5:
+                    return Key.Keypad5;
+
+                case UIKeyboardHidUsage.Keypad6:
+                    return Key.Keypad6;
+
+                case UIKeyboardHidUsage.Keypad7:
+                    return Key.Keypad7;
+
+                case UIKeyboardHidUsage.Keypad8:
+                    return Key.Keypad8;
+
+                case UIKeyboardHidUsage.Keypad9:
+                    return Key.Keypad9;
+
+                case UIKeyboardHidUsage.Keypad0:
+                    return Key.Keypad0;
+
+                case UIKeyboardHidUsage.KeypadPeriod:
+                    return Key.KeypadPeriod;
+
+                case UIKeyboardHidUsage.KeyboardNonUSBackslash:
+                    return Key.NonUSBackSlash;
+
+                case UIKeyboardHidUsage.KeyboardApplication:
+                    return Key.Menu;
+
+                case UIKeyboardHidUsage.KeyboardF13:
+                    return Key.PrintScreen;
+                    // return Key.F13;
+
+                case UIKeyboardHidUsage.KeyboardF14:
+                    return Key.ScrollLock;
+                    // return Key.F14;
+
+                case UIKeyboardHidUsage.KeyboardF15:
+                    return Key.Pause;
+                    // return Key.F15;
+
+                case UIKeyboardHidUsage.KeyboardF16:
+                    return Key.F16;
+
+                case UIKeyboardHidUsage.KeyboardF17:
+                    return Key.F17;
+
+                case UIKeyboardHidUsage.KeyboardF18:
+                    return Key.F18;
+
+                case UIKeyboardHidUsage.KeyboardF19:
+                    return Key.F19;
+
+                case UIKeyboardHidUsage.KeyboardF20:
+                    return Key.F20;
+
+                case UIKeyboardHidUsage.KeyboardF21:
+                    return Key.F21;
+
+                case UIKeyboardHidUsage.KeyboardF22:
+                    return Key.F22;
+
+                case UIKeyboardHidUsage.KeyboardF23:
+                    return Key.F23;
+
+                case UIKeyboardHidUsage.KeyboardF24:
+                    return Key.F24;
+
+                // todo: is it actually expected for the help key to become insert..?
+                case UIKeyboardHidUsage.KeyboardHelp:
+                    return Key.Insert;
+
+                // case UIKeyboardHidUsage.KeyboardMenu:
+                //     return Key.Menu;
+
+                case UIKeyboardHidUsage.KeyboardClear:
+                    return Key.Clear;
+
+                case UIKeyboardHidUsage.KeyboardLeftControl:
+                    return Key.ControlLeft;
+
+                case UIKeyboardHidUsage.KeyboardLeftShift:
+                    return Key.ShiftLeft;
+
+                case UIKeyboardHidUsage.KeyboardLeftAlt:
+                    return Key.AltLeft;
+
+                case UIKeyboardHidUsage.KeyboardLeftGui:
+                    return Key.WinLeft;
+
+                case UIKeyboardHidUsage.KeyboardRightControl:
+                    return Key.ControlRight;
+
+                case UIKeyboardHidUsage.KeyboardRightShift:
+                    return Key.ShiftRight;
+
+                case UIKeyboardHidUsage.KeyboardRightAlt:
+                    return Key.AltRight;
+
+                case UIKeyboardHidUsage.KeyboardRightGui:
+                    return Key.WinRight;
+
+                default:
+                    return Key.Unknown;
+            }
+        }
     }
 }
