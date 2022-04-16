@@ -1,10 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
+using CoreGraphics;
 using Foundation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
@@ -49,9 +48,9 @@ namespace osu.Framework.iOS
             if (notification.UserInfo == null) return;
 
             NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
-            RectangleF keyboardFrame = nsKeyboardFrame.RectangleFValue;
+            CGRect keyboardFrame = gameView.ConvertRectFromView(nsKeyboardFrame.CGRectValue, gameView.Window);
 
-            bool softwareKeyboard = keyboardFrame.Height > 120;
+            bool softwareKeyboard = gameView.Frame.Height - keyboardFrame.Y >= 120;
 
             if (keyboardHandler != null)
                 keyboardHandler.KeyboardActive = softwareKeyboard;
