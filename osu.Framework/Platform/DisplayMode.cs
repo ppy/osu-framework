@@ -31,25 +31,19 @@ namespace osu.Framework.Platform
         public readonly int RefreshRate;
 
         /// <summary>
-        /// The index of the display mode as determined by the windowing backend.
-        /// </summary>
-        public readonly int Index;
-
-        /// <summary>
         /// The index of the display this mode belongs to as determined by the windowing backend.
         /// </summary>
         public readonly int DisplayIndex;
 
-        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate, int index, int displayIndex)
+        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate, int displayIndex)
         {
             Format = format ?? "Unknown";
             Size = size;
             BitsPerPixel = bitsPerPixel;
             RefreshRate = refreshRate;
-            Index = index;
             DisplayIndex = displayIndex;
         }
 
-        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}, Index: {Index}, DisplayIndex: {DisplayIndex}";
+        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}, DisplayIndex: {DisplayIndex}";
     }
 }

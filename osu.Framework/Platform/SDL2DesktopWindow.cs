@@ -1133,7 +1133,7 @@ namespace osu.Framework.Platform
                 {
                     if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                     {
-                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex, -1);
+                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
                         Logger.Log($"Updated display mode (from fullscreen) to: {currentDisplayMode.Value}");
                         return true;
                     }
@@ -1145,7 +1145,7 @@ namespace osu.Framework.Platform
                 {
                     if (SDL.SDL_GetCurrentDisplayMode(localIndex, out var mode) >= 0)
                     {
-                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex, -1);
+                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
                         Logger.Log($"Updated display mode (from desktop) to: {currentDisplayMode.Value}");
                         return true;
                     }
@@ -1423,7 +1423,7 @@ namespace osu.Framework.Platform
                                          .Select(modeIndex =>
                                          {
                                              SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return mode.ToDisplayMode(displayIndex, modeIndex);
+                                             return mode.ToDisplayMode(displayIndex);
                                          })
                                          .ToArray();
 

@@ -1013,10 +1013,10 @@ namespace osu.Framework.Platform.SDL2
             return true;
         }
 
-        public static DisplayMode ToDisplayMode(this SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
+        public static DisplayMode ToDisplayMode(this SDL.SDL_DisplayMode mode, int displayIndex)
         {
             SDL.SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
+            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
     }
 }
