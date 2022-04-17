@@ -27,11 +27,6 @@ namespace osu.Framework.Graphics.Batches
         internal long InvalidationID;
 
         /// <summary>
-        /// The VBO in which this <see cref="VertexGroup{TVertex}"/> last had its vertices placed.
-        /// </summary>
-        internal int VboId;
-
-        /// <summary>
         /// The index inside the <see cref="VertexBatch{T}"/> where this <see cref="VertexGroup{TVertex}"/> last had its vertices placed.
         /// </summary>
         internal int StartIndex;
