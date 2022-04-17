@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            using (var usage = halfCircleBatch.BeginVertices(this, vertices))
+            using (var usage = halfCircleBatch.BeginUsage(this, vertices))
             {
                 // First center point
                 usage.Add(new TexturedVertex2D

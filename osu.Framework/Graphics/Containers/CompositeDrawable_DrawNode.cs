@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Containers
 
                 base.Draw(localDrawState);
 
-                using (var usage = localDrawState.BeginQuads(this, edgeEffectVertices))
+                using (var usage = localDrawState.BeginUsage(this, edgeEffectVertices))
                     drawEdgeEffect(usage);
 
                 if (maskingInfo != null)

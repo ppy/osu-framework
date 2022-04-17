@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader.Bind();
 
-            using (var usage = drawState.BeginQuads(this, vertices))
+            using (var usage = drawState.BeginUsage(this, vertices))
                 Blit(usage);
 
             Shader.Unbind();
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureShader.Bind();
 
-            using (var usage = drawState.BeginQuads(this, opaqueVertices))
+            using (var usage = drawState.BeginUsage(this, opaqueVertices))
                 BlitOpaqueInterior(usage);
 
             TextureShader.Unbind();

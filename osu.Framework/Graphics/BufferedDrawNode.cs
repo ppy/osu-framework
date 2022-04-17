@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics
                     }
 
                     // The framebuffers are only drawn to while not cached, so a group separate from the final group is required for this intermediate use.
-                    using (var usage = drawState.BeginQuads(this, intermediateVertices))
+                    using (var usage = drawState.BeginUsage(this, intermediateVertices))
                         PopulateContents(usage);
                 }
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics
 
             base.Draw(drawState);
 
-            using (var usage = drawState.BeginQuads(this, finalVertices))
+            using (var usage = drawState.BeginUsage(this, finalVertices))
                 DrawContents(usage);
 
             Shader.Unbind();

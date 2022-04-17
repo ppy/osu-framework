@@ -37,8 +37,8 @@ namespace osu.Framework.Graphics
         /// <returns>A usage of the <see cref="VertexGroup{TVertex}"/>.</returns>
         /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
         /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
-        public VertexGroupUsage<TexturedVertex2D> BeginQuads(DrawNode drawNode, VertexGroup<TexturedVertex2D> vertices)
-            => quadBatch.BeginVertices(drawNode, vertices);
+        public VertexGroupUsage<TexturedVertex2D> BeginUsage(DrawNode drawNode, VertexGroup<TexturedVertex2D> vertices)
+            => quadBatch.BeginUsage(drawNode, vertices);
 
         /// <summary>
         /// Creates a new <see cref="DrawState"/> with a given quad batch.

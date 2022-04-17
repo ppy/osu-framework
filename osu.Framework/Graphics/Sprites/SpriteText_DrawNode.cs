@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(drawState);
 
-                using (var usage = drawState.BeginQuads(this, vertices))
+                using (var usage = drawState.BeginUsage(this, vertices))
                 {
                     Shader.Bind();
 
