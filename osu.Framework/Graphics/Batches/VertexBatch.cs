@@ -153,12 +153,12 @@ namespace osu.Framework.Graphics.Batches
         /// <summary>
         /// Begins a grouping of vertices.
         /// </summary>
-        /// <param name="node">The owner of the vertices.</param>
+        /// <param name="drawNode">The owner of the vertices.</param>
         /// <param name="vertices">The grouping of vertices.</param>
         /// <returns>A usage of the <see cref="VertexGroup{TVertex}"/>.</returns>
         /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
         /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
-        public VertexGroupUsage<TInput> BeginVertices<TInput>(DrawNode node, VertexGroup<TInput, T> vertices)
+        public VertexGroupUsage<TInput> BeginVertices<TInput>(DrawNode drawNode, VertexGroup<TInput, T> vertices)
             where TInput : struct, IEquatable<TInput>, IVertex
         {
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
@@ -178,18 +178,18 @@ namespace osu.Framework.Graphics.Batches
                 // If this is a new usage or has been moved to a new batch.
                 vertices.Batch != this
                 // Or the DrawNode was newly invalidated.
-                || vertices.InvalidationID != node.InvalidationID
+                || vertices.InvalidationID != drawNode.InvalidationID
                 // Or another DrawNode was inserted (and drew vertices) before this one.
                 || vertices.StartIndex != rollingVertexIndex
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have temporarily overwritten the vertices of this one in the batch.
                 || frameIndex - vertices.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
-                || node.DrawDepth != vertices.DrawDepth;
+                || drawNode.DrawDepth != vertices.DrawDepth;
 
             vertices.Batch = this;
-            vertices.InvalidationID = node.InvalidationID;
+            vertices.InvalidationID = drawNode.InvalidationID;
             vertices.StartIndex = rollingVertexIndex;
-            vertices.DrawDepth = node.DrawDepth;
+            vertices.DrawDepth = drawNode.DrawDepth;
             vertices.FrameIndex = frameIndex;
 
             return new VertexGroupUsage<TInput>(this, vertices, uploadRequired);
