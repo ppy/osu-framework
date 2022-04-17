@@ -125,13 +125,14 @@ namespace osu.Framework.Tests.Visual.Platform
                 case WindowMode.Fullscreen:
                     AddStep("change to fullscreen", () => configWindowMode.Value = WindowMode.Fullscreen);
 
-                    setFullscreenResolution(9999, 9999);
+                    setFullscreenResolution(new Size(9999, 9999));
                     checkDisplayModeSanity(false); // importantly, at default fullscreen resolution, it should match the desktop resolution.
 
-                    setFullscreenResolution(1920, 1080);
+                    // reload (Ctrl+R) the test if testing on another display.
+                    setFullscreenResolution(currentDisplay.FindDisplayMode(new Size(1920, 1080)).Size);
                     checkDisplayModeSanity(true);
 
-                    setFullscreenResolution(1280, 720);
+                    setFullscreenResolution(currentDisplay.FindDisplayMode(new Size(1280, 720)).Size);
                     checkDisplayModeSanity(true);
                     break;
             }
@@ -156,9 +157,9 @@ namespace osu.Framework.Tests.Visual.Platform
             AddAssert("Size matches actual display resolution", () => displayMode.Size == window.Displays.ElementAt(displayMode.DisplayIndex).Bounds.Size);
         }
 
-        private void setFullscreenResolution(int w, int h)
+        private void setFullscreenResolution(Size resolution)
         {
-            AddStep($"set fullscreen to {w}x{h}", () => configSizeFullscreen.Value = new Size(w, h));
+            AddStep($"set fullscreen to {resolution.Width}x{resolution.Height}", () => configSizeFullscreen.Value = resolution);
             AddWaitStep("wait for resolution change", 5);
         }
 
