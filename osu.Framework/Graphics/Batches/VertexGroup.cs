@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Batches
         /// <summary>
         /// The <see cref="VertexBatch{T}"/> to which this group's vertices were last added.
         /// </summary>
-        internal VertexBatch<TOutput>? Batch { get; set; }
+        internal VertexBatch<TOutput>? Batch;
 
         /// <summary>
         /// The <see cref="DrawNode"/> invalidation ID when this group was last used.
