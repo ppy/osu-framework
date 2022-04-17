@@ -1,9 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Graphics.Batches.Internal;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -70,56 +73,56 @@ namespace osu.Framework.Graphics.Batches
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
-        internal bool GroupInUse;
+        private bool groupInUse;
         private int drawStart;
         private int drawCount;
 
-        /// <summary>
-        /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
-        /// </summary>
-        /// <param name="group">The vertex group.</param>
-        /// <param name="vertex">The vertex to add.</param>
-        internal void AddVertex(VertexGroup<T> group, T vertex)
+        void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex)
         {
-            if (group.UploadRequired)
-            {
-                ensureHasBufferSpace();
-                currentVertexBuffer.EnqueueVertex(drawStart + drawCount, vertex);
-            }
+            ensureHasBufferSpace();
+            currentVertexBuffer.EnqueueVertex(drawStart + drawCount, vertices.Transform<TInput, T>(vertex));
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            if (!GetCurrentVertex().Equals(vertex))
-            {
-                if (group.UploadRequired)
-                {
-                    // This is non-fatal and is generally caused by NaN values in vertices.
-                    throw new InvalidOperationException("Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
-                }
-
-                // This is fatal but should be approximately asserted to never happen via the heuristics in BeginGroup().
-                throw new InvalidOperationException("Vertex addition was skipped, but the contained vertex differs.");
-            }
+            EnsureCurrentVertex(vertices.Transform<TInput, T>(vertex), "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
 #endif
 
-            Advance(1);
+            advance(1);
         }
 
-        /// <summary>
-        /// Advances the vertex counter.
-        /// </summary>
-        internal void Advance(int count)
+        void IVertexBatch.Advance(int count) => advance(count);
+
+        void IVertexBatch.UsageStarted() => groupInUse = true;
+
+        void IVertexBatch.UsageFinished() => groupInUse = false;
+
+        private void advance(int count)
         {
             drawCount += count;
             rollingVertexIndex += count;
         }
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-        internal T GetCurrentVertex()
+        public void EnsureCurrentVertex<TVertex>(TVertex vertex, string failureMessage)
+            where TVertex : struct, IEquatable<TVertex>, IVertex
         {
             ensureHasBufferSpace();
-            return VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex;
+
+            if (!VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex.Equals((T)(object)vertex))
+                throw new InvalidOperationException(failureMessage);
         }
 #endif
+
+        private void ensureHasBufferSpace()
+        {
+            if (VertexBuffers.Count > currentBufferIndex && drawStart + drawCount >= currentVertexBuffer.Size)
+            {
+                Draw();
+                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
+            }
+
+            while (currentBufferIndex >= VertexBuffers.Count)
+                VertexBuffers.Add(CreateVertexBuffer());
+        }
 
         public int Draw()
         {
@@ -147,18 +150,6 @@ namespace osu.Framework.Graphics.Batches
             return count;
         }
 
-        private void ensureHasBufferSpace()
-        {
-            if (VertexBuffers.Count > currentBufferIndex && drawStart + drawCount >= currentVertexBuffer.Size)
-            {
-                Draw();
-                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
-            }
-
-            while (currentBufferIndex >= VertexBuffers.Count)
-                VertexBuffers.Add(CreateVertexBuffer());
-        }
-
         /// <summary>
         /// Begins a grouping of vertices.
         /// </summary>
@@ -167,7 +158,8 @@ namespace osu.Framework.Graphics.Batches
         /// <returns>A usage of the <see cref="VertexGroup{TVertex}"/>.</returns>
         /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
         /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
-        public VertexGroupUsage<T> BeginVertices(DrawNode node, VertexGroup<T> vertices)
+        public VertexGroupUsage<TInput> BeginVertices<TInput>(DrawNode node, VertexGroup<TInput, T> vertices)
+            where TInput : struct, IEquatable<TInput>, IVertex
         {
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
@@ -176,7 +168,7 @@ namespace osu.Framework.Graphics.Batches
                 throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
 
             // Disallow nested usages.
-            if (GroupInUse)
+            if (groupInUse)
                 throw new InvalidOperationException($"Nesting of {nameof(VertexGroup<T>)}s is not allowed.");
 
             GLWrapper.SetActiveBatch(this);
@@ -199,9 +191,8 @@ namespace osu.Framework.Graphics.Batches
             vertices.StartIndex = rollingVertexIndex;
             vertices.DrawDepth = node.DrawDepth;
             vertices.FrameIndex = frameIndex;
-            vertices.UploadRequired = uploadRequired;
 
-            return new VertexGroupUsage<T>(this);
+            return new VertexGroupUsage<TInput>(this, vertices, uploadRequired);
         }
     }
 }

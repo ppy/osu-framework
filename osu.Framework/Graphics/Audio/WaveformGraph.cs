@@ -306,7 +306,7 @@ namespace osu.Framework.Graphics.Audio
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
-                using (vertexBatch.BeginVertices(this, vertices))
+                using (var usage = vertexBatch.BeginVertices(this, vertices))
                 {
                     shader.Bind();
                     texture.TextureGL.Bind();
@@ -375,7 +375,7 @@ namespace osu.Framework.Graphics.Audio
                         quadToDraw *= DrawInfo.Matrix;
 
                         if (quadToDraw.Size.X != 0 && quadToDraw.Size.Y != 0)
-                            DrawQuad(vertices, texture, quadToDraw, finalColour, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                            DrawQuad(usage, texture, quadToDraw, finalColour, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                     }
 
                     shader.Unbind();

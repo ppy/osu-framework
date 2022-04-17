@@ -1,7 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
+using System.Diagnostics;
+using osu.Framework.Graphics.Batches.Internal;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
@@ -12,54 +16,70 @@ namespace osu.Framework.Graphics.Batches
     /// <remarks>
     /// Ensure to store this object in the <see cref="DrawNode"/>.
     /// </remarks>
-    /// <typeparam name="TVertex">The vertex type.</typeparam>
-    public class VertexGroup<TVertex> : IVertexGroup<TVertex>
+    /// <typeparam name="TVertex">The input/output vertex type.</typeparam>
+    public class VertexGroup<TVertex> : VertexGroup<TVertex, TVertex>
         where TVertex : struct, IEquatable<TVertex>, IVertex
     {
+        public VertexGroup()
+            : base(v => v)
+        {
+        }
+    }
+
+    /// <summary>
+    /// A grouping of vertices in a <see cref="DrawNode"/> where the incoming vertices need to be converted in order to be added to the group.
+    /// </summary>
+    /// <remarks>
+    /// Ensure to store this object in the <see cref="DrawNode"/>.
+    /// </remarks>
+    /// <typeparam name="TInput">The input vertex type.</typeparam>
+    /// <typeparam name="TOutput">The output vertex type.</typeparam>
+    public class VertexGroup<TInput, TOutput> : IVertexGroup
+        where TInput : struct, IEquatable<TInput>, IVertex
+        where TOutput : struct, IEquatable<TOutput>, IVertex
+    {
         /// <summary>
-        /// The <see cref="VertexBatch{T}"/> where vertices are to be added.
+        /// The <see cref="VertexBatch{T}"/> to which this group's vertices were last added.
         /// </summary>
-        internal VertexBatch<TVertex> Batch;
+        internal VertexBatch<TOutput>? Batch { get; set; }
 
         /// <summary>
-        /// The <see cref="DrawNode"/> invalidation ID when this <see cref="VertexGroup{TVertex}"/> was last used.
+        /// The <see cref="DrawNode"/> invalidation ID when this group was last used.
         /// </summary>
         internal long InvalidationID;
 
         /// <summary>
-        /// The index inside the <see cref="VertexBatch{T}"/> where this <see cref="VertexGroup{TVertex}"/> last had its vertices placed.
+        /// The index inside the <see cref="VertexBatch{T}"/> where this group last had its vertices placed.
         /// </summary>
         internal int StartIndex;
 
         /// <summary>
-        /// The <see cref="DrawNode"/> draw depth when this <see cref="VertexGroup{TVertex}"/> was last used.
+        /// The <see cref="DrawNode"/> draw depth when this group was last used.
         /// </summary>
         internal float DrawDepth;
 
         /// <summary>
-        /// The draw frame when this <see cref="VertexGroup{TVertex}"/> was last used.
+        /// The draw frame when this group was last used.
         /// </summary>
         internal ulong FrameIndex;
 
+        private readonly Func<TInput, TOutput> transformer;
+
         /// <summary>
-        /// Whether this <see cref="VertexGroup{TVertex}"/> needs to upload vertices to the <see cref="Batch"/>.
-        /// If <c>false</c>, uploads will be omitted either automatically via <see cref="Add"/> or more aggressively via manual calls to <see cref="TrySkip"/>.
+        /// Creates a new <see cref="VertexGroup{TVertex}"/>.
         /// </summary>
-        internal bool UploadRequired;
-
-        public void Add(TVertex vertex) => Batch.AddVertex(this, vertex);
-
-        public bool TrySkip(int count)
+        /// <param name="transformer">A function which transforms a given vertex to one compatible with this group.</param>
+        public VertexGroup(Func<TInput, TOutput> transformer)
         {
-#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            return false;
-#else
-            if (UploadRequired)
-                return false;
+            this.transformer = transformer;
+        }
 
-            Batch.Advance(count);
-            return true;
-#endif
+        TTransformOutput IVertexGroup.Transform<TTransformInput, TTransformOutput>(TTransformInput vertex)
+        {
+            Debug.Assert(typeof(TTransformInput) == typeof(TInput));
+            Debug.Assert(typeof(TTransformOutput) == typeof(TOutput));
+
+            return (TTransformOutput)(object)transformer((TInput)(object)vertex);
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Development;
-using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Batches.Internal;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;

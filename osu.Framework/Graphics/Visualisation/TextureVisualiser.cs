@@ -226,7 +226,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Source.lastBindCount = texture.BindCount;
                 }
 
-                protected override void Blit(VertexGroup<TexturedVertex2D> vertices)
+                protected override void Blit(in VertexGroupUsage<TexturedVertex2D> usage)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -234,12 +234,12 @@ namespace osu.Framework.Graphics.Visualisation
                     const float border_width = 4;
 
                     // border
-                    DrawQuad(vertices, Texture, ScreenSpaceDrawQuad, drawColour);
+                    DrawQuad(usage, Texture, ScreenSpaceDrawQuad, drawColour);
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // background
-                    DrawQuad(vertices, Texture, shrunkenQuad, Color4.Black);
+                    DrawQuad(usage, Texture, shrunkenQuad, Color4.Black);
 
                     float aspect = (float)texture.Width / texture.Height;
 
@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                     // texture
                     texture.Bind();
-                    DrawQuad(vertices, texture, shrunkenQuad, Color4.White);
+                    DrawQuad(usage, texture, shrunkenQuad, Color4.White);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

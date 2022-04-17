@@ -256,10 +256,10 @@ namespace osu.Framework.Graphics.UserInterface
                         hue = Source.hue;
                     }
 
-                    protected override void Blit(VertexGroup<TexturedVertex2D> vertices)
+                    protected override void Blit(in VertexGroupUsage<TexturedVertex2D> usage)
                     {
                         Shader.GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(vertices);
+                        base.Blit(usage);
                     }
                 }
             }

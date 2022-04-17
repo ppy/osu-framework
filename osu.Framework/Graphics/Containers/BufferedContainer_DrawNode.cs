@@ -63,38 +63,38 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void PopulateContents(VertexGroup<TexturedVertex2D> vertices)
+            protected override void PopulateContents(in VertexGroupUsage<TexturedVertex2D> usage)
             {
-                base.PopulateContents(vertices);
+                base.PopulateContents(usage);
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
                     GLWrapper.PushScissorState(false);
 
-                    if (blurRadius.X > 0) drawBlurredFrameBuffer(vertices, blurRadius.X, blurSigma.X, blurRotation);
-                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(vertices, blurRadius.Y, blurSigma.Y, blurRotation + 90);
+                    if (blurRadius.X > 0) drawBlurredFrameBuffer(usage, blurRadius.X, blurSigma.X, blurRotation);
+                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(usage, blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
                     GLWrapper.PopScissorState();
                 }
             }
 
-            protected override void DrawContents(VertexGroup<TexturedVertex2D> vertices)
+            protected override void DrawContents(in VertexGroupUsage<TexturedVertex2D> usage)
             {
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                    base.DrawContents(vertices);
+                    base.DrawContents(usage);
 
                 GLWrapper.SetBlend(effectBlending);
 
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                DrawFrameBuffer(vertices, SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
+                DrawFrameBuffer(usage, SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                    base.DrawContents(vertices);
+                    base.DrawContents(usage);
             }
 
-            private void drawBlurredFrameBuffer(VertexGroup<TexturedVertex2D> vertices, int kernelRadius, float sigma, float blurRotation)
+            private void drawBlurredFrameBuffer(in VertexGroupUsage<TexturedVertex2D> usage, int kernelRadius, float sigma, float blurRotation)
             {
                 FrameBuffer current = SharedData.CurrentEffectBuffer;
                 FrameBuffer target = SharedData.GetNextEffectBuffer();
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
 
                     blurShader.Bind();
 
-                    DrawFrameBuffer(vertices, current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                    DrawFrameBuffer(usage, current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
 
                     blurShader.Unbind();
                 }

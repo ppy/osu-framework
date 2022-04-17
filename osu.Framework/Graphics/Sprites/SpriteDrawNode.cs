@@ -57,25 +57,25 @@ namespace osu.Framework.Graphics.Sprites
                 ConservativeScreenSpaceDrawQuad = Source.ConservativeScreenSpaceDrawQuad;
         }
 
-        protected virtual void Blit(VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void Blit(in VertexGroupUsage<TexturedVertex2D> usage)
         {
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            DrawQuad(vertices, Texture,
+            DrawQuad(usage, Texture,
                 ScreenSpaceDrawQuad,
                 DrawColourInfo.Colour, null, new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), null, TextureCoords);
         }
 
-        protected virtual void BlitOpaqueInterior(VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void BlitOpaqueInterior(in VertexGroupUsage<TexturedVertex2D> usage)
         {
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
             if (GLWrapper.IsMaskingActive)
-                DrawClipped(opaqueVertices, ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
+                DrawClipped(usage, ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
             else
-                DrawQuad(opaqueVertices, Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
+                DrawQuad(usage, Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
         public override void Draw(in DrawState drawState)
@@ -87,8 +87,8 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader.Bind();
 
-            using (drawState.BeginQuads(this, vertices))
-                Blit(vertices);
+            using (var usage = drawState.BeginQuads(this, vertices))
+                Blit(usage);
 
             Shader.Unbind();
         }
@@ -104,8 +104,8 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureShader.Bind();
 
-            using (drawState.BeginQuads(this, opaqueVertices))
-                BlitOpaqueInterior(opaqueVertices);
+            using (var usage = drawState.BeginQuads(this, opaqueVertices))
+                BlitOpaqueInterior(usage);
 
             TextureShader.Unbind();
         }

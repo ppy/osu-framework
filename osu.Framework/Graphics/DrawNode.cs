@@ -155,10 +155,11 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawTriangle<TVertexGroup>(TVertexGroup vertices, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                                  Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
-            => texture.DrawTriangle(vertices, vertexTriangle, drawColour, textureRect, inflationPercentage, textureCoords);
+        protected void DrawTriangle(in VertexGroupUsage<TexturedVertex2D> vertices, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
+                                    Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+        {
+            texture.DrawTriangle(vertices, vertexTriangle, drawColour, textureRect, inflationPercentage, textureCoords);
+        }
 
         /// <summary>
         /// Draws a triangle to the screen.
@@ -171,10 +172,11 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawTriangle<TVertexGroup>(TVertexGroup vertices, TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                                  Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
-            => texture.DrawTriangle(vertices, vertexTriangle, drawColour, textureRect, inflationPercentage, textureCoords);
+        protected void DrawTriangle(in VertexGroupUsage<TexturedVertex2D> vertices, TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
+                                    Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+        {
+            texture.DrawTriangle(vertices, vertexTriangle, drawColour, textureRect, inflationPercentage, textureCoords);
+        }
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -188,10 +190,11 @@ namespace osu.Framework.Graphics
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawQuad<TVertexGroup>(TVertexGroup vertices, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
-                                              Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
-            => texture.DrawQuad(vertices, vertexQuad, drawColour, textureRect, inflationPercentage, blendRangeOverride, textureCoords);
+        protected void DrawQuad(in VertexGroupUsage<TexturedVertex2D> vertices, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
+                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        {
+            texture.DrawQuad(vertices, vertexQuad, drawColour, textureRect, inflationPercentage, blendRangeOverride, textureCoords);
+        }
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -205,10 +208,11 @@ namespace osu.Framework.Graphics
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawQuad<TVertexGroup>(TVertexGroup vertices, TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
-                                              Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
-            => texture.DrawQuad(vertices, vertexQuad, drawColour, textureRect, inflationPercentage, blendRangeOverride, textureCoords);
+        protected void DrawQuad(in VertexGroupUsage<TexturedVertex2D> vertices, TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
+                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        {
+            texture.DrawQuad(vertices, vertexQuad, drawColour, textureRect, inflationPercentage, blendRangeOverride, textureCoords);
+        }
 
         /// <summary>
         /// Clips a <see cref="IConvexPolygon"/> to the current masking area and draws the resulting triangles to the screen using the specified texture.
@@ -221,9 +225,8 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the polygon's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawClipped<TVertexGroup, TPolygon>(TVertexGroup vertices, ref TPolygon polygon, Texture texture, ColourInfo drawColour, RectangleF? textureRect = null,
-                                                           Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
+        protected void DrawClipped<TPolygon>(in VertexGroupUsage<TexturedVertex2D> vertices, ref TPolygon polygon, Texture texture, ColourInfo drawColour,
+                                             RectangleF? textureRect = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where TPolygon : IConvexPolygon
         {
             var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
@@ -247,9 +250,9 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the polygon's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void DrawClipped<TVertexGroup, TPolygon>(TVertexGroup vertices, ref TPolygon polygon, TextureGL texture, ColourInfo drawColour, RectangleF? textureRect = null,
-                                                           Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
+        protected void DrawClipped<TPolygon>(in VertexGroupUsage<TexturedVertex2D> vertices, ref TPolygon polygon, TextureGL texture, ColourInfo drawColour,
+                                             RectangleF? textureRect = null,
+                                             Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where TPolygon : IConvexPolygon
         {
             var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
@@ -271,9 +274,9 @@ namespace osu.Framework.Graphics
         /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
         /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
-        protected void DrawFrameBuffer<TVertexGroup>(TVertexGroup vertices, FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Vector2? inflationPercentage = null,
-                                                     Vector2? blendRangeOverride = null)
-            where TVertexGroup : IVertexGroup<TexturedVertex2D>
+        protected void DrawFrameBuffer(in VertexGroupUsage<TexturedVertex2D> vertices, FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour,
+                                       Vector2? inflationPercentage = null,
+                                       Vector2? blendRangeOverride = null)
         {
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);

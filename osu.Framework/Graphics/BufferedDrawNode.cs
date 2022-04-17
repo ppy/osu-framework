@@ -108,8 +108,8 @@ namespace osu.Framework.Graphics
                     }
 
                     // The framebuffers are only drawn to while not cached, so a group separate from the final group is required for this intermediate use.
-                    using (drawState.BeginQuads(this, intermediateVertices))
-                        PopulateContents(intermediateVertices);
+                    using (var usage = drawState.BeginQuads(this, intermediateVertices))
+                        PopulateContents(usage);
                 }
 
                 SharedData.DrawVersion = GetDrawVersion();
@@ -119,8 +119,8 @@ namespace osu.Framework.Graphics
 
             base.Draw(drawState);
 
-            using (drawState.BeginQuads(this, finalVertices))
-                DrawContents(finalVertices);
+            using (var usage = drawState.BeginQuads(this, finalVertices))
+                DrawContents(usage);
 
             Shader.Unbind();
         }
@@ -129,16 +129,16 @@ namespace osu.Framework.Graphics
         /// Populates the contents of the effect buffers of <see cref="SharedData"/>.
         /// This is invoked after <see cref="Child"/> has been rendered to the main buffer.
         /// </summary>
-        protected virtual void PopulateContents(VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void PopulateContents(in VertexGroupUsage<TexturedVertex2D> usage)
         {
         }
 
         /// <summary>
         /// Draws the applicable effect buffers of <see cref="SharedData"/> to the back buffer.
         /// </summary>
-        protected virtual void DrawContents(VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void DrawContents(in VertexGroupUsage<TexturedVertex2D> usage)
         {
-            DrawFrameBuffer(vertices, SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
+            DrawFrameBuffer(usage, SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
         /// <summary>

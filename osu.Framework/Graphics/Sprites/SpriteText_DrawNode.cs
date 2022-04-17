@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(drawState);
 
-                using (drawState.BeginQuads(this, vertices))
+                using (var usage = drawState.BeginQuads(this, vertices))
                 {
                     Shader.Bind();
 
@@ -68,14 +68,14 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             var shadowQuad = parts[i].DrawQuad;
 
-                            DrawQuad(vertices, parts[i].Texture, new Quad(
+                            DrawQuad(usage, parts[i].Texture, new Quad(
                                 shadowQuad.TopLeft + shadowOffset,
                                 shadowQuad.TopRight + shadowOffset,
                                 shadowQuad.BottomLeft + shadowOffset,
                                 shadowQuad.BottomRight + shadowOffset), finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                         }
 
-                        DrawQuad(vertices, parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
+                        DrawQuad(usage, parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
                     Shader.Unbind();

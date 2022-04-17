@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ImageExtensions;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
@@ -214,8 +215,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_TRIANGLE = 4;
 
-        internal override void DrawTriangle<TVertexGroup>(TVertexGroup vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                                          Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+        internal override void DrawTriangle(in VertexGroupUsage<TexturedVertex2D> vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
@@ -288,8 +289,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public const int VERTICES_PER_QUAD = 4;
 
-        internal override void DrawQuad<TVertexGroup>(TVertexGroup vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Vector2? inflationPercentage = null,
-                                                      Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        internal override void DrawQuad(in VertexGroupUsage<TexturedVertex2D> vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
+                                        Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");

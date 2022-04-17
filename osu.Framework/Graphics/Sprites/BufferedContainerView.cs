@@ -144,21 +144,21 @@ namespace osu.Framework.Graphics.Sprites
 
                 Shader.Bind();
 
-                using (drawState.BeginQuads(this, vertices))
+                using (var usage = drawState.BeginQuads(this, vertices))
                 {
                     if (sourceEffectPlacement == EffectPlacement.InFront)
-                        drawMainBuffer(vertices);
+                        drawMainBuffer(usage);
 
-                    drawEffectBuffer(vertices);
+                    drawEffectBuffer(usage);
 
                     if (sourceEffectPlacement == EffectPlacement.Behind)
-                        drawMainBuffer(vertices);
+                        drawMainBuffer(usage);
                 }
 
                 Shader.Unbind();
             }
 
-            private void drawMainBuffer(VertexGroup<TexturedVertex2D> vertices)
+            private void drawMainBuffer(in VertexGroupUsage<TexturedVertex2D> usage)
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -167,10 +167,10 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(vertices, shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                DrawFrameBuffer(usage, shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
-            private void drawEffectBuffer(VertexGroup<TexturedVertex2D> vertices)
+            private void drawEffectBuffer(in VertexGroupUsage<TexturedVertex2D> usage)
             {
                 if (!shouldDrawEffectBuffer)
                     return;
@@ -179,7 +179,7 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(vertices, shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                DrawFrameBuffer(usage, shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>

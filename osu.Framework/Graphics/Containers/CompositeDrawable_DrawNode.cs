@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
 
             private readonly VertexGroup<TexturedVertex2D> edgeEffectVertices = new VertexGroup<TexturedVertex2D>();
 
-            private void drawEdgeEffect(VertexGroup<TexturedVertex2D> vertices)
+            private void drawEdgeEffect(in VertexGroupUsage<TexturedVertex2D> usage)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                DrawQuad(vertices, Texture.WhitePixel, screenSpaceMaskingQuad.Value,
+                DrawQuad(usage, Texture.WhitePixel, screenSpaceMaskingQuad.Value,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                     // masking blend range when rendering edge effects. This is needed for smooth inner edges
                     // with a hollow edge effect.
@@ -185,8 +185,8 @@ namespace osu.Framework.Graphics.Containers
 
                 base.Draw(localDrawState);
 
-                using (localDrawState.BeginQuads(this, edgeEffectVertices))
-                    drawEdgeEffect(edgeEffectVertices);
+                using (var usage = localDrawState.BeginQuads(this, edgeEffectVertices))
+                    drawEdgeEffect(usage);
 
                 if (maskingInfo != null)
                 {

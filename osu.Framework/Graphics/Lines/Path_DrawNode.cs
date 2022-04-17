@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Lines
                 ? ((SRGBColour)DrawColourInfo.Colour).Linear
                 : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
-            private void addLineCap(VertexGroup<TexturedVertex3D> vertices, Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
+            private void addLineCap(in VertexGroupUsage<TexturedVertex3D> usage, Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
             {
                 const float step = MathF.PI / MAX_RES;
 
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Lines
                 for (int i = 1; i <= amountPoints; i++)
                 {
                     // Center point
-                    vertices.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Lines
                     });
 
                     // First outer point
-                    vertices.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(current.X, current.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics.Lines
                     current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                     // Second outer point
-                    vertices.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(current.X, current.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            private void addLineQuads(VertexGroup<TexturedVertex3D> vertices, Line line, RectangleF texRect)
+            private void addLineQuads(in VertexGroupUsage<TexturedVertex3D> usage, Line line, RectangleF texRect)
             {
                 if (line.Direction == Vector2.Zero)
                     return;
@@ -131,13 +131,13 @@ namespace osu.Framework.Graphics.Lines
                 Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
                 Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
 
-                vertices.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineRight.EndPoint)
                 });
-                vertices.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -154,13 +154,13 @@ namespace osu.Framework.Graphics.Lines
 
                 for (int i = 0; i < 2; ++i)
                 {
-                    vertices.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = firstMiddlePoint,
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                         Colour = firstMiddleColour
                     });
-                    vertices.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = secondMiddlePoint,
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -168,13 +168,13 @@ namespace osu.Framework.Graphics.Lines
                     });
                 }
 
-                vertices.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineLeft.EndPoint)
                 });
-                vertices.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -190,27 +190,27 @@ namespace osu.Framework.Graphics.Lines
                 // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
-                using (halfCircleBatch.BeginVertices(this, halfCircleVertices))
+                using (var usage = halfCircleBatch.BeginVertices(this, halfCircleVertices))
                 {
-                    addLineCap(halfCircleVertices, line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
+                    addLineCap(usage, line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
 
                     for (int i = 1; i < segments.Count; ++i)
                     {
                         Line nextLine = segments[i];
                         float nextTheta = nextLine.Theta;
-                        addLineCap(halfCircleVertices, line.EndPoint, theta, nextTheta - theta, texRect);
+                        addLineCap(usage, line.EndPoint, theta, nextTheta - theta, texRect);
 
                         line = nextLine;
                         theta = nextTheta;
                     }
 
-                    addLineCap(halfCircleVertices, line.EndPoint, theta, MathF.PI, texRect);
+                    addLineCap(usage, line.EndPoint, theta, MathF.PI, texRect);
                 }
 
-                using (quadBatch.BeginVertices(this, quadVertices))
+                using (var usage = quadBatch.BeginVertices(this, quadVertices))
                 {
                     foreach (Line segment in segments)
-                        addLineQuads(quadVertices, segment, texRect);
+                        addLineQuads(usage, segment, texRect);
                 }
             }
 
