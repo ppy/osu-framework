@@ -1131,7 +1131,7 @@ namespace osu.Framework.Platform
                     if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                     {
                         currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
-                        Logger.Log($"Updated display mode to desktop resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
+                        Logger.Log($"Updated display mode to fullscreen resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
                         return true;
                     }
 
