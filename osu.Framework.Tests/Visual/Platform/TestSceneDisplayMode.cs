@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private void checkDisplayModeSanity(bool checkResolutionAgainstFullscreen)
         {
             AddAssert("DisplayIndex matches display", () => displayMode.DisplayIndex == currentDisplay.Index);
-            AddAssert("display has current mode", () => currentDisplay.DisplayModes.Any(mode => modesSimilar(mode, displayMode)));
+            AddAssert("display has current mode", () => currentDisplay.DisplayModes.Any(mode => mode == displayMode));
             AddAssert("mode has valid RefreshRate", () => displayMode.RefreshRate != 0);
 
             if (checkResolutionAgainstFullscreen)
@@ -162,12 +162,5 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep($"set fullscreen to {resolution.Width}x{resolution.Height}", () => configSizeFullscreen.Value = resolution);
             AddWaitStep("wait for resolution change", 5);
         }
-
-        private bool modesSimilar(DisplayMode left, DisplayMode right) =>
-            left.Format == right.Format
-            && left.Size == right.Size
-            && left.BitsPerPixel == right.BitsPerPixel
-            && left.RefreshRate == right.RefreshRate
-            && left.DisplayIndex == right.DisplayIndex;
     }
 }
