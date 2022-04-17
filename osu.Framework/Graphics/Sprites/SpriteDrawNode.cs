@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Sprites
 
         protected Quad ConservativeScreenSpaceDrawQuad;
         private bool hasOpaqueInterior;
-        private VertexGroup<TexturedVertex2D> vertices;
-        private VertexGroup<TexturedVertex2D> opaqueVertices;
+        private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
+        private readonly VertexGroup<TexturedVertex2D> opaqueVertices = new VertexGroup<TexturedVertex2D>();
 
         public SpriteDrawNode(Sprite source)
             : base(source)
@@ -57,25 +57,25 @@ namespace osu.Framework.Graphics.Sprites
                 ConservativeScreenSpaceDrawQuad = Source.ConservativeScreenSpaceDrawQuad;
         }
 
-        protected virtual void Blit(ref VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void Blit(VertexGroup<TexturedVertex2D> vertices)
         {
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            DrawQuad(ref vertices, Texture,
+            DrawQuad(vertices, Texture,
                 ScreenSpaceDrawQuad,
                 DrawColourInfo.Colour, null, new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), null, TextureCoords);
         }
 
-        protected virtual void BlitOpaqueInterior(ref VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void BlitOpaqueInterior(VertexGroup<TexturedVertex2D> vertices)
         {
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
             if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref opaqueVertices, ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
+                DrawClipped(opaqueVertices, ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
             else
-                DrawQuad(ref opaqueVertices, Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
+                DrawQuad(opaqueVertices, Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
         public override void Draw(in DrawState drawState)
@@ -87,8 +87,8 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader.Bind();
 
-            using (drawState.BeginQuads(this, ref vertices))
-                Blit(ref vertices);
+            using (drawState.BeginQuads(this, vertices))
+                Blit(vertices);
 
             Shader.Unbind();
         }
@@ -104,8 +104,8 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureShader.Bind();
 
-            using (drawState.BeginQuads(this, ref opaqueVertices))
-                BlitOpaqueInterior(ref opaqueVertices);
+            using (drawState.BeginQuads(this, opaqueVertices))
+                BlitOpaqueInterior(opaqueVertices);
 
             TextureShader.Unbind();
         }

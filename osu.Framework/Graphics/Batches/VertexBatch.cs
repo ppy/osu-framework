@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         /// <param name="group">The vertex group.</param>
         /// <param name="vertex">The vertex to add.</param>
-        internal void AddVertex(ref VertexGroup<T> group, T vertex)
+        internal void AddVertex(VertexGroup<T> group, T vertex)
         {
             if (group.UploadRequired)
             {
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Batches
         /// <returns>A usage of the <see cref="VertexGroup{TVertex}"/>.</returns>
         /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
         /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
-        public VertexGroupUsage<T> BeginVertices(DrawNode node, ref VertexGroup<T> vertices)
+        public VertexGroupUsage<T> BeginVertices(DrawNode node, VertexGroup<T> vertices)
         {
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
 

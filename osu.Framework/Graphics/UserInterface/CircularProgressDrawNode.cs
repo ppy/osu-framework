@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.UserInterface
             : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
-        private VertexGroup<TexturedVertex2D> vertices;
+        private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
 
         private void updateVertexBuffer()
         {
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            using (halfCircleBatch.BeginVertices(this, ref vertices))
+            using (halfCircleBatch.BeginVertices(this, vertices))
             {
                 // First center point
                 vertices.Add(new TexturedVertex2D

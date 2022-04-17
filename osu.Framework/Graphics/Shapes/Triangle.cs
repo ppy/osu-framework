@@ -42,16 +42,16 @@ namespace osu.Framework.Graphics.Shapes
             {
             }
 
-            protected override void Blit(ref VertexGroup<TexturedVertex2D> vertices)
+            protected override void Blit(VertexGroup<TexturedVertex2D> vertices)
             {
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                DrawTriangle(ref vertices, Texture,
+                DrawTriangle(vertices, Texture,
                     toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
-            protected override void BlitOpaqueInterior(ref VertexGroup<TexturedVertex2D> vertices)
+            protected override void BlitOpaqueInterior(VertexGroup<TexturedVertex2D> vertices)
             {
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
@@ -59,9 +59,9 @@ namespace osu.Framework.Graphics.Shapes
                 var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
                 if (GLWrapper.IsMaskingActive)
-                    DrawClipped(ref vertices, ref triangle, Texture, DrawColourInfo.Colour);
+                    DrawClipped(vertices, ref triangle, Texture, DrawColourInfo.Colour);
                 else
-                    DrawTriangle(ref vertices, Texture, triangle, DrawColourInfo.Colour);
+                    DrawTriangle(vertices, Texture, triangle, DrawColourInfo.Colour);
             }
         }
     }

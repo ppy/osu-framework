@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
@@ -12,23 +11,21 @@ namespace osu.Framework.Graphics.Batches
     /// </summary>
     /// <typeparam name="TFrom">The input vertex type.</typeparam>
     /// <typeparam name="TTo">The output vertex type.</typeparam>
-    public readonly unsafe struct VertexGroupTransformer<TFrom, TTo> : IVertexGroup<TFrom>
+    public class VertexGroupTransformer<TFrom, TTo> : IVertexGroup<TFrom>
         where TFrom : struct, IEquatable<TFrom>, IVertex
         where TTo : struct, IEquatable<TTo>, IVertex
     {
-        private readonly void* target;
+        private readonly VertexGroup<TTo> target;
         private readonly Func<TFrom, TTo> transformer;
 
-        public VertexGroupTransformer(ref VertexGroup<TTo> target, Func<TFrom, TTo> transformer)
+        public VertexGroupTransformer(VertexGroup<TTo> target, Func<TFrom, TTo> transformer)
         {
-            this.target = Unsafe.AsPointer(ref target);
+            this.target = target;
             this.transformer = transformer;
         }
 
-        public void Add(TFrom vertex) => getGroup().Add(transformer(vertex));
+        public void Add(TFrom vertex) => target.Add(transformer(vertex));
 
-        public bool TrySkip(int count) => getGroup().TrySkip(count);
-
-        private ref VertexGroup<TTo> getGroup() => ref Unsafe.AsRef<VertexGroup<TTo>>(target);
+        public bool TrySkip(int count) => target.TrySkip(count);
     }
 }

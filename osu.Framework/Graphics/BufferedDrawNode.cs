@@ -40,8 +40,8 @@ namespace osu.Framework.Graphics
         private Vector2 frameBufferScale;
         private Vector2 frameBufferSize;
         private IDrawable rootNodeCached;
-        private VertexGroup<TexturedVertex2D> intermediateVertices;
-        private VertexGroup<TexturedVertex2D> finalVertices;
+        private readonly VertexGroup<TexturedVertex2D> intermediateVertices = new VertexGroup<TexturedVertex2D>();
+        private readonly VertexGroup<TexturedVertex2D> finalVertices = new VertexGroup<TexturedVertex2D>();
 
         public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
             : base(source)
@@ -108,8 +108,8 @@ namespace osu.Framework.Graphics
                     }
 
                     // The framebuffers are only drawn to while not cached, so a group separate from the final group is required for this intermediate use.
-                    using (drawState.BeginQuads(this, ref intermediateVertices))
-                        PopulateContents(ref intermediateVertices);
+                    using (drawState.BeginQuads(this, intermediateVertices))
+                        PopulateContents(intermediateVertices);
                 }
 
                 SharedData.DrawVersion = GetDrawVersion();
@@ -119,8 +119,8 @@ namespace osu.Framework.Graphics
 
             base.Draw(drawState);
 
-            using (drawState.BeginQuads(this, ref finalVertices))
-                DrawContents(ref finalVertices);
+            using (drawState.BeginQuads(this, finalVertices))
+                DrawContents(finalVertices);
 
             Shader.Unbind();
         }
@@ -129,16 +129,16 @@ namespace osu.Framework.Graphics
         /// Populates the contents of the effect buffers of <see cref="SharedData"/>.
         /// This is invoked after <see cref="Child"/> has been rendered to the main buffer.
         /// </summary>
-        protected virtual void PopulateContents(ref VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void PopulateContents(VertexGroup<TexturedVertex2D> vertices)
         {
         }
 
         /// <summary>
         /// Draws the applicable effect buffers of <see cref="SharedData"/> to the back buffer.
         /// </summary>
-        protected virtual void DrawContents(ref VertexGroup<TexturedVertex2D> vertices)
+        protected virtual void DrawContents(VertexGroup<TexturedVertex2D> vertices)
         {
-            DrawFrameBuffer(ref vertices, SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
+            DrawFrameBuffer(vertices, SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
         /// <summary>

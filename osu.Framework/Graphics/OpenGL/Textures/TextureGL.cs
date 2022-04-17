@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
-        internal abstract void DrawTriangle<TVertexGroup>(ref TVertexGroup vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
+        internal abstract void DrawTriangle<TVertexGroup>(TVertexGroup vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
                                                           Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where TVertexGroup : IVertexGroup<TexturedVertex2D>;
 
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
-        internal abstract void DrawQuad<TVertexGroup>(ref TVertexGroup vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
+        internal abstract void DrawQuad<TVertexGroup>(TVertexGroup vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
                                                       Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
             where TVertexGroup : IVertexGroup<TexturedVertex2D>;
 

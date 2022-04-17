@@ -31,8 +31,8 @@ namespace osu.Framework.Graphics.Lines
             private float radius;
             private IShader pathShader;
 
-            private VertexGroup<TexturedVertex3D> halfCircleVertices;
-            private VertexGroup<TexturedVertex3D> quadVertices;
+            private readonly VertexGroup<TexturedVertex3D> halfCircleVertices = new VertexGroup<TexturedVertex3D>();
+            private readonly VertexGroup<TexturedVertex3D> quadVertices = new VertexGroup<TexturedVertex3D>();
 
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Lines
                 ? ((SRGBColour)DrawColourInfo.Colour).Linear
                 : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
-            private void addLineCap(ref VertexGroup<TexturedVertex3D> vertices, Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
+            private void addLineCap(VertexGroup<TexturedVertex3D> vertices, Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
             {
                 const float step = MathF.PI / MAX_RES;
 
@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            private void addLineQuads(ref VertexGroup<TexturedVertex3D> vertices, Line line, RectangleF texRect)
+            private void addLineQuads(VertexGroup<TexturedVertex3D> vertices, Line line, RectangleF texRect)
             {
                 if (line.Direction == Vector2.Zero)
                     return;
@@ -190,27 +190,27 @@ namespace osu.Framework.Graphics.Lines
                 // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
-                using (halfCircleBatch.BeginVertices(this, ref halfCircleVertices))
+                using (halfCircleBatch.BeginVertices(this, halfCircleVertices))
                 {
-                    addLineCap(ref halfCircleVertices, line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
+                    addLineCap(halfCircleVertices, line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
 
                     for (int i = 1; i < segments.Count; ++i)
                     {
                         Line nextLine = segments[i];
                         float nextTheta = nextLine.Theta;
-                        addLineCap(ref halfCircleVertices, line.EndPoint, theta, nextTheta - theta, texRect);
+                        addLineCap(halfCircleVertices, line.EndPoint, theta, nextTheta - theta, texRect);
 
                         line = nextLine;
                         theta = nextTheta;
                     }
 
-                    addLineCap(ref halfCircleVertices, line.EndPoint, theta, MathF.PI, texRect);
+                    addLineCap(halfCircleVertices, line.EndPoint, theta, MathF.PI, texRect);
                 }
 
-                using (quadBatch.BeginVertices(this, ref quadVertices))
+                using (quadBatch.BeginVertices(this, quadVertices))
                 {
                     foreach (Line segment in segments)
-                        addLineQuads(ref quadVertices, segment, texRect);
+                        addLineQuads(quadVertices, segment, texRect);
                 }
             }
 

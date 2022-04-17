@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Sprites
             private bool shadow;
             private ColourInfo shadowColour;
             private Vector2 shadowOffset;
-            private VertexGroup<TexturedVertex2D> vertices;
+            private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
 
             private readonly List<ScreenSpaceCharacterPart> parts = new List<ScreenSpaceCharacterPart>();
 
@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(drawState);
 
-                using (drawState.BeginQuads(this, ref vertices))
+                using (drawState.BeginQuads(this, vertices))
                 {
                     Shader.Bind();
 
@@ -68,14 +68,14 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             var shadowQuad = parts[i].DrawQuad;
 
-                            DrawQuad(ref vertices, parts[i].Texture, new Quad(
+                            DrawQuad(vertices, parts[i].Texture, new Quad(
                                 shadowQuad.TopLeft + shadowOffset,
                                 shadowQuad.TopRight + shadowOffset,
                                 shadowQuad.BottomLeft + shadowOffset,
                                 shadowQuad.BottomRight + shadowOffset), finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                         }
 
-                        DrawQuad(ref vertices, parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
+                        DrawQuad(vertices, parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
                     Shader.Unbind();
