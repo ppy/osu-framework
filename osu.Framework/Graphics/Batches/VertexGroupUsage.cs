@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Batches
             else
             {
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-                batch.EnsureCurrentVertex(vertex, "Vertex addition was skipped, but the contained vertex differs.");
+                batch.EnsureCurrentVertex(vertices, vertex, "Vertex addition was skipped, but the contained vertex differs.");
 #endif
 
                 batch.Advance(1);

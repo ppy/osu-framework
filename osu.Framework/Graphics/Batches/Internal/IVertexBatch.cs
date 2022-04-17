@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Batches.Internal
         /// <summary>
         /// Ensures that the current vertex matches a given one, and outputs a message if not.
         /// </summary>
-        void EnsureCurrentVertex<T>(T vertex, string failureMessage)
+        void EnsureCurrentVertex<T>(IVertexGroup vertices, T vertex, string failureMessage)
             where T : struct, IEquatable<T>, IVertex;
 #endif
 

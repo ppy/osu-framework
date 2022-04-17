@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Batches
             currentVertexBuffer.EnqueueVertex(drawStart + drawCount, vertices.Transform<TInput, T>(vertex));
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            EnsureCurrentVertex(vertices.Transform<TInput, T>(vertex), "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
+            ((IVertexBatch)this).EnsureCurrentVertex(vertices, vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
 #endif
 
             advance(1);
@@ -102,12 +102,11 @@ namespace osu.Framework.Graphics.Batches
         }
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-        public void EnsureCurrentVertex<TVertex>(TVertex vertex, string failureMessage)
-            where TVertex : struct, IEquatable<TVertex>, IVertex
+        void IVertexBatch.EnsureCurrentVertex<TVertex>(IVertexGroup vertices, TVertex vertex, string failureMessage)
         {
             ensureHasBufferSpace();
 
-            if (!VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex.Equals((T)(object)vertex))
+            if (!VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex.Equals(vertices.Transform<TVertex, T>(vertex)))
                 throw new InvalidOperationException(failureMessage);
         }
 #endif
