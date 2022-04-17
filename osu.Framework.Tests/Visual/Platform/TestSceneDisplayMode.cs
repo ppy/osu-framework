@@ -38,33 +38,40 @@ namespace osu.Framework.Tests.Visual.Platform
 
         public TestSceneDisplayMode()
         {
-            Child = new FillFlowContainer
+            Child = new BasicScrollContainer
             {
-                Padding = new MarginPadding(10),
-                Spacing = new Vector2(10),
-                Children = new Drawable[]
+                RelativeSizeAxes = Axes.Both,
+                Child = new FillFlowContainer
                 {
-                    new SpriteText
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical,
+                    Padding = new MarginPadding(10),
+                    Spacing = new Vector2(10),
+                    Children = new Drawable[]
                     {
-                        Text = "FrameworkConfigManager settings: ",
-                        Font = FrameworkFont.Regular.With(size: 24),
+                        new SpriteText
+                        {
+                            Text = "FrameworkConfigManager settings: ",
+                            Font = FrameworkFont.Regular.With(size: 24),
+                        },
+                        new SpriteText { Current = textConfigSizeFullscreen, Font = FrameworkFont.Condensed },
+                        new SpriteText { Current = textConfigWindowMode, Font = FrameworkFont.Condensed },
+                        new SpriteText
+                        {
+                            Text = "IWindow properties: ",
+                            Font = FrameworkFont.Regular.With(size: 24),
+                            Margin = new MarginPadding { Top = 7 },
+                        },
+                        new SpriteText { Current = textCurrentDisplay, Font = FrameworkFont.Condensed },
+                        new SpriteText { Current = textCurrentDisplayMode, Font = FrameworkFont.Condensed.With(size: 16) },
+                        new SpriteText { Text = "Available display modes for current display:", Font = FrameworkFont.Condensed },
+                        textWindowDisplayModes = new TextFlowContainer(text => text.Font = FrameworkFont.Condensed.With(size: 16))
+                        {
+                            Width = 1000,
+                            AutoSizeAxes = Axes.Y,
+                        }
                     },
-                    new SpriteText { Current = textConfigSizeFullscreen, Font = FrameworkFont.Condensed },
-                    new SpriteText { Current = textConfigWindowMode, Font = FrameworkFont.Condensed },
-                    new SpriteText
-                    {
-                        Text = "IWindow properties: ",
-                        Font = FrameworkFont.Regular.With(size: 24),
-                        Margin = new MarginPadding { Top = 7 },
-                    },
-                    new SpriteText { Current = textCurrentDisplay, Font = FrameworkFont.Condensed },
-                    new SpriteText { Current = textCurrentDisplayMode, Font = FrameworkFont.Condensed.With(size: 16) },
-                    new SpriteText { Text = "Available display modes for current display:", Font = FrameworkFont.Condensed },
-                    textWindowDisplayModes = new TextFlowContainer(text => text.Font = FrameworkFont.Condensed.With(size: 16))
-                    {
-                        Width = 1000,
-                        AutoSizeAxes = Axes.Y,
-                    }
                 },
             };
         }
