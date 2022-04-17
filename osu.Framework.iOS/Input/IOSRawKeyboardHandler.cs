@@ -13,6 +13,7 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSRawKeyboardHandler : InputHandler
     {
+        private readonly GameUIApplication application;
         private readonly IOSGameView view;
 
         internal bool KeyboardActive = true;
@@ -22,14 +23,20 @@ namespace osu.Framework.iOS.Input
         public IOSRawKeyboardHandler(IOSGameView view)
         {
             this.view = view;
+
+            application = (GameUIApplication)UIApplication.SharedApplication;
         }
 
         public override bool Initialize(GameHost host)
         {
             view.HandlePresses += handlePresses;
+            application.HandleGsKeyEvent += handleGsKeyEvent;
             return true;
         }
 
+        /// <summary>
+        /// Handles <see cref="UIPressesEvent"/>s and enqueues corresponding <see cref="KeyboardKeyInput"/>s.
+        /// </summary>
         private bool handlePresses(NSSet<UIPress> presses, UIPressesEvent evt)
         {
             if (!IsActive)
@@ -67,9 +74,30 @@ namespace osu.Framework.iOS.Input
             return hasArrowKeys;
         }
 
+        /// <summary>
+        /// Handles GSEvents and enqueues corresponding <see cref="KeyboardKeyInput"/>s.
+        /// </summary>
+        /// <remarks>
+        /// This is still existing as an alternative to <see cref="handlePresses"/>
+        /// for early iOS versions in which <see cref="UIPress.Key"/> is unavailable.
+        /// </remarks>
+        private void handleGsKeyEvent(int keyCode, bool isDown)
+        {
+            if (!IsActive)
+                return;
+
+            var key = keyFromCode((UIKeyboardHidUsage)keyCode);
+            if (key == Key.Unknown)
+                return;
+
+            PendingInputs.Enqueue(new KeyboardKeyInput(key, isDown));
+        }
+
         protected override void Dispose(bool disposing)
         {
             view.HandlePresses -= handlePresses;
+            application.HandleGsKeyEvent -= handleGsKeyEvent;
+
             base.Dispose(disposing);
         }
 

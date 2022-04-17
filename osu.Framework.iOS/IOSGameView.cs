@@ -69,7 +69,8 @@ namespace osu.Framework.iOS
 
         public override void PressesBegan(NSSet<UIPress> presses, UIPressesEvent evt)
         {
-            if (HandlePresses?.Invoke(presses, evt) == true)
+            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && HandlePresses?.Invoke(presses, evt) == true)
                 return;
 
             base.PressesBegan(presses, evt);
@@ -77,7 +78,8 @@ namespace osu.Framework.iOS
 
         public override void PressesCancelled(NSSet<UIPress> presses, UIPressesEvent evt)
         {
-            if (HandlePresses?.Invoke(presses, evt) == true)
+            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && HandlePresses?.Invoke(presses, evt) == true)
                 return;
 
             base.PressesCancelled(presses, evt);
@@ -85,7 +87,8 @@ namespace osu.Framework.iOS
 
         public override void PressesEnded(NSSet<UIPress> presses, UIPressesEvent evt)
         {
-            if (HandlePresses?.Invoke(presses, evt) == true)
+            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && HandlePresses?.Invoke(presses, evt) == true)
                 return;
 
             base.PressesEnded(presses, evt);
