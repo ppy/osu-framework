@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -160,6 +161,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
+                AddStep($"move window to display {display.Index}", () => window.CurrentDisplayBindable.Value = window.Displays.ElementAt(display.Index));
                 AddStep("set client size to 1280x720", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(1280, 720)));
                 AddStep("store window position", () => originalWindowPosition = window.Position);
 
