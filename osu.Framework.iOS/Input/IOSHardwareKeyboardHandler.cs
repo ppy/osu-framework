@@ -10,7 +10,7 @@ using UIKit;
 
 namespace osu.Framework.iOS.Input
 {
-    public class IOSRawKeyboardHandler : InputHandler
+    public class IOSHardwareKeyboardHandler : InputHandler
     {
         internal bool KeyboardActive = true;
         public override bool IsActive => KeyboardActive;

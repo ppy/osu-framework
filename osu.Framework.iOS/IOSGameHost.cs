@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using CoreGraphics;
 using Foundation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
@@ -24,41 +23,24 @@ namespace osu.Framework.iOS
     public class IOSGameHost : OsuTKGameHost
     {
         private readonly IOSGameView gameView;
-        private IOSKeyboardHandler keyboardHandler;
-        private IOSRawKeyboardHandler rawKeyboardHandler;
+
+        private IOSTextFieldKeyboardHandler textFieldKeyboardHandler;
+        private IOSHardwareKeyboardHandler hardwareKeyboardHandler;
 
         public IOSGameHost(IOSGameView gameView)
         {
             this.gameView = gameView;
-
-            NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
-            NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
         }
 
         /// <summary>
-        /// If the keyboard visibility changes (including the hardware keyboard helper bar) we select the keyboard
-        /// handler based on the height of the on-screen keyboard at the end of the animation. If the height is above
-        /// an arbitrary value, we decide that the software keyboard handler should be enabled. Otherwise, enable the
-        /// raw keyboard handler.
-        /// This will also cover the case where there is no first responder, in which case the raw handler will still
-        /// successfully catch key events.
+        /// Toggles the active state of the keyboard handlers.
+        /// When toggled on, the <see cref="IOSTextFieldKeyboardHandler"/> will be active to handle input from the <see cref="IOSGameView.HiddenTextField"/>.
+        /// When toggled off, the <see cref="IOSHardwareKeyboardHandler"/> will be active to handle input from hardware keyboard directly.
         /// </summary>
-        private void handleKeyboardNotification(NSNotification notification)
+        public void ToggleTextFieldKeyboardHandler(bool active)
         {
-            if (notification.UserInfo == null) return;
-
-            NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
-            CGRect keyboardFrame = gameView.ConvertRectFromView(nsKeyboardFrame.CGRectValue, gameView.Window);
-
-            bool softwareKeyboard = gameView.Frame.Height - keyboardFrame.Y >= 120;
-
-            if (keyboardHandler != null)
-                keyboardHandler.KeyboardActive = softwareKeyboard;
-
-            if (rawKeyboardHandler != null)
-                rawKeyboardHandler.KeyboardActive = !softwareKeyboard;
-
-            gameView.KeyboardTextField.SoftwareKeyboard = softwareKeyboard;
+            textFieldKeyboardHandler.KeyboardActive = active;
+            hardwareKeyboardHandler.KeyboardActive = !active;
         }
 
         protected override void SetupForRun()
@@ -86,14 +68,14 @@ namespace osu.Framework.iOS
 
         public override bool CanExit => false;
 
-        protected override TextInputSource CreateTextInput() => new IOSTextInput(gameView);
+        protected override TextInputSource CreateTextInput() => new IOSTextInput(this, gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
             {
                 new IOSTouchHandler(gameView),
-                keyboardHandler = new IOSKeyboardHandler(gameView),
-                rawKeyboardHandler = new IOSRawKeyboardHandler(),
+                textFieldKeyboardHandler = new IOSTextFieldKeyboardHandler(gameView),
+                hardwareKeyboardHandler = new IOSHardwareKeyboardHandler(),
                 new IOSMouseHandler(gameView),
                 new MidiHandler()
             };
