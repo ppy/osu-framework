@@ -8,6 +8,9 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Rendering
 {
+    /// <summary>
+    /// Draws to the screen.
+    /// </summary>
     public interface IRenderer
     {
         /// <summary>

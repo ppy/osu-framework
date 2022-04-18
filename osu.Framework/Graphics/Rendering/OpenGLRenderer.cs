@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Rendering
 {
+    // Todo: Eventually replace GLWrapper with this.
     public class OpenGLRenderer : IRenderer
     {
         private readonly Stack<QuadBatch<TexturedVertex2D>> quadBatches = new Stack<QuadBatch<TexturedVertex2D>>();
