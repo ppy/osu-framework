@@ -739,7 +739,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColour = value;
-                    UpdateBackgroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
                 }
             }
 
@@ -754,7 +754,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColour = value;
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
             }
 
@@ -769,7 +769,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColourHover = value;
-                    UpdateBackgroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
                 }
             }
 
@@ -784,7 +784,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColourHover = value;
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
             }
 
@@ -797,8 +797,8 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     state = value;
 
-                    UpdateForegroundColour();
-                    UpdateBackgroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
 
                     StateChanged?.Invoke(state);
                 }
@@ -833,14 +833,15 @@ namespace osu.Framework.Graphics.UserInterface
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                Background.Colour = BackgroundColour;
-                Foreground.Colour = ForegroundColour;
+
+                Scheduler.AddOnce(UpdateBackgroundColour);
+                Scheduler.AddOnce(UpdateForegroundColour);
             }
 
             protected override bool OnHover(HoverEvent e)
             {
-                UpdateBackgroundColour();
-                UpdateForegroundColour();
+                Scheduler.AddOnce(UpdateBackgroundColour);
+                Scheduler.AddOnce(UpdateForegroundColour);
 
                 Schedule(() =>
                 {
@@ -853,8 +854,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                UpdateBackgroundColour();
-                UpdateForegroundColour();
+                Scheduler.AddOnce(UpdateBackgroundColour);
+                Scheduler.AddOnce(UpdateForegroundColour);
                 base.OnHoverLost(e);
             }
 
