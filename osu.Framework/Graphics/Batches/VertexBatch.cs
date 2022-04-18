@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Batches
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
             // Disallow reusing the same group multiple times in the same draw frame.
-            if (vertices.Batch == this && frameIndex > 0 && vertices.FrameIndex == frameIndex)
+            if (frameIndex > 0 && vertices.FrameIndex == frameIndex)
                 throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
 
             // Disallow nested usages.
