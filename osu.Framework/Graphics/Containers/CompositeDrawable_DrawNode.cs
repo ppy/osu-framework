@@ -13,6 +13,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -176,16 +177,17 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = new QuadBatch<TexturedVertex2D>(100);
             }
 
-            public override void Draw(in DrawState drawState)
+            public override void Draw(IRenderer renderer)
             {
                 updateQuadBatch();
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
-                DrawState localDrawState = quadBatch != null ? drawState.WithQuadBatch(quadBatch) : drawState;
+                if (quadBatch != null)
+                    renderer.PushQuadBatch(quadBatch);
 
-                base.Draw(localDrawState);
+                base.Draw(renderer);
 
-                using (var usage = localDrawState.BeginUsage(this, edgeEffectVertices))
+                using (var usage = renderer.BeginQuads(this, edgeEffectVertices))
                     drawEdgeEffect(usage);
 
                 if (maskingInfo != null)
@@ -200,26 +202,29 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(localDrawState);
+                        Children[i].Draw(renderer);
                 }
 
                 if (maskingInfo != null)
                     GLWrapper.PopMaskingInfo();
+
+                if (quadBatch != null)
+                    renderer.PopQuadBatch();
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
+            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
             {
-                DrawChildrenOpaqueInteriors(depthValue, drawState);
-                base.DrawOpaqueInteriorSubTree(depthValue, drawState);
+                DrawChildrenOpaqueInteriors(renderer, depthValue);
+                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
             }
 
             /// <summary>
             /// Performs <see cref="DrawOpaqueInteriorSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
             /// </summary>
+            /// <param name="renderer"></param>
             /// <param name="depthValue">The previous depth value.</param>
-            /// <param name="drawState"></param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, DrawState drawState)
+            protected virtual void DrawChildrenOpaqueInteriors(IRenderer renderer, DepthValue depthValue)
             {
                 bool canIncrement = depthValue.CanIncrement;
 
@@ -230,7 +235,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Prefer to use own vertex batch instead of the parent-owned one.
                     if (quadBatch != null)
-                        drawState = drawState.WithQuadBatch(quadBatch);
+                        renderer.PushQuadBatch(quadBatch);
 
                     if (maskingInfo != null)
                         GLWrapper.PushMaskingInfo(maskingInfo.Value);
@@ -240,7 +245,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                        Children[i].DrawOpaqueInteriorSubTree(depthValue, drawState);
+                        Children[i].DrawOpaqueInteriorSubTree(renderer, depthValue);
                 }
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
@@ -248,6 +253,9 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (maskingInfo != null)
                         GLWrapper.PopMaskingInfo();
+
+                    if (quadBatch != null)
+                        renderer.PopQuadBatch();
                 }
             }
 

@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics;
@@ -46,11 +47,11 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(in DrawState drawState)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(drawState);
+                base.Draw(renderer);
 
-                using (var usage = drawState.BeginUsage(this, vertices))
+                using (var usage = renderer.BeginQuads(this, vertices))
                 {
                     Shader.Bind();
 

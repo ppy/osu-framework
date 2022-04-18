@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -146,9 +147,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public override void Draw(in DrawState drawState)
+        public override void Draw(IRenderer renderer)
         {
-            base.Draw(drawState);
+            base.Draw(renderer);
 
             if (texture?.Available != true)
                 return;

@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics
 {
@@ -86,11 +87,11 @@ namespace osu.Framework.Graphics
                 {
                 }
 
-                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
-                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, drawState);
+                internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
+                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(renderer, depthValue);
 
-                public override void Draw(in DrawState drawState)
-                    => getCurrentFrameSource()?.Draw(drawState);
+                public override void Draw(IRenderer renderer)
+                    => getCurrentFrameSource()?.Draw(renderer);
 
                 protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
 

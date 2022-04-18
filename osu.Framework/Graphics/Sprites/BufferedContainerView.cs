@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Sprites
@@ -135,16 +136,16 @@ namespace osu.Framework.Graphics.Sprites
                 sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
-            public override void Draw(in DrawState drawState)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(drawState);
+                base.Draw(renderer);
 
                 if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
                     return;
 
                 Shader.Bind();
 
-                using (var usage = drawState.BeginUsage(this, vertices))
+                using (var usage = renderer.BeginQuads(this, vertices))
                 {
                     if (sourceEffectPlacement == EffectPlacement.InFront)
                         drawMainBuffer(usage);

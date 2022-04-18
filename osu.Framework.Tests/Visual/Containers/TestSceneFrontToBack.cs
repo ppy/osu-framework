@@ -16,6 +16,7 @@ using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
@@ -132,10 +133,10 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
+            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
             {
                 startQuery();
-                base.DrawOpaqueInteriorSubTree(depthValue, drawState);
+                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
                 DrawOpaqueInteriorSubTreeSamples = endQuery();
             }
 
@@ -146,10 +147,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(in DrawState drawState)
+            public override void Draw(IRenderer renderer)
             {
                 startQuery();
-                base.Draw(drawState);
+                base.Draw(renderer);
                 DrawSamples = endQuery();
             }
 

@@ -11,6 +11,7 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osuTK;
@@ -81,8 +82,8 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
         /// </remarks>
-        /// <param name="drawState"></param>
-        public virtual void Draw(in DrawState drawState)
+        /// <param name="renderer"></param>
+        public virtual void Draw(IRenderer renderer)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
 
@@ -100,9 +101,9 @@ namespace osu.Framework.Graphics
         /// During this pass, the opaque interior is drawn BELOW ourselves. For this to occur, <see cref="DrawDepth"/> is temporarily incremented and then decremented after drawing is complete.
         /// Other <see cref="DrawNode"/>s behind ourselves receive the incremented depth value before doing the same themselves, allowing early-z to take place during this pass.
         /// </remarks>
+        /// <param name="renderer"></param>
         /// <param name="depthValue">The previous depth value.</param>
-        /// <param name="drawState"></param>
-        internal virtual void DrawOpaqueInteriorSubTree(DepthValue depthValue, in DrawState drawState)
+        internal virtual void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
         {
             if (!depthValue.CanIncrement || !CanDrawOpaqueInterior)
             {
@@ -118,7 +119,7 @@ namespace osu.Framework.Graphics
             float previousDepthValue = depthValue;
             DrawDepth = depthValue.Increment();
 
-            DrawOpaqueInterior(drawState);
+            DrawOpaqueInterior(renderer);
 
             // Decrement the depth.
             DrawDepth = previousDepthValue;
@@ -132,8 +133,8 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
         /// </remarks>
-        /// <param name="drawState"></param>
-        protected virtual void DrawOpaqueInterior(in DrawState drawState)
+        /// <param name="renderer"></param>
+        protected virtual void DrawOpaqueInterior(IRenderer renderer)
         {
             GLWrapper.SetDrawDepth(DrawDepth);
         }

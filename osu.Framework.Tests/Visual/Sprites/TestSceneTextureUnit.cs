@@ -4,6 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
@@ -116,7 +117,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     blueTex = Source.blueTex;
                 }
 
-                public override void Draw(in DrawState drawState)
+                public override void Draw(IRenderer renderer)
                 {
                     redTex.TextureGL.Bind(TextureUnit.Texture1);
                     greenTex.TextureGL.Bind(TextureUnit.Texture2);
@@ -125,7 +126,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     int unitId = unit - TextureUnit.Texture0;
                     Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
 
-                    base.Draw(drawState);
+                    base.Draw(renderer);
 
                     unitId = 0;
                     Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);

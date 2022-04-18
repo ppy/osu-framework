@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Rendering;
 using osuTK;
 using osu.Framework.Graphics.Sprites;
 
@@ -18,7 +19,7 @@ namespace osu.Framework.Graphics.Video
 
         private int yLoc, uLoc = 1, vLoc = 2;
 
-        public override void Draw(in DrawState drawState)
+        public override void Draw(IRenderer renderer)
         {
             Shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
             Shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
@@ -27,7 +28,7 @@ namespace osu.Framework.Graphics.Video
             var yuvCoeff = video.ConversionMatrix;
             Shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
 
-            base.Draw(drawState);
+            base.Draw(renderer);
         }
     }
 }

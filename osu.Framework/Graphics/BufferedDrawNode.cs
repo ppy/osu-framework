@@ -8,6 +8,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
@@ -84,7 +85,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(in DrawState drawState)
+        public sealed override void Draw(IRenderer renderer)
         {
             if (RequiresRedraw)
             {
@@ -102,13 +103,13 @@ namespace osu.Framework.Graphics
                         GLWrapper.PushOrtho(screenSpaceDrawRectangle);
                         GLWrapper.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(drawState);
+                        Child.Draw(renderer);
 
                         GLWrapper.PopOrtho();
                     }
 
                     // The framebuffers are only drawn to while not cached, so a group separate from the final group is required for this intermediate use.
-                    using (var usage = drawState.BeginUsage(this, intermediateVertices))
+                    using (var usage = renderer.BeginQuads(this, intermediateVertices))
                         PopulateContents(usage);
                 }
 
@@ -117,9 +118,9 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
-            base.Draw(drawState);
+            base.Draw(renderer);
 
-            using (var usage = drawState.BeginUsage(this, finalVertices))
+            using (var usage = renderer.BeginQuads(this, finalVertices))
                 DrawContents(usage);
 
             Shader.Unbind();

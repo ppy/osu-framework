@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
@@ -299,9 +300,9 @@ namespace osu.Framework.Graphics.Audio
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000);
             private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
 
-            public override void Draw(in DrawState drawState)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(drawState);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;

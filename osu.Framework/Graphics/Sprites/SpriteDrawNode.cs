@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -78,16 +79,16 @@ namespace osu.Framework.Graphics.Sprites
                 DrawQuad(usage, Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
-        public override void Draw(in DrawState drawState)
+        public override void Draw(IRenderer renderer)
         {
-            base.Draw(drawState);
+            base.Draw(renderer);
 
             if (Texture?.Available != true)
                 return;
 
             Shader.Bind();
 
-            using (var usage = drawState.BeginUsage(this, vertices))
+            using (var usage = renderer.BeginQuads(this, vertices))
                 Blit(usage);
 
             Shader.Unbind();
@@ -95,16 +96,16 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
 
-        protected override void DrawOpaqueInterior(in DrawState drawState)
+        protected override void DrawOpaqueInterior(IRenderer renderer)
         {
-            base.DrawOpaqueInterior(drawState);
+            base.DrawOpaqueInterior(renderer);
 
             if (Texture?.Available != true)
                 return;
 
             TextureShader.Bind();
 
-            using (var usage = drawState.BeginUsage(this, opaqueVertices))
+            using (var usage = renderer.BeginQuads(this, opaqueVertices))
                 BlitOpaqueInterior(usage);
 
             TextureShader.Unbind();
