@@ -40,6 +40,8 @@ namespace osu.Framework.Tests.Platform
             game.BlockExit.Value = true;
             // `RequestExit()` should return true.
             Assert.That(host.RequestExit(), Is.True);
+            // game's last exit result should match.
+            Assert.That(game.LastExitResult, Is.True);
             // exit should be blocked.
             Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running).After(timeout));
             Assert.That(task.IsCompleted, Is.False);
@@ -48,6 +50,8 @@ namespace osu.Framework.Tests.Platform
             game.BlockExit.Value = false;
             // `RequestExit()` should not be blocked and return false.
             Assert.That(host.RequestExit(), Is.False);
+            // game's last exit result should match.
+            Assert.That(game.LastExitResult, Is.False);
             // finally, the game should exit.
             Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Stopped).After(timeout));
             task.WaitSafely();
@@ -62,9 +66,18 @@ namespace osu.Framework.Tests.Platform
         {
             public readonly ManualResetEventSlim BecameAlive = new ManualResetEventSlim();
 
+            public bool? LastExitResult { get; private set; }
+
             protected override void LoadComplete()
             {
                 BecameAlive.Set();
+            }
+
+            protected override bool OnExiting()
+            {
+                bool result = base.OnExiting();
+                LastExitResult = result;
+                return result;
             }
         }
     }
