@@ -95,7 +95,7 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         /// <summary>
-        /// Called when the host is requesting to exit. Return <c>false</c> to block the exit process.
+        /// Called when the host is requesting to exit. Return <c>true</c> to block the exit process.
         /// </summary>
         public event Func<bool> Exiting;
 
@@ -423,7 +423,7 @@ namespace osu.Framework.Platform
                     Thread.Sleep(1);
             }
 
-            if (response == false)
+            if (response == true)
                 return true;
 
             Exit();
