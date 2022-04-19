@@ -181,6 +181,14 @@ namespace osu.Framework.Graphics.Visualisation
                 this.textureReference = textureReference;
             }
 
+            protected override void Update()
+            {
+                base.Update();
+
+                // The DrawNode changes its drawn vertices every frame.
+                Invalidate(Invalidation.DrawNode);
+            }
+
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
 
             private class UsageBackgroundDrawNode : SpriteDrawNode
