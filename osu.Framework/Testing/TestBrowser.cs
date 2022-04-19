@@ -32,7 +32,6 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Input;
 using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
@@ -119,8 +118,6 @@ namespace osu.Framework.Testing
 
         private const float test_list_width = 200;
 
-        private Action exit;
-
         private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
@@ -128,11 +125,6 @@ namespace osu.Framework.Testing
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
-
-            if (host.CanExit)
-                exit = host.Exit;
-            else if (host.CanSuspendToBackground)
-                exit = () => host.SuspendToBackground();
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 
@@ -314,21 +306,6 @@ namespace osu.Framework.Testing
                 leftContainer.Width = test_list_width;
                 mainContainer.Padding = new MarginPadding { Left = test_list_width };
             }
-        }
-
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            if (!e.Repeat)
-            {
-                switch (e.Key)
-                {
-                    case Key.Escape:
-                        exit?.Invoke();
-                        return true;
-                }
-            }
-
-            return base.OnKeyDown(e);
         }
 
         public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]

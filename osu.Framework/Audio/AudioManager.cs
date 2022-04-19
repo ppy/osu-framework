@@ -15,6 +15,7 @@ using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
@@ -309,6 +310,10 @@ namespace osu.Framework.Audio
 
             // device is invalid
             if (!device.IsEnabled)
+                return false;
+
+            // we don't want bass initializing with real audio device on headless test runs.
+            if (deviceIndex != Bass.NoSoundDevice && DebugUtils.IsNUnitRunning)
                 return false;
 
             // initialize new device
