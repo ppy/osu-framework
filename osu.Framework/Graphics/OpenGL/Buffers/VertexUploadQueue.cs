@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             // Flush the existing queue if the buffer is filled up.
             if (uploadLength == upload_queue.Length
                 // Or if two non-contiguous sets of vertices are to be uploaded.
+                // This could happen if e.g. three sprites are batched together but only the outer two have changed their vertices.
                 || (uploadLength > 0 && index != uploadStart + uploadLength)
                 // Or if the vertices are to be uploaded to a different target.
                 || buffer != uploadTarget)
