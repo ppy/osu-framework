@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Batches
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
             // Disallow reusing the same group multiple times in the same draw frame.
-            if (frameIndex > 0 && vertices.FrameIndex == frameIndex)
+            if (vertices.FrameIndex == frameIndex)
                 throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
 
             // Disallow nested usages.
@@ -178,9 +178,9 @@ namespace osu.Framework.Graphics.Batches
                 vertices.Batch != this
                 // Or the DrawNode was newly invalidated.
                 || vertices.InvalidationID != drawNode.InvalidationID
-                // Or another DrawNode was inserted (and drew vertices) before this one.
+                // Or another DrawNode was inserted (and added vertices) before this one.
                 || vertices.StartIndex != rollingVertexIndex
-                // Or this usage has been skipped for 1 frame. Another DrawNode may have temporarily overwritten the vertices of this one in the batch.
+                // Or this usage has been skipped for 1 frame. Another DrawNode may have overwritten the vertices of this one in the batch.
                 || frameIndex - vertices.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || drawNode.DrawDepth != vertices.DrawDepth;
