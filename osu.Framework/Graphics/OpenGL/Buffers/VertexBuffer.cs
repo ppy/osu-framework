@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public abstract class VertexBuffer<T> : IVertexBuffer, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
-        protected static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
+        internal static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         internal readonly DepthWrappingVertex<T>[] Vertices;
@@ -24,12 +24,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         // ReSharper disable once StaticMemberInGenericType
         private static readonly GlobalStatistic<int> vertex_memory_statistic = GlobalStatistics.Get<int>("Native", $"{nameof(VertexBuffer<T>)}");
-
-        // ReSharper disable once StaticMemberInGenericType
-        private static int uploadStart = int.MaxValue;
-
-        // ReSharper disable once StaticMemberInGenericType
-        private static int uploadLength;
 
         internal int VboId { get; private set; } = -1;
 
@@ -44,23 +38,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 #endif
         }
 
-        public void EnqueueVertex(int index, T vertex)
-        {
-            // A new upload must be started if the queue can't hold any more vertices, or if the enqueued index is disjoint from the current to-be-uploaded set.
-            if (uploadLength == upload_queue.Length || (uploadLength > 0 && index > uploadStart + uploadLength))
-                upload();
-
-            uploadStart = Math.Min(uploadStart, index);
-            upload_queue[uploadLength++] = new DepthWrappingVertex<T>
-            {
-                Vertex = vertex,
-                BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth
-            };
-
-#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            Vertices[index] = upload_queue[uploadLength - 1];
-#endif
-        }
+        public void SetVertex(int index, T vertex) => VertexUploadQueue<T>.Enqueue(this, index, vertex);
 
         /// <summary>
         /// Gets the number of vertices in this <see cref="VertexBuffer{T}"/>.
@@ -141,7 +119,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             LastUseResetId = GLWrapper.ResetId;
 
-            upload();
+            VertexUploadQueue<T>.Upload(this);
 
             Bind(true);
 
@@ -149,21 +127,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.DrawElements(Type, ToElements(countVertices), DrawElementsType.UnsignedShort, (IntPtr)(ToElementIndex(startIndex) * sizeof(ushort)));
 
             Unbind();
-        }
-
-        private void upload()
-        {
-            if (uploadLength == 0)
-                return;
-
-            Bind(false);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(uploadStart * STRIDE), (IntPtr)(uploadLength * STRIDE), ref upload_queue[0]);
-            Unbind();
-
-            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, uploadLength);
-
-            uploadStart = int.MaxValue;
-            uploadLength = 0;
         }
 
         public ulong LastUseResetId { get; private set; }

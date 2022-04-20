@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Batches
         void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex)
         {
             ensureHasBufferSpace();
-            currentVertexBuffer.EnqueueVertex(drawStart + drawCount, vertices.Transform<TInput, T>(vertex));
+            currentVertexBuffer.SetVertex(drawStart + drawCount, vertices.Transform<TInput, T>(vertex));
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             ((IVertexBatch)this).EnsureCurrentVertex(vertices, vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
