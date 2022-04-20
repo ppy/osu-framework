@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             LastUseResetId = GLWrapper.ResetId;
 
-            VertexUploadQueue<T>.Upload(this);
+            VertexUploadQueue<T>.Upload();
 
             Bind(true);
 
