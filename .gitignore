@@ -332,3 +332,7 @@ fabric.properties
 **/.idea/**/modules.xml
 
 *GeneratedMSBuildEditorConfig*
+
+# inspectcode
+inspectcodereport.xml
+inspectcode
