@@ -477,7 +477,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         backgroundColourSelected = value;
-                        UpdateBackgroundColour();
+                        Scheduler.AddOnce(UpdateBackgroundColour);
                     }
                 }
 
@@ -489,17 +489,14 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         foregroundColourSelected = value;
-                        UpdateForegroundColour();
+                        Scheduler.AddOnce(UpdateForegroundColour);
                     }
                 }
 
                 protected virtual void OnSelectChange()
                 {
-                    if (!IsLoaded)
-                        return;
-
-                    UpdateBackgroundColour();
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
 
                 protected override void UpdateBackgroundColour()
@@ -510,13 +507,6 @@ namespace osu.Framework.Graphics.UserInterface
                 protected override void UpdateForegroundColour()
                 {
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
-                }
-
-                protected override void LoadComplete()
-                {
-                    base.LoadComplete();
-                    Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
-                    Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
                 protected override bool OnHover(HoverEvent e)

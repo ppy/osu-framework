@@ -394,6 +394,10 @@ namespace osu.Framework
             Host.Exit();
         }
 
+        /// <summary>
+        /// Fired when the game host signals that an exit has been requested.
+        /// </summary>
+        /// <returns>Return <c>true</c> to block the exit process.</returns>
         protected virtual bool OnExiting() => false;
 
         protected override void Dispose(bool isDisposing)
