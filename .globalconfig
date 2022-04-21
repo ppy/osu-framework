@@ -1,0 +1,6 @@
+is_global = true
+
+# .NET Code Style
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = warning

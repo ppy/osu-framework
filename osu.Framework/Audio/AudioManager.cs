@@ -183,7 +183,8 @@ namespace osu.Framework.Audio
                         {
                         }
                     }
-                }) { IsBackground = true }.Start();
+                })
+                { IsBackground = true }.Start();
             });
         }
 
