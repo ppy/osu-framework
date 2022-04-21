@@ -150,11 +150,13 @@ namespace osu.Framework.IO.Network
 
         private static readonly HttpClient client = new HttpClient(
 #if NET6_0
-            new SocketsHttpHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                ConnectCallback = onConnect,
-            }
+            RuntimeInfo.IsMobile
+                ? (HttpMessageHandler)new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }
+                : new SocketsHttpHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.All,
+                    ConnectCallback = onConnect,
+                }
 #else
             new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
 #endif
