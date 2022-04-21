@@ -4,3 +4,6 @@ is_global = true
 
 # IDE0055: Fix formatting
 dotnet_diagnostic.IDE0055.severity = warning
+
+# IDE1006: Naming style
+dotnet_diagnostic.IDE1006.severity = warning

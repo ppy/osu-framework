@@ -7,6 +7,8 @@ using FFmpeg.AutoGen;
 namespace osu.Framework.Graphics.Video
 {
     // ReSharper disable InconsistentNaming
+#pragma warning disable IDE1006 // Naming style
+
     public unsafe class FFmpegFuncs
     {
         #region Delegates
