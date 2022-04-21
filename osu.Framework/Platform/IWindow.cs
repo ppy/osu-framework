@@ -63,11 +63,11 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the state of the OS cursor.
         /// </summary>
-        /// <remarks>If the cursor is <see cref="Platform.CursorState.Confined"/>, <see cref="CursorConfineRect"/> will be used.</remarks>
+        /// <remarks>If the cursor is <see cref="CursorState.Confined"/>, <see cref="CursorConfineRect"/> will be used.</remarks>
         CursorState CursorState { get; set; }
 
         /// <summary>
-        /// Area to which the mouse cursor is confined to when <see cref="CursorState"/> is <see cref="Platform.CursorState.Confined"/>.
+        /// Area to which the mouse cursor is confined to when <see cref="CursorState"/> is <see cref="CursorState.Confined"/>.
         /// </summary>
         /// <remarks>
         /// Will confine to the whole window by default (or when set to <c>null</c>).

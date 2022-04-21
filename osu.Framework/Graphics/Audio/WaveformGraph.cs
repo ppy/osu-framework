@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Audio
         private float resolution = 1;
 
         /// <summary>
-        /// Gets or sets the amount of <see cref="Framework.Audio.Track.Waveform.Point"/>'s displayed relative to <see cref="Drawable.DrawWidth">DrawWidth</see>.
+        /// Gets or sets the amount of <see cref="Waveform.Point"/>'s displayed relative to <see cref="Drawable.DrawWidth">DrawWidth</see>.
         /// </summary>
         public float Resolution
         {

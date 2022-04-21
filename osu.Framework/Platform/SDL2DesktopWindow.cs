@@ -83,7 +83,7 @@ namespace osu.Framework.Platform
         private Point position;
 
         /// <summary>
-        /// Returns or sets the window's position in screen space. Only valid when in <see cref="osu.Framework.Configuration.WindowMode.Windowed"/>
+        /// Returns or sets the window's position in screen space. Only valid when in <see cref="WindowMode.Windowed"/>
         /// </summary>
         public Point Position
         {
@@ -98,7 +98,7 @@ namespace osu.Framework.Platform
         private bool resizable = true;
 
         /// <summary>
-        /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
+        /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="WindowState.Normal"/>.
         /// </summary>
         public bool Resizable
         {

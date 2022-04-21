@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="RectangleF"/> structure.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the upper-left corner of this <see cref="RectangleF"/> structure.</returns>
+        /// <returns>A <see cref="Vector2"/> that represents the upper-left corner of this <see cref="RectangleF"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2 Location
@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Gets or sets the size of this <see cref="RectangleF"/>.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the width and height of this <see cref="RectangleF"/> structure.</returns>
+        /// <returns>A <see cref="Vector2"/> that represents the width and height of this <see cref="RectangleF"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2 Size
