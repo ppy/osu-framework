@@ -153,10 +153,16 @@ namespace osu.Framework.IO.Network
             new SocketsHttpHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                Credentials = CredentialCache.DefaultCredentials,
                 ConnectCallback = onConnect,
             }
 #else
-            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+            new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                Credentials = CredentialCache.DefaultCredentials,
+            }
 #endif
         )
         {
