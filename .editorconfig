@@ -177,15 +177,6 @@ csharp_style_prefer_index_operator = true:warning
 csharp_style_prefer_range_operator = true:warning
 csharp_style_prefer_switch_expression = false:none
 
-#Supressing roslyn built-in analyzers
-# Suppress: EC112
-
-#Disable operator overloads requiring alternate named methods
-dotnet_diagnostic.CA2225.severity = none
-
-# Banned APIs
-dotnet_diagnostic.RS0030.severity = error
-
 [*.{yaml,yml}]
 insert_final_newline = true
 indent_style = space
