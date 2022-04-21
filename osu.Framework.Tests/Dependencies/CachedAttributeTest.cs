@@ -313,6 +313,8 @@ namespace osu.Framework.Tests.Dependencies
 #pragma warning restore 169
         }
 
+#pragma warning disable IDE0052 // Unread private member
+
         private class Provider5
         {
             [Cached]
