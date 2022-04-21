@@ -43,7 +43,7 @@ dotnet_naming_rule.local_function_camelcase.severity = warning
 dotnet_naming_rule.local_function_camelcase.symbols = local_function
 dotnet_naming_rule.local_function_camelcase.style = camelcase
 
-#all_lower for private and local constants/static readonlys
+#all_lower for private and local constants
 dotnet_naming_style.all_lower.capitalization = all_lower
 dotnet_naming_style.all_lower.word_separator = _
 
@@ -54,20 +54,13 @@ dotnet_naming_rule.private_const_all_lower.severity = warning
 dotnet_naming_rule.private_const_all_lower.symbols = private_constants
 dotnet_naming_rule.private_const_all_lower.style = all_lower
 
-dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private
-dotnet_naming_symbols.private_static_readonly.required_modifiers = static,readonly
-dotnet_naming_symbols.private_static_readonly.applicable_kinds = field
-dotnet_naming_rule.private_static_readonly_all_lower.severity = warning
-dotnet_naming_rule.private_static_readonly_all_lower.symbols = private_static_readonly
-dotnet_naming_rule.private_static_readonly_all_lower.style = all_lower
-
 dotnet_naming_symbols.local_constants.applicable_kinds = local
 dotnet_naming_symbols.local_constants.required_modifiers = const
 dotnet_naming_rule.local_const_all_lower.severity = warning
 dotnet_naming_rule.local_const_all_lower.symbols = local_constants
 dotnet_naming_rule.local_const_all_lower.style = all_lower
 
-#ALL_UPPER for non private constants/static readonlys
+#ALL_UPPER for non private constants
 dotnet_naming_style.all_upper.capitalization = all_upper
 dotnet_naming_style.all_upper.word_separator = _
 
@@ -77,13 +70,6 @@ dotnet_naming_symbols.public_constants.applicable_kinds = field
 dotnet_naming_rule.public_const_all_upper.severity = warning
 dotnet_naming_rule.public_const_all_upper.symbols = public_constants
 dotnet_naming_rule.public_const_all_upper.style = all_upper
-
-dotnet_naming_symbols.public_static_readonly.applicable_accessibilities = public,internal,protected,protected_internal,private_protected
-dotnet_naming_symbols.public_static_readonly.required_modifiers = static,readonly
-dotnet_naming_symbols.public_static_readonly.applicable_kinds = field
-dotnet_naming_rule.public_static_readonly_all_upper.severity = warning
-dotnet_naming_rule.public_static_readonly_all_upper.symbols = public_static_readonly
-dotnet_naming_rule.public_static_readonly_all_upper.style = all_upper
 
 #Roslyn formating options
 
