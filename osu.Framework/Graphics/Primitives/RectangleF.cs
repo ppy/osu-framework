@@ -17,7 +17,9 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>Represents an instance of the <see cref="RectangleF"/> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
+#pragma warning disable IDE1006 // Naming style
         public static readonly RectangleF Empty;
+#pragma warning restore IDE1006
 
         public float X;
         public float Y;
