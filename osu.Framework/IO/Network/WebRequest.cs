@@ -151,14 +151,24 @@ namespace osu.Framework.IO.Network
         private static readonly HttpClient client = new HttpClient(
 #if NET6_0
             RuntimeInfo.IsMobile
-                ? (HttpMessageHandler)new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }
+                ? (HttpMessageHandler)new HttpClientHandler
+                {
+                    Credentials = CredentialCache.DefaultCredentials,
+                    AutomaticDecompression = DecompressionMethods.All
+                }
                 : new SocketsHttpHandler
                 {
                     AutomaticDecompression = DecompressionMethods.All,
+                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                    Credentials = CredentialCache.DefaultCredentials,
                     ConnectCallback = onConnect,
                 }
 #else
-            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+            new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                Credentials = CredentialCache.DefaultCredentials,
+            }
 #endif
         )
         {

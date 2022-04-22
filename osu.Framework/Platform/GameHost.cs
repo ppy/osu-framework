@@ -413,7 +413,7 @@ namespace osu.Framework.Platform
                     Thread.Sleep(1);
             }
 
-            if (response == true)
+            if (response.Value)
                 return true;
 
             Exit();

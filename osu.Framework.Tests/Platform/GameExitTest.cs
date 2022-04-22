@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 
@@ -42,8 +41,9 @@ namespace osu.Framework.Tests.Platform
             Assert.That(host.RequestExit(), Is.True);
             // game's last exit result should match.
             Assert.That(game.LastExitResult, Is.True);
+
             // exit should be blocked.
-            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running).After(timeout));
+            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running));
             Assert.That(task.IsCompleted, Is.False);
 
             // unblock game from exiting.
@@ -52,9 +52,10 @@ namespace osu.Framework.Tests.Platform
             Assert.That(host.RequestExit(), Is.False);
             // game's last exit result should match.
             Assert.That(game.LastExitResult, Is.False);
+
             // finally, the game should exit.
-            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Stopped).After(timeout));
-            task.WaitSafely();
+            task.Wait(timeout);
+            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Stopped));
         }
 
         private class ManualExitHeadlessGameHost : TestRunHeadlessGameHost
