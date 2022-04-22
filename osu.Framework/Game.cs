@@ -375,7 +375,7 @@ namespace osu.Framework
             switch (e.Action)
             {
                 case PlatformAction.Exit:
-                    Host.Window?.Close();
+                    Host.Window?.RequestClose();
                     return true;
             }
 
