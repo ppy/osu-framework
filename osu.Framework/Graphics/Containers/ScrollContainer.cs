@@ -243,6 +243,9 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
                 return false;
 
+            if (Math.Abs(e.Delta.X) > Math.Abs(e.Delta.Y) != (ScrollDirection == Direction.Horizontal))
+                return false;
+
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
 
