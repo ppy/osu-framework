@@ -243,7 +243,9 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
                 return false;
 
-            if (Math.Abs(e.Delta.X) > Math.Abs(e.Delta.Y) != (ScrollDirection == Direction.Horizontal))
+            bool dragWasMostlyHorizontal = Math.Abs(e.Delta.X) > Math.Abs(e.Delta.Y);
+
+            if (dragWasMostlyHorizontal != (ScrollDirection == Direction.Horizontal))
                 return false;
 
             lastDragTime = Time.Current;
@@ -366,7 +368,11 @@ namespace osu.Framework.Graphics.Containers
             if (Content.AliveInternalChildren.Count == 0)
                 return false;
 
-            if (Math.Abs(e.ScrollDelta.X) > Math.Abs(e.ScrollDelta.Y) && ScrollDirection == Direction.Vertical)
+            bool scrollWasMostlyHorizontal = Math.Abs(e.ScrollDelta.X) > Math.Abs(e.ScrollDelta.Y);
+
+            // For horizontal scrolling containers, vertical scroll is also used to perform horizontal traversal.
+            // Due to this, we only block horizontal scroll in vertical containers, but not vice-versa.
+            if (scrollWasMostlyHorizontal && ScrollDirection == Direction.Vertical)
                 return false;
 
             bool isPrecise = e.IsPrecise;
