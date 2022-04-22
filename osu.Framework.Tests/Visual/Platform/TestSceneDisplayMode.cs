@@ -113,32 +113,32 @@ namespace osu.Framework.Tests.Visual.Platform
             {
                 case null: // test startup
                     AddAssert("mode has valid DisplayIndex", () => displayMode.DisplayIndex != -1);
-                    checkDisplayModeSanity(configWindowMode.Value == WindowMode.Fullscreen && !configSizeFullscreen.IsDefault);
+                    checkDisplayModeSanity(configWindowMode.Value == WindowMode.Fullscreen && !configSizeFullscreen.IsDefault, configWindowMode.Value != WindowMode.Windowed);
                     break;
 
                 case WindowMode.Windowed:
                 case WindowMode.Borderless:
                     AddStep($"change to {windowMode}", () => configWindowMode.Value = windowMode.Value);
-                    checkDisplayModeSanity(false);
+                    checkDisplayModeSanity(false, windowMode != WindowMode.Windowed);
                     break;
 
                 case WindowMode.Fullscreen:
                     AddStep("change to fullscreen", () => configWindowMode.Value = WindowMode.Fullscreen);
 
                     setFullscreenResolution(new Size(9999, 9999));
-                    checkDisplayModeSanity(false); // importantly, at default fullscreen resolution, it should match the desktop resolution.
+                    checkDisplayModeSanity(false, true); // importantly, at default fullscreen resolution, it should match the desktop resolution.
 
                     // reload (Ctrl+R) the test if testing on another display.
                     setFullscreenResolution(currentDisplay.FindDisplayMode(new Size(1920, 1080)).Size);
-                    checkDisplayModeSanity(true);
+                    checkDisplayModeSanity(true, true);
 
                     setFullscreenResolution(currentDisplay.FindDisplayMode(new Size(1280, 720)).Size);
-                    checkDisplayModeSanity(true);
+                    checkDisplayModeSanity(true, true);
                     break;
             }
         }
 
-        private void checkDisplayModeSanity(bool checkResolutionAgainstFullscreen)
+        private void checkDisplayModeSanity(bool checkResolutionAgainstFullscreen, bool checkClientSize)
         {
             AddAssert("DisplayIndex matches display", () => displayMode.DisplayIndex == currentDisplay.Index);
             AddAssert("display has current mode", () => currentDisplay.DisplayModes.Any(mode => mode == displayMode));
@@ -155,6 +155,9 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddAssert("Size matches bindable display resolution", () => displayMode.Size == currentDisplay.Bounds.Size);
 
             AddAssert("Size matches actual display resolution", () => displayMode.Size == window.Displays.ElementAt(displayMode.DisplayIndex).Bounds.Size);
+
+            if (checkClientSize)
+                AddAssert("Size matches client size", () => displayMode.Size == window.ClientSize); // not applicable in windowed
         }
 
         private void setFullscreenResolution(Size resolution)
