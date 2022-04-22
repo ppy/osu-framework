@@ -366,6 +366,9 @@ namespace osu.Framework.Graphics.Containers
             if (Content.AliveInternalChildren.Count == 0)
                 return false;
 
+            if (Math.Abs(e.ScrollDelta.X) > Math.Abs(e.ScrollDelta.Y) && ScrollDirection == Direction.Vertical)
+                return false;
+
             bool isPrecise = e.IsPrecise;
 
             Vector2 scrollDelta = e.ScrollDelta;
