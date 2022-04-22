@@ -369,7 +369,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
         [TestCase(Direction.Horizontal, Direction.Vertical)]
         [TestCase(Direction.Vertical, Direction.Horizontal)]
-        public void TestInputHandlingRespectsDirection(Direction outer, Direction inner)
+        public void TestNestedScrolling(Direction outer, Direction inner)
         {
             BasicScrollContainer horizontalScroll = null;
             BasicScrollContainer verticalScroll = null;
