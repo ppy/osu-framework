@@ -277,6 +277,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
+            if (IsDragging || e.Button != MouseButton.Left)
+                return false;
+
             // Continue from where we currently are scrolled to.
             Target = Current;
             return false;
