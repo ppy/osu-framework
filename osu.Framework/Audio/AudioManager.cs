@@ -171,19 +171,19 @@ namespace osu.Framework.Audio
             {
                 // sync audioDevices every 1000ms
                 new Thread(() =>
-                {
-                    while (!token.IsCancellationRequested)
                     {
-                        try
+                        while (!token.IsCancellationRequested)
                         {
-                            syncAudioDevices();
-                            Thread.Sleep(1000);
+                            try
+                            {
+                                syncAudioDevices();
+                                Thread.Sleep(1000);
+                            }
+                            catch
+                            {
+                            }
                         }
-                        catch
-                        {
-                        }
-                    }
-                })
+                    })
                 { IsBackground = true }.Start();
             });
         }
