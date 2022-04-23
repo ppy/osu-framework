@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -170,21 +171,20 @@ namespace osu.Framework.Audio
             scheduler.Add(() =>
             {
                 // sync audioDevices every 1000ms
-                new Thread(() =>
+                Task.Run(async () =>
+                {
+                    while (!token.IsCancellationRequested)
                     {
-                        while (!token.IsCancellationRequested)
+                        try
                         {
-                            try
-                            {
-                                syncAudioDevices();
-                                Thread.Sleep(1000);
-                            }
-                            catch
-                            {
-                            }
+                            syncAudioDevices();
+                            await Task.Delay(1000).ConfigureAwait(false);
                         }
-                    })
-                { IsBackground = true }.Start();
+                        catch
+                        {
+                        }
+                    }
+                });
             });
         }
 
