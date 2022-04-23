@@ -11,7 +11,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class JoystickHandler : InputHandler
     {
-        public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.075f)
+        public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.1f)
         {
             MinValue = 0,
             MaxValue = 0.95f,
