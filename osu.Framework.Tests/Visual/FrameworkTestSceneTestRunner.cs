@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual
             // nested store for framework test fonts to not interfere with framework's default (roboto) in test scenes.
             Fonts.AddStore(testFonts = new FontStore(useAtlas: false));
 
-            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(1160, 320, 1000), target: testFonts);
+            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(880, 120, 1000), target: testFonts);
         }
     }
 }

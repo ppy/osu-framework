@@ -150,7 +150,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     new SpriteText
                                     {
                                         Colour = FrameworkColour.Green,
-                                        Font = FrameworkFont.Regular.With(size: font_size, weight: "Regular", css: true),
+                                        Font = FrameworkFont.Regular.With(size: font_size, css: true),
                                         Text = text,
                                     },
                                     new Box
