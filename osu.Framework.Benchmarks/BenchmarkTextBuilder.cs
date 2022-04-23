@@ -1,12 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.IO.Stores;
 using osu.Framework.Text;
 
 namespace osu.Framework.Benchmarks
@@ -52,8 +50,6 @@ namespace osu.Framework.Benchmarks
             public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(new CharacterGlyph(character, character, character, character, character, null), Texture.WhitePixel);
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
-
-            public IGlyphStore GetFont(string name) => throw new NotImplementedException();
         }
     }
 }
