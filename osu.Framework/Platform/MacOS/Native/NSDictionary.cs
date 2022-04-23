@@ -9,10 +9,6 @@ namespace osu.Framework.Platform.MacOS.Native
     {
         internal IntPtr Handle { get; }
 
-#pragma warning disable IDE0052 // Unread private member
-        private static IntPtr classPointer = Class.Get("NSDictionary");
-#pragma warning restore IDE0052 //
-
         internal NSDictionary(IntPtr handle)
         {
             Handle = handle;

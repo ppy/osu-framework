@@ -4,11 +4,11 @@
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 
-namespace osu.Framework.Graphics.Video
-{
-    // ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006 // Naming style
 
+namespace osu.Framework.Graphics.Video
+{
     public unsafe class FFmpegFuncs
     {
         #region Delegates
