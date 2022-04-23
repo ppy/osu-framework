@@ -64,6 +64,16 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
 
                 flow.Add(text);
+
+                SpriteText cssText = new SpriteText
+                {
+                    Text = $@"Font testy at size {i} (CSS)",
+                    Font = new FontUsage("Roboto", i, i % 4 > 1 ? "Bold" : "Regular", i % 2 == 1, css: true),
+                    AllowMultiline = true,
+                    RelativeSizeAxes = Axes.X,
+                };
+
+                flow.Add(cssText);
             }
         }
 
