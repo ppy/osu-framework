@@ -14,7 +14,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.075f)
         {
             MinValue = 0,
-            MaxValue = 1,
+            MaxValue = 0.95f,
             Precision = 0.005f,
         };
 
