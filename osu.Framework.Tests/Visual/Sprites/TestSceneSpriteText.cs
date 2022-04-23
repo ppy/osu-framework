@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;
 
@@ -97,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             [BackgroundDependencyLoader]
             private void load(TextureStore textures, FontStore fonts)
             {
-                var noto = fonts.GetFont("Noto-Basic");
+                var noto = ((IHasGlyphStores)fonts).GetFont("Noto-Basic");
 
                 Debug.Assert(noto.Metrics != null && noto.Baseline != null);
 

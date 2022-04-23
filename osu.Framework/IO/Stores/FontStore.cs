@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
@@ -15,7 +16,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.IO.Stores
 {
-    public class FontStore : TextureStore, ITexturedGlyphLookupStore
+    public class FontStore : TextureStore, ITexturedGlyphLookupStore, IHasGlyphStores
     {
         /// <summary>
         /// The font size of the raw glyph textures.
@@ -135,17 +136,13 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        /// <summary>
-        /// Searches for a <see cref="IGlyphStore"/> with the specified name.
-        /// </summary>
-        /// <param name="name">The font name.</param>
-        public IGlyphStore GetFont(string name)
+        IGlyphStore IHasGlyphStores.GetFont(string name)
         {
             var found = glyphStores.Find(g => g.FontName == name);
 
             if (found == null)
             {
-                foreach (var store in nestedFontStores)
+                foreach (var store in nestedFontStores.OfType<IHasGlyphStores>())
                 {
                     if ((found = store.GetFont(name)) != null)
                         break;
