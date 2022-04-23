@@ -11,11 +11,11 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class JoystickHandler : InputHandler
     {
-        public BindableDouble deadzone_threshold { get; } = new BindableDouble(0.075)
+        public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.075f)
         {
             MinValue = 0,
             MaxValue = 1,
-            Precision = 0.005,
+            Precision = 0.005f,
         };
 
         private readonly JoystickButton[] axisDirectionButtons = new JoystickButton[(int)JoystickAxisSource.AxisCount];
@@ -94,11 +94,11 @@ namespace osu.Framework.Input.Handlers.Joystick
         {
             float absoluteValue = Math.Abs(axisValue);
 
-            if (absoluteValue < deadzone_threshold.Value)
+            if (absoluteValue < DeadzoneThreshold.Value)
                 return 0;
 
             // rescale the given axis value such that the edge of the deadzone is considered the "new zero".
-            float absoluteRescaled = (absoluteValue - (float)deadzone_threshold.Value) / (1f - (float)deadzone_threshold.Value);
+            float absoluteRescaled = (absoluteValue - DeadzoneThreshold.Value) / (1f - DeadzoneThreshold.Value);
             return Math.Sign(axisValue) * absoluteRescaled;
         }
 
