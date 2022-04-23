@@ -144,9 +144,14 @@ namespace osu.Framework.Platform
         void ClearCurrent();
 
         /// <summary>
-        /// Request close.
+        /// Forcefully closes the window.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
+        void RequestClose();
 
         /// <summary>
         /// Start the window's run loop.
