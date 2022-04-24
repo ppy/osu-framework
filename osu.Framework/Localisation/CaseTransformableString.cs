@@ -1,10 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Globalization;
-
-#nullable enable
+using Humanizer;
 
 namespace osu.Framework.Localisation
 {
@@ -37,18 +38,18 @@ namespace osu.Framework.Localisation
         public string GetLocalised(LocalisationParameters parameters)
         {
             string stringData = getStringData(parameters);
-            var cultureText = parameters.Store?.EffectiveCulture?.TextInfo ?? CultureInfo.InvariantCulture.TextInfo;
+            var cultureInfo = parameters.Store?.EffectiveCulture ?? CultureInfo.InvariantCulture;
 
             switch (Casing)
             {
                 case Casing.UpperCase:
-                    return cultureText.ToUpper(stringData);
+                    return stringData.Transform(cultureInfo, To.UpperCase);
 
                 case Casing.TitleCase:
-                    return cultureText.ToTitleCase(stringData);
+                    return stringData.Transform(cultureInfo, To.TitleCase);
 
                 case Casing.LowerCase:
-                    return cultureText.ToLower(stringData);
+                    return stringData.Transform(cultureInfo, To.LowerCase);
 
                 case Casing.Default:
                 default:
