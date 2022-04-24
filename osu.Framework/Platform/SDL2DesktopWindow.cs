@@ -13,6 +13,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
@@ -944,7 +945,10 @@ namespace osu.Framework.Platform
             Key key = evtKey.keysym.ToKey();
 
             if (key == Key.Unknown)
+            {
+                Logger.Log($"Unknown SDL key: {evtKey.keysym.scancode}, {evtKey.keysym.sym}");
                 return;
+            }
 
             switch (evtKey.type)
             {
