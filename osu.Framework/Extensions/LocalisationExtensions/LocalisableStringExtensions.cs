@@ -16,7 +16,7 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         /// <param name="value">The value to format.</param>
         /// <param name="format">The format string.</param>
         public static LocalisableFormattableString ToLocalisableString(this IFormattable value, string? format = null)
-            => new LocalisableFormattableString(value, format);
+            => new LocalisableFormattableString($"{{0:{format}}}", new object?[] { value });
 
         /// <summary>
         /// Returns a <see cref="CaseTransformableString"/> with the specified underlying localisable string uppercased.
