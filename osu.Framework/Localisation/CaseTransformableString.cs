@@ -51,6 +51,9 @@ namespace osu.Framework.Localisation
                 case Casing.LowerCase:
                     return stringData.Transform(cultureInfo, To.LowerCase);
 
+                case Casing.SentenceCase:
+                    return stringData.Transform(cultureInfo, To.SentenceCase);
+
                 case Casing.Default:
                 default:
                     return stringData;
@@ -108,6 +111,11 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Transform the string data to lowercase.
         /// </summary>
-        LowerCase
+        LowerCase,
+
+        /// <summary>
+        /// Transform the string data to sentence case.
+        /// </summary>
+        SentenceCase
     }
 }
