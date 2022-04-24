@@ -76,8 +76,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestMenuBlocksInputUnderneathIt()
         {
+            bool itemClicked = false;
             bool actionReceived = false;
 
+            AddStep("set item action", () => Menus.GetSubMenu(0).Items[0].Items[0].Action.Value = () => itemClicked = true);
             AddStep("add mouse handler", () => Add(new MouseHandlingLayer
             {
                 Action = () => actionReceived = true,
@@ -86,6 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click item", () => ClickItem(0, 0));
             AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("menu item activated", () => itemClicked);
             AddAssert("mouse handler not activated", () => !actionReceived);
         }
 
