@@ -26,6 +26,7 @@ using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Layout;
+using osu.Framework.Logging;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 
@@ -85,9 +86,9 @@ namespace osu.Framework.Graphics.Containers
 
         private WeakList<Drawable> loadingComponents;
 
-        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        internal static readonly ThreadedTaskScheduler SCHEDULER_STANDARD = new ThreadedTaskScheduler(4, $"{nameof(LoadComponentsAsync)} (standard)");
 
-        private static readonly ThreadedTaskScheduler long_load_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        internal static readonly ThreadedTaskScheduler SCHEDULER_LONG_LOAD = new ThreadedTaskScheduler(4, $"{nameof(LoadComponentsAsync)} (long load)");
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -142,6 +143,8 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
+            EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
@@ -159,10 +162,16 @@ namespace osu.Framework.Graphics.Containers
             foreach (var d in loadables)
             {
                 loadingComponents.Add(d);
-                d.OnLoadComplete += _ => loadingComponents.Remove(d);
+                LoadingComponentsLogger.Add(d);
+
+                d.OnLoadComplete += _ =>
+                {
+                    loadingComponents.Remove(d);
+                    LoadingComponentsLogger.Remove(d);
+                };
             }
 
-            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? SCHEDULER_LONG_LOAD : SCHEDULER_STANDARD;
 
             return Task.Factory.StartNew(() => loadComponents(loadables, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(loaded =>
             {
@@ -173,6 +182,10 @@ namespace osu.Framework.Graphics.Containers
 
                 if (linkedSource.Token.IsCancellationRequested)
                 {
+                    // In the case of cancellation the final load state will not be reached, so cleanup here is required.
+                    foreach (var d in loadables)
+                        LoadingComponentsLogger.Remove(d);
+
                     linkedSource.Dispose();
                     return;
                 }
@@ -192,7 +205,7 @@ namespace osu.Framework.Graphics.Containers
                         linkedSource.Dispose();
                     }
                 });
-            }, CancellationToken.None);
+            }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
         /// <summary>
@@ -221,13 +234,16 @@ namespace osu.Framework.Graphics.Containers
         private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            for (var i = 0; i < components.Count; i++)
+            for (int i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
                     break;
 
                 if (!components[i].LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                {
+                    LoadingComponentsLogger.Remove(components[i]);
                     components.Remove(components[i--]);
+                }
             }
         }
 
@@ -267,7 +283,7 @@ namespace osu.Framework.Graphics.Containers
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children added.");
 
                 child.Load(Clock, Dependencies, false);
 
@@ -301,7 +317,10 @@ namespace osu.Framework.Graphics.Containers
             if (loadingComponents != null)
             {
                 foreach (var d in loadingComponents)
+                {
                     d.Dispose();
+                    LoadingComponentsLogger.Remove(d);
+                }
             }
 
             OnAutoSize = null;
@@ -345,6 +364,9 @@ namespace osu.Framework.Graphics.Containers
             }
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children set.");
+
                 ClearInternal();
                 AddInternal(value);
             }
@@ -414,6 +436,9 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+
                 ClearInternal();
                 AddRangeInternal(value);
             }
@@ -429,8 +454,17 @@ namespace osu.Framework.Graphics.Containers
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// <list type="bullet">
+        /// <item>If the supplied <paramref name="drawable"/> is already attached to another <see cref="Drawable.Parent"/>.</item>
+        /// <item>If a child drawable was matched using <see cref="Compare"/>, but that child drawable was not the supplied <paramref name="drawable"/>.</item>
+        /// </list>
+        /// </exception>
         protected internal int IndexOfInternal(Drawable drawable)
         {
+            if (drawable.Parent != null && drawable.Parent != this)
+                throw new InvalidOperationException($@"Cannot call {nameof(IndexOfInternal)} for a drawable that already is a child of a different parent.");
+
             int index = internalChildren.IndexOf(drawable);
 
             if (index >= 0 && internalChildren[index].ChildID != drawable.ChildID)
@@ -491,6 +525,9 @@ namespace osu.Framework.Graphics.Containers
         {
             EnsureChildMutationAllowed();
 
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Children cannot be cleared on a disposed drawable.");
+
             if (internalChildren.Count == 0) return;
 
             foreach (Drawable t in internalChildren)
@@ -530,7 +567,7 @@ namespace osu.Framework.Graphics.Containers
             EnsureChildMutationAllowed();
 
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+                throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
@@ -567,6 +604,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal void AddRangeInternal(IEnumerable<Drawable> range)
         {
+            if (range is IContainerEnumerable<Drawable>)
+            {
+                throw new InvalidOperationException($"Attempting to add a {nameof(IContainer)} as a range of children to {this}."
+                                                    + $"If intentional, consider using the {nameof(IContainerEnumerable<Drawable>.Children)} property instead.");
+            }
+
             foreach (Drawable d in range)
                 AddInternal(d);
         }
@@ -582,16 +625,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (child.Depth == newDepth) return;
 
-            var index = IndexOfInternal(child);
+            int index = IndexOfInternal(child);
             if (index < 0)
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
             internalChildren.RemoveAt(index);
-            var aliveIndex = aliveInternalChildren.IndexOf(child);
+            int aliveIndex = aliveInternalChildren.IndexOf(child);
             if (aliveIndex >= 0) // remove if found
                 aliveInternalChildren.RemoveAt(aliveIndex);
 
-            var chId = child.ChildID;
+            ulong chId = child.ChildID;
             child.ChildID = 0; // ensure Depth-change does not throw an exception
             child.Depth = newDepth;
             child.ChildID = chId;
@@ -811,8 +854,15 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UnbindAllBindablesSubTree();
 
-            foreach (Drawable child in internalChildren)
+            // TODO: this code can potentially be run from an update thread while a drawable is still loading (see ScreenStack as an example).
+            // while this is quite a bad issue, it is rare and generally happens in tests which have frame perfect behaviours.
+            // as such, for loop is used here intentionally to avoid collection modified exceptions for this (usually) non-critical failure.
+            // see https://github.com/ppy/osu-framework/issues/4054.
+            for (int i = 0; i < internalChildren.Count; i++)
+            {
+                Drawable child = internalChildren[i];
                 child.UnbindAllBindablesSubTree();
+            }
         }
 
         /// <summary>
@@ -1069,12 +1119,14 @@ namespace osu.Framework.Graphics.Containers
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
         protected virtual bool CanBeFlattened =>
-            // Masking composite DrawNodes define the masking area for their children.
+            // Masking composite draw nodes define the masking area for their children.
             !Masking
             // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph.
             && !HasProxy
             // Custom draw nodes may provide custom drawing procedures.
-            && !hasCustomDrawNode;
+            && !hasCustomDrawNode
+            // Composites with local vertex batches require their own draw node.
+            && !ForceLocalVertexBatch;
 
         private const int amount_children_required_for_masking_check = 2;
 
@@ -1202,6 +1254,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
+            if (AutoSizeAxes != Axes.None && AutoSizeDuration > 0)
+                childrenSizeDependencies.Invalidate();
+
             if (!propagateChildren)
                 return;
 
@@ -1223,25 +1278,49 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate ScheduleAfterChildren(Action action)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action);
+        }
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
             EnsureTransformMutationAllowed();
 
-            var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
-            if (!recursive)
-                return baseDisposalAction;
+            if (!recursive || internalChildren.Count == 0)
+                return base.BeginAbsoluteSequence(newTransformStartTime, false);
 
-            List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1) { baseDisposalAction };
+            List<AbsoluteSequenceSender> disposalActions = new List<AbsoluteSequenceSender>(internalChildren.Count + 1);
+
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
+
             foreach (var c in internalChildren)
-                disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
 
-            return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
+            return new ValueInvokeOnDisposal<List<AbsoluteSequenceSender>>(disposalActions, actions =>
             {
                 foreach (var a in actions)
                     a.Dispose();
             });
+        }
+
+        internal override void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<AbsoluteSequenceSender> actions)
+        {
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, actions);
+
+            foreach (var c in internalChildren)
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, actions);
         }
 
         public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)
@@ -1283,7 +1362,7 @@ namespace osu.Framework.Graphics.Containers
         protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
 
-        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed(nameof(InternalChildren));
+        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(InternalChildren)}");
 
         #endregion
 
@@ -1470,13 +1549,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private SRGBColour borderColour = Color4.Black;
+        private ColourInfo borderColour = Color4.Black;
 
         /// <summary>
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public SRGBColour BorderColour
+        public ColourInfo BorderColour
         {
             get => borderColour;
             protected set

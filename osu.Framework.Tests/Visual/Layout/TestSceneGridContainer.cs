@@ -50,6 +50,30 @@ namespace osu.Framework.Tests.Visual.Layout
             };
         });
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAutoSizeDoesNotConsiderRelativeSizeChildren(bool row)
+        {
+            Box relativeBox = null;
+            Box absoluteBox = null;
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    relativeBox = new FillBox { RelativeSizeAxes = Axes.Both },
+                    absoluteBox = new FillBox
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        Size = new Vector2(100)
+                    }
+                }
+            }, new[] { new Dimension(GridSizeMode.AutoSize) }, row);
+
+            AddStep("resize absolute box", () => absoluteBox.Size = new Vector2(50));
+            AddAssert("relative box has length 50", () => Precision.AlmostEquals(row ? relativeBox.DrawHeight : relativeBox.DrawWidth, 50, 1));
+        }
+
         [Test]
         public void TestBlankGrid()
         {
@@ -153,7 +177,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [TestCase(true)]
         public void Test3CellRowOrColumnDistributedXyAbsoluteYx(bool row)
         {
-            var sizes = new[] { 50f, 100f, 75f };
+            float[] sizes = { 50f, 100f, 75f };
             var boxes = new FillBox[3];
 
             setSingleDimensionContent(() => new[]
@@ -183,7 +207,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [TestCase(true)]
         public void Test3CellRowOrColumnDistributedXyRelativeYx(bool row)
         {
-            var sizes = new[] { 0.2f, 0.4f, 0.2f };
+            float[] sizes = { 0.2f, 0.4f, 0.2f };
             var boxes = new FillBox[3];
 
             setSingleDimensionContent(() => new[]
@@ -213,7 +237,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [TestCase(true)]
         public void Test3CellRowOrColumnDistributedXyMixedYx(bool row)
         {
-            var sizes = new[] { 0.2f, 75f };
+            float[] sizes = { 0.2f, 75f };
             var boxes = new FillBox[3];
 
             setSingleDimensionContent(() => new[]

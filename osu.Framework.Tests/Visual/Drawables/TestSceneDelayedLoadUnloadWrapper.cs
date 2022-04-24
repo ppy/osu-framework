@@ -254,6 +254,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        [Ignore("Fails intermittently on CI, can't be reproduced locally.")]
         public void TestManyChildrenUnload()
         {
             int loaded = 0;
@@ -283,28 +284,24 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             });
 
-            int childrenWithAvatarsLoaded() =>
-                flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
-
-            int loadCount1 = 0;
-            int loadCount2 = 0;
+            IEnumerable<Drawable> childrenWithAvatarsLoaded() => flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
             AddUntilStep("wait for load", () => loaded > 0);
 
+            int loadedCount1 = 0;
+            Drawable[] loadedChildren1 = null;
+
             AddStep("scroll down", () =>
             {
-                loadCount1 = loaded;
+                loadedCount1 = loaded;
+                loadedChildren1 = childrenWithAvatarsLoaded().ToArray();
                 scroll.ScrollToEnd();
             });
 
-            AddUntilStep("more loaded", () =>
-            {
-                loadCount2 = childrenWithAvatarsLoaded();
-                return loaded > loadCount1;
-            });
+            AddUntilStep("more loaded", () => loaded > loadedCount1);
 
-            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
-            AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadCount2);
+            AddAssert("not too many loaded", () => loaded < panel_count / 4);
+            AddUntilStep("wait some unloaded", () => loadedChildren1.Any(c => !childrenWithAvatarsLoaded().Contains(c)));
         }
 
         [Test]
@@ -445,18 +442,49 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            // Check that the child is disposed when its async-load completes while the DLUW is masked away.
-            AddAssert("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            // Check that the child is disposed when its async-load completes while the wrapper is masked away.
+            AddUntilStep("wait for load to begin", () => child?.LoadState == LoadState.Loading);
             AddStep("scroll to end", () => scrollContainer.ScrollToEnd(false));
             AddStep("allow load", () => child.AllowLoad.Set());
             AddUntilStep("drawable disposed", () => child.IsDisposed);
 
-            // Check that reuse of the child is not attempted.
             Drawable lastChild = null;
             AddStep("store child", () => lastChild = child);
+
+            // Check that reuse of the child is not attempted.
             AddStep("scroll to start", () => scrollContainer.ScrollToStart(false));
-            AddWaitStep("wait some frames", 2);
-            AddAssert("child not loaded", () => lastChild.LoadState != LoadState.Loaded);
+            AddStep("allow load of new child", () => child.AllowLoad.Set());
+            AddUntilStep("new child loaded", () => child.IsLoaded);
+            AddAssert("last child not loaded", () => !lastChild.IsLoaded);
+        }
+
+        [Test]
+        public void TestWrapperStopReceivingUpdatesAfterDelayedLoadCompleted()
+        {
+            DelayedLoadTestDrawable child = null;
+
+            AddStep("add panel", () =>
+            {
+                DelayedLoadUnloadWrapper wrapper;
+
+                Child = wrapper = new DelayedLoadUnloadWrapper(() => child = new DelayedLoadTestDrawable { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Height = 128,
+                };
+
+                // Prevent the wrapper from receiving updates as soon as load completes, and start making it unload its contents by repositioning it offscreen.
+                wrapper.DelayedLoadComplete += _ =>
+                {
+                    wrapper.Alpha = 0;
+                    wrapper.Position = new Vector2(-1000);
+                };
+            });
+
+            // Check that the child is disposed when its async-load completes while the wrapper is masked away.
+            AddUntilStep("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            AddStep("allow load", () => child.AllowLoad.Set());
+            AddUntilStep("drawable disposed", () => child.IsDisposed);
         }
 
         public class TestScrollContainer : BasicScrollContainer

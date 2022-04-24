@@ -1,12 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -163,41 +164,49 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            var positions = ComputeLayoutPositions().ToArray();
+            int processedCount = 0;
 
-            int i = 0;
-
-            foreach (var d in FlowingChildren)
+            using (IEnumerator<Vector2> positionEnumerator = ComputeLayoutPositions().GetEnumerator())
+            using (IEnumerator<Drawable> drawableEnumerator = FlowingChildren.GetEnumerator())
             {
-                if (i > positions.Length)
-                    break;
-
-                if (d.RelativePositionAxes != Axes.None)
-                    throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
-
-                var finalPos = positions[i];
-
-                var existingTransform = d.Transforms.OfType<FlowTransform>().FirstOrDefault();
-                Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
-
-                if (currentTargetPos != finalPos)
+                while (true)
                 {
+                    bool nextPos = positionEnumerator.MoveNext();
+                    bool nextDrawable = drawableEnumerator.MoveNext();
+
+                    if (nextPos != nextDrawable)
+                    {
+                        throw new InvalidOperationException(
+                            $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {processedCount} positions for {FlowingChildren.Count()} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                    }
+
+                    // at this point we only need to check one of the two iterators (due to the conditional directly above).
+                    if (!nextPos)
+                        return;
+
+                    var drawable = drawableEnumerator.Current;
+                    var pos = positionEnumerator.Current;
+
+                    processedCount++;
+
+                    Debug.Assert(drawable != null);
+
+                    if (drawable.RelativePositionAxes != Axes.None)
+                        throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {drawable.RelativePositionAxes}).");
+
+                    var existingTransform = drawable.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefault(x => x is FlowTransform) as FlowTransform;
+                    Vector2 currentTargetPos = existingTransform?.EndValue ?? drawable.Position;
+
+                    if (currentTargetPos == pos) continue;
+
                     if (LayoutDuration > 0)
-                        d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+                        drawable.TransformTo(drawable.PopulateTransform(new FlowTransform { Rewindable = false }, pos, LayoutDuration, LayoutEasing));
                     else
                     {
-                        if (existingTransform != null) d.ClearTransforms(false, nameof(FlowTransform));
-                        d.Position = finalPos;
+                        if (existingTransform != null) drawable.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
+                        drawable.Position = pos;
                     }
                 }
-
-                ++i;
-            }
-
-            if (i != positions.Length)
-            {
-                throw new InvalidOperationException(
-                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
             }
         }
 
@@ -220,8 +229,10 @@ namespace osu.Framework.Graphics.Containers
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {
+            public const string TARGET_MEMBER = nameof(Position);
+
             public FlowTransform()
-                : base(nameof(Position))
+                : base(TARGET_MEMBER)
             {
             }
         }

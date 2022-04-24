@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Screens
 {
@@ -110,7 +112,7 @@ namespace osu.Framework.Screens
             ScreenPushed?.Invoke(source, newScreen);
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
-            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
+            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(new ScreenTransitionEvent(source, newScreen));
 
             if (source == null)
             {
@@ -118,7 +120,10 @@ namespace osu.Framework.Screens
                 if (LoadState >= LoadState.Ready)
                     LoadScreen(this, newScreenDrawable, () => finishPush(null, newScreen));
                 else
+                {
+                    log($"scheduling push {getTypeString(newScreen)}");
                     Schedule(() => finishPush(null, newScreen));
+                }
             }
             else
                 LoadScreen((CompositeDrawable)source, newScreenDrawable, () => finishPush(source, newScreen));
@@ -136,6 +141,7 @@ namespace osu.Framework.Screens
                 if (child == CurrentScreen)
                     exitFrom(null, shouldFireExitEvent: false, shouldFireResumeEvent: suspendImmediately);
 
+                log($"push of {getTypeString(child)} cancelled due to {nameof(child.ValidForPush)} becoming false");
                 return;
             }
 
@@ -143,6 +149,7 @@ namespace osu.Framework.Screens
                 suspend(parent, child);
 
             AddInternal(child.AsDrawable());
+            log($"entered {getTypeString(child)}");
         }
 
         /// <summary>
@@ -152,7 +159,7 @@ namespace osu.Framework.Screens
         /// <param name="to">The screen being entered.</param>
         private void suspend(IScreen from, IScreen to)
         {
-            var sourceDrawable = from?.AsDrawable();
+            var sourceDrawable = from.AsDrawable();
             if (sourceDrawable == null)
                 return;
 
@@ -166,7 +173,8 @@ namespace osu.Framework.Screens
 
             void performSuspend()
             {
-                from.OnSuspending(to);
+                log($"suspended {getTypeString(from)} (waiting on {getTypeString(to)})");
+                from.OnSuspending(new ScreenTransitionEvent(from, to));
                 sourceDrawable.Expire();
             }
         }
@@ -188,9 +196,15 @@ namespace osu.Framework.Screens
             else
             {
                 if (loader.LoadState >= LoadState.Ready)
+                {
+                    log($"loading {getTypeString(toLoad)}");
                     loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+                }
                 else
+                {
+                    log($"scheduling load {getTypeString(toLoad)}");
                     Schedule(() => LoadScreen(loader, toLoad, continuation));
+                }
             }
         }
 
@@ -222,7 +236,7 @@ namespace osu.Framework.Screens
                 IScreen exitSource = exitCandidate;
                 exitCandidate = CurrentScreen;
 
-                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false);
+                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false, destination: target);
 
                 if (exitBlocked)
                 {
@@ -252,10 +266,10 @@ namespace osu.Framework.Screens
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
 
         internal IScreen GetParentScreen(IScreen source)
-            => stack.Reverse().TakeWhile(s => s != source).LastOrDefault();
+            => stack.GetNext(source);
 
         internal IScreen GetChildScreen(IScreen source)
-            => stack.TakeWhile(s => s != source).LastOrDefault();
+            => stack.GetPrevious(source);
 
         /// <summary>
         /// Exits the current <see cref="IScreen"/>.
@@ -263,8 +277,9 @@ namespace osu.Framework.Screens
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="shouldFireExitEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
         /// <param name="shouldFireResumeEvent">Whether <see cref="IScreen.OnResuming"/> should be fired on the resuming screen.</param>
+        /// <param name="destination">The final <see cref="IScreen"/> of an exit operation.</param>
         /// <returns>Whether the exit was blocked.</returns>
-        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
+        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true, IScreen destination = null)
         {
             if (stack.Count == 0)
                 return false;
@@ -282,7 +297,7 @@ namespace osu.Framework.Screens
 
                 // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
                 // OnExiting should still be called regardless.
-                bool blockRequested = toExit.OnExiting(next);
+                bool blockRequested = toExit.OnExiting(new ScreenExitEvent(toExit, next, destination ?? next));
 
                 if ((source == null || toExit.ValidForResume) && blockRequested)
                     return true;
@@ -302,6 +317,9 @@ namespace osu.Framework.Screens
 
             exited.Add(toExit.AsDrawable());
 
+            log($"exit from {getTypeString(toExit)}");
+            log($"resume to {getTypeString(CurrentScreen)}");
+
             ScreenExited?.Invoke(toExit, CurrentScreen);
 
             // Resume the next current screen from the exited one
@@ -309,6 +327,16 @@ namespace osu.Framework.Screens
                 resumeFrom(toExit);
 
             return false;
+        }
+
+        private void log(string message) => Logger.Log($"📺 {getTypeString(this)}(depth:{stack.Count}) {message}");
+
+        private static string getTypeString(object o)
+        {
+            if (o == null)
+                return "[empty]";
+
+            return $"{o}#{o.GetHashCode().ToString("000").Substring(0, 3)}";
         }
 
         /// <summary>
@@ -332,7 +360,7 @@ namespace osu.Framework.Screens
 
             if (CurrentScreen.ValidForResume)
             {
-                CurrentScreen.OnResuming(source);
+                CurrentScreen.OnResuming(new ScreenTransitionEvent(source, CurrentScreen));
 
                 // Screens are expired when they are suspended - lifetime needs to be reset when resumed
                 CurrentScreen.AsDrawable().LifetimeEnd = double.MaxValue;

@@ -1,9 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -41,16 +44,29 @@ namespace osu.Framework.Testing.Input
 
         private readonly TestCursorContainer testCursor;
 
+        private readonly LocalPlatformActionContainer platformActionContainer;
+
+        public override bool UseParentInput
+        {
+            get => base.UseParentInput;
+            set
+            {
+                base.UseParentInput = value;
+                platformActionContainer.ShouldHandle = !value;
+            }
+        }
+
         public ManualInputManager()
         {
-            UseParentInput = true;
             AddHandler(handler = new ManualInputHandler());
 
             InternalChildren = new Drawable[]
             {
-                content = new Container { RelativeSizeAxes = Axes.Both },
+                platformActionContainer = new LocalPlatformActionContainer().WithChild(content = new Container { RelativeSizeAxes = Axes.Both }),
                 testCursor = new TestCursorContainer(),
             };
+
+            UseParentInput = true;
         }
 
         public void Input(IInput input)
@@ -77,11 +93,26 @@ namespace osu.Framework.Testing.Input
         /// <summary>
         /// Press and release the specified key.
         /// </summary>
-        /// <param name="key">The key to press and release.</param>
+        /// <param name="key">The key to actuate.</param>
         public void Key(Key key)
         {
             PressKey(key);
             ReleaseKey(key);
+        }
+
+        /// <summary>
+        /// Press and release the keys in the specified <see cref="PlatformAction"/>.
+        /// </summary>
+        /// <param name="action">The platform action to actuate.</param>
+        public void Keys(PlatformAction action)
+        {
+            var binding = Host.PlatformKeyBindings.First(b => (PlatformAction)b.Action == action);
+
+            foreach (var k in binding.KeyCombination.Keys)
+                PressKey((Key)k);
+
+            foreach (var k in binding.KeyCombination.Keys)
+                ReleaseKey((Key)k);
         }
 
         public void ScrollBy(Vector2 delta, bool isPrecise = false) => Input(new MouseScrollRelativeInput { Delta = delta, IsPrecise = isPrecise });
@@ -92,6 +123,9 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
         public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
+
+        public new bool TriggerClick() =>
+            throw new InvalidOperationException($"To trigger a click via a {nameof(ManualInputManager)} use {nameof(Click)} instead.");
 
         /// <summary>
         /// Press and release the specified button.
@@ -133,11 +167,23 @@ namespace osu.Framework.Testing.Input
         public void PressTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, true));
         public void ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, false));
 
+        private class LocalPlatformActionContainer : PlatformActionContainer
+        {
+            public bool ShouldHandle;
+
+            protected override bool Handle(UIEvent e)
+            {
+                if (!ShouldHandle)
+                    return false;
+
+                return base.Handle(e);
+            }
+        }
+
         private class ManualInputHandler : InputHandler
         {
             public override bool Initialize(GameHost host) => true;
             public override bool IsActive => true;
-            public override int Priority => 0;
 
             public void EnqueueInput(IInput input)
             {

@@ -20,7 +20,7 @@ namespace osu.Framework.Allocation
     /// <remarks>
     /// The value of the property is resolved upon <see cref="Drawable.Load"/> for the target <see cref="Drawable"/>.
     /// </remarks>
-    [MeansImplicitUse]
+    [MeansImplicitUse(ImplicitUseKindFlags.Assign)]
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
@@ -109,7 +109,7 @@ namespace osu.Framework.Allocation
 
         private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
         {
-            var val = dc.Get(type, info);
+            object val = dc.Get(type, info);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 

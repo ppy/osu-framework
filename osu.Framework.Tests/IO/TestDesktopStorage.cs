@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using NUnit.Framework;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.IO
 {
@@ -13,11 +14,11 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestRelativePaths()
         {
-            var guid = new Guid().ToString();
+            string guid = new Guid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
-                var basePath = storage.GetFullPath(string.Empty);
+                string basePath = storage.GetFullPath(string.Empty);
 
                 Assert.IsTrue(basePath.EndsWith(guid, StringComparison.Ordinal));
 
@@ -33,7 +34,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestAttemptEscapeRoot()
         {
-            var guid = new Guid().ToString();
+            string guid = new Guid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -45,7 +46,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetSubDirectoryStorage()
         {
-            var guid = new Guid().ToString();
+            string guid = new Guid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -56,7 +57,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetEmptySubDirectoryStorage()
         {
-            var guid = new Guid().ToString();
+            string guid = new Guid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {

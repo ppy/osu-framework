@@ -21,11 +21,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float RangePadding;
 
-        /// <summary>
-        /// Whether keyboard control should be allowed even when the bar is not hovered.
-        /// </summary>
-        protected virtual bool AllowKeyboardInputWhenNotHovered => false;
-
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
         /// <summary>
@@ -86,13 +81,13 @@ namespace osu.Framework.Graphics.UserInterface
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                var min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
-                var max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
+                float min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
+                float max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
 
                 if (max - min == 0)
                     return 1;
 
-                var val = Convert.ToSingle(currentNumberInstantaneous.Value);
+                float val = Convert.ToSingle(currentNumberInstantaneous.Value);
                 return (val - min) / (max - min);
             }
         }
@@ -107,12 +102,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            currentNumberInstantaneous.ValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MinValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.ValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MinValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MaxValueChanged += _ => Scheduler.AddOnce(updateValue);
 
-            UpdateValue(NormalizedValue);
+            Scheduler.AddOnce(updateValue);
         }
+
+        private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
 
@@ -163,11 +160,10 @@ namespace osu.Framework.Graphics.UserInterface
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
-            bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
-            if (!shouldHandle)
+            if (!IsHovered)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
             if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
             switch (e.Key)
@@ -207,7 +203,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(UIEvent e)
         {
-            var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
+            float xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
             if (currentNumberInstantaneous.Disabled)
                 return;

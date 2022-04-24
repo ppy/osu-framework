@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Clocks
             Thread.Sleep(1000);
 
             stopwatchClock.Stop();
-            var stoppedTime = stopwatchClock.CurrentTime;
+            double stoppedTime = stopwatchClock.CurrentTime;
             Assert.Greater(stoppedTime, 0);
 
             stopwatchClock.Rate = 2.0f;
@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Clocks
             Thread.Sleep(1000);
 
             stopwatchClock.Stop();
-            var stoppedTime = stopwatchClock.CurrentTime;
+            double stoppedTime = stopwatchClock.CurrentTime;
             Assert.Greater(stoppedTime, 0);
 
             stopwatchClock.Seek(stoppedTime);
@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Clocks
             Thread.Sleep(1000);
 
             stopwatchClock.Stop();
-            var stoppedTime = stopwatchClock.CurrentTime;
+            double stoppedTime = stopwatchClock.CurrentTime;
             Assert.Less(stoppedTime, 0);
 
             stopwatchClock.Seek(stoppedTime);

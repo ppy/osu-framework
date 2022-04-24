@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -18,14 +18,13 @@ namespace osu.Framework.Testing
     {
         protected MenuStructure Menus;
 
-        [SetUp]
-        public new void SetUp() => Schedule(() =>
+        protected void CreateMenu(Func<Menu> creationFunc) => AddStep("create menu", () =>
         {
             Menu menu;
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Child = menu = CreateMenu(),
+                Child = menu = creationFunc.Invoke(),
             };
 
             Menus = new MenuStructure(menu);
@@ -42,8 +41,6 @@ namespace osu.Framework.Testing
             InputManager.Click(MouseButton.Left);
         }
 
-        protected abstract Menu CreateMenu();
-
         /// <summary>
         /// Helper class used to retrieve various internal properties/items from a <see cref="Menu"/>.
         /// </summary>
@@ -59,7 +56,7 @@ namespace osu.Framework.Testing
             /// <summary>
             /// Retrieves the <see cref="Menu.DrawableMenuItem"/>s of the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.
             /// </summary>
-            public IReadOnlyList<Drawable> GetMenuItems() => menu.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().First();
+            public IReadOnlyList<Drawable> GetMenuItems() => menu.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().First().Children;
 
             /// <summary>
             /// Finds the <see cref="Menu.DrawableMenuItem"/> index in the <see cref="Menu"/> represented by this <see cref="MenuStructure"/> that

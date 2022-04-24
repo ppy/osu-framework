@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
@@ -18,15 +18,16 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
+        public const int IPC_PORT = 45356;
+
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
-        private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
-            : base(gameName)
+        protected DesktopGameHost(string gameName, HostOptions options = null)
+            : base(gameName, options)
         {
-            this.bindIPCPort = bindIPCPort;
-            IsPortableInstallation = portableInstallation;
+            bindIPCPort = Options.BindIPC;
+            IsPortableInstallation = Options.PortableInstallation;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
@@ -39,40 +40,56 @@ namespace osu.Framework.Platform
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
 
+        public override bool IsPrimaryInstance
+        {
+            get
+            {
+                // make sure we have actually attempted to bind IPC as this call may occur before the host is run.
+                ensureIPCReady();
+
+                return base.IsPrimaryInstance;
+            }
+        }
+
         protected override void SetupForRun()
         {
-            if (bindIPCPort)
-                startIPC();
+            ensureIPCReady();
 
             base.SetupForRun();
         }
 
-        private void startIPC()
+        private void ensureIPCReady()
         {
-            Debug.Assert(ipcProvider == null);
+            if (!bindIPCPort)
+                return;
 
-            ipcProvider = new TcpIpcProvider();
+            if (ipcProvider != null)
+                return;
+
+            ipcProvider = new TcpIpcProvider(IPC_PORT);
+            ipcProvider.MessageReceived += OnMessageReceived;
+
             IsPrimaryInstance = ipcProvider.Bind();
-
-            if (IsPrimaryInstance)
-            {
-                ipcProvider.MessageReceived += OnMessageReceived;
-
-                ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
-                {
-                    Name = "IPC",
-                    IsBackground = true
-                };
-
-                ipcThread.Start();
-            }
         }
 
         public bool IsPortableInstallation { get; }
 
-        public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
+        public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
+
+        public override bool OpenFileExternally(string filename)
+        {
+            openUsingShellExecute(filename);
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
+
+        public override bool PresentFileExternally(string filename)
+        {
+            // should be overriden to highlight/select the file in the folder if such native API exists.
+            OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            return true;
+        }
 
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
@@ -80,26 +97,37 @@ namespace osu.Framework.Platform
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
         });
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
+        protected override TextInputSource CreateTextInput()
+        {
+            if (Window is SDL2DesktopWindow desktopWindow)
+                return new SDL2DesktopWindowTextInput(desktopWindow);
+
+            return base.CreateTextInput();
+        }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
             {
                 new KeyboardHandler(),
+#if NET6_0
+                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
+                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
+#endif
                 new MouseHandler(),
                 new JoystickHandler(),
                 new MidiHandler(),
-#if NET5_0
-                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
-#endif
             };
 
-        public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);
+        public override Task SendMessageAsync(IpcMessage message)
+        {
+            ensureIPCReady();
+
+            return ipcProvider.SendMessageAsync(message);
+        }
 
         protected override void Dispose(bool isDisposing)
         {
             ipcProvider?.Dispose();
-            ipcThread?.Join(50);
             base.Dispose(isDisposing);
         }
     }

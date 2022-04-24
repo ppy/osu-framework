@@ -19,13 +19,27 @@ namespace osu.Framework.Audio
             if (Bass.LastError == Errors.OK)
                 return false;
 
-            var failMessage = $@"BASS faulted with error code {Bass.LastError:D}: {Bass.LastError}.";
+            string failMessage = $@"BASS faulted with error code {Bass.LastError:D}: {Bass.LastError}.";
 
             if (throwException)
                 throw new InvalidOperationException(failMessage);
 
             Logger.Log(failMessage, LoggingTarget.Runtime, LogLevel.Important);
             return true;
+        }
+
+        internal static double DbToLevel(double gain)
+        {
+            if (gain == 0) return 0;
+
+            return Math.Pow(10, gain / 20);
+        }
+
+        internal static double LevelToDb(double level)
+        {
+            if (level == 0) return 0;
+
+            return Math.Log(level, 10) * 20f;
         }
     }
 }

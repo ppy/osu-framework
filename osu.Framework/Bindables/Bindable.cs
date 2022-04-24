@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
@@ -19,7 +17,7 @@ namespace osu.Framework.Bindables
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, IBindable, IParseable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -130,9 +128,9 @@ namespace osu.Framework.Bindables
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
 
-        private readonly Cached<WeakReference<Bindable<T>>> weakReferenceCache = new Cached<WeakReference<Bindable<T>>>();
+        private WeakReference<Bindable<T>> weakReferenceInstance;
 
-        private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
+        private WeakReference<Bindable<T>> weakReference => weakReferenceInstance ??= new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
@@ -252,12 +250,12 @@ namespace osu.Framework.Bindables
                     Value = bindable.Value;
                     break;
 
-                case string s when underlyingType.IsEnum:
-                    Value = (T)Enum.Parse(underlyingType, s);
-                    break;
-
                 default:
-                    Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+                    if (underlyingType.IsEnum)
+                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                    else
+                        Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+
                     break;
             }
         }
@@ -330,11 +328,12 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>.
+        /// Unbinds any actions bound to the value changed events.
         /// </summary>
-        public void UnbindEvents()
+        public virtual void UnbindEvents()
         {
             ValueChanged = null;
+            DefaultChanged = null;
             DisabledChanged = null;
         }
 
@@ -349,18 +348,16 @@ namespace osu.Framework.Bindables
             // ToArray required as this may be called from an async disposal thread.
             // This can lead to deadlocks since each child is also enumerating its Bindings.
             foreach (var b in Bindings.ToArray())
-                b.Unbind(this);
-
-            Bindings.Clear();
+                UnbindFrom(b);
         }
-
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
         /// Also returns any active lease.
         /// </summary>
-        public virtual void UnbindAll()
+        public void UnbindAll() => UnbindAllInternal();
+
+        internal virtual void UnbindAllInternal()
         {
             if (isLeased)
                 leasedBindable.Return();
@@ -369,7 +366,7 @@ namespace osu.Framework.Bindables
             UnbindBindings();
         }
 
-        public void UnbindFrom(IUnbindable them)
+        public virtual void UnbindFrom(IUnbindable them)
         {
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
@@ -392,24 +389,17 @@ namespace osu.Framework.Bindables
             return clone;
         }
 
-        /// <summary>
-        /// Retrieve a new bindable instance weakly bound to the configuration backing.
-        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
-        /// a local reference.
-        /// </summary>
-        /// <returns>A weakly bound copy of the specified bindable.</returns>
-        public Bindable<T> GetBoundCopy()
-        {
-            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
-            Debug.Assert(copy != null);
+        IBindable IBindable.CreateInstance() => CreateInstance();
 
-            copy.BindTo(this);
-            return copy;
-        }
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
+        protected virtual Bindable<T> CreateInstance() => new Bindable<T>();
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
+        /// <inheritdoc cref="IBindable{T}.GetBoundCopy"/>
+        public Bindable<T> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {

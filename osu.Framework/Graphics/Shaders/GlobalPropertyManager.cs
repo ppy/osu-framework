@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
-        private static readonly List<Shader> all_shaders = new List<Shader>();
+        private static readonly HashSet<Shader> all_shaders = new HashSet<Shader>();
         private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");
             global_properties[(int)GlobalProperty.CornerExponent] = new UniformMapping<float>("g_CornerExponent");
             global_properties[(int)GlobalProperty.BorderThickness] = new UniformMapping<float>("g_BorderThickness");
-            global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Vector4>("g_BorderColour");
+            global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Matrix4>("g_BorderColour");
             global_properties[(int)GlobalProperty.MaskingBlendRange] = new UniformMapping<float>("g_MaskingBlendRange");
             global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
             global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.Shaders
 
         public static void Register(Shader shader)
         {
+            if (!all_shaders.Add(shader)) return;
+
             // transfer all existing global properties across.
             foreach (var global in global_properties)
             {
@@ -61,8 +63,6 @@ namespace osu.Framework.Graphics.Shaders
 
                 global.LinkShaderUniform(uniform);
             }
-
-            all_shaders.Add(shader);
         }
 
         public static void Unregister(Shader shader)

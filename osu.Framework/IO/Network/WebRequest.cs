@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET5_0
+#if NET6_0
 using System.Net.Sockets;
 #endif
 using System;
@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -89,9 +90,14 @@ namespace osu.Framework.IO.Network
         public string Url;
 
         /// <summary>
-        /// POST parameters.
+        /// Query string parameters.
         /// </summary>
-        private readonly Dictionary<string, string> parameters = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Form parameters.
+        /// </summary>
+        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
 
         /// <summary>
         /// FILE parameters.
@@ -129,15 +135,34 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
+        private CancellationToken? userToken;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
+
+        private LengthTrackingStream requestStream;
+        private HttpResponseMessage response;
+
+        private long contentLength => requestStream?.Length ?? 0;
+
+        private const string form_boundary = "-----------------------------28947758029299";
+
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+
         private static readonly HttpClient client = new HttpClient(
-#if NET5_0
+#if NET6_0
             new SocketsHttpHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                Credentials = CredentialCache.DefaultCredentials,
                 ConnectCallback = onConnect,
             }
 #else
-            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+            new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                Credentials = CredentialCache.DefaultCredentials,
+            }
 #endif
         )
         {
@@ -194,10 +219,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                byte[] data = new byte[ResponseStream.Length];
                 ResponseStream.Seek(0, SeekOrigin.Begin);
-                ResponseStream.Read(data, 0, data.Length);
-                return data;
+
+                return ResponseStream.ReadAllBytesToArray();
             }
             catch
             {
@@ -207,29 +231,11 @@ namespace osu.Framework.IO.Network
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
 
-        private CancellationToken? userToken;
-        private CancellationTokenSource abortToken;
-        private CancellationTokenSource timeoutToken;
-
-        private LengthTrackingStream requestStream;
-        private HttpResponseMessage response;
-
-        private long contentLength => requestStream?.Length ?? 0;
-
-        private const string form_boundary = "-----------------------------28947758029299";
-
-        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
-
-        /// <summary>
-        /// Performs the request asynchronously.
-        /// </summary>
-        public Task PerformAsync() => PerformAsync(default);
-
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
         /// <param name="cancellationToken">A token to cancel the request.</param>
-        public async Task PerformAsync(CancellationToken cancellationToken)
+        public async Task PerformAsync(CancellationToken cancellationToken = default)
         {
             if (Completed)
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
@@ -246,7 +252,7 @@ namespace osu.Framework.IO.Network
 
         private async Task internalPerform(CancellationToken cancellationToken = default)
         {
-            var url = Url;
+            string url = Url;
 
             if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
@@ -268,17 +274,18 @@ namespace osu.Framework.IO.Network
 
                     HttpRequestMessage request;
 
+                    StringBuilder requestParameters = new StringBuilder();
+                    foreach (var p in queryParameters)
+                        requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
+                    string requestString = requestParameters.ToString().TrimEnd('&');
+                    url = string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}";
+
                     if (Method == HttpMethod.Get)
                     {
                         if (files.Count > 0)
                             throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
 
-                        StringBuilder requestParameters = new StringBuilder();
-                        foreach (var p in parameters)
-                            requestParameters.Append($@"{p.Key}={p.Value}&");
-                        string requestString = requestParameters.ToString().TrimEnd('&');
-
-                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}");
+                        request = new HttpRequestMessage(HttpMethod.Get, url);
                     }
                     else
                     {
@@ -288,8 +295,8 @@ namespace osu.Framework.IO.Network
 
                         if (rawContent != null)
                         {
-                            if (parameters.Count > 0)
-                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                            if (formParameters.Count > 0)
+                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with form parameters");
                             if (files.Count > 0)
                                 throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
@@ -300,16 +307,16 @@ namespace osu.Framework.IO.Network
 
                             postContent.Position = 0;
                         }
-                        else if (parameters.Count > 0 || files.Count > 0)
+                        else if (formParameters.Count > 0 || files.Count > 0)
                         {
                             if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
-                                throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
+                                throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request with form/file parameters.");
 
                             ContentType = form_content_type;
 
                             var formData = new MultipartFormDataContent(form_boundary);
 
-                            foreach (var p in parameters)
+                            foreach (var p in formParameters)
                                 formData.Add(new StringContent(p.Value), p.Key);
 
                             foreach (var p in files)
@@ -319,7 +326,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET5_0
+#if NET6_0
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
                             postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
@@ -375,8 +382,8 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
-                        WebExceptionStatus.Timeout));
+                    await Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                        WebExceptionStatus.Timeout)).ConfigureAwait(false);
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
@@ -388,7 +395,7 @@ namespace osu.Framework.IO.Network
                         // we may be coming from one of the exception blocks handled above (as Complete will rethrow all exceptions).
                         throw;
 
-                    Complete(e);
+                    await Complete(e).ConfigureAwait(false);
                 }
             }
 
@@ -408,7 +415,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                PerformAsync().Wait();
+                // Start a long-running task to ensure we don't block on a TPL thread pool thread.
+                // Unfortunately we can't use a full synchronous flow due to IPv4 fallback logic *requiring* the async path for now.
+                Task.Factory.StartNew(() => PerformAsync().WaitSafely(), TaskCreationOptions.LongRunning).WaitSafely();
             }
             catch (AggregateException ae)
             {
@@ -425,7 +434,7 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET5_0
+#if NET6_0
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
@@ -462,17 +471,17 @@ namespace osu.Framework.IO.Network
                     else
                     {
                         ResponseStream.Seek(0, SeekOrigin.Begin);
-                        Complete();
+                        await Complete().ConfigureAwait(false);
                         break;
                     }
                 }
             }
         }
 
-        protected virtual void Complete(Exception e = null)
+        protected virtual Task Complete(Exception e = null)
         {
             if (Aborted)
-                return;
+                return Task.CompletedTask;
 
             var we = e as WebException;
 
@@ -505,8 +514,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
-                    internalPerform().Wait();
-                    return;
+                    return internalPerform();
                 }
 
                 logger.Add($"Request to {Url} failed with {e}.");
@@ -569,6 +577,8 @@ namespace osu.Framework.IO.Network
                 Aborted = true;
                 throw e;
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -600,7 +610,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter(string,string,RequestParameterType)"/>.
         /// </summary>
         /// <param name="text">The text.</param>
         public void AddRaw(string text)
@@ -610,7 +620,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter(string,string,RequestParameterType)"/>.
         /// </summary>
         /// <param name="bytes">The raw data.</param>
         public void AddRaw(byte[] bytes)
@@ -620,7 +630,8 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/>
+        /// and <see cref="AddParameter(string,string,RequestParameterType)"/> with the request type of <see cref="RequestParameterType.Form"/>.
         /// </summary>
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
@@ -647,18 +658,61 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
-        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// <para>
+        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// </para>
+        /// <para>
+        /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a <see cref="RequestParameterType.Form"/> parameter will be added;
+        /// otherwise, a <see cref="RequestParameterType.Query"/> parameter will be added.
+        /// For more fine-grained control over the parameter type, use the <see cref="AddParameter(string,string,RequestParameterType)"/> overload.
+        /// </para>
+        /// <para>
+        /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// </para>
         /// </summary>
+        /// <remarks>
+        /// Values added to the request URL query string are automatically percent-encoded before sending the request.
+        /// </remarks>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
+            => AddParameter(name, value, supportsRequestBody(Method) ? RequestParameterType.Form : RequestParameterType.Query);
+
+        /// <summary>
+        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// </summary>
+        /// <remarks>
+        /// Values added to the request URL query string are automatically percent-encoded before sending the request.
+        /// </remarks>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="value">The parameter value.</param>
+        /// <param name="type">The type of the request parameter.</param>
+        public void AddParameter(string name, string value, RequestParameterType type)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (value == null) throw new ArgumentNullException(nameof(value));
 
-            parameters[name] = value;
+            switch (type)
+            {
+                case RequestParameterType.Query:
+                    queryParameters[name] = value;
+                    break;
+
+                case RequestParameterType.Form:
+                    if (!supportsRequestBody(Method))
+                        throw new ArgumentException("Cannot add form parameter to a request type which has no body.", nameof(type));
+
+                    formParameters[name] = value;
+                    break;
+            }
         }
+
+        private static bool supportsRequestBody(HttpMethod method)
+            => method == HttpMethod.Post
+               || method == HttpMethod.Put
+               || method == HttpMethod.Delete
+               || method == HttpMethod.Patch;
 
         /// <summary>
         /// Adds a new header to this request. Replaces any existing header with the same name.
@@ -716,7 +770,7 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET5_0
+#if NET6_0
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>

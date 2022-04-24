@@ -5,8 +5,10 @@ using System;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -46,12 +48,23 @@ namespace osu.Framework.Graphics.Audio
 
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
+        private IAggregateAudioAdjustment parentAdjustment;
+        private IAudioMixer parentMixer;
+
+        private readonly LayoutValue fromParentLayout = new LayoutValue(Invalidation.Parent);
+
+        private DrawableAudioWrapper()
+        {
+            AddLayout(fromParentLayout);
+        }
+
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
         /// Generally used to add adjustments to a hierarchy without adding an audio component.
         /// </summary>
         /// <param name="content">The <see cref="Drawable"/> to be wrapped.</param>
         protected DrawableAudioWrapper(Drawable content)
+            : this()
         {
             AddInternal(content);
         }
@@ -62,6 +75,7 @@ namespace osu.Framework.Graphics.Audio
         /// <param name="component">The audio component to wrap.</param>
         /// <param name="disposeUnderlyingComponentOnDispose">Whether the component should be automatically disposed on drawable disposal/expiry.</param>
         protected DrawableAudioWrapper([NotNull] IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+            : this()
         {
             this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
@@ -69,11 +83,57 @@ namespace osu.Framework.Graphics.Audio
             component.BindAdjustments(adjustments);
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(IAggregateAudioAdjustment parentAdjustment)
+        protected override void Update()
         {
-            if (parentAdjustment != null)
-                adjustments.BindAdjustments(parentAdjustment);
+            base.Update();
+
+            if (!fromParentLayout.IsValid)
+            {
+                refreshLayoutFromParent();
+                fromParentLayout.Validate();
+            }
+        }
+
+        private void refreshLayoutFromParent()
+        {
+            // because these components may be pooled, relying on DI is not feasible.
+            // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
+            Drawable cursor = this;
+            IAggregateAudioAdjustment newAdjustments = null;
+            IAudioMixer newMixer = null;
+
+            while ((cursor = cursor.Parent) != null)
+            {
+                if (newAdjustments == null && cursor is IAggregateAudioAdjustment candidateAdjustment)
+                {
+                    // components may be delegating the aggregates of a contained child.
+                    // to avoid binding to one's self, check reference equality on an arbitrary bindable.
+                    if (candidateAdjustment.AggregateVolume != adjustments.AggregateVolume)
+                        newAdjustments = candidateAdjustment;
+                }
+
+                if (newMixer == null && cursor is IAudioMixer candidateMixer)
+                    newMixer = candidateMixer;
+
+                if (newAdjustments != null && newMixer != null)
+                    break;
+            }
+
+            if (newAdjustments != parentAdjustment)
+            {
+                if (parentAdjustment != null) adjustments.UnbindAdjustments(parentAdjustment);
+                parentAdjustment = newAdjustments;
+                if (parentAdjustment != null) adjustments.BindAdjustments(parentAdjustment);
+            }
+
+            if (parentMixer != newMixer)
+                OnMixerChanged(new ValueChangedEvent<IAudioMixer>(parentMixer, newMixer));
+
+            parentMixer = newMixer;
+        }
+
+        protected virtual void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        {
         }
 
         protected override void Dispose(bool isDisposing)
@@ -83,6 +143,9 @@ namespace osu.Framework.Graphics.Audio
 
             if (disposeUnderlyingComponentOnDispose)
                 (component as IDisposable)?.Dispose();
+
+            parentAdjustment = null;
+            parentMixer = null;
         }
 
         public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)

@@ -27,7 +27,7 @@ namespace osu.Framework.Platform.Windows
         internal static int MinimumPeriod => time_capabilities.wPeriodMin;
         internal static int MaximumPeriod => time_capabilities.wPeriodMax;
 
-        private bool canAdjust = MaximumPeriod > 0;
+        private readonly bool didAdjust;
 
         static TimePeriod()
         {
@@ -37,34 +37,15 @@ namespace osu.Framework.Platform.Windows
         internal TimePeriod(int period)
         {
             this.period = period;
-        }
 
-        private bool active;
+            if (MaximumPeriod <= 0)
+                return;
 
-        internal bool Active
-        {
-            get => active;
-            set
+            try
             {
-                if (value == active || !canAdjust) return;
-
-                active = value;
-
-                try
-                {
-                    if (active)
-                    {
-                        canAdjust &= 0 == timeBeginPeriod(Math.Clamp(period, MinimumPeriod, MaximumPeriod));
-                    }
-                    else
-                    {
-                        timeEndPeriod(period);
-                    }
-                }
-                catch
-                {
-                }
+                didAdjust = timeBeginPeriod(Math.Clamp(period, MinimumPeriod, MaximumPeriod)) == 0;
             }
+            catch { }
         }
 
         #region IDisposable Support
@@ -75,8 +56,16 @@ namespace osu.Framework.Platform.Windows
         {
             if (!disposedValue)
             {
-                Active = false;
                 disposedValue = true;
+
+                if (!didAdjust)
+                    return;
+
+                try
+                {
+                    timeEndPeriod(period);
+                }
+                catch { }
             }
         }
 

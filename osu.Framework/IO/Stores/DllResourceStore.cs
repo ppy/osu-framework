@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -41,29 +43,15 @@ namespace osu.Framework.IO.Stores
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-            {
-                if (input == null)
-                    return null;
-
-                byte[] buffer = new byte[input.Length];
-                input.Read(buffer, 0, buffer.Length);
-                return buffer;
-            }
+                return input?.ReadAllBytesToArray();
         }
 
-        public virtual async Task<byte[]> GetAsync(string name)
+        public virtual Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-            {
-                if (input == null)
-                    return null;
-
-                byte[] buffer = new byte[input.Length];
-                await input.ReadAsync(buffer.AsMemory()).ConfigureAwait(false);
-                return buffer;
-            }
+                return input?.ReadAllBytesToArrayAsync(cancellationToken);
         }
 
         /// <summary>
@@ -76,7 +64,7 @@ namespace osu.Framework.IO.Stores
 
                 int lastDot = n.LastIndexOf('.');
 
-                var chars = n.ToCharArray();
+                char[] chars = n.ToCharArray();
 
                 for (int i = 0; i < lastDot; i++)
                 {
@@ -91,7 +79,7 @@ namespace osu.Framework.IO.Stores
         {
             this.LogIfNonBackgroundThread(name);
 
-            var split = name.Split('/');
+            string[] split = name.Split('/');
             for (int i = 0; i < split.Length - 1; i++)
                 split[i] = split[i].Replace('-', '_');
 

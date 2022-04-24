@@ -10,6 +10,8 @@ using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using SDL2;
 
+// ReSharper disable UnusedParameter.Local (Class regularly handles native events where we don't consume all parameters)
+
 namespace osu.Framework.Platform.Windows
 {
     /// <summary>
@@ -24,7 +26,6 @@ namespace osu.Framework.Platform.Windows
         private SDL2DesktopWindow window;
 
         public override bool IsActive => Enabled.Value;
-        public override int Priority => 0;
 
         public override bool Initialize(GameHost host)
         {

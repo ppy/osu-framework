@@ -7,8 +7,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Utils;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -120,19 +120,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(0, false);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestKeyboardInput(bool allowOutside)
+        [Test]
+        public void TestKeyboardInput()
         {
-            AddStep($"allow outside: {allowOutside}", () => sliderBar.KeyboardInput = allowOutside);
-
-            checkValue(0, allowOutside);
             AddStep("Press right arrow key", () =>
             {
                 InputManager.PressKey(Key.Right);
                 InputManager.ReleaseKey(Key.Right);
             });
-            checkValue(1, !allowOutside);
+
+            checkValue(0, true);
 
             AddStep("move mouse inside", () =>
             {
@@ -144,7 +141,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressKey(Key.Right);
                 InputManager.ReleaseKey(Key.Right);
             });
-            checkValue(allowOutside ? 2 : 1, false);
+            checkValue(1, false);
         }
 
         [TestCase(false)]
@@ -162,7 +159,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
             AddStep("Press left arrow key", () =>
             {
-                var before = sliderBar.IsHovered;
+                bool before = sliderBar.IsHovered;
                 sliderBar.IsHovered = true;
                 InputManager.PressKey(Key.Left);
                 InputManager.ReleaseKey(Key.Left);
@@ -218,9 +215,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public class TestSliderBar : BasicSliderBar<double>
         {
-            public bool KeyboardInput;
-
-            protected override bool AllowKeyboardInputWhenNotHovered => KeyboardInput;
         }
     }
 }

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -11,14 +12,13 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("texture wrap modes")]
-    public class TestSceneWrapModes : GridTestScene
+    public class TestSceneWrapModes : FrameworkGridTestScene
     {
         private readonly WrapMode[] wrapModes = { WrapMode.None, WrapMode.ClampToEdge, WrapMode.ClampToBorder, WrapMode.Repeat };
 
@@ -28,15 +28,18 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         private readonly Texture[] textures = new Texture[4 * 4];
+        private byte[] videoData;
 
         [BackgroundDependencyLoader]
-        private void load(TextureStore store)
+        private void load(TextureStore textureStore, Game game)
         {
             for (int i = 0; i < 4; ++i)
             {
                 for (int j = 0; j < 4; ++j)
-                    textures[i * 4 + j] = store.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
+                    textures[i * 4 + j] = textureStore.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
             }
+
+            videoData = game.Resources.Get("Videos/sample-video.mp4");
         }
 
         [Test]
@@ -54,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         });
 
         [Test, Ignore("not implemented yet")]
-        public void TestVideos() => createTest(_ => new TestVideo());
+        public void TestVideos() => createTest(_ => new TestVideo(new MemoryStream(videoData)));
 
         private void createTest(Func<Texture, Drawable> creatorFunc) => AddStep("create test", () =>
         {

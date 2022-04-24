@@ -3,7 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -21,12 +21,12 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        private class TestHeadlessGameHost : HeadlessGameHost
+        private class TestHeadlessGameHost : TestRunHeadlessGameHost
         {
             public Drawable CurrentRoot => Root;
 
-            public TestHeadlessGameHost(string hostname, bool bindIPC)
-                : base(hostname, bindIPC)
+            public TestHeadlessGameHost(string gameName, bool bindIPC)
+                : base(gameName, new HostOptions { BindIPC = bindIPC })
             {
             }
         }

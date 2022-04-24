@@ -10,13 +10,13 @@ namespace osu.Framework.Graphics.Video
 {
     internal class VideoSpriteDrawNode : SpriteDrawNode
     {
+        private readonly Video video;
+
         public VideoSpriteDrawNode(Video source)
             : base(source.Sprite)
         {
-            yuvCoeff = source.ConversionMatrix;
+            video = source;
         }
-
-        private Matrix3 yuvCoeff;
 
         private int yLoc, uLoc = 1, vLoc = 2;
 
@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Video
             Shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
             Shader.GetUniform<int>("m_SamplerV").UpdateValue(ref vLoc);
 
+            var yuvCoeff = video.ConversionMatrix;
             Shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
 
             base.Draw(vertexAction);

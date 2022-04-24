@@ -64,11 +64,6 @@ namespace osu.Framework.IO
             Task.Factory.StartNew(loadRequiredBlocks, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        ~AsyncBufferStream()
-        {
-            Dispose(false);
-        }
-
         private void loadRequiredBlocks()
         {
             if (isLoaded)

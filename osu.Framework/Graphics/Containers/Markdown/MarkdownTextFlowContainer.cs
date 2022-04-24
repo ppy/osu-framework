@@ -31,10 +31,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected void AddDrawable(Drawable drawable)
             => base.AddText("[" + AddPlaceholder(drawable) + "]");
 
-        public new void AddText(string text, Action<SpriteText> creationParameters = null)
+        public void AddText(string text, Action<SpriteText> creationParameters = null)
             => base.AddText(Escape(text), creationParameters);
 
-        public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
+        public ITextPart AddParagraph(string text, Action<SpriteText> creationParameters = null)
             => base.AddParagraph(Escape(text), creationParameters);
 
         public void AddInlineText(ContainerInline container)
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 switch (single)
                 {
                     case LiteralInline literal:
-                        var text = literal.Content.ToString();
+                        string text = literal.Content.ToString();
 
                         if (container.GetPrevious(literal) is HtmlInline && container.GetNext(literal) is HtmlInline)
                             AddHtmlInLineText(text, literal);
@@ -108,6 +108,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         AddInlineText(innerContainer);
                         break;
 
+                    case AutolinkInline autoLink:
+                        AddAutoLink(autoLink);
+                        break;
+
                     default:
                         AddNotImplementedInlineText(single);
                         break;
@@ -124,6 +128,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddLinkText(string text, LinkInline linkInline)
             => AddDrawable(new MarkdownLinkText(text, linkInline));
 
+        protected virtual void AddAutoLink(AutolinkInline autolinkInline)
+            => AddDrawable(new MarkdownLinkText(autolinkInline));
+
         protected virtual void AddCodeInLine(CodeInline codeInline)
             => AddText(codeInline.Content, t => { t.Colour = Color4.Orange; });
 
@@ -138,7 +145,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             bool hasItalic = false;
             bool hasBold = false;
 
-            foreach (var e in emphases)
+            foreach (string e in emphases)
             {
                 switch (e)
                 {
@@ -159,6 +166,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             AddDrawable(textDrawable);
         }
+
+        protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
 
         /// <summary>
         /// Creates an emphasised <see cref="SpriteText"/>.

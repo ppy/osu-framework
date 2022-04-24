@@ -35,7 +35,7 @@ namespace osu.Framework.Input.Bindings
         Alt = 5,
 
         /// <summary>
-        /// The win key.
+        /// The windows/command key.
         /// </summary>
         [Order(4)]
         Super = 7,
@@ -813,6 +813,54 @@ namespace osu.Framework.Input.Bindings
         /// The media next key.
         /// </summary>
         TrackNext,
+
+        /// <summary>
+        /// The left shift key.
+        /// </summary>
+        [Order(3)]
+        LShift,
+
+        /// <summary>
+        /// The right shift key.
+        /// </summary>
+        [Order(3)]
+        RShift,
+
+        /// <summary>
+        /// The left control key.
+        /// </summary>
+        [Order(1)]
+        LControl,
+
+        /// <summary>
+        /// The right control key.
+        /// </summary>
+        [Order(1)]
+        RControl,
+
+        /// <summary>
+        /// The left alt key.
+        /// </summary>
+        [Order(2)]
+        LAlt,
+
+        /// <summary>
+        /// The right alt key.
+        /// </summary>
+        [Order(2)]
+        RAlt,
+
+        /// <summary>
+        /// The left windows/command key.
+        /// </summary>
+        [Order(4)]
+        LSuper,
+
+        /// <summary>
+        /// The right windows/command key.
+        /// </summary>
+        [Order(4)]
+        RSuper,
 
         /// <summary>
         /// Indicates the first available joystick button.

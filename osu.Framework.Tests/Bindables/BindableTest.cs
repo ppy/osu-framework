@@ -96,10 +96,10 @@ namespace osu.Framework.Tests.Bindables
         [TestCaseSource(nameof(getParsingConversionTests))]
         public void TestParse(Type type, object input, object output)
         {
-            IBindable bindable = (IBindable)Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
+            object bindable = Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
             Debug.Assert(bindable != null);
 
-            bindable.Parse(input);
+            ((IParseable)bindable).Parse(input);
             object value = bindable.GetType().GetProperty(nameof(Bindable<object>.Value), BindingFlags.Public | BindingFlags.Instance)?.GetValue(bindable);
 
             Assert.That(value, Is.EqualTo(output));
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Bindables
                 typeof(string)
             };
 
-            var inputs = new object[]
+            object[] inputs =
             {
                 1, "1", 1.0, 1.0f, 1L, 1m,
                 1.5, "1.5", 1.5f, 1.5m,
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Bindables
 
             foreach (var type in testTypes)
             {
-                foreach (var input in inputs)
+                foreach (object input in inputs)
                 {
                     object expectedOutput = null;
 

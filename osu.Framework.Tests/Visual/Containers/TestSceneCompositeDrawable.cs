@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -32,6 +33,58 @@ namespace osu.Framework.Tests.Visual.Containers
             });
 
             AddAssert("children reversed", () => composite.InternalChildren[0] == lastItem && composite.InternalChildren[^1] == firstItem);
+        }
+
+        [Test]
+        public void TestChangeChildDepthFailsIfNotCalledOnDirectChild()
+        {
+            Container parent = null;
+            Container nestedChild = null;
+
+            AddStep("create hierarchy", () => Child = parent = new Container
+            {
+                Child = new Container
+                {
+                    Child = nestedChild = new Container()
+                }
+            });
+
+            AddStep("bad change child depth call fails", () => Assert.Throws<InvalidOperationException>(() => parent.ChangeChildDepth(nestedChild, 10)));
+        }
+
+        /// <summary>
+        /// Ensures that <see cref="CompositeDrawable.ClearTransforms"/> does not discard auto-sizing indefinitely.
+        /// </summary>
+        [Test]
+        public void TestClearTransformsOnDelayedAutoSize()
+        {
+            Container container = null;
+            bool clearedTransforms = false;
+
+            AddStep("create hierarchy", () =>
+            {
+                Child = container = new Container
+                {
+                    Masking = true,
+                    AutoSizeAxes = Axes.Both,
+                    AutoSizeDuration = 1000,
+                    Child = new Box { Size = new Vector2(100) },
+                };
+
+                clearedTransforms = false;
+
+                container.OnAutoSize += () => Schedule(() =>
+                {
+                    if (clearedTransforms)
+                        return;
+
+                    container.ClearTransforms();
+                    clearedTransforms = true;
+                });
+            });
+
+            AddAssert("transforms cleared", () => clearedTransforms);
+            AddUntilStep("container still autosized", () => container.Size == new Vector2(100));
         }
 
         private class SortableComposite : CompositeDrawable

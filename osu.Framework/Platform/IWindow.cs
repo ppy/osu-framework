@@ -7,6 +7,7 @@ using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
@@ -50,6 +51,11 @@ namespace osu.Framework.Platform
         event Action Resized;
 
         /// <summary>
+        /// Invoked when the system keyboard layout has changed.
+        /// </summary>
+        event Action KeymapChanged;
+
+        /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
         IBindable<bool> CursorInWindow { get; }
@@ -57,7 +63,17 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the state of the OS cursor.
         /// </summary>
+        /// <remarks>If the cursor is <see cref="Platform.CursorState.Confined"/>, <see cref="CursorConfineRect"/> will be used.</remarks>
         CursorState CursorState { get; set; }
+
+        /// <summary>
+        /// Area to which the mouse cursor is confined to when <see cref="CursorState"/> is <see cref="Platform.CursorState.Confined"/>.
+        /// </summary>
+        /// <remarks>
+        /// Will confine to the whole window by default (or when set to <c>null</c>).
+        /// Supported fully on desktop platforms, and on Android when relative mode is enabled.
+        /// </remarks>
+        RectangleF? CursorConfineRect { get; set; }
 
         /// <summary>
         /// Controls the state of the window.
@@ -113,9 +129,9 @@ namespace osu.Framework.Platform
         Bindable<Display> CurrentDisplayBindable { get; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// The <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode CurrentDisplayMode { get; }
+        IBindable<DisplayMode> CurrentDisplayMode { get; }
 
         /// <summary>
         /// Makes this window the current graphics context, if appropriate for the driver.
@@ -128,12 +144,18 @@ namespace osu.Framework.Platform
         void ClearCurrent();
 
         /// <summary>
-        /// Request close.
+        /// Forcefully closes the window.
         /// </summary>
         void Close();
 
         /// <summary>
-        /// Start the window's run loop. Is a blocking call.
+        /// Attempts to close the window.
+        /// </summary>
+        void RequestClose();
+
+        /// <summary>
+        /// Start the window's run loop.
+        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
         void Run();
 
@@ -151,14 +173,12 @@ namespace osu.Framework.Platform
         /// Convert a screen based coordinate to local window space.
         /// </summary>
         /// <param name="point"></param>
-        /// <returns></returns>
         Point PointToClient(Point point);
 
         /// <summary>
         /// Convert a window based coordinate to global screen space.
         /// </summary>
         /// <param name="point"></param>
-        /// <returns></returns>
         Point PointToScreen(Point point);
 
         /// <summary>

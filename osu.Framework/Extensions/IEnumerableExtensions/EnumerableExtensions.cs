@@ -52,9 +52,7 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// <param name="pivot">The pivot value.</param>
         /// <returns>The item in <paramref name="collection"/> appearing before <paramref name="pivot"/>, or null if no such item exists.</returns>
         public static T GetPrevious<T>(this IEnumerable<T> collection, T pivot)
-        {
-            return collection.TakeWhile(i => !EqualityComparer<T>.Default.Equals(i, pivot)).LastOrDefault();
-        }
+            => collection.Reverse().GetNext(pivot);
 
         /// <summary>
         /// Returns the most common prefix of every string in this <see cref="IEnumerable{T}"/>
@@ -68,7 +66,7 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         {
             ReadOnlySpan<char> prefix = default;
 
-            foreach (var str in collection)
+            foreach (string str in collection)
             {
                 if (prefix.IsEmpty) // the first string
                 {

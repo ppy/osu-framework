@@ -122,6 +122,14 @@ namespace osu.Framework.Graphics.Colour
             BottomRight = newBottomRight;
         }
 
+        internal static ColourInfo Multiply(ColourInfo first, ColourInfo second) => new ColourInfo
+        {
+            TopLeft = first.TopLeft * second.TopLeft,
+            BottomLeft = first.BottomLeft * second.BottomLeft,
+            TopRight = first.TopRight * second.TopRight,
+            BottomRight = first.BottomRight * second.BottomRight
+        };
+
         /// <summary>
         /// Created a new ColourInfo with the alpha value of the colours of all vertices
         /// multiplied by a given alpha parameter.

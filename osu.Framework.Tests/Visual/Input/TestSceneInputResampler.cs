@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             for (int i = 0; i < width; ++i)
             {
-                var brightnessByte = (byte)((float)i / (width - 1) * 255);
+                byte brightnessByte = (byte)((float)i / (width - 1) * 255);
                 image[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
             }
 

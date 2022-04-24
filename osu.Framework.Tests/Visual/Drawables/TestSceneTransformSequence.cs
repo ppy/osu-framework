@@ -121,12 +121,12 @@ namespace osu.Framework.Tests.Visual.Drawables
         private void animate()
         {
             boxes[0].Delay(500).Then(500).Then(500).Then(
-                b => b.Delay(500).Spin(1000, RotationDirection.CounterClockwise)
+                b => b.Delay(500).Spin(1000, RotationDirection.Counterclockwise)
             );
 
-            boxes[1].Spin(1000, RotationDirection.CounterClockwise);
+            boxes[1].Spin(1000, RotationDirection.Counterclockwise);
 
-            boxes[2].Delay(-2000).Spin(1000, RotationDirection.CounterClockwise);
+            boxes[2].Delay(-2000).Spin(1000, RotationDirection.Counterclockwise);
 
             boxes[3].RotateTo(90)
                     .Then().Delay(1000).RotateTo(0)

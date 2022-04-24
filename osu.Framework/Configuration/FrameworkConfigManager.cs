@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Configuration.Tracking;
 using osu.Framework.Extensions;
+using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
 using osu.Framework.Platform;
 using osuTK;
@@ -32,6 +33,7 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any);
             SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
@@ -76,6 +78,8 @@ namespace osu.Framework.Configuration
         VolumeUniversal,
         VolumeEffect,
         VolumeMusic,
+
+        HardwareVideoDecoder,
 
         WindowedSize,
         WindowedPositionX,

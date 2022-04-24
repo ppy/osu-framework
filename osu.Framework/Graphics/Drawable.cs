@@ -18,6 +18,7 @@ using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +36,7 @@ using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK.Input;
+using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Graphics
 {
@@ -149,9 +151,9 @@ namespace osu.Framework.Graphics
                         {
                             a(target);
                         }
-                        catch
+                        catch (Exception e)
                         {
-                            // Execution should continue regardless of whether an unbind failed
+                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
                         }
                     }
                 };
@@ -423,6 +425,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnUnbindAllBindables;
 
+        /// <summary>
+        /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
+        /// </summary>
+        private static readonly object scheduler_acquisition_lock = new object();
+
         private Scheduler scheduler;
 
         /// <summary>
@@ -436,7 +443,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (LoadLock)
+                lock (scheduler_acquisition_lock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }
@@ -1073,10 +1080,9 @@ namespace osu.Framework.Graphics
         private Anchor origin = Anchor.TopLeft;
 
         /// <summary>
-        /// The origin of the local coordinate system of this Drawable.
-        /// Can either be one of 9 relative positions (0, 0.5, and 1 in x and y)
-        /// or a fixed absolute position via <see cref="OriginPosition"/>.
+        /// The origin of this <see cref="Drawable"/>.
         /// </summary>
+        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="osu.Framework.Graphics.Anchor"/> enumeration.</exception>
         public virtual Anchor Origin
         {
             get => origin;
@@ -1095,10 +1101,9 @@ namespace osu.Framework.Graphics
         private Vector2 customOrigin;
 
         /// <summary>
-        /// The origin of the local coordinate system of this Drawable
-        /// in relative coordinates expressed in the coordinate system with origin at the
-        /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
+        /// The origin of this <see cref="Drawable"/> expressed in relative coordinates from the top-left corner of <see cref="DrawRectangle"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">If <see cref="Origin"/> is <see cref="osu.Framework.Graphics.Anchor.Custom"/>.</exception>
         public Vector2 RelativeOriginPosition
         {
             get
@@ -1122,10 +1127,9 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// The origin of the local coordinate system of this Drawable
-        /// in absolute coordinates expressed in the coordinate system with origin at the
-        /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
+        /// The origin of this <see cref="Drawable"/> expressed in absolute coordinates from the top-left corner of <see cref="DrawRectangle"/>.
         /// </summary>
+        /// <exception cref="ArgumentException">If the provided value is not finite.</exception>
         public virtual Vector2 OriginPosition
         {
             get
@@ -1309,7 +1313,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON;
+        public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON);
 
         private bool alwaysPresent;
 
@@ -1462,7 +1466,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
+        protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
@@ -1496,27 +1500,6 @@ namespace osu.Framework.Graphics
                     UpdateClock(parent.Clock);
                 }
             }
-        }
-
-        /// <summary>
-        /// Find the closest parent of a specified type.
-        /// </summary>
-        /// <remarks>
-        /// This can be a potentially expensive operation and should be used with discretion.
-        /// </remarks>
-        /// <typeparam name="T">The type to match.</typeparam>
-        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : class, IDrawable
-        {
-            Drawable cursor = this;
-
-            while ((cursor = cursor.Parent) != null)
-            {
-                if (cursor is T match)
-                    return match;
-            }
-
-            return default;
         }
 
         /// <summary>
@@ -1781,8 +1764,10 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            foreach (var member in layoutMembers)
+            for (int i = 0; i < layoutMembers.Count; i++)
             {
+                var member = layoutMembers[i];
+
                 // Only invalidate layout members that accept the given source.
                 if ((member.Source & source) == 0)
                     continue;
@@ -2082,11 +2067,14 @@ namespace osu.Framework.Graphics
             }
         }
 
+        [Obsolete("Use TriggerClick instead.")] // Can be removed 20220203
+        public bool Click() => TriggerClick();
+
         /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
-        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
+        public bool TriggerClick() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
 
@@ -2406,6 +2394,7 @@ namespace osu.Framework.Graphics
                 typeof(IHasTooltip),
                 typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
+                typeof(IHasPopover),
             };
 
             private static readonly Type[] non_positional_input_interfaces =
@@ -2432,7 +2421,7 @@ namespace osu.Framework.Graphics
             {
                 var type = drawable.GetType();
 
-                if (!cache.TryGetValue(type, out var value))
+                if (!cache.TryGetValue(type, out bool value))
                 {
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
@@ -2443,9 +2432,9 @@ namespace osu.Framework.Graphics
 
             private static bool compute([NotNull] Type type, bool positional)
             {
-                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
+                string[] inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
-                foreach (var inputMethod in inputMethods)
+                foreach (string inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
                     var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -2465,9 +2454,9 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                var inputProperties = positional ? positional_input_properties : non_positional_input_properties;
+                string[] inputProperties = positional ? positional_input_properties : non_positional_input_properties;
 
-                foreach (var inputProperty in inputProperties)
+                foreach (string inputProperty in inputProperties)
                 {
                     var property = type.GetProperty(inputProperty);
 
@@ -2576,14 +2565,14 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(Transforms)}");
 
         /// <summary>
         /// Check whether the current thread is valid for operating on thread-safe properties.
         /// </summary>
-        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <param name="action">The action to be performed, used only for describing failures in exception messages.</param>
         /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
-        internal void EnsureMutationAllowed(string member)
+        internal void EnsureMutationAllowed(string action)
         {
             switch (LoadState)
             {
@@ -2592,20 +2581,20 @@ namespace osu.Framework.Graphics
 
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load thread");
 
                     break;
 
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load or update threads");
 
                     break;
 
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the update thread");
 
                     break;
             }
@@ -2615,7 +2604,21 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate Schedule<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, data, TransformDelay);
+
+            return Scheduler.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate Schedule(Action action)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, TransformDelay);
+
+            return Scheduler.Add(action);
+        }
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
@@ -2686,7 +2689,7 @@ namespace osu.Framework.Graphics
             string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
-                return $@"{Name} ({shortClass})";
+                return $@"{Name}({shortClass})";
             else
                 return shortClass;
         }
@@ -2702,8 +2705,8 @@ namespace osu.Framework.Graphics
 
         public class InvalidThreadForMutationException : InvalidOperationException
         {
-            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
-                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
+            public InvalidThreadForMutationException(LoadState loadState, string action, string invalidThreadContextDescription)
+                : base($"Cannot {action} on a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
                        + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
             {
             }
@@ -2751,6 +2754,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// A <see cref="Drawable.Parent"/> has changed.
+        /// Unlike other <see cref="Invalidation"/> flags, this propagates to all children regardless of their <see cref="Drawable.IsAlive"/> state.
         /// </summary>
         Parent = 1 << 6,
 
@@ -2865,8 +2869,11 @@ namespace osu.Framework.Graphics
 
     public enum RotationDirection
     {
+        [Description("Clockwise")]
         Clockwise,
-        CounterClockwise,
+
+        [Description("Counterclockwise")]
+        Counterclockwise,
     }
 
     /// <summary>

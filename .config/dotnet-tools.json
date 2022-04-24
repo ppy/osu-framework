@@ -15,15 +15,21 @@
       ]
     },
     "jetbrains.resharper.globaltools": {
-      "version": "2020.3.2",
+      "version": "2022.1.0-eap10",
       "commands": [
         "jb"
       ]
     },
     "nvika": {
-      "version": "2.0.0",
+      "version": "2.2.0",
       "commands": [
         "nvika"
+      ]
+    },
+    "codefilesanity": {
+      "version": "0.0.36",
+      "commands": [
+        "CodeFileSanity"
       ]
     }
   }

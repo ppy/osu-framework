@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Graphics;
 
@@ -145,13 +146,15 @@ namespace osu.Framework.Graphics.Cursor
             {
                 currentlyDisplayed = target;
 
-                if (CurrentTooltip?.SetContent(getTargetContent(target)) != true)
-                {
-                    var newTooltip = getTooltip(target);
+                var proposedTooltip = getTooltip(target);
 
+                if (proposedTooltip.GetType() == CurrentTooltip.GetType())
+                    CurrentTooltip.SetContent(getTargetContent(target));
+                else
+                {
                     RemoveInternal((Drawable)CurrentTooltip);
-                    CurrentTooltip = newTooltip;
-                    AddInternal((Drawable)newTooltip);
+                    CurrentTooltip = proposedTooltip;
+                    AddInternal((Drawable)proposedTooltip);
                 }
 
                 if (hasValidTooltip(target))
@@ -176,10 +179,10 @@ namespace osu.Framework.Graphics.Cursor
 
         private bool hasValidTooltip(ITooltipContentProvider target)
         {
-            var targetContent = getTargetContent(target);
+            object targetContent = getTargetContent(target);
 
-            if (targetContent is string strContent)
-                return !string.IsNullOrEmpty(strContent);
+            if (targetContent is LocalisableString localisableString)
+                return !string.IsNullOrEmpty(localisableString.Data?.ToString());
 
             return targetContent != null;
         }
@@ -297,14 +300,14 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || (!tooltipTarget.IsHovered && !tooltipTarget.IsDragged);
 
         private ITooltip getTooltip(ITooltipContentProvider target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : VisibilityContainer, ITooltip
+        public class Tooltip : VisibilityContainer, ITooltip<LocalisableString>
         {
             private readonly SpriteText text;
 
@@ -316,14 +319,7 @@ namespace osu.Framework.Graphics.Cursor
                 set => SetContent(value);
             }
 
-            public virtual bool SetContent(object content)
-            {
-                if (!(content is string contentString))
-                    return false;
-
-                text.Text = contentString;
-                return true;
-            }
+            public virtual void SetContent(LocalisableString content) => text.Text = content;
 
             private const float text_size = 16;
 
@@ -344,7 +340,7 @@ namespace osu.Framework.Graphics.Cursor
                     },
                     text = new SpriteText
                     {
-                        Font = new FontUsage(size: text_size),
+                        Font = FrameworkFont.Regular.With(size: text_size),
                         Padding = new MarginPadding(5),
                     }
                 };

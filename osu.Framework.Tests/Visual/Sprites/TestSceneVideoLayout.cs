@@ -7,13 +7,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoLayout : GridTestScene
+    public class TestSceneVideoLayout : FrameworkGridTestScene
     {
         public TestSceneVideoLayout()
             : base(1, 4)
@@ -21,20 +20,25 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(Game game)
         {
-            Cell(0, 0).Child = createTest("video - auto size", () => new TestVideo());
-            Cell(0, 1).Child = createTest("video - relative size + fit", () => new TestVideo
+            const string video_path = "Videos/sample-video.mp4";
+
+            Cell(0, 0).Child = createTest("video - auto size", () => new TestVideo(game.Resources.GetStream(video_path)));
+            Cell(0, 1).Child = createTest("video - relative size + fit", () => new TestVideo(game.Resources.GetStream(video_path))
             {
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fit
             });
-            Cell(0, 2).Child = createTest("video - relative size + fill", () => new TestVideo
+            Cell(0, 2).Child = createTest("video - relative size + fill", () => new TestVideo(game.Resources.GetStream(video_path))
             {
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fill
             });
-            Cell(0, 3).Child = createTest("video - fixed size", () => new TestVideo { Size = new Vector2(100, 50) });
+            Cell(0, 3).Child = createTest("video - fixed size", () => new TestVideo(game.Resources.GetStream(video_path))
+            {
+                Size = new Vector2(100, 50)
+            });
         }
 
         private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new Container

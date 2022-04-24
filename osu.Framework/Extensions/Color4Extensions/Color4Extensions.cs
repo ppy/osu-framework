@@ -85,7 +85,6 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// </summary>
         /// <param name="colour">Original colour</param>
         /// <param name="scalar">A scalar to multiply with</param>
-        /// <returns></returns>
         public static Color4 Multiply(this Color4 colour, float scalar)
         {
             if (scalar < 0)
@@ -162,7 +161,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <returns>The hex code representing the colour.</returns>
         public static string ToHex(this Color4 colour, bool alwaysOutputAlpha = false)
         {
-            var argb = colour.ToArgb();
+            int argb = colour.ToArgb();
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
@@ -180,7 +179,6 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <param name="h">The hue, between 0 and 360.</param>
         /// <param name="s">The saturation, between 0 and 1.</param>
         /// <param name="v">The value, between 0 and 1.</param>
-        /// <returns></returns>
         public static Color4 FromHSV(float h, float s, float v)
         {
             if (h < 0 || h > 360)
@@ -238,8 +236,8 @@ namespace osu.Framework.Extensions.Color4Extensions
             float g = colour.G;
             float b = colour.B;
 
-            var max = Math.Max(r, Math.Max(g, b));
-            var min = Math.Min(r, Math.Min(g, b));
+            float max = Math.Max(r, Math.Max(g, b));
+            float min = Math.Min(r, Math.Min(g, b));
 
             if (max == min)
                 h = 0;
@@ -255,7 +253,7 @@ namespace osu.Framework.Extensions.Color4Extensions
             else
                 s = (max - min) / max;
 
-            var v = max;
+            float v = max;
 
             return (h, s, v);
         }

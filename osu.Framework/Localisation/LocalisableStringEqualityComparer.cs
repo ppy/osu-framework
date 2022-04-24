@@ -16,8 +16,8 @@ namespace osu.Framework.Localisation
 
         public bool Equals(LocalisableString x, LocalisableString y)
         {
-            var xData = x.Data;
-            var yData = y.Data;
+            object xData = x.Data;
+            object yData = y.Data;
 
             if (ReferenceEquals(null, xData) != ReferenceEquals(null, yData))
                 return false;
@@ -33,40 +33,13 @@ namespace osu.Framework.Localisation
                 case string strX:
                     return strX.Equals((string)yData, StringComparison.Ordinal);
 
-                case TranslatableString translatableX:
-                    return translatableX.Equals((TranslatableString)yData);
-
-                case RomanisableString romanisableX:
-                    return romanisableX.Equals((RomanisableString)yData);
+                case ILocalisableStringData dataX:
+                    return dataX.Equals((ILocalisableStringData)yData);
             }
 
             return false;
         }
 
-        public int GetHashCode(LocalisableString obj)
-        {
-            if (ReferenceEquals(null, obj.Data))
-                return 0;
-
-            var hashCode = new HashCode();
-            hashCode.Add(obj.Data.GetType().GetHashCode());
-
-            switch (obj.Data)
-            {
-                case string str:
-                    hashCode.Add(str.GetHashCode());
-                    break;
-
-                case TranslatableString translatable:
-                    hashCode.Add(translatable.GetHashCode());
-                    break;
-
-                case RomanisableString romanisable:
-                    hashCode.Add(romanisable.GetHashCode());
-                    break;
-            }
-
-            return hashCode.ToHashCode();
-        }
+        public int GetHashCode(LocalisableString obj) => HashCode.Combine(obj.Data?.GetType(), obj.Data);
     }
 }

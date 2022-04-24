@@ -4,7 +4,9 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 
@@ -15,8 +17,8 @@ namespace osu.Framework.Tests.Visual.Platform
         private IBindable<bool> isActive;
         private IBindable<bool> cursorInWindow;
 
-        private Box isActiveBox;
-        private Box cursorInWindowBox;
+        private Drawable isActiveBox;
+        private Drawable cursorInWindowBox;
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
@@ -29,17 +31,15 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             base.LoadComplete();
 
-            Children = new Drawable[]
+            Children = new[]
             {
-                isActiveBox = new Box
+                isActiveBox = new DisplayBox("host.IsActive")
                 {
-                    Colour = Color4.Black,
                     Width = 0.5f,
                     RelativeSizeAxes = Axes.Both,
                 },
-                cursorInWindowBox = new Box
+                cursorInWindowBox = new DisplayBox("host.Window.CursorInWindow")
                 {
-                    Colour = Color4.Black,
                     RelativeSizeAxes = Axes.Both,
                     Width = 0.5f,
                     Anchor = Anchor.TopRight,
@@ -49,6 +49,28 @@ namespace osu.Framework.Tests.Visual.Platform
 
             isActive.BindValueChanged(active => isActiveBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
             cursorInWindow?.BindValueChanged(active => cursorInWindowBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
+        }
+
+        public class DisplayBox : CompositeDrawable
+        {
+            public DisplayBox(string label)
+            {
+                InternalChildren = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    new SpriteText
+                    {
+                        Text = label,
+                        Colour = Color4.Black,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    }
+                };
+            }
         }
     }
 }

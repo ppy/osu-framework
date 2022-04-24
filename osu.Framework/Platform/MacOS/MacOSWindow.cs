@@ -37,8 +37,8 @@ namespace osu.Framework.Platform.MacOS
         /// </summary>
         private void scrollWheel(IntPtr receiver, IntPtr selector, IntPtr theEvent)
         {
-            var hasPrecise = Cocoa.SendBool(theEvent, sel_respondstoselector_, sel_hasprecisescrollingdeltas) &&
-                             Cocoa.SendBool(theEvent, sel_hasprecisescrollingdeltas);
+            bool hasPrecise = Cocoa.SendBool(theEvent, sel_respondstoselector_, sel_hasprecisescrollingdeltas) &&
+                              Cocoa.SendBool(theEvent, sel_hasprecisescrollingdeltas);
 
             if (!hasPrecise)
             {
@@ -56,7 +56,7 @@ namespace osu.Framework.Platform.MacOS
             float scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
             float scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
 
-            ScheduleEvent(() => OnMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
+            ScheduleEvent(() => TriggerMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }
     }
 }

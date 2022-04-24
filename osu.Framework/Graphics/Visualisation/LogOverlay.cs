@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
-using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Timing;
 using osuTK.Input;
@@ -118,11 +116,6 @@ namespace osu.Framework.Graphics.Visualisation
             if (clock != null) clock.Rate = controlPressed ? 0 : 1;
         }
 
-        [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
-        {
-        }
-
         protected override void PopIn()
         {
             Logger.NewEntry += addEntry;
@@ -181,7 +174,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Shadow = true,
                             ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
-                            Font = new FontUsage(size: font_size),
+                            Font = FrameworkFont.Regular.With(size: font_size),
                             Text = entry.Target?.ToString() ?? entry.LoggerName,
                         }
                     }
@@ -196,7 +189,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Child = new SpriteText
                     {
                         RelativeSizeAxes = Axes.X,
-                        Font = new FontUsage(size: font_size),
+                        Font = FrameworkFont.Regular.With(size: font_size),
                         Text = entry.Message
                     }
                 }

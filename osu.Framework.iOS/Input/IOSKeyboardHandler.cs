@@ -251,8 +251,6 @@ namespace osu.Framework.iOS.Input
         internal bool KeyboardActive;
         public override bool IsActive => KeyboardActive;
 
-        public override int Priority => 0;
-
         protected override void Dispose(bool disposing)
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;

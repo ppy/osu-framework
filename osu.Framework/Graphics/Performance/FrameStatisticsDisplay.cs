@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Performance
                         break;
                 }
 
-                Running = true;
+                Running = state != FrameStatisticsMode.None;
                 Expanded = false;
 
                 StateChanged?.Invoke(State);
@@ -134,6 +134,7 @@ namespace osu.Framework.Graphics.Performance
                                 Origin = Anchor.BottomCentre,
                                 Anchor = Anchor.CentreLeft,
                                 Rotation = -90,
+                                Font = FrameworkFont.Regular,
                             },
                             !hasCounters
                                 ? new Container { Width = 2 }
@@ -186,7 +187,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(),
                                 },
                             },
-                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, thread)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -210,20 +211,23 @@ namespace osu.Framework.Graphics.Performance
                                             {
                                                 Colour = getColour(t),
                                                 Text = t.ToString(),
-                                                Alpha = 0
+                                                Alpha = 0,
+                                                Font = FrameworkFont.Regular,
                                             },
                                     },
                                     new SpriteText
                                     {
                                         Padding = new MarginPadding { Left = 4 },
-                                        Text = $@"{visible_ms_range}ms"
+                                        Text = $@"{visible_ms_range}ms",
+                                        Font = FrameworkFont.Regular,
                                     },
                                     new SpriteText
                                     {
                                         Padding = new MarginPadding { Left = 4 },
                                         Text = @"0ms",
                                         Anchor = Anchor.BottomLeft,
-                                        Origin = Anchor.BottomLeft
+                                        Origin = Anchor.BottomLeft,
+                                        Font = FrameworkFont.Regular,
                                     }
                                 }
                             }
@@ -576,7 +580,7 @@ namespace osu.Framework.Graphics.Performance
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
                         Position = new Vector2(-bar_width - 1, 0),
-                        Font = new FontUsage(size: 16),
+                        Font = FrameworkFont.Regular.With(size: 16),
                     },
                     box = new Box
                     {

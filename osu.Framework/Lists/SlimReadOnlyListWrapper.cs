@@ -66,7 +66,7 @@ namespace osu.Framework.Lists
 
         public void CopyTo(Array array, int index) => ((ICollection)list).CopyTo(array, index);
 
-        int ICollection.Count => list.Count;
+        public int Count => list.Count;
 
         public bool IsSynchronized => ((ICollection)list).IsSynchronized;
 
@@ -87,7 +87,5 @@ namespace osu.Framework.Lists
             get => list[index];
             set => throw new NotImplementedException();
         }
-
-        int IReadOnlyCollection<T>.Count => list.Count;
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
@@ -26,15 +27,30 @@ namespace osu.Framework.Utils
         /// <param name="final">The end value.</param>
         /// <param name="base">The base of the exponential. The valid range is [0, 1], where smaller values mean that the final value is achieved more quickly, and values closer to 1 results in slow convergence to the final value.</param>
         /// <param name="exponent">The exponent of the exponential. An exponent of 0 results in the start values, whereas larger exponents make the result converge to the final value.</param>
-        /// <returns></returns>
         public static double Damp(double start, double final, double @base, double exponent)
         {
             if (@base < 0 || @base > 1)
                 throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
-            if (exponent < 0)
-                throw new ArgumentOutOfRangeException(nameof(exponent), $"{nameof(exponent)} has to be bigger than 0, but is {exponent}.");
 
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
+        }
+
+        /// <summary>
+        /// Interpolate the current value towards the target value based on the elapsed time.
+        /// If the current value is updated every frame using this function, the result is approximately frame-rate independent.
+        /// </summary>
+        /// <remarks>
+        /// Because floating-point errors can accumulate over a long time, this function shouldn't be
+        /// used for things requiring accurate values.
+        /// </remarks>
+        /// <param name="current">The current value.</param>
+        /// <param name="target">The target value.</param>
+        /// <param name="halfTime">The time it takes to reach the middle value of the current and the target value.</param>
+        /// <param name="elapsedTime">The elapsed time of the current frame.</param>
+        public static double DampContinuously(double current, double target, double halfTime, double elapsedTime)
+        {
+            double exponent = elapsedTime / halfTime;
+            return Damp(current, target, 0.5, exponent);
         }
 
         /// <summary>
@@ -139,6 +155,9 @@ namespace osu.Framework.Utils
         public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, Easing easing = Easing.None)
             => ValueAt(time, startColour, endColour, startTime, endTime, new DefaultEasingFunction(easing));
 
+        public static Colour4 ValueAt(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, Easing easing = Easing.None)
+            => ValueAt(time, startColour, endColour, startTime, endTime, new DefaultEasingFunction(easing));
+
         public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, Easing easing = Easing.None)
             => ValueAt(time, val1, val2, startTime, endTime, new DefaultEasingFunction(easing));
 
@@ -223,6 +242,12 @@ namespace osu.Framework.Utils
             public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, in TEasing easing)
                 => ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
 
+            /// <summary>
+            /// Interpolates between two sRGB <see cref="Color4"/>s in a linear (gamma-correct) RGB space.
+            /// </summary>
+            /// <remarks>
+            /// For more information regarding linear interpolation, see https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/#gradients.
+            /// </remarks>
             public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, in TEasing easing)
             {
                 if (startColour == endColour)
@@ -234,13 +259,39 @@ namespace osu.Framework.Utils
                 if (duration == 0 || current == 0)
                     return startColour;
 
+                var startLinear = startColour.ToLinear();
+                var endLinear = endColour.ToLinear();
+
                 float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
 
                 return new Color4(
-                    startColour.R + t * (endColour.R - startColour.R),
-                    startColour.G + t * (endColour.G - startColour.G),
-                    startColour.B + t * (endColour.B - startColour.B),
-                    startColour.A + t * (endColour.A - startColour.A));
+                    startLinear.R + t * (endLinear.R - startLinear.R),
+                    startLinear.G + t * (endLinear.G - startLinear.G),
+                    startLinear.B + t * (endLinear.B - startLinear.B),
+                    startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
+            }
+
+            public static Colour4 ValueAt(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, in TEasing easing)
+            {
+                if (startColour == endColour)
+                    return startColour;
+
+                double current = time - startTime;
+                double duration = endTime - startTime;
+
+                if (duration == 0 || current == 0)
+                    return startColour;
+
+                var startLinear = startColour.ToLinear();
+                var endLinear = endColour.ToLinear();
+
+                float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
+
+                return new Colour4(
+                    startLinear.R + t * (endLinear.R - startLinear.R),
+                    startLinear.G + t * (endLinear.G - startLinear.G),
+                    startLinear.B + t * (endLinear.B - startLinear.B),
+                    startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
             }
 
             public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, in TEasing easing)

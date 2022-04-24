@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -13,12 +15,15 @@ namespace osu.Framework.Timing
     public class ThrottledFrameClock : FramedClock
     {
         /// <summary>
-        /// The number of updated per second which is permitted.
+        /// The target number of updates per second. Only used when <see cref="Throttling"/> is <c>true</c>.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz = 1000.0;
 
         /// <summary>
-        /// Whether throttling should be enabled. Defaults to true.
+        /// Whether throttling should be enabled. Defaults to <c>true</c>.
         /// </summary>
         public bool Throttling = true;
 
@@ -35,7 +40,7 @@ namespace osu.Framework.Timing
 
             if (Throttling)
             {
-                if (MaximumUpdateHz > 0)
+                if (MaximumUpdateHz > 0 && MaximumUpdateHz < double.MaxValue)
                 {
                     throttle();
                 }

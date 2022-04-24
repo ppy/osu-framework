@@ -12,9 +12,17 @@ namespace osu.Framework.Graphics.Video
 {
     public sealed unsafe class VideoTextureUpload : ITextureUpload
     {
-        public readonly AVFrame* Frame;
+        public AVFrame* Frame => ffmpegFrame.Pointer;
 
-        private readonly FFmpegFuncs.AvFrameFreeDelegate freeFrameDelegate;
+        public int GetPlaneWidth(uint plane)
+        {
+            return (plane == 0) ? Frame->width : (Frame->width + 1) / 2;
+        }
+
+        public int GetPlaneHeight(uint plane)
+        {
+            return (plane == 0) ? Frame->height : (Frame->height + 1) / 2;
+        }
 
         public ReadOnlySpan<Rgba32> Data => ReadOnlySpan<Rgba32>.Empty;
 
@@ -24,23 +32,22 @@ namespace osu.Framework.Graphics.Video
 
         public PixelFormat Format => PixelFormat.Red;
 
+        private readonly FFmpegFrame ffmpegFrame;
+
         /// <summary>
         /// Sets the frame containing the data to be uploaded.
         /// </summary>
-        /// <param name="frame">The frame to upload.</param>
-        /// <param name="freeFrameDelegate">A function to free the frame on disposal.</param>
-        internal VideoTextureUpload(AVFrame* frame, FFmpegFuncs.AvFrameFreeDelegate freeFrameDelegate)
+        /// <param name="ffmpegFrame">The frame to upload.</param>
+        internal VideoTextureUpload(FFmpegFrame ffmpegFrame)
         {
-            Frame = frame;
-            this.freeFrameDelegate = freeFrameDelegate;
+            this.ffmpegFrame = ffmpegFrame;
         }
 
         #region IDisposable Support
 
         public void Dispose()
         {
-            fixed (AVFrame** ptr = &Frame)
-                freeFrameDelegate(ptr);
+            ffmpegFrame.Return();
         }
 
         #endregion

@@ -3,6 +3,8 @@
 
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
@@ -30,6 +32,32 @@ namespace osu.Framework.Tests.Visual.Testing
                 !InputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
                 !InputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed &&
                 !InputManager.CurrentState.Joystick.Buttons.HasAnyButtonPressed);
+        }
+
+        [Test]
+        public void TestPlatformAction()
+        {
+            BasicTextBox textbox = null;
+
+            AddStep("add textbox", () => Child = textbox = new BasicTextBox
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(100, 20),
+                Text = "test text"
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textbox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("text is not selected", () => string.IsNullOrEmpty(textbox.SelectedText));
+
+            AddStep("press platform action", () => InputManager.Keys(PlatformAction.SelectAll));
+
+            AddAssert("text is selected", () => textbox.SelectedText == "test text");
         }
 
         [Test]

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -9,22 +10,22 @@ namespace osu.Framework.Input.Bindings
     /// A drawable that handles key bindings.
     /// </summary>
     /// <typeparam name="T">The type of bindings, commonly an enum.</typeparam>
-    public interface IKeyBindingHandler<in T> : IKeyBindingHandler
+    public interface IKeyBindingHandler<T> : IKeyBindingHandler
         where T : struct
     {
         /// <summary>
         /// Triggered when an action is pressed.
         /// </summary>
-        /// <param name="action">The action.</param>
+        /// <param name="e">The event containing information about the pressed action.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        bool OnPressed(T action);
+        bool OnPressed(KeyBindingPressEvent<T> e);
 
         /// <summary>
         /// Triggered when an action is released.
         /// </summary>
-        /// <param name="action">The action.</param>
-        void OnReleased(T action);
+        /// <param name="e">The event containing information about the released action.</param>
+        void OnReleased(KeyBindingReleaseEvent<T> e);
     }
 
     public interface IKeyBindingHandler : IDrawable

@@ -22,6 +22,8 @@ namespace osu.Framework.Graphics.Animations
             container.Child = content;
         }
 
+        protected override void ClearDisplay() => container.Clear(false);
+
         public override Drawable CreateContent() => container = new Container { RelativeSizeAxes = Axes.Both };
 
         protected override Vector2 GetCurrentDisplaySize() => container.Children.FirstOrDefault()?.DrawSize ?? Vector2.Zero;

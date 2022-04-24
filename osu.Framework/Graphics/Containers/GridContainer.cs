@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Layout;
 using osuTK;
 
@@ -72,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException(nameof(RowDimensions));
+                    throw new ArgumentNullException(nameof(value));
 
                 if (rowDimensions == value)
                     return;
@@ -93,7 +94,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException(nameof(ColumnDimensions));
+                    throw new ArgumentNullException(nameof(value));
 
                 if (columnDimensions == value)
                     return;
@@ -201,8 +202,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellLayout.IsValid)
                 return;
 
-            var widths = distribute(columnDimensions, DrawWidth, getCellSizesAlongAxis(Axes.X, DrawWidth));
-            var heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
+            float[] widths = distribute(columnDimensions, DrawWidth, getCellSizesAlongAxis(Axes.X, DrawWidth));
+            float[] heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
 
             for (int col = 0; col < cellColumns; col++)
             {
@@ -235,7 +236,7 @@ namespace osu.Framework.Graphics.Containers
             var spanDimensions = axis == Axes.X ? columnDimensions : rowDimensions;
             int spanCount = axis == Axes.X ? cellColumns : cellRows;
 
-            var sizes = new float[spanCount];
+            float[] sizes = new float[spanCount];
 
             for (int i = 0; i < spanCount; i++)
             {
@@ -267,13 +268,25 @@ namespace osu.Framework.Graphics.Containers
                         {
                             // Go through each row and get the width of the cell at the indexed column
                             for (int r = 0; r < cellRows; r++)
-                                size = Math.Max(size, getCellWidth(Content[r]?[i]));
+                            {
+                                var cell = Content[r]?[i];
+                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
+                                    continue;
+
+                                size = Math.Max(size, getCellWidth(cell));
+                            }
                         }
                         else
                         {
                             // Go through each column and get the height of the cell at the indexed row
                             for (int c = 0; c < cellColumns; c++)
-                                size = Math.Max(size, getCellHeight(Content[i]?[c]));
+                            {
+                                var cell = Content[i]?[c];
+                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
+                                    continue;
+
+                                size = Math.Max(size, getCellHeight(cell));
+                            }
                         }
 
                         sizes[i] = size;
@@ -348,7 +361,7 @@ namespace osu.Framework.Graphics.Containers
         {
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {
-                var result = base.OnInvalidate(invalidation, source);
+                bool result = base.OnInvalidate(invalidation, source);
 
                 if (source == InvalidationSource.Child && (invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                     result |= Parent?.Invalidate(invalidation, InvalidationSource.Child) ?? false;

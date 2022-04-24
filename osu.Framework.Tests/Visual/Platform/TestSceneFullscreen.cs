@@ -24,6 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
+        private readonly SpriteText currentWindowState = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
         private readonly Dropdown<Display> displaysDropdown;
 
@@ -45,6 +46,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     currentActualSize,
                     currentDisplayMode,
                     currentWindowMode,
+                    currentWindowState,
                     supportedWindowModes,
                     displaysDropdown = new BasicDropdown<Display> { Width = 600 }
                 },
@@ -103,6 +105,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
+                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position == new Point(0, 0));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
@@ -126,6 +129,8 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplayBindable.ToString()));
 
             AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
+
+            AddStep("set default display", () => window.CurrentDisplayBindable.SetDefault());
         }
 
         [Test]
@@ -142,6 +147,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.ClientSize}";
             currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
+            currentWindowState.Text = $"Window State: {window?.WindowState}";
         }
 
         private void testResolution(int w, int h)

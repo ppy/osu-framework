@@ -48,7 +48,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private bool isDisposed;
 
-        protected virtual void Dispose(bool isDisposing) => GLWrapper.ScheduleDisposal(() => Available = false);
+        protected virtual void Dispose(bool isDisposing)
+        {
+            GLWrapper.ScheduleDisposal(t => t.Available = false, this);
+        }
 
         public void Dispose()
         {
@@ -154,25 +157,26 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // see https://github.com/ppy/osu/issues/9307
             return Opacity.Mixed;
 
-            // if (upload.Data.Length == 0)
+            // ReadOnlySpan<Rgba32> data = upload.Data;
+            //
+            // if (data.Length == 0)
             //     return Opacity.Transparent;
             //
-            // bool isTransparent = true;
-            // bool isOpaque = true;
+            // int firstPixelValue = data[0].A;
             //
-            // for (int i = 0; i < upload.Data.Length; ++i)
+            // // Check if the first pixel has partial transparency (neither fully-opaque nor fully-transparent).
+            // if (firstPixelValue != 0 && firstPixelValue != 255)
+            //     return Opacity.Mixed;
+            //
+            // // The first pixel is GUARANTEED to be either fully-opaque or fully-transparent.
+            // // Now we need to go through the rest of the image and check that every other pixel matches this value.
+            // for (int i = 1; i < data.Length; i++)
             // {
-            //     isTransparent &= upload.Data[i].A == 0;
-            //     isOpaque &= upload.Data[i].A == 255;
-            //
-            //     if (!isTransparent && !isOpaque)
+            //     if (data[i].A != firstPixelValue)
             //         return Opacity.Mixed;
             // }
             //
-            // if (isTransparent)
-            //     return Opacity.Transparent;
-            //
-            // return Opacity.Opaque;
+            // return firstPixelValue == 0 ? Opacity.Transparent : Opacity.Opaque;
         }
 
         protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)

@@ -159,8 +159,6 @@ namespace osu.Framework.iOS.Input
 
         public override bool IsActive => true;
 
-        public override int Priority => 0;
-
         public override bool Initialize(GameHost host) => true;
     }
 }

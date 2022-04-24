@@ -384,7 +384,7 @@ namespace osu.Framework.Input
             if (potentialFocusTarget == FocusedDrawable)
                 return true;
 
-            if (potentialFocusTarget != null && (!potentialFocusTarget.IsPresent || !potentialFocusTarget.AcceptsFocus))
+            if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
 
             var previousFocus = FocusedDrawable;
@@ -496,13 +496,72 @@ namespace osu.Framework.Input
 
         private readonly List<IInput> inputs = new List<IInput>();
 
+        private readonly List<IInput> dequeuedInputs = new List<IInput>();
+
+        private InputHandler mouseSource;
+
+        private double mouseSourceDebounceTimeRemaining;
+
+        private double lastPendingInputRetrievalTime;
+
+        /// <summary>
+        /// The length in time after which a lower priority input handler is allowed to take over mouse control from a high priority handler that is no longer reporting.
+        /// It's safe to assume that all input devices are reporting at higher than the debounce time specified here (20hz).
+        /// If the delay seen between device swaps is ever considered to be too slow, this can likely be further increased up to 100hz.
+        /// </summary>
+        private const int mouse_source_debounce_time = 50;
+
         protected virtual List<IInput> GetPendingInputs()
         {
+            double now = Clock.CurrentTime;
+            double elapsed = now - lastPendingInputRetrievalTime;
+            lastPendingInputRetrievalTime = now;
+
             inputs.Clear();
 
-            foreach (var h in InputHandlers)
-                h.CollectPendingInputs(inputs);
+            bool reachedPreviousMouseSource = false;
 
+            foreach (var h in InputHandlers)
+            {
+                if (!h.IsActive)
+                    continue;
+
+                dequeuedInputs.Clear();
+                h.CollectPendingInputs(dequeuedInputs);
+
+                foreach (var i in dequeuedInputs)
+                {
+                    // To avoid the same device reporting via two channels (and causing feedback), only one handler should be allowed to
+                    // report mouse position data at a time. Handlers are given priority based on their constructed order.
+                    // Devices which higher priority are allowed to take over control immediately, after which a delay is enforced (on every subsequent positional report)
+                    // before a lower priority device can obtain control.
+                    if (i is MousePositionAbsoluteInput || i is MousePositionRelativeInput)
+                    {
+                        if (mouseSource == null // a new device taking control when no existing preference is present.
+                            || mouseSource == h // if this is the device which currently has control, renew the debounce delay.
+                            || !reachedPreviousMouseSource // we have not reached the previous mouse source, so a higher priority device can take over control.
+                            || mouseSourceDebounceTimeRemaining <= 0) // a lower priority device taking over control if the debounce delay has elapsed.
+                        {
+                            mouseSource = h;
+                            mouseSourceDebounceTimeRemaining = mouse_source_debounce_time;
+                        }
+                        else
+                        {
+                            // drop positional input if we did not meet the criteria to be the current reporting handler.
+                            continue;
+                        }
+                    }
+
+                    inputs.Add(i);
+                }
+
+                // track whether we have passed the handler which is currently in control of positional handling.
+                // importantly, this is updated regardless of whether the handler has reported any new inputs.
+                if (mouseSource == h)
+                    reachedPreviousMouseSource = true;
+            }
+
+            mouseSourceDebounceTimeRemaining -= elapsed;
             return inputs;
         }
 
@@ -550,7 +609,11 @@ namespace osu.Framework.Input
             return positionalInputQueue.AsSlimReadOnly();
         }
 
-        protected virtual bool HandleHoverEvents => true;
+        /// <summary>
+        /// Whether this input manager is in a state it should handle hover events.
+        /// This could for instance be set to false when the window/target does not have input focus.
+        /// </summary>
+        public virtual bool HandleHoverEvents => true;
 
         private void updateHoverEvents(InputState state)
         {
@@ -650,6 +713,11 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// The number of touches which are currently active, causing a single cumulative "mouse down" state.
+        /// </summary>
+        private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
+
+        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -667,7 +735,18 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
+            switch (e.IsActive)
+            {
+                case true:
+                    mouseMappedTouchesDown.Add(e.Touch.Source);
+                    break;
+
+                case false:
+                    mouseMappedTouchesDown.Remove(e.Touch.Source);
+                    break;
+            }
+
+            new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown.Count > 0, e).Apply(CurrentState, this);
             return true;
         }
 
@@ -752,7 +831,7 @@ namespace osu.Framework.Input
             foreach (var h in InputHandlers)
             {
                 if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
-                    handler.FeedbackMousePositionChange(mouse.Position);
+                    handler.FeedbackMousePositionChange(mouse.Position, h == mouseSource);
             }
 
             handleMouseMove(state, e.LastPosition);
@@ -792,7 +871,7 @@ namespace osu.Framework.Input
 
                 if (shouldLog(e))
                 {
-                    var detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    string detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
                     Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
                 }
 
@@ -827,18 +906,28 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return true;
 
-            bool stillValid = FocusedDrawable.IsAlive && FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
+            if (isDrawableValidForFocus(FocusedDrawable))
+                return false;
 
-            if (stillValid)
+            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
+            ChangeFocus(null);
+            return true;
+        }
+
+        private bool isDrawableValidForFocus(Drawable drawable)
+        {
+            bool valid = drawable.IsAlive && drawable.IsPresent && drawable.Parent != null;
+
+            if (valid)
             {
                 //ensure we are visible
-                CompositeDrawable d = FocusedDrawable.Parent;
+                CompositeDrawable d = drawable.Parent;
 
                 while (d != null)
                 {
                     if (!d.IsPresent || !d.IsAlive)
                     {
-                        stillValid = false;
+                        valid = false;
                         break;
                     }
 
@@ -846,12 +935,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (stillValid)
-                return false;
-
-            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
-            ChangeFocus(null);
-            return true;
+            return valid;
         }
 
         protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)

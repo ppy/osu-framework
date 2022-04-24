@@ -28,7 +28,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
-        public bool UseParentInput
+        public virtual bool UseParentInput
         {
             get => useParentInput;
             set
@@ -43,6 +43,8 @@ namespace osu.Framework.Input
         }
 
         private bool useParentInput = true;
+
+        public override bool HandleHoverEvents => UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {

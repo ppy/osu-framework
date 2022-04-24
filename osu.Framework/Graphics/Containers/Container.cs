@@ -136,6 +136,9 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+
                 Clear();
                 AddRange(value);
             }
@@ -156,6 +159,9 @@ namespace osu.Framework.Graphics.Containers
             }
             set
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+
                 Clear();
                 Add(value);
             }
@@ -209,6 +215,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void AddRange(IEnumerable<T> range)
         {
+            if (range is IContainerEnumerable<Drawable>)
+            {
+                throw new InvalidOperationException($"Attempting to add a {nameof(IContainer)} as a range of children to {this}."
+                                                    + $"If intentional, consider using the {nameof(IContainerEnumerable<Drawable>.Children)} property instead.");
+            }
+
             foreach (T d in range)
                 Add(d);
         }
@@ -365,7 +377,7 @@ namespace osu.Framework.Graphics.Containers
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public new SRGBColour BorderColour
+        public new ColourInfo BorderColour
         {
             get => base.BorderColour;
             set => base.BorderColour = value;

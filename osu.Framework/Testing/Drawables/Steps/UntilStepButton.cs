@@ -50,7 +50,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     success = true;
                     Success();
                 }
-                else if (elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
+                else if (!Debugger.IsAttached && elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
                     throw new TimeoutException($"\"{Text}\" timed out");
 
                 Action?.Invoke();
@@ -80,6 +80,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private void updateText() => base.Text = $@"{Text} ({invocations} tries)";
 
-        public override string ToString() => "Repeat: " + base.ToString();
+        public override string ToString() => "Until: " + base.ToString();
     }
 }

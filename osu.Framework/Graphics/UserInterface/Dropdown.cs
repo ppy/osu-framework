@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (var entry in items)
                 addDropdownItem(GenerateItemText(entry), entry);
 
-            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
+            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
                 Current.Value = itemMap.Keys.FirstOrDefault();
             else
                 Current.TriggerChange();
@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return t.Text;
 
                 case Enum e:
-                    return e.GetDescription();
+                    return e.GetLocalisableDescription();
 
                 default:
                     return item?.ToString() ?? "null";
@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-            Current.ValueChanged += selectionChanged;
+            Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
@@ -424,7 +424,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             #region DrawableDropdownMenuItem
 
-            // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
@@ -478,7 +477,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         backgroundColourSelected = value;
-                        UpdateBackgroundColour();
+                        Scheduler.AddOnce(UpdateBackgroundColour);
                     }
                 }
 
@@ -490,17 +489,14 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         foregroundColourSelected = value;
-                        UpdateForegroundColour();
+                        Scheduler.AddOnce(UpdateForegroundColour);
                     }
                 }
 
                 protected virtual void OnSelectChange()
                 {
-                    if (!IsLoaded)
-                        return;
-
-                    UpdateBackgroundColour();
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
 
                 protected override void UpdateBackgroundColour()
@@ -511,13 +507,6 @@ namespace osu.Framework.Graphics.UserInterface
                 protected override void UpdateForegroundColour()
                 {
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
-                }
-
-                protected override void LoadComplete()
-                {
-                    base.LoadComplete();
-                    Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
-                    Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
                 protected override bool OnHover(HoverEvent e)
@@ -536,7 +525,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return base.OnKeyDown(e);
 
                 var currentPreselected = PreselectedItem;
-                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+                int targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
@@ -579,15 +568,15 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public bool OnPressed(PlatformAction action)
+            public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
             {
-                switch (action.ActionType)
+                switch (e.Action)
                 {
-                    case PlatformActionType.ListStart:
+                    case PlatformAction.MoveToListStart:
                         PreselectItem(Items.FirstOrDefault());
                         return true;
 
-                    case PlatformActionType.ListEnd:
+                    case PlatformAction.MoveToListEnd:
                         PreselectItem(Items.LastOrDefault());
                         return true;
 
@@ -596,7 +585,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public void OnReleased(PlatformAction action)
+            public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
             {
             }
         }

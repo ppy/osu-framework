@@ -3,15 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows.Native;
-using osuTK;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -21,27 +21,40 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new WindowsReadableKeyCombinationProvider();
 
-#if NET5_0
+        public override IEnumerable<string> UserStoragePaths =>
+            // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
+
+#if NET6_0
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation)
+        internal WindowsGameHost(string gameName, HostOptions options)
+            : base(gameName, options)
         {
         }
 
-        public override void OpenFileExternally(string filename)
+        public override bool OpenFileExternally(string filename)
         {
             if (Directory.Exists(filename))
             {
-                Process.Start("explorer.exe", filename);
-                return;
+                // ensure the path always has one trailing DirectorySeparator so the native function opens the expected folder.
+                string folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
+
+                Explorer.OpenFolderAndSelectItem(folder);
+                return true;
             }
 
-            base.OpenFileExternally(filename);
+            return base.OpenFileExternally(filename);
+        }
+
+        public override bool PresentFileExternally(string filename)
+        {
+            Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
+            return true;
         }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
@@ -59,14 +72,14 @@ namespace osu.Framework.Platform.Windows
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 
-            timePeriod = new TimePeriod(1) { Active = true };
+            timePeriod = new TimePeriod(1);
         }
 
         protected override IWindow CreateWindow() => new WindowsWindow();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), new PlatformAction(PlatformActionType.Exit))
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), PlatformAction.Exit)
         }).ToList();
 
         protected override void Dispose(bool isDisposing)
@@ -77,16 +90,12 @@ namespace osu.Framework.Platform.Windows
 
         protected override void OnActivated()
         {
-            timePeriod.Active = true;
-
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
             base.OnActivated();
         }
 
         protected override void OnDeactivated()
         {
-            timePeriod.Active = false;
-
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated();
         }

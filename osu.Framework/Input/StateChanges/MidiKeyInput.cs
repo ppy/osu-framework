@@ -54,7 +54,7 @@ namespace osu.Framework.Input.StateChanges
 
         public override void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            foreach (var (key, velocity) in Velocities)
+            foreach ((var key, byte velocity) in Velocities)
                 state.Midi.Velocities[key] = velocity;
 
             base.Apply(state, handler);

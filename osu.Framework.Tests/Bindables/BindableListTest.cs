@@ -1247,7 +1247,7 @@ namespace osu.Framework.Tests.Bindables
             Assert.Multiple(() =>
             {
                 Assert.IsNotNull(isDisabled);
-                Assert.IsTrue(isDisabled.Value);
+                Assert.IsTrue(isDisabled);
             });
         }
 
@@ -1266,11 +1266,11 @@ namespace osu.Framework.Tests.Bindables
             Assert.Multiple(() =>
             {
                 Assert.IsNotNull(isDisabledA);
-                Assert.IsTrue(isDisabledA.Value);
+                Assert.IsTrue(isDisabledA);
                 Assert.IsNotNull(isDisabledB);
-                Assert.IsTrue(isDisabledB.Value);
+                Assert.IsTrue(isDisabledB);
                 Assert.IsNotNull(isDisabledC);
-                Assert.IsTrue(isDisabledC.Value);
+                Assert.IsTrue(isDisabledC);
             });
         }
 

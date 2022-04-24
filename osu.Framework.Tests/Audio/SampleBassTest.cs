@@ -3,40 +3,31 @@
 
 using System;
 using System.Threading;
-using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Development;
-using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
     public class SampleBassTest
     {
-        private DllResourceStore resources;
-        private SampleBassFactory sampleFactory;
+        private BassTestComponents bass;
         private Sample sample;
         private SampleChannel channel;
 
         [SetUp]
         public void Setup()
         {
-            // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
-            Bass.Init(0);
+            bass = new BassTestComponents();
+            sample = bass.GetSample();
 
-            resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
-            sample = sampleFactory.CreateSample();
-
-            updateSample();
+            bass.Update();
         }
 
         [TearDown]
         public void Teardown()
         {
-            Bass.Free();
+            bass?.Dispose();
         }
 
         [Test]
@@ -54,11 +45,11 @@ namespace osu.Framework.Tests.Audio
         public void TestStart()
         {
             channel = sample.Play();
-            updateSample();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            updateSample();
+            bass.Update();
 
             Assert.IsTrue(channel.Playing);
         }
@@ -67,10 +58,10 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             channel = sample.Play();
-            updateSample();
+            bass.Update();
 
             channel.Stop();
-            updateSample();
+            bass.Update();
 
             Assert.IsFalse(channel.Playing);
         }
@@ -81,7 +72,7 @@ namespace osu.Framework.Tests.Audio
             channel = sample.Play();
             channel.Stop();
 
-            updateSample();
+            bass.Update();
 
             Assert.IsFalse(channel.Playing);
         }
@@ -90,39 +81,37 @@ namespace osu.Framework.Tests.Audio
         public void TestStopsWhenFactoryDisposed()
         {
             channel = sample.Play();
-            updateSample();
+            bass.Update();
 
-            sampleFactory.Dispose();
-            updateSample();
+            bass.SampleStore.Dispose();
+            bass.Update();
 
             Assert.IsFalse(channel.Playing);
         }
 
-        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
+        /// <summary>
+        /// Tests the case where a play call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// </summary>
+        [Test]
+        public void TestPlayingUpdatedAfterInlinePlay()
+        {
+            bass.RunOnAudioThread(() => channel = sample.Play());
+            Assert.That(channel.Playing, Is.True);
+        }
 
         /// <summary>
-        /// Certain actions are invoked on the audio thread.
-        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
+        /// Tests the case where a stop call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
         /// </summary>
-        /// <param name="action">The action to perform.</param>
-        private void runOnAudioThread(Action action)
+        [Test]
+        public void TestPlayingUpdatedAfterInlineStop()
         {
-            var resetEvent = new ManualResetEvent(false);
+            channel = sample.Play();
+            bass.Update();
 
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
+            bass.RunOnAudioThread(() => channel.Stop());
+            Assert.That(channel.Playing, Is.False);
         }
     }
 }

@@ -22,14 +22,34 @@ namespace osu.Framework.Platform
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
-        public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+        public override bool OpenFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+            return true;
+        }
+
+        public override bool PresentFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        public override string UserStoragePath => "./headless/";
+        public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
+        [Obsolete("Use HeadlessGameHost(HostOptions, bool) instead.")] // Can be removed 20220715
+        public HeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : this(gameName, new HostOptions
+            {
+                BindIPC = bindIPC,
+                PortableInstallation = portableInstallation,
+            }, realtime)
+        {
+        }
+
+        public HeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName ?? Guid.NewGuid().ToString(), options)
         {
             this.realtime = realtime;
         }
@@ -39,17 +59,35 @@ namespace osu.Framework.Platform
             defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
 
             base.SetupConfig(defaultOverrides);
+
+            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            {
+                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
+                Logger.Log($"Startup execution mode set to {mode} from envvar");
+            }
         }
 
         protected override void SetupForRun()
         {
             base.SetupForRun();
 
-            MaximumDrawHz = double.MaxValue;
-            MaximumUpdateHz = double.MaxValue;
-            MaximumInactiveHz = double.MaxValue;
+            // We want the draw thread to run, but it doesn't matter how fast it runs.
+            // This limiting is mostly to reduce CPU overhead.
+            MaximumDrawHz = 60;
 
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
+            if (!realtime)
+            {
+                customClock = new FramedClock(new FastClock(CLOCK_RATE));
+
+                // time is incremented per frame, rather than based on the real-world time.
+                // therefore our goal is to run frames as fast as possible.
+                MaximumUpdateHz = MaximumInactiveHz = 0;
+            }
+            else
+            {
+                // in realtime runs, set a sane upper limit to avoid cpu overhead from spinning.
+                MaximumUpdateHz = MaximumInactiveHz = 1000;
+            }
         }
 
         protected override void DrawFrame()

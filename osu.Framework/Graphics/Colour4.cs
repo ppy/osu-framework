@@ -89,7 +89,6 @@ namespace osu.Framework.Graphics
         /// The final alpha is clamped to the 0-1 range.
         /// </summary>
         /// <param name="scalar">The value that the existing alpha will be multiplied by.</param>
-        /// <returns></returns>
         public Colour4 MultiplyAlpha(float scalar)
         {
             if (scalar < 0)
@@ -284,41 +283,80 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
         public static Colour4 FromHex(string hex)
         {
+            if (!TryParseHex(hex, out var colour))
+                throw new ArgumentException($"{hex} is not a valid colour hex string.", nameof(hex));
+
+            return colour;
+        }
+
+        /// <summary>
+        /// Attempts to convert an RGB or RGBA-formatted hex colour code into a <see cref="Colour4"/>.
+        /// Supported colour code formats:
+        /// <list type="bullet">
+        /// <item><description>RGB</description></item>
+        /// <item><description>#RGB</description></item>
+        /// <item><description>RGBA</description></item>
+        /// <item><description>#RGBA</description></item>
+        /// <item><description>RRGGBB</description></item>
+        /// <item><description>#RRGGBB</description></item>
+        /// <item><description>RRGGBBAA</description></item>
+        /// <item><description>#RRGGBBAA</description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="hex">The hex code.</param>
+        /// <param name="colour">The <see cref="Colour4"/> representing the colour, if parsing succeeded.</param>
+        /// <returns>Whether the input could be parsed as a hex code.</returns>
+        public static bool TryParseHex(string hex, out Colour4 colour)
+        {
             var hexSpan = hex.StartsWith('#') ? hex.AsSpan(1) : hex.AsSpan();
+
+            bool parsed = true;
+            byte r = 255, g = 255, b = 255, a = 255;
 
             switch (hexSpan.Length)
             {
                 default:
-                    throw new ArgumentException($"Invalid hex string length {hex.Length}, expected 3, 4, 6, or 8.", nameof(hex));
+                    parsed = false;
+                    break;
 
                 case 3:
-                    return new Colour4(
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
-                        255);
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(1, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+
+                    r *= 17;
+                    g *= 17;
+                    b *= 17;
+                    break;
 
                 case 6:
-                    return new Colour4(
-                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
-                        255);
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+                    break;
 
                 case 4:
-                    return new Colour4(
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(3, 1), NumberStyles.HexNumber) * 17));
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(1, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+                    parsed &= byte.TryParse(hexSpan.Slice(3, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out a);
+
+                    r *= 17;
+                    g *= 17;
+                    b *= 17;
+                    a *= 17;
+                    break;
 
                 case 8:
-                    return new Colour4(
-                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(6, 2), NumberStyles.HexNumber));
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+                    parsed &= byte.TryParse(hexSpan.Slice(6, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out a);
+                    break;
             }
+
+            colour = new Colour4(r, g, b, a);
+            return parsed;
         }
 
         /// <summary>
@@ -328,7 +366,7 @@ namespace osu.Framework.Graphics
         /// <returns>The hex code representing the colour.</returns>
         public string ToHex(bool alwaysOutputAlpha = false)
         {
-            var argb = ToARGB();
+            uint argb = ToARGB();
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
@@ -386,12 +424,12 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
         public Vector4 ToHSV()
         {
-            var red = R;
-            var green = G;
-            var blue = B;
+            float red = R;
+            float green = G;
+            float blue = B;
 
-            var max = Math.Max(red, Math.Max(green, blue));
-            var min = Math.Min(red, Math.Min(green, blue));
+            float max = Math.Max(red, Math.Max(green, blue));
+            float min = Math.Min(red, Math.Min(green, blue));
 
             float hue;
 
@@ -404,7 +442,7 @@ namespace osu.Framework.Graphics
             else
                 hue = (red - green) / (max - min) + 4;
 
-            var saturation = max == 0 ? 0 : (max - min) / max;
+            float saturation = max == 0 ? 0 : (max - min) / max;
             hue = Math.Clamp(hue / 6f, 0f, 1f);
 
             return new Vector4(hue == 1f ? 0f : hue, saturation, max, A);
@@ -419,9 +457,9 @@ namespace osu.Framework.Graphics
         /// <param name="alpha">The alpha, between 0 and 1.</param>
         public static Colour4 FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
         {
-            var c = (1f - Math.Abs(2f * lightness - 1f)) * saturation;
-            var h = hue * 6f;
-            var x = c * (1f - Math.Abs(h % 2f - 1f));
+            float c = (1f - Math.Abs(2f * lightness - 1f)) * saturation;
+            float h = hue * 6f;
+            float x = c * (1f - Math.Abs(h % 2f - 1f));
 
             float r, g, b;
 
@@ -464,7 +502,7 @@ namespace osu.Framework.Graphics
             else
                 r = g = b = 0f;
 
-            var m = lightness - c * 0.5f;
+            float m = lightness - c * 0.5f;
             return new Colour4(r + m, g + m, b + m, alpha);
         }
 
@@ -476,19 +514,19 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
         public Vector4 ToHSL()
         {
-            var red = R;
-            var green = G;
-            var blue = B;
+            float red = R;
+            float green = G;
+            float blue = B;
 
-            var max = Math.Max(red, Math.Max(green, blue));
-            var min = Math.Min(red, Math.Min(green, blue));
+            float max = Math.Max(red, Math.Max(green, blue));
+            float min = Math.Min(red, Math.Min(green, blue));
 
-            var lightness = (max + min) / 2f;
+            float lightness = (max + min) / 2f;
             if (lightness <= 0)
                 return new Vector4(0f, 0f, 0f, A);
 
-            var diff = max - min;
-            var saturation = diff;
+            float diff = max - min;
+            float saturation = diff;
             if (saturation <= 0)
                 return new Vector4(0f, 0f, lightness, A);
 

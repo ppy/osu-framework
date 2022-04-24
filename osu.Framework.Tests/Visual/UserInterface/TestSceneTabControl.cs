@@ -147,16 +147,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.Items.First());
-            AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
+            AddStep("Switch forward", () => platformActionContainer.TriggerPressed(PlatformAction.DocumentNext));
             AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.ElementAt(1));
 
-            AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
+            AddStep("Switch backward", () => platformActionContainer.TriggerPressed(PlatformAction.DocumentPrevious));
             AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
 
-            AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
+            AddStep("Switch backward", () => platformActionContainer.TriggerPressed(PlatformAction.DocumentPrevious));
             AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.Last());
 
-            AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
+            AddStep("Switch forward", () => platformActionContainer.TriggerPressed(PlatformAction.DocumentNext));
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
 
             AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
@@ -229,7 +229,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             });
 
-            AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].Click());
+            AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].TriggerClick());
             AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
         }
 
@@ -376,6 +376,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddUntilStep("wait for loaded", () => tabControl.IsLoaded);
             AddAssert("initial selection is correct", () => tabControl.Current.Value == expectedInitialSelection);
+        }
+
+        [TestCase(true, TestEnum.Test1, true)]
+        [TestCase(false, TestEnum.Test1, true)]
+        [TestCase(true, TestEnum.Test9, true)]
+        [TestCase(false, TestEnum.Test9, false)]
+        public void TestInitialSort(bool autoSort, TestEnum? initialItem, bool expected)
+        {
+            StyledTabControl tabControlWithBindable = null;
+            Bindable<TestEnum?> testBindable = new Bindable<TestEnum?> { Value = initialItem };
+
+            AddStep("create tab control", () =>
+            {
+                tabControlContainer.Add(tabControlWithBindable = new StyledTabControl
+                {
+                    Size = new Vector2(200, 20),
+                    Items = items.Cast<TestEnum?>().ToList(),
+                    AutoSort = autoSort,
+                    Current = { BindTarget = testBindable }
+                });
+            });
+
+            AddUntilStep("wait for loaded", () => tabControlWithBindable.IsLoaded);
+            AddAssert($"Current selection {(expected ? "visible" : "not visible")}", () => tabControlWithBindable.SelectedTab.IsPresent == expected);
         }
 
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>

@@ -24,6 +24,11 @@ namespace osu.Framework.Text
         float XAdvance { get; }
 
         /// <summary>
+        /// The position of the baseline in this glyph.
+        /// </summary>
+        float Baseline { get; }
+
+        /// <summary>
         /// The character represented by this glyph.
         /// </summary>
         char Character { get; }

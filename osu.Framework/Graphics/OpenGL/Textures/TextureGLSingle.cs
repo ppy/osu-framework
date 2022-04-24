@@ -49,6 +49,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private readonly All filteringMode;
 
+        private readonly Rgba32 initialisationColour;
+
         /// <summary>
         /// The total amount of times this <see cref="TextureGLSingle"/> was bound.
         /// </summary>
@@ -68,13 +70,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
-        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
+        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
             : base(wrapModeS, wrapModeT)
         {
             Width = width;
             Height = height;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
+            this.initialisationColour = initialisationColour;
 
             all_textures.Add(this);
 
@@ -102,24 +106,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
 
-            GLWrapper.ScheduleDisposal(unload);
-        }
+            GLWrapper.ScheduleDisposal(texture =>
+            {
+                int disposableId = texture.textureId;
 
-        /// <summary>
-        /// Removes texture from GL memory.
-        /// </summary>
-        private void unload()
-        {
-            int disposableId = textureId;
+                if (disposableId <= 0)
+                    return;
 
-            if (disposableId <= 0)
-                return;
+                GL.DeleteTextures(1, new[] { disposableId });
 
-            GL.DeleteTextures(1, new[] { disposableId });
+                texture.memoryLease?.Dispose();
 
-            memoryLease?.Dispose();
-
-            textureId = 0;
+                texture.textureId = 0;
+            }, this);
         }
 
         #endregion
@@ -483,7 +482,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 else
                     GLWrapper.BindTexture(this);
 
-                if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
+                if ((width == upload.Bounds.Width && height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
                     updateMemoryUsage(upload.Level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
@@ -526,15 +525,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void initializeLevel(int level, int width, int height)
         {
-            using (var image = new Image<Rgba32>(width, height))
+            using (var image = createBackingImage(width, height))
+            using (var pixels = image.CreateReadOnlyPixelSpan())
             {
-                using (var pixels = image.CreateReadOnlyPixelSpan())
-                {
-                    updateMemoryUsage(level, (long)width * height * 4);
-                    GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
-                        ref MemoryMarshal.GetReference(pixels.Span));
-                }
+                updateMemoryUsage(level, (long)width * height * 4);
+                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+                    ref MemoryMarshal.GetReference(pixels.Span));
             }
+        }
+
+        private Image<Rgba32> createBackingImage(int width, int height)
+        {
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            return initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, initialisationColour);
         }
     }
 }

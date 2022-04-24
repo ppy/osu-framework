@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -27,7 +26,11 @@ namespace osu.Framework.Graphics.Sprites
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
-        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ' };
+
+        /// <remarks>
+        /// <c>U+00A0</c> is the Unicode NON-BREAKING SPACE character (distinct from the standard ASCII space).
+        /// </remarks>
+        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ', '\u00A0' };
 
         [Resolved]
         private FontStore store { get; set; }
@@ -60,13 +63,13 @@ namespace osu.Framework.Graphics.Sprites
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            localisedText = localisation.GetLocalisedString(text);
+            localisedText = localisation.GetLocalisedBindableString(text);
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
-            foreach (var character in localisedText.Value)
+            foreach (char character in localisedText.Value)
             {
                 var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
             }
@@ -442,8 +445,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool isComputingCharacters;
-
         /// <summary>
         /// Compute character textures and positions.
         /// </summary>
@@ -460,8 +461,8 @@ namespace osu.Framework.Graphics.Sprites
 
             charactersBacking.Clear();
 
-            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
-            isComputingCharacters = true;
+            // Todo: Re-enable this assert after autosize is split into two passes.
+            // Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
 
             Vector2 textBounds = Vector2.Zero;
 
@@ -485,7 +486,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 base.Width = Math.Min(base.Width, MaxWidth);
 
-                isComputingCharacters = false;
                 charactersCache.Validate();
             }
         }
@@ -595,7 +595,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <returns>The <see cref="TextBuilder"/>.</returns>
         protected virtual TextBuilder CreateTextBuilder(ITexturedGlyphLookupStore store)
         {
-            var excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
+            char[] excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
 
             float builderMaxWidth = requiresAutoSizedWidth
                 ? MaxWidth
@@ -627,21 +627,12 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();
 
-        /// <summary>
-        /// Gets the base height of the font used by this text. If the font of this text is invalid, 0 is returned.
-        /// </summary>
         public float LineBaseHeight
         {
             get
             {
-                var baseHeight = store.GetBaseHeight(Font.FontName);
-                if (baseHeight.HasValue)
-                    return baseHeight.Value * Font.Size;
-
-                if (string.IsNullOrEmpty(displayedText))
-                    return 0;
-
-                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * Font.Size;
+                computeCharacters();
+                return textBuilderCache.Value.LineBaseHeight;
             }
         }
 

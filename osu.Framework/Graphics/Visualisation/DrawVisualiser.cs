@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -49,44 +49,8 @@ namespace osu.Framework.Graphics.Visualisation
                         Searching = true;
                         Target = null;
                     },
-                    GoUpOneParent = delegate
-                    {
-                        Drawable lastHighlight = highlightedTarget?.Target;
-
-                        var parent = Target?.Parent;
-
-                        if (parent != null)
-                        {
-                            var lastVisualiser = targetVisualiser;
-
-                            Target = parent;
-                            lastVisualiser.SetContainer(targetVisualiser);
-
-                            targetVisualiser.Expand();
-                        }
-
-                        // Rehighlight the last highlight
-                        if (lastHighlight != null)
-                        {
-                            VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
-
-                            if (visualised != null)
-                            {
-                                drawableInspector.Show();
-                                setHighlight(visualised);
-                            }
-                        }
-                    },
-                    ToggleInspector = delegate
-                    {
-                        if (targetVisualiser == null)
-                            return;
-
-                        drawableInspector.ToggleVisibility();
-
-                        if (drawableInspector.State.Value == Visibility.Visible)
-                            setHighlight(targetVisualiser);
-                    },
+                    GoUpOneParent = goUpOneParent,
+                    ToggleInspector = toggleInspector,
                 },
                 new CursorContainer()
             };
@@ -103,6 +67,46 @@ namespace osu.Framework.Graphics.Visualisation
                         break;
                 }
             };
+        }
+
+        private void goUpOneParent()
+        {
+            Drawable lastHighlight = highlightedTarget?.Target;
+
+            var parent = Target?.Parent;
+
+            if (parent != null)
+            {
+                var lastVisualiser = targetVisualiser;
+
+                Target = parent;
+                lastVisualiser.SetContainer(targetVisualiser);
+
+                targetVisualiser.Expand();
+            }
+
+            // Rehighlight the last highlight
+            if (lastHighlight != null)
+            {
+                VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
+
+                if (visualised != null)
+                {
+                    drawableInspector.Show();
+                    setHighlight(visualised);
+                }
+            }
+        }
+
+        private void toggleInspector()
+        {
+            if (targetVisualiser == null)
+                return;
+
+            drawableInspector.ToggleVisibility();
+
+            if (drawableInspector.State.Value == Visibility.Visible)
+                setHighlight(targetVisualiser);
         }
 
         protected override void LoadComplete()
@@ -249,8 +253,8 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!composite.Masking)
                         return;
 
-                    if (composite.BorderThickness > 0 && composite.BorderColour.Linear.A > 0
-                        || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0)
+                    if ((composite.BorderThickness > 0 && composite.BorderColour.MaxAlpha > 0)
+                        || (composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0))
                     {
                         drawableTarget = composite;
                     }
@@ -280,7 +284,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             var type = drawable.GetType();
 
-            if (has_custom_drawnode_cache.TryGetValue(type, out var existing))
+            if (has_custom_drawnode_cache.TryGetValue(type, out bool existing))
                 return existing;
 
             return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
