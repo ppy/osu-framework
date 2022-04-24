@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -70,6 +71,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("reset flag", () => menu.PressBlocked = false);
             AddStep("press escape again", () => InputManager.Key(Key.Escape));
             AddAssert("press not handled", () => !menu.PressBlocked);
+        }
+
+        [Test]
+        public void TestMenuBlocksInputUnderneathIt()
+        {
+            bool actionReceived = false;
+
+            AddStep("add mouse handler", () => Add(new MouseHandlingLayer
+            {
+                Action = () => actionReceived = true,
+                Depth = 1,
+            }));
+
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("mouse handler not activated", () => !actionReceived);
+        }
+
+        private class MouseHandlingLayer : Drawable
+        {
+            public Action Action { get; set; }
+
+            public MouseHandlingLayer()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                Action?.Invoke();
+                return base.OnMouseDown(e);
+            }
         }
 
         private class AnimatedMenu : BasicMenu
