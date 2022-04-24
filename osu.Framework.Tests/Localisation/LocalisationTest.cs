@@ -265,16 +265,22 @@ namespace osu.Framework.Tests.Localisation
 
             var uppercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var lowercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToLower());
+            var titleCasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
+            var sentenceCasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToSentence());
 
             config.SetValue(FrameworkSetting.Locale, "en");
 
             Assert.AreEqual("LOCALISED EN", uppercasedText.Value);
             Assert.AreEqual("localised en", lowercasedText.Value);
+            Assert.AreEqual("Localised EN", titleCasedText.Value);
+            Assert.AreEqual("Localised EN", sentenceCasedText.Value);
 
             config.SetValue(FrameworkSetting.Locale, "tr");
 
             Assert.AreEqual("LOCALİSED TR (İ/I)", uppercasedText.Value);
             Assert.AreEqual("localised tr (i/ı)", lowercasedText.Value);
+            Assert.AreEqual("Localised TR (İ/I)", titleCasedText.Value);
+            Assert.AreEqual("Localised TR (i/I)", sentenceCasedText.Value);
         }
 
         [Test]
