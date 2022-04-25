@@ -17,9 +17,7 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>Represents an instance of the <see cref="RectangleI"/> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
-#pragma warning disable IDE1006 // Naming style
-        public static readonly RectangleI Empty;
-#pragma warning restore IDE1006
+        public static RectangleI Empty { get; } = new RectangleI();
 
         public int X;
         public int Y;

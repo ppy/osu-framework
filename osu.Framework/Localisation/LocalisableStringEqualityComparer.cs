@@ -11,10 +11,7 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class LocalisableStringEqualityComparer : IEqualityComparer<LocalisableString>
     {
-        // ReSharper disable once InconsistentNaming (follows EqualityComparer<T>.Default)
-#pragma warning disable IDE1006 // Naming style
-        public static readonly LocalisableStringEqualityComparer Default = new LocalisableStringEqualityComparer();
-#pragma warning restore IDE1006
+        public static LocalisableStringEqualityComparer Default { get; } = new LocalisableStringEqualityComparer();
 
         public bool Equals(LocalisableString x, LocalisableString y)
         {

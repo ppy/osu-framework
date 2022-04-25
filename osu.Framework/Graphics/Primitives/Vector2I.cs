@@ -25,11 +25,9 @@ namespace osu.Framework.Graphics.Primitives
             Y = y;
         }
 
-#pragma warning disable IDE1006 // Naming style
-        public static readonly Vector2I Zero;
+        public static Vector2I Zero { get; } = new Vector2I();
 
-        public static readonly Vector2I One = new Vector2I(1);
-#pragma warning restore IDE1006
+        public static Vector2I One { get; } = new Vector2I(1);
 
         public static implicit operator Vector2(Vector2I r) => new Vector2(r.X, r.Y);
 
