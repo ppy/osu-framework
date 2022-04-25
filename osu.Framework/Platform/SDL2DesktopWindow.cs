@@ -167,6 +167,9 @@ namespace osu.Framework.Platform
                 if (value.Width < 0 || value.Height < 0)
                     throw new InvalidOperationException($"Expected zero or positive size, got {value}");
 
+                if (value.Width > MaxSize.Width || value.Height > MaxSize.Height)
+                    throw new InvalidOperationException($"Expected a size less than {nameof(MaxSize)} ({MaxSize}), got {value}");
+
                 sizeWindowed.MinValue = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, value.Width, value.Height));
             }
@@ -183,6 +186,9 @@ namespace osu.Framework.Platform
             {
                 if (value.Width <= 0 || value.Height <= 0)
                     throw new InvalidOperationException($"Expected positive size, got {value}");
+
+                if (value.Width < MinSize.Width || value.Height < MinSize.Height)
+                    throw new InvalidOperationException($"Expected a size greater than {nameof(MinSize)} ({MinSize}), got {value}");
 
                 sizeWindowed.MaxValue = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, value.Width, value.Height));
