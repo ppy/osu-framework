@@ -41,8 +41,8 @@ namespace osu.Framework.Localisation
             Key = key;
         }
 
-        protected override string FormatString(string format, object?[] args, LocalisationParameters parameters)
-            => base.FormatString(parameters.Store?.Get(Key) ?? format, args, parameters);
+        protected override string FormatString(string fallback, object?[] args, LocalisationParameters parameters)
+            => base.FormatString(parameters.Store?.Get(Key) ?? fallback, args, parameters);
 
         public bool Equals(TranslatableString? other)
         {
