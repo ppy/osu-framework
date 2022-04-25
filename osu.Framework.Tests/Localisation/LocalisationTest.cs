@@ -143,8 +143,9 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestFormattedAndLocalisedUsingInterpolate()
         {
+            var formattable = new LocalisableFormattableString("{0:0.00%}", new object[] { 0.1234 });
             var translatable1 = new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN);
-            var translatable2 = new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, 0.1234.ToLocalisableString("0.00%"));
+            var translatable2 = new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, formattable);
 
             manager.AddLanguage("ja", new FakeStorage("ja"));
             config.SetValue(FrameworkSetting.Locale, "ja");
@@ -157,8 +158,9 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestFormattedAndLocalisedUsingFormat()
         {
+            var formattable = new LocalisableFormattableString("{0:0.00%}", new object[] { 0.1234 });
             var translatable1 = new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN);
-            var translatable2 = new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, 0.1234.ToLocalisableString("0.00%"));
+            var translatable2 = new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, formattable);
 
             manager.AddLanguage("ja", new FakeStorage("ja"));
             config.SetValue(FrameworkSetting.Locale, "ja");
@@ -312,7 +314,8 @@ namespace osu.Framework.Tests.Localisation
 
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
-            var text = manager.GetLocalisedBindableString(new TranslatableString(key, key, 0.1234.ToLocalisableString("0.00%")));
+            var arg = new LocalisableFormattableString("{0:0.00%}", new object[] { 0.1234 });
+            var text = manager.GetLocalisedBindableString(new TranslatableString(key, key, arg));
 
             Assert.AreEqual("number 12.34% EN", text.Value);
 
