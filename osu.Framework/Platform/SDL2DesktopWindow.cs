@@ -155,33 +155,22 @@ namespace osu.Framework.Platform
             }
         }
 
-        private Size minSize = Size.Empty;
-
         /// <summary>
         /// Returns or sets the window's minimum size, before scaling.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or size greater than <see cref="MaxSize"/>.</exception>
         public Size MinSize
         {
-            get => minSize;
+            get => sizeWindowed.MinValue;
             set
             {
-                if (minSize.Equals(value))
-                    return;
-
                 if (value.Width < 0 || value.Height < 0)
                     throw new InvalidOperationException($"Expected zero or positive size, got {value}");
 
-                if (value.Width > maxSize.Width || value.Height > maxSize.Height)
-                    throw new InvalidOperationException($"Expected a size less than {nameof(MaxSize)} ({MaxSize}), got {value}");
-
-                minSize = value;
                 sizeWindowed.MinValue = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, value.Width, value.Height));
             }
         }
-
-        private Size maxSize = new Size(int.MaxValue, int.MaxValue);
 
         /// <summary>
         /// Returns or sets the window's maximum size, before scaling.
@@ -189,19 +178,12 @@ namespace osu.Framework.Platform
         /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or size less than or equal to <see cref="MinSize"/>.</exception>
         public Size MaxSize
         {
-            get => maxSize;
+            get => sizeWindowed.MaxValue;
             set
             {
-                if (maxSize.Equals(value))
-                    return;
-
                 if (value.Width <= 0 || value.Height <= 0)
                     throw new InvalidOperationException($"Expected positive size, got {value}");
 
-                if (value.Width < MinSize.Width || value.Height < MinSize.Height)
-                    throw new InvalidOperationException($"Expected a size greater than {nameof(MinSize)} ({MinSize}), got {value}");
-
-                maxSize = value;
                 sizeWindowed.MaxValue = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, value.Width, value.Height));
             }
