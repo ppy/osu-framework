@@ -170,8 +170,6 @@ namespace osu.Framework.Audio
             scheduler.Add(() =>
             {
                 // sync audioDevices every 1000ms
-
-#pragma warning disable IDE0055 // VS and Rider formatting conflict
                 new Thread(() =>
                 {
                     while (!token.IsCancellationRequested)
@@ -185,8 +183,10 @@ namespace osu.Framework.Audio
                         {
                         }
                     }
-                }) { IsBackground = true }.Start();
-#pragma warning restore IDE0055
+                })
+                {
+                    IsBackground = true
+                }.Start();
             });
         }
 
@@ -228,7 +228,8 @@ namespace osu.Framework.Audio
         /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
         /// </remarks>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+        public AudioMixer CreateAudioMixer(string identifier = default) =>
+            createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
         private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
         {
