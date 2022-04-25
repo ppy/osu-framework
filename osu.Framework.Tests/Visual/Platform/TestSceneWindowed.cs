@@ -24,10 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load()
         {
-            if (!(host.Window is SDL2DesktopWindow window))
-                return;
-
-            sdlWindow = window;
+            sdlWindow = (SDL2DesktopWindow)host.Window;
         }
 
         [SetUp]
