@@ -6,6 +6,8 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
 
+#pragma warning disable IDE0052 // Unread private member
+
 namespace osu.Framework.Tests.Dependencies
 {
     [TestFixture]
@@ -312,8 +314,6 @@ namespace osu.Framework.Tests.Dependencies
             private int fail;
 #pragma warning restore 169
         }
-
-#pragma warning disable IDE0052 // Unread private member
 
         private class Provider5
         {
