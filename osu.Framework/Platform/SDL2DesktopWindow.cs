@@ -155,44 +155,16 @@ namespace osu.Framework.Platform
             }
         }
 
-        /// <summary>
-        /// Returns or sets the window's minimum size, before scaling.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or size greater than <see cref="MaxSize"/>.</exception>
         public Size MinSize
         {
             get => sizeWindowed.MinValue;
-            set
-            {
-                if (value.Width < 0 || value.Height < 0)
-                    throw new InvalidOperationException($"Expected zero or positive size, got {value}");
-
-                if (value.Width > MaxSize.Width || value.Height > MaxSize.Height)
-                    throw new InvalidOperationException($"Expected a size less than {nameof(MaxSize)} ({MaxSize}), got {value}");
-
-                sizeWindowed.MinValue = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, value.Width, value.Height));
-            }
+            set => sizeWindowed.MinValue = value;
         }
 
-        /// <summary>
-        /// Returns or sets the window's maximum size, before scaling.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or size less than or equal to <see cref="MinSize"/>.</exception>
         public Size MaxSize
         {
             get => sizeWindowed.MaxValue;
-            set
-            {
-                if (value.Width <= 0 || value.Height <= 0)
-                    throw new InvalidOperationException($"Expected positive size, got {value}");
-
-                if (value.Width < MinSize.Width || value.Height < MinSize.Height)
-                    throw new InvalidOperationException($"Expected a size greater than {nameof(MinSize)} ({MinSize}), got {value}");
-
-                sizeWindowed.MaxValue = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, value.Width, value.Height));
-            }
+            set => sizeWindowed.MaxValue = value;
         }
 
         /// <summary>
@@ -486,8 +458,28 @@ namespace osu.Framework.Platform
             updateWindowSpecifics();
             updateWindowSize();
 
-            sizeWindowed.MinValueChanged += min => MinSize = min;
-            sizeWindowed.MaxValueChanged += max => MaxSize = max;
+            sizeWindowed.MinValueChanged += min =>
+            {
+                if (min.Width < 0 || min.Height < 0)
+                    throw new InvalidOperationException($"Expected zero or positive size, got {min}");
+
+                if (min.Width > sizeWindowed.MaxValue.Width || min.Height > sizeWindowed.MaxValue.Height)
+                    throw new InvalidOperationException($"Expected a size less than max window size ({sizeWindowed.MaxValue}), got {min}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, min.Width, min.Height));
+            };
+
+            sizeWindowed.MaxValueChanged += max =>
+            {
+                if (max.Width <= 0 || max.Height <= 0)
+                    throw new InvalidOperationException($"Expected positive size, got {max}");
+
+                if (max.Width < sizeWindowed.MinValue.Width || max.Height < sizeWindowed.MinValue.Height)
+                    throw new InvalidOperationException($"Expected a size greater than min window size ({sizeWindowed.MinValue}), got {max}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
+            };
+
             sizeWindowed.TriggerChange();
 
             WindowMode.TriggerChange();
