@@ -192,7 +192,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// To remove this constraint, set an empty <see cref="Size"/>: <c>Size.Empty</c>.
         /// </remarks>
-        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or size greater than <see cref="MaxSize"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or a size greater than <see cref="MaxSize"/>.</exception>
         Size MinSize { get; set; }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// To remove this constraint, set a <see cref="Size"/> of maximum integer value: <c>new Size(int.MaxValue, int.MaxValue)</c>.
         /// </remarks>
-        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or size less than or equal to <see cref="MinSize"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
         Size MaxSize { get; set; }
 
         /// <summary>
