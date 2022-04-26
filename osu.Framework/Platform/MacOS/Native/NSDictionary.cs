@@ -9,8 +9,6 @@ namespace osu.Framework.Platform.MacOS.Native
     {
         internal IntPtr Handle { get; }
 
-        private static IntPtr classPointer = Class.Get("NSDictionary");
-
         internal NSDictionary(IntPtr handle)
         {
             Handle = handle;
