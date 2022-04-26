@@ -364,8 +364,8 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
             var text = manager.GetLocalisedBindableString(new TranslatableString(key, key,
-                12.34.ToLocalisableString("0.00"),
-                new TranslatableString(nested_key, nested_key, 0.9876.ToLocalisableString("0.00%")),
+                LocalisableString.Interpolate($"{12.34:0.00%}"),
+                new TranslatableString(nested_key, nested_key, LocalisableString.Interpolate($"{0.9876:0.00%}")),
                 new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
 
             Assert.AreEqual("number 12.34 with number 98.76% EN and number unicode EN EN", text.Value);
