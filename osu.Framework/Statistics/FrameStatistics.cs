@@ -54,7 +54,7 @@ namespace osu.Framework.Statistics
         PositionalIQ,
 
         /// <summary>
-        /// See <see cref="osu.Framework.Graphics.Containers.CompositeDrawable.CheckChildrenLife"/>.
+        /// See <see cref="Graphics.Containers.CompositeDrawable.CheckChildrenLife"/>.
         /// </summary>
         CCL,
 

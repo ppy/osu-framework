@@ -385,6 +385,7 @@ namespace osu.Framework.Platform.SDL2
                     return Key.F24;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_MENU:
+                case SDL.SDL_Scancode.SDL_SCANCODE_APPLICATION:
                     return Key.Menu;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_STOP:

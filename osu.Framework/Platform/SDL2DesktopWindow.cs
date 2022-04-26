@@ -945,7 +945,10 @@ namespace osu.Framework.Platform
             Key key = evtKey.keysym.ToKey();
 
             if (key == Key.Unknown)
+            {
+                Logger.Log($"Unknown SDL key: {evtKey.keysym.scancode}, {evtKey.keysym.sym}");
                 return;
+            }
 
             switch (evtKey.type)
             {

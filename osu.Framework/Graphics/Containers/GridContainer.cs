@@ -428,7 +428,7 @@ namespace osu.Framework.Graphics.Containers
     {
         /// <summary>
         /// Any remaining area of the <see cref="GridContainer"/> will be divided amongst this and all
-        /// other elements which use <see cref="GridSizeMode.Distributed"/>.
+        /// other elements which use <see cref="Distributed"/>.
         /// </summary>
         Distributed,
 
