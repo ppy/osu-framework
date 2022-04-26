@@ -429,7 +429,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 positionLayout.Validate();
 
-                Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
+                static Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
             }
         }
 
