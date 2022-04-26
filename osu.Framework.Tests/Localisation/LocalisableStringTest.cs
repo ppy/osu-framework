@@ -38,11 +38,11 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableFormattableEqualsLocalisableFormattable()
         {
-            var str1 = new LocalisableFormattableString(makeStringA, new object[] { makeStringB });
-            var str2 = new LocalisableFormattableString(makeStringB, new object[] { makeStringA });
+            var str1 = LocalisableString.Format(makeStringA, makeStringB);
+            var str2 = LocalisableString.Format(makeStringB, makeStringA);
 
             testEquals(true, str1, str1);
-            testEquals(true, str1, new LocalisableFormattableString(makeStringA, new object[] { makeStringB }));
+            testEquals(true, str1, LocalisableString.Format(makeStringA, makeStringB));
             testEquals(false, str1, str2);
         }
 
@@ -80,10 +80,10 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableStringEqualsLocalisableFormattable()
         {
-            LocalisableString localisable = new LocalisableFormattableString(makeStringA, new object[] { makeStringB });
+            LocalisableString localisable = LocalisableString.Format(makeStringA, makeStringB);
 
-            testEquals(true, localisable, new LocalisableFormattableString(makeStringA, new object[] { makeStringB }));
-            testEquals(false, localisable, new LocalisableFormattableString(makeStringB, new object[] { makeStringA }));
+            testEquals(true, localisable, LocalisableString.Format(makeStringA, makeStringB));
+            testEquals(false, localisable, LocalisableString.Format(makeStringB, makeStringA));
         }
 
         [Test]

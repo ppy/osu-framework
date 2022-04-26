@@ -22,7 +22,7 @@ namespace osu.Framework.Localisation
         /// Creates a <see cref="LocalisableFormattableString"/> with an <see cref="IFormattable"/> value and a format string.
         /// </summary>
         /// <param name="interpolation">The interpolated string containing format and arguments.</param>
-        public LocalisableFormattableString(FormattableString interpolation)
+        protected internal LocalisableFormattableString(FormattableString interpolation)
             : this(interpolation.Format, interpolation.GetArguments())
         {
         }
@@ -36,7 +36,7 @@ namespace osu.Framework.Localisation
         /// </remarks>
         /// <param name="format">The format string.</param>
         /// <param name="args">The objects to format.</param>
-        public LocalisableFormattableString(string format, object?[] args)
+        protected internal LocalisableFormattableString(string format, object?[] args)
         {
             Format = format;
             Args = args;
