@@ -28,12 +28,7 @@ namespace osu.Framework.Tests.Visual.Platform
         }
 
         [SetUp]
-        public void SetUp() => Schedule(() =>
-        {
-            sdlWindow.MinSize = new Size(640, 480);
-            sdlWindow.MaxSize = new Size(int.MaxValue, int.MaxValue);
-            sdlWindow.Resizable = true;
-        });
+        public void SetUp() => Schedule(() => sdlWindow.Resizable = true);
 
         [Test]
         public void TestToggleResizable()
@@ -57,6 +52,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MinSize = sdlWindow.MaxSize + new Size(1, 1)));
             AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MinSize = new Size(-1, -1)));
+            AddStep("reset minimum size", () => sdlWindow.MinSize = new Size(640, 480));
         }
 
         [Test]
@@ -79,7 +75,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = sdlWindow.MinSize - new Size(1, 1)));
             AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = new Size(-1, -1)));
-            AddStep("zero size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = new Size(0, 0)));
+            AddStep("reset maximum size", () => sdlWindow.MinSize = new Size(int.MaxValue, int.MaxValue));
         }
 
         private void setWindowSize(Size size) => config.SetValue(FrameworkSetting.WindowedSize, size);
