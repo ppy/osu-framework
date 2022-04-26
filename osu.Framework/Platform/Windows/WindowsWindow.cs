@@ -6,7 +6,9 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
+using osuTK;
 using SDL2;
+using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -45,8 +47,6 @@ namespace osu.Framework.Platform.Windows
             OnSDLEvent += handleSDLEvent;
         }
 
-        #region IME handling
-
         private void handleSDLEvent(SDL.SDL_Event e)
         {
             if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
@@ -63,6 +63,13 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
         }
+
+        /// <summary>
+        /// The last mouse position as reported by <see cref="WindowsMouseHandler.FeedbackMousePositionChange"/>.
+        /// </summary>
+        internal Vector2? LastMousePosition { private get; set; }
+
+        #region IME handling
 
         public override void StartTextInput(bool allowIme)
         {
