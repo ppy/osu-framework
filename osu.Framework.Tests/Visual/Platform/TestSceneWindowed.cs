@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = sdlWindow.MinSize - new Size(1, 1)));
             AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = new Size(-1, -1)));
-            AddStep("reset maximum size", () => sdlWindow.MinSize = new Size(int.MaxValue, int.MaxValue));
+            AddStep("reset maximum size", () => sdlWindow.MaxSize = new Size(int.MaxValue, int.MaxValue));
         }
 
         private void setWindowSize(Size size) => config.SetValue(FrameworkSetting.WindowedSize, size);
