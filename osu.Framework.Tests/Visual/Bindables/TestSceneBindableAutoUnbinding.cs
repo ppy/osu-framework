@@ -106,7 +106,9 @@ namespace osu.Framework.Tests.Visual.Bindables
         public class BindableExposingFillFlowContainer : FillFlowContainer
         {
             [Cached]
+#pragma warning disable IDE0052 // Unread private member
             private Bindable<int> bindable = new Bindable<int>();
+#pragma warning restore IDE0052 //
         }
 
         public class TestResolvedBindableDrawable : TestExposedBindableDrawable

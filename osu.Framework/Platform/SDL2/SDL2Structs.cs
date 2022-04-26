@@ -12,6 +12,8 @@ using SDL2;
 // ReSharper disable IdentifierTypo
 // (Mimics SDL and SDL2-CS naming)
 
+#pragma warning disable IDE1006 // Naming style
+
 namespace osu.Framework.Platform.SDL2
 {
     internal static class SDL2Structs
