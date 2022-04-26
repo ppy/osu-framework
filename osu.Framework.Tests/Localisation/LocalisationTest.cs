@@ -364,7 +364,7 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
             var text = manager.GetLocalisedBindableString(new TranslatableString(key, key,
-                LocalisableString.Interpolate($"{12.34:0.00%}"),
+                LocalisableString.Interpolate($"{12.34:0.00}"),
                 new TranslatableString(nested_key, nested_key, LocalisableString.Interpolate($"{0.9876:0.00%}")),
                 new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
 
@@ -391,8 +391,8 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
             var text = manager.GetLocalisedBindableString(LocalisableString.Format("{0} / {1} / {2}",
-                12.34.ToLocalisableString("0.00"),
-                new TranslatableString(nested_key, nested_key, 0.9876.ToLocalisableString("0.00%")),
+                LocalisableString.Interpolate($"{12.34:0.00}"),
+                new TranslatableString(nested_key, nested_key, LocalisableString.Interpolate($"{0.9876:0.00%}")),
                 new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
 
             Assert.AreEqual("12.34 / number 98.76% EN / number unicode EN", text.Value);
