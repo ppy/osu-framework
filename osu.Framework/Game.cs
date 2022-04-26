@@ -359,7 +359,7 @@ namespace osu.Framework
 
             return false;
 
-            Vector2 getCascadeLocation(int index)
+            static Vector2 getCascadeLocation(int index)
                 => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
 
