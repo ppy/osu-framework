@@ -69,6 +69,12 @@ namespace osu.Framework
 
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// Creates a new <see cref="LocalisationManager"/>.
+        /// </summary>
+        /// <param name="frameworkConfig">The framework config manager.</param>
+        protected virtual LocalisationManager CreateLocalisationManager(FrameworkConfigManager frameworkConfig) => new LocalisationManager(frameworkConfig);
+
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
 
         /// <summary>
@@ -177,7 +183,7 @@ namespace osu.Framework
 
             dependencies.Cache(Fonts);
 
-            Localisation = new LocalisationManager(config);
+            Localisation = CreateLocalisationManager(config);
             dependencies.Cache(Localisation);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
