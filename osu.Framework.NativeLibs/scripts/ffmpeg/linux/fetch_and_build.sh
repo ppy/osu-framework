@@ -1,19 +1,16 @@
 #!/bin/bash
 
-curl https://ffmpeg.org/releases/ffmpeg-4.3.3.tar.gz | tar zxf -
-cd ffmpeg-4.3.3
+pushd $(dirname $0) > /dev/null
+SCRIPT_PATH=$(pwd)
+popd > /dev/null
+source $SCRIPT_PATH/../common.sh
 
-./configure \
-    --disable-programs \
-    --disable-doc \
-    --disable-static \
-    --disable-debug \
-    --enable-shared \
-    --target-os=linux \
+FFMPEG_FLAGS+=(
+    --target-os=linux
     --prefix=build-x64
+)
 
-make -j$(nproc)
-make install
+build_ffmpeg
 
 mkdir -p ../build-x64
 cp build-x64/lib/*.so ../build-x64/

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+pushd $(dirname $0) > /dev/null
+SCRIPT_PATH=$(pwd)
+popd > /dev/null
+source $SCRIPT_PATH/../common.sh
+
 cross_arch=''
 cross_prefix=''
 
@@ -20,22 +25,14 @@ case $arch in
         ;;
 esac
 
-curl https://ffmpeg.org/releases/ffmpeg-4.3.3.tar.gz | tar zxf -
-cd ffmpeg-4.3.3
-
-./configure \
-    --disable-programs \
-    --disable-doc \
-    --disable-static \
-    --disable-debug \
-    --enable-shared \
-    --arch=$cross_arch \
-    --target-os=mingw32 \
-    --cross-prefix=$cross_prefix \
+FFMPEG_FLAGS+=(
+    --arch=$cross_arch
+    --target-os=mingw32
+    --cross-prefix=$cross_prefix
     --prefix=build-$arch
+)
 
-make -j$(nproc)
-make install
+build_ffmpeg
 
 mkdir -p ../build-$arch
 cp build-$arch/bin/*.dll ../build-$arch/

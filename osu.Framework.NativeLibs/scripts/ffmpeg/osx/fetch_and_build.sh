@@ -1,34 +1,21 @@
 #!/bin/bash
 
-if [ ! -d "ffmpeg-4.3.3" ]
-then
-    echo "-> Fetching FFmpeg 4.3.3..."
-    curl https://ffmpeg.org/releases/ffmpeg-4.3.3.tar.gz | tar zxf -
-else
-    echo "-> ffmpeg-4.3.3 already exists, not re-downloading."
-fi
-cd ffmpeg-4.3.3
+pushd $(dirname $0) > /dev/null
+SCRIPT_PATH=$(pwd)
+popd > /dev/null
+source $SCRIPT_PATH/../common.sh
 
-echo "-> Configuring..."
-
-./configure \
-    --disable-programs \
-    --disable-doc \
-    --disable-static \
-    --disable-debug \
-    --enable-shared \
-    --target-os=darwin \
-    --arch=$arch \
-    --enable-cross-compile \
-    --extra-cflags='-arch $arch' \
-    --extra-ldflags='-arch $arch' \
-    --prefix=build-$arch \
+FFMPEG_FLAGS+=(
+    --target-os=darwin
+    --arch=$arch
+    --enable-cross-compile
+    --extra-cflags='-arch $arch'
+    --extra-ldflags='-arch $arch'
+    --prefix=build-$arch
     --libdir=build-$arch/lib
+)
 
-CORES=$(sysctl -n hw.ncpu)
-echo "-> Building using $CORES threads..."
-make -j$CORES
-make install
+build_ffmpeg
 
 mv build-$arch/lib/libavcodec.58.91.100.dylib build-$arch/lib/libavcodec.58.dylib
 mv build-$arch/lib/libavdevice.58.10.100.dylib build-$arch/lib/libavdevice.58.dylib
