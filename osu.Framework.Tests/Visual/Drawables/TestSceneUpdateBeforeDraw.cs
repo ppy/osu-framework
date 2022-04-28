@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    [Description("Tests whether drawable updates occur before drawing.")]
+    [System.ComponentModel.Description("Tests whether drawable updates occur before drawing.")]
     public class TestSceneUpdateBeforeDraw : FrameworkTestScene
     {
         /// <summary>

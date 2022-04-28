@@ -42,7 +42,7 @@ namespace osu.Framework.Platform
             DisplayModes = displayModes;
         }
 
-        public override string ToString() => $"Name: {Name ?? "Unknown"}, Bounds: {Bounds}, DisplayModes: {DisplayModes.Length}";
+        public override string ToString() => $"Name: {Name ?? "Unknown"}, Bounds: {Bounds}, DisplayModes: {DisplayModes.Length}, Index: {Index}";
 
         public bool Equals(Display other)
         {

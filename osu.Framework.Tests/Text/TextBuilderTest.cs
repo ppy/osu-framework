@@ -42,6 +42,9 @@ namespace osu.Framework.Tests.Text
 
         private static readonly FontMetrics b_metrics = new FontMetrics(3000, 4000, 1000);
 
+#pragma warning disable IDE1006 // Naming style
+        // m_ recognized as prefix instead of part of the name
+
         private const float m_x_offset = 15;
         private const float m_y_offset = 16;
         private const float m_x_advance = 17;
@@ -51,6 +54,8 @@ namespace osu.Framework.Tests.Text
         private const float m_kerning = -21;
 
         private static readonly FontMetrics m_metrics = new FontMetrics(5000, 6000, 1000);
+
+#pragma warning restore IDE1006
 
         private static readonly Vector2 spacing = new Vector2(22, 23);
 
