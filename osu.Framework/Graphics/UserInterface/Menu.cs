@@ -429,7 +429,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 positionLayout.Validate();
 
-                Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
+                static Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
             }
         }
 
@@ -591,6 +591,7 @@ namespace osu.Framework.Graphics.UserInterface
             return base.OnKeyDown(e);
         }
 
+        protected override bool OnMouseDown(MouseDownEvent e) => true;
         protected override bool OnClick(ClickEvent e) => true;
         protected override bool OnHover(HoverEvent e) => true;
 
