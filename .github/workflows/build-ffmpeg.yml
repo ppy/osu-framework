@@ -2,8 +2,8 @@ name: Build FFmpeg
 on: workflow_dispatch
 
 jobs:
-  build-osx:
-    name: Build OSX
+  build-macos:
+    name: Build macOS
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -18,40 +18,40 @@ jobs:
       - uses: ilammy/setup-nasm@v1
 
       - name: Build
-        run: osu.Framework.NativeLibs/scripts/ffmpeg/osx/fetch_and_build.sh
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/macOS/fetch_and_build.sh
         env:
           arch: ${{ matrix.arch }}
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: osx-${{ matrix.arch }}
+          name: macOS-${{ matrix.arch }}
           path: build-${{ matrix.arch }}
 
-  combine-osx:
-    name: Combine OSX libs
+  combine-macos:
+    name: Combine macOS libs
     runs-on: macos-latest
-    needs: build-osx
+    needs: build-macos
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - uses: actions/download-artifact@v3
         with:
-          name: osx-x86_64
-          path: osx-x86_64
+          name: macOS-x86_64
+          path: macOS-x86_64
       - uses: actions/download-artifact@v3
         with:
-          name: osx-arm64
-          path: osx-arm64
+          name: macOS-arm64
+          path: macOS-arm64
 
       - name: Combine
-        run: osu.Framework.NativeLibs/scripts/ffmpeg/osx/combine_universal.sh
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/macOS/combine_universal.sh
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: osx
+          name: macOS
           path: artifacts
 
   build-win:
@@ -126,7 +126,7 @@ jobs:
     name: Create pull request
     runs-on: ubuntu-latest
     needs:
-      - combine-osx
+      - combine-macos
       - build-win
       - build-win-arm64
       - build-linux
@@ -136,7 +136,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: osx
+          name: macOS
           path: osu.Framework.NativeLibs/runtimes/osx/native
       - uses: actions/download-artifact@v3
         with:
