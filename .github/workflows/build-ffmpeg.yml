@@ -51,8 +51,8 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: macOS
-          path: artifacts
+          name: macOS-universal
+          path: macOS-universal
 
   build-win:
     name: Build Windows
@@ -136,7 +136,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: macOS
+          name: macOS-universal
           path: osu.Framework.NativeLibs/runtimes/osx/native
       - uses: actions/download-artifact@v3
         with:
