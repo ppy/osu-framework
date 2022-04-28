@@ -7,6 +7,11 @@ FFMPEG_FLAGS=(
     --disable-doc
     --disable-static
     --disable-debug
+    --disable-ffplay
+    --disable-ffprobe
+    --disable-avdevice
+    --disable-swresample
+    --disable-librtmp
     --enable-shared
 )
 
