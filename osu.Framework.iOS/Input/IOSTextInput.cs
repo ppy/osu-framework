@@ -8,10 +8,12 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSTextInput : TextInputSource
     {
+        private readonly IOSGameHost host;
         private readonly IOSGameView view;
 
-        public IOSTextInput(IOSGameView view)
+        public IOSTextInput(IOSGameHost host, IOSGameView view)
         {
+            this.host = host;
             this.view = view;
         }
 
@@ -25,6 +27,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
+            host.ToggleTextFieldKeyboardHandler(true);
         }
 
         protected override void EnsureTextInputActivated(bool allowIme)
@@ -40,6 +43,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
+            host.ToggleTextFieldKeyboardHandler(false);
         }
     }
 }

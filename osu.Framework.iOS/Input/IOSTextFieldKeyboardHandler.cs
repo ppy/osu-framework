@@ -11,11 +11,11 @@ using UIKit;
 
 namespace osu.Framework.iOS.Input
 {
-    public class IOSKeyboardHandler : InputHandler
+    public class IOSTextFieldKeyboardHandler : InputHandler
     {
         private readonly IOSGameView view;
 
-        public IOSKeyboardHandler(IOSGameView view)
+        public IOSTextFieldKeyboardHandler(IOSGameView view)
         {
             this.view = view;
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
