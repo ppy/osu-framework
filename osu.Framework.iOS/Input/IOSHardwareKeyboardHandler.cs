@@ -11,7 +11,7 @@ using UIKit;
 
 namespace osu.Framework.iOS.Input
 {
-    public class IOSRawKeyboardHandler : InputHandler
+    public class IOSHardwareKeyboardHandler : InputHandler
     {
         private readonly GameUIApplication application;
         private readonly IOSGameView view;
@@ -20,7 +20,7 @@ namespace osu.Framework.iOS.Input
 
         public override bool IsActive => KeyboardActive;
 
-        public IOSRawKeyboardHandler(IOSGameView view)
+        public IOSHardwareKeyboardHandler(IOSGameView view)
         {
             this.view = view;
 
