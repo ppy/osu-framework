@@ -22,6 +22,11 @@ namespace osu.Framework.Graphics.Containers
     /// <typeparam name="T"></typeparam>
     public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
+        /// <summary>
+        /// Fired whenever a filter operation completes.
+        /// </summary>
+        public event Action FilterCompleted;
+
         private bool allowNonContiguousMatching;
 
         /// <summary>
@@ -75,6 +80,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 performFilter();
                 filterValid.Validate();
+                FilterCompleted?.Invoke();
             }
         }
 

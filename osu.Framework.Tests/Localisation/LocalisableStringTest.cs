@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Localisation;
@@ -13,9 +12,6 @@ namespace osu.Framework.Tests.Localisation
     {
         private string makeStringA => makeString('a');
         private string makeStringB => makeString('b');
-
-        private IFormattable makeFormattableA => new DateTime(1);
-        private IFormattable makeFormattableB => new DateTime(2);
 
         [Test]
         public void TestTranslatableStringEqualsTranslatableString()
@@ -42,11 +38,11 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableFormattableEqualsLocalisableFormattable()
         {
-            var str1 = new LocalisableFormattableString(makeFormattableA, makeStringB);
-            var str2 = new LocalisableFormattableString(makeFormattableB, makeStringA);
+            var str1 = LocalisableString.Format(makeStringA, makeStringB);
+            var str2 = LocalisableString.Format(makeStringB, makeStringA);
 
             testEquals(true, str1, str1);
-            testEquals(true, str1, new LocalisableFormattableString(makeFormattableA, makeStringB));
+            testEquals(true, str1, LocalisableString.Format(makeStringA, makeStringB));
             testEquals(false, str1, str2);
         }
 
@@ -84,10 +80,10 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableStringEqualsLocalisableFormattable()
         {
-            LocalisableString localisable = new LocalisableFormattableString(makeFormattableA, makeStringB);
+            LocalisableString localisable = LocalisableString.Format(makeStringA, makeStringB);
 
-            testEquals(true, localisable, new LocalisableFormattableString(makeFormattableA, makeStringB));
-            testEquals(false, localisable, new LocalisableFormattableString(makeFormattableB, makeStringA));
+            testEquals(true, localisable, LocalisableString.Format(makeStringA, makeStringB));
+            testEquals(false, localisable, LocalisableString.Format(makeStringB, makeStringA));
         }
 
         [Test]

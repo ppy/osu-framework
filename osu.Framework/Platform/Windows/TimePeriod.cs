@@ -82,6 +82,8 @@ namespace osu.Framework.Platform.Windows
 
         #endregion
 
+#pragma warning disable IDE1006 // Naming style
+
         [StructLayout(LayoutKind.Sequential)]
         private readonly struct TimeCaps
         {

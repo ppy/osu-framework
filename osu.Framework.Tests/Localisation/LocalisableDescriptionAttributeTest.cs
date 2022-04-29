@@ -26,9 +26,15 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestClassLocalisableDescription()
+        public void TestClassInstanceLocalisableDescription()
         {
             Assert.That(new ClassA().GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
+        }
+
+        [Test]
+        public void TestClassTypeLocalisableDescription()
+        {
+            Assert.That(typeof(ClassA).GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
         }
 
         [Test]
