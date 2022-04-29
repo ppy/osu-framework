@@ -866,6 +866,7 @@ namespace osu.Framework.IO.Network
             }
 
             public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
             public override int Read(Span<byte> buffer)
             {
                 int read = baseStream.Read(buffer);

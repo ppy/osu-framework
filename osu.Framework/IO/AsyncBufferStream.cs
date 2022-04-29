@@ -173,6 +173,7 @@ namespace osu.Framework.IO
         }
 
         public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
         public override int Read(Span<byte> buffer)
         {
             amountBytesToRead = Math.Min(buffer.Length, data.Length - position);
