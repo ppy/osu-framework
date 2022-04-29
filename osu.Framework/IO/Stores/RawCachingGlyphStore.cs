@@ -4,7 +4,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
@@ -114,10 +113,18 @@ namespace osu.Framework.IO.Stores
                 if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
                     source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
 
+                // consider to use System.IO.RandomAccess in .NET 6
                 source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
-                int readBytes = source.Read(readBuffer.AsSpan(0, characterByteRegion));
+                var buffer = readBuffer.AsSpan(0, characterByteRegion);
 
-                Debug.Assert(readBytes == characterByteRegion);
+                while (!buffer.IsEmpty)
+                {
+                    int bytesRead = source.Read(buffer);
+                    buffer = buffer[bytesRead..];
+
+                    if (bytesRead == 0)
+                        throw new EndOfStreamException();
+                }
 
                 // the spritesheet may have unused pixels trimmed
                 int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
