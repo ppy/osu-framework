@@ -34,9 +34,9 @@ namespace osu.Framework.iOS
 
         private int lastEventFlags;
 
-        private unsafe bool decodeKeyEvent(NSObject eventMem)
+        private unsafe void decodeKeyEvent(NSObject eventMem)
         {
-            if (eventMem == null) return false;
+            if (eventMem == null) return;
 
             var eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
@@ -45,20 +45,11 @@ namespace osu.Framework.iOS
             int eventScanCode = (int)eventPtr[gsevent_keycode];
             int eventLastModifier = lastEventFlags;
 
-            static bool isBlockKey(int keyCode)
-                => keyCode == 79 || // Right
-                   keyCode == 80 || // Left
-                   keyCode == 81 || // Down
-                   keyCode == 82; // Up
-
             switch (eventType)
             {
                 case gsevent_type_keydown:
                 case gsevent_type_keyup:
                     KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
-                    if (isBlockKey(eventScanCode))
-                        return true;
-
                     break;
 
                 case gsevent_type_modifier:
@@ -66,8 +57,6 @@ namespace osu.Framework.iOS
                     lastEventFlags = eventModifier;
                     break;
             }
-
-            return false;
         }
 
         private readonly Selector gsSelector = new Selector("_gsEvent");
@@ -76,10 +65,10 @@ namespace osu.Framework.iOS
         [Export("handleKeyUIEvent:")]
         private void handleKeyUIEvent(UIEvent evt)
         {
-            if (evt.RespondsToSelector(gsSelector) && decodeKeyEvent(evt.PerformSelector(gsSelector)))
-                return;
-
             send_super(SuperHandle, handleSelector.Handle, evt.Handle);
+
+            if (evt.RespondsToSelector(gsSelector))
+                decodeKeyEvent(evt.PerformSelector(gsSelector));
         }
     }
 }

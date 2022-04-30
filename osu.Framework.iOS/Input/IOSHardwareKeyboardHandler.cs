@@ -16,13 +16,19 @@ namespace osu.Framework.iOS.Input
 
         public override bool Initialize(GameHost host)
         {
-            if (!(UIApplication.SharedApplication is GameUIApplication game))
+            if (!(UIApplication.SharedApplication is GameUIApplication game) || !(host is IOSGameHost iosHost))
                 return false;
 
             game.KeyEvent += (keyCode, isDown) =>
             {
-                if (IsActive && keyMap.ContainsKey(keyCode))
-                    PendingInputs.Enqueue(new KeyboardKeyInput(keyMap[keyCode], isDown));
+                if (!IsActive)
+                    return;
+
+                var key = keyMap.GetValueOrDefault(keyCode);
+                if (key == Key.Unknown || iosHost.TextFieldHandler.Handled(key))
+                    return;
+
+                PendingInputs.Enqueue(new KeyboardKeyInput(keyMap[keyCode], isDown));
             };
 
             return true;

@@ -23,6 +23,11 @@ namespace osu.Framework.iOS.Input
             view.KeyboardTextField.HandleKeyCommand += handleKeyCommand;
         }
 
+        /// <summary>
+        /// Whether the specified key has been handled by this handler.
+        /// </summary>
+        public bool Handled(Key key) => PendingInputs.OfType<KeyboardKeyInput>().Any(i => i.Entries.Any(e => e.Button == key));
+
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
             if (!IsActive)
