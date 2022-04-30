@@ -3,6 +3,7 @@
 
 using Foundation;
 using osu.Framework.Input;
+using osu.Framework.Threading;
 
 namespace osu.Framework.iOS.Input
 {
@@ -23,27 +24,36 @@ namespace osu.Framework.iOS.Input
                 TriggerTextInput(text);
         }
 
+        private ScheduledDelegate resignDelegate;
+
         protected override void ActivateTextInput(bool allowIme)
         {
+            resignDelegate?.Cancel();
+            resignDelegate = null;
+
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
-            view.KeyboardTextField.UpdateFirstResponder(true);
+            view.KeyboardTextField.InvokeOnMainThread(() => view.KeyboardTextField.BecomeFirstResponder());
             host.TextFieldHandler.KeyboardActive = true;
         }
 
         protected override void EnsureTextInputActivated(bool allowIme)
         {
-            // If the user has manually closed the keyboard, it will not be shown until another TextBox is focused.
-            // Calling `view.KeyboardTextField.UpdateFirstResponder` over and over again won't work, due to how
-            // `responderSemaphore` currently works in that method.
+            resignDelegate?.Cancel();
+            resignDelegate = null;
 
-            // TODO: add iOS implementation
+            view.KeyboardTextField.InvokeOnMainThread(() => view.KeyboardTextField.BecomeFirstResponder());
+            host.TextFieldHandler.KeyboardActive = true;
         }
 
         protected override void DeactivateTextInput()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
-            view.KeyboardTextField.UpdateFirstResponder(false);
             host.TextFieldHandler.KeyboardActive = false;
+
+            // text input may be deactivated and activated at the same frame, as a result of switching between textboxes.
+            // this could cause the software keyboard to flicker, scheduling the operation to the next frame will help.
+            // todo: that should probably be improved framework-side instead, but this should do for now.
+            resignDelegate = host.InputThread.Scheduler.Add(() => view.KeyboardTextField.ResignFirstResponder());
         }
     }
 }

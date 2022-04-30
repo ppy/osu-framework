@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 using CoreAnimation;
 using Foundation;
 using ObjCRuntime;
@@ -144,8 +143,6 @@ namespace osu.Framework.iOS
             /// </summary>
             public const int CURSOR_POSITION = 3;
 
-            private int responderSemaphore;
-
             /// <summary>
             /// The list of actions which can't be supported with this text field.
             /// </summary>
@@ -196,24 +193,6 @@ namespace osu.Framework.iOS
                 Text = placeholder_text;
                 var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
                 SelectedTextRange = GetTextRange(newPosition, newPosition);
-            }
-
-            public void UpdateFirstResponder(bool become)
-            {
-                if (become)
-                {
-                    responderSemaphore = Math.Max(responderSemaphore + 1, 1);
-                    InvokeOnMainThread(() => BecomeFirstResponder());
-                }
-                else
-                {
-                    responderSemaphore = Math.Max(responderSemaphore - 1, 0);
-                    Task.Delay(200).ContinueWith(task =>
-                    {
-                        if (responderSemaphore <= 0)
-                            InvokeOnMainThread(() => ResignFirstResponder());
-                    });
-                }
             }
         }
     }
