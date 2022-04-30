@@ -16,6 +16,7 @@ using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
+using osu.Framework.Platform.MacOS;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -104,37 +105,6 @@ namespace osu.Framework.iOS
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new IOSVideoDecoder(stream);
 
-        public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
-        {
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.X), PlatformAction.Cut),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.C), PlatformAction.Copy),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.V), PlatformAction.Paste),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.A), PlatformAction.SelectAll),
-            new KeyBinding(InputKey.Left, PlatformAction.MoveBackwardChar),
-            new KeyBinding(InputKey.Right, PlatformAction.MoveForwardChar),
-            new KeyBinding(InputKey.BackSpace, PlatformAction.DeleteBackwardChar),
-            new KeyBinding(InputKey.Delete, PlatformAction.DeleteForwardChar),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardChar),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardChar),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), PlatformAction.DeleteBackwardChar),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Delete), PlatformAction.DeleteForwardChar),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Left), PlatformAction.MoveBackwardWord),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Right), PlatformAction.MoveForwardWord),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.BackSpace), PlatformAction.DeleteBackwardWord),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Delete), PlatformAction.DeleteForwardWord),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardWord),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardWord),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Left), PlatformAction.MoveBackwardLine),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Right), PlatformAction.MoveForwardLine),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.BackSpace), PlatformAction.DeleteBackwardLine),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Delete), PlatformAction.DeleteForwardLine),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardLine),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardLine),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), PlatformAction.DocumentPrevious),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), PlatformAction.DocumentNext),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), PlatformAction.DocumentNext),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), PlatformAction.DocumentPrevious),
-            new KeyBinding(new KeyCombination(InputKey.Delete), PlatformAction.Delete),
-        };
+        public override IEnumerable<KeyBinding> PlatformKeyBindings => MacOSGameHost.KeyBindings;
     }
 }
