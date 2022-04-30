@@ -64,7 +64,7 @@ namespace osu.Framework.iOS
             {
                 new IOSTouchHandler(gameView),
                 TextFieldHandler = new IOSTextFieldKeyboardHandler(gameView),
-                new IOSHardwareKeyboardHandler(),
+                new IOSHardwareKeyboardHandler(gameView),
                 new IOSMouseHandler(gameView),
                 new MidiHandler()
             };

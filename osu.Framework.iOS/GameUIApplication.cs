@@ -21,12 +21,9 @@ namespace osu.Framework.iOS
         private const int gsevent_type_keyup = 11;
         private const int gsevent_type_modifier = 12;
 
-        public delegate void KeyHandler(int keyCode, bool isDown);
+        public delegate void GsKeyEventHandler(int keyCode, bool isDown);
 
-        /// <summary>
-        /// Occurs when key event.
-        /// </summary>
-        public event KeyHandler KeyEvent;
+        public event GsKeyEventHandler HandleGsKeyEvent;
 
         // https://github.com/xamarin/xamarin-macios/blob/master/src/ObjCRuntime/Messaging.iOS.cs
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSendSuper")]
@@ -49,11 +46,11 @@ namespace osu.Framework.iOS
             {
                 case gsevent_type_keydown:
                 case gsevent_type_keyup:
-                    KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
+                    HandleGsKeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
                     break;
 
                 case gsevent_type_modifier:
-                    KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
+                    HandleGsKeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
                     lastEventFlags = eventModifier;
                     break;
             }
@@ -67,7 +64,8 @@ namespace osu.Framework.iOS
         {
             send_super(SuperHandle, handleSelector.Handle, evt.Handle);
 
-            if (evt.RespondsToSelector(gsSelector))
+            // On later iOS versions, hardware keyboard events are handled from UIPressesEvents instead.
+            if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && evt.RespondsToSelector(gsSelector))
                 decodeKeyEvent(evt.PerformSelector(gsSelector));
         }
     }

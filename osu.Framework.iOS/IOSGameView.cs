@@ -20,6 +20,7 @@ namespace osu.Framework.iOS
     [Register("iOSGameView")]
     public class IOSGameView : iOSGameView
     {
+        public event Action<NSSet<UIPress>, UIPressesEvent> HandlePresses;
         public event Action<NSSet, UIEvent> HandleTouches;
 
         public HiddenTextField KeyboardTextField { get; }
@@ -64,6 +65,33 @@ namespace osu.Framework.iOS
                 safeArea = value;
                 OnResize(EventArgs.Empty);
             }
+        }
+
+        public override void PressesBegan(NSSet<UIPress> presses, UIPressesEvent evt)
+        {
+            base.PressesBegan(presses, evt);
+
+            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
+                HandlePresses?.Invoke(presses, evt);
+        }
+
+        public override void PressesCancelled(NSSet<UIPress> presses, UIPressesEvent evt)
+        {
+            base.PressesCancelled(presses, evt);
+
+            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
+                HandlePresses?.Invoke(presses, evt);
+        }
+
+        public override void PressesEnded(NSSet<UIPress> presses, UIPressesEvent evt)
+        {
+            base.PressesEnded(presses, evt);
+
+            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
+                HandlePresses?.Invoke(presses, evt);
         }
 
         public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
