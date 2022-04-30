@@ -16,10 +16,10 @@ namespace osu.Framework.iOS.Input
 
         public override bool Initialize(GameHost host)
         {
-            if (!(UIApplication.SharedApplication is GameUIApplication game) || !(host is IOSGameHost iosHost))
-                return false;
+            var iosApp = (GameUIApplication)UIApplication.SharedApplication;
+            var iosHost = (IOSGameHost)host;
 
-            game.KeyEvent += (keyCode, isDown) =>
+            iosApp.KeyEvent += (keyCode, isDown) =>
             {
                 if (!IsActive)
                     return;
