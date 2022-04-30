@@ -15,10 +15,9 @@ namespace osu.Framework.iOS.Input
     {
         private readonly GameUIApplication application;
         private readonly IOSGameView view;
+        private IOSGameHost host;
 
-        internal bool KeyboardActive = true;
-
-        public override bool IsActive => KeyboardActive;
+        public override bool IsActive => true;
 
         public IOSHardwareKeyboardHandler(IOSGameView view)
         {
@@ -29,6 +28,8 @@ namespace osu.Framework.iOS.Input
 
         public override bool Initialize(GameHost host)
         {
+            this.host = (IOSGameHost)host;
+
             view.HandlePresses += handlePresses;
             application.HandleGsKeyEvent += handleGsKeyEvent;
             return true;
@@ -37,12 +38,10 @@ namespace osu.Framework.iOS.Input
         /// <summary>
         /// Handles <see cref="UIPressesEvent"/>s and enqueues corresponding <see cref="KeyboardKeyInput"/>s.
         /// </summary>
-        private bool handlePresses(NSSet<UIPress> presses, UIPressesEvent evt)
+        private void handlePresses(NSSet<UIPress> presses, UIPressesEvent evt)
         {
             if (!IsActive)
-                return false;
-
-            bool hasArrowKeys = false;
+                return;
 
             foreach (var press in presses.Cast<UIPress>())
             {
@@ -50,7 +49,7 @@ namespace osu.Framework.iOS.Input
                     continue;
 
                 var key = keyFromCode(press.Key.KeyCode);
-                if (key == Key.Unknown)
+                if (key == Key.Unknown || host.TextFieldHandler.Handled(key))
                     continue;
 
                 switch (press.Phase)
@@ -64,14 +63,7 @@ namespace osu.Framework.iOS.Input
                         PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
                         break;
                 }
-
-                hasArrowKeys |= press.Type == UIPressType.UpArrow ||
-                                press.Type == UIPressType.DownArrow ||
-                                press.Type == UIPressType.LeftArrow ||
-                                press.Type == UIPressType.RightArrow;
             }
-
-            return hasArrowKeys;
         }
 
         /// <summary>
@@ -87,7 +79,7 @@ namespace osu.Framework.iOS.Input
                 return;
 
             var key = keyFromCode((UIKeyboardHidUsage)keyCode);
-            if (key == Key.Unknown)
+            if (key == Key.Unknown || host.TextFieldHandler.Handled(key))
                 return;
 
             PendingInputs.Enqueue(new KeyboardKeyInput(key, isDown));
@@ -398,15 +390,15 @@ namespace osu.Framework.iOS.Input
 
                 case UIKeyboardHidUsage.KeyboardF13:
                     return Key.PrintScreen;
-                    // return Key.F13;
+                // return Key.F13;
 
                 case UIKeyboardHidUsage.KeyboardF14:
                     return Key.ScrollLock;
-                    // return Key.F14;
+                // return Key.F14;
 
                 case UIKeyboardHidUsage.KeyboardF15:
                     return Key.Pause;
-                    // return Key.F15;
+                // return Key.F15;
 
                 case UIKeyboardHidUsage.KeyboardF16:
                     return Key.F16;

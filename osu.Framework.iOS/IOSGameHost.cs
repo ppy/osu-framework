@@ -24,23 +24,11 @@ namespace osu.Framework.iOS
     {
         private readonly IOSGameView gameView;
 
-        private IOSTextFieldKeyboardHandler textFieldKeyboardHandler;
-        private IOSHardwareKeyboardHandler hardwareKeyboardHandler;
+        public IOSTextFieldKeyboardHandler TextFieldHandler { get; private set; }
 
         public IOSGameHost(IOSGameView gameView)
         {
             this.gameView = gameView;
-        }
-
-        /// <summary>
-        /// Toggles the active state of the keyboard handlers.
-        /// When toggled on, the <see cref="IOSTextFieldKeyboardHandler"/> will be active to handle input from the <see cref="IOSGameView.HiddenTextField"/>.
-        /// When toggled off, the <see cref="IOSHardwareKeyboardHandler"/> will be active to handle input from hardware keyboard directly.
-        /// </summary>
-        public void ToggleTextFieldKeyboardHandler(bool active)
-        {
-            textFieldKeyboardHandler.KeyboardActive = active;
-            hardwareKeyboardHandler.KeyboardActive = !active;
         }
 
         protected override void SetupForRun()
@@ -74,8 +62,8 @@ namespace osu.Framework.iOS
             new InputHandler[]
             {
                 new IOSTouchHandler(gameView),
-                textFieldKeyboardHandler = new IOSTextFieldKeyboardHandler(gameView),
-                hardwareKeyboardHandler = new IOSHardwareKeyboardHandler(gameView),
+                TextFieldHandler = new IOSTextFieldKeyboardHandler(gameView),
+                new IOSHardwareKeyboardHandler(gameView),
                 new IOSMouseHandler(gameView),
                 new MidiHandler()
             };
