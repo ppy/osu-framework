@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using Foundation;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK.Input;
-using UIKit;
 
 namespace osu.Framework.iOS.Input
 {
@@ -20,8 +20,12 @@ namespace osu.Framework.iOS.Input
             this.view = view;
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.HandleShouldReturn += handleShouldReturn;
-            view.KeyboardTextField.HandleKeyCommand += handleKeyCommand;
         }
+
+        /// <summary>
+        /// Whether the specified key has been handled by this handler.
+        /// </summary>
+        public bool Handled(Key key) => PendingInputs.OfType<KeyboardKeyInput>().Any(i => i.Entries.Any(e => e.Button == key));
 
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
@@ -72,47 +76,6 @@ namespace osu.Framework.iOS.Input
 
             PendingInputs.Enqueue(new KeyboardKeyInput(Key.Enter, true));
             PendingInputs.Enqueue(new KeyboardKeyInput(Key.Enter, false));
-        }
-
-        private void handleKeyCommand(UIKeyCommand cmd)
-        {
-            if (!IsActive)
-                return;
-
-            Key? key;
-            bool upper = false;
-
-            // UIKeyCommand constants are not actually constants, so we can't use a switch
-            if (cmd.Input == UIKeyCommand.LeftArrow)
-                key = Key.Left;
-            else if (cmd.Input == UIKeyCommand.RightArrow)
-                key = Key.Right;
-            else if (cmd.Input == UIKeyCommand.UpArrow)
-                key = Key.Up;
-            else if (cmd.Input == UIKeyCommand.DownArrow)
-                key = Key.Down;
-            else
-                key = keyForString(cmd.Input, out upper);
-
-            if (!key.HasValue) return;
-
-            bool shiftHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Shift) > 0 || upper;
-            bool superHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Command) > 0;
-            bool ctrlHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Control) > 0;
-            bool optionHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Alternate) > 0;
-
-            if (shiftHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, true));
-            if (superHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LWin, true));
-            if (ctrlHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LControl, true));
-            if (optionHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LAlt, true));
-
-            PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, true));
-            PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, false));
-
-            if (optionHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LAlt, false));
-            if (ctrlHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LControl, false));
-            if (superHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LWin, false));
-            if (shiftHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, false));
         }
 
         private Key? keyForString(string str, out bool upper)
@@ -255,7 +218,6 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.HandleShouldReturn -= handleShouldReturn;
-            view.KeyboardTextField.HandleKeyCommand -= handleKeyCommand;
             base.Dispose(disposing);
         }
 

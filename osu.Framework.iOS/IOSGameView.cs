@@ -105,7 +105,6 @@ namespace osu.Framework.iOS
         {
             public event Action<NSRange, string> HandleShouldChangeCharacters;
             public event Action HandleShouldReturn;
-            public event Action<UIKeyCommand> HandleKeyCommand;
 
             /// <summary>
             /// Placeholder text that the <see cref="HiddenTextField"/> will be populated with after every keystroke.
@@ -119,19 +118,16 @@ namespace osu.Framework.iOS
 
             private int responderSemaphore;
 
-            private readonly IEnumerable<Selector> softwareBlockedActions = new[]
+            /// <summary>
+            /// The list of actions which can't be supported with this text field.
+            /// </summary>
+            /// <remarks>
+            /// Paste is supported since it doesn't rely on the text entered in this field, only raising an <see cref="UITextField.ShouldChangeCharacters"/> event containing the pasted text.
+            /// </remarks>
+            private readonly IEnumerable<Selector> blockedActions = new[]
             {
                 new Selector("cut:"),
                 new Selector("copy:"),
-                new Selector("select:"),
-                new Selector("selectAll:"),
-            };
-
-            private readonly IEnumerable<Selector> rawBlockedActions = new[]
-            {
-                new Selector("cut:"),
-                new Selector("copy:"),
-                new Selector("paste:"),
                 new Selector("select:"),
                 new Selector("selectAll:"),
             };
@@ -139,18 +135,6 @@ namespace osu.Framework.iOS
             public override UITextSmartDashesType SmartDashesType => UITextSmartDashesType.No;
             public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
             public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
-
-            private bool softwareKeyboard = true;
-
-            internal bool SoftwareKeyboard
-            {
-                get => softwareKeyboard;
-                set
-                {
-                    softwareKeyboard = value;
-                    resetText();
-                }
-            }
 
             public HiddenTextField()
             {
@@ -176,39 +160,14 @@ namespace osu.Framework.iOS
                 };
             }
 
-            public override UIKeyCommand[] KeyCommands => new[]
-            {
-                UIKeyCommand.Create(UIKeyCommand.LeftArrow, 0, new Selector("keyPressed:")),
-                UIKeyCommand.Create(UIKeyCommand.RightArrow, 0, new Selector("keyPressed:")),
-                UIKeyCommand.Create(UIKeyCommand.UpArrow, 0, new Selector("keyPressed:")),
-                UIKeyCommand.Create(UIKeyCommand.DownArrow, 0, new Selector("keyPressed:"))
-            };
-
-            public override bool CanPerform(Selector action, NSObject withSender)
-            {
-                if ((!softwareKeyboard && rawBlockedActions.Contains(action)) || (softwareKeyboard && softwareBlockedActions.Contains(action)))
-                    return false;
-
-                return base.CanPerform(action, withSender);
-            }
-
-            [Export("keyPressed:")]
-            private void keyPressed(UIKeyCommand cmd) => HandleKeyCommand?.Invoke(cmd);
+            public override bool CanPerform(Selector action, NSObject withSender) => !blockedActions.Contains(action) && base.CanPerform(action, withSender);
 
             private void resetText()
             {
-                if (SoftwareKeyboard)
-                {
-                    // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
-                    Text = placeholder_text;
-                    var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
-                    SelectedTextRange = GetTextRange(newPosition, newPosition);
-                }
-                else
-                {
-                    Text = "";
-                    SelectedTextRange = GetTextRange(BeginningOfDocument, BeginningOfDocument);
-                }
+                // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
+                Text = placeholder_text;
+                var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
+                SelectedTextRange = GetTextRange(newPosition, newPosition);
             }
 
             public void UpdateFirstResponder(bool become)
