@@ -12,8 +12,7 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSHardwareKeyboardHandler : InputHandler
     {
-        internal bool KeyboardActive = true;
-        public override bool IsActive => KeyboardActive;
+        public override bool IsActive => true;
 
         public override bool Initialize(GameHost host)
         {

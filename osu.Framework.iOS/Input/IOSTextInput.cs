@@ -27,7 +27,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
-            host.ToggleTextFieldKeyboardHandler(true);
+            host.TextFieldHandler.KeyboardActive = true;
         }
 
         protected override void EnsureTextInputActivated(bool allowIme)
@@ -43,7 +43,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
-            host.ToggleTextFieldKeyboardHandler(false);
+            host.TextFieldHandler.KeyboardActive = false;
         }
     }
 }
