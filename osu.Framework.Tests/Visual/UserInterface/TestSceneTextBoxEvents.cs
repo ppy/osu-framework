@@ -498,7 +498,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public ManualTextInputContainer()
             {
                 RelativeSizeAxes = Axes.Both;
-                TextInput = new ManualTextInput();
+                Child = TextInput = new ManualTextInput();
             }
         }
 

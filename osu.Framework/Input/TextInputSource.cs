@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Input
@@ -11,7 +12,7 @@ namespace osu.Framework.Input
     /// A source from which we can retrieve user text input.
     /// Generally hides a native implementation from the game framework.
     /// </summary>
-    public class TextInputSource
+    public class TextInputSource : Component
     {
         /// <summary>
         /// Whether IME is actively providing text composition through <see cref="OnImeComposition"/> and accepting input from the user.
