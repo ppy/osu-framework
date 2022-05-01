@@ -795,7 +795,7 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NET6_0
+#if NET6_0_OR_GREATER
             AGffmpeg.GetOrLoadLibrary = name =>
             {
                 int version = AGffmpeg.LibraryVersionMap[name];
