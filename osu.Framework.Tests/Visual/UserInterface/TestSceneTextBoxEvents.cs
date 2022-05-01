@@ -125,6 +125,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text committed event raised", () =>
                 // Ensure dequeued text commit event has textChanged = false.
                 textBox.CommittedTextQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
+
+            AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
         }
 
         [Test]
@@ -278,6 +280,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("press escape again to kill focus", () => InputManager.Key(Key.Escape));
             AddAssert("text box not focused", () => textBox.HasFocus == false);
             AddAssert("text committed event raised", () => textBox.CommittedTextQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+            AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
         }
 
         [Test]
@@ -359,6 +362,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("set read only", () => textBox.ReadOnly = true);
 
             AddAssert("text committed event raised", () => textBox.CommittedTextQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+            AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
             assertCompositionNotActive();
 
             AddStep("trigger composition", () => textInput.TriggerImeComposition(composition_text, composition_text.Length, 0));
