@@ -20,7 +20,15 @@ namespace osu.Framework.Input
         public bool ImeActive { get; private set; }
 
         /// <summary>
-        /// Counts how many times consumers have activated this <see cref="TextInputSource"/>.
+        /// Whether the native implementation has been activated with <see cref="ActivateTextInput"/>.
+        /// </summary>
+        /// <remarks>
+        /// If this is <c>true</c>, <see cref="EnsureActivated"/> should be called instead of <see cref="ActivateTextInput"/>.
+        /// </remarks>
+        private bool nativeTextInputActive;
+
+        /// <summary>
+        /// Counts how many consumers have activated this <see cref="TextInputSource"/>.
         /// </summary>
         private int activationCounter;
 
@@ -34,11 +42,16 @@ namespace osu.Framework.Input
         /// </remarks>
         public void Activate(bool allowIme)
         {
-            if (Interlocked.Increment(ref activationCounter) == 1)
+            if (Interlocked.Increment(ref activationCounter) == 1 && !nativeTextInputActive)
+            {
+                nativeTextInputActive = true;
                 ActivateTextInput(allowIme);
+            }
             else
+            {
                 // the latest consumer that activated should always take precedence in (dis)allowing IME.
                 EnsureActivated(allowIme);
+            }
         }
 
         /// <summary>
@@ -62,7 +75,17 @@ namespace osu.Framework.Input
         public void Deactivate()
         {
             if (Interlocked.Decrement(ref activationCounter) == 0)
-                DeactivateTextInput();
+            {
+                // scheduled so that changing focus between two TextBoxes doesn't deactivate and activate.
+                Scheduler.AddOnce(() =>
+                {
+                    if (activationCounter == 0)
+                    {
+                        nativeTextInputActive = false;
+                        DeactivateTextInput();
+                    }
+                });
+            }
         }
 
         /// <summary>
