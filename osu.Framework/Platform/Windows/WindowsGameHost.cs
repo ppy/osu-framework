@@ -27,7 +27,7 @@ namespace osu.Framework.Platform.Windows
             // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
 
-#if NET6_0
+#if NET6_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
