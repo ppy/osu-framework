@@ -11,7 +11,7 @@ namespace osu.Framework.Audio.Callbacks
     /// <summary>
     /// Implementation of <see cref="IFileProcedures"/> that supports reading from a <see cref="Stream"/>.
     /// </summary>
-    public class DataStreamFileProcedures : IFileProcedures
+    internal class DataStreamFileProcedures : IFileProcedures
     {
         private readonly Stream dataStream;
 
