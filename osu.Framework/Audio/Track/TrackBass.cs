@@ -144,7 +144,7 @@ namespace osu.Framework.Audio.Track
 
                 default:
                     // It would be most likely a FileStream.
-                    // Is it benenitial to buffer over OS and .NET file buffering?
+                    // Consider to use RandomAccess to optimise in favor of FileStream in .NET 6
                     dataStream = new AsyncBufferStream(data, quick ? 8 : -1);
                     break;
             }
