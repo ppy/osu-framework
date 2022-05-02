@@ -65,17 +65,7 @@ namespace osu.Framework.Extensions
         public static byte[] ReadBytesToArray(this Stream stream, int length)
         {
             byte[] bytes = new byte[length];
-            Span<byte> remaining = bytes;
-
-            while (!remaining.IsEmpty)
-            {
-                int bytesRead = stream.Read(remaining);
-                remaining = remaining[bytesRead..];
-
-                if (bytesRead == 0)
-                    throw new EndOfStreamException();
-            }
-
+            stream.ReadToFill(bytes);
             return bytes;
         }
 
@@ -90,17 +80,7 @@ namespace osu.Framework.Extensions
         public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken = default)
         {
             byte[] bytes = new byte[length];
-            Memory<byte> remaining = bytes;
-
-            while (!remaining.IsEmpty)
-            {
-                int bytesRead = await stream.ReadAsync(remaining, cancellationToken).ConfigureAwait(false);
-                remaining = remaining[bytesRead..];
-
-                if (bytesRead == 0)
-                    throw new EndOfStreamException();
-            }
-
+            await stream.ReadToFillAsync(bytes, cancellationToken).ConfigureAwait(false);
             return bytes;
         }
 
@@ -130,6 +110,34 @@ namespace osu.Framework.Extensions
             {
                 await stream.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
                 return ms.ToArray();
+            }
+        }
+
+        internal static void ReadToFill(this Stream stream, Span<byte> buffer)
+        {
+            Span<byte> remainingBuffer = buffer;
+
+            while (!remainingBuffer.IsEmpty)
+            {
+                int bytesRead = stream.Read(remainingBuffer);
+                remainingBuffer = remainingBuffer[bytesRead..];
+
+                if (bytesRead == 0)
+                    throw new EndOfStreamException();
+            }
+        }
+
+        internal static async Task ReadToFillAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            Memory<byte> remainingBuffer = buffer;
+
+            while (!remainingBuffer.IsEmpty)
+            {
+                int bytesRead = await stream.ReadAsync(remainingBuffer, cancellationToken).ConfigureAwait(false);
+                remainingBuffer = remainingBuffer[bytesRead..];
+
+                if (bytesRead == 0)
+                    throw new EndOfStreamException();
             }
         }
     }

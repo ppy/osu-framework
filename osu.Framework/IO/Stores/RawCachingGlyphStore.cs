@@ -115,16 +115,7 @@ namespace osu.Framework.IO.Stores
 
                 // consider to use System.IO.RandomAccess in .NET 6
                 source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
-                var buffer = readBuffer.AsSpan(0, characterByteRegion);
-
-                while (!buffer.IsEmpty)
-                {
-                    int bytesRead = source.Read(buffer);
-                    buffer = buffer[bytesRead..];
-
-                    if (bytesRead == 0)
-                        throw new EndOfStreamException();
-                }
+                source.ReadToFill(readBuffer.AsSpan(0, characterByteRegion));
 
                 // the spritesheet may have unused pixels trimmed
                 int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
