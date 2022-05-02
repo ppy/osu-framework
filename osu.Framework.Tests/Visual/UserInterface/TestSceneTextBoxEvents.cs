@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
@@ -385,13 +386,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text matches expected", () => textBox.Text == composition_text);
         }
 
-        [Test]
-        public void TestChangingFocusDoesNotReactivate()
+        /// <summary>
+        /// Tests that changing focus directly between two <see cref="TextBox"/>es doesn't deactivate and reactivate text input,
+        /// as that creates bad UX with mobile virtual keyboards.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestChangingFocusDoesNotReactivate(bool allowIme)
         {
             EventQueuesTextBox secondTextBox = null;
 
             AddStep("add second textbox", () => textInputContainer.Add(secondTextBox = new EventQueuesTextBox
             {
+                ImeAllowed = allowIme,
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
                 CommitOnFocusLost = true,
@@ -408,6 +415,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
+            AddAssert($"text input ensure activated {(allowIme ? "with" : "without")} IME", () => textInput.EnsureActivatedQueue.Dequeue() == allowIme && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("commit text", () => InputManager.Key(Key.Enter));
             AddAssert("text input deactivated", () => textInput.DeactivationQueue.Dequeue());
@@ -424,7 +432,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                         textBox.ImeCompositionQueue.Count == 0 &&
                                                         textBox.ImeResultQueue.Count == 0 &&
                                                         textInput.ActivationQueue.Count == 0 &&
-                                                        textInput.DeactivationQueue.Count == 0);
+                                                        textInput.DeactivationQueue.Count == 0 &&
+                                                        textInput.EnsureActivatedQueue.Count == 0);
         }
 
         private void assertCompositionNotActive()
@@ -461,6 +470,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
         {
+            public bool ImeAllowed { get; set; } = true;
+
+            protected override bool AllowIme => ImeAllowed;
+
             public readonly Queue<bool> InputErrorQueue = new Queue<bool>();
             public readonly Queue<string> UserConsumedTextQueue = new Queue<string>();
             public readonly Queue<string> UserRemovedTextQueue = new Queue<string>();
@@ -529,12 +542,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             public readonly Queue<bool> ActivationQueue = new Queue<bool>();
+            public readonly Queue<bool> EnsureActivatedQueue = new Queue<bool>();
             public readonly Queue<bool> DeactivationQueue = new Queue<bool>();
 
             protected override void ActivateTextInput(bool allowIme)
             {
                 base.ActivateTextInput(allowIme);
-                ActivationQueue.Enqueue(true);
+                ActivationQueue.Enqueue(allowIme);
+            }
+
+            protected override void EnsureTextInputActivated(bool allowIme)
+            {
+                base.EnsureTextInputActivated(allowIme);
+                EnsureActivatedQueue.Enqueue(allowIme);
             }
 
             protected override void DeactivateTextInput()
