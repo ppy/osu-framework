@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 
@@ -62,7 +63,12 @@ namespace osu.Framework.Tests.Platform
 
         private class ManualExitHeadlessGameHost : TestRunHeadlessGameHost
         {
-            public bool RequestExit() => OnExitRequested();
+            public bool RequestExit()
+            {
+                var exitRequestTask = new TaskCompletionSource<bool>();
+                InputThread.Scheduler.Add(() => exitRequestTask.SetResult(OnExitRequested()));
+                return exitRequestTask.Task.GetResultSafely();
+            }
         }
 
         private class TestTestGame : TestGame
