@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Platform
             gameCreated.Wait(timeout);
             Assert.IsTrue(game.BecameAlive.Wait(timeout));
 
-            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running));
+            Assert.That(host.ExecutionState, Is.EqualTo(ExecutionState.Running));
 
             // block game from exiting.
             game.BlockExit.Value = true;
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Platform
 
             // exit should be blocked.
             Assert.That(task.IsCompleted, Is.False);
-            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running));
+            Assert.That(host.ExecutionState, Is.EqualTo(ExecutionState.Running));
 
             // unblock game from exiting.
             game.BlockExit.Value = false;
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Platform
 
             // finally, the game should exit.
             task.Wait(timeout);
-            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Stopped));
+            Assert.That(host.ExecutionState, Is.EqualTo(ExecutionState.Stopped));
         }
 
         private class ManualExitHeadlessGameHost : TestRunHeadlessGameHost
