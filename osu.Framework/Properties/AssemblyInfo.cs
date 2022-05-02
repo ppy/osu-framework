@@ -20,6 +20,6 @@ using osu.Framework.Testing;
 [assembly: InternalsVisibleTo("osu.Framework.Tests.iOS")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Android")]
 
-#if NET6_0
+#if NET6_0_OR_GREATER
 [assembly: MetadataUpdateHandler(typeof(HotReloadCallbackReceiver))]
 #endif
