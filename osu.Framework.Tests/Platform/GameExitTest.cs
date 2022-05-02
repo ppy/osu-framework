@@ -35,6 +35,8 @@ namespace osu.Framework.Tests.Platform
             gameCreated.Wait(timeout);
             Assert.IsTrue(game.BecameAlive.Wait(timeout));
 
+            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running));
+
             // block game from exiting.
             game.BlockExit.Value = true;
             // `RequestExit()` should return true.
@@ -43,8 +45,8 @@ namespace osu.Framework.Tests.Platform
             Assert.That(game.LastExitResult, Is.True);
 
             // exit should be blocked.
-            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running));
             Assert.That(task.IsCompleted, Is.False);
+            Assert.That(() => host.ExecutionState, Is.EqualTo(ExecutionState.Running));
 
             // unblock game from exiting.
             game.BlockExit.Value = false;
