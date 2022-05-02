@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// Creates a <see cref="MarkdownTextFlowContainer"/> to display text within this <see cref="IMarkdownTextFlowComponent"/>.
         /// </summary>
         /// <remarks>
-        /// The <see cref="MarkdownTextFlowContainer"/> defined by the <see cref="MarkdownContainer"/> is used by default,
+        /// The <see cref="MarkdownTextFlowContainer"/> defined by the <see cref="IMarkdownTextFlowComponent"/> resolved from dependencies is used by default,
         /// but may be overridden via this method to provide additional styling local to this <see cref="IMarkdownTextFlowComponent"/>.
         /// </remarks>
         /// <returns>The <see cref="MarkdownTextFlowContainer"/>.</returns>
