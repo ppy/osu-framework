@@ -190,7 +190,7 @@ namespace osu.Framework.Extensions
             if (value is Enum)
                 type = value.GetType().GetField(value.ToString());
             else
-                type = value.GetType();
+                type = value as Type ?? value.GetType();
 
             var attribute = type.GetCustomAttribute<LocalisableDescriptionAttribute>();
             if (attribute == null)
@@ -223,10 +223,10 @@ namespace osu.Framework.Extensions
         /// </list>
         /// </summary>
         public static string GetDescription(this object value)
-            => value.GetType()
-                    .GetField(value.ToString())?
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description
-               ?? value.ToString();
+        {
+            Type type = value as Type ?? value.GetType();
+            return type.GetField(value.ToString())?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+        }
 
         private static string toLowercaseHex(this byte[] bytes)
         {
@@ -346,6 +346,6 @@ namespace osu.Framework.Extensions
         /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
         /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
         internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0, 0);
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0);
     }
 }
