@@ -5,7 +5,6 @@
 
 using System;
 using System.Globalization;
-using Humanizer;
 
 namespace osu.Framework.Localisation
 {
@@ -38,25 +37,36 @@ namespace osu.Framework.Localisation
         public string GetLocalised(LocalisationParameters parameters)
         {
             string stringData = getStringData(parameters);
-            var cultureInfo = parameters.Store?.EffectiveCulture ?? CultureInfo.InvariantCulture;
+            var cultureText = parameters.Store?.EffectiveCulture.TextInfo ?? CultureInfo.InvariantCulture.TextInfo;
 
             switch (Casing)
             {
                 case Casing.UpperCase:
-                    return stringData.Transform(cultureInfo, To.UpperCase);
+                    return cultureText.ToUpper(stringData);
 
                 case Casing.TitleCase:
-                    return stringData.Transform(cultureInfo, To.TitleCase);
+                    return cultureText.ToTitleCase(stringData);
 
                 case Casing.LowerCase:
-                    return stringData.Transform(cultureInfo, To.LowerCase);
+                    return cultureText.ToLower(stringData);
 
                 case Casing.SentenceCase:
-                    return stringData.Transform(cultureInfo, To.SentenceCase);
+                    return toSentenceCase(stringData, cultureText);
 
                 case Casing.Default:
                 default:
                     return stringData;
+            }
+
+            // taken from https://github.com/Humanizr/Humanizer/blob/606e958cb83afc9be5b36716ac40d4daa9fa73a7/src/Humanizer/Transformer/ToSentenceCase.cs#L12-L22
+            string toSentenceCase(string input, TextInfo textInfo)
+            {
+                if (input.Length >= 1)
+                {
+                    return textInfo.ToUpper(input[0]) + input.Substring(1);
+                }
+
+                return textInfo.ToUpper(input);
             }
         }
 

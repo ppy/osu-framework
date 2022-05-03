@@ -21,7 +21,6 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Humanizer" Version="2.14.1" />
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
