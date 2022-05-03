@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             [BackgroundDependencyLoader]
             private void load(TextureStore textures, FontStore fonts)
             {
-                var noto = ((IHasGlyphStores)fonts).GetFont("Noto-Basic");
+                var noto = ((IFontStore)fonts).GetFont("Noto-Basic");
 
                 Debug.Assert(noto.Metrics != null && noto.Baseline != null);
 

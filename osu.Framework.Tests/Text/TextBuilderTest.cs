@@ -651,7 +651,7 @@ namespace osu.Framework.Tests.Text
                 => new FontUsage(tfu.family, font_size, tfu.weight, tfu.italics, tfu.fixedWidth, tfu.css);
         }
 
-        private class TestStore : ITexturedGlyphLookupStore, IHasGlyphStores
+        private class TestStore : IFontStore
         {
             [CanBeNull]
             private readonly TestGlyphStore[] stores;

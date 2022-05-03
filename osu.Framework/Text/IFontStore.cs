@@ -5,7 +5,7 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Text
 {
-    internal interface IHasGlyphStores
+    internal interface IFontStore : ITexturedGlyphLookupStore
     {
         /// <summary>
         /// Searches for a <see cref="IGlyphStore"/> with the specified name.

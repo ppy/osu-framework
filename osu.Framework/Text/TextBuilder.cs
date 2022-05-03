@@ -88,7 +88,7 @@ namespace osu.Framework.Text
             this.spacing = spacing;
             this.maxWidth = maxWidth;
 
-            fontGlyphStore = (store as IHasGlyphStores)?.GetFont(font.FontName);
+            fontGlyphStore = (store as IFontStore)?.GetFont(font.FontName);
 
             Characters = characterList ?? new List<TextBuilderGlyph>();
             this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<char>();

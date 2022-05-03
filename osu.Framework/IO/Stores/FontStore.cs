@@ -16,7 +16,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.IO.Stores
 {
-    public class FontStore : TextureStore, ITexturedGlyphLookupStore, IHasGlyphStores
+    public class FontStore : TextureStore, IFontStore
     {
         /// <summary>
         /// The font size of the raw glyph textures.
@@ -136,13 +136,13 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        IGlyphStore IHasGlyphStores.GetFont(string name)
+        IGlyphStore IFontStore.GetFont(string name)
         {
             var found = glyphStores.Find(g => g.FontName == name);
 
             if (found == null)
             {
-                foreach (var store in nestedFontStores.OfType<IHasGlyphStores>())
+                foreach (var store in nestedFontStores.OfType<IFontStore>())
                 {
                     if ((found = store.GetFont(name)) != null)
                         break;
