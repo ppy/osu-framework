@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0
+#if NET6_0_OR_GREATER
 using System.Net.Sockets;
 #endif
 using System;
@@ -149,7 +149,7 @@ namespace osu.Framework.IO.Network
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         private static readonly HttpClient client = new HttpClient(
-#if NET6_0
+#if NET6_0_OR_GREATER
             RuntimeInfo.IsMobile
                 ? (HttpMessageHandler)new HttpClientHandler
                 {
@@ -332,7 +332,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET6_0
+#if NET6_0_OR_GREATER
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
                             postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
@@ -440,7 +440,7 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET6_0
+#if NET6_0_OR_GREATER
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
@@ -776,7 +776,7 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET6_0
+#if NET6_0_OR_GREATER
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>
