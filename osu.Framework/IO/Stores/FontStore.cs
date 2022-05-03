@@ -21,7 +21,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// The font size of the raw glyph textures.
         /// </summary>
-        internal const float BASE_FONT_SIZE = 100;
+        public const float BASE_FONT_SIZE = 100;
 
         private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
