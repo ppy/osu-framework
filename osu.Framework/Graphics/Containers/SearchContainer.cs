@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using osu.Framework.Caching;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -87,28 +86,53 @@ namespace osu.Framework.Graphics.Containers
         private void performFilter()
         {
             string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching));
+            matchSubTree(this, terms, terms.Length > 0, allowNonContiguousMatching);
         }
 
-        private static bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
+        /// <summary>
+        /// Performs a tree traversal from the given node to filter out drawables which do not match the specified search terms.
+        /// </summary>
+        /// <param name="drawable">The root drawable of this subtree.</param>
+        /// <param name="searchTerms">The search terms to filter drawables against.</param>
+        /// <param name="searchActive">Whether there are search terms usable for filtering drawables.</param>
+        /// <param name="nonContiguousMatching">Whether the matching algorithm should be non-contiguous, allowing for potentially non-matching characters to exist between matches.</param>
+        private static bool matchSubTree(Drawable drawable, IReadOnlyList<string> searchTerms, bool searchActive, bool nonContiguousMatching)
         {
-            //Words matched by parent is not needed to match children
-            string[] childTerms = searchTerms.Where(term =>
-                !filterable.FilterTerms.Any(filterTerm =>
-                    checkTerm(filterTerm, term, nonContiguousMatching))).ToArray();
+            bool matching = match(drawable, searchTerms, nonContiguousMatching, out var nonMatchingTerms);
 
-            bool matching = childTerms.Length == 0;
-
-            //We need to check the children and should any child match this matches as well
-            if (filterable is IHasFilterableChildren hasFilterableChildren)
+            if (drawable is IContainerEnumerable<Drawable> container)
             {
-                foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
-                    matching |= match(child, childTerms, searchActive, nonContiguousMatching);
+                foreach (var child in container.Children)
+                    matching |= matchSubTree(child, nonMatchingTerms, searchActive, nonContiguousMatching);
             }
 
-            filterable.FilteringActive = searchActive;
-            return filterable.MatchingFilter = matching;
+            if (drawable is IFilterable filterable)
+            {
+                filterable.FilteringActive = searchActive;
+                filterable.MatchingFilter = matching;
+            }
+
+            return matching;
         }
+
+        /// <summary>
+        /// Whether the specified drawable matches the specified search terms.
+        /// </summary>
+        /// <param name="drawable">The drawable to check for match.</param>
+        /// <param name="searchTerms">The search terms to check against.</param>
+        /// <param name="nonContiguousMatching">Whether the matching algorithm should be non-contiguous, allowing for potentially non-matching characters to exist between matches.</param>
+        /// <param name="nonMatchingTerms">The search terms which do not match the specified drawable.</param>
+        private static bool match(Drawable drawable, IReadOnlyList<string> searchTerms, bool nonContiguousMatching, out IReadOnlyList<string> nonMatchingTerms)
+        {
+            nonMatchingTerms = searchTerms;
+
+            if (drawable is IFilterable filterable)
+                nonMatchingTerms = nonMatchingTerms.Where(term => !checkTerms(filterable.FilterTerms, term, nonContiguousMatching)).ToArray();
+
+            return nonMatchingTerms.Count == 0;
+        }
+
+        private static bool checkTerms(IEnumerable<string> filterTerms, string searchTerm, bool nonContiguous) => filterTerms.Any(term => checkTerm(term, searchTerm, nonContiguous));
 
         /// <summary>
         /// Check whether a search term exists in a forward direction, allowing for potentially non-matching characters to exist between matches.
