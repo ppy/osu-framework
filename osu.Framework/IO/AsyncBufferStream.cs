@@ -192,7 +192,7 @@ namespace osu.Framework.IO
                 }
             }
 
-            data.AsSpan(position).CopyTo(buffer[..amountBytesToRead]);
+            data.AsSpan(position, amountBytesToRead).CopyTo(buffer);
 
             int bytesRead = amountBytesToRead;
 
