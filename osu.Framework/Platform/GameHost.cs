@@ -724,6 +724,7 @@ namespace osu.Framework.Platform
                 }
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
+                Dependencies.CacheAs(CreateTextInput());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -902,16 +903,7 @@ namespace osu.Framework.Platform
         private void bootstrapSceneGraph(Game game)
         {
             var root = game.CreateUserInputManager();
-
-            void addComponent<T>(T component) where T : Component
-            {
-                Dependencies.CacheAs(component);
-                root.Add(component);
-            }
-
-            addComponent(CreateTextInput());
-
-            root.Add(new PlatformActionContainer
+            root.Child = new PlatformActionContainer
             {
                 Child = new FrameworkActionContainer
                 {
@@ -921,7 +913,7 @@ namespace osu.Framework.Platform
                         Child = game
                     }
                 }
-            });
+            };
 
             Dependencies.Cache(root);
             Dependencies.CacheAs(game);
