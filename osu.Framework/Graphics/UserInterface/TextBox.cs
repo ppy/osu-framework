@@ -1190,7 +1190,7 @@ namespace osu.Framework.Graphics.UserInterface
             // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
             FinalizeImeComposition(false);
 
-            unbindInput(e.NextFocus is TextBox);
+            unbindInput(e.NextFocused is TextBox);
 
             updateCaretVisibility();
 
@@ -1210,7 +1210,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocus(FocusEvent e)
         {
-            bindInput(e.PreviousFocus is TextBox);
+            bindInput(e.PreviouslyFocused is TextBox);
 
             updateCaretVisibility();
         }

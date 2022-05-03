@@ -16,12 +16,12 @@ namespace osu.Framework.Input.Events
         /// The <see cref="Drawable"/> that has lost focus, or <c>null</c> if nothing was previously focused.
         /// </summary>
         [CanBeNull]
-        public readonly Drawable PreviousFocus;
+        public readonly Drawable PreviouslyFocused;
 
-        public FocusEvent(InputState state, Drawable previousFocus)
+        public FocusEvent(InputState state, Drawable previouslyFocused)
             : base(state)
         {
-            PreviousFocus = previousFocus;
+            PreviouslyFocused = previouslyFocused;
         }
     }
 }

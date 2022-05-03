@@ -16,12 +16,12 @@ namespace osu.Framework.Input.Events
         /// The <see cref="Drawable"/> that will gain focus, or <c>null</c> if nothing will gain focus.
         /// </summary>
         [CanBeNull]
-        public readonly Drawable NextFocus;
+        public readonly Drawable NextFocused;
 
-        public FocusLostEvent(InputState state, Drawable nextFocus)
+        public FocusLostEvent(InputState state, Drawable nextFocused)
             : base(state)
         {
-            NextFocus = nextFocus;
+            NextFocused = nextFocused;
         }
     }
 }
