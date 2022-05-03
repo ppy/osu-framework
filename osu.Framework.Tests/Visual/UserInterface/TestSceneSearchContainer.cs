@@ -8,6 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -117,7 +118,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(count);
         }
 
-        [TestCase]
+        [Test]
         public void TestRefilterAfterNewChild()
         {
             setTerm("multi");
@@ -126,6 +127,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(1);
             AddStep("Add new unfiltered item", () => search.Add(new SearchableText { Text = "multi visible" }));
             checkCount(2);
+        }
+
+        [Test]
+        public void TestFilterRespectsHiddenChild()
+        {
+            AddStep("Add new hidden filtered item", () => search.Add(new HeaderContainer("Subsection 3")
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = new Container
+                {
+                    Alpha = 0f,
+                    AutoSizeAxes = Axes.Both,
+                    Child = new SearchableText { Text = "Hidden text" },
+                },
+            }));
+            setTerm("Hidden text");
+
+            checkCount(0);
+            AddAssert("No subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
         }
 
         private void checkCount(int count)
