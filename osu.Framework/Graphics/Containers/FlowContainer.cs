@@ -216,7 +216,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (!childLayout.IsValid)
             {
-                layout.Invalidate();
+                InvalidateLayout();
                 childLayout.Validate();
             }
 

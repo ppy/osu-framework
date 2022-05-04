@@ -63,13 +63,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        private readonly Cached filterValid = new Cached();
+
+        protected override void InvalidateLayout()
         {
-            base.AddInternal(drawable);
+            base.InvalidateLayout();
             filterValid.Invalidate();
         }
-
-        private readonly Cached filterValid = new Cached();
 
         protected override void Update()
         {
