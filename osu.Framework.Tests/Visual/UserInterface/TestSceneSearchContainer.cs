@@ -132,10 +132,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestFilterRespectsHiddenChild()
         {
-            AddStep("Add new hidden filtered item", () => search.Add(new HeaderContainer("Subsection 3")
+            HeaderContainer header = null;
+            Container hiddenTextContainer = null;
+
+            AddStep("Add new hidden filtered item", () => search.Add(header = new HeaderContainer("Subsection 3")
             {
                 AutoSizeAxes = Axes.Both,
-                Child = new Container
+                Child = hiddenTextContainer = new Container
                 {
                     Alpha = 0f,
                     AutoSizeAxes = Axes.Both,
@@ -146,6 +149,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             checkCount(0);
             AddAssert("No subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
+
+            AddStep("Show hidden text", () => hiddenTextContainer.Alpha = 1f);
+
+            checkCount(1);
+            AddAssert("Subsection displayed", () => search.ChildrenOfType<HeaderContainer>().Single(h => h.IsPresent) == header);
         }
 
         private void checkCount(int count)
