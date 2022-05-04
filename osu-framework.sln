@@ -28,6 +28,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D29A2153-C171-457E-A147-720976BA430F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.globalconfig = .globalconfig
 		Directory.Build.props = Directory.Build.props
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 		CodeAnalysis\osu-framework.ruleset = CodeAnalysis\osu-framework.ruleset

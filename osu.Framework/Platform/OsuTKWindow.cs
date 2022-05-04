@@ -96,7 +96,7 @@ namespace osu.Framework.Platform
             get
             {
                 var display = CurrentDisplayDevice;
-                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0, 0));
+                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0));
             }
         }
 
@@ -166,7 +166,7 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Creates a <see cref="OsuTKWindow"/> with given dimensions.
-        /// <para>Note that this will use the default <see cref="osuTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
+        /// <para>Note that this will use the default <see cref="GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected OsuTKWindow(int width, int height)
             : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
@@ -412,6 +412,18 @@ namespace osu.Framework.Platform
         {
             get => OsuTKGameWindow.ClientSize;
             set => OsuTKGameWindow.ClientSize = value;
+        }
+
+        public Size MinSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+        }
+
+        public Size MaxSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
         }
 
         public void Close() => OsuTKGameWindow.Close();

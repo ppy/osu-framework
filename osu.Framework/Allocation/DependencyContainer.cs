@@ -74,7 +74,7 @@ namespace osu.Framework.Allocation
             => CacheAs(type, info, instance, false);
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
@@ -85,7 +85,7 @@ namespace osu.Framework.Allocation
             => CacheValue(instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
@@ -102,7 +102,7 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
@@ -113,7 +113,7 @@ namespace osu.Framework.Allocation
             => CacheValueAs(instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.

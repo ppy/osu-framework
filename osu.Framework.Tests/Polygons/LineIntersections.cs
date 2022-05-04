@@ -14,7 +14,6 @@ namespace osu.Framework.Tests.Polygons
         private static readonly Vector2 up_1 = new Vector2(0, 1);
         private static readonly Vector2 up_2 = new Vector2(0, 2);
         private static readonly Vector2 down_1 = new Vector2(0, -1);
-        private static readonly Vector2 down_2 = new Vector2(0, -2);
         private static readonly Vector2 left_1 = new Vector2(-1, 0);
         private static readonly Vector2 left_2 = new Vector2(-2, 0);
         private static readonly Vector2 right_1 = new Vector2(1, 0);
