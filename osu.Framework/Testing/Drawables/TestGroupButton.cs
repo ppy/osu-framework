@@ -6,11 +6,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestGroupButton : VisibilityContainer, IFilterable
+    internal class TestGroupButton : Container, IFilterable
     {
         public IEnumerable<string> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<string>();
 
@@ -21,10 +22,10 @@ namespace osu.Framework.Testing.Drawables
 
         public bool FilteringActive { get; set; }
 
-        public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
-
         private readonly FillFlowContainer<TestButtonBase> buttonFlow;
         private readonly TestButton headerButton;
+
+        private readonly BindableBool expanded = new BindableBool();
 
         public readonly TestGroup Group;
 
@@ -33,7 +34,9 @@ namespace osu.Framework.Testing.Drawables
             set
             {
                 bool contains = Group.TestTypes.Contains(value);
-                if (contains) Show();
+
+                if (contains)
+                    expanded.Value = true;
 
                 buttonFlow.ForEach(btn => btn.Current = btn.TestType == value);
                 headerButton.Current = contains;
@@ -61,22 +64,24 @@ namespace osu.Framework.Testing.Drawables
 
             buttonFlow.Add(headerButton = new TestButton(group.Name)
             {
-                Action = ToggleVisibility
+                Action = expanded.Toggle,
             });
 
             foreach (var test in tests)
             {
                 buttonFlow.Add(new TestSubButton(test, 1)
                 {
-                    Action = () => loadTest(test)
+                    Action = () => loadTest(test),
                 });
             }
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            expanded.BindValueChanged(e => buttonFlow.ForEach(b => b.Collapsed = !e.NewValue), true);
+        }
+
         public override bool PropagatePositionalInputSubTree => true;
-
-        protected override void PopIn() => buttonFlow.ForEach(b => b.Collapsed = false);
-
-        protected override void PopOut() => buttonFlow.ForEach(b => b.Collapsed = true);
     }
 }

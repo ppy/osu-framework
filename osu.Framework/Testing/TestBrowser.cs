@@ -231,8 +231,10 @@ namespace osu.Framework.Testing
 
             searchTextBox.OnCommit += delegate
             {
-                var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
+                var firstTest = leftFlowContainer.ChildrenOfType<TestSubButton>()
+                                                 .Where(b => b.IsPresent)
                                                  .FirstOrDefault(b => b.MatchingFilter)?.TestType;
+
                 if (firstTest != null)
                     LoadTest(firstTest);
             };
