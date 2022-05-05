@@ -133,16 +133,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestFilterRespectsHiddenChild()
         {
             HeaderContainer header = null;
-            Container hiddenTextContainer = null;
+            HideableSearchText hiddenText = null;
 
             AddStep("Add new hidden filtered item", () => search.Add(header = new HeaderContainer("Subsection 3")
             {
                 AutoSizeAxes = Axes.Both,
-                Child = hiddenTextContainer = new Container
+                Child = hiddenText = new HideableSearchText
                 {
-                    Alpha = 0f,
-                    AutoSizeAxes = Axes.Both,
-                    Child = new SearchableText { Text = "Hidden text" },
+                    State = { Value = Visibility.Hidden },
+                    Text = { Text = "Hidden Text" },
                 },
             }));
             setTerm("Hidden text");
@@ -150,7 +149,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(0);
             AddAssert("No subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
 
-            AddStep("Show hidden text", () => hiddenTextContainer.Alpha = 1f);
+            AddStep("Show hidden text", () => hiddenText.State.Value = Visibility.Visible);
 
             checkCount(1);
             AddAssert("Subsection displayed", () => search.ChildrenOfType<HeaderContainer>().Single(h => h.IsPresent) == header);
@@ -269,6 +268,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 set { }
             }
+        }
+
+        private class HideableSearchText : VisibilityContainer
+        {
+            public SearchableText Text { get; private set; }
+
+            public HideableSearchText()
+            {
+                AutoSizeAxes = Axes.Both;
+                Child = Text = new SearchableText();
+            }
+
+            protected override void PopIn() => Alpha = 1;
+            protected override void PopOut() => Alpha = 0;
         }
     }
 }

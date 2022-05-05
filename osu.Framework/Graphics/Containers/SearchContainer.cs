@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool matching = match(drawable, searchTerms, nonContiguousMatching, out var nonMatchingTerms);
 
-            if (drawable.IsPresent && drawable is IContainerEnumerable<Drawable> container)
+            if (drawable is IContainerEnumerable<Drawable> container && (container as VisibilityContainer)?.State.Value != Visibility.Hidden)
             {
                 foreach (var child in container.Children)
                     matching |= matchSubTree(child, nonMatchingTerms, searchActive, nonContiguousMatching);
@@ -133,9 +133,6 @@ namespace osu.Framework.Graphics.Containers
                 // reset filter to ensure presence is not influenced by previous filter state when checking.
                 filterable.MatchingFilter = true;
             }
-
-            if (!drawable.IsPresent)
-                return false;
 
             return nonMatchingTerms.Count == 0;
         }
