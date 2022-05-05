@@ -1176,6 +1176,7 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Home, PlatformAction.MoveToListStart),
             new KeyBinding(InputKey.End, PlatformAction.MoveToListEnd),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Y), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),
