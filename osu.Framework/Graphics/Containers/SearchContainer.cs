@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using osu.Framework.Layout;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -69,11 +69,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly LayoutValue filterValid = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence, InvalidationSource.Child);
+        private readonly Cached filterValid = new Cached();
 
-        public SearchContainer()
+        protected override void InvalidateLayout()
         {
-            AddLayout(filterValid);
+            base.InvalidateLayout();
+            filterValid.Invalidate();
         }
 
         protected override void Update()
