@@ -16,8 +16,7 @@ namespace osu.Framework.Graphics.Containers
 
     /// <summary>
     /// A container which filters children based on a search term.
-    /// Re-filtering will only be performed when the <see cref="SearchTerm"/> changes, or
-    /// new items are added as direct children of this container.
+    /// Re-filtering will only be performed when the <see cref="SearchTerm"/> changes, or the layout of the container is invalidated.
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
