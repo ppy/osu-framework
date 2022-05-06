@@ -21,9 +21,9 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
-    /// <item>Children which are searchable should be marked with the <see cref="IFilterable"/> interface. They do not need to be direct children.</item>
-    /// <item>Containers above <see cref="IFilterable"/>s which should be hidden only when all children are filtered away should also be marked with the <see cref="IFilterable"/> interface.</item>
-    /// <item>Containers which have the potential to hide children via external means should be <see cref="VisibilityContainer"/>s, in order to correctly exclude hidden child <see cref="IFilterable"/>s from search.</item>
+    /// <item>Children which are searchable should be marked with the <see cref="IFilterable"/> interface. They do not need to be direct children to work (filtering will traverse the full drawable subtree).</item>
+    /// <item>Marking a container (ie. a "group" or "section" that contains nested <see cref="IFilterable"/>s) as <see cref="IFilterable"/> will automatically keep it non-filtered as long as at least one nested item is not filtered away.</item>
+    /// <item>Any <see cref="IFilterable"/>s which are contained in a <see cref="VisibilityContainer"/> that is hidden will be excluded from filtering. This can be used to exclude certain items from consideration (ie. items which are hidden from display), allowing group/sections to be correctly filtered away.</item>
     /// </list>
     /// </remarks>
     public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
