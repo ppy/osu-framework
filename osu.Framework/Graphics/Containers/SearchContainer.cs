@@ -9,6 +9,7 @@ using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <inheritdoc />
     public class SearchContainer : SearchContainer<Drawable>
     {
     }
@@ -18,7 +19,13 @@ namespace osu.Framework.Graphics.Containers
     /// Re-filtering will only be performed when the <see cref="SearchTerm"/> changes, or
     /// new items are added as direct children of this container.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>Children which are searchable should be marked with the <see cref="IFilterable"/> interface. They do not need to be direct children.</item>
+    /// <item>Containers above <see cref="IFilterable"/>s which should be hidden only when all children are filtered away should also be marked with the <see cref="IFilterable"/> interface.</item>
+    /// <item>Containers which have the potential to hide children via external means should be <see cref="VisibilityContainer"/>s, in order to correctly exclude hidden child <see cref="IFilterable"/>s from search.</item>
+    /// </list>
+    /// </remarks>
     public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
         /// <summary>

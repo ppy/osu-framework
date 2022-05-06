@@ -6,10 +6,6 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Represents a component which can be filtered out on non-matching search terms.
     /// </summary>
-    /// <remarks>
-    /// Hiding <see cref="IFilterable"/>s for purposes other than filtering require being wrapped in a
-    /// <see cref="VisibilityContainer"/> with its visibility state set to <see cref="Visibility.Hidden"/>.
-    /// </remarks>
     public interface IFilterable : IHasFilterTerms
     {
         /// <summary>
