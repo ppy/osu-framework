@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Input
                     return false;
 
                 background.FlashColour(FrameworkColour.YellowGreen, 250, Easing.OutQuint);
-                return true;
+                return e.Action == PlatformAction.Exit;
             }
 
             public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
