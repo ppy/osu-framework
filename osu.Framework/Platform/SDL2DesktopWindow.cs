@@ -477,7 +477,10 @@ namespace osu.Framework.Platform
                 if (max.Width < sizeWindowed.MinValue.Width || max.Height < sizeWindowed.MinValue.Height)
                     throw new InvalidOperationException($"Expected a size greater than min window size ({sizeWindowed.MinValue}), got {max}");
 
-                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
+                // Windows treats very large values as zero.
+                const int max_size = int.MaxValue / 2;
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, Math.Min(max.Width, max_size), Math.Min(max.Height, max_size)));
             };
 
             sizeWindowed.TriggerChange();
