@@ -42,6 +42,8 @@ namespace osu.Framework.Platform
 
         private readonly IGraphicsBackend graphicsBackend;
 
+        public GraphicsBackendMetadata? RendererMetadata => graphicsBackend.RendererMetadata;
+
         private bool focused;
 
         /// <summary>

@@ -45,6 +45,8 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.IgnoredInputHandlers, string.Empty);
             SetDefault(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
 #pragma warning restore 618
+
+            SetDefault(FrameworkSetting.PlatformWorkaroundMode, PlatformWorkaroundMode.Auto);
         }
 
         public FrameworkConfigManager(Storage storage, IDictionary<FrameworkSetting, object> defaultOverrides = null)
@@ -104,5 +106,7 @@ namespace osu.Framework.Configuration
 
         [Obsolete("Input-related settings are now stored in InputConfigManager. Adjustments should be made via Host.AvailableInputHandlers bindables directly.")] // can be removed 20210911
         MapAbsoluteInputToWindow,
+
+        PlatformWorkaroundMode
     }
 }

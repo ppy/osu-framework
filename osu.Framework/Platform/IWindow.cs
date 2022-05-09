@@ -86,6 +86,11 @@ namespace osu.Framework.Platform
         bool VerticalSync { get; set; }
 
         /// <summary>
+        /// Returns information about the window's renderer, if available.
+        /// </summary>
+        GraphicsBackendMetadata? RendererMetadata { get; }
+
+        /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }

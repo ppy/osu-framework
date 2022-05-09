@@ -30,6 +30,8 @@ namespace osu.Framework.Platform
         [NotNull]
         public abstract IGraphicsContext Context { get; }
 
+        public GraphicsBackendMetadata? RendererMetadata { get; protected set; }
+
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
@@ -130,6 +132,13 @@ namespace osu.Framework.Platform
             UpdateFrame += (o, e) => UpdateFrameScheduler.Update();
 
             MakeCurrent();
+
+            this.RendererMetadata =
+                new GraphicsBackendMetadata(
+                     rendererName: GL.GetString(StringName.Renderer),
+                           vendor: GL.GetString(StringName.Vendor),
+                    versionString: GL.GetString(StringName.Version)
+                );
 
             string version = GL.GetString(StringName.Version);
             string versionNumberSubstring = getVersionNumberSubstring(version);

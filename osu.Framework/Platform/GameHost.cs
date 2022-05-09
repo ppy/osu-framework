@@ -532,12 +532,46 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            Window.SwapBuffers();
+            switch (currentWorkaroundMode)
+            {
+                case Platform.PlatformWorkaroundMode.ForceFinish:
+                    Window.SwapBuffers();
+                    GL.Finish();
 
-            if (Window.VerticalSync)
-                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                // we will likely want to give the user control over this in the future as an advanced setting.
-                GL.Finish();
+                    break;
+
+                case Platform.PlatformWorkaroundMode.ForceNoFinish:
+                    Window.SwapBuffers();
+                    break;
+
+                case Platform.PlatformWorkaroundMode.WorkaroundIntelUHD630_Windows:
+                    // InvalidateRect is absolutely necessary for this driver workaround,
+                    //  otherwise the latency is higher, and dwm will still crash eventually
+                    if (this.Window is SDL2DesktopWindow sdlWindow)
+                        Windows.Native.Window.InvalidateRect(sdlWindow.WindowHandle, IntPtr.Zero, false);
+
+                    // First glFinish is needed, unless we're able to call wglSwapLayerBuffers directly
+                    GL.Finish();
+                    // Calls SwapBuffers internally
+                    Window.SwapBuffers();
+                    // Second glFinish required for synchronizing the driver
+                    GL.Finish();
+
+                    break;
+
+                case Platform.PlatformWorkaroundMode.Default:
+                default:
+                    Window.SwapBuffers();
+
+                    if (Window.VerticalSync)
+                    {
+                        // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                        // we will likely want to give the user control over this in the future as an advanced setting.
+                        GL.Finish();
+                    }
+
+                    break;
+            }
         }
 
         /// <summary>
@@ -747,6 +781,8 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
+                        PlatformWorkaroundMode.TriggerChange();
+
                         switch (Window)
                         {
                             case SDL2DesktopWindow window:
@@ -930,6 +966,9 @@ namespace osu.Framework.Platform
 
         private Bindable<bool> bypassFrontToBackPass;
 
+        public Bindable<PlatformWorkaroundMode> PlatformWorkaroundMode;
+        private PlatformWorkaroundMode currentWorkaroundMode = Platform.PlatformWorkaroundMode.Default;
+
         private Bindable<FrameSync> frameSyncMode;
 
         private IBindable<DisplayMode> currentDisplayMode;
@@ -1020,6 +1059,30 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
+
+            PlatformWorkaroundMode = Config.GetBindable<PlatformWorkaroundMode>(FrameworkSetting.PlatformWorkaroundMode);
+            PlatformWorkaroundMode.BindValueChanged(workaroundMode =>
+            {
+                if (workaroundMode.NewValue == Platform.PlatformWorkaroundMode.Auto)
+                {
+                    GraphicsBackendMetadata? rendererMetadata = this.Window.RendererMetadata;
+                    if (rendererMetadata.HasValue)
+                    {
+                        currentWorkaroundMode = PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value);
+                    }
+                    else
+                    {
+                        // No way to check the workaround mode, so fall back to defaults instead
+                        currentWorkaroundMode = Platform.PlatformWorkaroundMode.Default;
+                    }
+                }
+                else
+                {
+                    currentWorkaroundMode = workaroundMode.NewValue;
+                }
+
+                Logger.Log("Changed workaround mode to " + currentWorkaroundMode);
+            });
         }
 
         private void updateFrameSyncMode()
