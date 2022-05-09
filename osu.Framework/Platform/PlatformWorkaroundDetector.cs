@@ -32,6 +32,10 @@ namespace osu.Framework.Platform
                     //  which can be kept in sync by just a mere glFinish.
                     if (platform == RuntimeInfo.Platform.macOS)
                         return PlatformWorkaroundMode.ForceFinish;
+                    
+                    // UHD 630 is not broken on Linux due to the Mesa driver being mature
+                    //  due to being open-source, and supported by the community.
+                    // Perhaps a check should be here for Linux to see if it's not running on Mesa drivers?
                 }
             }
 
@@ -57,13 +61,13 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Always call glFinish after SwapBuffers.
         /// </summary>
-        [Description("Force drawing")]
+        [Description("Force drawing synchronization")]
         ForceFinish,
 
         /// <summary>
         /// Never call glFinish after SwapBuffers.
         /// </summary>
-        [Description("No synchronization")]
+        [Description("Disable drawing synchronization")]
         ForceNoFinish,
 
         /// <summary>
