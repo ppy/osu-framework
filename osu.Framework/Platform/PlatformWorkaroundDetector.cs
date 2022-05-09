@@ -16,7 +16,6 @@ namespace osu.Framework.Platform
             if (platform == RuntimeInfo.Platform.macOS)
                 return PlatformWorkaroundMode.ForceFinish;
 
-
             if (backendMetadata.Vendor == "Intel")
             {
                 if (backendMetadata.RendererName.Contains("UHD Graphics 620") ||

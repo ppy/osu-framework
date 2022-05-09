@@ -29,7 +29,6 @@ namespace osu.Framework.Platform
 
         public GraphicsBackendMetadata? RendererMetadata { get; protected set; }
 
-
         public abstract bool VerticalSync { get; set; }
 
         protected abstract IntPtr CreateContext();
@@ -45,7 +44,6 @@ namespace osu.Framework.Platform
             MakeCurrent(Context);
 
             loadTKBindings();
-
 
             this.RendererMetadata =
                 new GraphicsBackendMetadata(

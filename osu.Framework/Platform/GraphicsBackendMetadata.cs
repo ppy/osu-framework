@@ -23,7 +23,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public readonly string VersionString;
 
-
         public GraphicsBackendMetadata(string rendererName, string vendor, string versionString)
         {
             this.RendererName = rendererName;
