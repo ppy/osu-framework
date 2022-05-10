@@ -155,6 +155,18 @@ namespace osu.Framework.Platform
             }
         }
 
+        public Size MinSize
+        {
+            get => sizeWindowed.MinValue;
+            set => sizeWindowed.MinValue = value;
+        }
+
+        public Size MaxSize
+        {
+            get => sizeWindowed.MaxValue;
+            set => sizeWindowed.MaxValue = value;
+        }
+
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
         /// </summary>
@@ -446,6 +458,31 @@ namespace osu.Framework.Platform
 
             updateWindowSpecifics();
             updateWindowSize();
+
+            sizeWindowed.MinValueChanged += min =>
+            {
+                if (min.Width < 0 || min.Height < 0)
+                    throw new InvalidOperationException($"Expected zero or positive size, got {min}");
+
+                if (min.Width > sizeWindowed.MaxValue.Width || min.Height > sizeWindowed.MaxValue.Height)
+                    throw new InvalidOperationException($"Expected a size less than max window size ({sizeWindowed.MaxValue}), got {min}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, min.Width, min.Height));
+            };
+
+            sizeWindowed.MaxValueChanged += max =>
+            {
+                if (max.Width <= 0 || max.Height <= 0)
+                    throw new InvalidOperationException($"Expected positive size, got {max}");
+
+                if (max.Width < sizeWindowed.MinValue.Width || max.Height < sizeWindowed.MinValue.Height)
+                    throw new InvalidOperationException($"Expected a size greater than min window size ({sizeWindowed.MinValue}), got {max}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
+            };
+
+            sizeWindowed.TriggerChange();
+
             WindowMode.TriggerChange();
         }
 
@@ -1107,8 +1144,54 @@ namespace osu.Framework.Platform
 
             updateMaximisedState();
 
-            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
-                currentDisplayMode.Value = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
+            switch (windowState)
+            {
+                case WindowState.Fullscreen:
+                    if (!updateDisplayMode(true))
+                        updateDisplayMode(false);
+                    break;
+
+                default:
+                    if (!updateDisplayMode(false))
+                        updateDisplayMode(true);
+                    break;
+            }
+
+            bool updateDisplayMode(bool queryFullscreenMode)
+            {
+                // TODO: displayIndex should be valid here at all times.
+                // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
+                // related to order of operations in `updateWindowSpecifics()`.
+                int localIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
+
+                if (localIndex != displayIndex)
+                    Logger.Log($"Stored display index ({displayIndex}) doesn't match current index ({localIndex})");
+
+                if (queryFullscreenMode)
+                {
+                    if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
+                    {
+                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
+                        Logger.Log($"Updated display mode to fullscreen resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
+                        return true;
+                    }
+
+                    Logger.Log($"Failed to get fullscreen display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
+                    return false;
+                }
+                else
+                {
+                    if (SDL.SDL_GetCurrentDisplayMode(localIndex, out var mode) >= 0)
+                    {
+                        currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
+                        Logger.Log($"Updated display mode to desktop resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
+                        return true;
+                    }
+
+                    Logger.Log($"Failed to get desktop display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
+                    return false;
+                }
+            }
         }
 
         private void updateMaximisedState()
@@ -1378,18 +1461,12 @@ namespace osu.Framework.Platform
                                          .Select(modeIndex =>
                                          {
                                              SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return displayModeFromSDL(mode, displayIndex, modeIndex);
+                                             return mode.ToDisplayMode(displayIndex);
                                          })
                                          .ToArray();
 
             SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
             return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
-        }
-
-        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
-        {
-            SDL.SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 
         #endregion

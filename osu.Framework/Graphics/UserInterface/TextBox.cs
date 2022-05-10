@@ -247,7 +247,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformAction.Paste:
                     if (textInputBlocking)
-                        // the text has been pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        // TextInputSource received text while this action got activated.
+                        // This is an indicator that text has already been pasted at an OS level
+                        // and has been received here through the TextInputSource flow.
+                        //
+                        // This is currently only happening on iOS since it relies on a hidden UITextField for software keyboard.
                         return true;
 
                     InsertString(clipboard?.GetText());

@@ -96,7 +96,7 @@ namespace osu.Framework.Platform
             get
             {
                 var display = CurrentDisplayDevice;
-                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0, 0));
+                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0));
             }
         }
 
@@ -412,6 +412,18 @@ namespace osu.Framework.Platform
         {
             get => OsuTKGameWindow.ClientSize;
             set => OsuTKGameWindow.ClientSize = value;
+        }
+
+        public Size MinSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+        }
+
+        public Size MaxSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
         }
 
         public void Close() => OsuTKGameWindow.Close();
