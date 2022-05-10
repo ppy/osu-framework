@@ -70,7 +70,11 @@ namespace osu.Framework.Text
         /// </summary>
         /// <param name="store">The store from which glyphs are to be retrieved from.</param>
         /// <param name="font">The font to use for glyph lookups from <paramref name="store"/>.</param>
-        /// <param name="useFullGlyphHeight">True to use <see cref="TextBuilderGlyph.Size"/> (full glyph size) as the height for each line. False if the height of each individual glyph (<see cref="TextBuilderGlyph.YOffset"/> + <see cref="TextBuilderGlyph.Height"/>) should be used.</param>
+        /// <param name="useFullGlyphHeight">
+        /// When true, all texts that use a particular font will have a constant height, regardless of the letters used.
+        /// When false, the height of a given text will be cropped to only fit the letters used in that particular text,
+        /// and extra space above and below letters will be trimmed.
+        /// </param>
         /// <param name="startOffset">The offset at which characters should begin being added at.</param>
         /// <param name="spacing">The spacing between characters.</param>
         /// <param name="maxWidth">The maximum width of the resulting text bounds.</param>
