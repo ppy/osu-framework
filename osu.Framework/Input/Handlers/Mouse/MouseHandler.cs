@@ -133,7 +133,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        public void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public virtual void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
         {
             if (!Enabled.Value)
                 return;

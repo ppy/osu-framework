@@ -4,9 +4,12 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
+using osuTK;
 using SDL2;
+using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -21,6 +24,8 @@ namespace osu.Framework.Platform.Windows
 
         private Icon smallIcon;
         private Icon largeIcon;
+
+        private const int wm_killfocus = 8;
 
         public WindowsWindow()
         {
@@ -45,8 +50,6 @@ namespace osu.Framework.Platform.Windows
             OnSDLEvent += handleSDLEvent;
         }
 
-        #region IME handling
-
         private void handleSDLEvent(SDL.SDL_Event e)
         {
             if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
@@ -56,6 +59,10 @@ namespace osu.Framework.Platform.Windows
 
             switch (m.msg)
             {
+                case wm_killfocus:
+                    warpCursorFromFocusLoss();
+                    break;
+
                 case Imm.WM_IME_STARTCOMPOSITION:
                 case Imm.WM_IME_COMPOSITION:
                 case Imm.WM_IME_ENDCOMPOSITION:
@@ -63,6 +70,32 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
         }
+
+        /// <summary>
+        /// The last mouse position as reported by <see cref="WindowsMouseHandler.FeedbackMousePositionChange"/>.
+        /// </summary>
+        internal Vector2? LastMousePosition { private get; set; }
+
+        /// <summary>
+        /// If required, warps the OS cursor to match the framework cursor position.
+        /// </summary>
+        /// <remarks>
+        /// The normal warp in <see cref="MouseHandler.transferLastPositionToHostCursor"/> doesn't work in fullscreen,
+        /// as it is called when the window has already lost focus and is minimized.
+        /// So we do an out-of-band warp, immediately after receiving the <see cref="wm_killfocus"/> message.
+        /// </remarks>
+        private void warpCursorFromFocusLoss()
+        {
+            if (LastMousePosition.HasValue
+                && WindowMode.Value == Configuration.WindowMode.Fullscreen
+                && RelativeMouseMode)
+            {
+                var pt = PointToScreen(new Point((int)LastMousePosition.Value.X, (int)LastMousePosition.Value.Y));
+                SDL.SDL_WarpMouseGlobal(pt.X, pt.Y); // this directly calls the SetCursorPos win32 API
+            }
+        }
+
+        #region IME handling
 
         public override void StartTextInput(bool allowIme)
         {
