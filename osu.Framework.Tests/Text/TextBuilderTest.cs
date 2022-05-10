@@ -605,7 +605,7 @@ namespace osu.Framework.Tests.Text
         {
             var one = new FontMetrics(1000, 2000, 1000);
             var two = new FontMetrics(3000, 4000, 1000);
-            var font = new TestFontUsage("one", css: true);
+            var font = new TestFontUsage("one", cssScaling: true);
 
             var builder = new TextBuilder(new TestStore(new[]
                 {
@@ -633,22 +633,22 @@ namespace osu.Framework.Tests.Text
             private readonly string weight;
             private readonly bool italics;
             private readonly bool fixedWidth;
-            private readonly bool css;
+            private readonly bool cssScaling;
 
-            public TestFontUsage(string family = null, string weight = null, bool italics = false, bool fixedWidth = false, bool css = false)
+            public TestFontUsage(string family = null, string weight = null, bool italics = false, bool fixedWidth = false, bool cssScaling = false)
             {
                 this.family = family;
                 this.weight = weight;
                 this.italics = italics;
                 this.fixedWidth = fixedWidth;
-                this.css = css;
+                this.cssScaling = cssScaling;
             }
 
             public TestFontUsage WithCssScaling()
                 => new TestFontUsage(family, weight, italics, fixedWidth, true);
 
             public static implicit operator FontUsage(TestFontUsage tfu)
-                => new FontUsage(tfu.family, font_size, tfu.weight, tfu.italics, tfu.fixedWidth, tfu.css);
+                => new FontUsage(tfu.family, font_size, tfu.weight, tfu.italics, tfu.fixedWidth, tfu.cssScaling);
         }
 
         private class TestStore : IFontStore

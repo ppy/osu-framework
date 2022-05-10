@@ -75,18 +75,18 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="weight">The font weight.</param>
         /// <param name="italics">Whether the font is italic.</param>
         /// <param name="fixedWidth">Whether all characters should be spaced the same distance apart.</param>
-        /// <param name="css">
+        /// <param name="cssScaling">
         /// Whether the text glyphs should scale according to their respective <see cref="IGlyphStore.Metrics"/>, matching CSS.
         /// It is recommended to enable this for better alignment with other fonts.
         /// </param>
-        public FontUsage([CanBeNull] string family = null, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false, bool css = false)
+        public FontUsage([CanBeNull] string family = null, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false, bool cssScaling = false)
         {
             Family = family;
             Size = size >= 0 ? size : throw new ArgumentOutOfRangeException(nameof(size), "Must be non-negative.");
             Weight = weight;
             Italics = italics;
             FixedWidth = fixedWidth;
-            CssScaling = css;
+            CssScaling = cssScaling;
 
             FontName = Family + "-";
             if (!string.IsNullOrEmpty(weight))
@@ -106,14 +106,14 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="weight">The font weight. If null, the value is copied from this <see cref="FontUsage"/>.</param>
         /// <param name="italics">Whether the font is italic. If null, the value is copied from this <see cref="FontUsage"/>.</param>
         /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance. If null, the value is copied from this <see cref="FontUsage"/>.</param>
-        /// <param name="css">
+        /// <param name="cssScaling">
         /// Whether the text glyphs should scale according to their respective <see cref="IGlyphStore.Metrics"/>, matching CSS.
         /// It is recommended to enable this for better alignment with other fonts.
         /// </param>
         /// <returns>The resulting <see cref="FontUsage"/>.</returns>
         public FontUsage With([CanBeNull] string family = null, [CanBeNull] float? size = null, [CanBeNull] string weight = null, [CanBeNull] bool? italics = null,
-                              [CanBeNull] bool? fixedWidth = null, [CanBeNull] bool? css = null)
-            => new FontUsage(family ?? Family, size ?? Size, weight ?? Weight, italics ?? Italics, fixedWidth ?? FixedWidth, css ?? CssScaling);
+                              [CanBeNull] bool? fixedWidth = null, [CanBeNull] bool? cssScaling = null)
+            => new FontUsage(family ?? Family, size ?? Size, weight ?? Weight, italics ?? Italics, fixedWidth ?? FixedWidth, cssScaling ?? CssScaling);
 
         public override string ToString() => $"Font={FontName}, Size={Size}, Italics={Italics}, FixedWidth={FixedWidth}, CssScaling={CssScaling}";
 

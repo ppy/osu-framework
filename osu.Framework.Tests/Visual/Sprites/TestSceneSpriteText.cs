@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 SpriteText cssText = new SpriteText
                 {
                     Text = $@"Font testy at size {i} (CSS)",
-                    Font = new FontUsage("Roboto", i, i % 4 > 1 ? "Bold" : "Regular", i % 2 == 1, css: true),
+                    Font = new FontUsage("Roboto", i, i % 4 > 1 ? "Bold" : "Regular", i % 2 == 1, cssScaling: true),
                     AllowMultiline = true,
                     RelativeSizeAxes = Axes.X,
                 };
@@ -151,7 +151,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     new SpriteText
                                     {
                                         Colour = FrameworkColour.Green,
-                                        Font = FrameworkFont.Regular.With(size: font_size, css: true),
+                                        Font = FrameworkFont.Regular.With(size: font_size, cssScaling: true),
                                         Text = text,
                                     },
                                     new Box
