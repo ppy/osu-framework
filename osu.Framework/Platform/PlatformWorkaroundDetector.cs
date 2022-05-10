@@ -1,20 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.ComponentModel;
+using System;
 
 namespace osu.Framework.Platform
 {
     public static class PlatformWorkaroundDetector
     {
-        public static PlatformWorkaroundMode DetectWorkaround(GraphicsBackendMetadata backendMetadata)
+        public static PlatformWorkaround DetectWorkaround(GraphicsBackendMetadata backendMetadata)
             => DetectWorkaround(backendMetadata, RuntimeInfo.OS);
 
-        public static PlatformWorkaroundMode DetectWorkaround(GraphicsBackendMetadata backendMetadata, RuntimeInfo.Platform platform)
+        public static PlatformWorkaround DetectWorkaround(GraphicsBackendMetadata backendMetadata, RuntimeInfo.Platform platform)
         {
             //HACK: Force macOS to use glFinish for the time being, until it is further investigated (https://github.com/ppy/osu/issues/7447)
             if (platform == RuntimeInfo.Platform.macOS)
-                return PlatformWorkaroundMode.ForceFinish;
+                return PlatformWorkaround.FinishAfterSwapAlways;
 
             if (backendMetadata.Vendor == "Intel")
             {
@@ -25,55 +25,61 @@ namespace osu.Framework.Platform
                     //  due to the bug causing excess overload until
                     //  dwm or the driver ends up crashing.
                     if (platform == RuntimeInfo.Platform.Windows)
-                        return PlatformWorkaroundMode.WorkaroundIntelUHD630_Windows;
+                        return PlatformWorkaround.WindowsInvalidateRect
+                             | PlatformWorkaround.FinishBeforeSwap //TODO: wglSwapLayerBuffers is preferred over an explicit pre-SwapBuffers glFinish
+                             | PlatformWorkaround.FinishAfterSwapAlways;
 
                     // On macOS there is simply just a scheduling bug,
                     //  which can be kept in sync by just a mere glFinish.
                     if (platform == RuntimeInfo.Platform.macOS)
-                        return PlatformWorkaroundMode.ForceFinish;
-                    
+                        return PlatformWorkaround.FinishAfterSwapAlways;
+
                     // UHD 630 is not broken on Linux due to the Mesa driver being mature
                     //  due to being open-source, and supported by the community.
                     // Perhaps a check should be here for Linux to see if it's not running on Mesa drivers?
                 }
             }
 
-            return PlatformWorkaroundMode.Default;
+            return PlatformWorkaround.Default;
         }
     }
 
-    public enum PlatformWorkaroundMode
+    [Flags]
+    public enum PlatformWorkaround
     {
         /// <summary>
-        /// Default is to glFinish on VSync, but don't otherwise.
+        /// Special value to indicate that workarounds need to be automatically detected.
         /// </summary>
-        [Description("No workaround")]
-        Default,
+        Auto = 0,
 
         /// <summary>
-        /// Acts just like <see cref="Default"/>, but should indicate
-        ///  forced workaround detection.
+        /// Default workaround configuration used if no workarounds are required.
         /// </summary>
-        [Description("Automatic workaround detection")]
-        Auto,
+        Default = FinishAfterSwapVSync,
 
         /// <summary>
-        /// Always call glFinish after SwapBuffers.
+        /// Perform glFinish after SwapBuffers if VSync is enabled.
         /// </summary>
-        [Description("Force drawing synchronization")]
-        ForceFinish,
+        FinishAfterSwapVSync = (1 << 0),
 
         /// <summary>
-        /// Never call glFinish after SwapBuffers.
+        /// Perform glFinish after SwapBuffers if VSync is not enabled.
         /// </summary>
-        [Description("Disable drawing synchronization")]
-        ForceNoFinish,
+        FinishAfterSwapNoVSync = (1 << 1),
 
         /// <summary>
-        /// Use InvalidateRect + glFinish twice to
-        ///  synchronize the UHD 620/630 driver
+        /// Perform glFinish after SwapBuffers, no matter if VSync is enabled or not.
         /// </summary>
-        [Description("Intel UHD 620/630 stutter workaround (Windows)")]
-        WorkaroundIntelUHD630_Windows
+        FinishAfterSwapAlways = FinishAfterSwapVSync | FinishAfterSwapNoVSync,
+
+        /// <summary>
+        /// Perform glFinish before SwapBuffers.
+        /// </summary>
+        FinishBeforeSwap = (1 << 2),
+
+        /// <summary>
+        /// On Windows, perform InvalidateRect as the first thing to work around certain driver bugs.
+        /// </summary>
+        WindowsInvalidateRect = (1 << 3)
     }
 }
