@@ -231,8 +231,15 @@ namespace osu.Framework.Platform
 
         private const int default_icon_size = 256;
 
+        /// <summary>
+        /// Scheduler for actions to run before the next event loop.
+        /// </summary>
         private readonly Scheduler commandScheduler = new Scheduler();
-        private readonly Scheduler eventScheduler = new Scheduler();
+
+        /// <summary>
+        /// Scheduler for actions to run at the end of the current event loop.
+        /// </summary>
+        protected readonly Scheduler EventScheduler = new Scheduler();
 
         private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
 
@@ -543,7 +550,7 @@ namespace osu.Framework.Platform
                 if (!cursorInWindow.Value)
                     pollMouse();
 
-                eventScheduler.Update();
+                EventScheduler.Update();
 
                 Update?.Invoke();
             }
@@ -570,7 +577,7 @@ namespace osu.Framework.Platform
 
             // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
             // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
-            eventScheduler.AddOnce(storeWindowSizeToConfig);
+            EventScheduler.AddOnce(storeWindowSizeToConfig);
         }
 
         /// <summary>
@@ -689,7 +696,7 @@ namespace osu.Framework.Platform
         /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
         /// </summary>
         /// <param name="action">The <see cref="Action"/> to execute.</param>
-        protected void ScheduleEvent(Action action) => eventScheduler.Add(action, false);
+        protected void ScheduleEvent(Action action) => EventScheduler.Add(action, false);
 
         protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 

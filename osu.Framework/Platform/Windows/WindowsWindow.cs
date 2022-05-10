@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -105,12 +106,18 @@ namespace osu.Framework.Platform.Windows
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
 
-        protected override void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        protected override unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
-            // block SDL text input if there was a recent result from `handleImeMessage()`.
-            if (recentImeResult)
+            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string sdlResult))
+                return;
+
+            // Block SDL text input if it was already handled by `handleImeMessage()`.
+            // SDL truncates text over 32 bytes and sends it as multiple events.
+            // We assume these events will be handled in the same `pollSDLEvents()` call.
+            if (lastImeResult?.Contains(sdlResult) == true)
             {
-                recentImeResult = false;
+                // clear the result after this SDL event loop finishes so normal text input isn't blocked.
+                EventScheduler.AddOnce(() => lastImeResult = null);
                 return;
             }
 
@@ -132,10 +139,14 @@ namespace osu.Framework.Platform.Windows
         private bool imeCompositionActive;
 
         /// <summary>
-        /// Whether an IME result was recently posted.
+        /// The last IME result.
         /// </summary>
-        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
-        private bool recentImeResult;
+        /// <remarks>
+        /// Used for blocking SDL IME results since we handle those ourselves.
+        /// Cleared when the SDL events are blocked.
+        /// </remarks>
+        [CanBeNull]
+        private string lastImeResult;
 
         private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
         {
@@ -151,7 +162,7 @@ namespace osu.Framework.Platform.Windows
                     {
                         if (inputContext.TryGetImeResult(out string resultText))
                         {
-                            recentImeResult = true;
+                            lastImeResult = resultText;
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
