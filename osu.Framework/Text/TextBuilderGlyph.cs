@@ -39,7 +39,7 @@ namespace osu.Framework.Text
         /// The size to draw the glyph at.
         /// </summary>
         /// <remarks>
-        /// Note that this can differ per font on one specified <see cref="FontUsage.Size"/>, depending on each one's font metrics.
+        /// For the same <see cref="FontUsage"/> size, this value can differ per-font depending on each font's metrics.
         /// </remarks>
         public readonly float Size;
 
