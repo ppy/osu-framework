@@ -284,8 +284,8 @@ namespace osu.Framework.Tests.Localisation
             var uppercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var titleText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
 
-            Assert.AreEqual(uppercasedText.Value, "LOCALISED EN");
-            Assert.AreEqual(titleText.Value, localisable_string_en_title_case);
+            Assert.AreEqual("LOCALISED EN", uppercasedText.Value);
+            Assert.AreEqual(localisable_string_en_title_case, titleText.Value);
         }
 
         [Test]
@@ -295,16 +295,22 @@ namespace osu.Framework.Tests.Localisation
 
             var uppercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var lowercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToLower());
+            var titleCasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
+            var sentenceCasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToSentence());
 
             config.SetValue(FrameworkSetting.Locale, "en");
 
-            Assert.AreEqual(uppercasedText.Value, "LOCALISED EN");
-            Assert.AreEqual(lowercasedText.Value, "localised en");
+            Assert.AreEqual("LOCALISED EN", uppercasedText.Value);
+            Assert.AreEqual("localised en", lowercasedText.Value);
+            Assert.AreEqual("Localised EN", titleCasedText.Value);
+            Assert.AreEqual("Localised EN", sentenceCasedText.Value);
 
             config.SetValue(FrameworkSetting.Locale, "tr");
 
-            Assert.AreEqual(uppercasedText.Value, "LOCALİSED TR (İ/I)");
-            Assert.AreEqual(lowercasedText.Value, "localised tr (i/ı)");
+            Assert.AreEqual("LOCALİSED TR (İ/I)", uppercasedText.Value);
+            Assert.AreEqual("localised tr (i/ı)", lowercasedText.Value);
+            Assert.AreEqual("Localised TR (İ/I)", titleCasedText.Value);
+            Assert.AreEqual("Localised TR (i/I)", sentenceCasedText.Value);
         }
 
         [Test]
