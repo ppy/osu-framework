@@ -21,7 +21,8 @@ namespace osu.Framework.Tests.Visual
             Fonts.AddStore(testFonts = new FontStore(useAtlas: false));
 
             // note that only a few of the noto sprite sheets have been included with this font, not the full set.
-            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(880, 120, 1000), target: testFonts);
+            // also note that this uses the macOS metrics (hhea table) for convenience, as it matches with css-text.png which was rendered on macOS.
+            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(1160, 320, 1000), target: testFonts);
         }
     }
 }

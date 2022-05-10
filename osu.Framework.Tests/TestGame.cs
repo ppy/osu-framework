@@ -24,7 +24,7 @@ namespace osu.Framework.Tests
             Fonts.AddStore(testFonts = new FontStore(useAtlas: false));
 
             // note that only a few of the noto sprite sheets have been included with this font, not the full set.
-            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(880, 120, 1000), target: testFonts);
+            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(1160, 320, 1000), target: testFonts);
         }
 
         protected override bool OnExiting() => BlockExit.Value;
