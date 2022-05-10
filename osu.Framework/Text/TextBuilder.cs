@@ -214,12 +214,7 @@ namespace osu.Framework.Text
         public void AddNewLine()
         {
             if (currentNewLine)
-            {
-                currentLineHeight = font.Size;
-
-                if (font.CssScaling && fontGlyphStore?.Metrics is FontMetrics metrics)
-                    currentLineHeight *= metrics.GlyphScale;
-            }
+                currentLineHeight = getFontSize(fontGlyphStore?.Metrics);
 
             // Reset + vertically offset the current position
             currentPos.X = startOffset.X;
@@ -370,24 +365,21 @@ namespace osu.Framework.Text
 
         private bool tryCreateGlyph(char character, out TextBuilderGlyph glyph)
         {
-            var fontStoreGlyph = getTexturedGlyph(character);
+            var texturedGlyph = getTexturedGlyph(character);
 
-            if (fontStoreGlyph == null)
+            if (texturedGlyph == null)
             {
                 glyph = default;
                 return false;
             }
 
-            float size = font.Size;
-
-            if (font.CssScaling && fontStoreGlyph.Metrics is FontMetrics metrics)
-                size *= metrics.GlyphScale;
+            float size = getFontSize(texturedGlyph.Metrics);
 
             // Array.IndexOf is used to avoid LINQ
             if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
-                glyph = new TextBuilderGlyph(fontStoreGlyph, size, getConstantWidth());
+                glyph = new TextBuilderGlyph(texturedGlyph, size, getConstantWidth());
             else
-                glyph = new TextBuilderGlyph(fontStoreGlyph, size);
+                glyph = new TextBuilderGlyph(texturedGlyph, size);
 
             return true;
         }
@@ -398,6 +390,16 @@ namespace osu.Framework.Text
                    ?? store.Get(null, character)
                    ?? store.Get(font.FontName, fallbackCharacter)
                    ?? store.Get(null, fallbackCharacter);
+        }
+
+        private float getFontSize(FontMetrics? metrics)
+        {
+            float size = font.Size;
+
+            if (font.CssScaling && metrics.HasValue)
+                size *= metrics.Value.GlyphScale;
+
+            return size;
         }
     }
 }
