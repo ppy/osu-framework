@@ -23,7 +23,6 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeAnalysis\BannedSymbols.txt" />
   </ItemGroup>
   <PropertyGroup Label="Code Analysis">
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu-framework.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Label="NuGet">
