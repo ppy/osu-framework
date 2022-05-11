@@ -40,7 +40,7 @@ Build configurations for the recommended IDEs (listed above) are included. You s
 
 ### Code analysis
 
-Code analysis can be run with `powershell ./InspectCode.ps1` or `InspectCode.sh`.
+Code analysis can be run with `powershell -ExecutionPolicy Bypass .\InspectCode.ps1` or `InspectCode.sh`.
 
 ## Contributing
 
