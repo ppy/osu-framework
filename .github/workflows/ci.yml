@@ -33,6 +33,9 @@ jobs:
           path: ${{ github.workspace }}/inspectcode
           key: inspectcode-${{ hashFiles('.config/dotnet-tools.json', '.github/workflows/ci.yml', 'osu-framework.sln*', '.editorconfig', '.globalconfig') }}
 
+      - name: Dotnet code style
+        run: dotnet build -c Debug -warnaserror build/Desktop.proj -p:EnforceCodeStyleInBuild=true
+
       - name: CodeFileSanity
         run: |
           # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
