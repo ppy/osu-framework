@@ -533,7 +533,7 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            if(currentWorkarouns.HasFlagFast(PlatformWorkaround.WindowsInvalidateRect)) // Should only be set on Windows platforms
+            if ((currentWorkarounds & PlatformWorkaround.WindowsInvalidateRect) != 0) // Should only be set on Windows
             {
                 // InvalidateRect is absolutely necessary for some driver workarounds,
                 //  otherwise the latency will be higher, and dwm might crash sometimes
@@ -541,7 +541,7 @@ namespace osu.Framework.Platform
                     Windows.Native.Window.InvalidateRect(sdlWindow.WindowHandle, IntPtr.Zero, false);
             }
 
-            if(currentWorkarouns.HasFlagFast(PlatformWorkaround.FinishBeforeSwap))
+            if ((currentWorkarounds & PlatformWorkaround.FinishBeforeSwap) != 0)
             {
                 //TODO: This glFinish is only needed because we're not able to call wglSwapLayerBuffers directly, as to not break any possible future SDL code changes
                 GL.Finish();
@@ -549,24 +549,21 @@ namespace osu.Framework.Platform
 
             Window.SwapBuffers();
 
-            if(currentWorkarouns.HasAnyFlagFast(PlatformWorkaround.FinishAfterSwapVSync | PlatformWorkaround.FinishAfterSwapNoVSync))
+            if (Window.VerticalSync)
             {
-                if(Window.VerticalSync)
+                if ((currentWorkarounds & PlatformWorkaround.FinishAfterSwapVSync) != 0)
                 {
-                    if(currentWorkarouns.HasFlagFast(PlatformWorkaround.FinishAfterSwapVSync))
-                    {
-                        // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                        // we will likely want to give the user control over this in the future as an advanced setting.
-                        GL.Finish();
-                    }
+                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                    // we will likely want to give the user control over this in the future as an advanced setting.
+                    GL.Finish();
                 }
-                else
+            }
+            else
+            {
+                if ((currentWorkarounds & PlatformWorkaround.FinishAfterSwapNoVSync) != 0)
                 {
-                    if(currentWorkarouns.HasFlagFast(PlatformWorkaround.FinishAfterSwapNoVSync))
-                    {
-                        // Some drivers require explicit synchronization due to scheduling issues
-                        GL.Finish();
-                    }
+                    // Some drivers require explicit synchronization due to scheduling issues
+                    GL.Finish();
                 }
             }
         }
@@ -965,7 +962,7 @@ namespace osu.Framework.Platform
         private Bindable<bool> bypassFrontToBackPass;
 
         public readonly Bindable<PlatformWorkaround> PlatformWorkarounds = new Bindable<PlatformWorkaround>(PlatformWorkaround.Auto);
-        private PlatformWorkaround currentWorkarouns = PlatformWorkaround.Default;
+        private PlatformWorkaround currentWorkarounds = PlatformWorkaround.Default;
 
         private Bindable<FrameSync> frameSyncMode;
 
@@ -1065,20 +1062,20 @@ namespace osu.Framework.Platform
                     GraphicsBackendMetadata? rendererMetadata = this.Window.RendererMetadata;
                     if (rendererMetadata.HasValue)
                     {
-                        currentWorkarouns = PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value);
+                        currentWorkarounds = PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value);
                     }
                     else
                     {
                         // No way to check the workaround mode, so fall back to defaults instead
-                        currentWorkarouns = Platform.PlatformWorkaround.Default;
+                        currentWorkarounds = Platform.PlatformWorkaround.Default;
                     }
                 }
                 else
                 {
-                    currentWorkarouns = workaroundMode.NewValue;
+                    currentWorkarounds = workaroundMode.NewValue;
                 }
 
-                Logger.Log("Changed workaround mode to " + currentWorkarouns);
+                Logger.Log("Changed workaround mode to " + currentWorkarounds);
             });
         }
 

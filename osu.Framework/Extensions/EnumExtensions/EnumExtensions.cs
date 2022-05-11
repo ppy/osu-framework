@@ -95,47 +95,5 @@ namespace osu.Framework.Extensions.EnumExtensions
 
             throw new ArgumentException($"Invalid enum type provided: {typeof(T)}.");
         }
-        
-        /// <summary>
-        /// Similar to <see cref="EnumExtensions.HasFlagFast{T}(T, T)"/>, but returns <see langword="true"/> if any of the given flags are set.
-        /// </summary>
-        /// <param name="enumValue">The enum to check.</param>
-        /// <param name="flags">The flags to check for.</param>
-        /// <returns>Whether any of the <paramref name="flags"/> are set in <paramref name="enumValue"/> or not</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe bool HasAnyFlagFast<T>(this T enumValue, T flags) where T : unmanaged, Enum
-        {
-            // Note: Using a switch statement would eliminate inlining.
-
-            if (sizeof(T) == 1)
-            {
-                byte value1 = Unsafe.As<T, byte>(ref enumValue);
-                byte value2 = Unsafe.As<T, byte>(ref flags);
-                return (value1 & value2) != 0;
-            }
-
-            if (sizeof(T) == 2)
-            {
-                short value1 = Unsafe.As<T, short>(ref enumValue);
-                short value2 = Unsafe.As<T, short>(ref flags);
-                return (value1 & value2) != 0;
-            }
-
-            if (sizeof(T) == 4)
-            {
-                int value1 = Unsafe.As<T, int>(ref enumValue);
-                int value2 = Unsafe.As<T, int>(ref flags);
-                return (value1 & value2) != 0;
-            }
-
-            if (sizeof(T) == 8)
-            {
-                long value1 = Unsafe.As<T, long>(ref enumValue);
-                long value2 = Unsafe.As<T, long>(ref flags);
-                return (value1 & value2) != 0;
-            }
-
-            throw new ArgumentException($"Invalid enum type provided: {typeof(T)}.");
-        }
     }
 }

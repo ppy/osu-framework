@@ -103,6 +103,6 @@ namespace osu.Framework.Configuration
         CursorSensitivity,
 
         [Obsolete("Input-related settings are now stored in InputConfigManager. Adjustments should be made via Host.AvailableInputHandlers bindables directly.")] // can be removed 20210911
-        MapAbsoluteInputToWindow
+        MapAbsoluteInputToWindow,
     }
 }
