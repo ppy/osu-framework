@@ -414,6 +414,18 @@ namespace osu.Framework.Platform
             set => OsuTKGameWindow.ClientSize = value;
         }
 
+        public Size MinSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+        }
+
+        public Size MaxSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
+        }
+
         public void Close() => OsuTKGameWindow.Close();
 
         public void RequestClose()

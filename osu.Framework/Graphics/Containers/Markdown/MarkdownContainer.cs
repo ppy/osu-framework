@@ -20,8 +20,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Visualises a markdown text document.
     /// </summary>
-    [Cached(Type = typeof(IMarkdownTextComponent))]
-    [Cached(Type = typeof(IMarkdownTextFlowComponent))]
     public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
     {
         private const int root_level = 0;

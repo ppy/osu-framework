@@ -187,6 +187,18 @@ namespace osu.Framework.Platform
         Size ClientSize { get; }
 
         /// <summary>
+        /// The minimum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or a size greater than <see cref="MaxSize"/>.</exception>
+        Size MinSize { get; set; }
+
+        /// <summary>
+        /// The maximum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
+        Size MaxSize { get; set; }
+
+        /// <summary>
         /// The window title.
         /// </summary>
         string Title { get; set; }

@@ -107,11 +107,16 @@ jobs:
   build-linux:
     name: Build Linux (x64)
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:16.04
     steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git curl gcc make nasm
+
       - name: Checkout
         uses: actions/checkout@v2
-
-      - uses: ilammy/setup-nasm@v1
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/linux/fetch_and_build.sh
