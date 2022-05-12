@@ -25,9 +25,11 @@ namespace osu.Framework.Platform
                     //  due to the bug causing excess overload until
                     //  dwm or the driver ends up crashing.
                     if (platform == RuntimeInfo.Platform.Windows)
+                    {
                         return PlatformWorkaround.WindowsInvalidateRect
-                             | PlatformWorkaround.FinishBeforeSwap //TODO: wglSwapLayerBuffers is preferred over an explicit pre-SwapBuffers glFinish
-                             | PlatformWorkaround.FinishAfterSwapAlways;
+                               | PlatformWorkaround.FinishBeforeSwap //TODO: wglSwapLayerBuffers is preferred over an explicit pre-SwapBuffers glFinish
+                               | PlatformWorkaround.FinishAfterSwapAlways;
+                    }
 
                     // On macOS there is simply just a scheduling bug,
                     //  which can be kept in sync by just a mere glFinish.
