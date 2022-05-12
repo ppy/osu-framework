@@ -45,10 +45,10 @@ namespace osu.Framework.Platform
 
             loadTKBindings();
 
-            this.RendererMetadata =
+            RendererMetadata =
                 new GraphicsBackendMetadata(
-                     rendererName: GL.GetString(StringName.Renderer),
-                           vendor: GL.GetString(StringName.Vendor),
+                    rendererName: GL.GetString(StringName.Renderer),
+                    vendor: GL.GetString(StringName.Vendor),
                     versionString: GL.GetString(StringName.Version)
                 );
 

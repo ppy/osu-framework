@@ -25,9 +25,9 @@ namespace osu.Framework.Platform
 
         public GraphicsBackendMetadata(string rendererName, string vendor, string versionString)
         {
-            this.RendererName = rendererName;
-            this.Vendor = vendor;
-            this.VersionString = versionString;
+            RendererName = rendererName;
+            Vendor = vendor;
+            VersionString = versionString;
         }
     }
 }

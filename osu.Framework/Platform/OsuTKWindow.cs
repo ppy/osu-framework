@@ -133,10 +133,10 @@ namespace osu.Framework.Platform
 
             MakeCurrent();
 
-            this.RendererMetadata =
+            RendererMetadata =
                 new GraphicsBackendMetadata(
-                     rendererName: GL.GetString(StringName.Renderer),
-                           vendor: GL.GetString(StringName.Vendor),
+                    rendererName: GL.GetString(StringName.Renderer),
+                    vendor: GL.GetString(StringName.Vendor),
                     versionString: GL.GetString(StringName.Version)
                 );
 
@@ -178,7 +178,8 @@ namespace osu.Framework.Platform
         /// <para>Note that this will use the default <see cref="GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected OsuTKWindow(int width, int height)
-            : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+            : this(new GameWindow(width, height,
+                new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 

@@ -536,7 +536,7 @@ namespace osu.Framework.Platform
             {
                 // InvalidateRect is absolutely necessary for some driver workarounds,
                 //  otherwise the latency will be higher, and dwm might crash sometimes
-                if (this.Window is SDL2DesktopWindow sdlWindow)
+                if (Window is SDL2DesktopWindow sdlWindow)
                     Windows.Native.Window.InvalidateRect(sdlWindow.WindowHandle, IntPtr.Zero, false);
             }
 
@@ -1056,18 +1056,11 @@ namespace osu.Framework.Platform
 
             PlatformWorkarounds.BindValueChanged(workaroundMode =>
             {
-                if (workaroundMode.NewValue == Platform.PlatformWorkaround.Auto)
+                if (workaroundMode.NewValue == PlatformWorkaround.Auto)
                 {
-                    GraphicsBackendMetadata? rendererMetadata = this.Window.RendererMetadata;
-                    if (rendererMetadata.HasValue)
-                    {
-                        currentWorkarounds = PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value);
-                    }
-                    else
-                    {
-                        // No way to check the workaround mode, so fall back to defaults instead
-                        currentWorkarounds = Platform.PlatformWorkaround.Default;
-                    }
+                    GraphicsBackendMetadata? rendererMetadata = Window.RendererMetadata;
+
+                    currentWorkarounds = rendererMetadata.HasValue ? PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value) : PlatformWorkaround.Default;
                 }
                 else
                 {
