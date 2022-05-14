@@ -58,5 +58,19 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         /// <param name="data">The string data.</param>
         /// <returns>A case transformable string with its string data lowercased.</returns>
         public static CaseTransformableString ToLower(this ILocalisableStringData data) => new LocalisableString(data).ToLower();
+
+        /// <summary>
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string transformed to sentence case.
+        /// </summary>
+        /// <param name="str">The localisable string.</param>
+        /// <returns>A case transformable string with its localisable string transformed to sentence case.</returns>
+        public static CaseTransformableString ToSentence(this LocalisableString str) => new CaseTransformableString(str, Casing.SentenceCase);
+
+        /// <summary>
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying string data transformed to sentence case.
+        /// </summary>
+        /// <param name="data">The string data.</param>
+        /// <returns>A case transformable string with its string data transformed to sentence case.</returns>
+        public static CaseTransformableString ToSentence(this ILocalisableStringData data) => new LocalisableString(data).ToSentence();
     }
 }

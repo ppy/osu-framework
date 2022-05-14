@@ -865,9 +865,23 @@ namespace osu.Framework.IO.Network
                 baseStream.Flush();
             }
 
-            public override int Read(byte[] buffer, int offset, int count)
+            public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+            public override int Read(Span<byte> buffer)
             {
-                int read = baseStream.Read(buffer, offset, count);
+                int read = baseStream.Read(buffer);
+                BytesRead.Value += read;
+                return read;
+            }
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+            }
+
+            public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            {
+                int read = await baseStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
                 BytesRead.Value += read;
                 return read;
             }

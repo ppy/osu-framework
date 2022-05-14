@@ -100,7 +100,7 @@ namespace osu.Framework.Statistics
             Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
         }
 
-        internal static IGlobalStatistic[] GetStatistics()
+        public static IGlobalStatistic[] GetStatistics()
         {
             lock (statistics)
                 return statistics.ToArray();
