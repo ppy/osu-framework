@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Localisation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
@@ -64,6 +66,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        [Resolved]
+        private static LocalisationManager localisation { get; set; }
+
         protected internal override void AddInternal(Drawable drawable)
         {
             base.AddInternal(drawable);
@@ -92,9 +97,12 @@ namespace osu.Framework.Graphics.Containers
 
         private static bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
         {
+            IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localizedStr =>
+                new string[] {localizedStr.ToString(), localisation.GetLocalisedString(localizedStr)}).ToArray();
+
             //Words matched by parent is not needed to match children
             string[] childTerms = searchTerms.Where(term =>
-                !filterable.FilterTerms.Any(filterTerm =>
+                !filterTerms.Any(filterTerm =>
                     checkTerm(filterTerm, term, nonContiguousMatching))).ToArray();
 
             bool matching = childTerms.Length == 0;

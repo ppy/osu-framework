@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -14,6 +15,6 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// An enumerator of relevant terms which match the current object in a filtered scenario.
         /// </summary>
-        IEnumerable<string> FilterTerms { get; }
+        IEnumerable<LocalisableString> FilterTerms { get; }
     }
 }
