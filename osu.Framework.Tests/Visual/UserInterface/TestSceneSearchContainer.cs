@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Localisation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -146,7 +147,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class HeaderContainer : Container, IHasFilterableChildren
         {
-            public IEnumerable<string> FilterTerms => header.FilterTerms;
+            public IEnumerable<LocalisableString> FilterTerms => header.FilterTerms;
 
             public bool MatchingFilter
             {
@@ -188,7 +189,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class FilterableFlowContainer : FillFlowContainer, IFilterable
         {
-            public IEnumerable<string> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
+            public IEnumerable<LocalisableString> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
 
             public bool MatchingFilter
             {

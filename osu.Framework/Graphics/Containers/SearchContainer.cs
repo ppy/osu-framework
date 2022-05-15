@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [Resolved]
-        private static LocalisationManager localisation { get; set; }
+        private LocalisationManager localisation { get; set; }
 
         protected internal override void AddInternal(Drawable drawable)
         {
@@ -95,10 +95,10 @@ namespace osu.Framework.Graphics.Containers
             Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching));
         }
 
-        private static bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
+        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
         {
             IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localizedStr =>
-                new string[] {localizedStr.ToString(), localisation.GetLocalisedString(localizedStr)}).ToArray();
+                new[] { localizedStr.ToString(), localisation?.GetLocalisedString(localizedStr) });
 
             //Words matched by parent is not needed to match children
             string[] childTerms = searchTerms.Where(term =>
