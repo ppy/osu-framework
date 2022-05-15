@@ -138,6 +138,22 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Controls whether the mouse is automatically captured when buttons are pressed and the cursor is outside the window.
+        /// Only works with <see cref="RelativeMouseMode"/> disabled.
+        /// </summary>
+        /// <remarks>
+        /// If the cursor leaves the window while it's captured, <see cref="SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE"/> is not sent until the button(s) are released.
+        /// And if the cursor leaves and enters the window while captured, <see cref="SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER"/> is not sent either.
+        /// We disable relative mode when the cursor exits window bounds (not on the event), but we only enable it again on <see cref="SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER"/>.
+        /// The above culminate in <see cref="RelativeMouseMode"/> staying off when the cursor leaves and enters the window bounds when any buttons are pressed.
+        /// This is an invalid state, as the cursor is inside the window, and <see cref="RelativeMouseMode"/> is off.
+        /// </remarks>
+        internal bool MouseAutoCapture
+        {
+            set => ScheduleCommand(() => SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1" : "0"));
+        }
+
         private Size size = new Size(default_width, default_height);
 
         /// <summary>
@@ -153,6 +169,18 @@ namespace osu.Framework.Platform
                 size = value;
                 Resized?.Invoke();
             }
+        }
+
+        public Size MinSize
+        {
+            get => sizeWindowed.MinValue;
+            set => sizeWindowed.MinValue = value;
+        }
+
+        public Size MaxSize
+        {
+            get => sizeWindowed.MaxValue;
+            set => sizeWindowed.MaxValue = value;
         }
 
         /// <summary>
@@ -203,8 +231,15 @@ namespace osu.Framework.Platform
 
         private const int default_icon_size = 256;
 
+        /// <summary>
+        /// Scheduler for actions to run before the next event loop.
+        /// </summary>
         private readonly Scheduler commandScheduler = new Scheduler();
-        private readonly Scheduler eventScheduler = new Scheduler();
+
+        /// <summary>
+        /// Scheduler for actions to run at the end of the current event loop.
+        /// </summary>
+        protected readonly Scheduler EventScheduler = new Scheduler();
 
         private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
 
@@ -431,6 +466,7 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
+            SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
 
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
@@ -445,6 +481,31 @@ namespace osu.Framework.Platform
 
             updateWindowSpecifics();
             updateWindowSize();
+
+            sizeWindowed.MinValueChanged += min =>
+            {
+                if (min.Width < 0 || min.Height < 0)
+                    throw new InvalidOperationException($"Expected zero or positive size, got {min}");
+
+                if (min.Width > sizeWindowed.MaxValue.Width || min.Height > sizeWindowed.MaxValue.Height)
+                    throw new InvalidOperationException($"Expected a size less than max window size ({sizeWindowed.MaxValue}), got {min}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, min.Width, min.Height));
+            };
+
+            sizeWindowed.MaxValueChanged += max =>
+            {
+                if (max.Width <= 0 || max.Height <= 0)
+                    throw new InvalidOperationException($"Expected positive size, got {max}");
+
+                if (max.Width < sizeWindowed.MinValue.Width || max.Height < sizeWindowed.MinValue.Height)
+                    throw new InvalidOperationException($"Expected a size greater than min window size ({sizeWindowed.MinValue}), got {max}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
+            };
+
+            sizeWindowed.TriggerChange();
+
             WindowMode.TriggerChange();
         }
 
@@ -489,7 +550,7 @@ namespace osu.Framework.Platform
                 if (!cursorInWindow.Value)
                     pollMouse();
 
-                eventScheduler.Update();
+                EventScheduler.Update();
 
                 Update?.Invoke();
             }
@@ -516,7 +577,7 @@ namespace osu.Framework.Platform
 
             // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
             // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
-            eventScheduler.AddOnce(storeWindowSizeToConfig);
+            EventScheduler.AddOnce(storeWindowSizeToConfig);
         }
 
         /// <summary>
@@ -635,7 +696,7 @@ namespace osu.Framework.Platform
         /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
         /// </summary>
         /// <param name="action">The <see cref="Action"/> to execute.</param>
-        protected void ScheduleEvent(Action action) => eventScheduler.Add(action, false);
+        protected void ScheduleEvent(Action action) => EventScheduler.Add(action, false);
 
         protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 
