@@ -97,8 +97,8 @@ namespace osu.Framework.Graphics.Containers
 
         private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
         {
-            IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localizedStr =>
-                new[] { localizedStr.ToString(), localisation?.GetLocalisedString(localizedStr) });
+            IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localisedStr =>
+                new[] { localisedStr.ToString(), localisation.GetLocalisedString(localisedStr) });
 
             //Words matched by parent is not needed to match children
             string[] childTerms = searchTerms.Where(term =>
