@@ -105,7 +105,7 @@ namespace osu.Framework.IO.Stores
 
                     accessFilename += $"#{convert.Width}#{convert.Height}";
 
-                    using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
+                    using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
                         outStream.Write(buffer.Memory.Span);
 
                     return pageLookup[page] = new PageInfo
