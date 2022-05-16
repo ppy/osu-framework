@@ -959,7 +959,8 @@ namespace osu.Framework.Platform
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            TriggerMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false);
+            // SDL reports horizontal scroll opposite of what framework expects.
+            TriggerMouseWheel(new Vector2(-evtWheel.x, evtWheel.y), false);
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
