@@ -42,6 +42,8 @@ namespace osu.Framework.Platform
 
         public override void Move(string from, string to) => File.Move(GetFullPath(from), GetFullPath(to));
 
+        public override Stream CreateFileSafely(string path) => new SafeWriteStream(Guid.NewGuid().ToString(), path, this);
+
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
         public override IEnumerable<string> GetFiles(string path, string pattern = "*") => getRelativePaths(Directory.GetFiles(GetFullPath(path), pattern));
@@ -106,6 +108,33 @@ namespace osu.Framework.Platform
             string fullPath = GetFullPath(path, true);
 
             return (Storage)Activator.CreateInstance(GetType(), fullPath, host);
+        }
+
+        /// <summary>
+        /// Uses a temporary file to ensure a file is written to completion before existing at its specified location.
+        /// </summary>
+        private class SafeWriteStream : FlushingStream
+        {
+            private readonly string temporaryPath;
+            private readonly string finalPath;
+            private readonly Storage storage;
+
+            public SafeWriteStream(string temporaryPath, string finalPath, Storage storage)
+                : base(storage.GetFullPath(temporaryPath, true), FileMode.Create, FileAccess.Write)
+            {
+                storage.Delete(finalPath);
+
+                this.temporaryPath = temporaryPath;
+                this.finalPath = finalPath;
+                this.storage = storage;
+            }
+
+            protected override void PerformFinalFlush()
+            {
+                base.PerformFinalFlush();
+
+                storage.Move(temporaryPath, finalPath);
+            }
         }
     }
 }
