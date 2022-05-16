@@ -129,9 +129,9 @@ namespace osu.Framework.Platform
                 this.storage = storage;
             }
 
-            protected override void PerformFinalFlush()
+            protected override void Dispose(bool disposing)
             {
-                base.PerformFinalFlush();
+                base.Dispose(disposing);
 
                 storage.Move(temporaryPath, finalPath);
             }

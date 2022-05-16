@@ -30,7 +30,7 @@ namespace osu.Framework.Platform
 
                 try
                 {
-                    PerformFinalFlush();
+                    Flush(true);
                 }
                 catch
                 {
@@ -40,11 +40,6 @@ namespace osu.Framework.Platform
             }
 
             base.Dispose(disposing);
-        }
-
-        protected virtual void PerformFinalFlush()
-        {
-            Flush(true);
         }
     }
 }
