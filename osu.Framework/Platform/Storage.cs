@@ -99,6 +99,13 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Move a file from one location to another. File must exist. Destination must not exist.
+        /// </summary>
+        /// <param name="from">The file path to move.</param>
+        /// <param name="to">The destination path.</param>
+        public abstract void Move(string from, string to);
+
+        /// <summary>
         /// Retrieve a stream from an underlying file inside this storage.
         /// </summary>
         /// <param name="path">The path of the file.</param>
