@@ -56,21 +56,38 @@ namespace osu.Framework.IO.Stores
 
             using (var stream = Store.GetStream(filename))
             {
+                // The md5 of the original (compressed png) content.
                 string streamMd5 = stream.ComputeMD5Hash();
+
+                // The md5 of the access filename, including font name and page number.
                 string filenameMd5 = filename.ComputeMD5Hash();
 
                 string accessFilename = $"{filenameMd5}#{streamMd5}";
 
+                // Finding an existing file validates that the file both exists on disk, and was generated for the correct font.
+                // It doesn't guarantee that the generated cache file is in a good state.
                 string existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                 if (existing != null)
                 {
                     string[] split = existing.Split('#');
-                    return pageLookup[page] = new PageInfo
+
+                    int width = int.Parse(split[2]);
+                    int height = int.Parse(split[3]);
+
+                    // Sanity check that the length of the file is expected, based on the width and height.
+                    // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
+                    using (var testStream = CacheStorage.GetStream(existing))
                     {
-                        Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
-                        Filename = existing
-                    };
+                        if (testStream.Length == width * height)
+                        {
+                            return pageLookup[page] = new PageInfo
+                            {
+                                Size = new Size(width, height),
+                                Filename = existing
+                            };
+                        }
+                    }
                 }
 
                 using (var convert = GetPageImage(page))
