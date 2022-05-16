@@ -465,7 +465,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             OnCommit = null;
 
-            unbindInput();
+            unbindInput(false);
 
             base.Dispose(isDisposing);
         }
@@ -1190,7 +1190,7 @@ namespace osu.Framework.Graphics.UserInterface
             // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
             FinalizeImeComposition(false);
 
-            unbindInput();
+            unbindInput(e.NextFocused is TextBox);
 
             updateCaretVisibility();
 
@@ -1210,7 +1210,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocus(FocusEvent e)
         {
-            bindInput();
+            bindInput(e.PreviouslyFocused is TextBox);
 
             updateCaretVisibility();
         }
@@ -1224,7 +1224,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool textInputBound;
 
-        private void bindInput()
+        private void bindInput(bool previousFocusWasTextBox)
         {
             if (textInputBound)
             {
@@ -1232,7 +1232,14 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            textInput.Activate(AllowIme);
+            // TextBox has special handling of text input activation when focus is changed directly from one TextBox to another.
+            // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
+
+            if (previousFocusWasTextBox)
+                textInput.EnsureActivated(AllowIme);
+            else
+                textInput.Activate(AllowIme);
+
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
@@ -1240,14 +1247,17 @@ namespace osu.Framework.Graphics.UserInterface
             textInputBound = true;
         }
 
-        private void unbindInput()
+        private void unbindInput(bool nextFocusIsTextBox)
         {
             if (!textInputBound)
                 return;
 
             textInputBound = false;
 
-            textInput.Deactivate();
+            // see the comment above, in `bindInput(bool)`.
+            if (!nextFocusIsTextBox)
+                textInput.Deactivate();
+
             textInput.OnTextInput -= handleTextInput;
             textInput.OnImeComposition -= handleImeComposition;
             textInput.OnImeResult -= handleImeResult;
