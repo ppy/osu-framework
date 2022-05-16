@@ -25,7 +25,10 @@ namespace osu.Framework.IO.Stores
     /// </remarks>
     public class RawCachingGlyphStore : GlyphStore
     {
-        public Storage CacheStorage;
+        /// <summary>
+        /// A storage backing to be used for storing decompressed glyph sheets.
+        /// </summary>
+        internal Storage CacheStorage { get; set; }
 
         public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
             : base(store, assetName, textureLoader)
