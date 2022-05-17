@@ -959,7 +959,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            // SDL reports horizontal scroll opposite of what framework expects.
+            // SDL reports horizontal scroll opposite of what framework expects (in non-"natural" mode, scrolling to the right gives negative deltas while we expect positive).
             TriggerMouseWheel(new Vector2(-evtWheel.x, evtWheel.y), false);
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
@@ -1540,6 +1540,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
+        /// <remarks>
+        /// Delta is positive when mouse wheel scrolled to the up or left, in non-"natural" scroll mode (ie. the classic way).
+        /// </remarks>
         public event Action<Vector2, bool> MouseWheel;
 
         protected void TriggerMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
