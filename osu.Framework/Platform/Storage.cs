@@ -112,7 +112,7 @@ namespace osu.Framework.Platform
         /// If the target file path already exists, it will be deleted before attempting to write a new version.
         /// </remarks>
         /// <param name="path">The path of the file to create or overwrite.</param>
-        /// <returns></returns>
+        /// <returns>A stream associated with the requested path. Will only exist at the specified location after the stream is disposed.</returns>
         public abstract Stream CreateFileSafely(string path);
 
         /// <summary>
