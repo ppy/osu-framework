@@ -532,36 +532,25 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            if ((currentWorkarounds & PlatformWorkaround.WindowsInvalidateRect) != 0) // Should only be set on Windows
-            {
-                // InvalidateRect is absolutely necessary for some driver workarounds,
-                //  otherwise the latency will be higher, and dwm might crash sometimes
-                if (Window is SDL2DesktopWindow sdlWindow)
-                    Windows.Native.Window.InvalidateRect(sdlWindow.WindowHandle, IntPtr.Zero, false);
-            }
-
-            if ((currentWorkarounds & PlatformWorkaround.FinishBeforeSwap) != 0)
-            {
-                //TODO: This glFinish is only needed because we're not able to call wglSwapLayerBuffers directly, as to not break any possible future SDL code changes
-                GL.Finish();
-            }
-
             Window.SwapBuffers();
 
             if (Window.VerticalSync)
             {
-                if ((currentWorkarounds & PlatformWorkaround.FinishAfterSwapVSync) != 0)
+                if ((platformWorkarounds & PlatformWorkaround.FinishAfterSwapVSync) != 0)
                 {
-                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                    // we will likely want to give the user control over this in the future as an advanced setting.
+                    // Some drivers (namely Gen9 drivers, like for UHD 630 and Iris Plus 655 (see ppy/osu#7447))
+                    //  need explicit framerate stabilization on an uncapped framerate
+                    //  due to driver bugs, and a glFinish alone is mostly sufficient for that purpose.
                     GL.Finish();
                 }
             }
             else
             {
-                if ((currentWorkarounds & PlatformWorkaround.FinishAfterSwapNoVSync) != 0)
+                if ((platformWorkarounds & PlatformWorkaround.FinishAfterSwapNoVSync) != 0)
                 {
-                    // Some drivers require explicit synchronization due to scheduling issues
+                    // Some drivers require explicit synchronization due to scheduling issues,
+                    //  to stabilize frametime and improve latency in most cases
+                    //  where this workaround is needed.
                     GL.Finish();
                 }
             }
@@ -775,7 +764,18 @@ namespace osu.Framework.Platform
                     if (Window != null)
                     {
                         // Force recalculation of workarounds, as we're finally able to get renderer metadata
-                        PlatformWorkarounds.TriggerChange();
+
+                        GraphicsBackendMetadata? rendererMetadata = Window.RendererMetadata;
+
+                        platformWorkarounds =
+                            rendererMetadata.HasValue
+                            ? PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value)
+                            : PlatformWorkaround.Default; // If the renderer provides no metadata, assume no workarounds needed
+                        
+                        // We don't need to know the workaround mode in the logs,
+                        //  unless there is one being applied which differs from the default settings.
+                        if (platformWorkarounds != PlatformWorkaround.Default)
+                            Logger.Log("Changed workaround mode to " + platformWorkarounds);
 
                         switch (Window)
                         {
@@ -960,8 +960,7 @@ namespace osu.Framework.Platform
 
         private Bindable<bool> bypassFrontToBackPass;
 
-        public readonly Bindable<PlatformWorkaround> PlatformWorkarounds = new Bindable<PlatformWorkaround>(PlatformWorkaround.Auto);
-        private PlatformWorkaround currentWorkarounds = PlatformWorkaround.Default;
+        private PlatformWorkaround platformWorkarounds = PlatformWorkaround.Default;
 
         private Bindable<FrameSync> frameSyncMode;
 
@@ -1053,22 +1052,6 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
-
-            PlatformWorkarounds.BindValueChanged(workaroundMode =>
-            {
-                if (workaroundMode.NewValue == PlatformWorkaround.Auto)
-                {
-                    GraphicsBackendMetadata? rendererMetadata = Window.RendererMetadata;
-
-                    currentWorkarounds = rendererMetadata.HasValue ? PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value) : PlatformWorkaround.Default;
-                }
-                else
-                {
-                    currentWorkarounds = workaroundMode.NewValue;
-                }
-
-                Logger.Log("Changed workaround mode to " + currentWorkarounds);
-            });
         }
 
         private void updateFrameSyncMode()

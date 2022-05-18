@@ -15,20 +15,9 @@ namespace osu.Framework.Platform
         {
             if (isAffectedIntelGraphicsGen9(backendMetadata, platform))
             {
-                // Intel Gen9 needs custom workarounds for Windows
-                //  due to the bug causing excess overload until
-                //  dwm or the driver ends up crashing.
-                if (platform == RuntimeInfo.Platform.Windows)
-                {
-                    return PlatformWorkaround.WindowsInvalidateRect
-                           | PlatformWorkaround.FinishBeforeSwap //TODO: wglSwapLayerBuffers is preferred over an explicit pre-SwapBuffers glFinish
-                           | PlatformWorkaround.FinishAfterSwapAlways;
-                }
-
-                // On macOS there is simply just a scheduling bug,
-                //  which can be kept in sync by just a mere glFinish.
-                // Other affected platforms should also use this, as they
-                //  don't have InvalidateRect.
+                // The biggest cause of issues is timing and scheduling bugs in the driver,
+                //  and a glFinish mostly mitigates those issues well enough.
+                // For in-depth technical details, see ppy/osu-framework#5164 and ppy/osu-framework#5165
                 return PlatformWorkaround.FinishAfterSwapAlways;
             }
 
@@ -38,18 +27,13 @@ namespace osu.Framework.Platform
         // A big chunk of Gen9 Intel iGPUs have broken drivers, and we need to detect those
         private static bool isAffectedIntelGraphicsGen9(GraphicsBackendMetadata backendMetadata, RuntimeInfo.Platform platform)
         {
-            if (platform == RuntimeInfo.Platform.Linux)
+            if (platform != RuntimeInfo.Platform.macOS)
             {
-                if (backendMetadata.RendererName.Contains("Mesa", StringComparison.OrdinalIgnoreCase) ||
-                    backendMetadata.VersionString.Contains("Mesa", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Mesa drivers are not affected by the Gen9 bug at all
-                    return false;
-                }
-            }
-            else if (platform != RuntimeInfo.Platform.Windows && platform != RuntimeInfo.Platform.macOS)
-            {
-                // OSes beside Windows and macOS have their own problems not caused by drivers, so ignore those
+                // On Windows, driver problems are solved by upgrading/downgrading both Windows and the driver
+                //  (see ppy/osu-framework#5165),
+                //  so we opted to not try to work around those,
+                //  as non-broken driver versions get a huge (~40-50%) performance hit, if any workaround is applied.
+                // OSes besides Windows and macOS have their own problems not caused by drivers, so ignore those.
                 return false;
             }
 
@@ -115,9 +99,9 @@ namespace osu.Framework.Platform
     public enum PlatformWorkaround
     {
         /// <summary>
-        /// Special value to indicate that workarounds need to be automatically detected.
+        /// Indicates that glFinish is not needed at all for a particular driver/product
         /// </summary>
-        Auto = 0,
+        NoFinish = 0,
 
         /// <summary>
         /// Default workaround configuration used if no workarounds are required.
@@ -138,15 +122,5 @@ namespace osu.Framework.Platform
         /// Perform glFinish after SwapBuffers, no matter if VSync is enabled or not.
         /// </summary>
         FinishAfterSwapAlways = FinishAfterSwapVSync | FinishAfterSwapNoVSync,
-
-        /// <summary>
-        /// Perform glFinish before SwapBuffers.
-        /// </summary>
-        FinishBeforeSwap = (1 << 2),
-
-        /// <summary>
-        /// On Windows, perform InvalidateRect as the first thing to work around certain driver bugs.
-        /// </summary>
-        WindowsInvalidateRect = (1 << 3)
     }
 }
