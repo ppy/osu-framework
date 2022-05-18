@@ -127,8 +127,6 @@ namespace osu.Framework.Platform
             public SafeWriteStream(string temporaryPath, string finalPath, Storage storage)
                 : base(storage.GetFullPath(temporaryPath, true), FileMode.Create, FileAccess.Write)
             {
-                storage.Delete(finalPath);
-
                 this.temporaryPath = temporaryPath;
                 this.finalPath = finalPath;
                 this.storage = storage;
@@ -138,6 +136,7 @@ namespace osu.Framework.Platform
             {
                 base.Dispose(disposing);
 
+                storage.Delete(finalPath);
                 storage.Move(temporaryPath, finalPath);
             }
         }
