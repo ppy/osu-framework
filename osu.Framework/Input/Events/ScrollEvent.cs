@@ -15,6 +15,9 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// The relative change in scroll associated with this event.
         /// </summary>
+        /// <remarks>
+        /// Delta is positive when mouse wheel scrolled to the up or left, in non-"natural" scroll mode (ie. the classic way).
+        /// </remarks>
         public readonly Vector2 ScrollDelta;
 
         /// <summary>
