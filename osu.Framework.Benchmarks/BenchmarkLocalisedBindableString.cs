@@ -18,7 +18,7 @@ namespace osu.Framework.Benchmarks
         [GlobalSetup]
         public void GlobalSetup()
         {
-            storage = new TemporaryNativeStorage(new Guid().ToString());
+            storage = new TemporaryNativeStorage(Guid.NewGuid().ToString());
             manager = new LocalisationManager(new FrameworkConfigManager(storage));
         }
 
