@@ -42,7 +42,12 @@ namespace osu.Framework.Platform
 
         public override void Move(string from, string to) => File.Move(GetFullPath(from), GetFullPath(to));
 
-        public override Stream CreateFileSafely(string path) => new SafeWriteStream(Guid.NewGuid().ToString(), path, this);
+        public override Stream CreateFileSafely(string path)
+        {
+            string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
+
+            return new SafeWriteStream(temporaryPath, path, this);
+        }
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
