@@ -538,7 +538,7 @@ namespace osu.Framework.Platform
             {
                 if ((platformWorkarounds & PlatformWorkaround.FinishAfterSwapVSync) != 0)
                 {
-                    // Some drivers (namely Gen9 drivers, like for UHD 630 and Iris Plus 655 (see ppy/osu#7447))
+                    // Some drivers (namely Gen9 drivers, like for UHD 630 (see ppy/osu-framework#5164) and Iris Plus 655 (see ppy/osu#7447))
                     //  need explicit framerate stabilization on an uncapped framerate
                     //  due to driver bugs, and a glFinish alone is mostly sufficient for that purpose.
                     GL.Finish();
@@ -770,11 +770,11 @@ namespace osu.Framework.Platform
                         platformWorkarounds =
                             rendererMetadata.HasValue
                             ? PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value)
-                            : PlatformWorkaround.Default; // If the renderer provides no metadata, assume no workarounds needed
-                        
-                        // We don't need to know the workaround mode in the logs,
-                        //  unless there is one being applied which differs from the default settings.
-                        if (platformWorkarounds != PlatformWorkaround.Default)
+                            : PlatformWorkaround.None; // If the renderer provides no metadata, assume no workarounds needed
+
+                        // We don't need to know the workaround mode in the logs
+                        //  if no workaround is being applied.
+                        if (platformWorkarounds != PlatformWorkaround.None)
                             Logger.Log("Changed workaround mode to " + platformWorkarounds);
 
                         switch (Window)
@@ -960,7 +960,7 @@ namespace osu.Framework.Platform
 
         private Bindable<bool> bypassFrontToBackPass;
 
-        private PlatformWorkaround platformWorkarounds = PlatformWorkaround.Default;
+        private PlatformWorkaround platformWorkarounds = PlatformWorkaround.None;
 
         private Bindable<FrameSync> frameSyncMode;
 

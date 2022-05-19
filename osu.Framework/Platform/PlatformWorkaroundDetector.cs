@@ -21,7 +21,7 @@ namespace osu.Framework.Platform
                 return PlatformWorkaround.FinishAfterSwapAlways;
             }
 
-            return PlatformWorkaround.Default;
+            return PlatformWorkaround.None;
         }
 
         // A big chunk of Gen9 Intel iGPUs have broken drivers, and we need to detect those
@@ -99,14 +99,10 @@ namespace osu.Framework.Platform
     public enum PlatformWorkaround
     {
         /// <summary>
-        /// Indicates that glFinish is not needed at all for a particular driver/product
+        /// Indicates that no special workarounds need to be applied.
+        /// This is the default.
         /// </summary>
-        NoFinish = 0,
-
-        /// <summary>
-        /// Default workaround configuration used if no workarounds are required.
-        /// </summary>
-        Default = FinishAfterSwapVSync,
+        None = 0,
 
         /// <summary>
         /// Perform glFinish after SwapBuffers if VSync is enabled.
