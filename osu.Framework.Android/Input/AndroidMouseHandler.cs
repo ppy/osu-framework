@@ -209,7 +209,9 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private Vector2 getEventScroll(MotionEvent e) => new Vector2(e.GetAxisValue(Axis.Hscroll), e.GetAxisValue(Axis.Vscroll));
+        private Vector2 getEventScroll(MotionEvent e) =>
+            // Android reports horizontal scroll opposite of what framework expects.
+            new Vector2(-e.GetAxisValue(Axis.Hscroll), e.GetAxisValue(Axis.Vscroll));
 
         private void handleMouseMoveEvent(MotionEvent evt)
         {
