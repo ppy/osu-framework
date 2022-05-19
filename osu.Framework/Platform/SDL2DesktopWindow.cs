@@ -959,7 +959,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            // SDL reports horizontal scroll opposite of what framework expects (in non-"natural" mode, scrolling to the right gives negative deltas while we expect positive).
+            // SDL reports horizontal scroll opposite of what framework expects (in non-"natural" mode, scrolling to the right gives positive deltas while we want negative).
             TriggerMouseWheel(new Vector2(-evtWheel.preciseX, evtWheel.preciseY), false);
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
