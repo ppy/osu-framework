@@ -132,12 +132,19 @@ namespace osu.Framework.Platform
                 this.storage = storage;
             }
 
+            private bool isDisposed;
+
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
 
-                storage.Delete(finalPath);
-                storage.Move(temporaryPath, finalPath);
+                if (!isDisposed)
+                {
+                    storage.Delete(finalPath);
+                    storage.Move(temporaryPath, finalPath);
+
+                    isDisposed = true;
+                }
             }
         }
     }
