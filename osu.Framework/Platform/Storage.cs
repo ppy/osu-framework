@@ -113,7 +113,12 @@ namespace osu.Framework.Platform
         /// </remarks>
         /// <param name="path">The path of the file to create or overwrite.</param>
         /// <returns>A stream associated with the requested path. Will only exist at the specified location after the stream is disposed.</returns>
-        public abstract Stream CreateFileSafely(string path);
+        public Stream CreateFileSafely(string path)
+        {
+            string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
+
+            return new SafeWriteStream(temporaryPath, path, this);
+        }
 
         /// <summary>
         /// Retrieve a stream from an underlying file inside this storage.
@@ -146,5 +151,38 @@ namespace osu.Framework.Platform
         /// <param name="filename">Relative path to the file.</param>
         /// <returns>Whether the file was successfully presented.</returns>
         public abstract bool PresentFileExternally(string filename);
+
+        /// <summary>
+        /// Uses a temporary file to ensure a file is written to completion before existing at its specified location.
+        /// </summary>
+        private class SafeWriteStream : FlushingStream
+        {
+            private readonly string temporaryPath;
+            private readonly string finalPath;
+            private readonly Storage storage;
+
+            public SafeWriteStream(string temporaryPath, string finalPath, Storage storage)
+                : base(storage.GetFullPath(temporaryPath, true), FileMode.Create, FileAccess.Write)
+            {
+                this.temporaryPath = temporaryPath;
+                this.finalPath = finalPath;
+                this.storage = storage;
+            }
+
+            private bool isDisposed;
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+
+                if (!isDisposed)
+                {
+                    storage.Delete(finalPath);
+                    storage.Move(temporaryPath, finalPath);
+
+                    isDisposed = true;
+                }
+            }
+        }
     }
 }
