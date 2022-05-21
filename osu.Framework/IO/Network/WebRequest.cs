@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0
+#if NET6_0_OR_GREATER
 using System.Net.Sockets;
 #endif
 using System;
@@ -149,14 +149,20 @@ namespace osu.Framework.IO.Network
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         private static readonly HttpClient client = new HttpClient(
-#if NET6_0
+#if NET6_0_OR_GREATER
             new SocketsHttpHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                Credentials = CredentialCache.DefaultCredentials,
                 ConnectCallback = onConnect,
             }
 #else
-            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+            new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                Credentials = CredentialCache.DefaultCredentials,
+            }
 #endif
         )
         {
@@ -320,7 +326,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET6_0
+#if NET6_0_OR_GREATER
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
                             postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
@@ -428,7 +434,7 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET6_0
+#if NET6_0_OR_GREATER
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
@@ -764,7 +770,7 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET6_0
+#if NET6_0_OR_GREATER
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>
@@ -859,9 +865,23 @@ namespace osu.Framework.IO.Network
                 baseStream.Flush();
             }
 
-            public override int Read(byte[] buffer, int offset, int count)
+            public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+            public override int Read(Span<byte> buffer)
             {
-                int read = baseStream.Read(buffer, offset, count);
+                int read = baseStream.Read(buffer);
+                BytesRead.Value += read;
+                return read;
+            }
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+            }
+
+            public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            {
+                int read = await baseStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
                 BytesRead.Value += read;
                 return read;
             }

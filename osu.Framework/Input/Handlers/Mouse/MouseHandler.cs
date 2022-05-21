@@ -93,11 +93,11 @@ namespace osu.Framework.Input.Handlers.Mouse
             cursorState = desktopWindow.CursorStateBindable.GetBoundCopy();
             cursorState.BindValueChanged(_ => updateRelativeMode());
 
-            UseRelativeMode.BindValueChanged(_ =>
+            UseRelativeMode.BindValueChanged(e =>
             {
-                if (window != null)
-                    updateRelativeMode();
-            });
+                window.MouseAutoCapture = !e.NewValue;
+                updateRelativeMode();
+            }, true);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -133,7 +133,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        public void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public virtual void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
         {
             if (!Enabled.Value)
                 return;

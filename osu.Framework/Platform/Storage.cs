@@ -99,6 +99,23 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Move a file from one location to another. File must exist. Destination must not exist.
+        /// </summary>
+        /// <param name="from">The file path to move.</param>
+        /// <param name="to">The destination path.</param>
+        public abstract void Move(string from, string to);
+
+        /// <summary>
+        /// Create a new file on disk, using a temporary file to write to before moving to the final location to ensure a half-written file cannot exist at the specified location.
+        /// </summary>
+        /// <remarks>
+        /// If the target file path already exists, it will be deleted before attempting to write a new version.
+        /// </remarks>
+        /// <param name="path">The path of the file to create or overwrite.</param>
+        /// <returns>A stream associated with the requested path. Will only exist at the specified location after the stream is disposed.</returns>
+        public abstract Stream CreateFileSafely(string path);
+
+        /// <summary>
         /// Retrieve a stream from an underlying file inside this storage.
         /// </summary>
         /// <param name="path">The path of the file.</param>

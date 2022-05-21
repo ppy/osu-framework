@@ -636,6 +636,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms => displayedText.Yield();
+        public IEnumerable<LocalisableString> FilterTerms => Text.Yield();
     }
 }

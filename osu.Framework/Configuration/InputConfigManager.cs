@@ -50,7 +50,7 @@ namespace osu.Framework.Configuration
         {
             try
             {
-                using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
+                using (var stream = storage.CreateFileSafely(FILENAME))
                 using (var sw = new StreamWriter(stream))
                 {
                     sw.Write(JsonConvert.SerializeObject(this));

@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
@@ -25,7 +25,10 @@ namespace osu.Framework.IO.Stores
     /// </remarks>
     public class RawCachingGlyphStore : GlyphStore
     {
-        public Storage CacheStorage;
+        /// <summary>
+        /// A storage backing to be used for storing decompressed glyph sheets.
+        /// </summary>
+        internal Storage CacheStorage { get; set; }
 
         public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
             : base(store, assetName, textureLoader)
@@ -53,21 +56,38 @@ namespace osu.Framework.IO.Stores
 
             using (var stream = Store.GetStream(filename))
             {
+                // The md5 of the original (compressed png) content.
                 string streamMd5 = stream.ComputeMD5Hash();
+
+                // The md5 of the access filename, including font name and page number.
                 string filenameMd5 = filename.ComputeMD5Hash();
 
                 string accessFilename = $"{filenameMd5}#{streamMd5}";
 
+                // Finding an existing file validates that the file both exists on disk, and was generated for the correct font.
+                // It doesn't guarantee that the generated cache file is in a good state.
                 string existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                 if (existing != null)
                 {
                     string[] split = existing.Split('#');
-                    return pageLookup[page] = new PageInfo
+
+                    int width = int.Parse(split[2]);
+                    int height = int.Parse(split[3]);
+
+                    // Sanity check that the length of the file is expected, based on the width and height.
+                    // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
+                    using (var testStream = CacheStorage.GetStream(existing))
                     {
-                        Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
-                        Filename = existing
-                    };
+                        if (testStream.Length == width * height)
+                        {
+                            return pageLookup[page] = new PageInfo
+                            {
+                                Size = new Size(width, height),
+                                Filename = existing
+                            };
+                        }
+                    }
                 }
 
                 using (var convert = GetPageImage(page))
@@ -85,7 +105,7 @@ namespace osu.Framework.IO.Stores
 
                     accessFilename += $"#{convert.Width}#{convert.Height}";
 
-                    using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
+                    using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
                         outStream.Write(buffer.Memory.Span);
 
                     return pageLookup[page] = new PageInfo
@@ -104,34 +124,38 @@ namespace osu.Framework.IO.Stores
             int pageWidth = page.Size.Width;
 
             int characterByteRegion = pageWidth * character.Height;
+            byte[] readBuffer = ArrayPool<byte>.Shared.Rent(characterByteRegion);
 
-            if (readBuffer == null || readBuffer.Length < characterByteRegion)
-                readBuffer = new byte[characterByteRegion];
-
-            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
-
-            if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
-                source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
-
-            source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
-            int readBytes = source.Read(readBuffer, 0, characterByteRegion);
-
-            Debug.Assert(readBytes == characterByteRegion);
-
-            // the spritesheet may have unused pixels trimmed
-            int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
-            int readableWidth = Math.Min(character.Width, pageWidth - character.X);
-
-            for (int y = 0; y < character.Height; y++)
+            try
             {
-                var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
-                int readOffset = y * pageWidth + character.X;
+                var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
-                for (int x = 0; x < character.Width; x++)
-                    pixelRowMemory.Span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
+                    source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
+
+                // consider to use System.IO.RandomAccess in .NET 6
+                source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
+                source.ReadToFill(readBuffer.AsSpan(0, characterByteRegion));
+
+                // the spritesheet may have unused pixels trimmed
+                int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
+                int readableWidth = Math.Min(character.Width, pageWidth - character.X);
+
+                for (int y = 0; y < character.Height; y++)
+                {
+                    var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
+                    int readOffset = y * pageWidth + character.X;
+
+                    for (int x = 0; x < character.Width; x++)
+                        pixelRowMemory.Span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                }
+
+                return new TextureUpload(image);
             }
-
-            return new TextureUpload(image);
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(readBuffer);
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -144,8 +168,6 @@ namespace osu.Framework.IO.Stores
                     h.Value?.Dispose();
             }
         }
-
-        private byte[] readBuffer;
 
         private class PageInfo
         {

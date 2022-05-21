@@ -12,7 +12,7 @@ using osu.Framework.Extensions.TypeExtensions;
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// Marks a method as the (potentially asynchronous) initialization method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
+    /// Marks a method as the (potentially asynchronous) initialization method of a <see cref="Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
     /// </summary>
     [MeansImplicitUse(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     [AttributeUsage(AttributeTargets.Method)]
