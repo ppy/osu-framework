@@ -24,24 +24,20 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         public int Size { get; }
 
+        private readonly int maxBuffers;
+
         private int currentBufferIndex;
         private int rollingVertexIndex;
 
         private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
 
-        [Obsolete("Use `VertexBatch(int bufferSize)` instead.")] // Can be removed 2022-11-09
-        // ReSharper disable once UnusedParameter.Local
         protected VertexBatch(int bufferSize, int maxBuffers)
-            : this(bufferSize)
-        {
-        }
-
-        protected VertexBatch(int bufferSize)
         {
             // Vertex buffers of size 0 don't make any sense. Let's not blindly hope for good behavior of OpenGL.
             Trace.Assert(bufferSize > 0);
 
             Size = bufferSize;
+            this.maxBuffers = maxBuffers;
         }
 
         #region Disposal

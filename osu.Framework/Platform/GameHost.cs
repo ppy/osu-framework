@@ -61,9 +61,9 @@ namespace osu.Framework.Platform
 
         private static readonly QuadBatch<TexturedVertex2D>[] default_quad_batch =
         {
-            new QuadBatch<TexturedVertex2D>(100),
-            new QuadBatch<TexturedVertex2D>(100),
-            new QuadBatch<TexturedVertex2D>(100),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
         };
 
         /// <summary>
