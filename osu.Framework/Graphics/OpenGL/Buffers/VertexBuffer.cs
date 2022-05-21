@@ -20,8 +20,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly BufferUsageHint usage;
 
-        private static readonly DepthWrappingVertex<T>[] upload_queue = new DepthWrappingVertex<T>[1024];
-
         // ReSharper disable once StaticMemberInGenericType
         private static readonly GlobalStatistic<int> vertex_memory_statistic = GlobalStatistics.Get<int>("Native", $"{nameof(VertexBuffer<T>)}");
 
