@@ -168,8 +168,13 @@ namespace osu.Framework.Graphics.Audio
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
             {
-                generate();
-                result = true;
+                // We should regenerate when `Scale` changed, but not `Position`.
+                // Unfortunately both of these are grouped together in `MiscGeometry`.
+                if (requiredPointCount != resampledPointCount)
+                {
+                    generate();
+                    result = true;
+                }
             }
 
             return result;
@@ -179,10 +184,13 @@ namespace osu.Framework.Graphics.Audio
         private ScheduledDelegate scheduledGenerate;
 
         private List<Waveform.Point> resampledPoints;
+        private int resampledPointCount;
         private int resampledChannels;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
         private double resampledMaxLowIntensity;
+
+        private int requiredPointCount => (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
 
         private void generate()
         {
@@ -192,12 +200,16 @@ namespace osu.Framework.Graphics.Audio
             if (Waveform == null)
                 return;
 
+            // This should be set before the operation is run.
+            // It will stop unnecessary task churn if invalidation is occuring often.
+            resampledPointCount = requiredPointCount;
+
             scheduledGenerate = Schedule(() =>
             {
                 cancelSource = new CancellationTokenSource();
                 var token = cancelSource.Token;
 
-                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(task =>
+                Waveform.GenerateResampledAsync(resampledPointCount, token).ContinueWith(task =>
                 {
                     var resampled = task.GetResultSafely();
 
