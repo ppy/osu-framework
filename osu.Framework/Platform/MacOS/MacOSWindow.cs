@@ -51,7 +51,7 @@ namespace osu.Framework.Platform.MacOS
             }
 
             // according to osuTK, 0.1f is the scaling factor expected to be returned by CGEventSourceGetPixelsPerLine
-            // this is additionally scaled down by a factor 8 so that a precise scroll of 1.0 is roughly equivalent to one notch on a traditional scroll wheel.
+            // this is additionally scaled down by a factor of 8 so that a precise scroll of 1.0 is roughly equivalent to one notch on a traditional scroll wheel.
             const float scale_factor = 0.1f / 8;
 
             float scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
