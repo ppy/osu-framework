@@ -382,7 +382,7 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
                 scrollDeltaFloat = scrollDelta.X;
 
-            scrollByOffset((isPrecise ? 10 : ScrollDistance) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
+            scrollByOffset(ScrollDistance * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
             return true;
         }
 
