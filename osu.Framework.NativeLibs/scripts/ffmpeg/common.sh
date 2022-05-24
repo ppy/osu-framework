@@ -16,13 +16,16 @@ FFMPEG_FLAGS=(
 )
 
 function build_ffmpeg() {
-    echo "-> Downloading source..."
-
-    curl https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz | tar zxf -
-    cd ffmpeg-$FFMPEG_VERSION
+    if [ ! -d "ffmpeg-$FFMPEG_VERSION" ]; then
+        echo "-> Downloading source..."
+        curl https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz | tar zxf -
+    else
+        echo "-> ffmpeg-$FFMPEG_VERSION already exists, not re-downloading."
+    fi
 
     echo "-> Configuring..."
 
+    cd ffmpeg-$FFMPEG_VERSION
     ./configure "${FFMPEG_FLAGS[@]}"
 
     CORES=0
