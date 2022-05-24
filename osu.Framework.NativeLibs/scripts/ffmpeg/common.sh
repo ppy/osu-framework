@@ -12,6 +12,18 @@ FFMPEG_FLAGS=(
     --disable-avdevice
     --disable-swresample
     --disable-librtmp
+    --disable-alsa
+    --disable-iconv
+    --disable-libxcb
+    --disable-libxcb-shm
+    --disable-libxcb-xfixes
+    --disable-libxcb-shape
+    --disable-sdl2
+    --disable-zlib
+    --disable-bzlib
+    --disable-lzma
+    --disable-xlib
+    --disable-schannel
     --enable-shared
 )
 
