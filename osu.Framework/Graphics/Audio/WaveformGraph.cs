@@ -218,6 +218,9 @@ namespace osu.Framework.Graphics.Audio
 
                         Schedule(() =>
                         {
+                            if (token.IsCancellationRequested)
+                                return;
+
                             resampledPoints = points;
                             resampledChannels = channels;
                             resampledMaxHighIntensity = maxHighIntensity;
