@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 resolution = value;
-                resampledPointCount = 0;
+                resampledPointCount = null;
                 queueRegeneration();
             }
         }
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 waveform = value;
-                resampledPointCount = 0;
+                resampledPointCount = null;
                 queueRegeneration();
             }
         }
@@ -180,17 +180,17 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
         private List<Waveform.Point> resampledPoints;
-        private int resampledPointCount;
+        private int? resampledPointCount;
         private int resampledChannels;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
         private double resampledMaxLowIntensity;
 
-        private int requiredPointCount => (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
-
         private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
             cancelGeneration();
+
+            int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
 
             if (requiredPointCount == resampledPointCount)
                 return;
@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.Audio
             cancelSource = new CancellationTokenSource();
             var token = cancelSource.Token;
 
-            Waveform.GenerateResampledAsync(resampledPointCount, token)
+            Waveform.GenerateResampledAsync(resampledPointCount.Value, token)
                     .ContinueWith(task =>
                     {
                         var resampled = task.GetResultSafely();
@@ -225,7 +225,6 @@ namespace osu.Framework.Graphics.Audio
                             resampledMaxLowIntensity = maxLowIntensity;
 
                             OnWaveformRegenerated(resampled);
-
                             Invalidate(Invalidation.DrawNode);
                         });
                     }, token);
