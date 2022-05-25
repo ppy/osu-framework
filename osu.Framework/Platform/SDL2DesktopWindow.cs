@@ -435,8 +435,13 @@ namespace osu.Framework.Platform
         private readonly BindableDouble windowPositionY = new BindableDouble();
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
+        // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
+
         [UsedImplicitly]
         private SDL.SDL_LogOutputFunction logOutputDelegate;
+
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter eventFilterDelegate;
 
         public SDL2DesktopWindow()
         {
@@ -532,10 +537,6 @@ namespace osu.Framework.Platform
 
             WindowMode.TriggerChange();
         }
-
-        // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
-        [UsedImplicitly]
-        private SDL.SDL_EventFilter eventFilterDelegate;
 
         /// <summary>
         /// Starts the window's run loop.
