@@ -188,12 +188,11 @@ namespace osu.Framework.Graphics.Audio
 
         private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
-            cancelGeneration();
-
             int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
-
             if (requiredPointCount == resampledPointCount)
                 return;
+
+            cancelGeneration();
 
             if (Waveform == null)
                 return;
