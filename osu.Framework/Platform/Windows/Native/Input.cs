@@ -201,6 +201,8 @@ namespace osu.Framework.Platform.Windows.Native
         HID = 2
     }
 
+#pragma warning disable IDE1006 // Naming style
+
     /// <summary>
     /// Value type for a raw input header.
     /// </summary>
@@ -235,6 +237,8 @@ namespace osu.Framework.Platform.Windows.Native
         /// <summary>Handle to the target device. If NULL, it follows the keyboard focus.</summary>
         public IntPtr WindowHandle;
     }
+
+#pragma warning restore IDE1006
 
     /// <summary>Enumeration containing flags for a raw input device.</summary>
     public enum RawInputDeviceFlags

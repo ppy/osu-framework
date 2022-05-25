@@ -14,7 +14,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestRelativePaths()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestAttemptEscapeRoot()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetSubDirectoryStorage()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetEmptySubDirectoryStorage()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {

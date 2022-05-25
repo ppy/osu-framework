@@ -144,9 +144,14 @@ namespace osu.Framework.Platform
         void ClearCurrent();
 
         /// <summary>
-        /// Request close.
+        /// Forcefully closes the window.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
+        void RequestClose();
 
         /// <summary>
         /// Start the window's run loop.
@@ -180,6 +185,18 @@ namespace osu.Framework.Platform
         /// The client size of the window (excluding any window decoration/border).
         /// </summary>
         Size ClientSize { get; }
+
+        /// <summary>
+        /// The minimum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or a size greater than <see cref="MaxSize"/>.</exception>
+        Size MinSize { get; set; }
+
+        /// <summary>
+        /// The maximum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
+        Size MaxSize { get; set; }
 
         /// <summary>
         /// The window title.

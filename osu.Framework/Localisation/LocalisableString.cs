@@ -33,6 +33,19 @@ namespace osu.Framework.Localisation
             Data = data;
         }
 
+        /// <summary>
+        /// Replaces one or more format items in a specified string with a localised string representation of a corresponding object in <paramref name="args"/>.
+        /// </summary>
+        /// <param name="format">The format string.</param>
+        /// <param name="args">The objects to format.</param>
+        public static LocalisableString Format(string format, params object?[] args) => new LocalisableFormattableString(format, args);
+
+        /// <summary>
+        /// Creates a <see cref="LocalisableString"/> representation of the specified interpolated string.
+        /// </summary>
+        /// <param name="interpolation">The interpolated string containing format and arguments.</param>
+        public static LocalisableString Interpolate(FormattableString interpolation) => new LocalisableFormattableString(interpolation);
+
         // it's somehow common to call default(LocalisableString), and we should return empty string then.
         public override string ToString() => Data?.ToString() ?? string.Empty;
 

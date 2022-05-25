@@ -32,8 +32,8 @@ namespace osu.Framework.Benchmarks
             romanisableString2 = new RomanisableString("c", "d");
             translatableString1 = new TranslatableString("e", "f");
             translatableString2 = new TranslatableString("g", "h");
-            formattableString1 = new LocalisableFormattableString(1.23, "N0");
-            formattableString2 = new LocalisableFormattableString(4.56, "N1");
+            formattableString1 = LocalisableString.Format("({0})", "j");
+            formattableString2 = LocalisableString.Format("[{0}]", "l");
         }
 
         [Benchmark]

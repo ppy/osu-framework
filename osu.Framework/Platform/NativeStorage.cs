@@ -40,6 +40,8 @@ namespace osu.Framework.Platform
                 File.Delete(path);
         }
 
+        public override void Move(string from, string to) => File.Move(GetFullPath(from), GetFullPath(to));
+
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
         public override IEnumerable<string> GetFiles(string path, string pattern = "*") => getRelativePaths(Directory.GetFiles(GetFullPath(path), pattern));

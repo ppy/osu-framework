@@ -86,7 +86,7 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         /// <summary>
-        /// Called when the host is requesting to exit. Return <c>false</c> to block the exit process.
+        /// Called when the host is requesting to exit. Return <c>true</c> to block the exit process.
         /// </summary>
         public event Func<bool> Exiting;
 
@@ -419,7 +419,7 @@ namespace osu.Framework.Platform
                     Thread.Sleep(1);
             }
 
-            if (response == false)
+            if (response.Value)
                 return true;
 
             Exit();
@@ -1182,6 +1182,7 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Home, PlatformAction.MoveToListStart),
             new KeyBinding(InputKey.End, PlatformAction.MoveToListEnd),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Y), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),

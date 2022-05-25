@@ -21,6 +21,15 @@ namespace osu.Framework.Localisation
         public readonly bool PreferOriginalScript;
 
         /// <summary>
+        /// Creates a new instance of <see cref="LocalisationParameters"/> based off another <see cref="LocalisationParameters"/>.
+        /// </summary>
+        /// <param name="parameters">The <see cref="LocalisationParameters"/> to copy values from.</param>
+        protected LocalisationParameters(LocalisationParameters parameters)
+            : this(parameters.Store, parameters.PreferOriginalScript)
+        {
+        }
+
+        /// <summary>
         /// Creates a new instance of <see cref="LocalisationParameters"/>.
         /// </summary>
         /// <param name="store">The <see cref="ILocalisationStore"/> to be used for string lookups and culture-specific formatting.</param>
