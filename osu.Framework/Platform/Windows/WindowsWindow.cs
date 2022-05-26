@@ -4,8 +4,12 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Bindables;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
@@ -23,6 +27,9 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
+        public IBindable<FullscreenCapability> FullscreenCapability => fullscreenCapability;
+        private readonly Bindable<FullscreenCapability> fullscreenCapability = new Bindable<FullscreenCapability>();
+
         private Icon smallIcon;
         private Icon largeIcon;
 
@@ -39,6 +46,46 @@ namespace osu.Framework.Platform.Windows
             {
                 // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
             }
+
+            IsActive.BindValueChanged(_ => detectFullscreenCapability(WindowState));
+            WindowStateChanged += detectFullscreenCapability;
+            detectFullscreenCapability(WindowState);
+        }
+
+        private CancellationTokenSource fullscreenCapabilityDetectionCancellationSource;
+
+        private void detectFullscreenCapability(WindowState state)
+        {
+            fullscreenCapabilityDetectionCancellationSource?.Cancel();
+            fullscreenCapabilityDetectionCancellationSource?.Dispose();
+            fullscreenCapabilityDetectionCancellationSource = null;
+
+            if (state != WindowState.Fullscreen || fullscreenCapability.Value != Windows.FullscreenCapability.Unknown)
+                return;
+
+            var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
+
+            Task.Delay(5000, cancellationSource.Token).ContinueWith(_ => ScheduleEvent(() =>
+            {
+                if (cancellationSource.IsCancellationRequested || WindowState != WindowState.Fullscreen || !IsActive.Value)
+                    return;
+
+                try
+                {
+                    SHQueryUserNotificationState(out var notificationState);
+
+                    fullscreenCapability.Value = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
+                        ? Windows.FullscreenCapability.Capable
+                        : Windows.FullscreenCapability.Incapable;
+
+                    Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value}");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Failed to detect fullscreen capabilities.");
+                    fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
+                }
+            }), cancellationSource.Token);
         }
 
         public override void Create()
@@ -269,5 +316,18 @@ namespace osu.Framework.Platform.Windows
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("shell32.dll")]
+        private static extern int SHQueryUserNotificationState(out QueryUserNotificationState state);
+
+        private enum QueryUserNotificationState
+        {
+            QUNS_NOT_PRESENT = 1,
+            QUNS_BUSY = 2,
+            QUNS_RUNNING_D3D_FULL_SCREEN = 3,
+            QUNS_PRESENTATION_MODE = 4,
+            QUNS_ACCEPTS_NOTIFICATIONS = 5,
+            QUNS_QUIET_TIME = 6
+        };
     }
 }
