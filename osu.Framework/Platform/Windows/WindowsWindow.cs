@@ -78,7 +78,7 @@ namespace osu.Framework.Platform.Windows
                         ? Windows.FullscreenCapability.Capable
                         : Windows.FullscreenCapability.Incapable;
 
-                    Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value}");
+                    Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value} ({notificationState})");
                 }
                 catch (Exception ex)
                 {
