@@ -12,6 +12,7 @@ using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osuTK;
@@ -51,27 +52,42 @@ namespace osu.Framework.Tests.Exceptions
         [Test]
         public void TestUnobservedException()
         {
-            var exception = Assert.Throws<AggregateException>(() =>
+            Exception loggedException = null;
+
+            Logger.NewEntry += newLogEntry;
+
+            try
             {
-                Task.Factory.StartNew(() =>
+                var exception = Assert.Throws<AggregateException>(() =>
                 {
-                    runGameWithLogic(g =>
+                    Task.Factory.StartNew(() =>
                     {
-                        g.Scheduler.Add(() => Task.Run(() => throw new InvalidOperationException()));
-                        g.Scheduler.AddDelayed(() => collectAndFireUnobserved(), 1, true);
-                    });
-                }, TaskCreationOptions.LongRunning).Wait(TimeSpan.FromSeconds(10));
+                        runGameWithLogic(g =>
+                        {
+                            g.Scheduler.Add(() => Task.Run(() => throw new InvalidOperationException()));
+                            g.Scheduler.AddDelayed(() => collect(), 1, true);
 
-                Assert.Fail("Game execution was not aborted");
-            });
+                            if (loggedException != null)
+                                throw loggedException;
+                        });
+                    }, TaskCreationOptions.LongRunning).Wait(TimeSpan.FromSeconds(10));
 
-            Assert.True(exception?.AsSingular() is InvalidOperationException);
+                    Assert.Fail("Game execution was not aborted");
+                });
+
+                Assert.True(exception?.AsSingular() is InvalidOperationException);
+            }
+            finally
+            {
+                Logger.NewEntry -= newLogEntry;
+            }
+
+            void newLogEntry(LogEntry entry) => loggedException = entry.Exception;
         }
 
-        private static void collectAndFireUnobserved()
+        private static void collect()
         {
             GC.Collect();
-            GC.WaitForPendingFinalizers();
         }
 
         [Test]
