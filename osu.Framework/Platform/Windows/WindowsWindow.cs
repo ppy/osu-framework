@@ -60,7 +60,7 @@ namespace osu.Framework.Platform.Windows
             fullscreenCapabilityDetectionCancellationSource?.Dispose();
             fullscreenCapabilityDetectionCancellationSource = null;
 
-            if (state != WindowState.Fullscreen || fullscreenCapability.Value != Windows.FullscreenCapability.Unknown)
+            if (state != WindowState.Fullscreen || !IsActive.Value || fullscreenCapability.Value != Windows.FullscreenCapability.Unknown)
                 return;
 
             var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
