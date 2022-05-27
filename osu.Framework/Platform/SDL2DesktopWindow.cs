@@ -435,9 +435,38 @@ namespace osu.Framework.Platform
         private readonly BindableDouble windowPositionY = new BindableDouble();
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
+        // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
+
+        [UsedImplicitly]
+        private SDL.SDL_LogOutputFunction logOutputDelegate;
+
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter eventFilterDelegate;
+
         public SDL2DesktopWindow()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
+            {
+                throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
+            }
+
+            SDL.SDL_LogSetPriority((int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
+            SDL.SDL_LogSetOutputFunction(logOutputDelegate = (_, categoryInt, priority, messagePtr) =>
+            {
+                var category = (SDL.SDL_LogCategory)categoryInt;
+                string message = Marshal.PtrToStringUTF8(messagePtr);
+
+                switch (category)
+                {
+                    case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR:
+                        Logger.Log($@"SDL error: {message}", level: LogLevel.Error);
+                        break;
+
+                    default:
+                        Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
+                        break;
+                }
+            }, IntPtr.Zero);
 
             graphicsBackend = CreateGraphicsBackend();
 
@@ -508,10 +537,6 @@ namespace osu.Framework.Platform
 
             WindowMode.TriggerChange();
         }
-
-        // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
-        [UsedImplicitly]
-        private SDL.SDL_EventFilter eventFilterDelegate;
 
         /// <summary>
         /// Starts the window's run loop.
