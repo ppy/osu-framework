@@ -111,7 +111,7 @@ namespace osu.Framework.Input.Handlers.Midi
 
                 // stop attempting to refresh devices until next startup.
                 inGoodState = false;
-                scheduledRefreshDevices.Cancel();
+                scheduledRefreshDevices?.Cancel();
                 return false;
             }
         }
