@@ -18,7 +18,6 @@ using osuTK;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Layout;
 using osu.Framework.Utils;
-using osu.Framework.Threading;
 using osuTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
@@ -60,7 +59,8 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 resolution = value;
-                generate();
+                resampledPointCount = null;
+                queueRegeneration();
             }
         }
 
@@ -78,7 +78,8 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 waveform = value;
-                generate();
+                resampledPointCount = null;
+                queueRegeneration();
             }
         }
 
@@ -168,60 +169,68 @@ namespace osu.Framework.Graphics.Audio
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
             {
-                generate();
-                result = true;
+                // We should regenerate when `Scale` changed, but not `Position`.
+                // Unfortunately both of these are grouped together in `MiscGeometry`.
+                queueRegeneration();
             }
 
             return result;
         }
 
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
-        private ScheduledDelegate scheduledGenerate;
 
         private List<Waveform.Point> resampledPoints;
+        private int? resampledPointCount;
         private int resampledChannels;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
         private double resampledMaxLowIntensity;
 
-        private void generate()
+        private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
-            scheduledGenerate?.Cancel();
+            int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
+            if (requiredPointCount == resampledPointCount)
+                return;
+
             cancelGeneration();
 
             if (Waveform == null)
                 return;
 
-            scheduledGenerate = Schedule(() =>
-            {
-                cancelSource = new CancellationTokenSource();
-                var token = cancelSource.Token;
+            // This should be set before the operation is run.
+            // It will stop unnecessary task churn if invalidation is occuring often.
+            resampledPointCount = requiredPointCount;
 
-                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(task =>
-                {
-                    var resampled = task.GetResultSafely();
+            cancelSource = new CancellationTokenSource();
+            var token = cancelSource.Token;
 
-                    var points = resampled.GetPoints();
-                    int channels = resampled.GetChannels();
-                    double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                    double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                    double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
-
-                    Schedule(() =>
+            Waveform.GenerateResampledAsync(resampledPointCount.Value, token)
+                    .ContinueWith(task =>
                     {
-                        resampledPoints = points;
-                        resampledChannels = channels;
-                        resampledMaxHighIntensity = maxHighIntensity;
-                        resampledMaxMidIntensity = maxMidIntensity;
-                        resampledMaxLowIntensity = maxLowIntensity;
+                        var resampled = task.GetResultSafely();
 
-                        OnWaveformRegenerated(resampled);
+                        var points = resampled.GetPoints();
+                        int channels = resampled.GetChannels();
+                        double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                        double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                        double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
 
-                        Invalidate(Invalidation.DrawNode);
-                    });
-                }, token);
-            });
-        }
+                        Schedule(() =>
+                        {
+                            if (token.IsCancellationRequested)
+                                return;
+
+                            resampledPoints = points;
+                            resampledChannels = channels;
+                            resampledMaxHighIntensity = maxHighIntensity;
+                            resampledMaxMidIntensity = maxMidIntensity;
+                            resampledMaxLowIntensity = maxLowIntensity;
+
+                            OnWaveformRegenerated(resampled);
+                            Invalidate(Invalidation.DrawNode);
+                        });
+                    }, token);
+        });
 
         private void cancelGeneration()
         {
