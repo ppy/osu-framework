@@ -456,16 +456,7 @@ namespace osu.Framework.Platform
                 var category = (SDL.SDL_LogCategory)categoryInt;
                 string message = Marshal.PtrToStringUTF8(messagePtr);
 
-                switch (category)
-                {
-                    case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR:
-                        Logger.Log($@"SDL error: {message}", level: LogLevel.Error);
-                        break;
-
-                    default:
-                        Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
-                        break;
-                }
+                Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
             }, IntPtr.Zero);
 
             graphicsBackend = CreateGraphicsBackend();
