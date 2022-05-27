@@ -459,7 +459,7 @@ namespace osu.Framework.Platform
                 switch (category)
                 {
                     case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR:
-                        Logger.Log($@"SDL error: {message}", level: LogLevel.Error);
+                        Logger.Log($@"SDL error: {message}");
                         break;
 
                     default:
