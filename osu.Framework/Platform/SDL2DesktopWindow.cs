@@ -604,10 +604,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Attempts to close the window.
         /// </summary>
+        [Obsolete("Use Game.RequestExit() instead.")]
         public void RequestClose() => ScheduleEvent(() =>
         {
-            if (ExitRequested?.Invoke() != true)
-                Close();
+            ExitRequested?.Invoke();
         });
 
         public void SwapBuffers()
@@ -831,7 +831,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => RequestClose();
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => ExitRequested?.Invoke();
 
         private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
         {
@@ -1529,9 +1529,9 @@ namespace osu.Framework.Platform
         public event Action<WindowState> WindowStateChanged;
 
         /// <summary>
-        /// Invoked when the user attempts to close the window. Return value of true will cancel exit.
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        public event Func<bool> ExitRequested;
+        public event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
