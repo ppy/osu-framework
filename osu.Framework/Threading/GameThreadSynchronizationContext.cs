@@ -3,7 +3,6 @@
 
 #nullable enable
 
-using System;
 using System.Threading;
 
 namespace osu.Framework.Threading
@@ -19,7 +18,7 @@ namespace osu.Framework.Threading
     /// - Order of execution is guaranteed (in our case, it is guaranteed over <see cref="Send"/> and <see cref="Post"/> calls alike).
     /// - To enforce the above, calling <see cref="Send"/> will flush any pending work until the newly queued item has been completed.
     /// </remarks>
-    internal class GameThreadSynchronizationContext : SynchronizationContext, IDisposable
+    internal class GameThreadSynchronizationContext : SynchronizationContext
     {
         /// <summary>
         /// The total tasks this synchronization context has run.
@@ -61,7 +60,11 @@ namespace osu.Framework.Threading
         /// </summary>
         public void RunWork() => scheduler?.Update();
 
-        public void Dispose()
+        /// <summary>
+        /// Disassociate any references to the <see cref="GameThread"/> provided at construction time.
+        /// This ensures external components cannot hold a reference to potentially expensive game instances.
+        /// </summary>
+        public void DisassociateGameThread()
         {
             scheduler = null;
         }
