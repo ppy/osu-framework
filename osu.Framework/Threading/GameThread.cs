@@ -341,9 +341,22 @@ namespace osu.Framework.Threading
             }
             else
             {
-                while (state.Value != targetState)
-                    Thread.Sleep(1);
+                switch (targetState)
+                {
+                    case GameThreadState.Exited:
+                    case GameThreadState.Paused:
+                        Thread.Join();
+                        break;
+
+                    default:
+                        while (state.Value != targetState)
+                            Thread.Sleep(1);
+
+                        break;
+                }
             }
+
+            Debug.Assert(state.Value == targetState);
         }
 
         /// <summary>
