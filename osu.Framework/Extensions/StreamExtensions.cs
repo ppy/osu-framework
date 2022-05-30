@@ -113,7 +113,13 @@ namespace osu.Framework.Extensions
             }
         }
 
-        internal static void ReadToFill(this Stream stream, Span<byte> buffer)
+        /// <summary>
+        /// Reads bytes from a stream until the provided buffer is full.
+        /// </summary>
+        /// <param name="stream">The stream to read.</param>
+        /// <param name="buffer">The buffer to read into.</param>
+        /// <exception cref="EndOfStreamException">Throws if the stream didn't have enough content to fill the buffer.</exception>
+        public static void ReadToFill(this Stream stream, Span<byte> buffer)
         {
             Span<byte> remainingBuffer = buffer;
 
@@ -127,7 +133,14 @@ namespace osu.Framework.Extensions
             }
         }
 
-        internal static async Task ReadToFillAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Reads bytes from a stream until the provided buffer is full.
+        /// </summary>
+        /// <param name="stream">The stream to read.</param>
+        /// <param name="buffer">The buffer to read into.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <exception cref="EndOfStreamException">Throws if the stream didn't have enough content to fill the buffer.</exception>
+        public static async Task ReadToFillAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             Memory<byte> remainingBuffer = buffer;
 
