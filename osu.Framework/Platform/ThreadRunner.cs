@@ -137,25 +137,12 @@ namespace osu.Framework.Platform
 
         public void Stop()
         {
-            const int thread_join_timeout = 30000;
-
-            Threads.ForEach(t => t.Exit());
-            Threads.Where(t => t.Running).ForEach(t =>
+            // exit in reverse order so AudioThread is exited last (UpdateThread depends on AudioThread)
+            Threads.Reverse().ForEach(t =>
             {
-                var thread = t.Thread;
-
-                if (thread == null)
-                {
-                    // has already been cleaned up (or never started)
-                    return;
-                }
-
-                if (!thread.Join(thread_join_timeout))
-                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+                t.Exit();
+                t.WaitForState(GameThreadState.Exited);
             });
-
-            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            mainThread.WaitForState(GameThreadState.Exited);
 
             ThreadSafety.ResetAllForCurrentThread();
         }
