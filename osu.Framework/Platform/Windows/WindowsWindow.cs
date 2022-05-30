@@ -65,27 +65,46 @@ namespace osu.Framework.Platform.Windows
 
             var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
 
-            Task.Delay(5000, cancellationSource.Token).ContinueWith(_ => ScheduleEvent(() =>
+            // 50 attempts, 100ms apart = run the detection for a total of 5 seconds before yielding an incapable state.
+            const int max_attempts = 50;
+            const int time_per_attempt = 100;
+            int attempts = 0;
+
+            runSingleAttempt();
+
+            void runSingleAttempt()
             {
-                if (cancellationSource.IsCancellationRequested || WindowState != WindowState.Fullscreen || !IsActive.Value)
-                    return;
-
-                try
+                Task.Delay(time_per_attempt, cancellationSource.Token).ContinueWith(_ => ScheduleEvent(() =>
                 {
-                    SHQueryUserNotificationState(out var notificationState);
+                    if (cancellationSource.IsCancellationRequested || WindowState != WindowState.Fullscreen || !IsActive.Value)
+                        return;
 
-                    fullscreenCapability.Value = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
-                        ? Windows.FullscreenCapability.Capable
-                        : Windows.FullscreenCapability.Incapable;
+                    attempts++;
 
-                    Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value} ({notificationState})");
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, "Failed to detect fullscreen capabilities.");
-                    fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
-                }
-            }), cancellationSource.Token);
+                    try
+                    {
+                        SHQueryUserNotificationState(out var notificationState);
+
+                        var capability = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
+                            ? Windows.FullscreenCapability.Capable
+                            : Windows.FullscreenCapability.Incapable;
+
+                        if (capability == Windows.FullscreenCapability.Incapable && attempts < max_attempts)
+                        {
+                            runSingleAttempt();
+                            return;
+                        }
+
+                        fullscreenCapability.Value = capability;
+                        Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value} ({notificationState})");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex, "Failed to detect fullscreen capabilities.");
+                        fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
+                    }
+                }), cancellationSource.Token);
+            }
         }
 
         public override void Create()
