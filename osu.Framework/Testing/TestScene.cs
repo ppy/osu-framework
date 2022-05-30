@@ -421,6 +421,10 @@ namespace osu.Framework.Testing
             checkForErrors();
             runner.RunTestBlocking(this);
             checkForErrors();
+
+            // Force any unobserved exceptions to fire against the current test run.
+            // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
+            collectAndFireUnobserved();
         }
 
         [OneTimeTearDown]
@@ -454,6 +458,12 @@ namespace osu.Framework.Testing
 
             if (runTask.Exception != null)
                 throw runTask.Exception;
+        }
+
+        private static void collectAndFireUnobserved()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         private class TestSceneHost : TestRunHeadlessGameHost
