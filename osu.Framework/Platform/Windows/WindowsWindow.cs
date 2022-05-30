@@ -70,41 +70,38 @@ namespace osu.Framework.Platform.Windows
             const int time_per_attempt = 100;
             int attempts = 0;
 
-            runSingleAttempt();
+            queueNextAttempt();
 
-            void runSingleAttempt()
+            void queueNextAttempt() => Task.Delay(time_per_attempt, cancellationSource.Token).ContinueWith(_ => ScheduleEvent(() =>
             {
-                Task.Delay(time_per_attempt, cancellationSource.Token).ContinueWith(_ => ScheduleEvent(() =>
+                if (cancellationSource.IsCancellationRequested || WindowState != WindowState.Fullscreen || !IsActive.Value)
+                    return;
+
+                attempts++;
+
+                try
                 {
-                    if (cancellationSource.IsCancellationRequested || WindowState != WindowState.Fullscreen || !IsActive.Value)
+                    SHQueryUserNotificationState(out var notificationState);
+
+                    var capability = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
+                        ? Windows.FullscreenCapability.Capable
+                        : Windows.FullscreenCapability.Incapable;
+
+                    if (capability == Windows.FullscreenCapability.Incapable && attempts < max_attempts)
+                    {
+                        queueNextAttempt();
                         return;
-
-                    attempts++;
-
-                    try
-                    {
-                        SHQueryUserNotificationState(out var notificationState);
-
-                        var capability = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
-                            ? Windows.FullscreenCapability.Capable
-                            : Windows.FullscreenCapability.Incapable;
-
-                        if (capability == Windows.FullscreenCapability.Incapable && attempts < max_attempts)
-                        {
-                            runSingleAttempt();
-                            return;
-                        }
-
-                        fullscreenCapability.Value = capability;
-                        Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value} ({notificationState})");
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex, "Failed to detect fullscreen capabilities.");
-                        fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
-                    }
-                }), cancellationSource.Token);
-            }
+
+                    fullscreenCapability.Value = capability;
+                    Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value} ({notificationState})");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Failed to detect fullscreen capabilities.");
+                    fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
+                }
+            }), cancellationSource.Token);
         }
 
         public override void Create()
