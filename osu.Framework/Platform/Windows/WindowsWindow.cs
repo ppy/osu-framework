@@ -344,6 +344,6 @@ namespace osu.Framework.Platform.Windows
             QUNS_PRESENTATION_MODE = 4,
             QUNS_ACCEPTS_NOTIFICATIONS = 5,
             QUNS_QUIET_TIME = 6
-        };
+        }
     }
 }
