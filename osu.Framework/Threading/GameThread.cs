@@ -481,6 +481,8 @@ namespace osu.Framework.Threading
                 Debug.Assert(state.Value == GameThreadState.Running);
                 Debug.Assert(exitState == GameThreadState.Exited || exitState == GameThreadState.Paused);
 
+                synchronizationContext.DisassociateGameThread();
+
                 Thread = null;
                 OnSuspended();
 
