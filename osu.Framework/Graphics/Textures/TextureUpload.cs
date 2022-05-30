@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -89,9 +89,7 @@ namespace osu.Framework.Graphics.Textures
             {
                 using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>((int)stream.Length))
                 {
-                    int read = stream.Read(buffer.Memory.Span);
-
-                    Debug.Assert(read == stream.Length);
+                    stream.ReadToFill(buffer.Memory.Span);
 
                     using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
                         return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
