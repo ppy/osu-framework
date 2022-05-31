@@ -341,19 +341,8 @@ namespace osu.Framework.Threading
             }
             else
             {
-                switch (targetState)
-                {
-                    case GameThreadState.Exited:
-                    case GameThreadState.Paused:
-                        Thread.Join();
-                        break;
-
-                    default:
-                        while (state.Value != targetState)
-                            Thread.Sleep(1);
-
-                        break;
-                }
+                while (state.Value != targetState)
+                    Thread.Sleep(1);
             }
 
             Debug.Assert(state.Value == targetState);

@@ -137,11 +137,28 @@ namespace osu.Framework.Platform
 
         public void Stop()
         {
+            const int thread_join_timeout = 30000;
+
             // exit in reverse order so AudioThread is exited last (UpdateThread depends on AudioThread)
             Threads.Reverse().ForEach(t =>
             {
+                // save the native thread to a local variable as Thread gets set to null when exiting.
+                // WaitForState(Exited) appears to be unsafe in multithreaded.
+                var thread = t.Thread;
+
                 t.Exit();
-                t.WaitForState(GameThreadState.Exited);
+
+                if (thread != null)
+                {
+                    if (!thread.Join(thread_join_timeout))
+                        throw new TimeoutException($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).");
+                }
+                else
+                {
+                    t.WaitForState(GameThreadState.Exited);
+                }
+
+                Debug.Assert(t.Exited);
             });
 
             ThreadSafety.ResetAllForCurrentThread();
