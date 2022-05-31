@@ -297,6 +297,12 @@ namespace osu.Framework.Graphics.Audio
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
 
+                baseColour = Source.baseColour;
+
+                lowColour = Source.lowColour ?? baseColour;
+                midColour = Source.midColour ?? baseColour;
+                highColour = Source.highColour ?? baseColour;
+
                 if (Source.resampledVersion != version)
                 {
                     points.Clear();
@@ -305,14 +311,10 @@ namespace osu.Framework.Graphics.Audio
                         points.AddRange(Source.resampledPoints);
 
                     channels = Source.resampledChannels;
+
                     highMax = Source.resampledMaxHighIntensity;
                     midMax = Source.resampledMaxMidIntensity;
                     lowMax = Source.resampledMaxLowIntensity;
-
-                    baseColour = Source.baseColour;
-                    lowColour = Source.lowColour ?? baseColour;
-                    midColour = Source.midColour ?? baseColour;
-                    highColour = Source.highColour ?? baseColour;
 
                     version = Source.resampledVersion;
                 }
