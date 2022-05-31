@@ -10,16 +10,16 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osuTK;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Layout;
+using osu.Framework.Logging;
 using osu.Framework.Utils;
+using osuTK;
 using osuTK.Graphics;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -179,6 +179,7 @@ namespace osu.Framework.Graphics.Audio
 
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
+        private long resampledVersion;
         private List<Waveform.Point> resampledPoints;
         private int? resampledPointCount;
         private int resampledChannels;
@@ -201,6 +202,8 @@ namespace osu.Framework.Graphics.Audio
             // It will stop unnecessary task churn if invalidation is occuring often.
             resampledPointCount = requiredPointCount;
 
+            Logger.Log($"Waveform resampling with {requiredPointCount} points...");
+
             cancelSource = new CancellationTokenSource();
             var token = cancelSource.Token;
 
@@ -215,6 +218,8 @@ namespace osu.Framework.Graphics.Audio
                         double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
                         double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
 
+                        Logger.Log($"Waveform resample complete with {points.Count} points.");
+
                         Schedule(() =>
                         {
                             if (token.IsCancellationRequested)
@@ -225,6 +230,7 @@ namespace osu.Framework.Graphics.Audio
                             resampledMaxHighIntensity = maxHighIntensity;
                             resampledMaxMidIntensity = maxMidIntensity;
                             resampledMaxLowIntensity = maxLowIntensity;
+                            resampledVersion = InvalidationID;
 
                             OnWaveformRegenerated(resampled);
                             Invalidate(Invalidation.DrawNode);
@@ -265,6 +271,8 @@ namespace osu.Framework.Graphics.Audio
             private Vector2 drawSize;
             private int channels;
 
+            private long version;
+
             private Color4 baseColour;
             private Color4 lowColour;
             private Color4 midColour;
@@ -289,20 +297,25 @@ namespace osu.Framework.Graphics.Audio
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
 
-                points.Clear();
+                if (Source.resampledVersion != version)
+                {
+                    points.Clear();
 
-                if (Source.resampledPoints != null)
-                    points.AddRange(Source.resampledPoints);
+                    if (Source.resampledPoints != null)
+                        points.AddRange(Source.resampledPoints);
 
-                channels = Source.resampledChannels;
-                highMax = Source.resampledMaxHighIntensity;
-                midMax = Source.resampledMaxMidIntensity;
-                lowMax = Source.resampledMaxLowIntensity;
+                    channels = Source.resampledChannels;
+                    highMax = Source.resampledMaxHighIntensity;
+                    midMax = Source.resampledMaxMidIntensity;
+                    lowMax = Source.resampledMaxLowIntensity;
 
-                baseColour = Source.baseColour;
-                lowColour = Source.lowColour ?? baseColour;
-                midColour = Source.midColour ?? baseColour;
-                highColour = Source.highColour ?? baseColour;
+                    baseColour = Source.baseColour;
+                    lowColour = Source.lowColour ?? baseColour;
+                    midColour = Source.midColour ?? baseColour;
+                    highColour = Source.highColour ?? baseColour;
+
+                    version = Source.resampledVersion;
+                }
             }
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
