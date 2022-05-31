@@ -120,6 +120,8 @@ namespace osu.Framework.Platform
 
             Closing += (sender, e) =>
             {
+                // always block a graceful exit as it's treated as a regular window event.
+                // the host will force-close the window if the game decides not to block the exit.
                 ExitRequested?.Invoke();
                 e.Cancel = true;
             };
