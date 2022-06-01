@@ -344,6 +344,8 @@ namespace osu.Framework.Threading
                 while (state.Value != targetState)
                     Thread.Sleep(1);
             }
+
+            Debug.Assert(state.Value == targetState);
         }
 
         /// <summary>
