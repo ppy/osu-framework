@@ -433,12 +433,6 @@ namespace osu.Framework.Platform
 
         public void Close() => OsuTKGameWindow.Close();
 
-        [Obsolete("Use Game.RequestExit() instead.")]
-        public void RequestClose()
-        {
-            ExitRequested?.Invoke();
-        }
-
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
         public Point PointToScreen(Point point) => OsuTKGameWindow.PointToScreen(point);

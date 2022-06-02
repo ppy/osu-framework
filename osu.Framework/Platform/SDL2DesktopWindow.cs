@@ -601,15 +601,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Close() => ScheduleCommand(() => Exists = false);
 
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        [Obsolete("Use Game.RequestExit() instead.")]
-        public void RequestClose() => ScheduleEvent(() =>
-        {
-            ExitRequested?.Invoke();
-        });
-
         public void SwapBuffers()
         {
             graphicsBackend.SwapBuffers();

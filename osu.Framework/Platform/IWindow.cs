@@ -149,12 +149,6 @@ namespace osu.Framework.Platform
         void Close();
 
         /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        [Obsolete("Use Game.RequestExit() instead.")]
-        void RequestClose();
-
-        /// <summary>
         /// Start the window's run loop.
         /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
