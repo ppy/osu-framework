@@ -295,9 +295,7 @@ namespace osu.Framework.Tests.IO
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
-#pragma warning disable 4014
-            request.PerformAsync();
-#pragma warning restore 4014
+            Task.Run(() => request.PerformAsync());
 
             Assert.DoesNotThrow(request.Abort);
 
@@ -324,9 +322,7 @@ namespace osu.Framework.Tests.IO
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
-#pragma warning disable 4014
-            request.PerformAsync();
-#pragma warning restore 4014
+            Task.Run(() => request.PerformAsync());
 
             Assert.DoesNotThrow(request.Abort);
 
