@@ -56,9 +56,6 @@ namespace osu.Framework.Tests.Polygons
         {
             Task[] tasks = new Task[parallelism];
 
-            uint countValid = 0;
-            uint countInvalid = 0;
-
             for (int i = 0; i < tasks.Length; i++)
             {
                 tasks[i] = Task.Factory.StartNew(() =>
@@ -82,10 +79,7 @@ namespace osu.Framework.Tests.Polygons
 
                         try
                         {
-                            if (clip(poly1, poly2).Length > 0)
-                                Interlocked.Increment(ref countValid);
-                            else
-                                Interlocked.Increment(ref countInvalid);
+                            clip(poly1, poly2);
                         }
                         catch (Exception ex)
                         {
@@ -95,10 +89,7 @@ namespace osu.Framework.Tests.Polygons
 
                         try
                         {
-                            if (clip(poly2, poly1).Length > 0)
-                                Interlocked.Increment(ref countValid);
-                            else
-                                Interlocked.Increment(ref countInvalid);
+                            clip(poly2, poly1);
                         }
                         catch (Exception ex)
                         {
