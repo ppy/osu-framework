@@ -3,7 +3,6 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.Handlers;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -29,7 +28,7 @@ namespace osu.Framework.Input.Bindings
         void OnReleased(KeyBindingReleaseEvent<T> e);
     }
 
-    public interface IKeyBindingHandler : IDrawable, INonPositionalInputHandler
+    public interface IKeyBindingHandler : IDrawable, IHandleNonPositionalInput
     {
     }
 }

@@ -35,7 +35,6 @@ using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK.Input;
 using Container = osu.Framework.Graphics.Containers.Container;
-using osu.Framework.Input.Handlers;
 
 namespace osu.Framework.Graphics
 {
@@ -2388,8 +2387,8 @@ namespace osu.Framework.Graphics
                 nameof(OnMidiUp)
             };
 
-            private static readonly Type positional_interface = typeof(IPositionalInputHandler);
-            private static readonly Type non_positional_interface = typeof(INonPositionalInputHandler);
+            private static readonly Type positional_interface = typeof(IHandlePositionalInput);
+            private static readonly Type non_positional_interface = typeof(IHandleNonPositionalInput);
 
             private static readonly string[] positional_input_properties =
             {

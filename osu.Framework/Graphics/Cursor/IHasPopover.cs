@@ -4,14 +4,14 @@
 #nullable enable
 
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.Handlers;
+using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
     /// Interface to be implemented by UI controls that show a <see cref="Popover"/> on click.
     /// </summary>
-    public interface IHasPopover : IDrawable, IPositionalInputHandler
+    public interface IHasPopover : IDrawable, IHandlePositionalInput
     {
         /// <summary>
         /// Creates the <see cref="Popover"/> to display for this control.
