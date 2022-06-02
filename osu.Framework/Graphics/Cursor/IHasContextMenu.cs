@@ -2,10 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Handlers;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public interface IHasContextMenu : IDrawable
+    public interface IHasContextMenu : IDrawable, IPositionalInputHandler
     {
         /// <summary>
         /// Menu items that appear when the drawable is right-clicked.

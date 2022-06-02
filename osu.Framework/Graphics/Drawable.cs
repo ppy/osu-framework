@@ -27,9 +27,7 @@ using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Layout;
@@ -37,6 +35,7 @@ using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK.Input;
 using Container = osu.Framework.Graphics.Containers.Container;
+using osu.Framework.Input.Handlers;
 
 namespace osu.Framework.Graphics
 {
@@ -2389,18 +2388,8 @@ namespace osu.Framework.Graphics
                 nameof(OnMidiUp)
             };
 
-            private static readonly Type[] positional_input_interfaces =
-            {
-                typeof(IHasTooltip),
-                typeof(IHasCustomTooltip),
-                typeof(IHasContextMenu),
-                typeof(IHasPopover),
-            };
-
-            private static readonly Type[] non_positional_input_interfaces =
-            {
-                typeof(IKeyBindingHandler),
-            };
+            private static readonly Type positional_interface = typeof(IPositionalInputHandler);
+            private static readonly Type non_positional_interface = typeof(INonPositionalInputHandler);
 
             private static readonly string[] positional_input_properties =
             {
@@ -2445,14 +2434,10 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
-
-                foreach (var inputInterface in inputInterfaces)
-                {
-                    // check if this type implements any interface which requires a drawable to handle input.
-                    if (inputInterface.IsAssignableFrom(type))
-                        return true;
-                }
+                // check if this type implements any interface which requires a drawable to handle input.
+                var inputInterface = positional ? positional_interface : non_positional_interface;
+                if (inputInterface.IsAssignableFrom(type))
+                    return true;
 
                 string[] inputProperties = positional ? positional_input_properties : non_positional_input_properties;
 
