@@ -344,6 +344,8 @@ namespace osu.Framework.Threading
                 while (state.Value != targetState)
                     Thread.Sleep(1);
             }
+
+            Debug.Assert(state.Value == targetState);
         }
 
         /// <summary>
@@ -480,6 +482,8 @@ namespace osu.Framework.Threading
             {
                 Debug.Assert(state.Value == GameThreadState.Running);
                 Debug.Assert(exitState == GameThreadState.Exited || exitState == GameThreadState.Paused);
+
+                synchronizationContext.DisassociateGameThread();
 
                 Thread = null;
                 OnSuspended();

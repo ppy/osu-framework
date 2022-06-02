@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -86,10 +87,11 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                using (var m = new MemoryStream())
+                using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>((int)stream.Length))
                 {
-                    stream.CopyTo(m);
-                    using (var stbiImage = Stbi.LoadFromMemory(m, 4))
+                    stream.ReadToFill(buffer.Memory.Span);
+
+                    using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
                         return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
                 }
             }
