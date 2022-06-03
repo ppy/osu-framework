@@ -240,10 +240,13 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
                 return false;
 
-            bool dragWasMostlyHorizontal = Math.Abs(e.Delta.X) > Math.Abs(e.Delta.Y);
+            var parentScrollContainer = this.FindClosestParent<IScrollContainer>();
 
-            if (dragWasMostlyHorizontal != (ScrollDirection == Direction.Horizontal))
-                return false;
+            if (parentScrollContainer != null && parentScrollContainer.ScrollDirection != ScrollDirection)
+            {
+                bool dragWasMostlyHorizontal = Math.Abs(e.Delta.X) > Math.Abs(e.Delta.Y);
+                if (dragWasMostlyHorizontal != (ScrollDirection == Direction.Horizontal))
+                    return false;
             }
 
             lastDragTime = Time.Current;
@@ -366,12 +369,17 @@ namespace osu.Framework.Graphics.Containers
             if (Content.AliveInternalChildren.Count == 0)
                 return false;
 
-            bool scrollWasMostlyHorizontal = Math.Abs(e.ScrollDelta.X) > Math.Abs(e.ScrollDelta.Y);
+            var parentScrollContainer = this.FindClosestParent<IScrollContainer>();
 
-            // For horizontal scrolling containers, vertical scroll is also used to perform horizontal traversal.
-            // Due to this, we only block horizontal scroll in vertical containers, but not vice-versa.
-            if (scrollWasMostlyHorizontal && ScrollDirection == Direction.Vertical)
-                return false;
+            if (parentScrollContainer != null && parentScrollContainer.ScrollDirection != ScrollDirection)
+            {
+                bool scrollWasMostlyHorizontal = Math.Abs(e.ScrollDelta.X) > Math.Abs(e.ScrollDelta.Y);
+
+                // For horizontal scrolling containers, vertical scroll is also used to perform horizontal traversal.
+                // Due to this, we only block horizontal scroll in vertical containers, but not vice-versa.
+                if (scrollWasMostlyHorizontal && ScrollDirection == Direction.Vertical)
+                    return false;
+            }
 
             bool isPrecise = e.IsPrecise;
 
