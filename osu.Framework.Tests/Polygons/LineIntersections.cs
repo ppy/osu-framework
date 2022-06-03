@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 
@@ -56,7 +57,7 @@ namespace osu.Framework.Tests.Polygons
             new object[] { new Line(up_1, origin), new Line(origin, up_1), false, 0f },
             new object[] { new Line(origin, up_1), new Line(up_1, origin), false, 0f },
             new object[] { new Line(up_1, origin), new Line(up_1, origin), false, 0f },
-            // Colinear touching
+            // Collinear touching
             new object[] { new Line(origin, up_1), new Line(origin, down_1), false, 0f },
             new object[] { new Line(origin, up_1), new Line(down_1, origin), false, 0f },
         };
@@ -68,6 +69,13 @@ namespace osu.Framework.Tests.Polygons
 
             Assert.That(success, Is.EqualTo(expectedResult));
             Assert.That(t, Is.EqualTo(expectedT));
+        }
+
+        [Test]
+        public void TestCollinearPointNotInRightHalfPlane()
+        {
+            Line line = new Line(new Vector2(-0.5f, 0.1f), new Vector2(-10, 2));
+            Assert.That(new Vector2(0.5f, -0.1f).InRightHalfPlaneOf(line), Is.False);
         }
     }
 }
