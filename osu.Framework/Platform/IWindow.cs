@@ -33,10 +33,10 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
         [CanBeNull]
-        event Func<bool> ExitRequested;
+        event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> has closed.
@@ -147,11 +147,6 @@ namespace osu.Framework.Platform
         /// Forcefully closes the window.
         /// </summary>
         void Close();
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        void RequestClose();
 
         /// <summary>
         /// Start the window's run loop.
