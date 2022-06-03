@@ -92,8 +92,15 @@ namespace osu.Framework.Extensions.TypeExtensions
 
         /// <summary>
         /// Determines whether the specified type is a <see cref="Nullable{T}"/> type.
+        /// <para>
+        /// https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/nullable-types/how-to-identify-a-nullable-type
+        /// </para>
         /// </summary>
-        /// <remarks>See: https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/nullable-types/how-to-identify-a-nullable-type</remarks>
+        /// <remarks>
+        /// When nullable reference types are enabled, prefer to use one of:
+        /// <see cref="IsNullable(EventInfo)"/>, <see cref="IsNullable(PropertyInfo)"/>, <see cref="IsNullable(FieldInfo)"/>, or <see cref="IsNullable(ParameterInfo)"/>,
+        /// in order to properly handle events/properties/fields/parameters.
+        /// </remarks>
         public static bool IsNullable(this Type type) => type.GetUnderlyingNullableType() != null;
 
         /// <summary>
@@ -110,6 +117,90 @@ namespace osu.Framework.Extensions.TypeExtensions
             // ReSharper disable once ConvertClosureToMethodGroup (see: https://github.com/dotnet/runtime/issues/33747)
             return underlying_type_cache.GetOrAdd(type, t => Nullable.GetUnderlyingType(t));
         }
+
+#if NET6_0_OR_GREATER
+        private static readonly NullabilityInfoContext nullability_context_info = new NullabilityInfoContext();
+#endif
+
+        /// <summary>
+        /// Determines whether the type of an event is nullable.
+        /// </summary>
+        /// <remarks>
+        /// Will be <c>false</c> for reference types if nullable reference types are not enabled.
+        /// </remarks>
+        /// <param name="eventInfo">The event.</param>
+        /// <returns>Whether the event type is nullable.</returns>
+        public static bool IsNullable(this EventInfo eventInfo)
+        {
+            bool isNullable = IsNullable(eventInfo.EventHandlerType);
+
+#if NET6_0_OR_GREATER
+            isNullable |= isNullableInfo(nullability_context_info.Create(eventInfo));
+#endif
+
+            return isNullable;
+        }
+
+        /// <summary>
+        /// Determines whether the type of a parameter is nullable.
+        /// </summary>
+        /// <remarks>
+        /// Will be <c>false</c> for reference types if nullable reference types are not enabled.
+        /// </remarks>
+        /// <param name="parameterInfo">The parameter.</param>
+        /// <returns>Whether the parameter type is nullable.</returns>
+        public static bool IsNullable(this ParameterInfo parameterInfo)
+        {
+            bool isNullable = IsNullable(parameterInfo.ParameterType);
+
+#if NET6_0_OR_GREATER
+            isNullable |= isNullableInfo(nullability_context_info.Create(parameterInfo));
+#endif
+
+            return isNullable;
+        }
+
+        /// <summary>
+        /// Determines whether the type of a field is nullable.
+        /// </summary>
+        /// <remarks>
+        /// Will be <c>false</c> for reference types if nullable reference types are not enabled.
+        /// </remarks>
+        /// <param name="fieldInfo">The field.</param>
+        /// <returns>Whether the field type is nullable.</returns>
+        public static bool IsNullable(this FieldInfo fieldInfo)
+        {
+            bool isNullable = IsNullable(fieldInfo.FieldType);
+
+#if NET6_0_OR_GREATER
+            isNullable |= isNullableInfo(nullability_context_info.Create(fieldInfo));
+#endif
+
+            return isNullable;
+        }
+
+        /// <summary>
+        /// Determines whether the type of a property is nullable.
+        /// </summary>
+        /// <remarks>
+        /// Will be <c>false</c> for reference types if nullable reference types are not enabled.
+        /// </remarks>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>Whether the property type is nullable.</returns>
+        public static bool IsNullable(this PropertyInfo propertyInfo)
+        {
+            bool isNullable = IsNullable(propertyInfo.PropertyType);
+
+#if NET6_0_OR_GREATER
+            isNullable |= isNullableInfo(nullability_context_info.Create(propertyInfo));
+#endif
+
+            return isNullable;
+        }
+
+#if NET6_0_OR_GREATER
+        private static bool isNullableInfo(NullabilityInfo info) => info.WriteState == NullabilityState.Nullable || info.ReadState == NullabilityState.Nullable;
+#endif
     }
 
     [Flags]

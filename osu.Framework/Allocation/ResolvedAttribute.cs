@@ -95,7 +95,7 @@ namespace osu.Framework.Allocation
                     cacheInfo = new CacheInfo(cacheInfo.Name ?? property.Name, attribute.Parent);
                 }
 
-                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable(), cacheInfo);
+                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.IsNullable(), cacheInfo);
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }
