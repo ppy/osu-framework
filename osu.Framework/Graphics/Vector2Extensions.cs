@@ -99,16 +99,14 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Determines whether a point is within the right half-plane of a line.
+        /// Determines whether a point is within the right half-plane of a line in the traditional cartesian coordinate system.
         /// </summary>
         /// <param name="line">The line.</param>
         /// <param name="point">The point.</param>
-        /// <returns>Whether <paramref name="point"/> is in the right half-plane of <paramref name="line"/>.
-        /// If the point is colinear to the line, it is said to be in the right half-plane of the line.
-        /// </returns>
+        /// <returns>Whether <paramref name="point"/> is in the right half-plane of <paramref name="line"/>. Collinear points are never in the right half-plane of the line. </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool InRightHalfPlaneOf(this Vector2 point, in Line line)
             => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
-                - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) <= 0;
+                - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) < 0;
     }
 }

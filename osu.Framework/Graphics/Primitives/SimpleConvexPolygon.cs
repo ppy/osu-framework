@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -20,5 +21,7 @@ namespace osu.Framework.Graphics.Primitives
         public ReadOnlySpan<Vector2> GetVertices() => vertices;
 
         public int MaxClipVertices => vertices.Length * 2;
+
+        public override string ToString() => $"{{ {string.Join(", ", vertices.Select(v => $"({v.X}, {v.Y})"))} }}";
     }
 }
