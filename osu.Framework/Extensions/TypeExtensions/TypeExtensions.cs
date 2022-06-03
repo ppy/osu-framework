@@ -118,10 +118,6 @@ namespace osu.Framework.Extensions.TypeExtensions
             return underlying_type_cache.GetOrAdd(type, t => Nullable.GetUnderlyingType(t));
         }
 
-#if NET6_0_OR_GREATER
-        private static readonly NullabilityInfoContext nullability_context_info = new NullabilityInfoContext();
-#endif
-
         /// <summary>
         /// Determines whether the type of an event is nullable.
         /// </summary>
@@ -132,13 +128,14 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns>Whether the event type is nullable.</returns>
         public static bool IsNullable(this EventInfo eventInfo)
         {
-            bool isNullable = IsNullable(eventInfo.EventHandlerType);
+            if (IsNullable(eventInfo.EventHandlerType))
+                return true;
 
 #if NET6_0_OR_GREATER
-            isNullable |= isNullableInfo(nullability_context_info.Create(eventInfo));
+            return isNullableInfo(new NullabilityInfoContext().Create(eventInfo));
+#else
+            return false;
 #endif
-
-            return isNullable;
         }
 
         /// <summary>
@@ -151,13 +148,14 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns>Whether the parameter type is nullable.</returns>
         public static bool IsNullable(this ParameterInfo parameterInfo)
         {
-            bool isNullable = IsNullable(parameterInfo.ParameterType);
+            if (IsNullable(parameterInfo.ParameterType))
+                return true;
 
 #if NET6_0_OR_GREATER
-            isNullable |= isNullableInfo(nullability_context_info.Create(parameterInfo));
+            return isNullableInfo(new NullabilityInfoContext().Create(parameterInfo));
+#else
+            return false;
 #endif
-
-            return isNullable;
         }
 
         /// <summary>
@@ -170,13 +168,14 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns>Whether the field type is nullable.</returns>
         public static bool IsNullable(this FieldInfo fieldInfo)
         {
-            bool isNullable = IsNullable(fieldInfo.FieldType);
+            if (IsNullable(fieldInfo.FieldType))
+                return true;
 
 #if NET6_0_OR_GREATER
-            isNullable |= isNullableInfo(nullability_context_info.Create(fieldInfo));
+            return isNullableInfo(new NullabilityInfoContext().Create(fieldInfo));
+#else
+            return false;
 #endif
-
-            return isNullable;
         }
 
         /// <summary>
@@ -189,13 +188,14 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns>Whether the property type is nullable.</returns>
         public static bool IsNullable(this PropertyInfo propertyInfo)
         {
-            bool isNullable = IsNullable(propertyInfo.PropertyType);
+            if (IsNullable(propertyInfo.PropertyType))
+                return true;
 
 #if NET6_0_OR_GREATER
-            isNullable |= isNullableInfo(nullability_context_info.Create(propertyInfo));
+            return isNullableInfo(new NullabilityInfoContext().Create(propertyInfo));
+#else
+            return false;
 #endif
-
-            return isNullable;
         }
 
 #if NET6_0_OR_GREATER
