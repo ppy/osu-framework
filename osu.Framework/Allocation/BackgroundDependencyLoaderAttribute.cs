@@ -58,8 +58,8 @@ namespace osu.Framework.Allocation
                     Debug.Assert(attribute != null);
 
                     bool permitNulls = attribute.permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType)
-                                                 .Select(t => getDependency(t, type, permitNulls || t.IsNullable())).ToArray();
+                    var parameterGetters = method.GetParameters()
+                                                 .Select(parameter => getDependency(parameter.ParameterType, type, permitNulls || parameter.IsNullable())).ToArray();
 
                     return (target, dc) =>
                     {
