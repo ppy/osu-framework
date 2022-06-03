@@ -241,6 +241,16 @@ namespace osu.Framework.Tests.Polygons
                 false);
         }
 
+        [Test]
+        public void TestCollinear()
+        {
+            var clipPolygon = new SimpleConvexPolygon(new[] { new Vector2(-1, 0.5f), new Vector2(0.1f, 0.1f), new Vector2(0, 1) });
+            var subjectPolygon = new SimpleConvexPolygon(new[] { new Vector2(-2, -0.5f), new Vector2(0.1f, 0.1f), new Vector2(-0.1f, 1) });
+
+            var result = clip(clipPolygon, subjectPolygon).ToArray();
+            Assert.That(result.Length, Is.EqualTo(4));
+        }
+
         private static object[] fuzzedEdgeCases => new object[]
         {
             new object[]

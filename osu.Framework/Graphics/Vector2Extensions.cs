@@ -108,5 +108,16 @@ namespace osu.Framework.Graphics
         public static bool InRightHalfPlaneOf(this Vector2 point, in Line line)
             => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
                 - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) < 0;
+
+        /// <summary>
+        /// Determines whether a point is within the left half-plane of a line in the traditional cartesian coordinate system.
+        /// </summary>
+        /// <param name="line">The line.</param>
+        /// <param name="point">The point.</param>
+        /// <returns>Whether <paramref name="point"/> is in the left half-plane of <paramref name="line"/>. Collinear points are never in the left half-plane of the line. </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool InLeftHalfPlaneOf(this Vector2 point, in Line line)
+            => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
+                - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) > 0;
     }
 }

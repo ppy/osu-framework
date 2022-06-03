@@ -77,5 +77,12 @@ namespace osu.Framework.Tests.Polygons
             Line line = new Line(new Vector2(-0.5f, 0.1f), new Vector2(-10, 2));
             Assert.That(new Vector2(0.5f, -0.1f).InRightHalfPlaneOf(line), Is.False);
         }
+
+        [Test]
+        public void TestCollinearPointNotInLeftHalfPlane()
+        {
+            Line line = new Line(new Vector2(-0.5f, 0.1f), new Vector2(-10, 2));
+            Assert.That(new Vector2(0.5f, -0.1f).InLeftHalfPlaneOf(line), Is.False);
+        }
     }
 }

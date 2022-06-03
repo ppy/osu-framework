@@ -127,7 +127,7 @@ namespace osu.Framework.Utils
         {
             if (endVertex.InRightHalfPlaneOf(clipEdge))
             {
-                if (!startVertex.InRightHalfPlaneOf(clipEdge))
+                if (startVertex.InLeftHalfPlaneOf(clipEdge))
                 {
                     clipEdge.TryIntersectWith(ref startVertex, ref endVertex, out float t);
                     buffer[bufferIndex++] = clipEdge.At(t);
