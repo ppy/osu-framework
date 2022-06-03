@@ -140,9 +140,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f)));
             });
 
-            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 400)));
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 1000)));
             checkPosition(withClampExtension ? 200 : 100);
-            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 400)));
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 1000)));
             checkPosition(withClampExtension ? -100 : 0);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkPosition(0);
@@ -449,6 +449,57 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("reset horizontal scroll", () => horizontalScroll.ScrollToStart(false));
 
             static bool checkScrollCurrent(BasicScrollContainer scrolled, BasicScrollContainer notScrolled) => notScrolled.Current == 0 && Precision.DefinitelyBigger(scrolled.Current, 0f);
+        }
+
+        /// <summary>
+        /// Ensures that initiating a drag with horizontal delta on a singular vertical <see cref="ScrollContainer{T}"/> doesn't prevent from continuing with vertical drags.
+        /// </summary>
+        /// <remarks>
+        /// If the vertical scroll container is nested inside of a horizontal one, then it should prevent it, as covered in <see cref="TestNestedScrolling"/>.
+        /// </remarks>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestSingularVerticalScrollWithHorizontalDelta(bool withClampExtension)
+        {
+            AddStep("Create scroll container", () =>
+            {
+                Add(scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    ClampExtension = withClampExtension ? 100 : 0,
+                    Child = new Box { Size = new Vector2(200, 300) }
+                });
+            });
+
+            AddStep("Click and drag horizontally", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+
+                // Required for the dragging state to be set correctly.
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f, 0f)));
+            });
+
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 1000)));
+            checkPosition(withClampExtension ? 200 : 100);
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 1000)));
+            checkPosition(withClampExtension ? -100 : 0);
+
+            AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(2000, 1000)));
+            checkPosition(withClampExtension ? 200 : 100);
+            AddStep("Move mouse diagonally down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(2000, 1000)));
+            checkPosition(withClampExtension ? -100 : 0);
+
+            AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkPosition(0);
+
+            AddStep("Hover over scroll container", () => InputManager.MoveMouseTo(scrollContainer));
+            AddStep("Scroll diagonally down", () => InputManager.ScrollBy(new Vector2(-20, -10)));
+            checkPosition(100);
+            AddStep("Scroll diagonally up", () => InputManager.ScrollBy(new Vector2(20, 10)));
+            checkPosition(0);
         }
 
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
