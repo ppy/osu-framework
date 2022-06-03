@@ -17,6 +17,7 @@ namespace osu.Framework.Tests.Extensions
     [TestFixture]
     [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty")]
     [SuppressMessage("ReSharper", "ValueParameterNotUsed")]
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     public class TestIsNullableTypeExtensions
     {
         private const BindingFlags binding_flags = BindingFlags.Instance | BindingFlags.NonPublic;
