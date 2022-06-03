@@ -13,7 +13,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public abstract class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+    public abstract class ScrollContainer<T> : Container<T>, IScrollContainer, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -164,10 +164,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        /// <summary>
-        /// The direction in which scrolling is supported.
-        /// </summary>
-        protected readonly Direction ScrollDirection;
+        public Direction ScrollDirection { get; }
 
         /// <summary>
         /// The direction in which scrolling is supported, converted to an int for array index lookups.
@@ -247,6 +244,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (dragWasMostlyHorizontal != (ScrollDirection == Direction.Horizontal))
                 return false;
+            }
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
