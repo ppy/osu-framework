@@ -479,7 +479,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.PressButton(MouseButton.Left);
 
                 // Required for the dragging state to be set correctly.
-                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f, 0f)));
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(20f, 0f)));
             });
 
             AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 1000)));
@@ -525,7 +525,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.PressButton(MouseButton.Left);
 
                 // Required for the dragging state to be set correctly.
-                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f, 0f)));
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(20f, 0f)));
             });
 
             AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(1000, 1000)));
@@ -539,6 +539,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("Nest vertical scroll inside of horizontal", () =>
             {
                 Remove(scrollContainer);
+
                 Add(horizontalScrollContainer = new BasicScrollContainer(Direction.Horizontal)
                 {
                     Anchor = Anchor.Centre,
@@ -563,7 +564,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.PressButton(MouseButton.Left);
 
                 // Required for the dragging state to be set correctly.
-                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f, 0f)));
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(20f, 0f)));
             });
 
             AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(1000, 1000)));
