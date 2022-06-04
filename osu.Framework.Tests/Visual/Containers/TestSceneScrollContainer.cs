@@ -502,6 +502,83 @@ namespace osu.Framework.Tests.Visual.Containers
             checkPosition(0);
         }
 
+        [Test]
+        public void TestDragHandlingUpdatesOnParentChanges()
+        {
+            BasicScrollContainer horizontalScrollContainer = null;
+
+            AddStep("Create scroll container", () =>
+            {
+                Add(scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    ClampExtension = 0,
+                    Child = new Box { Size = new Vector2(200, 300) }
+                });
+            });
+
+            AddStep("Click and drag horizontally", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+
+                // Required for the dragging state to be set correctly.
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f, 0f)));
+            });
+
+            AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(1000, 1000)));
+            checkPosition(100);
+            AddStep("Move mouse diagonally down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(1000, 1000)));
+            checkPosition(0);
+
+            AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkPosition(0);
+
+            AddStep("Nest vertical scroll inside of horizontal", () =>
+            {
+                Remove(scrollContainer);
+                Add(horizontalScrollContainer = new BasicScrollContainer(Direction.Horizontal)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(400),
+                    ClampExtension = 0,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            Size = new Vector2(500, 400),
+                            Colour = FrameworkColour.Yellow,
+                        },
+                        scrollContainer
+                    },
+                });
+            });
+
+            AddStep("Click and drag horizontally", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+
+                // Required for the dragging state to be set correctly.
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f, 0f)));
+            });
+
+            AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(1000, 1000)));
+            AddUntilStep("horizontal position at 100", () => Precision.AlmostEquals(100, horizontalScrollContainer.Current, 1));
+            AddUntilStep("vertical position at 0", () => Precision.AlmostEquals(0, scrollContainer.Current, 1));
+
+            AddStep("Move mouse diagonally down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(1000, 1000)));
+            AddUntilStep("horizontal position at 0", () => Precision.AlmostEquals(0, horizontalScrollContainer.Current, 1));
+            AddUntilStep("vertical position at 0", () => Precision.AlmostEquals(0, scrollContainer.Current, 1));
+
+            AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddUntilStep("horizontal position at 0", () => Precision.AlmostEquals(0, horizontalScrollContainer.Current, 1));
+            AddUntilStep("vertical position at 0", () => Precision.AlmostEquals(0, scrollContainer.Current, 1));
+        }
+
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
             if (heightAdjust != null)
@@ -535,7 +612,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert($"immediately scrolled to {clampedTarget}", () => Precision.AlmostEquals(clampedTarget, immediateScrollPosition, 1));
         }
 
-        private void checkPosition(float expected) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.Current, 1));
+        private void checkPosition(float expected, ScrollContainer<Drawable> scroll = null) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, (scroll ?? scrollContainer).Current, 1));
 
         private void checkScrollbarPosition(float expected) =>
             AddUntilStep($"scrollbar position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.InternalChildren[1].DrawPosition.Y, 1));
