@@ -7,6 +7,7 @@ using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
@@ -171,6 +172,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected int ScrollDim => ScrollDirection == Direction.Horizontal ? 0 : 1;
 
+        private readonly LayoutValue<IScrollContainer> parentScrollContainerCache = new LayoutValue<IScrollContainer>(Invalidation.Parent);
+
+        private IScrollContainer parentScrollContainer => parentScrollContainerCache.IsValid
+            ? parentScrollContainerCache.Value
+            : parentScrollContainerCache.Value = this.FindClosestParent<IScrollContainer>();
+
         /// <summary>
         /// Creates a scroll container.
         /// </summary>
@@ -195,6 +202,8 @@ namespace osu.Framework.Graphics.Containers
             Scrollbar.Hide();
             Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
+
+            AddLayout(parentScrollContainerCache);
         }
 
         private float lastUpdateDisplayableContent = -1;
@@ -239,8 +248,6 @@ namespace osu.Framework.Graphics.Containers
         {
             if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
                 return false;
-
-            var parentScrollContainer = this.FindClosestParent<IScrollContainer>();
 
             if (parentScrollContainer != null && parentScrollContainer.ScrollDirection != ScrollDirection)
             {
@@ -368,8 +375,6 @@ namespace osu.Framework.Graphics.Containers
         {
             if (Content.AliveInternalChildren.Count == 0)
                 return false;
-
-            var parentScrollContainer = this.FindClosestParent<IScrollContainer>();
 
             if (parentScrollContainer != null && parentScrollContainer.ScrollDirection != ScrollDirection)
             {
