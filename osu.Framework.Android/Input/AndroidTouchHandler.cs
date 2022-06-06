@@ -7,6 +7,7 @@ using Android.Views;
 using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Input;
@@ -48,31 +49,43 @@ namespace osu.Framework.Android.Input
 
         protected override void OnTouch(MotionEvent touchEvent)
         {
-            if (touchEvent.Action == MotionEventActions.Move)
+            Touch touch;
+
+            switch (touchEvent.ActionMasked)
             {
-                for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
-                {
-                    var touch = getEventTouch(touchEvent, i);
+                // MotionEventActions.Down arrives at the beginning of a touch event chain and implies the 0th pointer is pressed.
+                // ActionIndex is generally not valid here.
+                case MotionEventActions.Down:
+                    touch = getEventTouch(touchEvent, 0);
                     PendingInputs.Enqueue(new TouchInput(touch, true));
-                }
-            }
-            else if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
-            {
-                var touch = getEventTouch(touchEvent, touchEvent.ActionIndex);
+                    break;
 
-                switch (touchEvent.ActionMasked)
-                {
-                    case MotionEventActions.Down:
-                    case MotionEventActions.PointerDown:
-                        PendingInputs.Enqueue(new TouchInput(touch, true));
-                        break;
+                // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
+                case MotionEventActions.PointerDown:
+                case MotionEventActions.PointerUp:
+                    if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
+                    {
+                        touch = getEventTouch(touchEvent, touchEvent.ActionIndex);
+                        PendingInputs.Enqueue(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
+                    }
 
-                    case MotionEventActions.Up:
-                    case MotionEventActions.PointerUp:
-                    case MotionEventActions.Cancel:
-                        PendingInputs.Enqueue(new TouchInput(touch, false));
-                        break;
-                }
+                    break;
+
+                // events that apply to every pointer (up to PointerCount).
+                case MotionEventActions.Move:
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
+                    {
+                        touch = getEventTouch(touchEvent, i);
+                        PendingInputs.Enqueue(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
+                    }
+
+                    break;
+
+                default:
+                    Logger.Log($"Unknown touch event action: {touchEvent.Action}, masked: {touchEvent.ActionMasked}");
+                    break;
             }
         }
 
