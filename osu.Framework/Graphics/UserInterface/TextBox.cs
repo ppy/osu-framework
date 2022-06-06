@@ -935,7 +935,6 @@ namespace osu.Framework.Graphics.UserInterface
             // `FinalizeImeComposition()` crashes if textbox isn't fully loaded.
             if (IsLoaded) FinalizeImeComposition(false);
 
-            int startBefore = selectionStart;
             selectionStart = selectionEnd = 0;
 
             TextFlow?.Clear();
@@ -943,8 +942,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
             insertString(value, d => d.FinishTransforms());
-
-            selectionStart = Math.Clamp(startBefore, 0, text.Length);
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();

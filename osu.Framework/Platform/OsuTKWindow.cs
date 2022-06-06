@@ -31,10 +31,9 @@ namespace osu.Framework.Platform
         public abstract IGraphicsContext Context { get; }
 
         /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        [CanBeNull]
-        public event Func<bool> ExitRequested;
+        public event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="OsuTKWindow"/> has closed.
@@ -119,7 +118,13 @@ namespace osu.Framework.Platform
                 Resized?.Invoke();
             };
 
-            Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
+            Closing += (sender, e) =>
+            {
+                // always block a graceful exit as it's treated as a regular window event.
+                // the host will force-close the window if the game decides not to block the exit.
+                ExitRequested?.Invoke();
+                e.Cancel = true;
+            };
             Closed += (sender, e) => Exited?.Invoke();
 
             MouseEnter += (sender, args) => cursorInWindow.Value = true;
@@ -427,12 +432,6 @@ namespace osu.Framework.Platform
         }
 
         public void Close() => OsuTKGameWindow.Close();
-
-        public void RequestClose()
-        {
-            if (ExitRequested?.Invoke() != true)
-                Close();
-        }
 
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);

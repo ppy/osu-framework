@@ -86,9 +86,12 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         /// <summary>
-        /// Called when the host is requesting to exit. Return <c>true</c> to block the exit process.
+        /// Invoked when an exit was requested. Always invoked from the update thread.
         /// </summary>
-        public event Func<bool> Exiting;
+        /// <remarks>
+        /// Usually invoked when the window close (X) button or another platform-native exit action has been pressed.
+        /// </remarks>
+        public event Action ExitRequested;
 
         public event Action Exited;
 
@@ -401,30 +404,7 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
-        /// <returns>true to cancel</returns>
-        protected virtual bool OnExitRequested()
-        {
-            if (ExecutionState <= ExecutionState.Stopping) return false;
-
-            bool? response = null;
-
-            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
-
-            //wait for a potentially blocking response
-            while (!response.HasValue)
-            {
-                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-                    threadRunner.RunMainLoop();
-                else
-                    Thread.Sleep(1);
-            }
-
-            if (response.Value)
-                return true;
-
-            Exit();
-            return false;
-        }
+        protected void OnExitRequested() => UpdateThread.Scheduler.Add(() => ExitRequested?.Invoke());
 
         protected virtual void OnExited()
         {
