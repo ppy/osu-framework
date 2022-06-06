@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -20,7 +19,7 @@ namespace osu.Framework.Audio.Sample
         private readonly IResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
 
-        private readonly ConcurrentDictionary<string, SampleBassFactory> factories = new ConcurrentDictionary<string, SampleBassFactory>();
+        private readonly Dictionary<string, SampleBassFactory> factories = new Dictionary<string, SampleBassFactory>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
