@@ -435,9 +435,29 @@ namespace osu.Framework.Platform
         private readonly BindableDouble windowPositionY = new BindableDouble();
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
+        // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
+
+        [UsedImplicitly]
+        private SDL.SDL_LogOutputFunction logOutputDelegate;
+
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter eventFilterDelegate;
+
         public SDL2DesktopWindow()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
+            {
+                throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
+            }
+
+            SDL.SDL_LogSetPriority((int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
+            SDL.SDL_LogSetOutputFunction(logOutputDelegate = (_, categoryInt, priority, messagePtr) =>
+            {
+                var category = (SDL.SDL_LogCategory)categoryInt;
+                string message = Marshal.PtrToStringUTF8(messagePtr);
+
+                Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
+            }, IntPtr.Zero);
 
             graphicsBackend = CreateGraphicsBackend();
 
@@ -508,10 +528,6 @@ namespace osu.Framework.Platform
 
             WindowMode.TriggerChange();
         }
-
-        // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
-        [UsedImplicitly]
-        private SDL.SDL_EventFilter eventFilterDelegate;
 
         /// <summary>
         /// Starts the window's run loop.
@@ -584,15 +600,6 @@ namespace osu.Framework.Platform
         /// Forcefully closes the window.
         /// </summary>
         public void Close() => ScheduleCommand(() => Exists = false);
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        public void RequestClose() => ScheduleEvent(() =>
-        {
-            if (ExitRequested?.Invoke() != true)
-                Close();
-        });
 
         public void SwapBuffers()
         {
@@ -815,7 +822,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => RequestClose();
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => ExitRequested?.Invoke();
 
         private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
         {
@@ -1513,9 +1520,9 @@ namespace osu.Framework.Platform
         public event Action<WindowState> WindowStateChanged;
 
         /// <summary>
-        /// Invoked when the user attempts to close the window. Return value of true will cancel exit.
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        public event Func<bool> ExitRequested;
+        public event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.

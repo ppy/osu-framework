@@ -83,7 +83,7 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
+                using (var stream = storage.CreateFileSafely(Filename))
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)

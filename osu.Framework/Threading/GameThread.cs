@@ -344,6 +344,8 @@ namespace osu.Framework.Threading
                 while (state.Value != targetState)
                     Thread.Sleep(1);
             }
+
+            Debug.Assert(state.Value == targetState);
         }
 
         /// <summary>
@@ -489,6 +491,8 @@ namespace osu.Framework.Threading
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
                         initializedEvent?.Dispose();
+
+                        synchronizationContext.DisassociateGameThread();
 
                         OnExit();
                         break;

@@ -623,10 +623,10 @@ namespace osu.Framework.Input.Bindings
                 yield return InputKey.MouseWheelDown;
 
             if (scrollDelta.X > 0)
-                yield return InputKey.MouseWheelRight;
+                yield return InputKey.MouseWheelLeft;
 
             if (scrollDelta.X < 0)
-                yield return InputKey.MouseWheelLeft;
+                yield return InputKey.MouseWheelRight;
         }
 
         public static InputKey FromMidiKey(MidiKey key) => (InputKey)((int)InputKey.MidiA0 + key - MidiKey.A0);

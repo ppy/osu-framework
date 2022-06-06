@@ -22,6 +22,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -85,9 +86,12 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         /// <summary>
-        /// Called when the host is requesting to exit. Return <c>true</c> to block the exit process.
+        /// Invoked when an exit was requested. Always invoked from the update thread.
         /// </summary>
-        public event Func<bool> Exiting;
+        /// <remarks>
+        /// Usually invoked when the window close (X) button or another platform-native exit action has been pressed.
+        /// </remarks>
+        public event Action ExitRequested;
 
         public event Action Exited;
 
@@ -327,8 +331,13 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            var actualException = args.Exception.AsSingular();
+
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
-            logException(args.Exception, "unobserved");
+            logException(actualException, "unobserved");
+
+            if (DebugUtils.IsNUnitRunning)
+                abortExecutionFromException(sender, actualException, false);
         }
 
         private void logException(Exception exception, string type)
@@ -395,30 +404,7 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
-        /// <returns>true to cancel</returns>
-        protected virtual bool OnExitRequested()
-        {
-            if (ExecutionState <= ExecutionState.Stopping) return false;
-
-            bool? response = null;
-
-            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
-
-            //wait for a potentially blocking response
-            while (!response.HasValue)
-            {
-                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-                    threadRunner.RunMainLoop();
-                else
-                    Thread.Sleep(1);
-            }
-
-            if (response.Value)
-                return true;
-
-            Exit();
-            return false;
-        }
+        protected void OnExitRequested() => UpdateThread.Scheduler.Add(() => ExitRequested?.Invoke());
 
         protected virtual void OnExited()
         {

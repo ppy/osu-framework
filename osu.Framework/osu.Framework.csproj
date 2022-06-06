@@ -37,7 +37,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.187" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
-    <PackageReference Include="ppy.SDL2-CS" Version="1.0.518-alpha" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.563-alpha" />
 
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
@@ -48,7 +48,7 @@
     <PackageReference Include="Markdig" Version="0.23.0" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2022.429.0" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2022.525.0" />
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="OpenTabletDriver" Version="0.6.0.2" />

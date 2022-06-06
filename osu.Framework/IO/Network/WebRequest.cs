@@ -238,7 +238,12 @@ namespace osu.Framework.IO.Network
         public async Task PerformAsync(CancellationToken cancellationToken = default)
         {
             if (Completed)
+            {
+                if (Aborted)
+                    throw new OperationCanceledException($"The {nameof(WebRequest)} has been aborted.");
+
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+            }
 
             try
             {
