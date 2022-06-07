@@ -965,11 +965,22 @@ namespace osu.Framework.Platform
             enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
-        private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
+        private uint lastPreciseScroll;
+
+        private const uint precise_scroll_debounce = 100;
+
+        private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel)
+        {
+            bool isPrecise(float f) => f % 1 != 0;
+
+            if (isPrecise(evtWheel.preciseX) || isPrecise(evtWheel.preciseY))
+                lastPreciseScroll = evtWheel.timestamp;
+
+            bool precise = evtWheel.timestamp < lastPreciseScroll + precise_scroll_debounce;
+
             // SDL reports horizontal scroll opposite of what framework expects (in non-"natural" mode, scrolling to the right gives positive deltas while we want negative).
-            // TODO: we should be setting the `precise` bool, but it's not simple to detect on some platforms.
-            // see https://github.com/ppy/osu-framework/pull/5186#issuecomment-1132064369 for further explanation.
-            TriggerMouseWheel(new Vector2(-evtWheel.preciseX, evtWheel.preciseY), false);
+            TriggerMouseWheel(new Vector2(-evtWheel.preciseX, evtWheel.preciseY), precise);
+        }
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
