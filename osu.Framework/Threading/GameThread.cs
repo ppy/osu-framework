@@ -20,8 +20,8 @@ namespace osu.Framework.Threading
     /// </summary>
     public class GameThread
     {
-        internal const double DEFAULT_ACTIVE_HZ = 1000;
-        internal const double DEFAULT_INACTIVE_HZ = 60;
+        internal const int DEFAULT_ACTIVE_HZ = 1000;
+        internal const int DEFAULT_INACTIVE_HZ = 60;
 
         /// <summary>
         /// The name of this thread.
