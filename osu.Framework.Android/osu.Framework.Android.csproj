@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.22">
   <PropertyGroup Label="Project">
     <TargetFramework>monoandroid10.0</TargetFramework>
     <OutputType>Library</OutputType>
@@ -26,6 +26,8 @@
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.187" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so" />
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\arm64-v8a\*.so" />
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\armeabi-v7a\*.so" />
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\x86\*.so" />
   </ItemGroup>
 </Project>

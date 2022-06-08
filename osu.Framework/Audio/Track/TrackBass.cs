@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
@@ -23,7 +24,7 @@ namespace osu.Framework.Audio.Track
     {
         public const int BYTES_PER_SAMPLE = 4;
 
-        private AsyncBufferStream? dataStream;
+        private Stream? dataStream;
 
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
@@ -132,8 +133,21 @@ namespace osu.Framework.Audio.Track
 
         private int prepareStream(Stream data, bool quick)
         {
-            //encapsulate incoming stream with async buffer if it isn't already.
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+            switch (data)
+            {
+                case MemoryStream _:
+                case UnmanagedMemoryStream _:
+                case AsyncBufferStream _:
+                    // Buffering memory stream is definitely unworthy.
+                    dataStream = data;
+                    break;
+
+                default:
+                    // It would be most likely a FileStream.
+                    // Consider to use RandomAccess to optimise in favor of FileStream in .NET 6
+                    dataStream = new AsyncBufferStream(data, quick ? 8 : -1);
+                    break;
+            }
 
             fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
@@ -194,7 +208,6 @@ namespace osu.Framework.Audio.Track
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
             isRunning = running || (isPlayed && !hasCompleted);
-
             updateCurrentTime();
 
             bassAmplitudeProcessor?.Update();
@@ -206,16 +219,22 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            StopAsync().Wait();
+            StopAsync().WaitSafely();
         }
 
         public Task StopAsync() => EnqueueAction(() =>
         {
             stopInternal();
-            isPlayed = false;
+            isRunning = isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this, true);
+        private void stopInternal()
+        {
+            if (!isRunningState(bassMixer.ChannelIsActive(this)))
+                return;
+
+            bassMixer.ChannelPause(this, true);
+        }
 
         private int direction;
 
@@ -229,13 +248,13 @@ namespace osu.Framework.Audio.Track
         {
             base.Start();
 
-            StartAsync().Wait();
+            StartAsync().WaitSafely();
         }
 
         public Task StartAsync() => EnqueueAction(() =>
         {
             if (startInternal())
-                isPlayed = true;
+                isRunning = isPlayed = true;
         });
 
         private bool startInternal()
@@ -265,7 +284,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool Seek(double seek) => SeekAsync(seek).Result;
+        public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
         public async Task<bool> SeekAsync(double seek)
         {
@@ -372,21 +391,16 @@ namespace osu.Framework.Audio.Track
 
         private void cleanUpSyncs()
         {
-            Debug.Assert(stopCallback != null
-                         && stopSync != null
-                         && endCallback != null
-                         && endSync != null);
-
-            bassMixer.ChannelRemoveSync(this, stopSync.Value);
-            bassMixer.ChannelRemoveSync(this, endSync.Value);
+            if (stopSync != null) bassMixer.ChannelRemoveSync(this, stopSync.Value);
+            if (endSync != null) bassMixer.ChannelRemoveSync(this, endSync.Value);
 
             stopSync = null;
             endSync = null;
 
-            stopCallback.Dispose();
+            stopCallback?.Dispose();
             stopCallback = null;
 
-            endCallback.Dispose();
+            endCallback?.Dispose();
             endCallback = null;
         }
 

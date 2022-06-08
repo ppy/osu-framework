@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osuTK;
@@ -16,7 +17,9 @@ namespace osu.Framework.Android
 
         public override IGraphicsContext Context => view.GraphicsContext;
 
-        public override bool Focused => true;
+        public override bool Focused => IsActive.Value;
+
+        public override IBindable<bool> IsActive { get; }
 
         public override Platform.WindowState WindowState
         {
@@ -24,14 +27,30 @@ namespace osu.Framework.Android
             set { }
         }
 
+        public event Action CursorStateChanged;
+
+        public override CursorState CursorState
+        {
+            get => base.CursorState;
+            set
+            {
+                // cursor should always be confined on mobile platforms, to have UserInputManager confine the cursor to window bounds
+                base.CursorState = value | CursorState.Confined;
+                CursorStateChanged?.Invoke();
+            }
+        }
+
         public AndroidGameWindow(AndroidGameView view)
             : base(view)
         {
             this.view = view;
+            IsActive = view.Activity.IsActive.GetBoundCopy();
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
+            CursorState |= CursorState.Confined;
+            SafeAreaPadding.BindTo(view.SafeAreaPadding);
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]

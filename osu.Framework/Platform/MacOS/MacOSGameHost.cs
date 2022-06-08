@@ -15,8 +15,8 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation)
+        internal MacOSGameHost(string gameName, HostOptions options)
+            : base(gameName, options)
         {
         }
 
@@ -64,7 +64,12 @@ namespace osu.Framework.Platform.MacOS
             return handlers;
         }
 
-        public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
+        public override IEnumerable<KeyBinding> PlatformKeyBindings => KeyBindings;
+
+        /// <summary>
+        /// <see cref="PlatformKeyBindings"/> for macOS and iOS.
+        /// </summary>
+        internal static IEnumerable<KeyBinding> KeyBindings => new[]
         {
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.X), PlatformAction.Cut),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.C), PlatformAction.Copy),

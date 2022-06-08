@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
-using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Timing;
 using osuTK.Input;
@@ -116,11 +114,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             box.Alpha = controlPressed ? 1 : background_alpha;
             if (clock != null) clock.Rate = controlPressed ? 0 : 1;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
-        {
         }
 
         protected override void PopIn()

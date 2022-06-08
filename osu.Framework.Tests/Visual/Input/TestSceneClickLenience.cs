@@ -85,21 +85,6 @@ namespace osu.Framework.Tests.Visual.Input
         [TestCase(TestType.Direct)]
         [TestCase(TestType.Scroll)]
         [TestCase(TestType.NonBlockingScroll)]
-        public void TestDiagonalDragOnButton(TestType type)
-        {
-            AddStep("create button", () => Child = createClickBox(type));
-
-            AddStep("move to TopLeft", () => InputManager.MoveMouseTo(box.ScreenSpaceDrawQuad.AABBFloat.Shrink(10).TopLeft));
-            AddStep("mouse down", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("move to BottomRight", () => InputManager.MoveMouseTo(box.ScreenSpaceDrawQuad.AABBFloat.Shrink(10).BottomRight));
-            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
-
-            checkClicked(type != TestType.Scroll);
-        }
-
-        [TestCase(TestType.Direct)]
-        [TestCase(TestType.Scroll)]
-        [TestCase(TestType.NonBlockingScroll)]
         public void TestHorizontalDragOut(TestType type)
         {
             AddStep("create button", () => Child = createClickBox(type));

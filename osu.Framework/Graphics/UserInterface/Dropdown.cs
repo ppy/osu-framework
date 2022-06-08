@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-            Current.ValueChanged += selectionChanged;
+            Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
@@ -424,7 +424,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             #region DrawableDropdownMenuItem
 
-            // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
@@ -478,7 +477,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         backgroundColourSelected = value;
-                        UpdateBackgroundColour();
+                        Scheduler.AddOnce(UpdateBackgroundColour);
                     }
                 }
 
@@ -490,17 +489,14 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         foregroundColourSelected = value;
-                        UpdateForegroundColour();
+                        Scheduler.AddOnce(UpdateForegroundColour);
                     }
                 }
 
                 protected virtual void OnSelectChange()
                 {
-                    if (!IsLoaded)
-                        return;
-
-                    UpdateBackgroundColour();
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
 
                 protected override void UpdateBackgroundColour()
@@ -511,13 +507,6 @@ namespace osu.Framework.Graphics.UserInterface
                 protected override void UpdateForegroundColour()
                 {
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
-                }
-
-                protected override void LoadComplete()
-                {
-                    base.LoadComplete();
-                    Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
-                    Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
                 protected override bool OnHover(HoverEvent e)

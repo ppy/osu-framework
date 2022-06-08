@@ -191,28 +191,6 @@ csharp_style_prefer_index_operator = true:warning
 csharp_style_prefer_range_operator = true:warning
 csharp_style_prefer_switch_expression = false:none
 
-#Supressing roslyn built-in analyzers
-# Suppress: EC112
-
-#Private method is unused
-dotnet_diagnostic.IDE0051.severity = silent
-#Private member is unused
-dotnet_diagnostic.IDE0052.severity = silent
-
-#Rules for disposable
-dotnet_diagnostic.IDE0067.severity = none
-dotnet_diagnostic.IDE0068.severity = none
-dotnet_diagnostic.IDE0069.severity = none
-
-#File header
-dotnet_diagnostic.IDE0073.severity = warning
-
-#Disable operator overloads requiring alternate named methods
-dotnet_diagnostic.CA2225.severity = none
-
-# Banned APIs
-dotnet_diagnostic.RS0030.severity = error
-
 [*.{yaml,yml}]
 insert_final_newline = true
 indent_style = space

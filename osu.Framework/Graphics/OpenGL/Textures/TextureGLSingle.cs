@@ -482,7 +482,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 else
                     GLWrapper.BindTexture(this);
 
-                if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
+                if ((width == upload.Bounds.Width && height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
                     updateMemoryUsage(upload.Level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);

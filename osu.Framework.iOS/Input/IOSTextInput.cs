@@ -8,26 +8,29 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSTextInput : TextInputSource
     {
+        private readonly IOSGameHost host;
         private readonly IOSGameView view;
 
-        public IOSTextInput(IOSGameView view)
+        public IOSTextInput(IOSGameHost host, IOSGameView view)
         {
+            this.host = host;
             this.view = view;
         }
 
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
             if (text == " " || text.Trim().Length > 0)
-                AddPendingText(text);
+                TriggerTextInput(text);
         }
 
-        protected override void ActivateTextInput()
+        protected override void ActivateTextInput(bool allowIme)
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
+            host.TextFieldHandler.KeyboardActive = true;
         }
 
-        protected override void EnsureTextInputActivated()
+        protected override void EnsureTextInputActivated(bool allowIme)
         {
             // If the user has manually closed the keyboard, it will not be shown until another TextBox is focused.
             // Calling `view.KeyboardTextField.UpdateFirstResponder` over and over again won't work, due to how
@@ -40,6 +43,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
+            host.TextFieldHandler.KeyboardActive = false;
         }
     }
 }

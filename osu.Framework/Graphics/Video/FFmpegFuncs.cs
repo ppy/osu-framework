@@ -4,9 +4,11 @@
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 
+// ReSharper disable InconsistentNaming
+#pragma warning disable IDE1006 // Naming style
+
 namespace osu.Framework.Graphics.Video
 {
-    // ReSharper disable InconsistentNaming
     public unsafe class FFmpegFuncs
     {
         #region Delegates
@@ -61,6 +63,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int AvcodecSendPacketDelegate(AVCodecContext* avctx, AVPacket* avpkt);
 
+        public delegate void AvcodecFlushBuffersDelegate(AVCodecContext* avctx);
+
         public delegate AVFormatContext* AvformatAllocContextDelegate();
 
         public delegate void AvformatCloseInputDelegate(AVFormatContext** s);
@@ -108,6 +112,7 @@ namespace osu.Framework.Graphics.Video
         public AvcodecOpen2Delegate avcodec_open2;
         public AvcodecReceiveFrameDelegate avcodec_receive_frame;
         public AvcodecSendPacketDelegate avcodec_send_packet;
+        public AvcodecFlushBuffersDelegate avcodec_flush_buffers;
         public AvformatAllocContextDelegate avformat_alloc_context;
         public AvformatCloseInputDelegate avformat_close_input;
         public AvformatFindStreamInfoDelegate avformat_find_stream_info;

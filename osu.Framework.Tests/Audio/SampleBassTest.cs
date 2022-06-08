@@ -88,5 +88,30 @@ namespace osu.Framework.Tests.Audio
 
             Assert.IsFalse(channel.Playing);
         }
+
+        /// <summary>
+        /// Tests the case where a play call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// </summary>
+        [Test]
+        public void TestPlayingUpdatedAfterInlinePlay()
+        {
+            bass.RunOnAudioThread(() => channel = sample.Play());
+            Assert.That(channel.Playing, Is.True);
+        }
+
+        /// <summary>
+        /// Tests the case where a stop call can be run inline due to already being on the audio thread.
+        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// </summary>
+        [Test]
+        public void TestPlayingUpdatedAfterInlineStop()
+        {
+            channel = sample.Play();
+            bass.Update();
+
+            bass.RunOnAudioThread(() => channel.Stop());
+            Assert.That(channel.Playing, Is.False);
+        }
     }
 }

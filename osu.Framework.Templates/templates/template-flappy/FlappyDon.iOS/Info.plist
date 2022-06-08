@@ -44,5 +44,9 @@
 	</array>
 	<key>MinimumOSVersion</key>
 	<string>11.0</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 </dict>
 </plist>

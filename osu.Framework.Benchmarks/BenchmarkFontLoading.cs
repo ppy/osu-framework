@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -20,7 +21,7 @@ namespace osu.Framework.Benchmarks
 
         public override void SetUp()
         {
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = MemoryAllocator.Default;
 
             baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
             sharedTemp = new TemporaryNativeStorage("fontstore-test-" + Guid.NewGuid());
@@ -65,7 +66,7 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void BenchmarkTimedExpiry()
         {
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = MemoryAllocator.Default;
 
             using (var store = new TimedExpiryGlyphStore(baseResources, font_name))
                 runFor(store);
@@ -80,7 +81,7 @@ namespace osu.Framework.Benchmarks
 
         private void runFor(GlyphStore store)
         {
-            store.LoadFontAsync().Wait();
+            store.LoadFontAsync().WaitSafely();
 
             var props = typeof(FontAwesome.Solid).GetProperties(BindingFlags.Public | BindingFlags.Static);
 

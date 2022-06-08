@@ -9,13 +9,13 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/FlappyDon.Game.Tests/bin/Debug/net5.0/FlappyDon.Game.Tests.dll",
+                "${workspaceRoot}/FlappyDon.Game.Tests/bin/Debug/net6.0/FlappyDon.Game.Tests.dll",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Tests, Debug)",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Game.Tests/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Game.Tests/bin/Debug/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
             "console": "internalConsole"
@@ -26,13 +26,13 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/FlappyDon.Game.Tests/bin/Release/net5.0/FlappyDon.Game.Tests.dll",
+                "${workspaceRoot}/FlappyDon.Game.Tests/bin/Release/net6.0/FlappyDon.Game.Tests.dll",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Tests, Release)",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Game.Tests/bin/Release/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Game.Tests/bin/Release/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
             "console": "internalConsole"
@@ -43,13 +43,13 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net5.0/FlappyDon.dll",
+                "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net6.0/FlappyDon.dll",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Desktop, Debug)",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
             "console": "internalConsole"
@@ -60,13 +60,13 @@
             "request": "launch",
             "program": "dotnet",
             "args": [
-                "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net5.0/FlappyDon.dll",
+                "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net6.0/FlappyDon.dll",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Desktop, Release)",
             "linux": {
                 "env": {
-                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net5.0:${env:LD_LIBRARY_PATH}"
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/FlappyDon.Desktop/bin/Debug/net6.0:${env:LD_LIBRARY_PATH}"
                 }
             },
             "console": "internalConsole"

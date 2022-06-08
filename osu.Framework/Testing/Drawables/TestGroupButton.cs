@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Localisation;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -12,7 +13,7 @@ namespace osu.Framework.Testing.Drawables
 {
     internal class TestGroupButton : VisibilityContainer, IHasFilterableChildren
     {
-        public IEnumerable<string> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<string>();
+        public IEnumerable<LocalisableString> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<LocalisableString>();
 
         public bool MatchingFilter
         {

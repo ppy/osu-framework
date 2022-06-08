@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             private MaskingInfo? maskingInfo;
 
             /// <summary>
-            /// The screen-space version of <see cref="OpenGL.MaskingInfo.MaskingRect"/>.
+            /// The screen-space version of <see cref="MaskingInfo.MaskingRect"/>.
             /// Used as cache of screen-space masking quads computed in previous frames.
             /// Assign null to reset.
             /// </summary>
@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     MaskingInfo info = maskingInfo.Value;
                     if (info.BorderThickness > 0)
-                        info.BorderColour *= DrawColourInfo.Colour.AverageColour;
+                        info.BorderColour = ColourInfo.Multiply(info.BorderColour, DrawColourInfo.Colour);
 
                     GLWrapper.PushMaskingInfo(info);
                 }

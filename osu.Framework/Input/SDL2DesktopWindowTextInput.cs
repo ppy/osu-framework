@@ -26,7 +26,7 @@ namespace osu.Framework.Input
             }
             else
             {
-                AddPendingText(text);
+                TriggerTextInput(text);
             }
         }
 
@@ -37,16 +37,16 @@ namespace osu.Framework.Input
             TriggerImeComposition(text, selectionStart, selectionLength);
         }
 
-        protected override void ActivateTextInput()
+        protected override void ActivateTextInput(bool allowIme)
         {
             window.TextInput += handleTextInput;
             window.TextEditing += handleTextEditing;
-            window.StartTextInput();
+            window.StartTextInput(allowIme);
         }
 
-        protected override void EnsureTextInputActivated()
+        protected override void EnsureTextInputActivated(bool allowIme)
         {
-            window.StartTextInput();
+            window.StartTextInput(allowIme);
         }
 
         protected override void DeactivateTextInput()

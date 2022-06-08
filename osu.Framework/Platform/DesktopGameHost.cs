@@ -23,11 +23,11 @@ namespace osu.Framework.Platform
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
-            : base(gameName)
+        protected DesktopGameHost(string gameName, HostOptions options = null)
+            : base(gameName, options)
         {
-            this.bindIPCPort = bindIPCPort;
-            IsPortableInstallation = portableInstallation;
+            bindIPCPort = Options.BindIPC;
+            IsPortableInstallation = Options.PortableInstallation;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
@@ -76,13 +76,20 @@ namespace osu.Framework.Platform
 
         public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
 
-        public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
+        public override bool OpenFileExternally(string filename)
+        {
+            openUsingShellExecute(filename);
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
 
-        public override void PresentFileExternally(string filename)
+        public override bool PresentFileExternally(string filename)
+        {
             // should be overriden to highlight/select the file in the folder if such native API exists.
-            => OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            return true;
+        }
 
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
@@ -102,7 +109,7 @@ namespace osu.Framework.Platform
             new InputHandler[]
             {
                 new KeyboardHandler(),
-#if NET5_0
+#if NET6_0_OR_GREATER
                 // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
                 new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif

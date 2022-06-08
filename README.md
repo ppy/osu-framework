@@ -27,9 +27,9 @@ This framework is intended to take steps beyond what you would normally expect f
 
 ## Requirements
 
-- A desktop platform with the [.NET 5.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
+- A desktop platform with the [.NET 6.0 SDK](https://dotnet.microsoft.com/download).
 - When running on linux, please have a system-wide ffmpeg installation available to support video decoding.
-- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net50&pivots=os-windows#dependencies)** may be required to correctly run .NET 5 applications if your operating system is not up-to-date with the latest service packs.
+- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net60&pivots=os-windows#dependencies)** may be required to correctly run .NET 6 applications if your operating system is not up-to-date with the latest service packs.
 - When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
 
 ### Building
@@ -77,4 +77,3 @@ Conditions:
  - Must be a GitHub link (i.e. your project is open source)
  - Must be actively developed (and have executable releases)
 -->
-

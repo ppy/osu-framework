@@ -19,6 +19,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Platform.Linux.Native;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
 namespace osu.Framework.Graphics.Video
@@ -80,6 +81,7 @@ namespace osu.Framework.Graphics.Video
 
         private bool inputOpened;
         private bool isDisposed;
+        private bool hwDecodingAllowed = true;
         private Stream videoStream;
 
         private double timeBaseInSeconds;
@@ -102,6 +104,20 @@ namespace osu.Framework.Graphics.Video
         private readonly FFmpegFuncs ffmpeg;
 
         internal bool Looping;
+
+        static VideoDecoder()
+        {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // FFmpeg.AutoGen doesn't load libraries as RTLD_GLOBAL, so we must load them ourselves to fix inter-library dependencies
+                // otherwise they would fallback to the system-installed libraries that can differ in version installed.
+                Library.Load("libavutil.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libavcodec.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libavformat.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libavfilter.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libswscale.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+        }
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.
@@ -151,6 +167,7 @@ namespace osu.Framework.Graphics.Video
 
             decoderCommands.Enqueue(() =>
             {
+                ffmpeg.avcodec_flush_buffers(codecContext);
                 ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), AGffmpeg.AVSEEK_FLAG_BACKWARD);
                 skipOutputUntilTime = targetTimestamp;
                 State = DecoderState.Ready;
@@ -176,7 +193,7 @@ namespace osu.Framework.Graphics.Video
         public void StartDecoding()
         {
             if (decodingTask != null)
-                throw new InvalidOperationException($"Cannot start decoding once already started. Call {nameof(StopDecoding)} first.");
+                throw new InvalidOperationException($"Cannot start decoding once already started. Call {nameof(StopDecodingAsync)} first.");
 
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
@@ -200,34 +217,23 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// Stops the decoding process. Optionally waits for the decoder thread to terminate.
+        /// Stops the decoding process.
         /// </summary>
-        /// <param name="waitForDecoderExit">True if this method should wait for the decoder thread to terminate, false otherwise.</param>
-        public void StopDecoding(bool waitForDecoderExit)
+        public Task StopDecodingAsync()
         {
             if (decodingTask == null)
-                return;
+                return Task.CompletedTask;
 
             decodingTaskCancellationTokenSource.Cancel();
 
-            if (waitForDecoderExit)
+            return decodingTask.ContinueWith(_ =>
             {
-                try
-                {
-                    decodingTask.Wait();
-                }
-                catch
-                {
-                    // Can throw an TaskCanceledException (inside of an AggregateException)
-                    // if the decoding task was enqueued but not running yet.
-                }
-            }
+                decodingTask = null;
+                decodingTaskCancellationTokenSource.Dispose();
+                decodingTaskCancellationTokenSource = null;
 
-            decodingTask = null;
-            decodingTaskCancellationTokenSource.Dispose();
-            decodingTaskCancellationTokenSource = null;
-
-            State = DecoderState.Ready;
+                State = DecoderState.Ready;
+            });
         }
 
         /// <summary>
@@ -347,9 +353,9 @@ namespace osu.Framework.Graphics.Video
             timeBaseInSeconds = stream->time_base.GetValue();
 
             if (stream->duration > 0)
-                Duration = stream->duration * timeBaseInSeconds * 1000;
+                Duration = stream->duration * timeBaseInSeconds * 1000.0;
             else
-                Duration = formatContext->duration / AGffmpeg.AV_TIME_BASE * 1000;
+                Duration = formatContext->duration / (double)AGffmpeg.AV_TIME_BASE * 1000.0;
         }
 
         private void recreateCodecContext()
@@ -358,9 +364,10 @@ namespace osu.Framework.Graphics.Video
                 return;
 
             var codecParams = *stream->codecpar;
+            var targetHwDecoders = hwDecodingAllowed ? TargetHardwareVideoDecoders.Value : HardwareVideoDecoder.None;
             bool openSuccessful = false;
 
-            foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, TargetHardwareVideoDecoders.Value))
+            foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, targetHwDecoders))
             {
                 // free context in case it was allocated in a previous iteration or recreate call.
                 if (codecContext != null)
@@ -498,21 +505,13 @@ namespace osu.Framework.Graphics.Video
 
                 if (packet->stream_index == stream->index)
                 {
-                    // send the packet for decoding.
-                    int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
+                    int sendPacketResult = sendPacket(receiveFrame, packet);
 
-                    // Note: EAGAIN can be returned if there's too many pending frames, which we have to read,
-                    // otherwise we would get stuck in an infinite loop.
-                    if (sendPacketResult == 0 || sendPacketResult == -AGffmpeg.EAGAIN)
+                    // keep the packet data for next frame if we didn't send it successfully.
+                    if (sendPacketResult == -AGffmpeg.EAGAIN)
                     {
-                        readDecodedFrames(receiveFrame);
-
-                        // keep the packet data for next frame if we didn't send it successfully.
-                        if (sendPacketResult != 0)
-                            unrefPacket = false;
+                        unrefPacket = false;
                     }
-                    else
-                        Logger.Log($"Failed to send avcodec packet: {getErrorMessage(sendPacketResult)}");
                 }
 
                 if (unrefPacket)
@@ -520,6 +519,9 @@ namespace osu.Framework.Graphics.Video
             }
             else if (readFrameResult == AGffmpeg.AVERROR_EOF)
             {
+                // Flush decoder.
+                sendPacket(receiveFrame, null);
+
                 if (Looping)
                 {
                     Seek(0);
@@ -542,6 +544,26 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
+        private int sendPacket(AVFrame* receiveFrame, AVPacket* packet)
+        {
+            // send the packet for decoding.
+            int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
+
+            // Note: EAGAIN can be returned if there's too many pending frames, which we have to read,
+            // otherwise we would get stuck in an infinite loop.
+            if (sendPacketResult == 0 || sendPacketResult == -AGffmpeg.EAGAIN)
+            {
+                readDecodedFrames(receiveFrame);
+            }
+            else
+            {
+                Logger.Log($"Failed to send avcodec packet: {getErrorMessage(sendPacketResult)}");
+                tryDisableHwDecoding(sendPacketResult);
+            }
+
+            return sendPacketResult;
+        }
+
         private readonly ConcurrentQueue<FFmpegFrame> hwTransferFrames = new ConcurrentQueue<FFmpegFrame>();
         private void returnHwTransferFrame(FFmpegFrame frame) => hwTransferFrames.Enqueue(frame);
 
@@ -556,6 +578,7 @@ namespace osu.Framework.Graphics.Video
                     if (receiveFrameResult != -AGffmpeg.EAGAIN && receiveFrameResult != AGffmpeg.AVERROR_EOF)
                     {
                         Logger.Log($"Failed to receive frame from avcodec: {getErrorMessage(receiveFrameResult)}");
+                        tryDisableHwDecoding(receiveFrameResult);
                     }
 
                     break;
@@ -586,8 +609,8 @@ namespace osu.Framework.Graphics.Video
                     if (transferResult < 0)
                     {
                         Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
+                        tryDisableHwDecoding(transferResult);
 
-                        // dispose of the frame instead of enqueueing it in case that the failure was caused by it's configuration.
                         hwTransferFrame.Dispose();
                         continue;
                     }
@@ -680,6 +703,28 @@ namespace osu.Framework.Graphics.Video
             return scalerFrame;
         }
 
+        private void tryDisableHwDecoding(int errorCode)
+        {
+            if (!hwDecodingAllowed || TargetHardwareVideoDecoders.Value == HardwareVideoDecoder.None || codecContext == null || codecContext->hw_device_ctx == null)
+                return;
+
+            hwDecodingAllowed = false;
+
+            if (errorCode == -AGffmpeg.ENOMEM)
+            {
+                Logger.Log("Disabling hardware decoding of all videos due to a lack of memory");
+                TargetHardwareVideoDecoders.Value = HardwareVideoDecoder.None;
+
+                // `recreateCodecContext` will be called by the bindable hook
+            }
+            else
+            {
+                Logger.Log("Disabling hardware decoding of the current video due to an unexpected error");
+
+                decoderCommands.Enqueue(recreateCodecContext);
+            }
+        }
+
         private string getErrorMessage(int errorCode)
         {
             const ulong buffer_size = 256;
@@ -750,7 +795,7 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NET5_0
+#if NET6_0_OR_GREATER
             AGffmpeg.GetOrLoadLibrary = name =>
             {
                 int version = AGffmpeg.LibraryVersionMap[name];
@@ -804,6 +849,7 @@ namespace osu.Framework.Graphics.Video
                 avcodec_open2 = AGffmpeg.avcodec_open2,
                 avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
                 avcodec_send_packet = AGffmpeg.avcodec_send_packet,
+                avcodec_flush_buffers = AGffmpeg.avcodec_flush_buffers,
                 avformat_alloc_context = AGffmpeg.avformat_alloc_context,
                 avformat_close_input = AGffmpeg.avformat_close_input,
                 avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
@@ -839,45 +885,46 @@ namespace osu.Framework.Graphics.Video
 
             decoderCommands.Clear();
 
-            StopDecoding(true);
-
-            if (formatContext != null && inputOpened)
+            StopDecodingAsync().ContinueWith(_ =>
             {
-                fixed (AVFormatContext** ptr = &formatContext)
-                    ffmpeg.avformat_close_input(ptr);
-            }
+                if (formatContext != null && inputOpened)
+                {
+                    fixed (AVFormatContext** ptr = &formatContext)
+                        ffmpeg.avformat_close_input(ptr);
+                }
 
-            if (codecContext != null)
-            {
-                fixed (AVCodecContext** ptr = &codecContext)
-                    ffmpeg.avcodec_free_context(ptr);
-            }
+                if (codecContext != null)
+                {
+                    fixed (AVCodecContext** ptr = &codecContext)
+                        ffmpeg.avcodec_free_context(ptr);
+                }
 
-            seekCallback = null;
-            readPacketCallback = null;
+                seekCallback = null;
+                readPacketCallback = null;
 
-            videoStream.Dispose();
-            videoStream = null;
+                videoStream.Dispose();
+                videoStream = null;
 
-            if (swsContext != null)
-                ffmpeg.sws_freeContext(swsContext);
+                if (swsContext != null)
+                    ffmpeg.sws_freeContext(swsContext);
 
-            while (decodedFrames.TryDequeue(out var f))
-            {
-                ((VideoTexture)f.Texture.TextureGL).FlushUploads();
-                f.Texture.Dispose();
-            }
+                while (decodedFrames.TryDequeue(out var f))
+                {
+                    ((VideoTexture)f.Texture.TextureGL).FlushUploads();
+                    f.Texture.Dispose();
+                }
 
-            while (availableTextures.TryDequeue(out var t))
-                t.Dispose();
+                while (availableTextures.TryDequeue(out var t))
+                    t.Dispose();
 
-            while (hwTransferFrames.TryDequeue(out var hwF))
-                hwF.Dispose();
+                while (hwTransferFrames.TryDequeue(out var hwF))
+                    hwF.Dispose();
 
-            while (scalerFrames.TryDequeue(out var sf))
-                sf.Dispose();
+                while (scalerFrames.TryDequeue(out var sf))
+                    sf.Dispose();
 
-            handle.Dispose();
+                handle.Dispose();
+            });
         }
 
         #endregion

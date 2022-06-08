@@ -94,13 +94,13 @@ namespace osu.Framework.Statistics
                 Logger.Log($"# {group.Key}", LoggingTarget.Performance);
 
                 foreach (var i in group)
-                    Logger.Log($"{i.Name.PadRight(30)}: {i.DisplayValue}", LoggingTarget.Performance);
+                    Logger.Log($"{i.Name,-30}: {i.DisplayValue}", LoggingTarget.Performance);
             }
 
             Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
         }
 
-        internal static IGlobalStatistic[] GetStatistics()
+        public static IGlobalStatistic[] GetStatistics()
         {
             lock (statistics)
                 return statistics.ToArray();

@@ -22,16 +22,34 @@ namespace osu.Framework.Platform
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
-        public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+        public override bool OpenFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+            return true;
+        }
 
-        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+        public override bool PresentFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
+        [Obsolete("Use HeadlessGameHost(HostOptions, bool) instead.")] // Can be removed 20220715
+        public HeadlessGameHost(string gameName, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : this(gameName, new HostOptions
+            {
+                BindIPC = bindIPC,
+                PortableInstallation = portableInstallation,
+            }, realtime)
+        {
+        }
+
+        public HeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName ?? Guid.NewGuid().ToString(), options)
         {
             this.realtime = realtime;
         }

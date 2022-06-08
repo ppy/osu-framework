@@ -77,6 +77,10 @@ namespace osu.Framework.Graphics.Animations
             frameData.Add(frame);
 
             OnFrameAdded(frame.Content, frame.Duration);
+
+            // This handles the case when the first frame is added, especially important after a `ClearFrames` operation.
+            if (frameData.Count == 1)
+                currentFrameCache.Invalidate();
         }
 
         /// <summary>
@@ -108,6 +112,8 @@ namespace osu.Framework.Graphics.Animations
 
             Duration = 0;
             CurrentFrameIndex = 0;
+
+            ClearDisplay();
         }
 
         /// <summary>
@@ -116,6 +122,12 @@ namespace osu.Framework.Graphics.Animations
         /// <remarks>This method will only be called after <see cref="OnFrameAdded(T, double)"/> has been called at least once.</remarks>
         /// <param name="content">The content that will be displayed.</param>
         protected abstract void DisplayFrame(T content);
+
+        /// <summary>
+        /// Clear the currently displayed frame.
+        /// </summary>
+        /// <remarks>Called when resetting the animation, ie. on <see cref="ClearFrames"/>.</remarks>
+        protected abstract void ClearDisplay();
 
         /// <summary>
         /// Called whenever a new frame was added to this animation.

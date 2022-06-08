@@ -51,7 +51,7 @@ namespace osu.Framework.Benchmarks
             private ManualThreadRunner threadRunner;
 
             public ManualGameHost(Game runnableGame)
-                : base("manual")
+                : base("manual", new HostOptions())
             {
                 Task.Factory.StartNew(() =>
                 {

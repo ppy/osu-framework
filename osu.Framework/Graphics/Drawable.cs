@@ -1082,7 +1082,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The origin of this <see cref="Drawable"/>.
         /// </summary>
-        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="osu.Framework.Graphics.Anchor"/> enumeration.</exception>
+        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="Graphics.Anchor"/> enumeration.</exception>
         public virtual Anchor Origin
         {
             get => origin;
@@ -1313,7 +1313,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON;
+        public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON);
 
         private bool alwaysPresent;
 
@@ -1466,7 +1466,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
+        protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
@@ -1500,27 +1500,6 @@ namespace osu.Framework.Graphics
                     UpdateClock(parent.Clock);
                 }
             }
-        }
-
-        /// <summary>
-        /// Find the closest parent of a specified type.
-        /// </summary>
-        /// <remarks>
-        /// This can be a potentially expensive operation and should be used with discretion.
-        /// </remarks>
-        /// <typeparam name="T">The type to match.</typeparam>
-        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : class, IDrawable
-        {
-            Drawable cursor = this;
-
-            while ((cursor = cursor.Parent) != null)
-            {
-                if (cursor is T match)
-                    return match;
-            }
-
-            return default;
         }
 
         /// <summary>
@@ -1785,8 +1764,10 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            foreach (var member in layoutMembers)
+            for (int i = 0; i < layoutMembers.Count; i++)
             {
+                var member = layoutMembers[i];
+
                 // Only invalidate layout members that accept the given source.
                 if ((member.Source & source) == 0)
                     continue;
@@ -2362,7 +2343,7 @@ namespace osu.Framework.Graphics
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
@@ -2584,14 +2565,14 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(Transforms)}");
 
         /// <summary>
         /// Check whether the current thread is valid for operating on thread-safe properties.
         /// </summary>
-        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <param name="action">The action to be performed, used only for describing failures in exception messages.</param>
         /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
-        internal void EnsureMutationAllowed(string member)
+        internal void EnsureMutationAllowed(string action)
         {
             switch (LoadState)
             {
@@ -2600,20 +2581,20 @@ namespace osu.Framework.Graphics
 
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load thread");
 
                     break;
 
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the load or update threads");
 
                     break;
 
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
+                        throw new InvalidThreadForMutationException(LoadState, action, "not on the update thread");
 
                     break;
             }
@@ -2623,7 +2604,21 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate Schedule<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, data, TransformDelay);
+
+            return Scheduler.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate Schedule(Action action)
+        {
+            if (TransformDelay > 0)
+                return Scheduler.AddDelayed(action, TransformDelay);
+
+            return Scheduler.Add(action);
+        }
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
@@ -2710,8 +2705,8 @@ namespace osu.Framework.Graphics
 
         public class InvalidThreadForMutationException : InvalidOperationException
         {
-            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
-                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
+            public InvalidThreadForMutationException(LoadState loadState, string action, string invalidThreadContextDescription)
+                : base($"Cannot {action} on a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
                        + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
             {
             }

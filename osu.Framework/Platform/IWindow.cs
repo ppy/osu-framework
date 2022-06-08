@@ -7,6 +7,7 @@ using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
@@ -32,10 +33,10 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
         [CanBeNull]
-        event Func<bool> ExitRequested;
+        event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> has closed.
@@ -62,7 +63,17 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the state of the OS cursor.
         /// </summary>
+        /// <remarks>If the cursor is <see cref="Platform.CursorState.Confined"/>, <see cref="CursorConfineRect"/> will be used.</remarks>
         CursorState CursorState { get; set; }
+
+        /// <summary>
+        /// Area to which the mouse cursor is confined to when <see cref="CursorState"/> is <see cref="Platform.CursorState.Confined"/>.
+        /// </summary>
+        /// <remarks>
+        /// Will confine to the whole window by default (or when set to <c>null</c>).
+        /// Supported fully on desktop platforms, and on Android when relative mode is enabled.
+        /// </remarks>
+        RectangleF? CursorConfineRect { get; set; }
 
         /// <summary>
         /// Controls the state of the window.
@@ -133,7 +144,7 @@ namespace osu.Framework.Platform
         void ClearCurrent();
 
         /// <summary>
-        /// Request close.
+        /// Forcefully closes the window.
         /// </summary>
         void Close();
 
@@ -169,6 +180,18 @@ namespace osu.Framework.Platform
         /// The client size of the window (excluding any window decoration/border).
         /// </summary>
         Size ClientSize { get; }
+
+        /// <summary>
+        /// The minimum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or a size greater than <see cref="MaxSize"/>.</exception>
+        Size MinSize { get; set; }
+
+        /// <summary>
+        /// The maximum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
+        Size MaxSize { get; set; }
 
         /// <summary>
         /// The window title.
