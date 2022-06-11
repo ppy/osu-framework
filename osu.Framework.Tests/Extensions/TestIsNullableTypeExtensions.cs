@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NUnit.Framework;
@@ -138,6 +139,9 @@ namespace osu.Framework.Tests.Extensions
 
         [Test]
         public void TestNonNullReferenceType() => Assert.False(typeof(object).IsNullable());
+
+        [Test]
+        public void TestNonNullReferenceTypeWithGenerics() => Assert.False(typeof(IEnumerable<string>).IsNullable());
 
         // typeof cannot be used on "object?".
     }
