@@ -28,7 +28,7 @@ namespace osu.Framework.Input.Bindings
         void OnReleased(KeyBindingReleaseEvent<T> e);
     }
 
-    public interface IKeyBindingHandler : IDrawable
+    public interface IKeyBindingHandler : IDrawable, IHandleNonPositionalInput
     {
     }
 }
