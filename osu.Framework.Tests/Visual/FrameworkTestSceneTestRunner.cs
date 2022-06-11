@@ -4,15 +4,25 @@
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
+using osu.Framework.Text;
 
 namespace osu.Framework.Tests.Visual
 {
     public class FrameworkTestSceneTestRunner : TestSceneTestRunner
     {
+        private FontStore testFonts;
+
         [BackgroundDependencyLoader]
         private void load()
         {
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(FrameworkTestScene).Assembly), "Resources"));
+
+            // nested store for framework test fonts to not interfere with framework's default (roboto) in test scenes.
+            Fonts.AddStore(testFonts = new FontStore(useAtlas: false));
+
+            // note that only a few of the noto sprite sheets have been included with this font, not the full set.
+            // also note that this uses the macOS metrics (hhea table) for convenience, as it matches with css-text.png which was rendered on macOS.
+            AddFont(Resources, "Fonts/Noto/Noto-Basic", metrics: new FontMetrics(1160, 320, 1000), target: testFonts);
         }
     }
 }

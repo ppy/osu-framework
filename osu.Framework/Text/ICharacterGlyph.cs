@@ -34,6 +34,11 @@ namespace osu.Framework.Text
         char Character { get; }
 
         /// <summary>
+        /// The metrics of the font corresponding to this glyph, or <see langword="null"/> if not available.
+        /// </summary>
+        FontMetrics? Metrics { get; }
+
+        /// <summary>
         /// Retrieves the kerning between this <see cref="CharacterGlyph"/> and the one prior to it.
         /// </summary>
         /// <param name="lastGlyph">The <see cref="CharacterGlyph"/> prior to this one.</param>

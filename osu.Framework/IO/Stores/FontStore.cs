@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
@@ -15,8 +16,13 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.IO.Stores
 {
-    public class FontStore : TextureStore, ITexturedGlyphLookupStore
+    public class FontStore : TextureStore, IFontStore
     {
+        /// <summary>
+        /// The font size of the raw glyph textures.
+        /// </summary>
+        public const float BASE_FONT_SIZE = 100;
+
         private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
         private readonly List<FontStore> nestedFontStores = new List<FontStore>();
@@ -34,7 +40,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = BASE_FONT_SIZE)
             : this(store, scaleAdjust, false)
         {
         }
@@ -46,12 +52,12 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
         /// <param name="minFilterMode">The texture minification filtering mode to use.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All minFilterMode = All.Linear)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = BASE_FONT_SIZE, All minFilterMode = All.Linear)
             : this(store, scaleAdjust, true, filteringMode: minFilterMode)
         {
         }
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = BASE_FONT_SIZE, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
             : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
         {
             this.cacheStorage = cacheStorage;
@@ -128,6 +134,22 @@ namespace osu.Framework.IO.Stores
             }
 
             base.RemoveStore(store);
+        }
+
+        IGlyphStore IFontStore.GetFont(string name)
+        {
+            var found = glyphStores.Find(g => g.FontName == name);
+
+            if (found == null)
+            {
+                foreach (var store in nestedFontStores.OfType<IFontStore>())
+                {
+                    if ((found = store.GetFont(name)) != null)
+                        break;
+                }
+            }
+
+            return found;
         }
 
         public new Texture Get(string name)

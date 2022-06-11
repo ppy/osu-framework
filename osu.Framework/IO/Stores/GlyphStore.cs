@@ -32,6 +32,8 @@ namespace osu.Framework.IO.Stores
 
         public string FontName { get; }
 
+        public FontMetrics? Metrics { get; }
+
         public float? Baseline => Font?.Common.Base;
 
         protected readonly ResourceStore<byte[]> Store;
@@ -54,7 +56,8 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to provide font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="textureLoader">An optional platform-specific store for loading textures. Should load for the store provided in <param ref="param"/>.</param>
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
+        /// <param name="metrics">The font's typographic metrics, or <see langword="null"/> if not available.</param>
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null, FontMetrics? metrics = null)
         {
             Store = new ResourceStore<byte[]>(store);
 
@@ -65,6 +68,7 @@ namespace osu.Framework.IO.Stores
             TextureLoader = textureLoader;
 
             FontName = assetName?.Split('/').Last();
+            Metrics = metrics;
         }
 
         private Task fontLoadTask;

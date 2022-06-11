@@ -2,11 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 using osu.Framework.Text;
 using osuTK;
 
@@ -25,6 +30,8 @@ namespace osu.Framework.Tests.Text
         private const float height = 6;
         private const float kerning = -7;
 
+        private static readonly FontMetrics metrics = new FontMetrics(1000, 2000, 1000);
+
         private const float b_x_offset = 8;
         private const float b_y_offset = 9;
         private const float b_x_advance = 10;
@@ -32,6 +39,8 @@ namespace osu.Framework.Tests.Text
         private const float b_baseline = 12;
         private const float b_height = 13;
         private const float b_kerning = -14;
+
+        private static readonly FontMetrics b_metrics = new FontMetrics(3000, 4000, 1000);
 
 #pragma warning disable IDE1006 // Naming style
         // m_ recognized as prefix instead of part of the name
@@ -44,6 +53,8 @@ namespace osu.Framework.Tests.Text
         private const float m_height = 20;
         private const float m_kerning = -21;
 
+        private static readonly FontMetrics m_metrics = new FontMetrics(5000, 6000, 1000);
+
 #pragma warning restore IDE1006
 
         private static readonly Vector2 spacing = new Vector2(22, 23);
@@ -55,13 +66,13 @@ namespace osu.Framework.Tests.Text
 
         public TextBuilderTest()
         {
-            fontStore = new TestStore(
-                new GlyphEntry(normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning))
+            fontStore = new TestStore(null,
+                new GlyphEntry(normal_font, new TestGlyph('a', metrics, x_offset, y_offset, x_advance, width, baseline, height, kerning)),
+                new GlyphEntry(normal_font, new TestGlyph('b', b_metrics, b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
+                new GlyphEntry(normal_font, new TestGlyph('m', m_metrics, m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('a', metrics, x_offset, y_offset, x_advance, width, baseline, height, kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('b', b_metrics, b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('m', m_metrics, m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning))
             );
         }
 
@@ -206,7 +217,7 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestNewLineUsesGlyphHeightWhenNotUsingFontHeightAsSize()
         {
-            var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
+            var builder = new TextBuilder(fontStore, normal_font, useFullGlyphHeight: false);
 
             builder.AddText("a");
             builder.AddText("b");
@@ -342,6 +353,24 @@ namespace osu.Framework.Tests.Text
             builder.AddText("b");
 
             Assert.Throws<InvalidOperationException>(() => _ = builder.LineBaseHeight);
+        }
+
+        /// <summary>
+        /// Tests setting the <see cref="FontUsage.CssScaling"/> (i.e. metrics-based scaling) on a text builder.
+        /// </summary>
+        [Test]
+        public void TestCssScaling()
+        {
+            var builder = new TextBuilder(fontStore, normal_font.WithCssScaling());
+
+            builder.AddText("a");
+
+            Assert.That(builder.Characters[0].Size, Is.EqualTo(font_size * metrics.GlyphScale));
+
+            builder.AddNewLine();
+            builder.AddText("b");
+
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size * metrics.GlyphScale + b_y_offset * b_metrics.GlyphScale));
         }
 
         /// <summary>
@@ -500,11 +529,11 @@ namespace osu.Framework.Tests.Text
         {
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
-            var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0))
+            var builder = new TextBuilder(new TestStore(null,
+                new GlyphEntry(font, new TestGlyph('b', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('a', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('?', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', default, 0, 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -520,11 +549,11 @@ namespace osu.Framework.Tests.Text
         {
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
-            var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0, 0))
+            var builder = new TextBuilder(new TestStore(null,
+                new GlyphEntry(font, new TestGlyph('b', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('b', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('?', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', default, 1, 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -541,11 +570,11 @@ namespace osu.Framework.Tests.Text
         {
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
-            var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0, 0))
+            var builder = new TextBuilder(new TestStore(null,
+                new GlyphEntry(font, new TestGlyph('b', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('b', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('b', default, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', default, 1, 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -568,31 +597,70 @@ namespace osu.Framework.Tests.Text
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
         }
 
+        /// <summary>
+        /// Tests that adding a new line after an empty line has a height with the CSS scaling of the exact font specified in the <see cref="FontUsage"/> applied to it.
+        /// </summary>
+        [Test]
+        public void TestNewLineAfterEmptyLineWithCssScaling()
+        {
+            var one = new FontMetrics(1000, 2000, 1000);
+            var two = new FontMetrics(3000, 4000, 1000);
+            var font = new TestFontUsage("one", cssScaling: true);
+
+            var builder = new TextBuilder(new TestStore(new[]
+                {
+                    new TestStore.TestGlyphStore("one", one, 0),
+                    new TestStore.TestGlyphStore("two", two, 0),
+                },
+                new GlyphEntry(new TestFontUsage("one"), new TestGlyph('1', one, 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(new TestFontUsage("two"), new TestGlyph('2', two, 0, 0, 0, 0, 0, 0, 0))
+            ), font);
+
+            builder.AddText("2");
+            builder.AddNewLine();
+            builder.AddNewLine();
+            builder.AddText("2");
+
+            // The first line would be font_size multiplied by the glyph scale of the glyph residing there ("two").
+            // The second line would be font_size multiplied by the glyph scale of the font specified in the FontUsage ("one"), as the line doesn't have any glyphs.
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size * two.GlyphScale +
+                                                                            font_size * one.GlyphScale));
+        }
+
         private readonly struct TestFontUsage
         {
             private readonly string family;
             private readonly string weight;
             private readonly bool italics;
             private readonly bool fixedWidth;
+            private readonly bool cssScaling;
 
-            public TestFontUsage(string family = null, string weight = null, bool italics = false, bool fixedWidth = false)
+            public TestFontUsage(string family = null, string weight = null, bool italics = false, bool fixedWidth = false, bool cssScaling = false)
             {
                 this.family = family;
                 this.weight = weight;
                 this.italics = italics;
                 this.fixedWidth = fixedWidth;
+                this.cssScaling = cssScaling;
             }
 
+            public TestFontUsage WithCssScaling()
+                => new TestFontUsage(family, weight, italics, fixedWidth, true);
+
             public static implicit operator FontUsage(TestFontUsage tfu)
-                => new FontUsage(tfu.family, font_size, tfu.weight, tfu.italics, tfu.fixedWidth);
+                => new FontUsage(tfu.family, font_size, tfu.weight, tfu.italics, tfu.fixedWidth, tfu.cssScaling);
         }
 
-        private class TestStore : ITexturedGlyphLookupStore
+        private class TestStore : IFontStore
         {
+            [CanBeNull]
+            private readonly TestGlyphStore[] stores;
+
             private readonly GlyphEntry[] glyphs;
 
-            public TestStore(params GlyphEntry[] glyphs)
+            public TestStore(TestGlyphStore[] stores = null, params GlyphEntry[] glyphs)
             {
+                this.stores = stores;
                 this.glyphs = glyphs;
             }
 
@@ -605,6 +673,34 @@ namespace osu.Framework.Tests.Text
             }
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new NotImplementedException();
+
+            public IGlyphStore GetFont(string name) => stores?.FirstOrDefault(s => s.FontName == name);
+
+            public class TestGlyphStore : IGlyphStore
+            {
+                public string FontName { get; }
+
+                public FontMetrics? Metrics { get; }
+
+                public float? Baseline { get; }
+
+                public TestGlyphStore(string name, FontMetrics metrics, float baseline)
+                {
+                    FontName = name;
+                    Metrics = metrics;
+                    Baseline = baseline;
+                }
+
+                public Task LoadFontAsync() => throw new NotImplementedException();
+                public bool HasGlyph(char c) => throw new NotImplementedException();
+                public CharacterGlyph Get(char character) => throw new NotImplementedException();
+                public CharacterGlyph Get(string name) => throw new NotImplementedException();
+                public Task<CharacterGlyph> GetAsync(string name, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+                public Stream GetStream(string name) => throw new NotImplementedException();
+                public IEnumerable<string> GetAvailableResources() => throw new NotImplementedException();
+                public int GetKerning(char left, char right) => throw new NotImplementedException();
+                public void Dispose() => throw new NotImplementedException();
+            }
         }
 
         private readonly struct GlyphEntry
@@ -629,13 +725,15 @@ namespace osu.Framework.Tests.Text
             public float Baseline { get; }
             public float Height { get; }
             public char Character { get; }
+            public FontMetrics? Metrics { get; }
 
             private readonly float glyphKerning;
 
-            public TestGlyph(char character, float xOffset, float yOffset, float xAdvance, float width, float baseline, float height, float kerning)
+            public TestGlyph(char character, FontMetrics? metrics, float xOffset, float yOffset, float xAdvance, float width, float baseline, float height, float kerning)
             {
                 glyphKerning = kerning;
                 Character = character;
+                Metrics = metrics;
                 XOffset = xOffset;
                 YOffset = yOffset;
                 XAdvance = xAdvance;

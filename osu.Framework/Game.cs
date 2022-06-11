@@ -20,6 +20,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Text;
 using osuTK;
 
 namespace osu.Framework
@@ -167,19 +168,24 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
+            // Roboto and Font Awesome have different metrics for Windows and macOS.
+            // The ones used for Windows are used here for the time being.
+            var robotoMetrics = new FontMetrics(ascent: 1946, descent: 512, emSize: 2048);
+            var fontAwesomeMetrics = new FontMetrics(ascent: 460, descent: 84, emSize: 512);
+
             // Roboto (FrameworkFont.Regular)
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic", robotoMetrics);
 
             // RobotoCondensed (FrameworkFont.Condensed)
-            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
-            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold", robotoMetrics);
 
-            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
-            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
-            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid", fontAwesomeMetrics);
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular", fontAwesomeMetrics);
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands", fontAwesomeMetrics);
 
             dependencies.Cache(Fonts);
 
@@ -218,11 +224,12 @@ namespace osu.Framework
         /// <param name="store">The backing store with font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
-        public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
-            => addFont(target ?? Fonts, store, assetName);
+        /// <param name="metrics">The font's typographic metrics, or <see langword="null"/> if not available.</param>
+        public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null, FontMetrics? metrics = null)
+            => addFont(target ?? Fonts, store, assetName, metrics);
 
-        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
-            => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
+        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null, FontMetrics? metrics = null)
+            => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store), metrics));
 
         protected override void LoadComplete()
         {

@@ -9,6 +9,7 @@ using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
+using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -30,8 +31,8 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         internal Storage CacheStorage { get; set; }
 
-        public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
-            : base(store, assetName, textureLoader)
+        public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null, FontMetrics? metrics = null)
+            : base(store, assetName, textureLoader, metrics)
         {
         }
 
