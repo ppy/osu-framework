@@ -101,7 +101,7 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <see cref="IsNullable(EventInfo)"/>, <see cref="IsNullable(PropertyInfo)"/>, <see cref="IsNullable(FieldInfo)"/>, or <see cref="IsNullable(ParameterInfo)"/>,
         /// in order to properly handle events/properties/fields/parameters.
         /// </remarks>
-        public static bool IsNullable(this Type type) => type.GetUnderlyingNullableType() != null;
+        public static bool IsNullable(this Type type) => type.IsGenericType && !type.IsGenericTypeDefinition && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
         /// <summary>
         /// Gets the underlying type of a <see cref="Nullable{T}"/>.
@@ -111,11 +111,13 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns>The underlying type, or null if one does not exist.</returns>
         public static Type GetUnderlyingNullableType(this Type type)
         {
-            if (!type.IsGenericType)
-                return null;
+            if (IsNullable(type))
+            {
+                // ReSharper disable once ConvertClosureToMethodGroup (see: https://github.com/dotnet/runtime/issues/33747)
+                return underlying_type_cache.GetOrAdd(type, t => Nullable.GetUnderlyingType(t));
+            }
 
-            // ReSharper disable once ConvertClosureToMethodGroup (see: https://github.com/dotnet/runtime/issues/33747)
-            return underlying_type_cache.GetOrAdd(type, t => Nullable.GetUnderlyingType(t));
+            return type;
         }
 
         /// <summary>
