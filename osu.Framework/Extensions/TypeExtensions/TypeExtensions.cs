@@ -117,7 +117,7 @@ namespace osu.Framework.Extensions.TypeExtensions
                 return underlying_type_cache.GetOrAdd(type, t => Nullable.GetUnderlyingType(t));
             }
 
-            return type;
+            return null;
         }
 
         /// <summary>
