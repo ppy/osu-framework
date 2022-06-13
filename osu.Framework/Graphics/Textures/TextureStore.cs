@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -16,9 +17,11 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureStore : ResourceStore<TextureUpload>
+    public class TextureStore : ITextureStore
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+
+        private readonly ResourceStore<TextureUpload> uploadStore = new ResourceStore<TextureUpload>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -34,15 +37,14 @@ namespace osu.Framework.Graphics.Textures
         public readonly float ScaleAdjust;
 
         public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
-            : base(store)
         {
+            if (store != null)
+                AddStore(store);
+
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
 
             ScaleAdjust = scaleAdjust;
-
-            AddExtension(@"png");
-            AddExtension(@"jpg");
 
             if (useAtlas)
             {
@@ -51,7 +53,21 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private Texture getTexture(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(base.Get(name), wrapModeS, wrapModeT);
+        /// <summary>
+        /// Adds a texture data lookup source to load <see cref="Texture"/>s with.
+        /// </summary>
+        /// <remarks>
+        /// Lookup sources must be wrapped with a <see cref="TextureLoaderStore"/> to provide <see cref="TextureUpload"/>s.
+        /// Other <see cref="TextureUpload"/> stores are also allowed to be used as lookup sources.
+        /// </remarks>
+        /// <param name="store">The store to add.</param>
+        public virtual void AddStore(IResourceStore<TextureUpload> store) => uploadStore.AddStore(store);
+
+        /// <summary>
+        /// Removes a texture data lookup source.
+        /// </summary>
+        /// <param name="store">The store to remove.</param>
+        public virtual void RemoveStore(IResourceStore<TextureUpload> store) => uploadStore.RemoveStore(store);
 
         private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
@@ -83,7 +99,7 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The texture.</returns>
-        public new Task<Texture> GetAsync(string name, CancellationToken cancellationToken) => GetAsync(name, default, default, cancellationToken);
+        public Task<Texture> GetAsync(string name, CancellationToken cancellationToken) => GetAsync(name, default, default, cancellationToken);
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -101,7 +117,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
-        public new Texture Get(string name) => Get(name, default, default);
+        public Texture Get(string name) => Get(name, default, default);
 
         private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
 
@@ -151,7 +167,7 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                tex = getTexture(name, wrapModeS, wrapModeT);
+                tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
                 if (tex != null)
                     tex.LookupKey = key;
 
@@ -175,6 +191,10 @@ namespace osu.Framework.Graphics.Textures
 
             return null;
         }
+
+        public Stream GetStream(string name) => uploadStore.GetStream(name);
+
+        public IEnumerable<string> GetAvailableResources() => uploadStore.GetAvailableResources();
 
         /// <summary>
         /// Attempts to retrieve an existing cached texture.
@@ -220,5 +240,11 @@ namespace osu.Framework.Graphics.Textures
                 textureCache.Remove(texture.LookupKey);
             }
         }
+
+        #region IDisposable Support
+
+        public void Dispose() => uploadStore.Dispose();
+
+        #endregion
     }
 }
