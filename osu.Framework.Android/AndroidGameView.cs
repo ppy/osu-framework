@@ -253,7 +253,7 @@ namespace osu.Framework.Android
                 // sometimes buffers will spontaneously fail to swap just before the activity is suspended to background
                 // or just after it has been resumed, but will continue operating correctly after that transitionary period.
                 // despite some testing it is unclear which view callback can be used to tell whether it is safe to swap buffers,
-                // so for now just catch and suppress errors up to a threshold.
+                // so for now just catch and suppress errors.
             }
         }
 
