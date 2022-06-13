@@ -4,8 +4,6 @@
 using System;
 using osu.Framework.Configuration;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     /// <summary>
