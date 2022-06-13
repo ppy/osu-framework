@@ -59,8 +59,7 @@ namespace osu.Framework.Graphics.Textures
         /// Adds a texture data lookup source to load <see cref="Texture"/>s with.
         /// </summary>
         /// <remarks>
-        /// Lookup sources must be wrapped with a <see cref="TextureLoaderStore"/> to provide <see cref="TextureUpload"/>s.
-        /// Other <see cref="TextureUpload"/> stores are also allowed to be used as lookup sources.
+        /// Lookup sources can be implemented easily using a <see cref="TextureLoaderStore"/> to provide the final <see cref="TextureUpload"/>.
         /// </remarks>
         /// <param name="store">The store to add.</param>
         public virtual void AddLookup(IResourceStore<TextureUpload> store) => uploadStore.AddStore(store);
