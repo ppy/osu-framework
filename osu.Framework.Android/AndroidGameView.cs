@@ -242,8 +242,6 @@ namespace osu.Framework.Android
             return new AndroidInputConnection(this, true);
         }
 
-        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Runtime);
-
         public override void SwapBuffers()
         {
             try
@@ -258,7 +256,7 @@ namespace osu.Framework.Android
                 // despite some testing it is unclear which view callback can be used to tell whether it is safe to swap buffers,
                 // so for now just catch and suppress these errors.
                 if (ex.Message.Contains("BAD_SURFACE", StringComparison.Ordinal))
-                    logger.Add($"BAD_SURFACE failure in {nameof(SwapBuffers)} suppressed", LogLevel.Verbose, ex);
+                    Logger.Log($"BAD_SURFACE failure in {nameof(SwapBuffers)} suppressed");
                 else
                     throw;
             }
