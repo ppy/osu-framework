@@ -242,6 +242,26 @@ namespace osu.Framework.Android
             return new AndroidInputConnection(this, true);
         }
 
+        public override void SwapBuffers()
+        {
+            try
+            {
+                base.SwapBuffers();
+            }
+            catch (GraphicsContextException ex)
+            {
+                // sometimes buffers will spontaneously fail to swap with BAD_SURFACE
+                // just before the activity is suspended to background or just after it has been resumed,
+                // but will continue operating correctly after that transitionary period.
+                // despite some testing it is unclear which view callback can be used to tell whether it is safe to swap buffers,
+                // so for now just catch and suppress these errors.
+                if (ex.Message.Contains("BAD_SURFACE", StringComparison.Ordinal))
+                    Logger.Log($"BAD_SURFACE failure in {nameof(SwapBuffers)} suppressed");
+                else
+                    throw;
+            }
+        }
+
         #region Events
 
         /// <summary>
