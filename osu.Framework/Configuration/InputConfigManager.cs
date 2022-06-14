@@ -14,8 +14,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
-#nullable enable
-
 namespace osu.Framework.Configuration
 {
     /// <summary>

@@ -6,8 +6,6 @@ using System.Globalization;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     public partial class LocalisationManager

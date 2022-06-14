@@ -11,8 +11,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
 
-#nullable enable
-
 namespace osu.Framework.Graphics.Cursor
 {
     public class PopoverContainer : Container
