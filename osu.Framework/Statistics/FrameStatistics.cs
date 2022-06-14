@@ -30,7 +30,13 @@ namespace osu.Framework.Statistics
 
         internal static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
 
-        internal static void Add(StatisticsCounterType type, long amount) => COUNTERS[(int)type] += amount;
+        internal static void Add(StatisticsCounterType type, long amount)
+        {
+            if (amount < 0)
+                throw new ArgumentException($"Statistics counter {type} was attempted to be decremented via {nameof(Add)} call.", nameof(amount));
+
+            COUNTERS[(int)type] += amount;
+        }
     }
 
     internal enum PerformanceCollectionType
