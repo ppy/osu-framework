@@ -12,7 +12,7 @@ namespace osu.Framework.Tests.IO
     [TestFixture]
     public class TextureStoreTest
     {
-        private TextureLoaderStore fontResourceStore;
+        private TextureLoaderStore fontResourceStore = null!;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
