@@ -187,7 +187,15 @@ namespace osu.Framework.Audio.Sample
             if (hasChannel)
                 return;
 
-            channel = Bass.SampleGetChannel(sample.SampleId, BassFlags.SampleChannelStream | BassFlags.Decode | BassFlags.AsyncFile);
+            BassFlags flags = BassFlags.SampleChannelStream | BassFlags.Decode;
+
+            // While this shouldn't cause issues, we've had a small subset of users reporting issues on windows.
+            // To keep things working let's only apply to other platforms until we know more.
+            // See https://github.com/ppy/osu/issues/18652.
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                flags |= BassFlags.AsyncFile;
+
+            channel = Bass.SampleGetChannel(sample.SampleId, flags);
 
             if (!hasChannel)
                 return;
