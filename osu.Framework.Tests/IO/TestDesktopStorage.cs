@@ -40,7 +40,11 @@ namespace osu.Framework.Tests.IO
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
-                Assert.Throws<ArgumentException>(() => storage.GetStream("../test"));
+                Assert.Throws<ArgumentException>(() =>
+                {
+                    using var x = storage.GetStream("../test");
+                });
+
                 Assert.Throws<ArgumentException>(() => storage.GetStorageForDirectory("../"));
             }
         }
