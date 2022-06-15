@@ -27,8 +27,8 @@ namespace osu.Framework.Tests.IO
             using (var lookupStore2 = new NamespacedResourceStore<TextureUpload>(fontResourceStore, "RobotoCondensed"))
             using (var textureStore = new TextureStore(scaleAdjust: 100))
             {
-                textureStore.AddLookup(lookupStore1);
-                textureStore.AddLookup(lookupStore2);
+                textureStore.AddTextureSource(lookupStore1);
+                textureStore.AddTextureSource(lookupStore2);
 
                 Assert.That(textureStore.GetAvailableResources().Contains("Roboto-Regular_0.png"));
                 Assert.That(textureStore.GetStream("Roboto-Regular_0"), Is.Not.Null);

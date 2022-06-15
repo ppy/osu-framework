@@ -57,7 +57,7 @@ namespace osu.Framework.IO.Stores
             this.cacheStorage = cacheStorage;
         }
 
-        public override void AddLookup(IResourceStore<TextureUpload> store)
+        public override void AddTextureSource(IResourceStore<TextureUpload> store)
         {
             if (store is IGlyphStore gs)
             {
@@ -68,7 +68,7 @@ namespace osu.Framework.IO.Stores
                 queueLoad(gs);
             }
 
-            base.AddLookup(store);
+            base.AddTextureSource(store);
         }
 
         public override void AddStore(ITextureStore store)
@@ -112,12 +112,12 @@ namespace osu.Framework.IO.Stores
             });
         }
 
-        public override void RemoveLookup(IResourceStore<TextureUpload> store)
+        public override void RemoveTextureStore(IResourceStore<TextureUpload> store)
         {
             if (store is GlyphStore gs)
                 glyphStores.Remove(gs);
 
-            base.RemoveLookup(store);
+            base.RemoveTextureStore(store);
         }
 
         public override void RemoveStore(ITextureStore store)

@@ -134,7 +134,7 @@ namespace osu.Framework
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
             Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
-            Textures.AddLookup(Host.CreateTextureLoaderStore(new OnlineStore()));
+            Textures.AddTextureSource(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
 
             var tracks = new ResourceStore<byte[]>();
@@ -224,7 +224,7 @@ namespace osu.Framework
             => addFont(target ?? Fonts, store, assetName);
 
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
-            => target.AddLookup(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
+            => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
         protected override void LoadComplete()
         {

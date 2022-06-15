@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Textures
         public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
         {
             if (store != null)
-                AddLookup(store);
+                AddTextureSource(store);
 
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
@@ -64,13 +64,13 @@ namespace osu.Framework.Graphics.Textures
         /// Lookup sources can be implemented easily using a <see cref="TextureLoaderStore"/> to provide the final <see cref="TextureUpload"/>.
         /// </remarks>
         /// <param name="store">The store to add.</param>
-        public virtual void AddLookup(IResourceStore<TextureUpload> store) => uploadStore.AddStore(store);
+        public virtual void AddTextureSource(IResourceStore<TextureUpload> store) => uploadStore.AddStore(store);
 
         /// <summary>
         /// Removes a texture data lookup source.
         /// </summary>
         /// <param name="store">The store to remove.</param>
-        public virtual void RemoveLookup(IResourceStore<TextureUpload> store) => uploadStore.RemoveStore(store);
+        public virtual void RemoveTextureStore(IResourceStore<TextureUpload> store) => uploadStore.RemoveStore(store);
 
         /// <summary>
         /// Adds a nested texture store to use during <see cref="Texture"/> lookup if not found in this store.
