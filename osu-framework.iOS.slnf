@@ -10,7 +10,7 @@
       "osu.Framework\\osu.Framework.csproj",
 
       "osu.Framework.Templates\\templates\\template-empty\\TemplateGame.iOS\\TemplateGame.iOS.csproj",
-      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.iOS\\FlappyDon.iOS.csproj",
+      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.iOS\\FlappyDon.iOS.csproj"
     ]
   }
 }

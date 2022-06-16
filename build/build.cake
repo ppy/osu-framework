@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Text.RegularExpressions;
-#addin nuget:?package=Cake.FileHelpers&version=3.2.1
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.1"
 #addin "nuget:?package=CodeFileSanity&version=0.0.36"
 #tool "nuget:?package=Python&version=3.7.2"
 var pythonPath = GetFiles("./tools/python.*/tools/python.exe").First();
