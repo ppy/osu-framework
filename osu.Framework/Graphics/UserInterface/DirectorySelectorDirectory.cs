@@ -14,18 +14,17 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class DirectorySelectorDirectory : DirectorySelectorItem
     {
         protected readonly DirectoryInfo Directory;
-        protected override bool? ReduceOpacity => isHiddenDirectoryWithReducedOpacity;
-        private readonly bool isHiddenDirectoryWithReducedOpacity;
         protected override string FallbackName => Directory.Name;
 
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
 
-        protected DirectorySelectorDirectory(DirectoryInfo directory, string displayName = null, bool reduceHiddenDirectoryOpacity = false)
+        protected DirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
             : base(displayName)
         {
             Directory = directory;
-            isHiddenDirectoryWithReducedOpacity = (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) ?? false) && reduceHiddenDirectoryOpacity;
+            if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) ?? false)
+                ApplyHiddenState();
         }
 
         protected override bool OnClick(ClickEvent e)

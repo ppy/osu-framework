@@ -45,7 +45,11 @@ namespace osu.Framework.Graphics.UserInterface
             protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
 
             public BreadcrumbDisplayDirectory(DirectoryInfo directory, string displayName = null)
-                : base(directory, displayName, false)
+                : base(directory, displayName)
+            {
+            }
+
+            protected override void ApplyHiddenState()
             {
             }
 

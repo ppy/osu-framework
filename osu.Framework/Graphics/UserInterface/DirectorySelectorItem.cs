@@ -25,11 +25,6 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract string FallbackName { get; }
 
         /// <summary>
-        /// Whether this <see cref="DirectorySelectorItem"/> should have reduced opacity on its <see cref="Drawable"/>.
-        /// </summary>
-        protected abstract bool? ReduceOpacity { get; }
-
-        /// <summary>
         /// The icon of this <see cref="DirectorySelectorItem"/> to use.
         /// </summary>
         protected abstract IconUsage? Icon { get; }
@@ -46,6 +41,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
+        /// <summary>
+        /// Called when this <see cref="DirectorySelectorItem"/> is a representation of a hidden item.
+        /// Used to customize the appearance of hidden items.
+        /// </summary>
+        protected virtual void ApplyHiddenState() => Alpha = 0.5f;
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -57,7 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Margin = new MarginPadding { Vertical = 2, Horizontal = 5 },
                 Direction = FillDirection.Horizontal,
                 Spacing = new Vector2(5),
-                Alpha = (ReduceOpacity ?? false) ? 0.5f : 1f,
             };
 
             if (Icon.HasValue)

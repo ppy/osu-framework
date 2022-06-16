@@ -78,8 +78,13 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            protected override bool? ReduceOpacity => File?.Attributes.HasFlagFast(FileAttributes.Hidden);
             protected override string FallbackName => File.Name;
+
+            protected DirectoryListingFile()
+            {
+                if (currentFile?.Value.Attributes.HasFlagFast(FileAttributes.Hidden) ?? false)
+                    ApplyHiddenState();
+            }
         }
     }
 }
