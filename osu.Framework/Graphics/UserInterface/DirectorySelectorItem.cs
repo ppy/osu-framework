@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract string FallbackName { get; }
 
         /// <summary>
-        /// Whether this <see cref="DirectorySelectorItem"/> is a hidden item and should have reduced opacity on its <see cref="Drawable"/>.
+        /// Whether this <see cref="DirectorySelectorItem"/> should have reduced opacity on its <see cref="Drawable"/>.
         /// </summary>
         protected abstract bool? ReduceOpacity { get; }
 
