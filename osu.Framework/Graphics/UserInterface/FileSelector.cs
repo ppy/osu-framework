@@ -49,8 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 foreach (var file in files.OrderBy(d => d.Name))
                 {
-                    if (!file.Attributes.HasFlagFast(FileAttributes.Hidden))
-                        items.Add(CreateFileItem(file));
+                    items.Add(CreateFileItem(file));
                 }
 
                 return true;
@@ -79,6 +78,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
+            protected override bool? ReduceOpacity => File?.Attributes.HasFlagFast(FileAttributes.Hidden);
             protected override string FallbackName => File.Name;
         }
     }

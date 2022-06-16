@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override IconUsage? Icon => FontAwesome.Solid.Folder;
 
         public BasicDirectorySelectorParentDirectory(DirectoryInfo directory)
-            : base(directory, "..")
+            : base(directory, "..", false)
         {
         }
     }

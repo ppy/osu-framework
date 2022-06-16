@@ -19,8 +19,8 @@ namespace osu.Framework.Graphics.UserInterface
             Font = FrameworkFont.Regular.With(size: FONT_SIZE)
         };
 
-        public BasicDirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
-            : base(directory, displayName)
+        public BasicDirectorySelectorDirectory(DirectoryInfo directory, string displayName = null, bool reduceHiddenItemOpacity = true)
+            : base(directory, displayName, reduceHiddenItemOpacity)
         {
         }
     }
