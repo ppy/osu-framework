@@ -1,4 +1,6 @@
 using System.Threading;
+using System.Text.RegularExpressions;
+#addin nuget:?package=Cake.FileHelpers&version=3.2.1
 #addin "nuget:?package=CodeFileSanity&version=0.0.36"
 #tool "nuget:?package=Python&version=3.7.2"
 var pythonPath = GetFiles("./tools/python.*/tools/python.exe").First();
@@ -192,7 +194,21 @@ Task("PackNativeLibs")
     });
 
 Task("PackTemplate")
-    .Does(() => {
+    .Does(ctx => {
+        ctx.ReplaceRegexInFiles(
+            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
+            "^.*osu.Framework.csproj.*$",
+            $"    <PackageReference Include=\"ppy.osu.Framework\" Version=\"{version}\" />",
+            RegexOptions.Multiline
+        );
+
+        ctx.ReplaceRegexInFiles(
+            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
+            "^.*osu.Framework.iOS.csproj.*$",
+            $"    <PackageReference Include=\"ppy.osu.Framework.iOS\" Version=\"{version}\" />",
+            RegexOptions.Multiline
+        );
+
         DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
@@ -232,6 +248,11 @@ Task("DeployFrameworkDesktop")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
+    .IsDependentOn("Publish");
+
+Task("DeployFrameworkTemplates")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
