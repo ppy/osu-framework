@@ -29,7 +29,6 @@ namespace osu.Framework.Graphics.UserInterface
                 if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
                     ApplyHiddenState();
             }
-
             catch { }
         }
 

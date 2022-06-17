@@ -87,7 +87,6 @@ namespace osu.Framework.Graphics.UserInterface
                     if (currentFile?.Value.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
                         ApplyHiddenState();
                 }
-
                 catch { }
             }
         }
