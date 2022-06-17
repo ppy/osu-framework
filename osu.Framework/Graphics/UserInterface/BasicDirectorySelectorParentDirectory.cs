@@ -17,7 +17,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
         }
 
-        protected override void ApplyHiddenState()
+        // this method is suppressed to ensure that parent directories that are also hidden directories are presented the same way as non-hidden parent directories
+        protected sealed override void ApplyHiddenState()
         {
         }
     }

@@ -49,7 +49,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
             }
 
-            protected override void ApplyHiddenState()
+            // this method is suppressed to ensure the breadcrumbs of hidden directories are presented the same way as non-hidden directories
+            protected sealed override void ApplyHiddenState()
             {
             }
 
