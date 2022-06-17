@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    // checking attributes on access-controled files will throw an error so we handle it here to prevent a crash
+                    // checking attributes on access-controlled files will throw an error so we handle it here to prevent a crash
                 }
             }
         }

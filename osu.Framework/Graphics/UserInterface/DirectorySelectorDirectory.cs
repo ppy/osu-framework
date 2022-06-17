@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             catch (UnauthorizedAccessException)
             {
-                // checking attributes on access-controled directories will throw an error so we handle it here to prevent a crash
+                // checking attributes on access-controlled directories will throw an error so we handle it here to prevent a crash
             }
         }
 
