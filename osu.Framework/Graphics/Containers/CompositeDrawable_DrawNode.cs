@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
@@ -43,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
             private MaskingInfo? maskingInfo;
 
             /// <summary>
-            /// The screen-space version of <see cref="OpenGL.MaskingInfo.MaskingRect"/>.
+            /// The screen-space version of <see cref="MaskingInfo.MaskingRect"/>.
             /// Used as cache of screen-space masking quads computed in previous frames.
             /// Assign null to reset.
             /// </summary>
@@ -193,7 +195,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     MaskingInfo info = maskingInfo.Value;
                     if (info.BorderThickness > 0)
-                        info.BorderColour *= DrawColourInfo.Colour.AverageColour;
+                        info.BorderColour = ColourInfo.Multiply(info.BorderColour, DrawColourInfo.Colour);
 
                     GLWrapper.PushMaskingInfo(info);
                 }

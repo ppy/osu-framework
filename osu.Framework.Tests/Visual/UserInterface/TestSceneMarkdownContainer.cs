@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -299,6 +301,19 @@ soft break with '\'";
             });
 
             AddAssert("has correct autolink", () => markdownContainer.AutoLinks[0].Url == "https://discord.gg/ppy");
+        }
+
+        [Test]
+        public void TestUnbalancedFencedBlock()
+        {
+            AddStep("set unbalanced fenced block", () => markdownContainer.Text = @"```");
+        }
+
+        [Test]
+        public void TestEmptyFencedBlock()
+        {
+            AddStep("set empty fenced block", () => markdownContainer.Text = @"```
+```");
         }
 
         private class TestMarkdownContainer : MarkdownContainer

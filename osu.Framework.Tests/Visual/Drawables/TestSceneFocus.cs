@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Extensions.Color4Extensions;
@@ -130,6 +132,60 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             checkFocused(() => focusBottomRight);
+        }
+
+        /// <summary>
+        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
+        /// </summary>
+        [Test]
+        public void DisabledFocusDrawableCannotReceiveFocusViaChangeFocus()
+        {
+            checkFocused(() => requestingFocus);
+
+            AddStep("disable focus from top left", () => focusTopLeft.AllowAcceptingFocus = false);
+            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+
+            checkFocused(() => requestingFocus);
+        }
+
+        /// <summary>
+        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a non-present drawable returns <see langword="false"/>.
+        /// </summary>
+        [Test]
+        public void NotPresentDrawableCannotReceiveFocusViaChangeFocus()
+        {
+            checkFocused(() => requestingFocus);
+
+            AddStep("hide top left", () => focusTopLeft.Alpha = 0);
+            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+
+            checkFocused(() => requestingFocus);
+        }
+
+        /// <summary>
+        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable of a non-present parent returns <see langword="false"/>.
+        /// </summary>
+        [Test]
+        public void DrawableOfNotPresentParentCannotReceiveFocusViaChangeFocus()
+        {
+            checkFocused(() => requestingFocus);
+
+            AddStep("wrap top left in hidden container", () =>
+            {
+                Container container;
+
+                Add(container = new Container
+                {
+                    Alpha = 0,
+                    RelativeSizeAxes = Axes.Both,
+                });
+
+                Remove(focusTopLeft);
+                container.Add(focusTopLeft);
+            });
+            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+
+            checkFocused(() => requestingFocus);
         }
 
         [Test]
@@ -306,7 +362,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             protected override bool OnClick(ClickEvent e) => true;
 
-            public override bool AcceptsFocus => true;
+            public bool AllowAcceptingFocus = true;
+
+            public override bool AcceptsFocus => AllowAcceptingFocus;
 
             protected override void OnFocus(FocusEvent e)
             {

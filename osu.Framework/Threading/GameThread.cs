@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +22,8 @@ namespace osu.Framework.Threading
     /// </summary>
     public class GameThread
     {
-        internal const double DEFAULT_ACTIVE_HZ = 1000;
-        internal const double DEFAULT_INACTIVE_HZ = 60;
+        internal const int DEFAULT_ACTIVE_HZ = 1000;
+        internal const int DEFAULT_INACTIVE_HZ = 60;
 
         /// <summary>
         /// The name of this thread.
@@ -81,6 +83,11 @@ namespace osu.Framework.Threading
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
         /// <summary>
+        /// A synchronisation context which posts to this thread.
+        /// </summary>
+        public SynchronizationContext SynchronizationContext => synchronizationContext;
+
+        /// <summary>
         /// The culture of this thread.
         /// </summary>
         public CultureInfo CurrentCulture
@@ -132,7 +139,7 @@ namespace osu.Framework.Threading
 
         private double inactiveHz = DEFAULT_INACTIVE_HZ;
 
-        private readonly SchedulerSynchronizationContext synchronizationContext;
+        private readonly GameThreadSynchronizationContext synchronizationContext;
 
         internal PerformanceMonitor Monitor { get; }
 
@@ -167,7 +174,7 @@ namespace osu.Framework.Threading
                 Monitor = new PerformanceMonitor(this, StatisticsCounters);
 
             Scheduler = new GameThreadScheduler(this);
-            synchronizationContext = new SchedulerSynchronizationContext(Scheduler);
+            synchronizationContext = new GameThreadSynchronizationContext(this);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
@@ -339,6 +346,8 @@ namespace osu.Framework.Threading
                 while (state.Value != targetState)
                     Thread.Sleep(1);
             }
+
+            Debug.Assert(state.Value == targetState);
         }
 
         /// <summary>
@@ -436,7 +445,10 @@ namespace osu.Framework.Threading
                 Monitor?.NewFrame();
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
+                {
                     Scheduler.Update();
+                    synchronizationContext.RunWork();
+                }
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
                     OnNewFrame?.Invoke();
@@ -482,19 +494,13 @@ namespace osu.Framework.Threading
                         Monitor?.Dispose();
                         initializedEvent?.Dispose();
 
+                        synchronizationContext.DisassociateGameThread();
+
                         OnExit();
                         break;
                 }
 
                 state.Value = exitState;
-            }
-        }
-
-        private class GameThreadScheduler : Scheduler
-        {
-            public GameThreadScheduler(GameThread thread)
-                : base(() => thread.IsCurrent, thread.Clock)
-            {
             }
         }
     }

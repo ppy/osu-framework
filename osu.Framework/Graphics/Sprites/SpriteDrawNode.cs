@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -58,6 +60,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
+            if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                return;
+
             DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
                 null, TextureCoords);
@@ -65,6 +70,9 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
+            if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                return;
+
             if (GLWrapper.IsMaskingActive)
                 DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
             else

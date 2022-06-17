@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -69,6 +71,12 @@ namespace osu.Framework
 
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// Creates a new <see cref="LocalisationManager"/>.
+        /// </summary>
+        /// <param name="frameworkConfig">The framework config manager.</param>
+        protected virtual LocalisationManager CreateLocalisationManager(FrameworkConfigManager frameworkConfig) => new LocalisationManager(frameworkConfig);
+
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
 
         /// <summary>
@@ -109,7 +117,7 @@ namespace osu.Framework
         public virtual void SetHost(GameHost host)
         {
             Host = host;
-            host.Exiting += OnExiting;
+            host.ExitRequested += RequestExit;
             host.Activated += () => isActive.Value = true;
             host.Deactivated += () => isActive.Value = false;
         }
@@ -177,7 +185,7 @@ namespace osu.Framework
 
             dependencies.Cache(Fonts);
 
-            Localisation = new LocalisationManager(config);
+            Localisation = CreateLocalisationManager(config);
             dependencies.Cache(Localisation);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
@@ -359,7 +367,7 @@ namespace osu.Framework
 
             return false;
 
-            Vector2 getCascadeLocation(int index)
+            static Vector2 getCascadeLocation(int index)
                 => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
 
@@ -375,7 +383,7 @@ namespace osu.Framework
             switch (e.Action)
             {
                 case PlatformAction.Exit:
-                    Host.Window?.Close();
+                    RequestExit();
                     return true;
             }
 
@@ -386,6 +394,18 @@ namespace osu.Framework
         {
         }
 
+        /// <summary>
+        /// Requests the game to exit. This exit can be blocked by <see cref="OnExiting"/>.
+        /// </summary>
+        public void RequestExit()
+        {
+            if (!OnExiting())
+                Exit();
+        }
+
+        /// <summary>
+        /// Force-closes the game, ignoring <see cref="OnExiting"/> return value.
+        /// </summary>
         public void Exit()
         {
             if (Host == null)
@@ -394,6 +414,11 @@ namespace osu.Framework
             Host.Exit();
         }
 
+        /// <summary>
+        /// Fired when an exit has been requested.
+        /// </summary>
+        /// <remarks>Usually fired because <see cref="PlatformAction.Exit"/> or the window close (X) button was pressed.</remarks>
+        /// <returns>Return <c>true</c> to block the exit process.</returns>
         protected virtual bool OnExiting() => false;
 
         protected override void Dispose(bool isDisposing)

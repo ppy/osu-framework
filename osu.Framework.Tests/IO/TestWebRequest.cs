@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.IO.Network;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
@@ -59,6 +62,23 @@ namespace osu.Framework.Tests.IO
             testValidGetInternal(async, request, "osu-framework");
         }
 
+        /// <summary>
+        /// Ensure that synchronous requests can be run without issue from within a TPL thread pool thread.
+        /// Not recommended as it would block the thread, but we've deemed to allow this for now.
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestValidGetFromTask()
+        {
+            string url = $"https://{host}/get";
+            var request = new JsonWebRequest<HttpBinGetResponse>(url)
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            Task.Run(() => testValidGetInternal(false, request, "osu-framework")).WaitSafely();
+        }
+
         [Test, Retry(5)]
         public void TestCustomUserAgent([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
@@ -78,7 +98,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -172,7 +192,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => finishedException = exception;
 
             if (async)
-                Assert.ThrowsAsync<HttpRequestException>(request.PerformAsync);
+                Assert.ThrowsAsync<HttpRequestException>(() => request.PerformAsync());
             else
                 Assert.Throws<HttpRequestException>(request.Perform);
 
@@ -195,7 +215,7 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.ThrowsAsync<WebException>(request.PerformAsync);
+                Assert.ThrowsAsync<WebException>(() => request.PerformAsync());
             else
                 Assert.Throws<WebException>(request.Perform);
 
@@ -219,9 +239,9 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.ThrowsAsync<ArgumentException>(request.PerformAsync);
+                Assert.ThrowsAsync<NotSupportedException>(() => request.PerformAsync());
             else
-                Assert.Throws<ArgumentException>(request.Perform);
+                Assert.Throws<NotSupportedException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -250,7 +270,7 @@ namespace osu.Framework.Tests.IO
             request.Started += () => request.Abort();
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -277,9 +297,7 @@ namespace osu.Framework.Tests.IO
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
-#pragma warning disable 4014
-            request.PerformAsync();
-#pragma warning restore 4014
+            Task.Run(() => request.PerformAsync());
 
             Assert.DoesNotThrow(request.Abort);
 
@@ -292,7 +310,38 @@ namespace osu.Framework.Tests.IO
         }
 
         /// <summary>
-        /// Tests being able to abort + restart a request.
+        /// Tests not being able to perform a request after an abort (before any perform).
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestStartAfterAbort([Values(true, false)] bool async)
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            Assert.DoesNotThrow(request.Abort);
+
+            if (async)
+                Assert.ThrowsAsync<OperationCanceledException>(() => request.PerformAsync());
+            else
+                Assert.Throws<TaskCanceledException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(responseObject == null);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests not being able to perform a request after an initial perform-abort sequence.
         /// </summary>
         [Test, Retry(5)]
         public void TestRestartAfterAbort([Values(true, false)] bool async)
@@ -306,16 +355,14 @@ namespace osu.Framework.Tests.IO
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
-#pragma warning disable 4014
-            request.PerformAsync();
-#pragma warning restore 4014
+            Task.Run(() => request.PerformAsync());
 
             Assert.DoesNotThrow(request.Abort);
 
             if (async)
-                Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+                Assert.ThrowsAsync<OperationCanceledException>(() => request.PerformAsync());
             else
-                Assert.Throws<InvalidOperationException>(request.Perform);
+                Assert.Throws<TaskCanceledException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -384,7 +431,7 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to cancel + restart a request.
         /// </summary>
         [Test, Retry(5)]
-        public void TestRestartAfterAbort()
+        public void TestRestartAfterAbortViaCancellationToken()
         {
             var cancellationSource = new CancellationTokenSource();
             var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
@@ -397,9 +444,9 @@ namespace osu.Framework.Tests.IO
             request.Failed += exception => hasThrown = exception != null;
 
             cancellationSource.Cancel();
-            request.PerformAsync(cancellationSource.Token);
+            request.PerformAsync(cancellationSource.Token).WaitSafely();
 
-            Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+            Assert.ThrowsAsync<OperationCanceledException>(() => request.PerformAsync(cancellationSource.Token));
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -569,7 +616,7 @@ namespace osu.Framework.Tests.IO
             request.AddParameter("testkey2", "testval2");
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -605,7 +652,7 @@ namespace osu.Framework.Tests.IO
             request.AddRaw(JsonConvert.SerializeObject(testObject));
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -631,7 +678,7 @@ namespace osu.Framework.Tests.IO
             };
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -696,6 +743,53 @@ namespace osu.Framework.Tests.IO
             Assert.Throws<ArgumentException>(() => request.AddParameter("cannot", "work", RequestParameterType.Form));
         }
 
+        /// <summary>
+        /// Ensure the work load, and importantly, the continuations do not run on the TPL thread pool.
+        /// Since we have our own task schedulers handling these load tasks.
+        /// </summary>
+        [Test]
+        public void TestSynchronousFlowTplReliance()
+        {
+            int workerMin;
+            int completionMin;
+            int workerMax;
+            int completionMax;
+
+            // set limited threadpool capacity
+            ThreadPool.GetMinThreads(out workerMin, out completionMin);
+            ThreadPool.GetMaxThreads(out workerMax, out completionMax);
+
+            /*
+            Note that we explicitly choose two threads here to reproduce a classic thread pool deadlock scenario (which was surfacing due to a `.Wait()` call from within an `async` context).
+            If set to one, a task required by the NUnit hosting process (usage of ManualResetEventSlim.Wait) will cause requests to never work.
+            If set to above two, the deadlock will not reliably reproduce.
+
+            Also note that the TPL thread pool generally gets much higher values than this (based on logical core count) and will expand with demand.
+            This is explicitly testing for a case that came up on Github Actions due to limited processor count and refusal to expand the thread pool (for whatever reason).
+
+            This may require adjustment in the future if we end up using more thread pool threads in the background, or if NUnit changes how they used them.
+            */
+
+            ThreadPool.SetMinThreads(2, 2);
+            ThreadPool.SetMaxThreads(2, 2);
+
+            var request = new DelayedWebRequest
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+                Timeout = 1000,
+                Delay = 2
+            };
+
+            request.CompleteInvoked = () => request.Delay = 0;
+
+            request.Perform();
+
+            // restore capacity
+            ThreadPool.SetMinThreads(workerMin, completionMin);
+            ThreadPool.SetMaxThreads(workerMax, completionMax);
+        }
+
         [Test, Retry(5)]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
@@ -713,7 +807,7 @@ namespace osu.Framework.Tests.IO
                 request.AddParameter("chunk_size", chunk_size.ToString());
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.DoesNotThrowAsync(() => request.PerformAsync());
             else
                 Assert.DoesNotThrow(request.Perform);
 
@@ -812,10 +906,10 @@ namespace osu.Framework.Tests.IO
             {
             }
 
-            protected override void Complete(Exception e = null)
+            protected override Task Complete(Exception e = null)
             {
                 CompleteInvoked?.Invoke();
-                base.Complete(e);
+                return base.Complete(e);
             }
         }
     }

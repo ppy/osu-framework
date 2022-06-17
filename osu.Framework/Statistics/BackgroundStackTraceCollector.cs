@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -181,7 +183,7 @@ namespace osu.Framework.Statistics
         {
             try
             {
-#if NET5_0
+#if NET6_0_OR_GREATER
                 using (var target = DataTarget.CreateSnapshotAndAttach(Environment.ProcessId))
 #else
                 using (var target = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id))

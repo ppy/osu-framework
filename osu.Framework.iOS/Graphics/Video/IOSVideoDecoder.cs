@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
@@ -89,6 +91,9 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern int avcodec_send_packet(AVCodecContext* avctx, AVPacket* avpkt);
 
         [DllImport(dll_name)]
+        private static extern void avcodec_flush_buffers(AVCodecContext* avctx);
+
+        [DllImport(dll_name)]
         private static extern AVFormatContext* avformat_alloc_context();
 
         [DllImport(dll_name)]
@@ -155,6 +160,7 @@ namespace osu.Framework.iOS.Graphics.Video
             avcodec_open2 = avcodec_open2,
             avcodec_receive_frame = avcodec_receive_frame,
             avcodec_send_packet = avcodec_send_packet,
+            avcodec_flush_buffers = avcodec_flush_buffers,
             avformat_alloc_context = avformat_alloc_context,
             avformat_close_input = avformat_close_input,
             avformat_find_stream_info = avformat_find_stream_info,

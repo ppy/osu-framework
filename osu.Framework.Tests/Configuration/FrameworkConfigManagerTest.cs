@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -15,7 +17,7 @@ namespace osu.Framework.Tests.Configuration
         [Test]
         public void TestDefault()
         {
-            using (var storage = new TemporaryNativeStorage(new Guid().ToString()))
+            using (var storage = new TemporaryNativeStorage(Guid.NewGuid().ToString()))
             {
                 using (var configManager = new FrameworkConfigManager(storage))
                 {
@@ -33,7 +35,7 @@ namespace osu.Framework.Tests.Configuration
         {
             const double test_volume = 0.65;
 
-            using (var storage = new TemporaryNativeStorage(new Guid().ToString()))
+            using (var storage = new TemporaryNativeStorage(Guid.NewGuid().ToString()))
             {
                 using (var configManager = new FrameworkConfigManager(storage))
                 {
@@ -61,7 +63,7 @@ namespace osu.Framework.Tests.Configuration
         {
             const string test_locale = "override test";
 
-            using (var storage = new TemporaryNativeStorage(new Guid().ToString()))
+            using (var storage = new TemporaryNativeStorage(Guid.NewGuid().ToString()))
             {
                 using (var configManager = new FrameworkConfigManager(storage, new Dictionary<FrameworkSetting, object> { { FrameworkSetting.Locale, test_locale } }))
                 {

@@ -2,8 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
-
-#nullable enable
+using System.Diagnostics.CodeAnalysis;
 
 namespace osu.Framework.Extensions.ObjectExtensions
 {
@@ -27,5 +26,15 @@ namespace osu.Framework.Extensions.ObjectExtensions
             Debug.Assert(obj != null);
             return obj;
         }
+
+        /// <summary>
+        /// If the given object is null.
+        /// </summary>
+        public static bool IsNull<T>([NotNullWhen(false)] this T obj) => ReferenceEquals(obj, null);
+
+        /// <summary>
+        /// <c>true</c> if the given object is not null, <c>false</c> otherwise.
+        /// </summary>
+        public static bool IsNotNull<T>([NotNullWhen(true)] this T obj) => !ReferenceEquals(obj, null);
     }
 }

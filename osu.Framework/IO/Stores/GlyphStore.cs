@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,11 +12,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
@@ -34,9 +39,16 @@ namespace osu.Framework.IO.Stores
         protected readonly ResourceStore<byte[]> Store;
 
         [CanBeNull]
-        protected BitmapFont Font => completionSource.Task.Result;
+        protected BitmapFont Font => completionSource.Task.GetResultSafely();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
+
+        /// <summary>
+        /// This is a rare usage of a static framework-wide cache.
+        /// In normal execution font instances are held locally by font stores and this will add no overhead or improvement.
+        /// It exists specifically to avoid overheads of parsing fonts repeatedly in unit tests.
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, BitmapFont> font_cache = new ConcurrentDictionary<string, BitmapFont>();
 
         /// <summary>
         /// Create a new glyph store.
@@ -64,8 +76,20 @@ namespace osu.Framework.IO.Stores
             try
             {
                 BitmapFont font;
+
                 using (var s = Store.GetStream($@"{AssetName}"))
-                    font = BitmapFont.FromStream(s, FormatHint.Binary, false);
+                {
+                    string hash = s.ComputeMD5Hash();
+
+                    if (font_cache.TryGetValue(hash, out font))
+                    {
+                        Logger.Log($"Cached font load for {AssetName}");
+                    }
+                    else
+                    {
+                        font_cache.TryAdd(hash, font = BitmapFont.FromStream(s, FormatHint.Binary, false));
+                    }
+                }
 
                 completionSource.SetResult(font);
             }
@@ -152,11 +176,11 @@ namespace osu.Framework.IO.Stores
 
             for (int y = 0; y < character.Height; y++)
             {
-                var pixelRowSpan = image.GetPixelRowSpan(y);
+                var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
                 int readOffset = (character.Y + y) * page.Width + character.X;
 
                 for (int x = 0; x < character.Width; x++)
-                    pixelRowSpan[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
+                    pixelRowMemory.Span[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Extensions;
@@ -26,9 +28,15 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestClassLocalisableDescription()
+        public void TestClassInstanceLocalisableDescription()
         {
             Assert.That(new ClassA().GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
+        }
+
+        [Test]
+        public void TestClassTypeLocalisableDescription()
+        {
+            Assert.That(typeof(ClassA).GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
         }
 
         [Test]

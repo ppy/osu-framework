@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -55,7 +58,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             host.TakeScreenshotAsync().ContinueWith(t => Schedule(() =>
             {
-                var image = t.Result;
+                var image = t.GetResultSafely();
 
                 var tex = new Texture(image.Width, image.Height);
                 tex.SetData(new TextureUpload(image));

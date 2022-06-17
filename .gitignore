@@ -332,3 +332,9 @@ fabric.properties
 **/.idea/**/modules.xml
 
 *GeneratedMSBuildEditorConfig*
+
+# inspectcode
+inspectcodereport.xml
+inspectcode
+
+.idea/.idea.osu-framework.Desktop/.idea/misc.xml

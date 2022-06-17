@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Localisation;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
@@ -15,7 +18,7 @@ namespace osu.Framework.Testing.Drawables
 {
     internal abstract class TestButtonBase : ClickableContainer, IFilterable
     {
-        public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
+        public IEnumerable<LocalisableString> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
         private bool matchingFilter = true;
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -281,9 +283,9 @@ namespace osu.Framework.Tests.Visual.Input
                 scrollMouseWheel(0, -1);
                 check(TestAction.WheelDown, allPressAndReleased);
 
-                scrollMouseWheel(-1, 0);
-                check(TestAction.WheelLeft, allPressAndReleased);
                 scrollMouseWheel(1, 0);
+                check(TestAction.WheelLeft, allPressAndReleased);
+                scrollMouseWheel(-1, 0);
                 check(TestAction.WheelRight, allPressAndReleased);
 
                 toggleKey(Key.ControlLeft);

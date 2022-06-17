@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -291,7 +293,7 @@ namespace osu.Framework.Graphics
             if (Interlocked.Decrement(ref referenceCount) != 0)
                 return;
 
-            GLWrapper.ScheduleDisposal(() => Dispose(true));
+            GLWrapper.ScheduleDisposal(node => node.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 

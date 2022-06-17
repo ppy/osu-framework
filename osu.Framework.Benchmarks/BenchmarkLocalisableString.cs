@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Localisation;
@@ -32,8 +34,8 @@ namespace osu.Framework.Benchmarks
             romanisableString2 = new RomanisableString("c", "d");
             translatableString1 = new TranslatableString("e", "f");
             translatableString2 = new TranslatableString("g", "h");
-            formattableString1 = new LocalisableFormattableString(1.23, "N0");
-            formattableString2 = new LocalisableFormattableString(4.56, "N1");
+            formattableString1 = LocalisableString.Format("({0})", "j");
+            formattableString2 = LocalisableString.Format("[{0}]", "l");
         }
 
         [Benchmark]

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -19,9 +21,17 @@ namespace osu.Framework.Graphics
             where T : Drawable
             => t.Append(o => o.Expire(calculateLifetimeStart));
 
+        public static TransformSequence<T> Schedule<T, TData>(this TransformSequence<T> t, Action<TData> scheduledAction, TData data)
+            where T : Drawable
+            => t.Append(o => o.Schedule(scheduledAction, data));
+
         public static TransformSequence<T> Schedule<T>(this TransformSequence<T> t, Action scheduledAction)
             where T : Drawable
             => t.Append(o => o.Schedule(scheduledAction));
+
+        public static TransformSequence<T> Schedule<T, TData>(this TransformSequence<T> t, Action<TData> scheduledAction, TData data, out ScheduledDelegate scheduledDelegate)
+            where T : Drawable
+            => t.Append(o => o.Schedule(scheduledAction, data), out scheduledDelegate);
 
         public static TransformSequence<T> Schedule<T>(this TransformSequence<T> t, Action scheduledAction, out ScheduledDelegate scheduledDelegate)
             where T : Drawable

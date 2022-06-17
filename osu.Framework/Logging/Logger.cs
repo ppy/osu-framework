@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -82,6 +84,8 @@ namespace osu.Framework.Logging
         /// Gets the name of the file that this logger is logging to.
         /// </summary>
         public string Filename => $@"{Name}.log";
+
+        public int TotalLogOperations => logCount.Value;
 
         private readonly GlobalStatistic<int> logCount;
 

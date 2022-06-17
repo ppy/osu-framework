@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Primitives;
@@ -35,12 +37,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        [Resolved]
+        private GameHost host { get; set; }
+
+        private readonly IBindable<MarginPadding> hostSafeArea = new BindableSafeArea();
+
+        protected override void LoadComplete()
         {
-            if (!usesCustomBinding && host.Window != null)
-                safeArea.BindTo(host.Window.SafeAreaPadding);
+            base.LoadComplete();
+
+            if (usesCustomBinding || host.Window == null)
+                return;
+
+            hostSafeArea.BindTo(host.Window.SafeAreaPadding);
+            hostSafeArea.BindValueChanged(_ => Scheduler.AddOnce(updateSafeAreaFromHost));
+
+            updateSafeAreaFromHost();
         }
+
+        private void updateSafeAreaFromHost() => safeArea.Value = hostSafeArea.Value;
 
         #region ISafeArea Implementation
 

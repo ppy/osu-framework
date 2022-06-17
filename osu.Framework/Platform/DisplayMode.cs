@@ -1,6 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
+using System;
 using System.Drawing;
 
 namespace osu.Framework.Platform
@@ -8,7 +11,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents a display mode on a given <see cref="Display"/>.
     /// </summary>
-    public readonly struct DisplayMode
+    public readonly struct DisplayMode : IEquatable<DisplayMode>
     {
         /// <summary>
         /// The pixel format of the display mode, if available.
@@ -31,25 +34,33 @@ namespace osu.Framework.Platform
         public readonly int RefreshRate;
 
         /// <summary>
-        /// The index of the display mode as determined by the windowing backend.
-        /// </summary>
-        public readonly int Index;
-
-        /// <summary>
         /// The index of the display this mode belongs to as determined by the windowing backend.
         /// </summary>
         public readonly int DisplayIndex;
 
-        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate, int index, int displayIndex)
+        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate, int displayIndex)
         {
             Format = format ?? "Unknown";
             Size = size;
             BitsPerPixel = bitsPerPixel;
             RefreshRate = refreshRate;
-            Index = index;
             DisplayIndex = displayIndex;
         }
 
-        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}, Index: {Index}, DisplayIndex: {DisplayIndex}";
+        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}, DisplayIndex: {DisplayIndex}";
+
+        public bool Equals(DisplayMode other) =>
+            Format == other.Format
+            && Size == other.Size
+            && BitsPerPixel == other.BitsPerPixel
+            && RefreshRate == other.RefreshRate
+            && DisplayIndex == other.DisplayIndex;
+
+        public static bool operator ==(DisplayMode left, DisplayMode right) => left.Equals(right);
+        public static bool operator !=(DisplayMode left, DisplayMode right) => !(left == right);
+
+        public override bool Equals(object obj) => obj is DisplayMode other && Equals(other);
+
+        public override int GetHashCode() => HashCode.Combine(Format, Size, BitsPerPixel, RefreshRate, DisplayIndex);
     }
 }

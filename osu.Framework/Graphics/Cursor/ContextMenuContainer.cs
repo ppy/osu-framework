@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -108,7 +110,7 @@ namespace osu.Framework.Graphics.Cursor
 
             if (menu.State != MenuState.Open || menuTarget == null) return;
 
-            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this || (!menuTarget?.IsPresent ?? false))
+            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this || !menuTarget.IsPresent)
             {
                 cancelDisplay();
                 return;

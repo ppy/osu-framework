@@ -1,8 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -160,13 +163,14 @@ namespace osu.Framework.Tests.Visual.Platform
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
+                AddStep($"move window to display {display.Index}", () => window.CurrentDisplayBindable.Value = window.Displays.ElementAt(display.Index));
                 AddStep("set client size to 1280x720", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(1280, 720)));
                 AddStep("store window position", () => originalWindowPosition = window.Position);
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
-                AddAssert("check window position", () => new Point(window.Position.X + 1, window.Position.Y + 1) == display.Bounds.Location);
-                AddAssert("check window size", () => new Size(window.Size.Width - 1, window.Size.Height - 1) == display.Bounds.Size, desc2);
+                AddAssert("check window position", () => new Point(window.Position.X, window.Position.Y) == display.Bounds.Location);
+                AddAssert("check window size", () => new Size(window.Size.Width, window.Size.Height) == display.Bounds.Size, desc2);
                 AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
 
                 // verify the window size is restored correctly

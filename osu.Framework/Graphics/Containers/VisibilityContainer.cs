@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.Containers
@@ -74,10 +76,10 @@ namespace osu.Framework.Graphics.Containers
         protected abstract void PopOut();
 
         /// <summary>
-        /// Called whenever <see cref="VisibilityContainer.State"/> is changed.
+        /// Called whenever <see cref="State"/> is changed.
         /// Used to update this container's elements according to the new visibility state.
         /// </summary>
-        /// <param name="state">The <see cref="ValueChangedEvent{T}"/> provided by <see cref="VisibilityContainer.State"/></param>
+        /// <param name="state">The <see cref="ValueChangedEvent{T}"/> provided by <see cref="State"/></param>
         protected virtual void UpdateState(ValueChangedEvent<Visibility> state)
         {
             switch (state.NewValue)

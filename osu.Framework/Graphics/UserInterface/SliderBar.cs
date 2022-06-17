@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
@@ -20,12 +22,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// scene graph padding / margin functionality.
         /// </summary>
         public float RangePadding;
-
-        /// <summary>
-        /// Whether keyboard control should be allowed even when the bar is not hovered.
-        /// </summary>
-        [Obsolete("Implement this kind of behaviour separately instead.")] // Can be removed 20220107
-        protected virtual bool AllowKeyboardInputWhenNotHovered => false;
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
@@ -166,10 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
-#pragma warning disable 618
-            bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
-#pragma warning restore 618
-            if (!shouldHandle)
+            if (!IsHovered)
                 return false;
 
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;

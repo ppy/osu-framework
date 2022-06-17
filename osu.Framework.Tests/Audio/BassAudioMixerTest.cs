@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using ManagedBass;
@@ -10,6 +12,7 @@ using NUnit.Framework;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -175,19 +178,26 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestTrackReferenceLostWhenTrackIsDisposed()
         {
-            track.Dispose();
+            var trackReference = testDisposeTrackWithoutReference();
 
             // The first update disposes the track, the second one removes the track from the TrackStore.
             bass.Update();
             bass.Update();
 
-            var trackReference = new WeakReference<TrackBass>(track);
-            track = null;
-
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
             Assert.That(!trackReference.TryGetTarget(out _));
+        }
+
+        private WeakReference<TrackBass> testDisposeTrackWithoutReference()
+        {
+            var weakRef = new WeakReference<TrackBass>(track);
+
+            track.Dispose();
+            track = null;
+
+            return weakRef;
         }
 
         [Test]
@@ -319,7 +329,7 @@ namespace osu.Framework.Tests.Audio
 
             Assert.That(bass.Mixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
 
-            bass.RunOnAudioThread(() => track.SeekAsync(0));
+            bass.RunOnAudioThread(() => track.SeekAsync(0).WaitSafely());
             bass.Update();
 
             Assert.That(bass.Mixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));

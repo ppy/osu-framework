@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -51,7 +53,7 @@ namespace osu.Framework.Benchmarks
             private ManualThreadRunner threadRunner;
 
             public ManualGameHost(Game runnableGame)
-                : base("manual")
+                : base("manual", new HostOptions())
             {
                 Task.Factory.StartNew(() =>
                 {

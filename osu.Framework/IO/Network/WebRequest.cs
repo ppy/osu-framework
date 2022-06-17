@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET5_0
+#nullable disable
+
+#if NET6_0_OR_GREATER
 using System.Net.Sockets;
 #endif
 using System;
@@ -15,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -134,15 +137,34 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
+        private CancellationToken? userToken;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
+
+        private LengthTrackingStream requestStream;
+        private HttpResponseMessage response;
+
+        private long contentLength => requestStream?.Length ?? 0;
+
+        private const string form_boundary = "-----------------------------28947758029299";
+
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+
         private static readonly HttpClient client = new HttpClient(
-#if NET5_0
+#if NET6_0_OR_GREATER
             new SocketsHttpHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                Credentials = CredentialCache.DefaultCredentials,
                 ConnectCallback = onConnect,
             }
 #else
-            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+            new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                Credentials = CredentialCache.DefaultCredentials,
+            }
 #endif
         )
         {
@@ -199,10 +221,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                byte[] data = new byte[ResponseStream.Length];
                 ResponseStream.Seek(0, SeekOrigin.Begin);
-                ResponseStream.Read(data, 0, data.Length);
-                return data;
+
+                return ResponseStream.ReadAllBytesToArray();
             }
             catch
             {
@@ -212,32 +233,19 @@ namespace osu.Framework.IO.Network
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
 
-        private CancellationToken? userToken;
-        private CancellationTokenSource abortToken;
-        private CancellationTokenSource timeoutToken;
-
-        private LengthTrackingStream requestStream;
-        private HttpResponseMessage response;
-
-        private long contentLength => requestStream?.Length ?? 0;
-
-        private const string form_boundary = "-----------------------------28947758029299";
-
-        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
-
-        /// <summary>
-        /// Performs the request asynchronously.
-        /// </summary>
-        public Task PerformAsync() => PerformAsync(default);
-
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
         /// <param name="cancellationToken">A token to cancel the request.</param>
-        public async Task PerformAsync(CancellationToken cancellationToken)
+        public async Task PerformAsync(CancellationToken cancellationToken = default)
         {
             if (Completed)
+            {
+                if (Aborted)
+                    throw new OperationCanceledException($"The {nameof(WebRequest)} has been aborted.");
+
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+            }
 
             try
             {
@@ -325,7 +333,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET5_0
+#if NET6_0_OR_GREATER
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
                             postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
@@ -381,8 +389,8 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
-                        WebExceptionStatus.Timeout));
+                    await Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                        WebExceptionStatus.Timeout)).ConfigureAwait(false);
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
@@ -394,7 +402,7 @@ namespace osu.Framework.IO.Network
                         // we may be coming from one of the exception blocks handled above (as Complete will rethrow all exceptions).
                         throw;
 
-                    Complete(e);
+                    await Complete(e).ConfigureAwait(false);
                 }
             }
 
@@ -414,7 +422,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                PerformAsync().Wait();
+                // Start a long-running task to ensure we don't block on a TPL thread pool thread.
+                // Unfortunately we can't use a full synchronous flow due to IPv4 fallback logic *requiring* the async path for now.
+                Task.Factory.StartNew(() => PerformAsync().WaitSafely(), TaskCreationOptions.LongRunning).WaitSafely();
             }
             catch (AggregateException ae)
             {
@@ -431,7 +441,7 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET5_0
+#if NET6_0_OR_GREATER
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
@@ -468,17 +478,17 @@ namespace osu.Framework.IO.Network
                     else
                     {
                         ResponseStream.Seek(0, SeekOrigin.Begin);
-                        Complete();
+                        await Complete().ConfigureAwait(false);
                         break;
                     }
                 }
             }
         }
 
-        protected virtual void Complete(Exception e = null)
+        protected virtual Task Complete(Exception e = null)
         {
             if (Aborted)
-                return;
+                return Task.CompletedTask;
 
             var we = e as WebException;
 
@@ -511,8 +521,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
-                    internalPerform().Wait();
-                    return;
+                    return internalPerform();
                 }
 
                 logger.Add($"Request to {Url} failed with {e}.");
@@ -575,6 +584,8 @@ namespace osu.Framework.IO.Network
                 Aborted = true;
                 throw e;
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -766,7 +777,7 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET5_0
+#if NET6_0_OR_GREATER
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>
@@ -861,9 +872,23 @@ namespace osu.Framework.IO.Network
                 baseStream.Flush();
             }
 
-            public override int Read(byte[] buffer, int offset, int count)
+            public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+            public override int Read(Span<byte> buffer)
             {
-                int read = baseStream.Read(buffer, offset, count);
+                int read = baseStream.Read(buffer);
+                BytesRead.Value += read;
+                return read;
+            }
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+            }
+
+            public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            {
+                int read = await baseStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
                 BytesRead.Value += read;
                 return read;
             }

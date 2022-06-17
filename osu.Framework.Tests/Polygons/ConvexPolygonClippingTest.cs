@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -239,6 +241,64 @@ namespace osu.Framework.Tests.Polygons
                 new SimpleConvexPolygon(Array.Empty<Vector2>()),
                 new SimpleConvexPolygon(clip(quad, new SimpleConvexPolygon(Array.Empty<Vector2>())).ToArray()),
                 false);
+        }
+
+        private static object[] fuzzedEdgeCases => new object[]
+        {
+            new object[]
+            {
+                new[] { new Vector2(0, 0.5f), new Vector2(100, 1), new Vector2(2, 2), new Vector2(1, 2) },
+                new[] { new Vector2(0, 0.5f), new Vector2(100, 0), new Vector2(0.5f, 100) },
+            },
+            new object[]
+            {
+                new[] { new Vector2(0, 1), new Vector2(100, 0), new Vector2(100, 2), new Vector2(2, 2) },
+                new[] { new Vector2(1, 100), new Vector2(2, 0.5f), new Vector2(100, 2) },
+            },
+            new object[]
+            {
+                new[] { new Vector2(0, 1), new Vector2(2, 0.5f), new Vector2(100, 0), new Vector2(1, 2) },
+                new[] { new Vector2(1, 0.5f), new Vector2(100, 0), new Vector2(1, 100) },
+            },
+            new object[]
+            {
+                new[] { new Vector2(0, 1), new Vector2(0, 0), new Vector2(2, 1), new Vector2(1, 2) },
+                new[] { new Vector2(0.5f, 2), new Vector2(100, 0.5f), new Vector2(1, 0.5f), new Vector2(100, 2) },
+            },
+            new object[]
+            {
+                new[] { new Vector2(2, float.MinValue), new Vector2(float.MaxValue, 0.5f), new Vector2(float.MaxValue, float.NegativeInfinity), new Vector2(1, float.MaxValue) },
+                new[] { new Vector2(0, 1), new Vector2(0, float.NegativeInfinity), new Vector2(float.Epsilon, 1), new Vector2(1, 0.5f) },
+            },
+            new object[]
+            {
+                new[] { new Vector2(float.Epsilon, 0.5f), new Vector2(float.Epsilon, 100), new Vector2(float.MaxValue, float.NegativeInfinity), new Vector2(1, float.MaxValue) },
+                new[] { new Vector2(0, 1), new Vector2(0, float.NegativeInfinity), new Vector2(float.Epsilon, 1), new Vector2(1, 0.5f) },
+            },
+            new object[]
+            {
+                new[] { new Vector2(-0.1f, 2), new Vector2(0, 0), new Vector2(0.5f, -0.1f) },
+                new[] { new Vector2(-10, 2), new Vector2(-0.5f, 0.1f), new Vector2(0.5f, 0.5f) }
+            },
+            new object[]
+            {
+                new[] { new Vector2(-10, 1), new Vector2(0.1f, 0), new Vector2(-0.5f, 2) },
+                new[] { new Vector2(-1, 2), new Vector2(-0.1f, -0.5f), new Vector2(0.1f, 0) }
+            },
+            new object[]
+            {
+                new[] { new Vector2(-1, 0.5f), new Vector2(0.1f, 0.1f), new Vector2(0, 1) },
+                new[] { new Vector2(-2, -0.5f), new Vector2(0.1f, 0.1f), new Vector2(-0.1f, 1) }
+            }
+        };
+
+        [TestCaseSource(nameof(fuzzedEdgeCases))]
+        public void TestFuzzedEdgeCases(Vector2[] clipVertices, Vector2[] subjectVertices)
+        {
+            var clipPolygon = new SimpleConvexPolygon(clipVertices);
+            var subjectPolygon = new SimpleConvexPolygon(subjectVertices);
+
+            clip(clipPolygon, subjectPolygon);
         }
 
         private Span<Vector2> clip(SimpleConvexPolygon clipPolygon, SimpleConvexPolygon subjectPolygon)

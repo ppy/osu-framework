@@ -1,8 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 
 namespace osu.Framework.Platform
@@ -99,24 +102,50 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Move a file from one location to another. File must exist. Destination must not exist.
+        /// </summary>
+        /// <param name="from">The file path to move.</param>
+        /// <param name="to">The destination path.</param>
+        public abstract void Move(string from, string to);
+
+        /// <summary>
+        /// Create a new file on disk, using a temporary file to write to before moving to the final location to ensure a half-written file cannot exist at the specified location.
+        /// </summary>
+        /// <remarks>
+        /// If the target file path already exists, it will be deleted before attempting to write a new version.
+        /// </remarks>
+        /// <param name="path">The path of the file to create or overwrite.</param>
+        /// <returns>A stream associated with the requested path. Will only exist at the specified location after the stream is disposed.</returns>
+        [Pure]
+        public Stream CreateFileSafely(string path)
+        {
+            string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
+
+            return new SafeWriteStream(temporaryPath, path, this);
+        }
+
+        /// <summary>
         /// Retrieve a stream from an underlying file inside this storage.
         /// </summary>
         /// <param name="path">The path of the file.</param>
         /// <param name="access">The access requirements.</param>
         /// <param name="mode">The mode in which the file should be opened.</param>
         /// <returns>A stream associated with the requested path.</returns>
+        [Pure]
         public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
         /// <param name="filename">The relative path to the file which should be opened.</param>
-        public abstract void OpenFileExternally(string filename);
+        /// <returns>Whether the file was successfully opened.</returns>
+        public abstract bool OpenFileExternally(string filename);
 
         /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        public void PresentExternally() => OpenFileExternally(string.Empty);
+        /// <returns>Whether the storage was successfully presented.</returns>
+        public bool PresentExternally() => OpenFileExternally(string.Empty);
 
         /// <summary>
         /// Requests to present a file externally in the platform's native file browser.
@@ -125,6 +154,40 @@ namespace osu.Framework.Platform
         /// This will open the parent folder and, (if available) highlight the file.
         /// </remarks>
         /// <param name="filename">Relative path to the file.</param>
-        public abstract void PresentFileExternally(string filename);
+        /// <returns>Whether the file was successfully presented.</returns>
+        public abstract bool PresentFileExternally(string filename);
+
+        /// <summary>
+        /// Uses a temporary file to ensure a file is written to completion before existing at its specified location.
+        /// </summary>
+        private class SafeWriteStream : FlushingStream
+        {
+            private readonly string temporaryPath;
+            private readonly string finalPath;
+            private readonly Storage storage;
+
+            public SafeWriteStream(string temporaryPath, string finalPath, Storage storage)
+                : base(storage.GetFullPath(temporaryPath, true), FileMode.Create, FileAccess.Write)
+            {
+                this.temporaryPath = temporaryPath;
+                this.finalPath = finalPath;
+                this.storage = storage;
+            }
+
+            private bool isDisposed;
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+
+                if (!isDisposed)
+                {
+                    storage.Delete(finalPath);
+                    storage.Move(temporaryPath, finalPath);
+
+                    isDisposed = true;
+                }
+            }
+        }
     }
 }

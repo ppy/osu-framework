@@ -19,6 +19,12 @@
     <RootNamespace>TemplateGame.iOS</RootNamespace>
     <AssemblyName>TemplateGame</AssemblyName>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- Generated via osu.Framework.iOS/generate-symbol-strip-flags.sh -->
+    <GeneratedMtouchSymbolStripFlags>--nosymbolstrip=BASS_FX_BPM_BeatCallbackReset --nosymbolstrip=BASS_FX_BPM_BeatCallbackSet --nosymbolstrip=BASS_FX_BPM_BeatDecodeGet --nosymbolstrip=BASS_FX_BPM_BeatFree --nosymbolstrip=BASS_FX_BPM_BeatGetParameters --nosymbolstrip=BASS_FX_BPM_BeatSetParameters --nosymbolstrip=BASS_FX_BPM_CallbackReset --nosymbolstrip=BASS_FX_BPM_CallbackSet --nosymbolstrip=BASS_FX_BPM_DecodeGet --nosymbolstrip=BASS_FX_BPM_Free --nosymbolstrip=BASS_FX_BPM_Translate --nosymbolstrip=BASS_FX_GetVersion --nosymbolstrip=BASS_FX_ReverseCreate --nosymbolstrip=BASS_FX_ReverseGetSource --nosymbolstrip=BASS_FX_TempoCreate --nosymbolstrip=BASS_FX_TempoGetRateRatio --nosymbolstrip=BASS_FX_TempoGetSource --nosymbolstrip=BASS_Mixer_ChannelFlags --nosymbolstrip=BASS_Mixer_ChannelGetData --nosymbolstrip=BASS_Mixer_ChannelGetEnvelopePos --nosymbolstrip=BASS_Mixer_ChannelGetLevel --nosymbolstrip=BASS_Mixer_ChannelGetLevelEx --nosymbolstrip=BASS_Mixer_ChannelGetMatrix --nosymbolstrip=BASS_Mixer_ChannelGetMixer --nosymbolstrip=BASS_Mixer_ChannelGetPosition --nosymbolstrip=BASS_Mixer_ChannelGetPositionEx --nosymbolstrip=BASS_Mixer_ChannelIsActive --nosymbolstrip=BASS_Mixer_ChannelRemove --nosymbolstrip=BASS_Mixer_ChannelRemoveSync --nosymbolstrip=BASS_Mixer_ChannelSetEnvelope --nosymbolstrip=BASS_Mixer_ChannelSetEnvelopePos --nosymbolstrip=BASS_Mixer_ChannelSetMatrix --nosymbolstrip=BASS_Mixer_ChannelSetMatrixEx --nosymbolstrip=BASS_Mixer_ChannelSetPosition --nosymbolstrip=BASS_Mixer_ChannelSetSync --nosymbolstrip=BASS_Mixer_GetVersion --nosymbolstrip=BASS_Mixer_StreamAddChannel --nosymbolstrip=BASS_Mixer_StreamAddChannelEx --nosymbolstrip=BASS_Mixer_StreamCreate --nosymbolstrip=BASS_Mixer_StreamGetChannels --nosymbolstrip=BASS_Split_StreamCreate --nosymbolstrip=BASS_Split_StreamGetAvailable --nosymbolstrip=BASS_Split_StreamGetSource --nosymbolstrip=BASS_Split_StreamGetSplits --nosymbolstrip=BASS_Split_StreamReset --nosymbolstrip=BASS_Split_StreamResetEx</GeneratedMtouchSymbolStripFlags>
+    <!-- Disable mono-cil-strip (nostrip) to avoid random attributes potentially stripped out from certain members. -->
+    <MtouchExtraArgs>--nolinkaway --nostrip $(GeneratedMtouchSymbolStripFlags)</MtouchExtraArgs>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugType>full</DebugType>
@@ -54,7 +60,6 @@
     <ErrorReport>prompt</ErrorReport>
     <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
     <MtouchLink>None</MtouchLink>
-    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
     <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -80,7 +85,6 @@
     <CrashReportingApiKey>
     </CrashReportingApiKey>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
     <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -98,7 +102,6 @@
     <WarningLevel>4</WarningLevel>
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
-    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -106,7 +109,6 @@
     <CodesignKey>iPhone Developer</CodesignKey>
     <OutputPath>bin\iPhone\Release</OutputPath>
     <MtouchArch>ARM64</MtouchArch>
-    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
   </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -129,18 +131,6 @@
       <Name>TemplateGame.Resources</Name>
     </ProjectReference>
   </ItemGroup>
-    <ItemGroup>
-    <NativeReference Include="$(OutputPath)\libbass.a;$(OutputPath)\libbass_fx.a">
-      <Kind>Static</Kind>
-      <SmartLink>False</SmartLink>
-      <ForceLoad>True</ForceLoad>
-    </NativeReference>
-    <NativeReference Include="$(OutputPath)\libavcodec.a;$(OutputPath)\libavdevice.a;$(OutputPath)\libavfilter.a;$(OutputPath)\libavformat.a;$(OutputPath)\libavutil.a;$(OutputPath)\libswresample.a;$(OutputPath)\libswscale.a">
-      <Kind>Static</Kind>
-      <SmartLink>False</SmartLink>
-      <ForceLoad>True</ForceLoad>
-    </NativeReference>
-  </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -150,11 +140,11 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2021.1029.0" />
+    <ProjectReference Include="..\..\..\..\osu.Framework\osu.Framework.csproj" />
+    <ProjectReference Include="..\..\..\..\osu.Framework.iOS\osu.Framework.iOS.csproj" />
   </ItemGroup>
   <ItemGroup Label="Transitive Dependencies">
-    <PackageReference Include="ppy.osu.Framework" Version="2021.1029.0" />
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" ExcludeAssets="all" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2022.525.0" ExcludeAssets="all" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -249,13 +252,22 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestClearFrames()
         {
+            Texture lastFrame = null;
+
             loadNewAnimation();
 
             AddUntilStep("animation is playing", () => animation.CurrentFrameIndex > 0);
 
+            AddStep("store current frame", () => lastFrame = animation.CurrentFrame);
+
             AddStep("clear frames", () => animation.ClearFrames());
+
             AddAssert("animation duration is 0", () => animation.Duration == 0);
             AddAssert("animation is at start", () => animation.CurrentFrameIndex == 0);
+            AddAssert("animation is not showing frame", () => animation.ChildrenOfType<Sprite>().First().Texture == null);
+
+            AddStep("add one frame back", () => animation.AddFrame(lastFrame));
+            AddAssert("animation is showing frame", () => animation.ChildrenOfType<Sprite>().First().Texture == lastFrame);
         }
 
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)

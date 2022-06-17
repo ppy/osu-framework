@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -98,6 +100,9 @@ namespace osu.Framework.Android.Graphics.Video
 
         [DllImport(lib_avcodec)]
         private static extern int avcodec_send_packet(AVCodecContext* avctx, AVPacket* avpkt);
+
+        [DllImport(lib_avcodec)]
+        private static extern void avcodec_flush_buffers(AVCodecContext* avctx);
 
         [DllImport(lib_avformat)]
         private static extern AVFormatContext* avformat_alloc_context();
@@ -208,6 +213,7 @@ namespace osu.Framework.Android.Graphics.Video
             avcodec_open2 = avcodec_open2,
             avcodec_receive_frame = avcodec_receive_frame,
             avcodec_send_packet = avcodec_send_packet,
+            avcodec_flush_buffers = avcodec_flush_buffers,
             avformat_alloc_context = avformat_alloc_context,
             avformat_close_input = avformat_close_input,
             avformat_find_stream_info = avformat_find_stream_info,

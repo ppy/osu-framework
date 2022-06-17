@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK;
@@ -32,6 +34,9 @@ namespace osu.Framework.Input.StateChanges
 
             if (Delta != Vector2.Zero)
             {
+                if (!IsPrecise && Delta.X == 0 && state.Keyboard.ShiftPressed)
+                    Delta = new Vector2(Delta.Y, 0);
+
                 var lastScroll = mouse.Scroll;
                 mouse.Scroll += Delta;
                 mouse.LastSource = this;

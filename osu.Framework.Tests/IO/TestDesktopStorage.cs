@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.IO;
 using NUnit.Framework;
@@ -14,7 +16,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestRelativePaths()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -34,11 +36,15 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestAttemptEscapeRoot()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
-                Assert.Throws<ArgumentException>(() => storage.GetStream("../test"));
+                Assert.Throws<ArgumentException>(() =>
+                {
+                    using var x = storage.GetStream("../test");
+                });
+
                 Assert.Throws<ArgumentException>(() => storage.GetStorageForDirectory("../"));
             }
         }
@@ -46,7 +52,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetSubDirectoryStorage()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
@@ -57,7 +63,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetEmptySubDirectoryStorage()
         {
-            string guid = new Guid().ToString();
+            string guid = Guid.NewGuid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {

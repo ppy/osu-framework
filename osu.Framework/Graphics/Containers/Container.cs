@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
@@ -377,7 +379,7 @@ namespace osu.Framework.Graphics.Containers
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public new SRGBColour BorderColour
+        public new ColourInfo BorderColour
         {
             get => base.BorderColour;
             set => base.BorderColour = value;

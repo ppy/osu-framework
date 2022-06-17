@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,13 +14,13 @@ namespace osu.Framework.Graphics.OpenGL
     /// </summary>
     internal class GLDisposalQueue
     {
-        private readonly List<PendingDisposal> newDisposals;
-        private readonly List<PendingDisposal> pendingDisposals;
+        private readonly List<IPendingDisposal> newDisposals;
+        private readonly List<IPendingDisposal> pendingDisposals;
 
         public GLDisposalQueue()
         {
-            newDisposals = new List<PendingDisposal>();
-            pendingDisposals = new List<PendingDisposal>();
+            newDisposals = new List<IPendingDisposal>();
+            pendingDisposals = new List<IPendingDisposal>();
         }
 
         /// <summary>
@@ -27,10 +29,11 @@ namespace osu.Framework.Graphics.OpenGL
         /// By default the disposal will run <see cref="GLWrapper.MAX_DRAW_NODES"/> frames after enqueueing.
         /// </summary>
         /// <param name="disposalAction">The disposal action to be executed.</param>
-        public void ScheduleDisposal(Action disposalAction)
+        /// <param name="target">The target.</param>
+        public void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
             lock (newDisposals)
-                newDisposals.Add(new PendingDisposal(disposalAction));
+                newDisposals.Add(new PendingDisposal<T>(disposalAction, target));
         }
 
         /// <summary>
@@ -58,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL
 
                 if (item.RemainingFrameDelay-- == 0)
                 {
-                    item.Action();
+                    item.Run();
                     lastExecutedDisposal = i;
                 }
             }
@@ -74,16 +77,29 @@ namespace osu.Framework.Graphics.OpenGL
             pendingDisposals.RemoveRange(0, lastExecutedDisposal + 1);
         }
 
-        private class PendingDisposal
+        private class PendingDisposal<T> : IPendingDisposal
         {
-            public int RemainingFrameDelay = GLWrapper.MAX_DRAW_NODES;
+            public int RemainingFrameDelay { get; set; }
 
-            public readonly Action Action;
+            private readonly Action<T> action;
 
-            public PendingDisposal(Action action)
+            private readonly T target;
+
+            public PendingDisposal(Action<T> disposeAction, T target)
             {
-                Action = action;
+                action = disposeAction;
+                this.target = target;
+                RemainingFrameDelay = GLWrapper.MAX_DRAW_NODES;
             }
+
+            public void Run() => action(target);
+        }
+
+        private interface IPendingDisposal
+        {
+            void Run();
+
+            int RemainingFrameDelay { get; set; }
         }
     }
 }

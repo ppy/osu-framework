@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,24 +108,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
 
-            GLWrapper.ScheduleDisposal(unload);
-        }
+            GLWrapper.ScheduleDisposal(texture =>
+            {
+                int disposableId = texture.textureId;
 
-        /// <summary>
-        /// Removes texture from GL memory.
-        /// </summary>
-        private void unload()
-        {
-            int disposableId = textureId;
+                if (disposableId <= 0)
+                    return;
 
-            if (disposableId <= 0)
-                return;
+                GL.DeleteTextures(1, new[] { disposableId });
 
-            GL.DeleteTextures(1, new[] { disposableId });
+                texture.memoryLease?.Dispose();
 
-            memoryLease?.Dispose();
-
-            textureId = 0;
+                texture.textureId = 0;
+            }, this);
         }
 
         #endregion
@@ -487,7 +484,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 else
                     GLWrapper.BindTexture(this);
 
-                if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
+                if ((width == upload.Bounds.Width && height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
                     updateMemoryUsage(upload.Level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);

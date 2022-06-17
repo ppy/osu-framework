@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Testing;
@@ -25,8 +27,8 @@ namespace osu.Framework.Tests.Platform
         {
             public Drawable CurrentRoot => Root;
 
-            public TestHeadlessGameHost(string hostname, bool bindIPC)
-                : base(hostname, bindIPC)
+            public TestHeadlessGameHost(string gameName, bool bindIPC)
+                : base(gameName, new HostOptions { BindIPC = bindIPC })
             {
             }
         }

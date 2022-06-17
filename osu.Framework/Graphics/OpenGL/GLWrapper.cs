@@ -1,10 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -119,12 +122,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly GLDisposalQueue disposal_queue = new GLDisposalQueue();
 
-        internal static void ScheduleDisposal(Action disposalAction)
+        internal static void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
             if (host != null && host.TryGetTarget(out _))
-                disposal_queue.ScheduleDisposal(disposalAction);
+                disposal_queue.ScheduleDisposal(disposalAction, target);
             else
-                disposalAction.Invoke();
+                disposalAction.Invoke(target);
         }
 
         private static void checkPendingDisposals()
@@ -140,8 +143,6 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void Reset(Vector2 size)
         {
             ResetId++;
-
-            Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
 
@@ -163,6 +164,11 @@ namespace osu.Framework.Graphics.OpenGL
             foreach (var b in batch_reset_list)
                 b.ResetCounters();
             batch_reset_list.Clear();
+
+            currentShader?.Unbind();
+            currentShader = null;
+            shader_stack.Clear();
+            GL.UseProgram(0);
 
             viewport_stack.Clear();
             ortho_stack.Clear();
@@ -390,8 +396,13 @@ namespace osu.Framework.Graphics.OpenGL
             vertex_buffers_in_use.RemoveAll(b => !b.InUse);
         }
 
+        internal static WrapMode CurrentWrapModeS { get; private set; }
+
+        internal static WrapMode CurrentWrapModeT { get; private set; }
+
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
+        private static TextureUnit lastActiveTextureUnit;
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
         internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
@@ -412,9 +423,6 @@ namespace osu.Framework.Graphics.OpenGL
             return didBind;
         }
 
-        internal static WrapMode CurrentWrapModeS;
-        internal static WrapMode CurrentWrapModeT;
-
         /// <summary>
         /// Binds a texture to draw with.
         /// </summary>
@@ -429,17 +437,19 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (wrapModeS != CurrentWrapModeS)
             {
+                // Will flush the current batch internally.
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
+                // Will flush the current batch internally.
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
                 CurrentWrapModeT = wrapModeT;
             }
 
-            if (last_bound_texture[index] == textureId)
+            if (lastActiveTextureUnit == unit && last_bound_texture[index] == textureId)
                 return false;
 
             FlushCurrentBatch();
@@ -449,6 +459,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             last_bound_texture[index] = textureId;
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+            lastActiveTextureUnit = unit;
 
             FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             return true;
@@ -696,11 +707,27 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (maskingInfo.BorderThickness > 0)
             {
-                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
-                    maskingInfo.BorderColour.Linear.R,
-                    maskingInfo.BorderColour.Linear.G,
-                    maskingInfo.BorderColour.Linear.B,
-                    maskingInfo.BorderColour.Linear.A));
+                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Matrix4(
+                    // TopLeft
+                    maskingInfo.BorderColour.TopLeft.Linear.R,
+                    maskingInfo.BorderColour.TopLeft.Linear.G,
+                    maskingInfo.BorderColour.TopLeft.Linear.B,
+                    maskingInfo.BorderColour.TopLeft.Linear.A,
+                    // BottomLeft
+                    maskingInfo.BorderColour.BottomLeft.Linear.R,
+                    maskingInfo.BorderColour.BottomLeft.Linear.G,
+                    maskingInfo.BorderColour.BottomLeft.Linear.B,
+                    maskingInfo.BorderColour.BottomLeft.Linear.A,
+                    // TopRight
+                    maskingInfo.BorderColour.TopRight.Linear.R,
+                    maskingInfo.BorderColour.TopRight.Linear.G,
+                    maskingInfo.BorderColour.TopRight.Linear.B,
+                    maskingInfo.BorderColour.TopRight.Linear.A,
+                    // BottomRight
+                    maskingInfo.BorderColour.BottomRight.Linear.R,
+                    maskingInfo.BorderColour.BottomRight.Linear.G,
+                    maskingInfo.BorderColour.BottomRight.Linear.B,
+                    maskingInfo.BorderColour.BottomRight.Linear.A));
             }
 
             GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
@@ -879,21 +906,18 @@ namespace osu.Framework.Graphics.OpenGL
             while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
+            ScheduleDisposal(GL.DeleteFramebuffer, frameBuffer);
         }
 
-        private static int currentShader;
+        private static readonly Stack<Shader> shader_stack = new Stack<Shader>();
+        private static Shader currentShader;
 
-        private static readonly Stack<int> shader_stack = new Stack<int>();
-
-        public static void UseProgram(int? shader)
+        public static void UseProgram([CanBeNull] Shader shader)
         {
             ThreadSafety.EnsureDrawThread();
 
             if (shader != null)
-            {
-                shader_stack.Push(shader.Value);
-            }
+                shader_stack.Push(shader);
             else
             {
                 shader_stack.Pop();
@@ -903,16 +927,17 @@ namespace osu.Framework.Graphics.OpenGL
                     return;
             }
 
-            int s = shader ?? shader_stack.Peek();
+            shader ??= shader_stack.Peek();
 
-            if (currentShader == s) return;
+            if (currentShader == shader)
+                return;
 
             FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
 
             FlushCurrentBatch();
 
-            GL.UseProgram(s);
-            currentShader = s;
+            GL.UseProgram(shader);
+            currentShader = shader;
         }
 
         internal static void SetUniform<T>(IUniformWithValue<T> uniform)
@@ -980,7 +1005,7 @@ namespace osu.Framework.Graphics.OpenGL
         public float CornerExponent;
 
         public float BorderThickness;
-        public SRGBColour BorderColour;
+        public ColourInfo BorderColour;
 
         public float BlendRange;
         public float AlphaExponent;
@@ -995,6 +1020,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static bool operator ==(in MaskingInfo left, in MaskingInfo right) =>
             left.ScreenSpaceAABB == right.ScreenSpaceAABB &&
             left.MaskingRect == right.MaskingRect &&
+            left.ConservativeScreenSpaceQuad.Equals(right.ConservativeScreenSpaceQuad) &&
             left.ToMaskingSpace == right.ToMaskingSpace &&
             left.CornerRadius == right.CornerRadius &&
             left.CornerExponent == right.CornerExponent &&

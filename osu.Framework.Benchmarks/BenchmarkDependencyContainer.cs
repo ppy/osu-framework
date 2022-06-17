@@ -1,8 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -52,6 +55,7 @@ namespace osu.Framework.Benchmarks
 
         private class TestBdlReceiver : Drawable
         {
+            [UsedImplicitly] // params used implicitly
             [BackgroundDependencyLoader]
             private void load(Game game, TextureStore textures, AudioManager audio)
             {

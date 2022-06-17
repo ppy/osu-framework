@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
@@ -121,6 +123,14 @@ namespace osu.Framework.Graphics.Colour
             BottomLeft = newBottomLeft;
             BottomRight = newBottomRight;
         }
+
+        internal static ColourInfo Multiply(ColourInfo first, ColourInfo second) => new ColourInfo
+        {
+            TopLeft = first.TopLeft * second.TopLeft,
+            BottomLeft = first.BottomLeft * second.BottomLeft,
+            TopRight = first.TopRight * second.TopRight,
+            BottomRight = first.BottomRight * second.BottomRight
+        };
 
         /// <summary>
         /// Created a new ColourInfo with the alpha value of the colours of all vertices

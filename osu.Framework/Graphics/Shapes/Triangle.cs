@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
@@ -44,12 +46,18 @@ namespace osu.Framework.Graphics.Shapes
 
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
             {
+                if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                    return;
+
                 DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
             protected override void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
             {
+                if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                    return;
+
                 var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
                 if (GLWrapper.IsMaskingActive)

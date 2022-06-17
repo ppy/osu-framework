@@ -1,8 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
@@ -14,12 +18,15 @@ namespace osu.Framework.Input
     /// </summary>
     public class PlatformActionContainer : KeyBindingContainer<PlatformAction>, IHandleGlobalKeyboardInput
     {
+        [Resolved]
+        private GameHost host { get; set; }
+
         public PlatformActionContainer()
             : base(SimultaneousBindingMode.None, KeyCombinationMatchingMode.Modifiers)
         {
         }
 
-        public override IEnumerable<IKeyBinding> DefaultKeyBindings => Host.PlatformKeyBindings;
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
 
         protected override bool Prioritised => true;
     }

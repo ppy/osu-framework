@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -55,24 +57,6 @@ namespace osu.Framework.Configuration
             else
                 bindable.Value = value;
         }
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null) => SetDefault(lookup, value, min, max, precision);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null) => SetDefault(lookup, value, min, max, precision);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null) => SetDefault(lookup, value, min, max);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableBool Set(TLookup lookup, bool value) => SetDefault(lookup, value);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null) => SetDefault(lookup, value, min, max);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value) => SetDefault(lookup, value);
 
         /// <summary>
         /// Sets a configuration's default value.

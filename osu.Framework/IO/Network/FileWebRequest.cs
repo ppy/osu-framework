@@ -1,8 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Network
 {
@@ -30,7 +33,7 @@ namespace osu.Framework.IO.Network
             Filename = filename;
         }
 
-        protected override void Complete(Exception e = null)
+        protected override Task Complete(Exception e = null)
         {
             ResponseStream?.Close();
 
@@ -46,7 +49,7 @@ namespace osu.Framework.IO.Network
                 }
             }
 
-            base.Complete(e);
+            return base.Complete(e);
         }
     }
 }

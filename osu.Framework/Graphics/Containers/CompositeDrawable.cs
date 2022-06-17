@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
@@ -143,6 +145,8 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
+            EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
@@ -203,7 +207,7 @@ namespace osu.Framework.Graphics.Containers
                         linkedSource.Dispose();
                     }
                 });
-            }, CancellationToken.None);
+            }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
         /// <summary>
@@ -1117,12 +1121,14 @@ namespace osu.Framework.Graphics.Containers
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
         protected virtual bool CanBeFlattened =>
-            // Masking composite DrawNodes define the masking area for their children.
+            // Masking composite draw nodes define the masking area for their children.
             !Masking
             // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph.
             && !HasProxy
             // Custom draw nodes may provide custom drawing procedures.
-            && !hasCustomDrawNode;
+            && !hasCustomDrawNode
+            // Composites with local vertex batches require their own draw node.
+            && !ForceLocalVertexBatch;
 
         private const int amount_children_required_for_masking_check = 2;
 
@@ -1250,6 +1256,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
+            if (AutoSizeAxes != Axes.None && AutoSizeDuration > 0)
+                childrenSizeDependencies.Invalidate();
+
             if (!propagateChildren)
                 return;
 
@@ -1271,7 +1280,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate ScheduleAfterChildren<T>(Action<T> action, T data)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, data, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action, data);
+        }
+
+        protected internal ScheduledDelegate ScheduleAfterChildren(Action action)
+        {
+            if (TransformDelay > 0)
+                return SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
+            return SchedulerAfterChildren.Add(action);
+        }
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
@@ -1341,7 +1364,7 @@ namespace osu.Framework.Graphics.Containers
         protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
 
-        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed(nameof(InternalChildren));
+        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(InternalChildren)}");
 
         #endregion
 
@@ -1528,13 +1551,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private SRGBColour borderColour = Color4.Black;
+        private ColourInfo borderColour = Color4.Black;
 
         /// <summary>
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public SRGBColour BorderColour
+        public ColourInfo BorderColour
         {
             get => borderColour;
             protected set

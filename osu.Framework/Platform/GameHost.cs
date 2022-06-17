@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,6 +24,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -40,7 +43,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
-using SixLabors.ImageSharp.Memory;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using Size = System.Drawing.Size;
@@ -50,6 +52,12 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        /// <summary>
+        /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
+        /// Only use this for benchmarking purposes (see <see cref="maximum_sane_fps"/> for further reasoning).
+        /// </summary>
+        public bool AllowBenchmarkUnlimitedFrames { get; set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -85,7 +93,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Deactivated;
 
-        public event Func<bool> Exiting;
+        /// <summary>
+        /// Invoked when an exit was requested. Always invoked from the update thread.
+        /// </summary>
+        /// <remarks>
+        /// Usually invoked when the window close (X) button or another platform-native exit action has been pressed.
+        /// </remarks>
+        public event Action ExitRequested;
 
         public event Action Exited;
 
@@ -104,12 +118,16 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
+        /// <remarks>Also see <see cref="CanSuspendToBackground"/>.</remarks>
         public virtual bool CanExit => true;
 
         /// <summary>
-        /// Whether memory constraints should be considered before performance concerns.
+        /// Whether this host can suspend and minimize to background.
         /// </summary>
-        protected virtual bool LimitedMemoryEnvironment => false;
+        /// <remarks>
+        /// This and <see cref="SuspendToBackground"/> are an alternative way to exit on hosts that have <see cref="CanExit"/> <c>false</c>.
+        /// </remarks>
+        public virtual bool CanSuspendToBackground => false;
 
         protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
@@ -118,14 +136,19 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
+        /// <remarks>
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// </remarks>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
-        public abstract void OpenFileExternally(string filename);
+        /// <returns>Whether the file was successfully opened.</returns>
+        public abstract bool OpenFileExternally(string filename);
 
         /// <summary>
         /// Requests to present a file externally in the platform's native file browser.
         /// </summary>
         /// <remarks>
         /// This will open the parent folder and, (if available) highlight the file.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
         /// </remarks>
         /// <example>
         ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
@@ -133,7 +156,8 @@ namespace osu.Framework.Platform
         ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
         /// </example>
         /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
-        public abstract void PresentFileExternally(string filename);
+        /// <returns>Whether the file was successfully presented.</returns>
+        public abstract bool PresentFileExternally(string filename);
 
         /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
@@ -276,12 +300,17 @@ namespace osu.Framework.Platform
         /// </summary>
         public string Name { get; }
 
+        [NotNull]
+        public HostOptions Options { get; private set; }
+
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         private bool suspended;
 
-        protected GameHost(string gameName = @"")
+        protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            Options = options ?? new HostOptions();
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -310,8 +339,13 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            var actualException = args.Exception.AsSingular();
+
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
-            logException(args.Exception, "unobserved");
+            logException(actualException, "unobserved");
+
+            if (DebugUtils.IsNUnitRunning)
+                abortExecutionFromException(sender, actualException, false);
         }
 
         private void logException(Exception exception, string type)
@@ -366,7 +400,7 @@ namespace osu.Framework.Platform
                 // 1. When the exceptioning thread is GameThread.Input.
                 // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
                 // 3. When the CLR is terminating. We can't guarantee the input thread is still running, and may delay application termination.
-                if (isTerminating || sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                if (isTerminating || (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread)))
                     return;
 
                 // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
@@ -378,30 +412,7 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
-        /// <returns>true to cancel</returns>
-        protected virtual bool OnExitRequested()
-        {
-            if (ExecutionState <= ExecutionState.Stopping) return false;
-
-            bool? response = null;
-
-            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
-
-            //wait for a potentially blocking response
-            while (!response.HasValue)
-            {
-                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-                    threadRunner.RunMainLoop();
-                else
-                    Thread.Sleep(1);
-            }
-
-            if (response ?? false)
-                return true;
-
-            Exit();
-            return false;
-        }
+        protected void OnExitRequested() => UpdateThread.Scheduler.Add(() => ExitRequested?.Invoke());
 
         protected virtual void OnExited()
         {
@@ -578,10 +589,24 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
+        /// <remarks>Consider using <see cref="SuspendToBackground"/> on mobile platforms that can't exit normally.</remarks>
         public void Exit()
         {
             if (CanExit)
                 PerformExit(false);
+        }
+
+        /// <summary>
+        /// Suspends and minimizes the game to background.
+        /// </summary>
+        /// <remarks>
+        /// This is provided as an alternative to <see cref="Exit"/> on hosts that can't exit (see <see cref="CanExit"/>).
+        /// Should only be called if <see cref="CanSuspendToBackground"/> is <c>true</c>.
+        /// </remarks>
+        /// <returns><c>true</c> if the game was successfully suspended and minimized.</returns>
+        public virtual bool SuspendToBackground()
+        {
+            return false;
         }
 
         /// <summary>
@@ -630,12 +655,6 @@ namespace osu.Framework.Platform
             }
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
-            if (LimitedMemoryEnvironment)
-            {
-                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
-                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
-            }
 
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
@@ -997,19 +1016,34 @@ namespace osu.Framework.Platform
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
+        /// <summary>
+        /// Games using osu!framework can generally run at *very* high frame rates when not much is going on.
+        ///
+        /// This can be counter-productive due to the induced allocation and GPU overhead.
+        /// - Allocation overhead can lead to excess garbage collection
+        /// - GPU overhead can lead to unexpected pipeline blocking (and stutters as a result).
+        ///   Also, in general graphics card manufacturers do not test their hardware at insane frame rates and
+        ///   therefore drivers are not optimised to handle this kind of throughput.
+        /// - We only harvest input at 1000hz, so running any higher has zero benefits.
+        ///
+        /// We limit things to the same rate we poll input at, to keep both gamers and their systems happy
+        /// and (more) stutter-free.
+        /// </summary>
+        private const int maximum_sane_fps = GameThread.DEFAULT_ACTIVE_HZ;
+
         private void updateFrameSyncMode()
         {
             if (Window == null)
                 return;
 
-            float refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
                 refreshRate = 60;
 
-            float drawLimiter = refreshRate;
-            float updateLimiter = drawLimiter * 2;
+            int drawLimiter = refreshRate;
+            int updateLimiter = drawLimiter * 2;
 
             setVSyncMode();
 
@@ -1036,8 +1070,15 @@ namespace osu.Framework.Platform
                     break;
 
                 case FrameSync.Unlimited:
-                    drawLimiter = updateLimiter = int.MaxValue;
+                    drawLimiter = int.MaxValue;
+                    updateLimiter = int.MaxValue;
                     break;
+            }
+
+            if (!AllowBenchmarkUnlimitedFrames)
+            {
+                drawLimiter = Math.Min(maximum_sane_fps, drawLimiter);
+                updateLimiter = Math.Min(maximum_sane_fps, updateLimiter);
             }
 
             MaximumDrawHz = drawLimiter;
@@ -1151,6 +1192,7 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Home, PlatformAction.MoveToListStart),
             new KeyBinding(InputKey.End, PlatformAction.MoveToListEnd),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Y), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),

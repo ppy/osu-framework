@@ -1,9 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
@@ -32,6 +35,8 @@ namespace osu.Framework.iOS
         public override IGraphicsContext Context => gameView.GraphicsContext;
 
         public override bool Focused => true;
+
+        public override IBindable<bool> IsActive { get; } = new BindableBool(true);
 
         public override WindowState WindowState
         {

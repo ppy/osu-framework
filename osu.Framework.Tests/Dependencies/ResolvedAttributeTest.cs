@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -189,6 +191,25 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(bindable.Value, receiver.Obj2.Value);
         }
 
+        [Test]
+        public void TestResolveNullableWithNullableReferenceTypes()
+        {
+            var receiver = new Receiver17();
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestResolveNonNullWithNullableReferenceTypes()
+        {
+            var receiver = new Receiver18();
+
+            // Throws with non-nullable dependency not cached.
+            Assert.Throws<DependencyNotRegisteredException>(() => createDependencies().Inject(receiver));
+
+            // Does not throw with the non-nullable dependency cached.
+            Assert.DoesNotThrow(() => createDependencies(new Bindable<int>(10)).Inject(receiver));
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -306,5 +327,19 @@ namespace osu.Framework.Tests.Dependencies
             [Resolved]
             public IBindable<int> Obj2 { get; private set; }
         }
+
+#nullable enable
+        private class Receiver17
+        {
+            [Resolved]
+            public Bindable<int>? Obj { get; private set; }
+        }
+
+        private class Receiver18
+        {
+            [Resolved]
+            public Bindable<int> Obj { get; private set; } = null!;
+        }
+#nullable disable
     }
 }

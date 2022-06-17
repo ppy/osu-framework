@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using CoreGraphics;
 using osu.Framework.Platform;
 using UIKit;
@@ -13,6 +15,8 @@ namespace osu.Framework.iOS
         private readonly GameHost gameHost;
 
         public override bool PrefersStatusBarHidden() => true;
+
+        public override bool PrefersHomeIndicatorAutoHidden => true;
 
         public override UIRectEdge PreferredScreenEdgesDeferringSystemGestures => UIRectEdge.All;
 

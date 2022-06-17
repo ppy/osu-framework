@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,6 +19,9 @@ namespace osu.Framework.Tests.Visual.Containers
             FillFlowContainer<OverrideTestContainer> container;
             Child = container = new FillFlowContainer<OverrideTestContainer>
             {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                AutoSizeAxes = Axes.Both,
                 Direction = FillDirection.Horizontal,
                 Margin = new MarginPadding(20),
                 Spacing = new Vector2(20),
@@ -35,6 +40,15 @@ namespace osu.Framework.Tests.Visual.Containers
 
             foreach (var child in container.Children)
                 addBoxAssert(child);
+
+            AddStep("Ensure negative size handles correctly", () =>
+            {
+                foreach (var child in container.Children)
+                {
+                    child.SafeAreaContainer.Size = -child.SafeAreaContainer.Size;
+                    child.SafeAreaContainer.Position = -child.SafeAreaContainer.Position;
+                }
+            });
         }
 
         private void addBoxAssert(OverrideTestContainer container)

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -384,7 +386,7 @@ namespace osu.Framework.Input
             if (potentialFocusTarget == FocusedDrawable)
                 return true;
 
-            if (potentialFocusTarget != null && (!potentialFocusTarget.IsPresent || !potentialFocusTarget.AcceptsFocus))
+            if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
 
             var previousFocus = FocusedDrawable;
@@ -394,7 +396,7 @@ namespace osu.Framework.Input
             if (previousFocus != null)
             {
                 previousFocus.HasFocus = false;
-                previousFocus.TriggerEvent(new FocusLostEvent(state));
+                previousFocus.TriggerEvent(new FocusLostEvent(state, potentialFocusTarget));
 
                 if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
             }
@@ -406,7 +408,7 @@ namespace osu.Framework.Input
             if (FocusedDrawable != null)
             {
                 FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerEvent(new FocusEvent(state));
+                FocusedDrawable.TriggerEvent(new FocusEvent(state, previousFocus));
             }
 
             return true;
@@ -713,6 +715,11 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// The number of touches which are currently active, causing a single cumulative "mouse down" state.
+        /// </summary>
+        private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
+
+        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -730,7 +737,18 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
+            switch (e.IsActive)
+            {
+                case true:
+                    mouseMappedTouchesDown.Add(e.Touch.Source);
+                    break;
+
+                case false:
+                    mouseMappedTouchesDown.Remove(e.Touch.Source);
+                    break;
+            }
+
+            new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown.Count > 0, e).Apply(CurrentState, this);
             return true;
         }
 
@@ -890,18 +908,28 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return true;
 
-            bool stillValid = FocusedDrawable.IsAlive && FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
+            if (isDrawableValidForFocus(FocusedDrawable))
+                return false;
 
-            if (stillValid)
+            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
+            ChangeFocus(null);
+            return true;
+        }
+
+        private bool isDrawableValidForFocus(Drawable drawable)
+        {
+            bool valid = drawable.IsAlive && drawable.IsPresent && drawable.Parent != null;
+
+            if (valid)
             {
                 //ensure we are visible
-                CompositeDrawable d = FocusedDrawable.Parent;
+                CompositeDrawable d = drawable.Parent;
 
                 while (d != null)
                 {
                     if (!d.IsPresent || !d.IsAlive)
                     {
-                        stillValid = false;
+                        valid = false;
                         break;
                     }
 
@@ -909,12 +937,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (stillValid)
-                return false;
-
-            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
-            ChangeFocus(null);
-            return true;
+            return valid;
         }
 
         protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)

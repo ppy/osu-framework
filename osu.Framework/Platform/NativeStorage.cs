@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +42,8 @@ namespace osu.Framework.Platform
                 File.Delete(path);
         }
 
+        public override void Move(string from, string to) => File.Move(GetFullPath(from), GetFullPath(to));
+
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
         public override IEnumerable<string> GetFiles(string path, string pattern = "*") => getRelativePaths(Directory.GetFiles(GetFullPath(path), pattern));
@@ -68,11 +72,11 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenFileExternally(string filename) =>
-            host?.OpenFileExternally(GetFullPath(filename));
+        public override bool OpenFileExternally(string filename) =>
+            host?.OpenFileExternally(GetFullPath(filename)) == true;
 
-        public override void PresentFileExternally(string filename) =>
-            host?.PresentFileExternally(GetFullPath(filename));
+        public override bool PresentFileExternally(string filename) =>
+            host?.PresentFileExternally(GetFullPath(filename)) == true;
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
