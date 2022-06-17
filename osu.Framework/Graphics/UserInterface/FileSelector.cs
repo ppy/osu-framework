@@ -70,6 +70,16 @@ namespace osu.Framework.Graphics.UserInterface
             protected DirectoryListingFile(FileInfo file)
             {
                 File = file;
+
+                try
+                {
+                    if (File?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                        ApplyHiddenState();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // checking attributes on access-controlled files will throw an error so we handle it here to prevent a crash
+                }
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -79,19 +89,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             protected override string FallbackName => File.Name;
-
-            protected DirectoryListingFile()
-            {
-                try
-                {
-                    if (currentFile?.Value.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
-                        ApplyHiddenState();
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // checking attributes on access-controlled files will throw an error so we handle it here to prevent a crash
-                }
-            }
         }
     }
 }
