@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -29,7 +30,10 @@ namespace osu.Framework.Graphics.UserInterface
                 if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
                     ApplyHiddenState();
             }
-            catch { }
+            catch (UnauthorizedAccessException)
+            {
+                // checking attributes on access-controled directories will throw an error so we handle it here to prevent a crash
+            }
         }
 
         protected override bool OnClick(ClickEvent e)

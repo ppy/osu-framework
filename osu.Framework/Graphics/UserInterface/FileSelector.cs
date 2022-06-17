@@ -87,7 +87,10 @@ namespace osu.Framework.Graphics.UserInterface
                     if (currentFile?.Value.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
                         ApplyHiddenState();
                 }
-                catch { }
+                catch (UnauthorizedAccessException)
+                {
+                    // checking attributes on access-controled files will throw an error so we handle it here to prevent a crash
+                }
             }
         }
     }
