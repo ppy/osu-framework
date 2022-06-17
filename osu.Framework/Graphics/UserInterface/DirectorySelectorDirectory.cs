@@ -23,8 +23,14 @@ namespace osu.Framework.Graphics.UserInterface
             : base(displayName)
         {
             Directory = directory;
-            if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
-                ApplyHiddenState();
+
+            try
+            {
+                if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                    ApplyHiddenState();
+            }
+
+            catch { }
         }
 
         protected override bool OnClick(ClickEvent e)

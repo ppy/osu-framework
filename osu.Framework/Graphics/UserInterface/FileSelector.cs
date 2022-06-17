@@ -82,8 +82,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected DirectoryListingFile()
             {
-                if (currentFile?.Value.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
-                    ApplyHiddenState();
+                try
+                {
+                    if (currentFile?.Value.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                        ApplyHiddenState();
+                }
+
+                catch { }
             }
         }
     }
