@@ -123,10 +123,6 @@ namespace osu.Framework.Graphics.Batches
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || drawNode.DrawDepth != vertices.DrawDepth;
 
-            if (vertexBufferList.CurrentBufferDrawCount - vertices.BufferDrawCount > 1)
-            {
-            }
-
             vertices.Batch = this;
             vertices.InvalidationID = drawNode.InvalidationID;
             vertices.BufferIndex = vertexBufferList.CurrentBufferIndex;
