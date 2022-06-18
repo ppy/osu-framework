@@ -13,8 +13,6 @@ using Newtonsoft.Json.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Logging;
 
-#nullable enable
-
 namespace osu.Framework.Platform
 {
     /// <summary>

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
@@ -15,6 +17,7 @@ using osu.Framework.Threading;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -346,6 +349,21 @@ namespace osu.Framework.Graphics.Performance
             base.OnKeyUp(e);
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            if (running)
+            {
+                while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
+                {
+                    applyFrame(frame);
+                    frameTimeDisplay.NewFrame(frame);
+                    monitor.FramesPool.Return(frame);
+                }
+            }
+        }
+
         private void applyFrameGC(FrameStatistics frame)
         {
             foreach (int gcLevel in frame.GarbageCollections)
@@ -379,12 +397,6 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private void applyFrameCounts(FrameStatistics frame)
-        {
-            foreach (var pair in frame.Counts)
-                counterBars[pair.Key].Value = pair.Value;
-        }
-
         private void applyFrame(FrameStatistics frame)
         {
             if (state == FrameStatisticsMode.Full)
@@ -393,22 +405,8 @@ namespace osu.Framework.Graphics.Performance
                 applyFrameTime(frame);
             }
 
-            applyFrameCounts(frame);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (running)
-            {
-                while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
-                {
-                    applyFrame(frame);
-                    frameTimeDisplay.NewFrame(frame);
-                    monitor.FramesPool.Return(frame);
-                }
-            }
+            foreach (var pair in frame.Counts)
+                counterBars[pair.Key].Value = pair.Value;
         }
 
         private Color4 getColour(PerformanceCollectionType type)
@@ -553,7 +551,6 @@ namespace osu.Framework.Graphics.Performance
 
             private double height;
             private double velocity;
-            private const double acceleration = 0.000001;
             private const float bar_width = 6;
 
             private long value;
@@ -562,6 +559,8 @@ namespace osu.Framework.Graphics.Performance
             {
                 set
                 {
+                    Debug.Assert(value >= 0); // Log10 will NaN for negative values.
+
                     this.value = value;
                     height = Math.Log10(value + 1) / amount_count_steps;
                 }
@@ -596,15 +595,19 @@ namespace osu.Framework.Graphics.Performance
             {
                 base.Update();
 
+                const double acceleration = 0.000001;
+
                 double elapsedTime = Time.Elapsed;
-                double movement = velocity * Time.Elapsed + 0.5 * acceleration * elapsedTime * elapsedTime;
-                double newHeight = Math.Max(height, box.Height - movement);
+
+                double change = velocity * elapsedTime + 0.5 * acceleration * elapsedTime * elapsedTime;
+                double newHeight = Math.Max(height, box.Height - change);
+
                 box.Height = (float)newHeight;
 
                 if (newHeight <= height)
                     velocity = 0;
                 else
-                    velocity += Time.Elapsed * acceleration;
+                    velocity += elapsedTime * acceleration;
 
                 if (expanded)
                     text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(value)}";

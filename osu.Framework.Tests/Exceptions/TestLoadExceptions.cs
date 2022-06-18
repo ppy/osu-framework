@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -8,9 +10,11 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osuTK;
@@ -45,6 +49,47 @@ namespace osu.Framework.Tests.Exceptions
                     g.Exit();
                 });
             });
+        }
+
+        [Test]
+        public void TestUnobservedException()
+        {
+            Exception loggedException = null;
+
+            Logger.NewEntry += newLogEntry;
+
+            try
+            {
+                var exception = Assert.Throws<AggregateException>(() =>
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        runGameWithLogic(g =>
+                        {
+                            g.Scheduler.Add(() => Task.Run(() => throw new InvalidOperationException()));
+                            g.Scheduler.AddDelayed(() => collect(), 1, true);
+
+                            if (loggedException != null)
+                                throw loggedException;
+                        });
+                    }, TaskCreationOptions.LongRunning).Wait(TimeSpan.FromSeconds(10));
+
+                    Assert.Fail("Game execution was not aborted");
+                });
+
+                Assert.True(exception?.AsSingular() is InvalidOperationException);
+            }
+            finally
+            {
+                Logger.NewEntry -= newLogEntry;
+            }
+
+            void newLogEntry(LogEntry entry) => loggedException = entry.Exception;
+        }
+
+        private static void collect()
+        {
+            GC.Collect();
         }
 
         [Test]

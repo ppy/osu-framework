@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,6 +24,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Batches;
@@ -52,6 +55,12 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        /// <summary>
+        /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
+        /// Only use this for benchmarking purposes (see <see cref="maximum_sane_fps"/> for further reasoning).
+        /// </summary>
+        public bool AllowBenchmarkUnlimitedFrames { get; set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -95,9 +104,12 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         /// <summary>
-        /// Called when the host is requesting to exit. Return <c>true</c> to block the exit process.
+        /// Invoked when an exit was requested. Always invoked from the update thread.
         /// </summary>
-        public event Func<bool> Exiting;
+        /// <remarks>
+        /// Usually invoked when the window close (X) button or another platform-native exit action has been pressed.
+        /// </remarks>
+        public event Action ExitRequested;
 
         public event Action Exited;
 
@@ -337,8 +349,13 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            var actualException = args.Exception.AsSingular();
+
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
-            logException(args.Exception, "unobserved");
+            logException(actualException, "unobserved");
+
+            if (DebugUtils.IsNUnitRunning)
+                abortExecutionFromException(sender, actualException, false);
         }
 
         private void logException(Exception exception, string type)
@@ -405,30 +422,7 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
-        /// <returns>true to cancel</returns>
-        protected virtual bool OnExitRequested()
-        {
-            if (ExecutionState <= ExecutionState.Stopping) return false;
-
-            bool? response = null;
-
-            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
-
-            //wait for a potentially blocking response
-            while (!response.HasValue)
-            {
-                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-                    threadRunner.RunMainLoop();
-                else
-                    Thread.Sleep(1);
-            }
-
-            if (response.Value)
-                return true;
-
-            Exit();
-            return false;
-        }
+        protected void OnExitRequested() => UpdateThread.Scheduler.Add(() => ExitRequested?.Invoke());
 
         protected virtual void OnExited()
         {
@@ -1038,19 +1032,34 @@ namespace osu.Framework.Platform
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
+        /// <summary>
+        /// Games using osu!framework can generally run at *very* high frame rates when not much is going on.
+        ///
+        /// This can be counter-productive due to the induced allocation and GPU overhead.
+        /// - Allocation overhead can lead to excess garbage collection
+        /// - GPU overhead can lead to unexpected pipeline blocking (and stutters as a result).
+        ///   Also, in general graphics card manufacturers do not test their hardware at insane frame rates and
+        ///   therefore drivers are not optimised to handle this kind of throughput.
+        /// - We only harvest input at 1000hz, so running any higher has zero benefits.
+        ///
+        /// We limit things to the same rate we poll input at, to keep both gamers and their systems happy
+        /// and (more) stutter-free.
+        /// </summary>
+        private const int maximum_sane_fps = GameThread.DEFAULT_ACTIVE_HZ;
+
         private void updateFrameSyncMode()
         {
             if (Window == null)
                 return;
 
-            float refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
                 refreshRate = 60;
 
-            float drawLimiter = refreshRate;
-            float updateLimiter = drawLimiter * 2;
+            int drawLimiter = refreshRate;
+            int updateLimiter = drawLimiter * 2;
 
             setVSyncMode();
 
@@ -1077,8 +1086,15 @@ namespace osu.Framework.Platform
                     break;
 
                 case FrameSync.Unlimited:
-                    drawLimiter = updateLimiter = int.MaxValue;
+                    drawLimiter = int.MaxValue;
+                    updateLimiter = int.MaxValue;
                     break;
+            }
+
+            if (!AllowBenchmarkUnlimitedFrames)
+            {
+                drawLimiter = Math.Min(maximum_sane_fps, drawLimiter);
+                updateLimiter = Math.Min(maximum_sane_fps, updateLimiter);
             }
 
             MaximumDrawHz = drawLimiter;

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +22,8 @@ namespace osu.Framework.Threading
     /// </summary>
     public class GameThread
     {
-        internal const double DEFAULT_ACTIVE_HZ = 1000;
-        internal const double DEFAULT_INACTIVE_HZ = 60;
+        internal const int DEFAULT_ACTIVE_HZ = 1000;
+        internal const int DEFAULT_INACTIVE_HZ = 60;
 
         /// <summary>
         /// The name of this thread.
@@ -344,6 +346,8 @@ namespace osu.Framework.Threading
                 while (state.Value != targetState)
                     Thread.Sleep(1);
             }
+
+            Debug.Assert(state.Value == targetState);
         }
 
         /// <summary>
@@ -489,6 +493,8 @@ namespace osu.Framework.Threading
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
                         initializedEvent?.Dispose();
+
+                        synchronizationContext.DisassociateGameThread();
 
                         OnExit();
                         break;

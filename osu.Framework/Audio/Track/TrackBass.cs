@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -151,7 +149,14 @@ namespace osu.Framework.Audio.Track
 
             fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
-            BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
+            BassFlags flags = (Preview ? 0 : BassFlags.Decode | BassFlags.Prescan);
+
+            // While this shouldn't cause issues, we've had a small subset of users reporting issues on windows.
+            // To keep things working let's only apply to other platforms until we know more.
+            // See https://github.com/ppy/osu/issues/18652.
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                flags |= BassFlags.AsyncFile;
+
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
             bitrate = (int)Math.Round(Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate));
@@ -391,21 +396,16 @@ namespace osu.Framework.Audio.Track
 
         private void cleanUpSyncs()
         {
-            Debug.Assert(stopCallback != null
-                         && stopSync != null
-                         && endCallback != null
-                         && endSync != null);
-
-            bassMixer.ChannelRemoveSync(this, stopSync.Value);
-            bassMixer.ChannelRemoveSync(this, endSync.Value);
+            if (stopSync != null) bassMixer.ChannelRemoveSync(this, stopSync.Value);
+            if (endSync != null) bassMixer.ChannelRemoveSync(this, endSync.Value);
 
             stopSync = null;
             endSync = null;
 
-            stopCallback.Dispose();
+            stopCallback?.Dispose();
             stopCallback = null;
 
-            endCallback.Dispose();
+            endCallback?.Dispose();
             endCallback = null;
         }
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 #if NET6_0_OR_GREATER
 using System.Net.Sockets;
 #endif
@@ -238,7 +240,12 @@ namespace osu.Framework.IO.Network
         public async Task PerformAsync(CancellationToken cancellationToken = default)
         {
             if (Completed)
+            {
+                if (Aborted)
+                    throw new OperationCanceledException($"The {nameof(WebRequest)} has been aborted.");
+
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+            }
 
             try
             {

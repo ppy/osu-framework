@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics;
@@ -29,8 +31,9 @@ namespace osu.Framework.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetClipBufferSize()
         {
-            // There can only be at most two intersections for each of the subject's vertices
-            return subjectPolygon.GetVertices().Length * 2;
+            // Assume every line can intersect every other line.
+            // This clipper cannot handle concavity, however this allows for edge cases to be handled gracefully.
+            return subjectPolygon.GetVertices().Length * clipPolygon.GetVertices().Length;
         }
 
         /// <summary>

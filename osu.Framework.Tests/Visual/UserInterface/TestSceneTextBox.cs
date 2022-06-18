@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
@@ -764,6 +766,35 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);
             AddAssert("text container moved back", () => textBox.TextContainerBounds.TopLeft.X < PaddedTextBox.LEFT_RIGHT_PADDING);
+        }
+
+        [Test]
+        public void TestSetTextSelection()
+        {
+            TextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new BasicTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "initial text",
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("set text", () => textBox.Text = "a longer string of text");
+            // ideally, this should check the caret/selection position, but that is not exposed in TextBox.
+            AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
+
+            AddStep("select all", () => InputManager.Keys(PlatformAction.SelectAll));
+            AddStep("set text via current", () => textBox.Text = "short text");
+            AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
         }
 
         private void prependString(InsertableTextBox textBox, string text)

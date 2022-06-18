@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using Android.Content;
 using Android.Graphics;
@@ -240,6 +242,26 @@ namespace osu.Framework.Android
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
+        }
+
+        public override void SwapBuffers()
+        {
+            try
+            {
+                base.SwapBuffers();
+            }
+            catch (GraphicsContextException ex)
+            {
+                // sometimes buffers will spontaneously fail to swap with BAD_SURFACE
+                // just before the activity is suspended to background or just after it has been resumed,
+                // but will continue operating correctly after that transitionary period.
+                // despite some testing it is unclear which view callback can be used to tell whether it is safe to swap buffers,
+                // so for now just catch and suppress these errors.
+                if (ex.Message.Contains("BAD_SURFACE", StringComparison.Ordinal))
+                    Logger.Log($"BAD_SURFACE failure in {nameof(SwapBuffers)} suppressed");
+                else
+                    throw;
+            }
         }
 
         #region Events

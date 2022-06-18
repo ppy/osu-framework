@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// The target vertex buffer.
         /// </summary>
-        private static VertexBuffer<T> uploadTarget;
+        private static VertexBuffer<T>? uploadTarget;
 
         /// <summary>
         /// Enqueues a vertex to be uploaded to the vertex buffer.
@@ -74,6 +75,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             if (uploadLength == 0)
                 return;
+
+            Debug.Assert(uploadTarget != null);
 
             uploadTarget.Bind(false);
             GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(uploadStart * VertexBuffer<T>.STRIDE), (IntPtr)(uploadLength * VertexBuffer<T>.STRIDE), ref upload_queue[0]);

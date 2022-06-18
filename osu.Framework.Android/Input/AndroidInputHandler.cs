@@ -9,8 +9,6 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
 
-#nullable enable
-
 namespace osu.Framework.Android.Input
 {
     /// <summary>

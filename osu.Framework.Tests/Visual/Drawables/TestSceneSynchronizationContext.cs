@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -21,6 +24,9 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         [Resolved]
         private GameHost host { get; set; }
+
+        [Resolved]
+        private FrameworkConfigManager config { get; set; }
 
         private AsyncPerformingBox box;
 
@@ -192,6 +198,29 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
             AddUntilStep("has spun", () => box.Rotation == 0);
+        }
+
+        [Test]
+        public void TestExecutionMode()
+        {
+            AddStep("add box", () => Child = box = new AsyncPerformingBox(true));
+            AddAssert("not spun", () => box.Rotation == 0);
+
+            AddStep("toggle execution mode", () => toggleExecutionMode());
+
+            AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
+            AddUntilStep("has spun", () => box.Rotation == 180);
+
+            AddStep("revert execution mode", () => toggleExecutionMode());
+
+            void toggleExecutionMode()
+            {
+                var executionMode = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
+
+                executionMode.Value = executionMode.Value == ExecutionMode.MultiThreaded
+                    ? ExecutionMode.SingleThread
+                    : ExecutionMode.MultiThreaded;
+            }
         }
 
         public class AsyncPerformingBox : Box

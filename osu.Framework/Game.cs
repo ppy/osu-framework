@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -115,7 +117,7 @@ namespace osu.Framework
         public virtual void SetHost(GameHost host)
         {
             Host = host;
-            host.Exiting += OnExiting;
+            host.ExitRequested += RequestExit;
             host.Activated += () => isActive.Value = true;
             host.Deactivated += () => isActive.Value = false;
         }
@@ -381,7 +383,7 @@ namespace osu.Framework
             switch (e.Action)
             {
                 case PlatformAction.Exit:
-                    Host.Window?.RequestClose();
+                    RequestExit();
                     return true;
             }
 
@@ -392,6 +394,18 @@ namespace osu.Framework
         {
         }
 
+        /// <summary>
+        /// Requests the game to exit. This exit can be blocked by <see cref="OnExiting"/>.
+        /// </summary>
+        public void RequestExit()
+        {
+            if (!OnExiting())
+                Exit();
+        }
+
+        /// <summary>
+        /// Force-closes the game, ignoring <see cref="OnExiting"/> return value.
+        /// </summary>
         public void Exit()
         {
             if (Host == null)
@@ -401,8 +415,9 @@ namespace osu.Framework
         }
 
         /// <summary>
-        /// Fired when the game host signals that an exit has been requested.
+        /// Fired when an exit has been requested.
         /// </summary>
+        /// <remarks>Usually fired because <see cref="PlatformAction.Exit"/> or the window close (X) button was pressed.</remarks>
         /// <returns>Return <c>true</c> to block the exit process.</returns>
         protected virtual bool OnExiting() => false;
 

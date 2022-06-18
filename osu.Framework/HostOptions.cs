@@ -3,8 +3,6 @@
 
 using osu.Framework.Platform;
 
-#nullable enable
-
 namespace osu.Framework
 {
     /// <summary>
