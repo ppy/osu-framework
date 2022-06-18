@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Batches.Internal;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
@@ -48,9 +49,20 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         internal long InvalidationID;
 
+        /// <summary>
+        /// The index of the <see cref="VertexBuffer{T}"/> in which this group's vertices were last placed.
+        /// </summary>
         internal int BufferIndex;
 
+        /// <summary>
+        /// The index into the <see cref="VertexBuffer{T}"/> at which this group's vertices were placed.
+        /// </summary>
         internal int VertexIndex;
+
+        /// <summary>
+        /// The amount of times the attached <see cref="VertexBuffer{T}"/> was drawn.
+        /// </summary>
+        internal ulong BufferDrawCount;
 
         /// <summary>
         /// The <see cref="DrawNode"/> draw depth when this group was last used.

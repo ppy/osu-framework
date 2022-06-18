@@ -10,14 +10,13 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 namespace osu.Framework.Graphics.Batches.Internal
 {
     // Broad requirements of this class:
-    // - A "spill" indicates a new buffer has been moved to.
-    //   This can happen in two ways:
-    //     - A draw call (flush) has been triggered (e.g. shader, masking, texture changes).
-    //     - A vertex buffer has been filled to its capacity.
-    //   The buffer that has spilled _may not_ be drawn to again. Doing so comes at a significant loss of performance.
+    //   - A "spill" indicates a new buffer has been moved to.
+    //     This can happen in two ways:
+    //       - A draw call (flush) has been triggered (e.g. shader, masking, texture changes).
+    //       - A vertex buffer has been filled to its capacity.
+    //     The buffer that has spilled _may not_ be drawn to again. Doing so comes at a significant loss of performance.
     // EDGE CASE:
-    // - If we wrap around to the same buffer, then we need to reuse the buffer.
-    //   TODO: This is not handled properly, we need to signal VertexGroups to be invalidated.
+    //   - If we wrap around to the same buffer, then we have no choice to re-use that buffer..
     public class VertexBufferList<T> : IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
@@ -26,6 +25,8 @@ namespace osu.Framework.Graphics.Batches.Internal
         private readonly List<VertexBuffer<T>> buffers = new List<VertexBuffer<T>>();
         private readonly Func<VertexBuffer<T>> createBufferFunc;
         private readonly int maxBuffers;
+
+        public ulong CurrentBufferDrawCount => !hasSpace() ? 0 : getCurrentBuffer().DrawCount;
 
         public int CurrentBufferIndex { get; private set; }
         public int CurrentVertexIndex => !hasSpace() ? 0 : getCurrentBuffer().Count;

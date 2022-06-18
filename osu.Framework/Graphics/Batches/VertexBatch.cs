@@ -112,18 +112,26 @@ namespace osu.Framework.Graphics.Batches
                 vertices.Batch != this
                 // Or the DrawNode was newly invalidated.
                 || vertices.InvalidationID != drawNode.InvalidationID
-                // Or another DrawNode was inserted (and added vertices) before this one.
+                // Or the DrawNode was moved around the vertex list.
                 || vertices.BufferIndex != vertexBufferList.CurrentBufferIndex
                 || vertices.VertexIndex != vertexBufferList.CurrentVertexIndex
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have overwritten the vertices of this one in the batch.
+                // Todo: This check is probably redundant with the one below.
                 || frameIndex - vertices.FrameIndex > 1
+                // Or the vertices have been overwritten in the underlying VertexBuffer (draw count was incremented more than once last frame).
+                || vertexBufferList.CurrentBufferDrawCount - vertices.BufferDrawCount > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || drawNode.DrawDepth != vertices.DrawDepth;
+
+            if (vertexBufferList.CurrentBufferDrawCount - vertices.BufferDrawCount > 1)
+            {
+            }
 
             vertices.Batch = this;
             vertices.InvalidationID = drawNode.InvalidationID;
             vertices.BufferIndex = vertexBufferList.CurrentBufferIndex;
             vertices.VertexIndex = vertexBufferList.CurrentVertexIndex;
+            vertices.BufferDrawCount = vertexBufferList.CurrentBufferDrawCount;
             vertices.DrawDepth = drawNode.DrawDepth;
             vertices.FrameIndex = frameIndex;
 

@@ -118,6 +118,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
+        /// <summary>
+        /// How many times this <see cref="VertexBuffer{T}"/> has been drawn.
+        /// </summary>
+        public ulong DrawCount { get; private set; }
+
         public void Draw()
         {
             if (Count == 0)
@@ -131,6 +136,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.DrawElements(Type, ToElements(Count), DrawElementsType.UnsignedShort, IntPtr.Zero);
             Unbind();
 
+            DrawCount++;
             Count = 0;
         }
 
