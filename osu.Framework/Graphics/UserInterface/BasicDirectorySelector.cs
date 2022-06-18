@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Button CreateHiddenToggleButton() => new BasicButton
         {
-            Text = "Toggle Hidden Items",
+            Text = "Toggle hidden items",
             Action = ShowHiddenItems.Toggle,
             AutoSizeAxes = Axes.Both
         };
