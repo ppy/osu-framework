@@ -75,18 +75,31 @@ namespace osu.Framework.Graphics.UserInterface
                 RowDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(GridSizeMode.AutoSize),
                     new Dimension(),
                 },
                 Content = new[]
                 {
                     new Drawable[]
                     {
-                        CreateBreadcrumb()
-                    },
-                    new Drawable[]
-                    {
-                        CreateHiddenToggleButton()
+                        new GridContainer
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            ColumnDimensions = new[]
+                            {
+                                new Dimension(),
+                                new Dimension(GridSizeMode.AutoSize),
+                            },
+                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                            Content = new[]
+                            {
+                                new Drawable[]
+                                {
+                                    CreateBreadcrumb(),
+                                    CreateHiddenToggleButton()
+                                }
+                            }
+                        }
                     },
                     new Drawable[]
                     {
