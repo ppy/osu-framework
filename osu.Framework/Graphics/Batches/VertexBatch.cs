@@ -46,14 +46,7 @@ namespace osu.Framework.Graphics.Batches
 
         private bool groupInUse;
 
-        void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex)
-        {
-            vertexBufferList.Push(vertices.Transform<TInput, T>(vertex));
-
-#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            // ((IVertexBatch)this).EnsureCurrentVertex(vertices, vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
-#endif
-        }
+        void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex) => vertexBufferList.Push(vertices.Transform<TInput, T>(vertex));
 
         void IVertexBatch.Advance(int count) => vertexBufferList.Push();
 
@@ -62,13 +55,8 @@ namespace osu.Framework.Graphics.Batches
         void IVertexBatch.UsageFinished() => groupInUse = false;
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-        void IVertexBatch.EnsureCurrentVertex<TVertex>(IVertexGroup vertices, TVertex vertex, string failureMessage)
-        {
-            // ensureHasBufferSpace();
-            //
-            // if (!VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex.Equals(vertices.Transform<TVertex, T>(vertex)))
-            //     throw new InvalidOperationException(failureMessage);
-        }
+        void IVertexBatch.AssertIsCurrentVertex<TVertex>(IVertexGroup vertices, TVertex vertex, string failureMessage)
+            => vertexBufferList.AssertIsCurrentVertex(vertices.Transform<TVertex, T>(vertex), failureMessage);
 #endif
 
         public void Draw() => vertexBufferList.Spill();

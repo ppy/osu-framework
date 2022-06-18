@@ -23,6 +23,10 @@ namespace osu.Framework.Graphics.Batches.Internal
     {
         public event Action<VertexBuffer<T>>? OnSpill;
 
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+        private readonly List<T[]> arrayBuffers = new List<T[]>();
+#endif
+
         private readonly List<VertexBuffer<T>> buffers = new List<VertexBuffer<T>>();
         private readonly Func<VertexBuffer<T>> createBufferFunc;
         private readonly int maxBuffers;
@@ -60,9 +64,23 @@ namespace osu.Framework.Graphics.Batches.Internal
         public void Push(T vertex)
         {
             ensureHasSpace();
+
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+            arrayBuffers[CurrentBufferIndex][CurrentVertexIndex] = vertex;
+            AssertIsCurrentVertex(vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
+#endif
+
             getCurrentBuffer().Push(vertex);
             checkForSpill();
         }
+
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+        internal void AssertIsCurrentVertex(T vertex, string failureMessage)
+        {
+            if (!arrayBuffers[CurrentBufferIndex][CurrentVertexIndex].Equals(vertex))
+                throw new InvalidOperationException(failureMessage);
+        }
+#endif
 
         public void Spill()
         {
@@ -86,7 +104,13 @@ namespace osu.Framework.Graphics.Batches.Internal
         private void ensureHasSpace()
         {
             if (!hasSpace())
+            {
                 buffers.Add(createBufferFunc());
+
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+                arrayBuffers.Add(new T[buffers[^1].Capacity]);
+#endif
+            }
         }
 
         private void checkForSpill()
