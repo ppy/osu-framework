@@ -49,7 +49,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 foreach (var file in files.OrderBy(d => d.Name))
                 {
-                    items.Add(CreateFileItem(file));
+                    if (ShowHiddenItems.Value || !file.Attributes.HasFlagFast(FileAttributes.Hidden))
+                        items.Add(CreateFileItem(file));
                 }
 
                 return true;
