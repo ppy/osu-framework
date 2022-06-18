@@ -5,6 +5,7 @@
 
 using System.IO;
 using osu.Framework.Graphics.Containers;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -14,9 +15,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Button CreateHiddenToggleButton() => new BasicButton
         {
+            Size = new Vector2(200, 25),
             Text = "Toggle hidden items",
             Action = ShowHiddenItems.Toggle,
-            AutoSizeAxes = Axes.Both
         };
 
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
