@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private FillFlowContainer directoryFlow;
 
-        protected readonly BindableBool ShowHiddenItems = new BindableBool(true);
+        protected readonly BindableBool ShowHiddenItems = new BindableBool();
 
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
 
