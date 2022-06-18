@@ -32,6 +32,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected abstract DirectorySelectorBreadcrumbDisplay CreateBreadcrumb();
 
+        /// <summary>
+        /// Create a button that toggles the display of hidden items.
+        /// </summary>
+        /// <remarks>
+        /// Unless overridden, a toggle button will not be added.
+        /// </remarks>
+        protected virtual Button CreateHiddenToggleButton() => null;
+
         protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
         /// <summary>
@@ -67,6 +75,7 @@ namespace osu.Framework.Graphics.UserInterface
                 RowDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.AutoSize),
                     new Dimension(),
                 },
                 Content = new[]
@@ -74,6 +83,10 @@ namespace osu.Framework.Graphics.UserInterface
                     new Drawable[]
                     {
                         CreateBreadcrumb()
+                    },
+                    new Drawable[]
+                    {
+                        CreateHiddenToggleButton()
                     },
                     new Drawable[]
                     {

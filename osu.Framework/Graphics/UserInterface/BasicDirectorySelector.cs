@@ -12,6 +12,13 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 
+        protected override Button CreateHiddenToggleButton() => new BasicButton
+        {
+            Text = "Toggle Hidden Items",
+            Action = ShowHiddenItems.Toggle,
+            AutoSizeAxes = Axes.Both
+        };
+
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
 
         protected override DirectorySelectorDirectory CreateParentDirectoryItem(DirectoryInfo directory) => new BasicDirectorySelectorParentDirectory(directory);
