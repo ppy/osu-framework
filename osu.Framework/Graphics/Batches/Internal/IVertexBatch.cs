@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Batches.Internal
         /// <summary>
         /// Draws this <see cref="IVertexBatch"/>.
         /// </summary>
-        int Draw();
+        void Draw();
 
         /// <summary>
         /// Resets this <see cref="IVertexBatch"/> for a new frame.

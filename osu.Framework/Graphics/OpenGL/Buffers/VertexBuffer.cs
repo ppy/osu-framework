@@ -14,6 +14,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public abstract class VertexBuffer<T> : IVertexBuffer, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
+        /// <summary>
+        /// Gets the number of vertices in this <see cref="VertexBuffer{T}"/>.
+        /// </summary>
+        public int Capacity { get; }
+
+        public int Count { get; private set; }
+
         internal static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
@@ -27,23 +34,24 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         internal int VboId { get; private set; } = -1;
 
-        protected VertexBuffer(int amountVertices, BufferUsageHint usage)
+        protected VertexBuffer(int capacity, BufferUsageHint usage)
         {
             this.usage = usage;
 
-            Size = amountVertices;
+            Capacity = capacity;
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            Vertices = new DepthWrappingVertex<T>[amountVertices];
+            Vertices = new DepthWrappingVertex<T>[capacity];
 #endif
         }
 
-        public void SetVertex(int index, T vertex) => VertexUploadQueue<T>.Enqueue(this, index, vertex);
+        public void Push() => Count++;
 
-        /// <summary>
-        /// Gets the number of vertices in this <see cref="VertexBuffer{T}"/>.
-        /// </summary>
-        public int Size { get; }
+        public void Push(T vertex)
+        {
+            VertexUploadQueue<T>.Enqueue(this, Count, vertex);
+            Count++;
+        }
 
         /// <summary>
         /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
@@ -58,7 +66,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, VboId))
                 VertexUtils<DepthWrappingVertex<T>>.Bind();
 
-            int size = Size * STRIDE;
+            int size = Capacity * STRIDE;
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
             vertex_memory_statistic.Value += size;
 
@@ -112,21 +120,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Draw()
         {
-            DrawRange(0, Size);
-        }
+            if (Count == 0)
+                return;
 
-        public void DrawRange(int startIndex, int endIndex)
-        {
             LastUseResetId = GLWrapper.ResetId;
 
             VertexUploadQueue<T>.Upload();
 
             Bind(true);
-
-            int countVertices = endIndex - startIndex;
-            GL.DrawElements(Type, ToElements(countVertices), DrawElementsType.UnsignedShort, (IntPtr)(ToElementIndex(startIndex) * sizeof(ushort)));
-
+            GL.DrawElements(Type, ToElements(Count), DrawElementsType.UnsignedShort, IntPtr.Zero);
             Unbind();
+
+            Count = 0;
         }
 
         public ulong LastUseResetId { get; private set; }
@@ -146,7 +151,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 Vertices.AsSpan().Clear();
 #endif
 
-                vertex_memory_statistic.Value -= Size * STRIDE;
+                vertex_memory_statistic.Value -= Capacity * STRIDE;
             }
 
             LastUseResetId = 0;

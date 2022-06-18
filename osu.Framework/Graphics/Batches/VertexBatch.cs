@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.Batches.Internal;
 using osu.Framework.Graphics.OpenGL;
@@ -15,19 +14,12 @@ namespace osu.Framework.Graphics.Batches
     public abstract class VertexBatch<T> : IVertexBatch, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
-        public List<VertexBuffer<T>> VertexBuffers = new List<VertexBuffer<T>>();
-
         /// <summary>
         /// The number of vertices in each VertexBuffer.
         /// </summary>
         public int Size { get; }
 
-        private readonly int maxBuffers;
-
-        private int currentBufferIndex;
-        private int rollingVertexIndex;
-
-        private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
+        private readonly VertexBufferList<T> vertexBufferList;
 
         protected VertexBatch(int bufferSize, int maxBuffers)
         {
@@ -35,112 +27,60 @@ namespace osu.Framework.Graphics.Batches
             Trace.Assert(bufferSize > 0);
 
             Size = bufferSize;
-            this.maxBuffers = maxBuffers;
-        }
 
-        #region Disposal
+            vertexBufferList = new VertexBufferList<T>(maxBuffers, () => CreateVertexBuffer());
+            vertexBufferList.OnSpill += draw;
+        }
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            vertexBufferList.Dispose();
         }
-
-        protected void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                foreach (VertexBuffer<T> vbo in VertexBuffers)
-                    vbo.Dispose();
-            }
-        }
-
-        #endregion
 
         public void ResetCounters()
         {
-            currentBufferIndex = 0;
-            rollingVertexIndex = 0;
-            drawStart = 0;
-            drawCount = 0;
+            vertexBufferList.Reset();
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
         private bool groupInUse;
-        private int drawStart;
-        private int drawCount;
 
         void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex)
         {
-            ensureHasBufferSpace();
-            currentVertexBuffer.SetVertex(drawStart + drawCount, vertices.Transform<TInput, T>(vertex));
+            vertexBufferList.Push(vertices.Transform<TInput, T>(vertex));
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-            ((IVertexBatch)this).EnsureCurrentVertex(vertices, vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
+            // ((IVertexBatch)this).EnsureCurrentVertex(vertices, vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
 #endif
-
-            advance(1);
         }
 
-        void IVertexBatch.Advance(int count) => advance(count);
+        void IVertexBatch.Advance(int count) => vertexBufferList.Push();
 
         void IVertexBatch.UsageStarted() => groupInUse = true;
 
         void IVertexBatch.UsageFinished() => groupInUse = false;
 
-        private void advance(int count)
-        {
-            drawCount += count;
-            rollingVertexIndex += count;
-        }
-
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         void IVertexBatch.EnsureCurrentVertex<TVertex>(IVertexGroup vertices, TVertex vertex, string failureMessage)
         {
-            ensureHasBufferSpace();
-
-            if (!VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex.Equals(vertices.Transform<TVertex, T>(vertex)))
-                throw new InvalidOperationException(failureMessage);
+            // ensureHasBufferSpace();
+            //
+            // if (!VertexBuffers[currentBufferIndex].Vertices[drawStart + drawCount].Vertex.Equals(vertices.Transform<TVertex, T>(vertex)))
+            //     throw new InvalidOperationException(failureMessage);
         }
 #endif
 
-        private void ensureHasBufferSpace()
+        public void Draw() => vertexBufferList.Spill();
+
+        private void draw(VertexBuffer<T> buffer)
         {
-            if (VertexBuffers.Count > currentBufferIndex && drawStart + drawCount >= currentVertexBuffer.Size)
-            {
-                Draw();
-                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
-            }
+            int countToDraw = buffer.Count;
 
-            while (currentBufferIndex >= VertexBuffers.Count)
-                VertexBuffers.Add(CreateVertexBuffer());
-        }
+            buffer.Draw();
 
-        public int Draw()
-        {
-            int count = drawCount;
-
-            while (drawCount > 0)
-            {
-                int drawEnd = Math.Min(currentVertexBuffer.Size, drawStart + drawCount);
-                int currentDrawCount = drawEnd - drawStart;
-
-                currentVertexBuffer.DrawRange(drawStart, drawEnd);
-                drawStart += currentDrawCount;
-                drawCount -= currentDrawCount;
-
-                if (drawStart == currentVertexBuffer.Size)
-                {
-                    drawStart = 0;
-                    currentBufferIndex++;
-                }
-
-                FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-                FrameStatistics.Add(StatisticsCounterType.VerticesDraw, currentDrawCount);
-            }
-
-            return count;
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, countToDraw);
         }
 
         /// <summary>
@@ -173,7 +113,8 @@ namespace osu.Framework.Graphics.Batches
                 // Or the DrawNode was newly invalidated.
                 || vertices.InvalidationID != drawNode.InvalidationID
                 // Or another DrawNode was inserted (and added vertices) before this one.
-                || vertices.StartIndex != rollingVertexIndex
+                || vertices.BufferIndex != vertexBufferList.CurrentBufferIndex
+                || vertices.VertexIndex != vertexBufferList.CurrentVertexIndex
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have overwritten the vertices of this one in the batch.
                 || frameIndex - vertices.FrameIndex > 1
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
@@ -181,7 +122,8 @@ namespace osu.Framework.Graphics.Batches
 
             vertices.Batch = this;
             vertices.InvalidationID = drawNode.InvalidationID;
-            vertices.StartIndex = rollingVertexIndex;
+            vertices.BufferIndex = vertexBufferList.CurrentBufferIndex;
+            vertices.VertexIndex = vertexBufferList.CurrentVertexIndex;
             vertices.DrawDepth = drawNode.DrawDepth;
             vertices.FrameIndex = frameIndex;
 

@@ -48,10 +48,9 @@ namespace osu.Framework.Graphics.Batches
         /// </summary>
         internal long InvalidationID;
 
-        /// <summary>
-        /// The index inside the <see cref="VertexBatch{T}"/> where this group last had its vertices placed.
-        /// </summary>
-        internal int StartIndex;
+        internal int BufferIndex;
+
+        internal int VertexIndex;
 
         /// <summary>
         /// The <see cref="DrawNode"/> draw depth when this group was last used.
