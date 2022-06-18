@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Batches.Internal
 {
@@ -76,7 +77,10 @@ namespace osu.Framework.Graphics.Batches.Internal
 
             // Wrap back to 0 if we can't fit any more buffers.
             if (CurrentBufferIndex == maxBuffers)
+            {
+                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
                 CurrentBufferIndex = 0;
+            }
         }
 
         private void ensureHasSpace()
