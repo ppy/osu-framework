@@ -29,12 +29,12 @@ namespace osu.Framework.Graphics.Batches.Internal
         /// <summary>
         /// Notifies that a <see cref="VertexGroup{TVertex}"/> usage has begun.
         /// </summary>
-        void UsageStarted();
+        void UsageStarted(IVertexGroup group);
 
         /// <summary>
         /// Notifies that the <see cref="VertexGroup{TVertex}"/> usage has finished.
         /// </summary>
-        void UsageFinished();
+        void UsageFinished(IVertexGroup group);
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         /// <summary>

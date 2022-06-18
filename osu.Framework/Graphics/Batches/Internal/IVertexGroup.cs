@@ -20,5 +20,10 @@ namespace osu.Framework.Graphics.Batches.Internal
         TOutput Transform<TInput, TOutput>(TInput vertex)
             where TOutput : struct, IEquatable<TOutput>, IVertex
             where TInput : struct, IEquatable<TInput>, IVertex;
+
+        /// <summary>
+        /// Whether this <see cref="IVertexGroup"/> was one that caused a VBO overflow.
+        /// </summary>
+        bool TriggeredOverflow { get; set; }
     }
 }

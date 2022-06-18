@@ -11,17 +11,18 @@ using osu.Framework.Statistics;
 namespace osu.Framework.Graphics.Batches.Internal
 {
     // Broad requirements of this class:
-    //   - A "spill" indicates a new buffer has been moved to.
+    //   - A "commit" indicates a buffer is ready to be drawn.
     //     This can happen in two ways:
-    //       - A draw call (flush) has been triggered (e.g. shader, masking, texture changes).
-    //       - A vertex buffer has been filled to its capacity.
-    //     The buffer that has spilled _may not_ be drawn to again. Doing so comes at a significant loss of performance.
-    // EDGE CASE:
-    //   - If we wrap around to the same buffer, then we have no choice to re-use that buffer..
-    public class VertexBufferList<T> : IDisposable
+    //       - A draw call (flush) was triggered (e.g. shader, masking, texture changes).
+    //       - The vertex buffer was filled up.
+    //     The committed buffer should not be drawn to again, otherwise significant loss of performance will be incurred.
+    //   - An "overflow" indicates that all available buffers have been exhausted.
+    //     Drawing may proceed from the 0th buffer (at a significant performance loss).
+    //     Any buffer that is overflowed into (has vertices written to it after an overflow), needs to be marked as invalid for the next frame.
+    internal class VertexBufferList<T> : IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
-        public event Action<VertexBuffer<T>>? OnSpill;
+        public event Action<VertexBuffer<T>>? OnCommit;
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         private readonly List<T[]> arrayBuffers = new List<T[]>();
@@ -31,11 +32,32 @@ namespace osu.Framework.Graphics.Batches.Internal
         private readonly Func<VertexBuffer<T>> createBufferFunc;
         private readonly int maxBuffers;
 
-        public ulong CurrentBufferDrawCount => !hasSpace() ? 0 : getCurrentBuffer().DrawCount;
-
+        /// <summary>
+        /// The current vertex buffer index.
+        /// </summary>
         public int CurrentBufferIndex { get; private set; }
-        public int CurrentVertexIndex => !hasSpace() ? 0 : getCurrentBuffer().Count;
 
+        /// <summary>
+        /// The vertex index inside the current vertex buffer.
+        /// </summary>
+        public int CurrentVertexIndex => !hasCurrentBuffer() ? 0 : getCurrentBuffer().Count;
+
+        /// <summary>
+        /// Whether the current vertex buffer's last draw call contained "overflow" vertices.
+        /// </summary>
+        public bool LastDrawHadOverflowVertices => hasCurrentBuffer() && getCurrentBuffer().LastDrawHadOverflowVertices;
+
+        /// <summary>
+        /// Whether the current draw has "overflow" vertices.
+        /// </summary>
+        public bool ThisDrawHasOverflowVertices { get; private set; }
+
+        /// <summary>
+        /// Creates a new <see cref="VertexBufferList{T}"/>.
+        /// </summary>
+        /// <param name="maxBuffers">The maximum number of vertex buffers.</param>
+        /// <param name="createBufferFunc">A function that creates a new <see cref="VertexBuffer{T}"/>.</param>
+        /// <exception cref="ArgumentOutOfRangeException">If <see cref="maxBuffers"/> is less than or equal to 0.</exception>
         public VertexBufferList(int maxBuffers, Func<VertexBuffer<T>> createBufferFunc)
         {
             if (maxBuffers <= 0)
@@ -45,33 +67,64 @@ namespace osu.Framework.Graphics.Batches.Internal
             this.createBufferFunc = createBufferFunc;
         }
 
+        /// <summary>
+        /// Resets this list for a new frame.
+        /// </summary>
         public void Reset()
         {
             // If the current vertex buffer has any vertices remaining, spill it.
-            if (hasSpace() && getCurrentBuffer().Count > 0)
-                Spill();
+            if (hasCurrentBuffer() && getCurrentBuffer().Count > 0)
+                Commit();
 
             CurrentBufferIndex = 0;
+            ThisDrawHasOverflowVertices = false;
         }
 
-        public void Push()
+        /// <summary>
+        /// Advances a number of vertices from the current point.
+        /// </summary>
+        /// <param name="count">The number of vertices to advance by.</param>
+        public void Advance(int count)
         {
-            ensureHasSpace();
-            getCurrentBuffer().Push();
-            checkForSpill();
+            Debug.Assert(hasCurrentBuffer());
+
+            getCurrentBuffer().Advance(count);
+            commitIfFull();
         }
 
+        /// <summary>
+        /// Pushes a new vertex to this list.
+        /// </summary>
+        /// <param name="vertex">The vertex to push.</param>
         public void Push(T vertex)
         {
-            ensureHasSpace();
+            // Check if we need to overflow back to the start.
+            if (CurrentBufferIndex == maxBuffers)
+            {
+                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
+                CurrentBufferIndex = 0;
+                ThisDrawHasOverflowVertices = true;
+            }
+
+            // Check if we need additional buffers.
+            if (!hasCurrentBuffer())
+            {
+                buffers.Add(createBufferFunc());
+
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+                arrayBuffers.Add(new T[buffers[^1].Capacity]);
+#endif
+            }
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             arrayBuffers[CurrentBufferIndex][CurrentVertexIndex] = vertex;
             AssertIsCurrentVertex(vertex, "Added vertex does not equal the given one. Vertex equality comparer is probably broken.");
 #endif
 
+            getCurrentBuffer().ThisDrawHasOverflowVertices = ThisDrawHasOverflowVertices;
             getCurrentBuffer().Push(vertex);
-            checkForSpill();
+
+            commitIfFull();
         }
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
@@ -82,47 +135,42 @@ namespace osu.Framework.Graphics.Batches.Internal
         }
 #endif
 
-        public void Spill()
+        /// <summary>
+        /// Commits the current vertex buffer, if any vertices are to be drawn. Upon successful commit, a new vertex buffer is made current.
+        /// </summary>
+        public void Commit()
         {
-            if (!hasSpace())
+            if (!hasCurrentBuffer())
                 return;
 
             if (getCurrentBuffer().Count == 0)
                 return;
 
-            OnSpill?.Invoke(getCurrentBuffer());
+            OnCommit?.Invoke(getCurrentBuffer());
             CurrentBufferIndex++;
-
-            // Wrap back to 0 if we can't fit any more buffers.
-            if (CurrentBufferIndex == maxBuffers)
-            {
-                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
-                CurrentBufferIndex = 0;
-            }
         }
 
-        private void ensureHasSpace()
+        /// <summary>
+        /// Performs a <see cref="Commit"/> if the current vertex buffer is full.
+        /// </summary>
+        private void commitIfFull()
         {
-            if (!hasSpace())
-            {
-                buffers.Add(createBufferFunc());
-
-#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
-                arrayBuffers.Add(new T[buffers[^1].Capacity]);
-#endif
-            }
-        }
-
-        private void checkForSpill()
-        {
-            Debug.Assert(hasSpace());
+            Debug.Assert(hasCurrentBuffer());
 
             if (getCurrentBuffer().Count == getCurrentBuffer().Capacity)
-                Spill();
+                Commit();
         }
 
+        /// <summary>
+        /// Retrieves the current vertex buffer.
+        /// </summary>
         private VertexBuffer<T> getCurrentBuffer() => buffers[CurrentBufferIndex];
-        private bool hasSpace() => CurrentBufferIndex < buffers.Count;
+
+        /// <summary>
+        /// Ensures that there
+        /// </summary>
+        /// <returns></returns>
+        private bool hasCurrentBuffer() => CurrentBufferIndex < buffers.Count;
 
         public void Dispose()
         {

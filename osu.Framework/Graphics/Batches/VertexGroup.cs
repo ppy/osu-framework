@@ -60,11 +60,6 @@ namespace osu.Framework.Graphics.Batches
         internal int VertexIndex;
 
         /// <summary>
-        /// The amount of times the attached <see cref="VertexBuffer{T}"/> was drawn.
-        /// </summary>
-        internal ulong BufferDrawCount;
-
-        /// <summary>
         /// The <see cref="DrawNode"/> draw depth when this group was last used.
         /// </summary>
         internal float DrawDepth;
@@ -92,5 +87,7 @@ namespace osu.Framework.Graphics.Batches
 
             return (TTransformOutput)(object)transformer((TInput)(object)vertex);
         }
+
+        public bool TriggeredOverflow { get; set; }
     }
 }

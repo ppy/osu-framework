@@ -45,12 +45,24 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 #endif
         }
 
-        public void Push() => Count++;
+        public void Advance(int count)
+        {
+            ensureSpace(count);
+            Count += count;
+        }
 
         public void Push(T vertex)
         {
+            ensureSpace(1);
+
             VertexUploadQueue<T>.Enqueue(this, Count, vertex);
             Count++;
+        }
+
+        private void ensureSpace(int requirement)
+        {
+            if (Count + requirement > Capacity)
+                throw new InvalidOperationException("Vertex buffer has no more space left");
         }
 
         /// <summary>
@@ -138,11 +150,24 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             DrawCount++;
             Count = 0;
+
+            LastDrawHadOverflowVertices = ThisDrawHasOverflowVertices;
+            ThisDrawHasOverflowVertices = false;
         }
 
         public ulong LastUseResetId { get; private set; }
 
         public bool InUse => LastUseResetId > 0;
+
+        /// <summary>
+        /// Whether this draw call's vertices are "overflow" vertices.
+        /// </summary>
+        public bool ThisDrawHasOverflowVertices { get; set; }
+
+        /// <summary>
+        /// Whether the last draw call's vertices were "overflow" vertices.
+        /// </summary>
+        public bool LastDrawHadOverflowVertices { get; set; }
 
         void IVertexBuffer.Free()
         {

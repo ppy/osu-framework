@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Batches
             this.vertices = vertices;
             this.uploadRequired = uploadRequired;
 
-            batch.UsageStarted();
+            batch.UsageStarted(vertices);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Batches
 
         public void Dispose()
         {
-            batch.UsageFinished();
+            batch.UsageFinished(vertices);
         }
     }
 }

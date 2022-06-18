@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Batches
             Size = bufferSize;
 
             vertexBufferList = new VertexBufferList<T>(maxBuffers, () => CreateVertexBuffer());
-            vertexBufferList.OnSpill += draw;
+            vertexBufferList.OnCommit += draw;
         }
 
         public void Dispose()
@@ -45,21 +45,34 @@ namespace osu.Framework.Graphics.Batches
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
         private bool groupInUse;
+        private bool wasOverflowed;
 
         void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex) => vertexBufferList.Push(vertices.Transform<TInput, T>(vertex));
 
-        void IVertexBatch.Advance(int count) => vertexBufferList.Push();
+        void IVertexBatch.Advance(int count) => vertexBufferList.Advance(count);
 
-        void IVertexBatch.UsageStarted() => groupInUse = true;
+        void IVertexBatch.UsageStarted(IVertexGroup group)
+        {
+            groupInUse = true;
 
-        void IVertexBatch.UsageFinished() => groupInUse = false;
+            group.TriggeredOverflow = false;
+            wasOverflowed = vertexBufferList.ThisDrawHasOverflowVertices;
+        }
+
+        void IVertexBatch.UsageFinished(IVertexGroup group)
+        {
+            groupInUse = false;
+
+            group.TriggeredOverflow = !wasOverflowed && vertexBufferList.ThisDrawHasOverflowVertices;
+            wasOverflowed = false;
+        }
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         void IVertexBatch.AssertIsCurrentVertex<TVertex>(IVertexGroup vertices, TVertex vertex, string failureMessage)
             => vertexBufferList.AssertIsCurrentVertex(vertices.Transform<TVertex, T>(vertex), failureMessage);
 #endif
 
-        public void Draw() => vertexBufferList.Spill();
+        public void Draw() => vertexBufferList.Commit();
 
         private void draw(VertexBuffer<T> buffer)
         {
@@ -106,8 +119,10 @@ namespace osu.Framework.Graphics.Batches
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have overwritten the vertices of this one in the batch.
                 // Todo: This check is probably redundant with the one below.
                 || frameIndex - vertices.FrameIndex > 1
-                // Or the vertices have been overwritten in the underlying VertexBuffer (draw count was incremented more than once last frame).
-                || vertexBufferList.CurrentBufferDrawCount - vertices.BufferDrawCount > 1
+                // Or this group was the one that triggered an overflow in the last frame. Some (or all) vertices will need to be redrawn.
+                || vertices.TriggeredOverflow
+                // Or the vertex buffer was overflowed into in the last frame.
+                || vertexBufferList.LastDrawHadOverflowVertices
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
                 || drawNode.DrawDepth != vertices.DrawDepth;
 
@@ -115,7 +130,6 @@ namespace osu.Framework.Graphics.Batches
             vertices.InvalidationID = drawNode.InvalidationID;
             vertices.BufferIndex = vertexBufferList.CurrentBufferIndex;
             vertices.VertexIndex = vertexBufferList.CurrentVertexIndex;
-            vertices.BufferDrawCount = vertexBufferList.CurrentBufferDrawCount;
             vertices.DrawDepth = drawNode.DrawDepth;
             vertices.FrameIndex = frameIndex;
 
