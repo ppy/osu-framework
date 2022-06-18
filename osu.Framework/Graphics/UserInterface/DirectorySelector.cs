@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// Unless overridden, a toggle button will not be added.
         /// </remarks>
-        protected virtual Button CreateHiddenToggleButton() => null;
+        protected virtual Drawable CreateHiddenToggleButton() => Empty();
 
         protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.UserInterface
                             RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                             Content = new[]
                             {
-                                new Drawable[]
+                                new[]
                                 {
                                     CreateBreadcrumb(),
                                     CreateHiddenToggleButton()

@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 
-        protected override Button CreateHiddenToggleButton() => new BasicButton
+        protected override Drawable CreateHiddenToggleButton() => new BasicButton
         {
             Size = new Vector2(200, 25),
             Text = "Toggle hidden items",
