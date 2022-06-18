@@ -105,8 +105,8 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            CurrentPath.BindValueChanged(updateDisplay, true);
-            ShowHiddenItems.ValueChanged += _ => CurrentPath.TriggerChange();
+            ShowHiddenItems.ValueChanged += _ => updateDisplay();
+            CurrentPath.BindValueChanged(_ => updateDisplay(), true);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool directoryChanging;
 
-        private void updateDisplay(ValueChangedEvent<DirectoryInfo> directory)
+        private void updateDisplay()
         {
             if (directoryChanging)
                 return;
@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 directoryFlow.Clear();
 
-                var newDirectory = directory.NewValue;
+                var newDirectory = CurrentPath.Value;
                 bool notifyError = false;
                 ICollection<DirectorySelectorItem> items = Array.Empty<DirectorySelectorItem>();
 
