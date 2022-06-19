@@ -36,6 +36,8 @@ namespace osu.Framework.Graphics.Batches.Internal
         /// </summary>
         void UsageFinished(IVertexGroup group);
 
+        void ActuallyBeginUsage(IVertexGroup group);
+
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
         /// <summary>
         /// Ensures that the current vertex matches a given one, and outputs a message if not.

@@ -6,7 +6,6 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Batches.Internal;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
@@ -39,36 +38,6 @@ namespace osu.Framework.Graphics.Batches
         where TInput : struct, IEquatable<TInput>, IVertex
         where TOutput : struct, IEquatable<TOutput>, IVertex
     {
-        /// <summary>
-        /// The <see cref="VertexBatch{T}"/> to which this group's vertices were last added.
-        /// </summary>
-        internal VertexBatch<TOutput>? Batch;
-
-        /// <summary>
-        /// The <see cref="DrawNode"/> invalidation ID when this group was last used.
-        /// </summary>
-        internal long InvalidationID;
-
-        /// <summary>
-        /// The index of the <see cref="VertexBuffer{T}"/> in which this group's vertices were last placed.
-        /// </summary>
-        internal int BufferIndex;
-
-        /// <summary>
-        /// The index into the <see cref="VertexBuffer{T}"/> at which this group's vertices were placed.
-        /// </summary>
-        internal int VertexIndex;
-
-        /// <summary>
-        /// The <see cref="DrawNode"/> draw depth when this group was last used.
-        /// </summary>
-        internal float DrawDepth;
-
-        /// <summary>
-        /// The draw frame when this group was last used.
-        /// </summary>
-        internal ulong FrameIndex;
-
         private readonly Func<TInput, TOutput> transformer;
 
         /// <summary>
@@ -88,6 +57,15 @@ namespace osu.Framework.Graphics.Batches
             return (TTransformOutput)(object)transformer((TInput)(object)vertex);
         }
 
-        public bool TriggeredOverflow { get; set; }
+        DrawNode? IVertexGroup.DrawNode { get; set; }
+
+        IVertexBatch? IVertexGroup.Batch { get; set; }
+        long IVertexGroup.InvalidationID { get; set; }
+        int IVertexGroup.BufferIndex { get; set; }
+        int IVertexGroup.VertexIndex { get; set; }
+        float IVertexGroup.DrawDepth { get; set; }
+        ulong IVertexGroup.FrameIndex { get; set; }
+        bool IVertexGroup.TriggeredOverflow { get; set; }
+        bool IVertexGroup.UploadRequired { get; set; }
     }
 }

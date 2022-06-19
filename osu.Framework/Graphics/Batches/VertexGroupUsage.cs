@@ -17,20 +17,13 @@ namespace osu.Framework.Graphics.Batches
     public readonly ref struct VertexGroupUsage<TInput>
         where TInput : struct, IEquatable<TInput>, IVertex
     {
-        /// <summary>
-        /// Whether vertices need to be uploaded for the batch.
-        /// If <c>false</c>, uploads will be omitted either automatically via <see cref="Add"/> or more aggressively via manual calls to <see cref="TrySkip"/>.
-        /// </summary>
-        private readonly bool uploadRequired;
-
         private readonly IVertexBatch batch;
         private readonly IVertexGroup vertices;
 
-        internal VertexGroupUsage(IVertexBatch batch, IVertexGroup vertices, bool uploadRequired)
+        internal VertexGroupUsage(IVertexBatch batch, IVertexGroup vertices)
         {
             this.batch = batch;
             this.vertices = vertices;
-            this.uploadRequired = uploadRequired;
 
             batch.UsageStarted(vertices);
         }
@@ -41,7 +34,9 @@ namespace osu.Framework.Graphics.Batches
         /// <param name="vertex">The vertex to add.</param>
         public void Add(TInput vertex)
         {
-            if (uploadRequired)
+            batch.ActuallyBeginUsage(vertices);
+
+            if (vertices.UploadRequired)
                 batch.Add(vertices, vertex);
             else
             {
@@ -69,7 +64,9 @@ namespace osu.Framework.Graphics.Batches
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
             return false;
 #else
-            if (uploadRequired)
+            batch.ActuallyBeginUsage(vertices);
+
+            if (vertices.UploadRequired)
                 return false;
 
             batch.Advance(count);

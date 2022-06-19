@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Batches
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
+        private bool groupActuallyBegun;
         private bool groupInUse;
         private bool wasOverflowed;
 
@@ -55,6 +56,7 @@ namespace osu.Framework.Graphics.Batches
         {
             groupInUse = true;
 
+            groupActuallyBegun = false;
             group.TriggeredOverflow = false;
             wasOverflowed = vertexBufferList.ThisDrawHasOverflowVertices;
         }
@@ -65,6 +67,15 @@ namespace osu.Framework.Graphics.Batches
 
             group.TriggeredOverflow = !wasOverflowed && vertexBufferList.ThisDrawHasOverflowVertices;
             wasOverflowed = false;
+        }
+
+        void IVertexBatch.ActuallyBeginUsage(IVertexGroup group)
+        {
+            if (groupActuallyBegun)
+                return;
+
+            updateGroup(group);
+            groupActuallyBegun = true;
         }
 
 #if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
@@ -98,7 +109,7 @@ namespace osu.Framework.Graphics.Batches
             ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
             // Disallow reusing the same group multiple times in the same draw frame.
-            if (vertices.FrameIndex == frameIndex)
+            if (((IVertexGroup)vertices).FrameIndex == frameIndex)
                 throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
 
             // Disallow nested usages.
@@ -106,34 +117,43 @@ namespace osu.Framework.Graphics.Batches
                 throw new InvalidOperationException($"Nesting of {nameof(VertexGroup<T>)}s is not allowed.");
 
             GLWrapper.SetActiveBatch(this);
+            ((IVertexGroup)vertices).DrawNode = drawNode;
+
+            return new VertexGroupUsage<TInput>(this, vertices);
+        }
+
+        private void updateGroup(IVertexGroup group)
+        {
+            Debug.Assert(group.DrawNode != null);
+
+            ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
             // Make sure to test in DEBUG when changing the following heuristics.
             bool uploadRequired =
                 // If this is a new usage or has been moved to a new batch.
-                vertices.Batch != this
-                // Or the DrawNode was newly invalidated.
-                || vertices.InvalidationID != drawNode.InvalidationID
+                group.Batch != this
                 // Or the DrawNode was moved around the vertex list.
-                || vertices.BufferIndex != vertexBufferList.CurrentBufferIndex
-                || vertices.VertexIndex != vertexBufferList.CurrentVertexIndex
+                || group.BufferIndex != vertexBufferList.CurrentBufferIndex
+                || group.VertexIndex != vertexBufferList.CurrentVertexIndex
                 // Or this usage has been skipped for 1 frame. Another DrawNode may have overwritten the vertices of this one in the batch.
                 // Todo: This check is probably redundant with the one below.
-                || frameIndex - vertices.FrameIndex > 1
+                || frameIndex - group.FrameIndex > 1
                 // Or this group was the one that triggered an overflow in the last frame. Some (or all) vertices will need to be redrawn.
-                || vertices.TriggeredOverflow
+                || group.TriggeredOverflow
                 // Or the vertex buffer was overflowed into in the last frame.
                 || vertexBufferList.LastDrawHadOverflowVertices
+                // Or the DrawNode was newly invalidated.
+                || group.InvalidationID != group.DrawNode.InvalidationID
                 // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
-                || drawNode.DrawDepth != vertices.DrawDepth;
+                || group.DrawDepth != group.DrawNode.DrawDepth;
 
-            vertices.Batch = this;
-            vertices.InvalidationID = drawNode.InvalidationID;
-            vertices.BufferIndex = vertexBufferList.CurrentBufferIndex;
-            vertices.VertexIndex = vertexBufferList.CurrentVertexIndex;
-            vertices.DrawDepth = drawNode.DrawDepth;
-            vertices.FrameIndex = frameIndex;
-
-            return new VertexGroupUsage<TInput>(this, vertices, uploadRequired);
+            group.Batch = this;
+            group.BufferIndex = vertexBufferList.CurrentBufferIndex;
+            group.VertexIndex = vertexBufferList.CurrentVertexIndex;
+            group.FrameIndex = frameIndex;
+            group.InvalidationID = group.DrawNode.InvalidationID;
+            group.DrawDepth = group.DrawNode.DrawDepth;
+            group.UploadRequired = uploadRequired;
         }
     }
 }
