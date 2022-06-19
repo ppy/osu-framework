@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
-        protected override Drawable CreateLeftContent()
+        protected override Drawable WrapScrollContent(Drawable scrollContent)
             => new GridContainer()
             {
                 RelativeSizeAxes = Axes.Y,
@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     new Drawable[]
                     {
-                        base.CreateLeftContent()
+                        scrollContent
                     }
                 }
             };

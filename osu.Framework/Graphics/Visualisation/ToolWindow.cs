@@ -100,7 +100,11 @@ namespace osu.Framework.Graphics.Visualisation
                                     RelativeSizeAxes = Axes.Y,
                                     AutoSizeAxes = Axes.X,
                                     Direction = FillDirection.Horizontal,
-                                    Child = CreateLeftContent()
+                                    Child = WrapScrollContent(ScrollContent = new BasicScrollContainer<Drawable>
+                                    {
+                                        RelativeSizeAxes = Axes.Y,
+                                        Width = WIDTH
+                                    })
                                 }
                             },
                         }
@@ -110,12 +114,7 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected virtual Drawable CreateLeftContent()
-            => ScrollContent = new BasicScrollContainer<Drawable>
-            {
-                RelativeSizeAxes = Axes.Y,
-                Width = WIDTH
-            };
+        protected virtual Drawable WrapScrollContent(Drawable scrollContent) => scrollContent;
 
         protected void AddButton(string text, Action action)
         {
