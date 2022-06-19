@@ -22,9 +22,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer ToolbarContent;
 
-        protected readonly ScrollContainer<Drawable> ScrollContent;
-
         protected readonly FillFlowContainer MainHorizontalContent;
+
+        protected ScrollContainer<Drawable> ScrollContent;
 
         protected ToolWindow(string title, string keyHelpText)
         {
@@ -100,14 +100,7 @@ namespace osu.Framework.Graphics.Visualisation
                                     RelativeSizeAxes = Axes.Y,
                                     AutoSizeAxes = Axes.X,
                                     Direction = FillDirection.Horizontal,
-                                    Children = new Drawable[]
-                                    {
-                                        ScrollContent = new BasicScrollContainer<Drawable>
-                                        {
-                                            RelativeSizeAxes = Axes.Y,
-                                            Width = WIDTH
-                                        }
-                                    }
+                                    Child = CreateLeftContent()
                                 }
                             },
                         }
@@ -116,6 +109,13 @@ namespace osu.Framework.Graphics.Visualisation
                 new CursorContainer()
             });
         }
+
+        protected virtual Drawable CreateLeftContent()
+            => ScrollContent = new BasicScrollContainer<Drawable>
+            {
+                RelativeSizeAxes = Axes.Y,
+                Width = WIDTH
+            };
 
         protected void AddButton(string text, Action action)
         {

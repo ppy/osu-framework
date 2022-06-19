@@ -16,10 +16,11 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IContainVisualisedDrawables
+    internal class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
     {
         private const int line_height = 12;
 
@@ -61,6 +62,33 @@ namespace osu.Framework.Graphics.Visualisation
 
         [Resolved]
         private TreeContainer tree { get; set; }
+
+        public IEnumerable<LocalisableString> FilterTerms => new LocalisableString[]
+        {
+            Target.ToString()
+        };
+
+        public bool FilteringActive { get; set; }
+
+        private bool matchingFilter = true;
+
+        public bool MatchingFilter
+        {
+            get => matchingFilter;
+            set
+            {
+                bool wasPresent = IsPresent;
+
+                matchingFilter = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
+            }
+        }
+
+        public IEnumerable<IFilterable> FilterableChildren => flow.Children;
+
+        public override bool IsPresent => base.IsPresent && MatchingFilter;
 
         public VisualisedDrawable(Drawable d)
         {
@@ -125,20 +153,20 @@ namespace osu.Framework.Graphics.Visualisation
                             Alpha = 0
                         },
                         previewBox = spriteTarget?.Texture == null
-                            ? previewBox = new Box
-                            {
-                                Colour = Color4.White,
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                            }
-                            : new Sprite
-                            {
-                                // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
-                                Texture = new Texture(spriteTarget.Texture.TextureGL),
-                                Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                            },
+                                         ? previewBox = new Box
+                                         {
+                                             Colour = Color4.White,
+                                             Anchor = Anchor.CentreLeft,
+                                             Origin = Anchor.CentreLeft,
+                                         }
+                                         : new Sprite
+                                         {
+                                             // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
+                                             Texture = new Texture(spriteTarget.Texture.TextureGL),
+                                             Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
+                                             Anchor = Anchor.CentreLeft,
+                                             Origin = Anchor.CentreLeft,
+                                         },
                         new FillFlowContainer
                         {
                             AutoSizeAxes = Axes.Both,

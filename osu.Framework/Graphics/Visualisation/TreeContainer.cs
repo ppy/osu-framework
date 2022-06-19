@@ -5,7 +5,9 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -13,6 +15,10 @@ namespace osu.Framework.Graphics.Visualisation
     internal class TreeContainer : ToolWindow
     {
         private readonly SpriteText waitingText;
+
+        private readonly SearchContainer searchContainer;
+
+        private BasicTextBox queryTextBox;
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
@@ -28,9 +34,9 @@ namespace osu.Framework.Graphics.Visualisation
             set
             {
                 if (value == null)
-                    ScrollContent.Clear(false);
+                    searchContainer.Clear(false);
                 else
-                    ScrollContent.Child = value;
+                    searchContainer.Child = value;
             }
         }
 
@@ -50,6 +56,47 @@ namespace osu.Framework.Graphics.Visualisation
             AddButton(@"toggle inspector", () => ToggleInspector?.Invoke());
 
             MainHorizontalContent.Add(DrawableInspector = new DrawableInspector());
+
+            ScrollContent.Child = searchContainer = new SearchContainer
+            {
+                AutoSizeAxes = Axes.Y,
+                Width = WIDTH
+            };
+        }
+
+        protected override Drawable CreateLeftContent()
+            => new GridContainer()
+            {
+                RelativeSizeAxes = Axes.Y,
+                Width = WIDTH,
+                RowDimensions = new Dimension[]
+                {
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.Distributed)
+                },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        queryTextBox = new BasicTextBox
+                        {
+                            Width = WIDTH,
+                            Height = 30,
+                            PlaceholderText = "Search..."
+                        }
+                    },
+                    new Drawable[]
+                    {
+                        base.CreateLeftContent()
+                    }
+                }
+            };
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            queryTextBox.Current.BindValueChanged(term => searchContainer.SearchTerm = term.NewValue, true);
         }
 
         protected override void Update()
