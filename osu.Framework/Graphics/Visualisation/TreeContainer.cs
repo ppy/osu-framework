@@ -65,11 +65,11 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         protected override Drawable WrapScrollContent(Drawable scrollContent)
-            => new GridContainer()
+            => new GridContainer
             {
                 RelativeSizeAxes = Axes.Y,
                 Width = WIDTH,
-                RowDimensions = new Dimension[]
+                RowDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
                     new Dimension(GridSizeMode.Distributed)
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Visualisation
                             PlaceholderText = "Search..."
                         }
                     },
-                    new Drawable[]
+                    new[]
                     {
                         scrollContent
                     }
