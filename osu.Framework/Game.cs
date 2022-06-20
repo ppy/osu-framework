@@ -23,6 +23,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework
 {
@@ -33,6 +34,12 @@ namespace osu.Framework
         public ResourceStore<byte[]> Resources { get; private set; }
 
         public TextureStore Textures { get; private set; }
+
+        /// <summary>
+        /// Whether linear filtering/smoothing should be enabled for all textures fetched from <see cref="Textures"/>.
+        /// If disabled, textures will be displayed in nearest neighbour mode.
+        /// </summary>
+        protected virtual bool LinearTextureFiltering => true;
 
         protected GameHost Host { get; private set; }
 
@@ -133,7 +140,9 @@ namespace osu.Framework
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
-            Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
+            Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
+                filteringMode: LinearTextureFiltering ? All.Linear : All.Nearest);
+
             Textures.AddTextureSource(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
 
