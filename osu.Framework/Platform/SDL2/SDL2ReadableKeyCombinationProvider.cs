@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Globalization;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using SDL2;
@@ -38,7 +39,7 @@ namespace osu.Framework.Platform.SDL2
 
             // SDL_GetKeyName() returned a unicode character that would be produced if that key was pressed.
             // consumers expect an uppercase letter.
-            return name.ToUpper();
+            return name.ToUpper(CultureInfo.CurrentCulture);
         }
 
         /// <summary>
