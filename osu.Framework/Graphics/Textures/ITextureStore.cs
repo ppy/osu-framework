@@ -8,6 +8,9 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
+    /// <summary>
+    /// Provides drawable-ready <see cref="Texture"/>s.
+    /// </summary>
     public interface ITextureStore : IResourceStore<Texture>
     {
         /// <summary>

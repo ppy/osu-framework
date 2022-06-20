@@ -20,6 +20,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
+    /// <summary>
+    /// Provides drawable-ready <see cref="Texture"/>s sourced from any number of provided sources (via constructor parameter or <see cref="AddTextureSource"/>).
+    /// </summary>
     public class TextureStore : ITextureStore
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
@@ -75,6 +78,9 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Adds a nested texture store to use during <see cref="Texture"/> lookup if not found in this store.
         /// </summary>
+        /// <remarks>
+        /// Of note, nested stores will use their own sources and not include any sources added via <see cref="AddTextureSource"/>.
+        /// </remarks>
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(ITextureStore store)
         {
