@@ -26,7 +26,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected ScrollContainer<Drawable> ScrollContent;
 
-        protected ToolWindow(string title, string keyHelpText)
+        protected readonly SearchContainer SearchContainer;
+
+        private readonly BasicTextBox queryTextBox;
+
+        protected ToolWindow(string title, string keyHelpText, bool showSearchTextBox = false)
         {
             AutoSizeAxes = Axes.X;
             Height = HEIGHT;
@@ -100,11 +104,41 @@ namespace osu.Framework.Graphics.Visualisation
                                     RelativeSizeAxes = Axes.Y,
                                     AutoSizeAxes = Axes.X,
                                     Direction = FillDirection.Horizontal,
-                                    Child = WrapScrollContent(ScrollContent = new BasicScrollContainer<Drawable>
+                                    Child = new GridContainer
                                     {
                                         RelativeSizeAxes = Axes.Y,
-                                        Width = WIDTH
-                                    })
+                                        Width = WIDTH,
+                                        RowDimensions = new[]
+                                        {
+                                            new Dimension(GridSizeMode.AutoSize),
+                                            new Dimension(GridSizeMode.Distributed)
+                                        },
+                                        Content = new[]
+                                        {
+                                            new Drawable[]
+                                            {
+                                                queryTextBox = new BasicTextBox
+                                                {
+                                                    Width = WIDTH,
+                                                    Height = 30,
+                                                    PlaceholderText = "Search...",
+                                                    Alpha = showSearchTextBox ? 1 : 0,
+                                                }
+                                            },
+                                            new Drawable[]
+                                            {
+                                                ScrollContent = new BasicScrollContainer<Drawable>
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Child = SearchContainer = new SearchContainer
+                                                    {
+                                                        AutoSizeAxes = Axes.Y,
+                                                        RelativeSizeAxes = Axes.X,
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             },
                         }
@@ -112,9 +146,9 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 new CursorContainer()
             });
-        }
 
-        protected virtual Drawable WrapScrollContent(Drawable scrollContent) => scrollContent;
+            queryTextBox.Current.BindValueChanged(term => SearchContainer.SearchTerm = term.NewValue, true);
+        }
 
         protected void AddButton(string text, Action action)
         {

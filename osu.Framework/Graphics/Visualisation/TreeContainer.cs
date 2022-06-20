@@ -5,9 +5,7 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -15,10 +13,6 @@ namespace osu.Framework.Graphics.Visualisation
     internal class TreeContainer : ToolWindow
     {
         private readonly SpriteText waitingText;
-
-        private readonly SearchContainer searchContainer;
-
-        private BasicTextBox queryTextBox;
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
@@ -34,14 +28,14 @@ namespace osu.Framework.Graphics.Visualisation
             set
             {
                 if (value == null)
-                    searchContainer.Clear(false);
+                    SearchContainer.Clear(false);
                 else
-                    searchContainer.Child = value;
+                    SearchContainer.Child = value;
             }
         }
 
         public TreeContainer()
-            : base("Draw Visualiser", "(Ctrl+F1 to toggle)")
+            : base("Draw Visualiser", "(Ctrl+F1 to toggle)", true)
         {
             AddInternal(waitingText = new SpriteText
             {
@@ -56,47 +50,6 @@ namespace osu.Framework.Graphics.Visualisation
             AddButton(@"toggle inspector", () => ToggleInspector?.Invoke());
 
             MainHorizontalContent.Add(DrawableInspector = new DrawableInspector());
-
-            ScrollContent.Child = searchContainer = new SearchContainer
-            {
-                AutoSizeAxes = Axes.Y,
-                Width = WIDTH
-            };
-        }
-
-        protected override Drawable WrapScrollContent(Drawable scrollContent)
-            => new GridContainer
-            {
-                RelativeSizeAxes = Axes.Y,
-                Width = WIDTH,
-                RowDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(GridSizeMode.Distributed)
-                },
-                Content = new[]
-                {
-                    new Drawable[]
-                    {
-                        queryTextBox = new BasicTextBox
-                        {
-                            Width = WIDTH,
-                            Height = 30,
-                            PlaceholderText = "Search..."
-                        }
-                    },
-                    new[]
-                    {
-                        scrollContent
-                    }
-                }
-            };
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            queryTextBox.Current.BindValueChanged(term => searchContainer.SearchTerm = term.NewValue, true);
         }
 
         protected override void Update()
