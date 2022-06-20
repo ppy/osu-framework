@@ -23,7 +23,7 @@ namespace FlappyDon.Game
 
             // To preserve the 8-bit aesthetic, disable texture filtering
             // so they won't become blurry when upscaled
-            textures = new TextureStore(Textures, filteringMode: All.Nearest);
+            textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")), filteringMode: All.Nearest);
             dependencies.Cache(textures);
         }
 
