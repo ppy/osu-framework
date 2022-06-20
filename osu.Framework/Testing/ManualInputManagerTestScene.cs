@@ -137,6 +137,7 @@ namespace osu.Framework.Testing
 
             var touch = currentState.Touch;
             touch.ActiveSources.ForEach(s => InputManager.EndTouch(new Touch(s, Vector2.Zero)));
+            InputManager.RightClickFromLongTouch = true;
 
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
