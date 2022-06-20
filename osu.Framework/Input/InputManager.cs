@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -22,6 +23,7 @@ using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 using JoystickState = osu.Framework.Input.States.JoystickState;
@@ -146,6 +148,11 @@ namespace osu.Framework.Input
         /// Whether to produce mouse input on any touch input from latest source.
         /// </summary>
         protected virtual bool MapMouseToLatestTouch => true;
+
+        /// <summary>
+        /// Whether long touches should produce right mouse click, if mouse is mapped to touch.
+        /// </summary>
+        protected virtual bool AllowRightClickFromLongTouch => true;
 
         protected InputManager()
         {
@@ -719,6 +726,11 @@ namespace osu.Framework.Input
         /// </summary>
         private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
 
+        private const double touch_right_click_delay = 500;
+
+        [CanBeNull]
+        private ScheduledDelegate touchRightClickDelegate;
+
         /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
@@ -737,19 +749,41 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            switch (e.IsActive)
+            if (e.IsActive != null)
             {
-                case true:
+                if (e.IsActive == true)
                     mouseMappedTouchesDown.Add(e.Touch.Source);
-                    break;
-
-                case false:
+                else
                     mouseMappedTouchesDown.Remove(e.Touch.Source);
-                    break;
+
+                new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown.Count > 0, e).Apply(CurrentState, this);
+                updateTouchRightClick(e);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown.Count > 0, e).Apply(CurrentState, this);
             return true;
+        }
+
+        private void updateTouchRightClick(TouchStateChangeEvent e)
+        {
+            if (!AllowRightClickFromLongTouch)
+                return;
+
+            touchRightClickDelegate?.Cancel();
+            touchRightClickDelegate = null;
+
+            if (mouseMappedTouchesDown.Count > 0)
+            {
+                touchRightClickDelegate = Scheduler.AddDelayed(() =>
+                {
+                    var leftButtonManager = GetButtonEventManagerFor(MouseButton.Left);
+                    leftButtonManager.IgnoreClick = true;
+                    new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
+                    leftButtonManager.IgnoreClick = false;
+
+                    new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
+                    new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+                }, touch_right_click_delay);
+            }
         }
 
         protected virtual void HandleTabletPenButtonStateChange(ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange)
