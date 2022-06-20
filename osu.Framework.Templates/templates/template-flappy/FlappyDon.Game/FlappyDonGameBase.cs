@@ -2,7 +2,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osuTK.Graphics.ES30;
 
 namespace FlappyDon.Game
@@ -17,7 +16,7 @@ namespace FlappyDon.Game
         private DependencyContainer dependencies;
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        private void load()
         {
             // Load the assets from our Resources project
             Resources.AddStore(new DllResourceStore(FlappyDonResources.ResourceAssembly));

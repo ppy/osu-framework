@@ -140,10 +140,10 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2022.525.0" />
+    <ProjectReference Include="..\..\..\..\osu.Framework\osu.Framework.csproj" />
+    <ProjectReference Include="..\..\..\..\osu.Framework.iOS\osu.Framework.iOS.csproj" />
   </ItemGroup>
   <ItemGroup Label="Transitive Dependencies">
-    <PackageReference Include="ppy.osu.Framework" Version="2022.525.0" />
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2022.525.0" ExcludeAssets="all" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

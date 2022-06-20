@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 
 namespace osu.Framework.Platform
@@ -115,6 +116,7 @@ namespace osu.Framework.Platform
         /// </remarks>
         /// <param name="path">The path of the file to create or overwrite.</param>
         /// <returns>A stream associated with the requested path. Will only exist at the specified location after the stream is disposed.</returns>
+        [Pure]
         public Stream CreateFileSafely(string path)
         {
             string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
@@ -129,6 +131,7 @@ namespace osu.Framework.Platform
         /// <param name="access">The access requirements.</param>
         /// <param name="mode">The mode in which the file should be opened.</param>
         /// <returns>A stream associated with the requested path.</returns>
+        [Pure]
         public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         /// <summary>

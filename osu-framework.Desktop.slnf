@@ -7,7 +7,16 @@
       "osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
       "osu.Framework.Tests\\osu.Framework.Tests.csproj",
       "osu.Framework\\osu.Framework.csproj",
-      "osu.Framework.Benchmarks\\osu.Framework.Benchmarks.csproj"
+      "osu.Framework.Benchmarks\\osu.Framework.Benchmarks.csproj",
+
+      "osu.Framework.Templates\\templates\\template-empty\\TemplateGame.Game\\TemplateGame.Game.csproj",
+      "osu.Framework.Templates\\templates\\template-empty\\TemplateGame.Desktop\\TemplateGame.Desktop.csproj",
+      "osu.Framework.Templates\\templates\\template-empty\\TemplateGame.Game.Tests\\TemplateGame.Game.Tests.csproj",
+      "osu.Framework.Templates\\templates\\template-empty\\TemplateGame.Resources\\TemplateGame.Resources.csproj",
+      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.Game\\FlappyDon.Game.csproj",
+      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.Desktop\\FlappyDon.Desktop.csproj",
+      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.Game.Tests\\FlappyDon.Game.Tests.csproj",
+      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.Resources\\FlappyDon.Resources.csproj"
     ]
   }
 }
