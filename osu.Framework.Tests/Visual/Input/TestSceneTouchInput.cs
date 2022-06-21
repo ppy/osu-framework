@@ -437,7 +437,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
             });
 
-            AddWaitStep("keep holding", 3);
+            AddWaitStep("keep holding", 4);
             AddAssert("right click received", () =>
             {
                 bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right;
@@ -474,9 +474,9 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddWaitStep("hold shortly", 1);
+            AddWaitStep("hold shortly", 2);
             AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddWaitStep("wait a bit", 3);
+            AddWaitStep("wait a bit", 4);
             AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
         }
 
@@ -493,9 +493,9 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddWaitStep("hold shortly", 1);
+            AddWaitStep("hold shortly", 2);
             AddStep("move touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
-            AddWaitStep("wait a bit", 3);
+            AddWaitStep("wait a bit", 4);
             AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
         }
 
@@ -518,10 +518,10 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddWaitStep("hold shortly", 1);
+            AddWaitStep("hold shortly", 2);
             AddStep("begin another", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
             AddStep("end first", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddWaitStep("wait a bit", 3);
+            AddWaitStep("wait a bit", 4);
             AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
         }
 
@@ -544,11 +544,11 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddWaitStep("hold shortly", 1);
+            AddWaitStep("hold shortly", 2);
             AddStep("begin another", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
             AddStep("end second", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
             AddStep("move first", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
-            AddWaitStep("wait a bit", 3);
+            AddWaitStep("wait a bit", 4);
             AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
         }
 

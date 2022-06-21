@@ -726,7 +726,7 @@ namespace osu.Framework.Input
         /// </summary>
         private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
 
-        private const double touch_right_click_delay = 500;
+        private const double touch_right_click_delay = 750;
 
         [CanBeNull]
         private ScheduledDelegate touchRightClickDelegate;
