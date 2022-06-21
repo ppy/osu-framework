@@ -68,8 +68,8 @@ namespace osu.Framework.Tests.Visual.Input
             };
         });
 
-        private float getTouchXPos(TouchSource source) => receptors[(int)source].DrawPosition.X + 10f;
-        private Vector2 getTouchDownPos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), 1f));
+        private float getTouchXPos(TouchSource source) => receptors[(int)source].DrawPosition.X + Content.DrawWidth / TouchState.MAX_TOUCH_COUNT / 2;
+        private Vector2 getTouchDownPos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), 50f));
         private Vector2 getTouchMovePos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), receptors.DrawHeight / 2f));
         private Vector2 getTouchUpPos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), receptors.DrawHeight - 1f));
 

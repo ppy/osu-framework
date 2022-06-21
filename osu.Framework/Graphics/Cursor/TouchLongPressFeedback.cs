@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public abstract class TouchLongPressAnimation : CompositeDrawable
+    public abstract class TouchLongPressFeedback : CompositeDrawable
     {
         /// <summary>
         /// Begins long-press animation with the specified duration.
