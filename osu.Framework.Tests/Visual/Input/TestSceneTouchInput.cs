@@ -481,6 +481,25 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestHoldTouchAndDragBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => (e is MouseButtonEvent button && button.Button == MouseButton.Right) || e is DragStartEvent;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 1);
+            AddStep("move touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
+            AddWaitStep("wait a bit", 3);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
         public void TestHoldTwoTouchesAndReleaseFirstBeforeRightClick()
         {
             InputReceptor primaryReceptor = null;
@@ -502,15 +521,8 @@ namespace osu.Framework.Tests.Visual.Input
             AddWaitStep("hold shortly", 1);
             AddStep("begin another", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
             AddStep("end first", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddAssert("no right click yet", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
-            AddWaitStep("continue hold", 3);
-            AddAssert("right click received on second receptor", () =>
-            {
-                bool event1 = secondaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right;
-                bool event2 = secondaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
-                return event1 && event2 && secondaryReceptor.MouseEvents.Count == 0;
-            });
-            AddAssert("no right click received on first receptor", () => primaryReceptor.MouseEvents.Count == 0);
+            AddWaitStep("wait a bit", 3);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
         }
 
         [Test]
@@ -536,15 +548,8 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("begin another", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
             AddStep("end second", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
             AddStep("move first", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
-            AddAssert("no right click yet", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
-            AddWaitStep("continue hold", 3);
-            AddAssert("right click received on first receptor", () =>
-            {
-                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right;
-                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
-                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
-            });
-            AddAssert("no right click received on second receptor", () => secondaryReceptor.MouseEvents.Count == 0);
+            AddWaitStep("wait a bit", 3);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
         }
 
         private class InputReceptor : Container
