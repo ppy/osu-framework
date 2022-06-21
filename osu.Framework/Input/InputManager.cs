@@ -737,6 +737,12 @@ namespace osu.Framework.Input
         private bool cancelLeftFromTouchOnRelease;
 
         /// <summary>
+        /// Whether only one touch has been activated on the current gesture.
+        /// This will still be false if two touches were held then only one released.
+        /// </summary>
+        private bool isSingleTouch;
+
+        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -757,46 +763,50 @@ namespace osu.Framework.Input
             if (e.IsActive != null)
             {
                 if (e.IsActive == true)
+                {
                     mouseMappedTouchesDown.Add(e.Touch.Source);
-                else
-                    mouseMappedTouchesDown.Remove(e.Touch.Source);
-
-                if (mouseMappedTouchesDown.Count > 0)
-                    new MouseButtonInputFromTouch(MouseButton.Left, true, e).Apply(CurrentState, this);
+                    isSingleTouch = mouseMappedTouchesDown.Count == 1;
+                }
                 else
                 {
-                    var leftButtonManager = GetButtonEventManagerFor(MouseButton.Left);
-                    leftButtonManager.IgnoreClick = cancelLeftFromTouchOnRelease;
-
-                    new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
-
-                    leftButtonManager.IgnoreClick = false;
+                    mouseMappedTouchesDown.Remove(e.Touch.Source);
+                    isSingleTouch = false;
                 }
 
-                updateTouchRightClick(e);
+                updateTouchMouseLeft(e);
             }
 
+            updateTouchMouseRight(e);
             return true;
         }
 
-        private void updateTouchRightClick(TouchStateChangeEvent e)
+        private void updateTouchMouseLeft(TouchStateChangeEvent e)
         {
-            if (!AllowRightClickFromLongTouch)
-                return;
+            if (mouseMappedTouchesDown.Count > 0)
+                new MouseButtonInputFromTouch(MouseButton.Left, true, e).Apply(CurrentState, this);
+            else
+            {
+                var manager = GetButtonEventManagerFor(MouseButton.Left);
+                manager.IgnoreClick = cancelLeftFromTouchOnRelease;
+                new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
+                manager.IgnoreClick = cancelLeftFromTouchOnRelease = false;
+            }
+        }
 
+        private void updateTouchMouseRight(TouchStateChangeEvent e)
+        {
             touchRightClickDelegate?.Cancel();
             touchRightClickDelegate = null;
-            cancelLeftFromTouchOnRelease = false;
 
-            if (mouseMappedTouchesDown.Count > 0)
+            if (!AllowRightClickFromLongTouch || !isSingleTouch || DraggedDrawable != null)
+                return;
+
+            touchRightClickDelegate = Scheduler.AddDelayed(() =>
             {
-                touchRightClickDelegate = Scheduler.AddDelayed(() =>
-                {
-                    new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
-                    new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
-                    cancelLeftFromTouchOnRelease = true;
-                }, touch_right_click_delay);
-            }
+                new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
+                new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+                cancelLeftFromTouchOnRelease = true;
+            }, touch_right_click_delay);
         }
 
         protected virtual void HandleTabletPenButtonStateChange(ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange)
