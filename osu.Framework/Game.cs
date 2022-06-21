@@ -36,7 +36,7 @@ namespace osu.Framework
         public TextureStore Textures { get; private set; }
 
         /// <summary>
-        /// The filtering mode to use for all textures fetched by <see cref="Textures"/>.
+        /// The filtering mode to use for all textures fetched from <see cref="Textures"/>.
         /// </summary>
         protected virtual TextureFilteringMode DefaultTextureFilteringMode => TextureFilteringMode.Linear;
 
