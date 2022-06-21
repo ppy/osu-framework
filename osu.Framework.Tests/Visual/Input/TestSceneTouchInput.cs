@@ -430,27 +430,35 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
-            AddAssert("left received", () =>
+            AddAssert("left down received", () =>
             {
                 bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent;
-                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Left;
                 return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
             });
 
             AddWaitStep("keep holding", 3);
-            AddAssert("left released and right click received", () =>
+            AddAssert("right click received", () =>
             {
-                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent leftUp && leftUp.Button == MouseButton.Left;
-                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent rightDown && rightDown.Button == MouseButton.Right;
-                bool event3 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent rightUp && rightUp.Button == MouseButton.Right;
-                return event1 && event2 && event3 && primaryReceptor.MouseEvents.Count == 0;
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
             });
 
             AddStep("move touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
-            AddAssert("only received move", () => primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent && primaryReceptor.MouseEvents.Count == 0);
+            AddAssert("received move and left drag", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is DragEvent drag && drag.Button == MouseButton.Left;
+                return primaryReceptor.MouseEvents.Count == 0;
+            });
 
             AddStep("end touch in place", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
-            AddAssert("no left received", () => primaryReceptor.MouseEvents.Count == 0);
+            AddAssert("left up received", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Left;
+                return event1 && primaryReceptor.MouseEvents.Count == 0;
+            });
         }
 
         [Test]

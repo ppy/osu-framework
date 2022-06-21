@@ -732,6 +732,11 @@ namespace osu.Framework.Input
         private ScheduledDelegate touchRightClickDelegate;
 
         /// <summary>
+        /// Whether a pressed left mouse button from touch should ignore click on release (i.e. "cancelled").
+        /// </summary>
+        private bool cancelLeftFromTouchOnRelease;
+
+        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -756,7 +761,18 @@ namespace osu.Framework.Input
                 else
                     mouseMappedTouchesDown.Remove(e.Touch.Source);
 
-                new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown.Count > 0, e).Apply(CurrentState, this);
+                if (mouseMappedTouchesDown.Count > 0)
+                    new MouseButtonInputFromTouch(MouseButton.Left, true, e).Apply(CurrentState, this);
+                else
+                {
+                    var leftButtonManager = GetButtonEventManagerFor(MouseButton.Left);
+                    leftButtonManager.IgnoreClick = cancelLeftFromTouchOnRelease;
+
+                    new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
+
+                    leftButtonManager.IgnoreClick = false;
+                }
+
                 updateTouchRightClick(e);
             }
 
@@ -770,18 +786,15 @@ namespace osu.Framework.Input
 
             touchRightClickDelegate?.Cancel();
             touchRightClickDelegate = null;
+            cancelLeftFromTouchOnRelease = false;
 
             if (mouseMappedTouchesDown.Count > 0)
             {
                 touchRightClickDelegate = Scheduler.AddDelayed(() =>
                 {
-                    var leftButtonManager = GetButtonEventManagerFor(MouseButton.Left);
-                    leftButtonManager.IgnoreClick = true;
-                    new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
-                    leftButtonManager.IgnoreClick = false;
-
                     new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
                     new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+                    cancelLeftFromTouchOnRelease = true;
                 }, touch_right_click_delay);
             }
         }
