@@ -732,6 +732,16 @@ namespace osu.Framework.Input
         private ScheduledDelegate touchRightClickDelegate;
 
         /// <summary>
+        /// Invoked when a touch long-press gesture has scheduled for triggering after the specified delay.
+        /// </summary>
+        public event Action<double> TouchLongPressBegan;
+
+        /// <summary>
+        /// Invoked when an ongoing touch long-press gesture has been cancelled.
+        /// </summary>
+        public event Action TouchLongPressCancelled;
+
+        /// <summary>
         /// Whether a pressed left mouse button from touch should ignore click on release (i.e. "cancelled").
         /// </summary>
         private bool cancelLeftFromTouchOnRelease;
@@ -795,12 +805,18 @@ namespace osu.Framework.Input
 
         private void updateTouchMouseRight(TouchStateChangeEvent e)
         {
-            touchRightClickDelegate?.Cancel();
+            if (touchRightClickDelegate != null && touchRightClickDelegate.State != ScheduledDelegate.RunState.Complete)
+            {
+                touchRightClickDelegate.Cancel();
+                TouchLongPressCancelled?.Invoke();
+            }
+
             touchRightClickDelegate = null;
 
             if (!AllowRightClickFromLongTouch || !isSingleTouch || DraggedDrawable != null)
                 return;
 
+            TouchLongPressBegan?.Invoke(touch_right_click_delay);
             touchRightClickDelegate = Scheduler.AddDelayed(() =>
             {
                 new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
