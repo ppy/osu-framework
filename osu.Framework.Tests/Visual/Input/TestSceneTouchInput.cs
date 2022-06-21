@@ -450,7 +450,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent;
                 bool event2 = primaryReceptor.MouseEvents.Dequeue() is DragEvent drag && drag.Button == MouseButton.Left;
-                return primaryReceptor.MouseEvents.Count == 0;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
             });
 
             AddStep("end touch in place", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
