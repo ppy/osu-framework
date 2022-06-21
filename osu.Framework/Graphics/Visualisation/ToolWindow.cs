@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly SearchContainer SearchContainer;
 
-        protected ToolWindow(string title, string keyHelpText, bool showSearchTextBox = false)
+        protected ToolWindow(string title, string keyHelpText, bool supportsSearch = false)
         {
             AutoSizeAxes = Axes.X;
             Height = HEIGHT;
@@ -36,6 +36,7 @@ namespace osu.Framework.Graphics.Visualisation
             Masking = true; // for cursor masking
 
             BasicTextBox queryTextBox;
+
             AddRangeInternal(new Drawable[]
             {
                 new Box
@@ -121,7 +122,7 @@ namespace osu.Framework.Graphics.Visualisation
                                                     Width = WIDTH,
                                                     Height = 30,
                                                     PlaceholderText = "Search...",
-                                                    Alpha = showSearchTextBox ? 1 : 0,
+                                                    Alpha = supportsSearch ? 1 : 0,
                                                 }
                                             },
                                             new Drawable[]
