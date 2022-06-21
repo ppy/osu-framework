@@ -1,5 +1,6 @@
 ﻿using FlappyDon.Resources;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 
 namespace FlappyDon.Game
@@ -9,9 +10,10 @@ namespace FlappyDon.Game
     /// </summary>
     public abstract class FlappyDonGameBase : osu.Framework.Game
     {
-        // To preserve the 8-bit aesthetic, disable texture filtering
-        // so they won't become blurry when upscaled
-        protected override bool LinearTextureFiltering => false;
+        protected override TextureFilteringMode DefaultTextureFilteringMode
+            // To preserve the 8-bit aesthetic, disable texture filtering
+            // so they won't become blurry when upscaled
+            => TextureFilteringMode.Nearest;
 
         [BackgroundDependencyLoader]
         private void load()
