@@ -14,11 +14,14 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
+    /// <summary>
+    /// Handles the parsing of image data from standard image formats into <see cref="TextureUpload"/>s ready for GPU consumption.
+    /// </summary>
     public class TextureLoaderStore : IResourceStore<TextureUpload>
     {
         private IResourceStore<byte[]> store { get; }
 
-        public TextureLoaderStore(IResourceStore<byte[]> store)
+        internal TextureLoaderStore(IResourceStore<byte[]> store)
         {
             this.store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");
