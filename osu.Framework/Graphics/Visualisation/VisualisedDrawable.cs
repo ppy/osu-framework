@@ -16,10 +16,11 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IContainVisualisedDrawables
+    internal class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
     {
         private const int line_height = 12;
 
@@ -39,6 +40,33 @@ namespace osu.Framework.Graphics.Visualisation
                     Expand();
             }
         }
+
+        public IEnumerable<LocalisableString> FilterTerms => new LocalisableString[]
+        {
+            Target.ToString()
+        };
+
+        public IEnumerable<IFilterable> FilterableChildren => flow.Children;
+
+        public bool FilteringActive { get; set; }
+
+        private bool matchingFilter = true;
+
+        public bool MatchingFilter
+        {
+            get => matchingFilter;
+            set
+            {
+                bool wasPresent = IsPresent;
+
+                matchingFilter = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
+            }
+        }
+
+        public override bool IsPresent => base.IsPresent && MatchingFilter;
 
         public Action<Drawable> RequestTarget;
         public Action<VisualisedDrawable> HighlightTarget;
