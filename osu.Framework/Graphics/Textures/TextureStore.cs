@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics.Textures
         public IEnumerable<string> GetAvailableResources()
         {
             lock (nestedStores)
-                return uploadStore.GetAvailableResources().Concat(nestedStores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames());
+                return uploadStore.GetAvailableResources().Concat(nestedStores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames()).ToArray();
         }
 
         private Texture get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
