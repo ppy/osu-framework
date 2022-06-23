@@ -701,7 +701,12 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformRelativeChildSizeTo<T, TEasing>(this T container, Vector2 newSize, double duration, in TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
-            => container.TransformTo(nameof(container.RelativeChildSize), newSize, duration, easing);
+        {
+            if (newSize.X == 0 || newSize.Y == 0)
+                throw new ArgumentException($@"{nameof(newSize)} must be non-zero, but is {newSize}.", nameof(newSize));
+
+            return container.TransformTo(nameof(container.RelativeChildSize), newSize, duration, easing);
+        }
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildOffset"/> over time.
