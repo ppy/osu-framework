@@ -226,7 +226,7 @@ namespace osu.Framework.Graphics.Transforms
             }
             else
             {
-                // collection may grow due to abort / completion events.
+                // use for over foreach as collection may grow due to abort / completion events.
                 for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].FinishTransforms();
             }
