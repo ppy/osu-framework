@@ -181,12 +181,21 @@ namespace osu.Framework.Extensions
         ///   </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// If the passed value is already of type <see cref="LocalisableString"/>, it will be returned.
+        /// </remarks>
         /// <exception cref="InvalidOperationException">
         /// When the <see cref="LocalisableDescriptionAttribute.Name"/> specified in the <see cref="LocalisableDescriptionAttribute"/>
         /// does not match any of the existing members in <see cref="LocalisableDescriptionAttribute.DeclaringType"/>.
         /// </exception>
         public static LocalisableString GetLocalisableDescription<T>(this T value)
         {
+            if (value is LocalisableString localisable)
+                return localisable;
+
+            if (value is string description)
+                return description;
+
             MemberInfo type;
 
             if (value is Enum)
@@ -224,8 +233,14 @@ namespace osu.Framework.Extensions
         ///   </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// If the passed value is already of type <see cref="string"/>, it will be returned.
+        /// </remarks>
         public static string GetDescription(this object value)
         {
+            if (value is string description)
+                return description;
+
             Type type = value as Type ?? value.GetType();
             return type.GetField(value.ToString())?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
         }
