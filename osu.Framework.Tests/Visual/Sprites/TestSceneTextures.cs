@@ -223,7 +223,10 @@ namespace osu.Framework.Tests.Visual.Sprites
                 TotalInitiatedLookups++;
 
                 if (blocking && name == blockingName)
-                    resetEvent.Wait();
+                {
+                    if (!resetEvent.Wait(10000))
+                        throw new TimeoutException("Load was not allowed in a timely fashion.");
+                }
 
                 TotalCompletedLookups++;
                 return getFunc("sample-texture");

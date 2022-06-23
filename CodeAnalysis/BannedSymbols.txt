@@ -7,3 +7,4 @@ F:System.UriKind.RelativeOrAbsolute;Incompatible results when run on mono (see h
 M:System.Threading.Tasks.Task.Wait();Don't use Task.Wait. Use Task.WaitSafely() to ensure we avoid deadlocks.
 M:System.Guid.#ctor;Probably meaning to use Guid.NewGuid() instead. If actually wanting empty, use Guid.Empty.
 P:System.Threading.Tasks.Task`1.Result;Don't use Task.Result. Use Task.GetResultSafely() to ensure we avoid deadlocks.
+M:System.Threading.ManualResetEventSlim.Wait();Specify a timeout to avoid waiting forever.
