@@ -360,7 +360,10 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 if (InternalChildren.Count != 1)
-                    throw new InvalidOperationException($"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(InternalChildren)} (currently {InternalChildren.Count})!");
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(InternalChildren)} (currently {InternalChildren.Count})!");
+                }
 
                 return InternalChildren[0];
             }
@@ -1333,8 +1336,11 @@ namespace osu.Framework.Graphics.Containers
 
             if (propagateChildren)
             {
-                foreach (var c in internalChildren)
-                    c.FinishTransforms(true, targetMember);
+                // Use for over foreach as collection may grow due to abort / completion events.
+                // Note that this may mean that in the addition of elements being removed,
+                // `FinishTransforms` may not be called on all items.
+                for (int i = 0; i < internalChildren.Count; i++)
+                    internalChildren[i].FinishTransforms(true, targetMember);
             }
         }
 
