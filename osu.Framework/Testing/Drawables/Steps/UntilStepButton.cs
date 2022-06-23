@@ -16,7 +16,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private int invocations;
 
-        private const int max_attempt_milliseconds = 10000;
+        private static readonly int max_attempt_milliseconds = Environment.GetEnvironmentVariable("OSU_TESTS_NO_TIMEOUT") == "1" ? int.MaxValue : 10000;
 
         public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 
