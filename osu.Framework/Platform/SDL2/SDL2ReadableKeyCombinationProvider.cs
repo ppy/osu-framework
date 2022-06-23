@@ -39,6 +39,9 @@ namespace osu.Framework.Platform.SDL2
 
             // SDL_GetKeyName() returned a unicode character that would be produced if that key was pressed.
             // consumers expect an uppercase letter.
+            // `.ToUpper()` with current culture may be slightly inaccurate if the framework locale
+            // is different from the locale of the keyboard layout being used,
+            // but we have no means to detect this anyway, as SDL doesn't provide the name of the layout.
             return name.ToUpper(CultureInfo.CurrentCulture);
         }
 
