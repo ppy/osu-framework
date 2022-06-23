@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Globalization;
 using System.Linq;
 using Foundation;
 using osu.Framework.Input.Handlers;
@@ -204,7 +205,7 @@ namespace osu.Framework.iOS.Input
                 default:
                     if (char.IsLetter(c))
                     {
-                        string keyName = c.ToString().ToUpper();
+                        string keyName = c.ToString().ToUpper(CultureInfo.CurrentCulture);
                         if (Enum.TryParse(keyName, out Key result))
                             return result;
                     }
