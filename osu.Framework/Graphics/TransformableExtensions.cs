@@ -143,6 +143,9 @@ namespace osu.Framework.Graphics
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
         {
+            if (!isFinite(newValue))
+                throw new ArgumentException($"{nameof(newValue)} must be finite, but is {newValue}.", nameof(newValue));
+
             if (duration < 0)
                 throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be positive.");
 
@@ -159,6 +162,26 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             return transform;
+
+            static bool isFinite(object value)
+            {
+                switch (value)
+                {
+                    case float floatValue:
+                        return float.IsFinite(floatValue);
+
+                    case double doubleValue:
+                        return double.IsFinite(doubleValue);
+
+                    case Vector2 vectorValue:
+                        return Validation.IsFinite(vectorValue);
+
+                    case MarginPadding marginPaddingValue:
+                        return Validation.IsFinite(marginPaddingValue);
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
