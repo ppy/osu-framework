@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -177,7 +178,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             [BackgroundDependencyLoader]
             private void load()
             {
-                AllowLoad.Wait();
+                if (!AllowLoad.Wait(10000))
+                    throw new TimeoutException("Load was not allowed in a timely fashion");
             }
         }
 

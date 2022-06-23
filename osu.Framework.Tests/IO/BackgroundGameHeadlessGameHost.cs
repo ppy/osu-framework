@@ -33,7 +33,8 @@ namespace osu.Framework.Tests.IO
 
             Task.Factory.StartNew(() => Run(testGame), TaskCreationOptions.LongRunning);
 
-            testGame.HasProcessed.Wait();
+            if (!testGame.HasProcessed.Wait(10000))
+                throw new TimeoutException("Game took too long to process a frame");
         }
 
         private class TestGame : Game
