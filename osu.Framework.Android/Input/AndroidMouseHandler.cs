@@ -176,11 +176,13 @@ namespace osu.Framework.Android.Input
             switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.ButtonPress:
-                    handleMouseDown(genericMotionEvent.ActionButton.ToMouseButton());
+                    foreach (var button in genericMotionEvent.ActionButton.ToMouseButtons())
+                        handleMouseDown(button);
                     break;
 
                 case MotionEventActions.ButtonRelease:
-                    handleMouseUp(genericMotionEvent.ActionButton.ToMouseButton());
+                    foreach (var button in genericMotionEvent.ActionButton.ToMouseButtons())
+                        handleMouseUp(button);
                     break;
 
                 case MotionEventActions.Scroll:
@@ -202,11 +204,13 @@ namespace osu.Framework.Android.Input
                     break;
 
                 case MotionEventActions.ButtonPress:
-                    handleMouseDown(capturedPointerEvent.ActionButton.ToMouseButton());
+                    foreach (var button in capturedPointerEvent.ActionButton.ToMouseButtons())
+                        handleMouseDown(button);
                     break;
 
                 case MotionEventActions.ButtonRelease:
-                    handleMouseUp(capturedPointerEvent.ActionButton.ToMouseButton());
+                    foreach (var button in capturedPointerEvent.ActionButton.ToMouseButtons())
+                        handleMouseUp(button);
                     break;
             }
         }

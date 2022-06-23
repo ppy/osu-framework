@@ -112,7 +112,8 @@ namespace osu.Framework.Tests.Platform
 
                         await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
 
-                        received.Wait();
+                        if (!received.Wait(10000))
+                            throw new TimeoutException("Message was not received in a timely fashion");
                     }
                 }
 

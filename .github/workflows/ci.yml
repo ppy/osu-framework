@@ -34,7 +34,7 @@ jobs:
           key: inspectcode-${{ hashFiles('.config/dotnet-tools.json', '.github/workflows/ci.yml', 'osu-framework.sln*', 'osu-framework*.slnf', '.editorconfig', '.globalconfig', 'CodeAnalysis/*', '**/*.csproj', '**/*.props') }}
 
       - name: Dotnet code style
-        run: dotnet build -c Debug -warnaserror build/Desktop.proj -p:EnforceCodeStyleInBuild=true
+        run: dotnet build -c Debug -warnaserror osu-framework.Desktop.slnf -p:EnforceCodeStyleInBuild=true
 
       - name: CodeFileSanity
         run: |
@@ -79,10 +79,10 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Compile
-        run: dotnet build -c Debug -warnaserror build/Desktop.proj
+        run: dotnet build -c Debug -warnaserror osu-framework.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+        run: dotnet test $pwd/**/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
         shell: pwsh
 
       # Attempt to upload results even if test fails.
@@ -125,6 +125,12 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: "6.0.x"
+
+      # macOS agents recently have empty NuGet config files, resulting in restore failures,
+      # see https://github.com/actions/virtual-environments/issues/5768
+      # Add the global nuget package source manually for now.
+      - name: Setup NuGet.Config
+        run: echo '<configuration><packageSources><add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /></packageSources></configuration>' > ~/.config/NuGet/NuGet.Config
 
       # Contrary to seemingly any other msbuild, msbuild running on macOS/Mono
       # cannot accept .sln(f) files as arguments.

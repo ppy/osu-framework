@@ -267,8 +267,12 @@ namespace osu.Framework.Extensions
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this string str)
         {
+#if NET6_0_OR_GREATER
+            return SHA256.HashData(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
+#else
             using (var alg = SHA256.Create())
                 return alg.ComputeHash(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
+#endif
         }
 
         public static string ComputeMD5Hash(this Stream stream)
@@ -285,8 +289,12 @@ namespace osu.Framework.Extensions
 
         public static string ComputeMD5Hash(this string input)
         {
+#if NET6_0_OR_GREATER
+            return MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
+#else
             using (var md5 = MD5.Create())
                 return md5.ComputeHash(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
+#endif
         }
 
         public static DisplayIndex GetIndex(this DisplayDevice display)

@@ -578,7 +578,9 @@ namespace osu.Framework.Platform
                 });
 
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-                await Task.Run(completionEvent.Wait).ConfigureAwait(false);
+                // ReSharper disable once AccessToDisposedClosure
+                if (!await Task.Run(() => completionEvent.Wait(5000)).ConfigureAwait(false))
+                    throw new TimeoutException("Screenshot data did not arrive in a timely fashion");
 
                 var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
@@ -1138,7 +1140,9 @@ namespace osu.Framework.Platform
                 case ExecutionState.Stopping:
                 case ExecutionState.Stopped:
                     // Delay disposal until the game has exited
-                    stoppedEvent.Wait();
+                    if (!stoppedEvent.Wait(60000))
+                        throw new InvalidOperationException("Game stuck in runnning state.");
+
                     break;
             }
 

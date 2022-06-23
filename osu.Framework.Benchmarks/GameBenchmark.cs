@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -111,7 +112,9 @@ namespace osu.Framework.Benchmarks
 
             public override void RunMainLoop()
             {
-                RunOnce.Wait();
+                if (!RunOnce.Wait(10000))
+                    throw new TimeoutException("Run request didn't arrive for a long time");
+
                 RunSingleFrame();
                 RunOnce.Reset();
 
