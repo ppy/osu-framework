@@ -3,6 +3,8 @@
 
 #nullable disable
 
+using System;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -65,6 +67,20 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddAssert("finalize triggered", () => finalizeTriggered);
+        }
+
+        [Test]
+        public void TestValidation()
+        {
+            AddStep("Animate", () =>
+            {
+                setup();
+                animate();
+            });
+
+            AddStep("nan width", () => Assert.Throws<ArgumentException>(() => boxes[0].ResizeWidthTo(float.NaN)));
+            AddStep("nan width sequence", () => Assert.Throws<ArgumentException>(() => boxes[0].FadeIn(200).ResizeWidthTo(float.NaN)));
+            AddStep("zero child size", () => Assert.Throws<ArgumentException>(() => boxes[0].TransformRelativeChildSizeTo(Vector2.Zero)));
         }
 
         private void setup()
