@@ -458,52 +458,60 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (ExecutionState == ExecutionState.Running)
+            if (ExecutionState != ExecutionState.Running)
+                return;
+
+            ObjectUsage<DrawNode> buffer;
+
+            using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                buffer = DrawRoots.GetForRead();
+
+            if (buffer == null)
+                return;
+
+            try
             {
-                using (var buffer = DrawRoots.GetForRead())
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+
+                if (!bypassFrontToBackPass.Value)
                 {
-                    if (buffer == null)
-                        break;
+                    depthValue.Reset();
 
-                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    GL.ColorMask(false, false, false, false);
+                    GLWrapper.SetBlend(BlendingParameters.None);
+                    GLWrapper.PushDepthInfo(DepthInfo.Default);
 
-                    if (!bypassFrontToBackPass.Value)
-                    {
-                        depthValue.Reset();
-
-                        GL.ColorMask(false, false, false, false);
-                        GLWrapper.SetBlend(BlendingParameters.None);
-                        GLWrapper.PushDepthInfo(DepthInfo.Default);
-
-                        // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
-
-                        GLWrapper.PopDepthInfo();
-                        GL.ColorMask(true, true, true, true);
-
-                        // The back pass doesn't write depth, but needs to depth test properly
-                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
-                    }
-                    else
-                    {
-                        // Disable depth testing
-                        GLWrapper.PushDepthInfo(new DepthInfo());
-                    }
-
-                    // Back pass
-                    buffer.Object.Draw(null);
+                    // Front pass
+                    buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
 
                     GLWrapper.PopDepthInfo();
-                    break;
+                    GL.ColorMask(true, true, true, true);
+
+                    // The back pass doesn't write depth, but needs to depth test properly
+                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                }
+                else
+                {
+                    // Disable depth testing
+                    GLWrapper.PushDepthInfo(new DepthInfo());
+                }
+
+                // Back pass
+                buffer.Object.Draw(null);
+
+                GLWrapper.PopDepthInfo();
+
+                GLWrapper.FlushCurrentBatch();
+
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                {
+                    Swap();
                 }
             }
-
-            GLWrapper.FlushCurrentBatch();
-
-            using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            finally
             {
-                Swap();
+                buffer.Dispose();
             }
         }
 

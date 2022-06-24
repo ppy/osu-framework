@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace osu.Framework.Allocation
 {
@@ -18,67 +19,62 @@ namespace osu.Framework.Allocation
         private int? lastCompletedWriteIndex;
 
         private int? activeReadIndex;
-        private int? activeWriteIndex;
+
+        private readonly ManualResetEventSlim writeCompletedEvent = new ManualResetEventSlim();
 
         public TripleBuffer()
         {
             for (int i = 0; i < 3; i++)
-                buffers[i] = new ObjectUsage<T>(i, finish);
+                buffers[i] = new ObjectUsage<T>(i, finishUsage);
         }
 
         public ObjectUsage<T> GetForWrite()
         {
-            Debug.Assert(activeWriteIndex == null);
+            ObjectUsage<T> buffer;
 
             lock (buffers)
             {
-                var buffer = getNextWriteBuffer();
+                buffer = getNextWriteBuffer();
 
-                activeWriteIndex = buffer.Index;
-
+                Debug.Assert(buffer.Usage == UsageType.None);
                 buffer.Usage = UsageType.Write;
-                buffer.ResetEvent.Reset();
-
-                return buffer;
             }
+
+            return buffer;
         }
 
         public ObjectUsage<T>? GetForRead()
         {
-            Debug.Assert(activeReadIndex == null);
-
-            if (lastCompletedWriteIndex == null) return null;
-
-            ObjectUsage<T>? buffer;
+            writeCompletedEvent.Reset();
 
             lock (buffers)
             {
-                buffer = buffers[lastCompletedWriteIndex.Value];
+                if (lastCompletedWriteIndex != null)
+                {
+                    var buffer = buffers[lastCompletedWriteIndex.Value];
+                    lastCompletedWriteIndex = null;
+                    buffer.Usage = UsageType.Read;
 
-                if (buffer.Consumed)
-                    buffer = getNextWriteBuffer();
-
-                activeReadIndex = buffer.Index;
+                    Debug.Assert(activeReadIndex == null);
+                    activeReadIndex = buffer.Index;
+                    return buffer;
+                }
             }
 
-            buffer.ResetEvent.Wait(1000);
-            buffer.Usage = UsageType.Read;
+            // A completed write wasn't available, so wait for the next to complete.
+            if (!writeCompletedEvent.Wait(100))
+                // Generally shouldn't happen, but this avoids spinning forever.
+                return null;
 
-            return buffer;
+            return GetForRead();
         }
 
         private ObjectUsage<T> getNextWriteBuffer()
         {
             for (int i = 0; i < 3; i++)
             {
-                if (i == activeReadIndex)
-                    continue;
-
-                if (i == activeWriteIndex)
-                    continue;
-
-                if (i == lastCompletedWriteIndex)
-                    continue;
+                if (i == activeReadIndex) continue;
+                if (i == lastCompletedWriteIndex) continue;
 
                 return buffers[i];
             }
@@ -86,29 +82,26 @@ namespace osu.Framework.Allocation
             throw new InvalidOperationException();
         }
 
-        private void finish(ObjectUsage<T> obj, UsageType type)
+        private void finishUsage(ObjectUsage<T> obj)
         {
-            switch (type)
+            lock (buffers)
             {
-                case UsageType.Read:
-                    obj.Consumed = true;
-                    obj.Usage = UsageType.None;
+                switch (obj.Usage)
+                {
+                    case UsageType.Read:
+                        Debug.Assert(activeReadIndex != null);
+                        activeReadIndex = null;
+                        break;
 
-                    Debug.Assert(activeReadIndex != null);
-                    activeReadIndex = null;
-                    break;
+                    case UsageType.Write:
+                        Debug.Assert(lastCompletedWriteIndex != obj.Index);
+                        lastCompletedWriteIndex = obj.Index;
 
-                case UsageType.Write:
-                    obj.Usage = UsageType.None;
-                    obj.Consumed = false;
-                    obj.ResetEvent.Set();
+                        writeCompletedEvent.Set();
+                        break;
+                }
 
-                    Debug.Assert(lastCompletedWriteIndex != obj.Index);
-                    lastCompletedWriteIndex = obj.Index;
-
-                    Debug.Assert(activeWriteIndex != null);
-                    activeWriteIndex = null;
-                    break;
+                obj.Usage = UsageType.None;
             }
         }
     }

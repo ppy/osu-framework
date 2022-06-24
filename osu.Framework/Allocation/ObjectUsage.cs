@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Threading;
 
 namespace osu.Framework.Allocation
 {
@@ -17,21 +16,17 @@ namespace osu.Framework.Allocation
 
         public readonly int Index;
 
-        public readonly ManualResetEventSlim ResetEvent = new ManualResetEventSlim();
+        private readonly Action<ObjectUsage<T>> finish;
 
-        public bool Consumed;
-
-        internal readonly Action<ObjectUsage<T>, UsageType> Finish;
-
-        public ObjectUsage(int index, Action<ObjectUsage<T>, UsageType> finish)
+        public ObjectUsage(int index, Action<ObjectUsage<T>> finish)
         {
             Index = index;
-            Finish = finish;
+            this.finish = finish;
         }
 
         public void Dispose()
         {
-            Finish?.Invoke(this, Usage);
+            finish?.Invoke(this);
         }
     }
 
