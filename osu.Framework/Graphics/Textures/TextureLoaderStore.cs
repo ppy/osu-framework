@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Textures
     {
         private IResourceStore<byte[]> store { get; }
 
-        internal TextureLoaderStore(IResourceStore<byte[]> store)
+        public TextureLoaderStore(IResourceStore<byte[]> store)
         {
             this.store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");
