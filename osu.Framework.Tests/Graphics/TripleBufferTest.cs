@@ -65,21 +65,21 @@ namespace osu.Framework.Tests.Graphics
                 var obj = new TestObject(i);
                 ManualResetEventSlim resetEventSlim = new ManualResetEventSlim();
 
-                var readTask = Task.Run(() =>
+                var readTask = Task.Factory.StartNew(() =>
                 {
                     resetEventSlim.Set();
                     using (var buffer = tripleBuffer.GetForRead())
                         Assert.That(buffer?.Object, Is.EqualTo(obj));
-                });
+                }, TaskCreationOptions.LongRunning);
 
-                Task.Run(() =>
+                Task.Factory.StartNew(() =>
                 {
                     resetEventSlim.Wait(1000);
                     Thread.Sleep(10);
 
                     using (var buffer = tripleBuffer.GetForWrite())
                         buffer.Object = obj;
-                });
+                }, TaskCreationOptions.LongRunning);
 
                 readTask.WaitSafely();
             }
