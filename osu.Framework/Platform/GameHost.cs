@@ -448,10 +448,11 @@ namespace osu.Framework.Platform
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
+            {
+                Debug.Assert(buffer != null);
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+            }
         }
-
-        private long lastDrawFrameId;
 
         private readonly DepthValue depthValue = new DepthValue();
 
@@ -464,18 +465,8 @@ namespace osu.Framework.Platform
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
-                    if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
-                    {
-                        // if a buffer is not available in single threaded mode there's no point in looping.
-                        // in the general case this should never happen, but may occur during exception handling.
-                        if (executionMode.Value == ExecutionMode.SingleThread)
-                            break;
-
-                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                            Thread.Sleep(1);
-
-                        continue;
-                    }
+                    if (buffer?.Object == null)
+                        break;
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
@@ -507,8 +498,6 @@ namespace osu.Framework.Platform
                     buffer.Object.Draw(null);
 
                     GLWrapper.PopDepthInfo();
-
-                    lastDrawFrameId = buffer.FrameId;
                     break;
                 }
             }

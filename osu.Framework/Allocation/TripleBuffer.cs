@@ -15,9 +15,10 @@ namespace osu.Framework.Allocation
     {
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
-        private int read;
-        private int write;
-        private int lastWrite = -1;
+        private int? lastCompletedWriteIndex;
+
+        private int? activeReadIndex;
+        private int? activeWriteIndex;
 
         private long currentFrame;
 
@@ -36,41 +37,65 @@ namespace osu.Framework.Allocation
 
         public ObjectUsage<T>? Get(UsageType usage)
         {
+            ObjectUsage<T> buffer;
+
             switch (usage)
             {
                 case UsageType.Write:
-                    var buffer = getNextWriteBuffer();
-
-                    buffer.Usage = UsageType.Write;
-                    buffer.FrameId = Interlocked.Increment(ref currentFrame);
-
-                    return buffer;
-
-                case UsageType.Read:
-                    if (lastWrite < 0) return null;
-
                     lock (buffers)
                     {
-                        read = lastWrite;
+                        activeWriteIndex = getNextWriteBuffer();
 
-                        buffers[read].Usage = UsageType.Read;
-                        return buffers[read];
+                        buffer = buffers[activeWriteIndex.Value];
+
+                        buffer.Usage = UsageType.Write;
+                        buffer.FrameId = Interlocked.Increment(ref currentFrame);
+                        buffer.ResetEvent.Reset();
                     }
+
+                    break;
+
+                case UsageType.Read:
+                    lock (buffers)
+                    {
+                        if (lastCompletedWriteIndex == null) return null;
+
+                        buffer = buffers[lastCompletedWriteIndex.Value];
+
+                        if (buffer.Consumed)
+                            buffer = buffers[getNextWriteBuffer()];
+                    }
+
+                    activeReadIndex = buffer.Index;
+                    buffer.ResetEvent.Wait(1000);
+                    buffer.Usage = UsageType.Read;
+
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(usage), "Unsupported usage type");
             }
+
+            return buffer;
         }
 
-        private ObjectUsage<T> getNextWriteBuffer()
+        private int getNextWriteBuffer()
         {
-            lock (buffers)
+            for (int i = 0; i < 3; i++)
             {
-                while (buffers[write].Usage == UsageType.Read || write == lastWrite)
-                    write = (write + 1) % 3;
+                if (i == activeReadIndex)
+                    continue;
+
+                if (i == activeWriteIndex)
+                    continue;
+
+                if (i == lastCompletedWriteIndex)
+                    continue;
+
+                return i;
             }
 
-            return buffers[write];
+            throw new InvalidOperationException();
         }
 
         private void finish(ObjectUsage<T> obj, UsageType type)
@@ -79,14 +104,24 @@ namespace osu.Framework.Allocation
             {
                 case UsageType.Read:
                     lock (buffers)
-                        buffers[read].Usage = UsageType.None;
+                    {
+                        obj.Usage = UsageType.None;
+                        obj.Consumed = true;
+
+                        activeReadIndex = null;
+                    }
+
                     break;
 
                 case UsageType.Write:
                     lock (buffers)
                     {
-                        buffers[write].Usage = UsageType.None;
-                        lastWrite = write;
+                        obj.Usage = UsageType.None;
+                        obj.ResetEvent.Set();
+                        obj.Consumed = false;
+
+                        lastCompletedWriteIndex = obj.Index;
+                        activeWriteIndex = null;
                     }
 
                     break;
