@@ -63,16 +63,20 @@ namespace osu.Framework.Tests.Graphics
             for (int i = 0; i < 10; i++)
             {
                 var obj = new TestObject(i);
+                ManualResetEventSlim resetEventSlim = new ManualResetEventSlim();
 
                 var readTask = Task.Run(() =>
                 {
+                    resetEventSlim.Set();
                     using (var buffer = tripleBuffer.GetForRead())
                         Assert.That(buffer?.Object, Is.EqualTo(obj));
                 });
 
                 Task.Run(() =>
                 {
-                    Thread.Sleep(50);
+                    resetEventSlim.Wait(1000);
+                    Thread.Sleep(10);
+
                     using (var buffer = tripleBuffer.GetForWrite())
                         buffer.Object = obj;
                 });
