@@ -23,12 +23,17 @@ namespace osu.Framework.Allocation
 
         private long currentFrame;
 
-        private readonly Action<ObjectUsage<T>, UsageType> finishDelegate;
-
         public TripleBuffer()
         {
-            //caching the delegate means we only have to allocate it once, rather than once per created buffer.
-            finishDelegate = finish;
+            for (int i = 0; i < 3; i++)
+            {
+                buffers[i] = new ObjectUsage<T>
+                {
+                    Finish = finish,
+                    Usage = UsageType.Write,
+                    Index = i,
+                };
+            }
         }
 
         public ObjectUsage<T> Get(UsageType usage)
@@ -42,21 +47,9 @@ namespace osu.Framework.Allocation
                             write = (write + 1) % 3;
                     }
 
-                    if (buffers[write] == null)
-                    {
-                        buffers[write] = new ObjectUsage<T>
-                        {
-                            Finish = finishDelegate,
-                            Usage = UsageType.Write,
-                            Index = write,
-                        };
-                    }
-                    else
-                    {
-                        buffers[write].Usage = UsageType.Write;
-                    }
-
+                    buffers[write].Usage = UsageType.Write;
                     buffers[write].FrameId = Interlocked.Increment(ref currentFrame);
+
                     return buffers[write];
 
                 case UsageType.Read:
@@ -69,9 +62,10 @@ namespace osu.Framework.Allocation
                     }
 
                     return buffers[read];
-            }
 
-            return null;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(usage), "Unsupported usage type");
+            }
         }
 
         private void finish(ObjectUsage<T> obj, UsageType type)
