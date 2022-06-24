@@ -133,9 +133,9 @@ namespace osu.Framework.Audio.Track
         {
             switch (data)
             {
-                case MemoryStream _:
-                case UnmanagedMemoryStream _:
-                case AsyncBufferStream _:
+                case MemoryStream:
+                case UnmanagedMemoryStream:
+                case AsyncBufferStream:
                     // Buffering memory stream is definitely unworthy.
                     dataStream = data;
                     break;
