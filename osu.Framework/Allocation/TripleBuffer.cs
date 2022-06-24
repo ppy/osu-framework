@@ -41,16 +41,12 @@ namespace osu.Framework.Allocation
             switch (usage)
             {
                 case UsageType.Write:
-                    lock (buffers)
-                    {
-                        while (buffers[write]?.Usage == UsageType.Read || write == lastWrite)
-                            write = (write + 1) % 3;
-                    }
+                    var buffer = getNextWriteBuffer();
 
-                    buffers[write].Usage = UsageType.Write;
-                    buffers[write].FrameId = Interlocked.Increment(ref currentFrame);
+                    buffer.Usage = UsageType.Write;
+                    buffer.FrameId = Interlocked.Increment(ref currentFrame);
 
-                    return buffers[write];
+                    return buffer;
 
                 case UsageType.Read:
                     if (lastWrite < 0) return null;
@@ -66,6 +62,17 @@ namespace osu.Framework.Allocation
                 default:
                     throw new ArgumentOutOfRangeException(nameof(usage), "Unsupported usage type");
             }
+        }
+
+        private ObjectUsage<T> getNextWriteBuffer()
+        {
+            lock (buffers)
+            {
+                while (buffers[write]?.Usage == UsageType.Read || write == lastWrite)
+                    write = (write + 1) % 3;
+            }
+
+            return buffers[write];
         }
 
         private void finish(ObjectUsage<T> obj, UsageType type)
