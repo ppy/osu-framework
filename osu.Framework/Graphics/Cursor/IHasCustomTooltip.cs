@@ -27,7 +27,6 @@ namespace osu.Framework.Graphics.Cursor
 
     /// <inheritdoc />
     public interface IHasCustomTooltip<TContent> : IHasCustomTooltip
-        where TContent : class
     {
         ITooltip IHasCustomTooltip.GetCustomTooltip() => GetCustomTooltip();
 

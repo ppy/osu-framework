@@ -890,9 +890,9 @@ namespace osu.Framework.Input
                 case KeyDownEvent k:
                     return !k.Repeat;
 
-                case DragEvent _:
-                case ScrollEvent _:
-                case MouseMoveEvent _:
+                case DragEvent:
+                case ScrollEvent:
+                case MouseMoveEvent:
                     return false;
 
                 default:

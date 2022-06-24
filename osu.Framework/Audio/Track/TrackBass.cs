@@ -133,9 +133,9 @@ namespace osu.Framework.Audio.Track
         {
             switch (data)
             {
-                case MemoryStream _:
-                case UnmanagedMemoryStream _:
-                case AsyncBufferStream _:
+                case MemoryStream:
+                case UnmanagedMemoryStream:
+                case AsyncBufferStream:
                     // Buffering memory stream is definitely unworthy.
                     dataStream = data;
                     break;
@@ -371,8 +371,8 @@ namespace osu.Framework.Audio.Track
                          && endCallback == null
                          && endSync == null);
 
-            stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
-            endCallback = new SyncCallback((a, b, c, d) =>
+            stopCallback = new SyncCallback((_, _, _, _) => RaiseFailed());
+            endCallback = new SyncCallback((_, _, _, _) =>
             {
                 if (Looping)
                 {

@@ -49,13 +49,13 @@ namespace osu.Framework.Graphics.Containers
         {
             switch (e)
             {
-                case ScrollEvent _:
+                case ScrollEvent:
                     if (BlockScrollInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
                         return true;
 
                     break;
 
-                case MouseEvent _:
+                case MouseEvent:
                     if (BlockPositionalInput)
                         return true;
 

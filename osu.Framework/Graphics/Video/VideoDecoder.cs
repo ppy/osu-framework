@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Video
             availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
             handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
 
-            TargetHardwareVideoDecoders.BindValueChanged(e =>
+            TargetHardwareVideoDecoders.BindValueChanged(_ =>
             {
                 // ignore if decoding wasn't initialized yet.
                 if (formatContext == null)

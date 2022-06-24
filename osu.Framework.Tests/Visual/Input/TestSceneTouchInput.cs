@@ -465,10 +465,10 @@ namespace osu.Framework.Tests.Visual.Input
 
                         break;
 
-                    case MouseDownEvent _:
-                    case MouseMoveEvent _:
-                    case DragEvent _:
-                    case MouseUpEvent _:
+                    case MouseDownEvent:
+                    case MouseMoveEvent:
+                    case DragEvent:
+                    case MouseUpEvent:
                         if (HandleMouse?.Invoke((MouseEvent)e) != false)
                         {
                             MouseEvents.Enqueue((MouseEvent)e);

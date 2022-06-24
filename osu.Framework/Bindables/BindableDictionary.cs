@@ -136,7 +136,7 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-            bool hasPreviousValue = TryGetValue(key, out TValue lastValue);
+            bool hasPreviousValue = TryGetValue(key, out TValue? lastValue);
 
             collection[key] = value;
 
@@ -232,7 +232,7 @@ namespace osu.Framework.Bindables
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-            if (TryGetValue(item.Key, out TValue value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
+            if (TryGetValue(item.Key, out TValue? value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
             {
                 Remove(item.Key);
                 return true;

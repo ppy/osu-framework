@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Graphics
 
             addEntry();
 
-            manager.EntryCrossedBoundary += (entry, kind, direction) => changeLifetime();
+            manager.EntryCrossedBoundary += (_, _, _) => changeLifetime();
             manager.Update(0);
 
             int count = 1;

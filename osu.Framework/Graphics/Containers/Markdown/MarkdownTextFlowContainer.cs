@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         {
                             switch (literal.Parent)
                             {
-                                case EmphasisInline _:
+                                case EmphasisInline:
                                     var parent = literal.Parent;
 
                                     var emphases = new List<string>();
@@ -94,8 +94,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         AddImage(linkInline);
                         break;
 
-                    case HtmlInline _:
-                    case HtmlEntityInline _:
+                    case HtmlInline:
+                    case HtmlEntityInline:
                         // Handled by the next literal
                         break;
 

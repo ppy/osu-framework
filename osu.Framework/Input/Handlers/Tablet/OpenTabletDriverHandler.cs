@@ -55,7 +55,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 if (d.NewValue && tabletDriver == null)
                 {
                     tabletDriver = TabletDriver.Create();
-                    tabletDriver.TabletsChanged += (s, e) =>
+                    tabletDriver.TabletsChanged += (_, e) =>
                     {
                         device = e.Any() ? tabletDriver.InputDevices.First() : null;
 

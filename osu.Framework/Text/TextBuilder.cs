@@ -223,7 +223,7 @@ namespace osu.Framework.Text
                 return;
 
             TextBuilderGlyph removedCharacter = Characters[^1];
-            TextBuilderGlyph? previousCharacter = Characters.Count == 1 ? null : (TextBuilderGlyph?)Characters[^2];
+            TextBuilderGlyph? previousCharacter = Characters.Count == 1 ? null : Characters[^2];
 
             Characters.RemoveAt(Characters.Count - 1);
 

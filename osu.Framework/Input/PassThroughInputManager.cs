@@ -120,11 +120,11 @@ namespace osu.Framework.Input
                     new MidiKeyInput(midi.Key, midi.Velocity, midi.IsPressed(midi.Key)).Apply(CurrentState, this);
                     break;
 
-                case KeyboardEvent _:
-                case JoystickButtonEvent _:
-                case JoystickAxisMoveEvent _:
-                case TabletPenButtonEvent _:
-                case TabletAuxiliaryButtonEvent _:
+                case KeyboardEvent:
+                case JoystickButtonEvent:
+                case JoystickAxisMoveEvent:
+                case TabletPenButtonEvent:
+                case TabletAuxiliaryButtonEvent:
                     SyncInputState(e.CurrentState);
                     break;
             }

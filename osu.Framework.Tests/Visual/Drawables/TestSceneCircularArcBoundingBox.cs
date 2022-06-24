@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         protected override void LoadComplete()
         {
-            controlPoints.BindCollectionChanged((_, __) =>
+            controlPoints.BindCollectionChanged((_, _) =>
             {
                 var copy = controlPoints.ToArray();
                 if (copy.Length != 3)
