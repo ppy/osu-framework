@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
 
 namespace osu.Framework.Allocation
 {
@@ -21,19 +20,10 @@ namespace osu.Framework.Allocation
         private int? activeReadIndex;
         private int? activeWriteIndex;
 
-        private long currentFrame;
-
         public TripleBuffer()
         {
             for (int i = 0; i < 3; i++)
-            {
-                buffers[i] = new ObjectUsage<T>
-                {
-                    Finish = finish,
-                    Usage = UsageType.Write,
-                    Index = i,
-                };
-            }
+                buffers[i] = new ObjectUsage<T>(i, finish);
         }
 
         public ObjectUsage<T> GetForWrite()
@@ -42,12 +32,11 @@ namespace osu.Framework.Allocation
 
             lock (buffers)
             {
-                activeWriteIndex = getNextWriteBuffer();
+                var buffer = getNextWriteBuffer();
 
-                var buffer = buffers[activeWriteIndex.Value];
+                activeWriteIndex = buffer.Index;
 
                 buffer.Usage = UsageType.Write;
-                buffer.FrameId = Interlocked.Increment(ref currentFrame);
                 buffer.ResetEvent.Reset();
 
                 return buffer;
@@ -67,7 +56,7 @@ namespace osu.Framework.Allocation
                 buffer = buffers[lastCompletedWriteIndex.Value];
 
                 if (buffer.Consumed)
-                    buffer = buffers[getNextWriteBuffer()];
+                    buffer = getNextWriteBuffer();
 
                 activeReadIndex = buffer.Index;
             }
@@ -78,7 +67,7 @@ namespace osu.Framework.Allocation
             return buffer;
         }
 
-        private int getNextWriteBuffer()
+        private ObjectUsage<T> getNextWriteBuffer()
         {
             for (int i = 0; i < 3; i++)
             {
@@ -91,7 +80,7 @@ namespace osu.Framework.Allocation
                 if (i == lastCompletedWriteIndex)
                     continue;
 
-                return i;
+                return buffers[i];
             }
 
             throw new InvalidOperationException();
@@ -102,27 +91,23 @@ namespace osu.Framework.Allocation
             switch (type)
             {
                 case UsageType.Read:
-                    lock (buffers)
-                    {
-                        obj.Usage = UsageType.None;
-                        obj.Consumed = true;
+                    obj.Consumed = true;
+                    obj.Usage = UsageType.None;
 
-                        activeReadIndex = null;
-                    }
-
+                    Debug.Assert(activeReadIndex != null);
+                    activeReadIndex = null;
                     break;
 
                 case UsageType.Write:
-                    lock (buffers)
-                    {
-                        obj.Usage = UsageType.None;
-                        obj.ResetEvent.Set();
-                        obj.Consumed = false;
+                    obj.Usage = UsageType.None;
+                    obj.Consumed = false;
+                    obj.ResetEvent.Set();
 
-                        lastCompletedWriteIndex = obj.Index;
-                        activeWriteIndex = null;
-                    }
+                    Debug.Assert(lastCompletedWriteIndex != obj.Index);
+                    lastCompletedWriteIndex = obj.Index;
 
+                    Debug.Assert(activeWriteIndex != null);
+                    activeWriteIndex = null;
                     break;
             }
         }

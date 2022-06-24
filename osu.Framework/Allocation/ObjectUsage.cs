@@ -12,17 +12,22 @@ namespace osu.Framework.Allocation
         where T : class
     {
         public T Object;
-        public int Index;
-
-        public long FrameId;
-
-        internal Action<ObjectUsage<T>, UsageType> Finish;
 
         public UsageType Usage;
+
+        public readonly int Index;
 
         public readonly ManualResetEventSlim ResetEvent = new ManualResetEventSlim();
 
         public bool Consumed;
+
+        internal readonly Action<ObjectUsage<T>, UsageType> Finish;
+
+        public ObjectUsage(int index, Action<ObjectUsage<T>, UsageType> finish)
+        {
+            Index = index;
+            Finish = finish;
+        }
 
         public void Dispose()
         {
