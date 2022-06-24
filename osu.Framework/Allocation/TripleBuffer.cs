@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace osu.Framework.Allocation
@@ -35,46 +36,44 @@ namespace osu.Framework.Allocation
             }
         }
 
-        public ObjectUsage<T>? Get(UsageType usage)
+        public ObjectUsage<T> GetForWrite()
         {
-            ObjectUsage<T> buffer;
+            Debug.Assert(activeWriteIndex == null);
 
-            switch (usage)
+            lock (buffers)
             {
-                case UsageType.Write:
-                    lock (buffers)
-                    {
-                        activeWriteIndex = getNextWriteBuffer();
+                activeWriteIndex = getNextWriteBuffer();
 
-                        buffer = buffers[activeWriteIndex.Value];
+                var buffer = buffers[activeWriteIndex.Value];
 
-                        buffer.Usage = UsageType.Write;
-                        buffer.FrameId = Interlocked.Increment(ref currentFrame);
-                        buffer.ResetEvent.Reset();
-                    }
+                buffer.Usage = UsageType.Write;
+                buffer.FrameId = Interlocked.Increment(ref currentFrame);
+                buffer.ResetEvent.Reset();
 
-                    break;
-
-                case UsageType.Read:
-                    lock (buffers)
-                    {
-                        if (lastCompletedWriteIndex == null) return null;
-
-                        buffer = buffers[lastCompletedWriteIndex.Value];
-
-                        if (buffer.Consumed)
-                            buffer = buffers[getNextWriteBuffer()];
-                    }
-
-                    activeReadIndex = buffer.Index;
-                    buffer.ResetEvent.Wait(1000);
-                    buffer.Usage = UsageType.Read;
-
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(usage), "Unsupported usage type");
+                return buffer;
             }
+        }
+
+        public ObjectUsage<T>? GetForRead()
+        {
+            Debug.Assert(activeReadIndex == null);
+
+            if (lastCompletedWriteIndex == null) return null;
+
+            ObjectUsage<T>? buffer;
+
+            lock (buffers)
+            {
+                buffer = buffers[lastCompletedWriteIndex.Value];
+
+                if (buffer.Consumed)
+                    buffer = buffers[getNextWriteBuffer()];
+
+                activeReadIndex = buffer.Index;
+            }
+
+            buffer.ResetEvent.Wait(1000);
+            buffer.Usage = UsageType.Read;
 
             return buffer;
         }

@@ -447,11 +447,8 @@ namespace osu.Framework.Platform
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
-            using (var buffer = DrawRoots.Get(UsageType.Write))
-            {
-                Debug.Assert(buffer != null);
+            using (var buffer = DrawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
-            }
         }
 
         private readonly DepthValue depthValue = new DepthValue();
@@ -463,9 +460,9 @@ namespace osu.Framework.Platform
 
             while (ExecutionState == ExecutionState.Running)
             {
-                using (var buffer = DrawRoots.Get(UsageType.Read))
+                using (var buffer = DrawRoots.GetForRead())
                 {
-                    if (buffer?.Object == null)
+                    if (buffer == null)
                         break;
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
