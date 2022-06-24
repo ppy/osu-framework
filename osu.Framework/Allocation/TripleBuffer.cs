@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading;
 
@@ -36,7 +34,7 @@ namespace osu.Framework.Allocation
             }
         }
 
-        public ObjectUsage<T> Get(UsageType usage)
+        public ObjectUsage<T>? Get(UsageType usage)
         {
             switch (usage)
             {
@@ -54,10 +52,10 @@ namespace osu.Framework.Allocation
                     lock (buffers)
                     {
                         read = lastWrite;
-                        buffers[read].Usage = UsageType.Read;
-                    }
 
-                    return buffers[read];
+                        buffers[read].Usage = UsageType.Read;
+                        return buffers[read];
+                    }
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(usage), "Unsupported usage type");
@@ -68,7 +66,7 @@ namespace osu.Framework.Allocation
         {
             lock (buffers)
             {
-                while (buffers[write]?.Usage == UsageType.Read || write == lastWrite)
+                while (buffers[write].Usage == UsageType.Read || write == lastWrite)
                     write = (write + 1) % 3;
             }
 
