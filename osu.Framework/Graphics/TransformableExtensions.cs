@@ -163,22 +163,16 @@ namespace osu.Framework.Graphics
 
             return transform;
 
-            static bool isFinite(object value)
+            static bool isFinite(TValue value)
             {
-                switch (value)
-                {
-                    case float floatValue:
-                        return float.IsFinite(floatValue);
-
-                    case double doubleValue:
-                        return double.IsFinite(doubleValue);
-
-                    case Vector2 vectorValue:
-                        return Validation.IsFinite(vectorValue);
-
-                    case MarginPadding marginPaddingValue:
-                        return Validation.IsFinite(marginPaddingValue);
-                }
+                if (typeof(TValue) == typeof(float))
+                    return float.IsFinite((float)(object)value);
+                if (typeof(TValue) == typeof(double))
+                    return double.IsFinite((double)(object)value);
+                if (typeof(TValue) == typeof(Vector2))
+                    return Validation.IsFinite((Vector2)(object)value);
+                if (typeof(TValue) == typeof(MarginPadding))
+                    return Validation.IsFinite((MarginPadding)(object)value);
 
                 return true;
             }
