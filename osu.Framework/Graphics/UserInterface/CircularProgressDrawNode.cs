@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -55,6 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
             : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
+        private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
 
         private void updateVertexBuffer()
         {
@@ -91,62 +93,65 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            // First center point
-            halfCircleBatch.Add(new TexturedVertex2D
+            using (var usage = halfCircleBatch.BeginUsage(this, vertices))
             {
-                Position = Vector2.Lerp(current, screenOrigin, innerRadius),
-                TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
-                Colour = originColour
-            });
-
-            // First outer point.
-            halfCircleBatch.Add(new TexturedVertex2D
-            {
-                Position = new Vector2(current.X, current.Y),
-                TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
-                Colour = currentColour
-            });
-
-            for (int i = 1; i < amountPoints; i++)
-            {
-                float fract = (float)i / (amountPoints - 1);
-
-                // Clamps the angle so we don't overshoot.
-                // dir is used so negative angles result in negative angularOffset.
-                float angularOffset = Math.Min(fract * two_pi, dir * angle);
-                float normalisedOffset = angularOffset / two_pi;
-
-                if (dir < 0)
-                    normalisedOffset += 1.0f;
-
-                // Update `current`
-                current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
-                currentColour = colourAt(current);
-                current = Vector2Extensions.Transform(current, transformationMatrix);
-
-                // current center point
-                halfCircleBatch.Add(new TexturedVertex2D
+                // First center point
+                usage.Add(new TexturedVertex2D
                 {
                     Position = Vector2.Lerp(current, screenOrigin, innerRadius),
-                    TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
+                    TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
                     Colour = originColour
                 });
 
-                // current outer point
-                halfCircleBatch.Add(new TexturedVertex2D
+                // First outer point.
+                usage.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(texRect.Left + normalisedOffset * texRect.Width, texRect.Bottom),
+                    TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
                     Colour = currentColour
                 });
 
-                prevOffset = normalisedOffset;
+                for (int i = 1; i < amountPoints; i++)
+                {
+                    float fract = (float)i / (amountPoints - 1);
+
+                    // Clamps the angle so we don't overshoot.
+                    // dir is used so negative angles result in negative angularOffset.
+                    float angularOffset = Math.Min(fract * two_pi, dir * angle);
+                    float normalisedOffset = angularOffset / two_pi;
+
+                    if (dir < 0)
+                        normalisedOffset += 1.0f;
+
+                    // Update `current`
+                    current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
+                    currentColour = colourAt(current);
+                    current = Vector2Extensions.Transform(current, transformationMatrix);
+
+                    // current center point
+                    usage.Add(new TexturedVertex2D
+                    {
+                        Position = Vector2.Lerp(current, screenOrigin, innerRadius),
+                        TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
+                        Colour = originColour
+                    });
+
+                    // current outer point
+                    usage.Add(new TexturedVertex2D
+                    {
+                        Position = new Vector2(current.X, current.Y),
+                        TexturePosition = new Vector2(texRect.Left + normalisedOffset * texRect.Width, texRect.Bottom),
+                        Colour = currentColour
+                    });
+
+                    prevOffset = normalisedOffset;
+                }
             }
         }
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(IRenderer renderer)
         {
-            base.Draw(vertexAction);
+            base.Draw(renderer);
 
             if (texture?.Available != true)
                 return;

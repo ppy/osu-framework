@@ -5,11 +5,13 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
@@ -181,6 +183,14 @@ namespace osu.Framework.Graphics.Visualisation
                 this.textureReference = textureReference;
             }
 
+            protected override void Update()
+            {
+                base.Update();
+
+                // The DrawNode changes its drawn vertices every frame.
+                Invalidate(Invalidation.DrawNode);
+            }
+
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
 
             private class UsageBackgroundDrawNode : SpriteDrawNode
@@ -203,7 +213,7 @@ namespace osu.Framework.Graphics.Visualisation
                     textureReference = Source.textureReference;
                 }
 
-                public override void Draw(Action<TexturedVertex2D> vertexAction)
+                public override void Draw(IRenderer renderer)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -221,13 +231,13 @@ namespace osu.Framework.Graphics.Visualisation
                             ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Color4.DarkGray, Color4.Red, 0, 200)
                             : Color4.Transparent);
 
-                    base.Draw(vertexAction);
+                    base.Draw(renderer);
 
                     // intentionally after draw to avoid counting our own bind.
                     Source.lastBindCount = texture.BindCount;
                 }
 
-                protected override void Blit(Action<TexturedVertex2D> vertexAction)
+                protected override void Blit(in VertexGroupUsage<TexturedVertex2D> usage)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -235,12 +245,12 @@ namespace osu.Framework.Graphics.Visualisation
                     const float border_width = 4;
 
                     // border
-                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, null, vertexAction);
+                    DrawQuad(usage, Texture, ScreenSpaceDrawQuad, drawColour);
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // background
-                    DrawQuad(Texture, shrunkenQuad, Color4.Black, null, vertexAction);
+                    DrawQuad(usage, Texture, shrunkenQuad, Color4.Black);
 
                     float aspect = (float)texture.Width / texture.Height;
 
@@ -261,7 +271,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                     // texture
                     texture.Bind();
-                    DrawQuad(texture, shrunkenQuad, Color4.White, null, vertexAction);
+                    DrawQuad(usage, texture, shrunkenQuad, Color4.White);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

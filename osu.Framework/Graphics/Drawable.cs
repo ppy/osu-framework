@@ -1763,7 +1763,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // A DrawNode invalidation always invalidates.
-            bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
+            bool anyInvalidated = (invalidation & (Invalidation.DrawNode | Invalidation.Masking)) > 0;
 
             // Invalidate all layout members
             for (int i = 0; i < layoutMembers.Count; i++)
@@ -2759,6 +2759,11 @@ namespace osu.Framework.Graphics
         /// Unlike other <see cref="Invalidation"/> flags, this propagates to all children regardless of their <see cref="Drawable.IsAlive"/> state.
         /// </summary>
         Parent = 1 << 6,
+
+        /// <summary>
+        /// The <see cref="CompositeDrawable.Masking"/> state has changed.
+        /// </summary>
+        Masking = 1 << 7,
 
         /// <summary>
         /// No invalidation.

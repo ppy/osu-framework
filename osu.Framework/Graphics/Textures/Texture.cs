@@ -153,36 +153,36 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Draws a triangle to the screen.
         /// </summary>
+        /// <param name="vertices"></param>
         /// <param name="vertexTriangle">The triangle to draw.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle in texture space.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
-        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        internal void DrawTriangle(in VertexGroupUsage<TexturedVertex2D> vertices, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
                                    Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, TextureBounds(textureCoords));
+            TextureGL.DrawTriangle(vertices, vertexTriangle, drawColour, TextureBounds(textureRect), inflationPercentage, TextureBounds(textureCoords));
         }
 
         /// <summary>
         /// Draws a quad to the screen.
         /// </summary>
+        /// <param name="vertices"></param>
         /// <param name="vertexQuad">The quad to draw.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle in texture space.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
-        internal void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                               Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        internal void DrawQuad(in VertexGroupUsage<TexturedVertex2D> vertices, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null,
+                               Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride, TextureBounds(textureCoords));
+            TextureGL.DrawQuad(vertices, vertexQuad, drawColour, TextureBounds(textureRect), inflationPercentage, blendRangeOverride, TextureBounds(textureCoords));
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";

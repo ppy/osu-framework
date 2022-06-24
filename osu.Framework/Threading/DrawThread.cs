@@ -34,7 +34,7 @@ namespace osu.Framework.Threading
                 window.MakeCurrent();
 
                 GLWrapper.Initialize(host);
-                GLWrapper.Reset(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+                GLWrapper.Reset(new Vector2(window.ClientSize.Width, window.ClientSize.Height), 0);
             }
         }
 

@@ -27,8 +27,11 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -64,6 +67,13 @@ namespace osu.Framework.Platform
         protected FrameworkConfigManager Config { get; private set; }
 
         private InputConfigManager inputConfig { get; set; }
+
+        private static readonly QuadBatch<TexturedVertex2D>[] default_quad_batch =
+        {
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+            new QuadBatch<TexturedVertex2D>(100, 1000),
+        };
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -454,6 +464,7 @@ namespace osu.Framework.Platform
         private long lastDrawFrameId;
 
         private readonly DepthValue depthValue = new DepthValue();
+        private readonly IRenderer renderer = new OpenGLRenderer();
 
         protected virtual void DrawFrame()
         {
@@ -478,7 +489,12 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    {
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), buffer.Index);
+                        renderer.Reset();
+                    }
+
+                    renderer.PushQuadBatch(default_quad_batch[buffer.Index]);
 
                     if (!bypassFrontToBackPass.Value)
                     {
@@ -489,7 +505,7 @@ namespace osu.Framework.Platform
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                        buffer.Object.DrawOpaqueInteriorSubTree(renderer, depthValue);
 
                         GLWrapper.PopDepthInfo();
                         GL.ColorMask(true, true, true, true);
@@ -504,7 +520,7 @@ namespace osu.Framework.Platform
                     }
 
                     // Back pass
-                    buffer.Object.Draw(null);
+                    buffer.Object.Draw(renderer);
 
                     GLWrapper.PopDepthInfo();
 

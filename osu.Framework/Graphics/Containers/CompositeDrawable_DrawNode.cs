@@ -15,6 +15,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -118,7 +119,9 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
-            private void drawEdgeEffect()
+            private readonly VertexGroup<TexturedVertex2D> edgeEffectVertices = new VertexGroup<TexturedVertex2D>();
+
+            private void drawEdgeEffect(in VertexGroupUsage<TexturedVertex2D> usage)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
@@ -152,14 +155,11 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                DrawQuad(
-                    Texture.WhitePixel,
-                    screenSpaceMaskingQuad.Value,
-                    colour, null, null, null,
+                DrawQuad(usage, Texture.WhitePixel, screenSpaceMaskingQuad.Value,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                     // masking blend range when rendering edge effects. This is needed for smooth inner edges
                     // with a hollow edge effect.
-                    new Vector2(maskingInfo.Value.BlendRange));
+                    colour, null, null, new Vector2(maskingInfo.Value.BlendRange));
 
                 Shader.Unbind();
 
@@ -179,17 +179,18 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
                 updateQuadBatch();
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
                 if (quadBatch != null)
-                    vertexAction = quadBatch.AddAction;
+                    renderer.PushQuadBatch(quadBatch);
 
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
-                drawEdgeEffect();
+                using (var usage = renderer.BeginQuads(this, edgeEffectVertices))
+                    drawEdgeEffect(usage);
 
                 if (maskingInfo != null)
                 {
@@ -203,26 +204,29 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(vertexAction);
+                        Children[i].Draw(renderer);
                 }
 
                 if (maskingInfo != null)
                     GLWrapper.PopMaskingInfo();
+
+                if (quadBatch != null)
+                    renderer.PopQuadBatch();
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
             {
-                DrawChildrenOpaqueInteriors(depthValue, vertexAction);
-                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                DrawChildrenOpaqueInteriors(renderer, depthValue);
+                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
             }
 
             /// <summary>
             /// Performs <see cref="DrawOpaqueInteriorSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
             /// </summary>
+            /// <param name="renderer"></param>
             /// <param name="depthValue">The previous depth value.</param>
-            /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            protected virtual void DrawChildrenOpaqueInteriors(IRenderer renderer, DepthValue depthValue)
             {
                 bool canIncrement = depthValue.CanIncrement;
 
@@ -233,7 +237,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Prefer to use own vertex batch instead of the parent-owned one.
                     if (quadBatch != null)
-                        vertexAction = quadBatch.AddAction;
+                        renderer.PushQuadBatch(quadBatch);
 
                     if (maskingInfo != null)
                         GLWrapper.PushMaskingInfo(maskingInfo.Value);
@@ -243,7 +247,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                        Children[i].DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                        Children[i].DrawOpaqueInteriorSubTree(renderer, depthValue);
                 }
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
@@ -251,6 +255,9 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (maskingInfo != null)
                         GLWrapper.PopMaskingInfo();
+
+                    if (quadBatch != null)
+                        renderer.PopQuadBatch();
                 }
             }
 

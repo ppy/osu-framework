@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
@@ -32,6 +33,9 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 drawSize;
             private float radius;
             private IShader pathShader;
+
+            private readonly VertexGroup<TexturedVertex3D> halfCircleVertices = new VertexGroup<TexturedVertex3D>();
+            private readonly VertexGroup<TexturedVertex3D> quadVertices = new VertexGroup<TexturedVertex3D>();
 
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
@@ -65,7 +69,7 @@ namespace osu.Framework.Graphics.Lines
                 ? ((SRGBColour)DrawColourInfo.Colour).Linear
                 : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
-            private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
+            private void addLineCap(in VertexGroupUsage<TexturedVertex3D> usage, Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
             {
                 const float step = MathF.PI / MAX_RES;
 
@@ -87,7 +91,7 @@ namespace osu.Framework.Graphics.Lines
                 for (int i = 1; i <= amountPoints; i++)
                 {
                     // Center point
-                    halfCircleBatch.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -95,7 +99,7 @@ namespace osu.Framework.Graphics.Lines
                     });
 
                     // First outer point
-                    halfCircleBatch.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(current.X, current.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -108,7 +112,7 @@ namespace osu.Framework.Graphics.Lines
                     current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                     // Second outer point
-                    halfCircleBatch.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = new Vector3(current.X, current.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -117,8 +121,11 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            private void addLineQuads(Line line, RectangleF texRect)
+            private void addLineQuads(in VertexGroupUsage<TexturedVertex3D> usage, Line line, RectangleF texRect)
             {
+                if (line.Direction == Vector2.Zero)
+                    return;
+
                 Vector2 ortho = line.OrthogonalDirection;
                 Line lineLeft = new Line(line.StartPoint + ortho * radius, line.EndPoint + ortho * radius);
                 Line lineRight = new Line(line.StartPoint - ortho * radius, line.EndPoint - ortho * radius);
@@ -127,13 +134,13 @@ namespace osu.Framework.Graphics.Lines
                 Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
                 Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
 
-                quadBatch.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineRight.EndPoint)
                 });
-                quadBatch.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -150,13 +157,13 @@ namespace osu.Framework.Graphics.Lines
 
                 for (int i = 0; i < 2; ++i)
                 {
-                    quadBatch.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = firstMiddlePoint,
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                         Colour = firstMiddleColour
                     });
-                    quadBatch.Add(new TexturedVertex3D
+                    usage.Add(new TexturedVertex3D
                     {
                         Position = secondMiddlePoint,
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -164,13 +171,13 @@ namespace osu.Framework.Graphics.Lines
                     });
                 }
 
-                quadBatch.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineLeft.EndPoint)
                 });
-                quadBatch.Add(new TexturedVertex3D
+                usage.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -185,27 +192,34 @@ namespace osu.Framework.Graphics.Lines
 
                 // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
-                addLineCap(line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
 
-                for (int i = 1; i < segments.Count; ++i)
+                using (var usage = halfCircleBatch.BeginUsage(this, halfCircleVertices))
                 {
-                    Line nextLine = segments[i];
-                    float nextTheta = nextLine.Theta;
-                    addLineCap(line.EndPoint, theta, nextTheta - theta, texRect);
+                    addLineCap(usage, line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
 
-                    line = nextLine;
-                    theta = nextTheta;
+                    for (int i = 1; i < segments.Count; ++i)
+                    {
+                        Line nextLine = segments[i];
+                        float nextTheta = nextLine.Theta;
+                        addLineCap(usage, line.EndPoint, theta, nextTheta - theta, texRect);
+
+                        line = nextLine;
+                        theta = nextTheta;
+                    }
+
+                    addLineCap(usage, line.EndPoint, theta, MathF.PI, texRect);
                 }
 
-                addLineCap(line.EndPoint, theta, MathF.PI, texRect);
-
-                foreach (Line segment in segments)
-                    addLineQuads(segment, texRect);
+                using (var usage = quadBatch.BeginUsage(this, quadVertices))
+                {
+                    foreach (Line segment in segments)
+                        addLineQuads(usage, segment, texRect);
+                }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || segments.Count == 0)
                     return;

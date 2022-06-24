@@ -17,10 +17,11 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osuTK;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Layout;
 using osu.Framework.Logging;
 using osu.Framework.Utils;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Audio
@@ -323,85 +324,89 @@ namespace osu.Framework.Graphics.Audio
             }
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+            private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
-                shader.Bind();
-                texture.TextureGL.Bind();
-
-                Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
-
-                // We're dealing with a _large_ number of points, so we need to optimise the quadToDraw * drawInfo.Matrix multiplications below
-                // for points that are going to be masked out anyway. This allows for higher resolution graphs at larger scales with virtually no performance loss.
-                // Since the points are generated in the local coordinate space, we need to convert the screen space masking quad coordinates into the local coordinate space
-                RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
-
-                float separation = drawSize.X / (points.Count - 1);
-
-                for (int i = 0; i < points.Count - 1; i++)
+                using (var usage = vertexBatch.BeginUsage(this, vertices))
                 {
-                    float leftX = i * separation;
-                    float rightX = (i + 1) * separation;
+                    shader.Bind();
+                    texture.TextureGL.Bind();
 
-                    if (rightX < localMaskingRectangle.Left)
-                        continue;
+                    Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
 
-                    if (leftX > localMaskingRectangle.Right)
-                        break; // X is always increasing
+                    // We're dealing with a _large_ number of points, so we need to optimise the quadToDraw * drawInfo.Matrix multiplications below
+                    // for points that are going to be masked out anyway. This allows for higher resolution graphs at larger scales with virtually no performance loss.
+                    // Since the points are generated in the local coordinate space, we need to convert the screen space masking quad coordinates into the local coordinate space
+                    RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
 
-                    Color4 frequencyColour = baseColour;
+                    float separation = drawSize.X / (points.Count - 1);
 
-                    // colouring is applied in the order of interest to a viewer.
-                    frequencyColour = Interpolation.ValueAt(points[i].MidIntensity / midMax, frequencyColour, midColour, 0, 1);
-                    // high end (cymbal) can help find beat, so give it priority over mids.
-                    frequencyColour = Interpolation.ValueAt(points[i].HighIntensity / highMax, frequencyColour, highColour, 0, 1);
-                    // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
-                    frequencyColour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, frequencyColour, lowColour, 0, 1);
-
-                    ColourInfo finalColour = DrawColourInfo.Colour;
-                    finalColour.ApplyChild(frequencyColour);
-
-                    Quad quadToDraw;
-
-                    switch (channels)
+                    for (int i = 0; i < points.Count - 1; i++)
                     {
-                        default:
-                        case 2:
+                        float leftX = i * separation;
+                        float rightX = (i + 1) * separation;
+
+                        if (rightX < localMaskingRectangle.Left)
+                            continue;
+
+                        if (leftX > localMaskingRectangle.Right)
+                            break; // X is always increasing
+
+                        Color4 frequencyColour = baseColour;
+
+                        // colouring is applied in the order of interest to a viewer.
+                        frequencyColour = Interpolation.ValueAt(points[i].MidIntensity / midMax, frequencyColour, midColour, 0, 1);
+                        // high end (cymbal) can help find beat, so give it priority over mids.
+                        frequencyColour = Interpolation.ValueAt(points[i].HighIntensity / highMax, frequencyColour, highColour, 0, 1);
+                        // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
+                        frequencyColour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, frequencyColour, lowColour, 0, 1);
+
+                        ColourInfo finalColour = DrawColourInfo.Colour;
+                        finalColour.ApplyChild(frequencyColour);
+
+                        Quad quadToDraw;
+
+                        switch (channels)
                         {
-                            float height = drawSize.Y / 2;
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
-                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
-                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
-                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
-                            );
-                            break;
+                            default:
+                            case 2:
+                            {
+                                float height = drawSize.Y / 2;
+                                quadToDraw = new Quad(
+                                    new Vector2(leftX, height - points[i].Amplitude[0] * height),
+                                    new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
+                                    new Vector2(leftX, height + points[i].Amplitude[1] * height),
+                                    new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
+                                );
+                                break;
+                            }
+
+                            case 1:
+                            {
+                                quadToDraw = new Quad(
+                                    new Vector2(leftX, drawSize.Y - points[i].Amplitude[0] * drawSize.Y),
+                                    new Vector2(rightX, drawSize.Y - points[i + 1].Amplitude[0] * drawSize.Y),
+                                    new Vector2(leftX, drawSize.Y),
+                                    new Vector2(rightX, drawSize.Y)
+                                );
+                                break;
+                            }
                         }
 
-                        case 1:
-                        {
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, drawSize.Y - points[i].Amplitude[0] * drawSize.Y),
-                                new Vector2(rightX, drawSize.Y - points[i + 1].Amplitude[0] * drawSize.Y),
-                                new Vector2(leftX, drawSize.Y),
-                                new Vector2(rightX, drawSize.Y)
-                            );
-                            break;
-                        }
+                        quadToDraw *= DrawInfo.Matrix;
+
+                        if (quadToDraw.Size.X != 0 && quadToDraw.Size.Y != 0)
+                            DrawQuad(usage, texture, quadToDraw, finalColour, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                     }
 
-                    quadToDraw *= DrawInfo.Matrix;
-
-                    if (quadToDraw.Size.X != 0 && quadToDraw.Size.Y != 0)
-                        DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                    shader.Unbind();
                 }
-
-                shader.Unbind();
             }
 
             protected override void Dispose(bool isDisposing)

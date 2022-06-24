@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics;
@@ -23,6 +25,7 @@ namespace osu.Framework.Graphics.Sprites
             private bool shadow;
             private ColourInfo shadowColour;
             private Vector2 shadowOffset;
+            private readonly VertexGroup<TexturedVertex2D> vertices = new VertexGroup<TexturedVertex2D>();
 
             private readonly List<ScreenSpaceCharacterPart> parts = new List<ScreenSpaceCharacterPart>();
 
@@ -46,39 +49,40 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
-                Shader.Bind();
-
-                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
-                float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
-
-                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
-                //squared result for quadratic fall-off seems to give the best result.
-                var finalShadowColour = DrawColourInfo.Colour;
-                finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
-
-                for (int i = 0; i < parts.Count; i++)
+                using (var usage = renderer.BeginQuads(this, vertices))
                 {
-                    if (shadow)
-                    {
-                        var shadowQuad = parts[i].DrawQuad;
+                    Shader.Bind();
 
-                        DrawQuad(parts[i].Texture,
-                            new Quad(
+                    var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
+                    float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
+                    //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+                    //squared result for quadratic fall-off seems to give the best result.
+                    var finalShadowColour = DrawColourInfo.Colour;
+                    finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
+
+                    for (int i = 0; i < parts.Count; i++)
+                    {
+                        if (shadow)
+                        {
+                            var shadowQuad = parts[i].DrawQuad;
+
+                            DrawQuad(usage, parts[i].Texture, new Quad(
                                 shadowQuad.TopLeft + shadowOffset,
                                 shadowQuad.TopRight + shadowOffset,
                                 shadowQuad.BottomLeft + shadowOffset,
-                                shadowQuad.BottomRight + shadowOffset),
-                            finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                                shadowQuad.BottomRight + shadowOffset), finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
+                        }
+
+                        DrawQuad(usage, parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                    Shader.Unbind();
                 }
-
-                Shader.Unbind();
             }
         }
 

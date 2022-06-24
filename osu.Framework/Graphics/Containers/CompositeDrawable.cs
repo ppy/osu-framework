@@ -1456,7 +1456,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 masking = value;
-                Invalidate(Invalidation.DrawNode);
+                Invalidate(Invalidation.Masking);
             }
         }
 
@@ -1478,7 +1478,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 maskingSmoothness = value;
-                Invalidate(Invalidation.DrawNode);
+                Invalidate(Invalidation.Masking);
             }
         }
 
@@ -1497,7 +1497,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 cornerRadius = value;
-                Invalidate(Invalidation.DrawNode);
+                Invalidate(Invalidation.Masking);
             }
         }
 
@@ -1553,7 +1553,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 borderThickness = value;
-                Invalidate(Invalidation.DrawNode);
+                Invalidate(Invalidation.Masking);
             }
         }
 

@@ -1,11 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Graphics.Batches.Internal;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -16,22 +14,12 @@ namespace osu.Framework.Graphics.Batches
     public abstract class VertexBatch<T> : IVertexBatch, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
-        public List<VertexBuffer<T>> VertexBuffers = new List<VertexBuffer<T>>();
-
         /// <summary>
         /// The number of vertices in each VertexBuffer.
         /// </summary>
         public int Size { get; }
 
-        private int changeBeginIndex = -1;
-        private int changeEndIndex = -1;
-
-        private int currentBufferIndex;
-        private int currentVertexIndex;
-
-        private readonly int maxBuffers;
-
-        private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
+        private readonly VertexBufferList<T> vertexBufferList;
 
         protected VertexBatch(int bufferSize, int maxBuffers)
         {
@@ -39,97 +27,133 @@ namespace osu.Framework.Graphics.Batches
             Trace.Assert(bufferSize > 0);
 
             Size = bufferSize;
-            this.maxBuffers = maxBuffers;
 
-            AddAction = Add;
+            vertexBufferList = new VertexBufferList<T>(maxBuffers, () => CreateVertexBuffer());
+            vertexBufferList.OnCommit += draw;
         }
-
-        #region Disposal
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            vertexBufferList.Dispose();
         }
-
-        protected void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                foreach (VertexBuffer<T> vbo in VertexBuffers)
-                    vbo.Dispose();
-            }
-        }
-
-        #endregion
 
         public void ResetCounters()
         {
-            changeBeginIndex = -1;
-            currentBufferIndex = 0;
-            currentVertexIndex = 0;
+            vertexBufferList.Reset();
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
-        /// <summary>
-        /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
-        /// </summary>
-        /// <param name="v">The vertex to add.</param>
-        public void Add(T v)
+        private bool groupActuallyBegun;
+        private bool groupInUse;
+        private bool wasOverflowed;
+
+        void IVertexBatch.Add<TInput>(IVertexGroup vertices, TInput vertex) => vertexBufferList.Push(vertices.Transform<TInput, T>(vertex));
+
+        void IVertexBatch.Advance(int count) => vertexBufferList.Advance(count);
+
+        void IVertexBatch.UsageStarted(IVertexGroup group)
         {
-            GLWrapper.SetActiveBatch(this);
+            groupInUse = true;
 
-            if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
-            {
-                Draw();
-                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
-            }
+            groupActuallyBegun = false;
+            group.TriggeredOverflow = false;
+            wasOverflowed = vertexBufferList.ThisDrawHasOverflowVertices;
+        }
 
-            // currentIndex will change after Draw() above, so this cannot be in an else-condition
-            while (currentBufferIndex >= VertexBuffers.Count)
-                VertexBuffers.Add(CreateVertexBuffer());
+        void IVertexBatch.UsageFinished(IVertexGroup group)
+        {
+            groupInUse = false;
 
-            if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
-            {
-                if (changeBeginIndex == -1)
-                    changeBeginIndex = currentVertexIndex;
+            group.TriggeredOverflow = !wasOverflowed && vertexBufferList.ThisDrawHasOverflowVertices;
+            wasOverflowed = false;
+        }
 
-                changeEndIndex = currentVertexIndex + 1;
-            }
+        void IVertexBatch.ActuallyBeginUsage(IVertexGroup group)
+        {
+            if (groupActuallyBegun)
+                return;
 
-            ++currentVertexIndex;
+            updateGroup(group);
+            groupActuallyBegun = true;
+        }
+
+#if DEBUG && !NO_VBO_CONSISTENCY_CHECKS
+        void IVertexBatch.AssertIsCurrentVertex<TVertex>(IVertexGroup vertices, TVertex vertex, string failureMessage)
+            => vertexBufferList.AssertIsCurrentVertex(vertices.Transform<TVertex, T>(vertex), failureMessage);
+#endif
+
+        public void Draw() => vertexBufferList.Commit();
+
+        private void draw(VertexBuffer<T> buffer)
+        {
+            int countToDraw = buffer.Count;
+
+            buffer.Draw();
+
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, countToDraw);
         }
 
         /// <summary>
-        /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
-        /// This is a cached delegate of <see cref="Add"/> that should be used in memory-critical locations such as <see cref="DrawNode"/>s.
+        /// Begins a grouping of vertices.
         /// </summary>
-        public readonly Action<T> AddAction;
-
-        public int Draw()
+        /// <param name="drawNode">The owner of the vertices.</param>
+        /// <param name="vertices">The grouping of vertices.</param>
+        /// <returns>A usage of the <see cref="VertexGroup{TVertex}"/>.</returns>
+        /// <exception cref="InvalidOperationException">When the same <see cref="VertexGroup{TVertex}"/> is used multiple times in a single draw frame.</exception>
+        /// <exception cref="InvalidOperationException">When attempting to nest <see cref="VertexGroup{TVertex}"/> usages.</exception>
+        public VertexGroupUsage<TInput> BeginUsage<TInput>(DrawNode drawNode, VertexGroup<TInput, T> vertices)
+            where TInput : struct, IEquatable<TInput>, IVertex
         {
-            if (currentVertexIndex == 0)
-                return 0;
+            ulong frameIndex = GLWrapper.CurrentTreeResetId;
 
-            VertexBuffer<T> vertexBuffer = currentVertexBuffer;
-            if (changeBeginIndex >= 0)
-                vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
+            // Disallow reusing the same group multiple times in the same draw frame.
+            if (((IVertexGroup)vertices).FrameIndex == frameIndex)
+                throw new InvalidOperationException($"A {nameof(VertexGroup<T>)} cannot be used multiple times within a single frame.");
 
-            vertexBuffer.DrawRange(0, currentVertexIndex);
+            // Disallow nested usages.
+            if (groupInUse)
+                throw new InvalidOperationException($"Nesting of {nameof(VertexGroup<T>)}s is not allowed.");
 
-            int count = currentVertexIndex;
+            GLWrapper.SetActiveBatch(this);
+            ((IVertexGroup)vertices).DrawNode = drawNode;
 
-            // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
-            //TODO: let us know if we exceed and roll over to zero here.
-            currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
-            currentVertexIndex = 0;
-            changeBeginIndex = -1;
+            return new VertexGroupUsage<TInput>(this, vertices);
+        }
 
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
+        private void updateGroup(IVertexGroup group)
+        {
+            Debug.Assert(group.DrawNode != null);
 
-            return count;
+            ulong frameIndex = GLWrapper.CurrentTreeResetId;
+
+            // Make sure to test in DEBUG when changing the following heuristics.
+            bool uploadRequired =
+                // If this is a new usage or has been moved to a new batch.
+                group.Batch != this
+                // Or the DrawNode was moved around the vertex list.
+                || group.BufferIndex != vertexBufferList.CurrentBufferIndex
+                || group.VertexIndex != vertexBufferList.CurrentVertexIndex
+                // Or this usage has been skipped for 1 frame. Another DrawNode may have overwritten the vertices of this one in the batch.
+                // Todo: This check is probably redundant with the one below.
+                || frameIndex - group.FrameIndex > 1
+                // Or this group was the one that triggered an overflow in the last frame. Some (or all) vertices will need to be redrawn.
+                || group.TriggeredOverflow
+                // Or the vertex buffer was overflowed into in the last frame.
+                || vertexBufferList.LastDrawHadOverflowVertices
+                // Or the DrawNode was newly invalidated.
+                || group.InvalidationID != group.DrawNode.InvalidationID
+                // Or if this node has a different backbuffer draw depth (the DrawNode structure changed elsewhere in the scene graph).
+                || group.DrawDepth != group.DrawNode.DrawDepth;
+
+            group.Batch = this;
+            group.BufferIndex = vertexBufferList.CurrentBufferIndex;
+            group.VertexIndex = vertexBufferList.CurrentVertexIndex;
+            group.FrameIndex = frameIndex;
+            group.InvalidationID = group.DrawNode.InvalidationID;
+            group.DrawDepth = group.DrawNode.DrawDepth;
+            group.UploadRequired = uploadRequired;
         }
     }
 }

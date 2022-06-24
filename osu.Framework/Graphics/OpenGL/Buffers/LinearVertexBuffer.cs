@@ -26,12 +26,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public class LinearVertexBuffer<T> : VertexBuffer<T>
         where T : struct, IEquatable<T>, IVertex
     {
-        private readonly int amountVertices;
+        private readonly int capacity;
 
-        internal LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
-            : base(amountVertices, usage)
+        internal LinearVertexBuffer(int capacity, PrimitiveType type, BufferUsageHint usage)
+            : base(capacity, usage)
         {
-            this.amountVertices = amountVertices;
+            this.capacity = capacity;
             Type = type;
         }
 
@@ -39,17 +39,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             base.Initialise();
 
-            if (amountVertices > LinearIndexData.MaxAmountIndices)
+            if (capacity > LinearIndexData.MaxAmountIndices)
             {
-                ushort[] indices = new ushort[amountVertices];
+                ushort[] indices = new ushort[capacity];
 
-                for (ushort i = 0; i < amountVertices; i++)
+                for (ushort i = 0; i < capacity; i++)
                     indices[i] = i;
 
                 GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(capacity * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
-                LinearIndexData.MaxAmountIndices = amountVertices;
+                LinearIndexData.MaxAmountIndices = capacity;
             }
         }
 

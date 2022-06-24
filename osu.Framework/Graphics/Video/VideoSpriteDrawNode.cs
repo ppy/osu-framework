@@ -3,10 +3,9 @@
 
 #nullable disable
 
-using System;
 using osuTK;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -22,7 +21,7 @@ namespace osu.Framework.Graphics.Video
 
         private int yLoc, uLoc = 1, vLoc = 2;
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(IRenderer renderer)
         {
             Shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
             Shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
@@ -31,7 +30,7 @@ namespace osu.Framework.Graphics.Video
             var yuvCoeff = video.ConversionMatrix;
             Shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
 
-            base.Draw(vertexAction);
+            base.Draw(renderer);
         }
     }
 }

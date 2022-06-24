@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Development;
-using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Batches.Internal;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -44,6 +44,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// The amount of times <see cref="Reset"/> has been invoked.
         /// </summary>
         internal static ulong ResetId { get; private set; }
+
+        /// <summary>
+        /// The amount of times <see cref="Reset"/> has been invoked for the current tree.
+        /// </summary>
+        internal static ulong CurrentTreeResetId => tree_reset_ids[currentTreeIndex];
+
+        private static readonly ulong[] tree_reset_ids = new ulong[MAX_DRAW_NODES];
+        private static int currentTreeIndex;
 
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         private static MaskingInfo currentMaskingInfo;
@@ -140,9 +148,11 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
         private static readonly GlobalStatistic<int> stat_texture_uploads_performed = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads performed");
 
-        internal static void Reset(Vector2 size)
+        internal static void Reset(Vector2 size, int treeIndex)
         {
             ResetId++;
+            tree_reset_ids[treeIndex]++;
+            currentTreeIndex = treeIndex;
 
             reset_scheduler.Update();
 
