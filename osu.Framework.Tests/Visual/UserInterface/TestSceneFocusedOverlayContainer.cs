@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     },
                 };
 
-                State.ValueChanged += e => FireCount++;
+                State.ValueChanged += _ => FireCount++;
             }
 
             public int FireCount { get; private set; }

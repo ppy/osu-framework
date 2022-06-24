@@ -371,8 +371,8 @@ namespace osu.Framework.Audio.Track
                          && endCallback == null
                          && endSync == null);
 
-            stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
-            endCallback = new SyncCallback((a, b, c, d) =>
+            stopCallback = new SyncCallback((_, _, _, _) => RaiseFailed());
+            endCallback = new SyncCallback((_, _, _, _) =>
             {
                 if (Looping)
                 {

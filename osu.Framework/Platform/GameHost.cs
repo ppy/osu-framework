@@ -750,7 +750,7 @@ namespace osu.Framework.Platform
                                 break;
 
                             case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
+                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
                                 break;
                         }
 

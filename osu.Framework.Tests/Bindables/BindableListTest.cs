@@ -1279,7 +1279,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscriber()
         {
-            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
 
             bindableStringList.Disabled = bindableStringList.Disabled;
         }
@@ -1287,9 +1287,9 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscribers()
         {
-            bindableStringList.DisabledChanged += b => Assert.Fail();
-            bindableStringList.DisabledChanged += b => Assert.Fail();
-            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
 
             bindableStringList.Disabled = bindableStringList.Disabled;
         }

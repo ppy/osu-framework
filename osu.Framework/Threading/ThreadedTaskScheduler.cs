@@ -43,7 +43,7 @@ namespace osu.Framework.Threading
             this.name = name;
             tasks = new BlockingCollection<Task>();
 
-            threads = Enumerable.Range(0, numberOfThreads).Select(i =>
+            threads = Enumerable.Range(0, numberOfThreads).Select(_ =>
             {
                 var thread = new Thread(processTasks)
                 {

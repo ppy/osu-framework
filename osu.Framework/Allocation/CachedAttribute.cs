@@ -141,7 +141,7 @@ namespace osu.Framework.Allocation
                 additionActivators.AddRange(createMemberActivator(field, type, allowValueTypes));
 
             if (additionActivators.Count == 0)
-                return (_, existing, info) => existing;
+                return (_, existing, _) => existing;
 
             return (target, existing, info) =>
             {

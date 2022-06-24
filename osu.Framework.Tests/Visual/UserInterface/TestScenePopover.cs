@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         });
 
         [Test]
-        public void TestSizingDirectly() => createContent((anchor, popover) =>
+        public void TestSizingDirectly() => createContent((_, popover) =>
         {
             popover.Size = new Vector2(200, 100);
 
