@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using System.Threading;
 
@@ -22,9 +21,11 @@ namespace osu.Framework.Allocation
 
         private readonly ManualResetEventSlim writeCompletedEvent = new ManualResetEventSlim();
 
+        private const int buffer_count = 3;
+
         public TripleBuffer()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < buffer_count; i++)
                 buffers[i] = new ObjectUsage<T>(i, finishUsage);
         }
 
@@ -71,7 +72,7 @@ namespace osu.Framework.Allocation
 
         private ObjectUsage<T> getNextWriteBuffer()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < buffer_count - 1; i++)
             {
                 if (i == activeReadIndex) continue;
                 if (i == lastCompletedWriteIndex) continue;
@@ -79,7 +80,7 @@ namespace osu.Framework.Allocation
                 return buffers[i];
             }
 
-            throw new InvalidOperationException();
+            return buffers[buffer_count - 1];
         }
 
         private void finishUsage(ObjectUsage<T> obj)
