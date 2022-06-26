@@ -53,9 +53,9 @@ namespace osu.Framework.Input.Handlers.Tablet
             AreaSize.BindValueChanged(_ => updateInputArea(device), true);
             Rotation.BindValueChanged(_ => updateInputArea(device), true);
 
-            Enabled.BindValueChanged(d =>
+            Enabled.BindValueChanged(enabled =>
             {
-                if (d.NewValue && tabletDriver == null)
+                if (enabled.NewValue)
                 {
                     initTask = Task.Run(() =>
                     {
@@ -77,9 +77,9 @@ namespace osu.Framework.Input.Handlers.Tablet
                         tabletDriver.Detect();
                     });
                 }
-                else if (!d.NewValue && tabletDriver != null)
+                else
                 {
-                    initTask.ContinueWith(_ =>
+                    initTask?.ContinueWith(_ =>
                     {
                         tabletDriver.Dispose();
                         tabletDriver = null;
