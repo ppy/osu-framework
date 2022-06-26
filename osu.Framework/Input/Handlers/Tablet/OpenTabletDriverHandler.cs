@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
-        private Task initTask;
+        private Task lastInitTask;
 
         public override bool Initialize(GameHost host)
         {
@@ -55,14 +55,16 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             Enabled.BindValueChanged(enabled =>
             {
+                TabletDriver driverInstance = null;
+
                 if (enabled.NewValue)
                 {
-                    initTask = Task.Run(() =>
+                    lastInitTask = Task.Run(() =>
                     {
-                        tabletDriver = TabletDriver.Create();
-                        tabletDriver.TabletsChanged += (_, e) =>
+                        tabletDriver = driverInstance = TabletDriver.Create();
+                        driverInstance.TabletsChanged += (_, e) =>
                         {
-                            device = e.Any() ? tabletDriver.InputDevices.First() : null;
+                            device = e.Any() ? driverInstance.InputDevices.First() : null;
 
                             if (device != null)
                             {
@@ -73,15 +75,15 @@ namespace osu.Framework.Input.Handlers.Tablet
                                 updateOutputArea(host.Window);
                             }
                         };
-                        tabletDriver.DeviceReported += handleDeviceReported;
-                        tabletDriver.Detect();
+                        driverInstance.DeviceReported += handleDeviceReported;
+                        driverInstance.Detect();
                     });
                 }
                 else
                 {
-                    initTask?.ContinueWith(_ =>
+                    lastInitTask?.ContinueWith(_ =>
                     {
-                        tabletDriver.Dispose();
+                        driverInstance?.Dispose();
                         tabletDriver = null;
                     });
                 }
