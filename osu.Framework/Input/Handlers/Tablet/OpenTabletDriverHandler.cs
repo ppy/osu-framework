@@ -5,6 +5,7 @@
 
 #if NET6_0_OR_GREATER
 using System.Linq;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -40,6 +41,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
+        private Task initTask;
+
         public override bool Initialize(GameHost host)
         {
             outputMode = new AbsoluteTabletMode(this);
@@ -54,27 +57,33 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 if (d.NewValue && tabletDriver == null)
                 {
-                    tabletDriver = TabletDriver.Create();
-                    tabletDriver.TabletsChanged += (_, e) =>
+                    initTask = Task.Run(() =>
                     {
-                        device = e.Any() ? tabletDriver.InputDevices.First() : null;
-
-                        if (device != null)
+                        tabletDriver = TabletDriver.Create();
+                        tabletDriver.TabletsChanged += (_, e) =>
                         {
-                            device.OutputMode = outputMode;
-                            outputMode.Tablet = device.CreateReference();
+                            device = e.Any() ? tabletDriver.InputDevices.First() : null;
 
-                            updateInputArea(device);
-                            updateOutputArea(host.Window);
-                        }
-                    };
-                    tabletDriver.DeviceReported += handleDeviceReported;
-                    tabletDriver.Detect();
+                            if (device != null)
+                            {
+                                device.OutputMode = outputMode;
+                                outputMode.Tablet = device.CreateReference();
+
+                                updateInputArea(device);
+                                updateOutputArea(host.Window);
+                            }
+                        };
+                        tabletDriver.DeviceReported += handleDeviceReported;
+                        tabletDriver.Detect();
+                    });
                 }
                 else if (!d.NewValue && tabletDriver != null)
                 {
-                    tabletDriver.Dispose();
-                    tabletDriver = null;
+                    initTask.ContinueWith(_ =>
+                    {
+                        tabletDriver.Dispose();
+                        tabletDriver = null;
+                    });
                 }
             }, true);
 
