@@ -241,12 +241,15 @@ namespace osu.Framework.Audio.Track
                         point.HighIntensity += weight * points[j].HighIntensity;
                     }
 
-                    // Means
-                    for (int c = 0; c < channels; c++)
-                        point.Amplitude[c] /= totalWeight;
-                    point.LowIntensity /= totalWeight;
-                    point.MidIntensity /= totalWeight;
-                    point.HighIntensity /= totalWeight;
+                    if (totalWeight > 0)
+                    {
+                        // Means
+                        for (int c = 0; c < channels; c++)
+                            point.Amplitude[c] /= totalWeight;
+                        point.LowIntensity /= totalWeight;
+                        point.MidIntensity /= totalWeight;
+                        point.HighIntensity /= totalWeight;
+                    }
 
                     generatedPoints.Add(point);
 
