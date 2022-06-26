@@ -13,6 +13,7 @@ using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -55,16 +56,14 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             Enabled.BindValueChanged(enabled =>
             {
-                TabletDriver driverInstance = null;
-
                 if (enabled.NewValue)
                 {
                     lastInitTask = Task.Run(() =>
                     {
-                        tabletDriver = driverInstance = TabletDriver.Create();
-                        driverInstance.TabletsChanged += (_, e) =>
+                        tabletDriver = tabletDriver = TabletDriver.Create();
+                        tabletDriver.TabletsChanged += (_, e) =>
                         {
-                            device = e.Any() ? driverInstance.InputDevices.First() : null;
+                            device = e.Any() ? tabletDriver.InputDevices.First() : null;
 
                             if (device != null)
                             {
@@ -75,17 +74,15 @@ namespace osu.Framework.Input.Handlers.Tablet
                                 updateOutputArea(host.Window);
                             }
                         };
-                        driverInstance.DeviceReported += handleDeviceReported;
-                        driverInstance.Detect();
+                        tabletDriver.DeviceReported += handleDeviceReported;
+                        tabletDriver.Detect();
                     });
                 }
                 else
                 {
-                    lastInitTask?.ContinueWith(_ =>
-                    {
-                        driverInstance?.Dispose();
-                        tabletDriver = null;
-                    });
+                    lastInitTask?.WaitSafely();
+                    tabletDriver?.Dispose();
+                    tabletDriver = null;
                 }
             }, true);
 
