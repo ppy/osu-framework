@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using ManagedBass;
 using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
@@ -181,6 +182,7 @@ namespace osu.Framework.Audio.Track
         /// <param name="pointCount">The number of points the resulting <see cref="Waveform"/> should contain.</param>
         /// <param name="cancellationToken">The token to cancel the task.</param>
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
+        [ItemNotNull]
         public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default)
         {
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
@@ -207,6 +209,9 @@ namespace osu.Framework.Audio.Track
 
                 for (int i = 0; i < filter.Length; ++i)
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                        return new Waveform(null);
+
                     filter[i] = (float)Blur.EvalGaussian(i, pointsPerGeneratedPoint);
                 }
 
@@ -219,7 +224,8 @@ namespace osu.Framework.Audio.Track
 
                 while (originalPointIndex < points.Count)
                 {
-                    if (cancellationToken.IsCancellationRequested) break;
+                    if (cancellationToken.IsCancellationRequested)
+                        return new Waveform(null);
 
                     int startIndex = (int)originalPointIndex - kernelWidth;
                     int endIndex = (int)originalPointIndex + kernelWidth;
