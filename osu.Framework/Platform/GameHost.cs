@@ -1007,7 +1007,17 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
+                CultureInfo culture;
+
+                try
+                {
+                    culture = CultureInfo.GetCultureInfo(locale.NewValue);
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"Culture for {locale.NewValue} could not be found ({e})");
+                    culture = CultureInfo.InvariantCulture;
+                }
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
