@@ -64,6 +64,8 @@ namespace osu.Framework.Android
 
         private readonly Game game;
 
+        private InputMethodManager inputMethodManager;
+
         public AndroidGameView(AndroidGameActivity activity, Game game)
             : base(activity)
         {
@@ -97,6 +99,8 @@ namespace osu.Framework.Android
 
             // disable ugly green border when view is focused via hardware keyboard/mouse.
             DefaultFocusHighlightEnabled = false;
+
+            inputMethodManager = Activity.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
         protected override void CreateFrameBuffer()
@@ -245,6 +249,24 @@ namespace osu.Framework.Android
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
+        }
+
+        internal void StartTextInput()
+        {
+            Activity.RunOnUiThread(() =>
+            {
+                RequestFocus();
+                inputMethodManager?.ShowSoftInput(this, 0);
+            });
+        }
+
+        internal void StopTextInput()
+        {
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
+                ClearFocus();
+            });
         }
 
         public override void SwapBuffers()
