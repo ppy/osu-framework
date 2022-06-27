@@ -267,6 +267,7 @@ namespace osu.Framework.Android
             textInputActive = true;
             Activity.RunOnUiThread(() =>
             {
+                inputMethodManager.RestartInput(this); // this syncs the Android input method state with `OnCreateInputConnection()`.
                 RequestFocus();
                 inputMethodManager?.ShowSoftInput(this, 0);
             });
@@ -277,6 +278,7 @@ namespace osu.Framework.Android
             textInputActive = false;
             Activity.RunOnUiThread(() =>
             {
+                inputMethodManager.RestartInput(this);
                 inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
                 ClearFocus();
             });
