@@ -66,6 +66,11 @@ namespace osu.Framework.Android
 
         private InputMethodManager inputMethodManager;
 
+        /// <summary>
+        /// Whether <see cref="AndroidTextInput"/> is active.
+        /// </summary>
+        private bool textInputActive;
+
         public AndroidGameView(AndroidGameActivity activity, Game game)
             : base(activity)
         {
@@ -242,10 +247,16 @@ namespace osu.Framework.Android
             };
         }
 
-        public override bool OnCheckIsTextEditor() => true;
+        public override bool OnCheckIsTextEditor() => textInputActive;
 
+        /// <returns><c>null</c> to disable input methods</returns>
         public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
         {
+            // Properly disable native input methods so that the software keyboard doesn't unexpectedly open.
+            // Eg. when pressing keys on a hardware keyboard.
+            if (!textInputActive)
+                return null;
+
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
@@ -253,6 +264,7 @@ namespace osu.Framework.Android
 
         internal void StartTextInput()
         {
+            textInputActive = true;
             Activity.RunOnUiThread(() =>
             {
                 RequestFocus();
@@ -262,6 +274,7 @@ namespace osu.Framework.Android
 
         internal void StopTextInput()
         {
+            textInputActive = false;
             Activity.RunOnUiThread(() =>
             {
                 inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
