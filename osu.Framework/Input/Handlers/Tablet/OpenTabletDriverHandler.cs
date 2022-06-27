@@ -60,7 +60,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 {
                     lastInitTask = Task.Run(() =>
                     {
-                        tabletDriver = tabletDriver = TabletDriver.Create();
+                        tabletDriver = TabletDriver.Create();
                         tabletDriver.TabletsChanged += (_, e) =>
                         {
                             device = e.Any() ? tabletDriver.InputDevices.First() : null;
