@@ -94,6 +94,9 @@ namespace osu.Framework.Android
             // this needs to happen in the constructor
             Focusable = true;
             FocusableInTouchMode = true;
+
+            // disable ugly green border when view is focused via hardware keyboard/mouse.
+            DefaultFocusHighlightEnabled = false;
         }
 
         protected override void CreateFrameBuffer()

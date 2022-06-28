@@ -11,17 +11,22 @@ namespace osu.Framework.Allocation
         where T : class
     {
         public T Object;
-        public int Index;
-
-        public long FrameId;
-
-        internal Action<ObjectUsage<T>, UsageType> Finish;
 
         public UsageType Usage;
 
+        public readonly int Index;
+
+        private readonly Action<ObjectUsage<T>> finish;
+
+        public ObjectUsage(int index, Action<ObjectUsage<T>> finish)
+        {
+            Index = index;
+            this.finish = finish;
+        }
+
         public void Dispose()
         {
-            Finish?.Invoke(this, Usage);
+            finish?.Invoke(this);
         }
     }
 
