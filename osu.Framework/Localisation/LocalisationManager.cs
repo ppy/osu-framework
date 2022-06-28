@@ -28,6 +28,23 @@ namespace osu.Framework.Localisation
             configPreferUnicode.BindValueChanged(_ => UpdateLocalisationParameters(), true);
         }
 
+        /// <summary>
+        /// Add multiple locale mappings. Should be used to add all available languages at initialisation.
+        /// </summary>
+        /// <param name="mappings">All available locale mappings.</param>
+        public void AddLocaleMappings(IEnumerable<LocaleMapping> mappings)
+        {
+            locales.AddRange(mappings);
+            configLocale.TriggerChange();
+        }
+
+        /// <summary>
+        /// Add a single language to this manager.
+        /// </summary>
+        /// <remarks>
+        /// Use <see cref="AddLocaleMappings"/> as a more efficient way of bootstrapping all available locales.</remarks>
+        /// <param name="language">The culture name to be added. Generally should match <see cref="CultureInfo.Name"/>.</param>
+        /// <param name="storage">A storage providing localisations for the specified language.</param>
         public void AddLanguage(string language, ILocalisationStore storage)
         {
             locales.Add(new LocaleMapping(language, storage));
@@ -102,17 +119,5 @@ namespace osu.Framework.Localisation
         /// </remarks>
         /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
         protected virtual LocalisationParameters CreateLocalisationParameters() => new LocalisationParameters(currentLocale?.Storage, configPreferUnicode.Value);
-
-        private class LocaleMapping
-        {
-            public readonly string Name;
-            public readonly ILocalisationStore Storage;
-
-            public LocaleMapping(string name, ILocalisationStore storage)
-            {
-                Name = name;
-                Storage = storage;
-            }
-        }
     }
 }
