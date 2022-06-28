@@ -64,6 +64,13 @@ namespace osu.Framework.Android
 
         private readonly Game game;
 
+        private InputMethodManager inputMethodManager;
+
+        /// <summary>
+        /// Whether <see cref="AndroidTextInput"/> is active.
+        /// </summary>
+        private bool textInputActive;
+
         public AndroidGameView(AndroidGameActivity activity, Game game)
             : base(activity)
         {
@@ -97,6 +104,8 @@ namespace osu.Framework.Android
 
             // disable ugly green border when view is focused via hardware keyboard/mouse.
             DefaultFocusHighlightEnabled = false;
+
+            inputMethodManager = Activity.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
         protected override void CreateFrameBuffer()
@@ -238,13 +247,41 @@ namespace osu.Framework.Android
             };
         }
 
-        public override bool OnCheckIsTextEditor() => true;
+        public override bool OnCheckIsTextEditor() => textInputActive;
 
+        /// <returns><c>null</c> to disable input methods</returns>
         public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
         {
+            // Properly disable native input methods so that the software keyboard doesn't unexpectedly open.
+            // Eg. when pressing keys on a hardware keyboard.
+            if (!textInputActive)
+                return null;
+
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
+        }
+
+        internal void StartTextInput()
+        {
+            textInputActive = true;
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager.RestartInput(this); // this syncs the Android input method state with `OnCreateInputConnection()`.
+                RequestFocus();
+                inputMethodManager?.ShowSoftInput(this, 0);
+            });
+        }
+
+        internal void StopTextInput()
+        {
+            textInputActive = false;
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager.RestartInput(this);
+                inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
+                ClearFocus();
+            });
         }
 
         public override void SwapBuffers()
