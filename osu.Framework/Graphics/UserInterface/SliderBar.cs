@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Globalization;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osuTK.Input;
@@ -114,6 +115,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
+        private float? relativeValueAtDragStart;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
@@ -147,13 +149,22 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            if (ShouldRelativeDrag(e))
+            {
+                float min = currentNumberInstantaneous.MinValue.ToSingle(NumberFormatInfo.InvariantInfo);
+                float max = currentNumberInstantaneous.MaxValue.ToSingle(NumberFormatInfo.InvariantInfo);
+                float val = currentNumberInstantaneous.Value.ToSingle(NumberFormatInfo.InvariantInfo);
+
+                relativeValueAtDragStart = (val - min) / (max - min);
+            }
+
             handleMouseInput(e);
             return true;
         }
 
         protected override void OnDragEnd(DragEndEvent e)
         {
-            handleMouseInput(e);
+            relativeValueAtDragStart = null;
             commit();
         }
 
@@ -203,14 +214,34 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private void handleMouseInput(UIEvent e)
+        /// <summary>
+        /// Whether a drag event should be relative to the original mouse down position, or absolute based on the cursor.
+        /// </summary>
+        /// <remarks>
+        /// Generally, this should be used when the cursor is hovering the "nub" portion at the point of mouse down
+        /// to give the user more correct control.
+        /// </remarks>
+        /// <param name="e">The drag start event.</param>
+        /// <returns>Whether to perform a relative drag.</returns>
+        protected virtual bool ShouldRelativeDrag(DragStartEvent e) => false;
+
+        private void handleMouseInput(MouseButtonEvent e)
         {
-            float xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
+            float newValue;
+
+            if (e is DragEvent drag && relativeValueAtDragStart != null)
+            {
+                newValue = relativeValueAtDragStart.Value + (drag.MousePosition.X - drag.MouseDownPosition.X) / UsableWidth;
+            }
+            else
+            {
+                newValue = (e.MousePosition.X - RangePadding) / UsableWidth;
+            }
 
             if (currentNumberInstantaneous.Disabled)
                 return;
 
-            currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
+            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : 0);
             onUserChange(currentNumberInstantaneous.Value);
         }
 
