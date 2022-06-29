@@ -140,6 +140,13 @@ namespace osu.Framework.Android
 
                 default:
                     KeyDown?.Invoke(keyCode, e);
+
+                    // Releasing backspace on a physical keyboard when text input is active will not send a key up event.
+                    // Manually send one to prevent the key from getting stuck.
+                    // This does mean that key repeat is handled by the OS, instead of by the usual `InputManager` handling.
+                    if (keyCode == Keycode.Del && e.IsFromSource(InputSourceType.Keyboard) && textInputActive)
+                        KeyUp?.Invoke(Keycode.Del, new KeyEvent(e.DownTime, e.EventTime, KeyEventActions.Up, Keycode.Del, 0, e.MetaState, e.DeviceId, e.ScanCode, e.Flags, e.Source));
+
                     return true;
             }
         }
