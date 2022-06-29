@@ -223,12 +223,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             checkValue(0, false);
             AddStep("Move Cursor",
-                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.1f, 0.0f))); });
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.1f, 0.5f))); });
             AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
             AddStep("Drag",
-                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.425f, 1f))); });
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.4f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
-            checkValue(-1, false);
+            checkValue(-2, false);
         }
 
         [Test]
@@ -236,12 +236,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             checkValue(0, false);
             AddStep("Move Cursor",
-                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.0f))); });
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.5f))); });
             AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
             AddStep("Drag",
                 () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.75f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(3, false);
+        }
+
+        [Test]
+        public void TestRelativeClick()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
         }
 
         private void checkValue(int expected, bool disabled)
@@ -279,7 +290,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             }
 
-            protected override bool ShouldRelativeDrag(DragStartEvent e) => nub.ReceivePositionalInputAt(e.ScreenSpaceMouseDownPosition);
+            protected override bool HandleAsRelativeMovement(MouseDownEvent e) => nub.ReceivePositionalInputAt(e.ScreenSpaceMouseDownPosition);
 
             protected override void UpdateValue(float value)
             {

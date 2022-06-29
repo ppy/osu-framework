@@ -115,11 +115,27 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
-        private float? relativeValueAtDragStart;
+        private float? relativeValueAtMouseDown;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            handleClick = true;
+            if (HandleAsRelativeMovement(e))
+            {
+                float min = currentNumberInstantaneous.MinValue.ToSingle(NumberFormatInfo.InvariantInfo);
+                float max = currentNumberInstantaneous.MaxValue.ToSingle(NumberFormatInfo.InvariantInfo);
+                float val = currentNumberInstantaneous.Value.ToSingle(NumberFormatInfo.InvariantInfo);
+
+                relativeValueAtMouseDown = (val - min) / (max - min);
+                handleClick = false;
+            }
+            else
+            {
+                // Click shouldn't be handled if relative movement is happening.
+                // This is generally an expectation by most OSes and UIs.
+                handleClick = true;
+                relativeValueAtMouseDown = null;
+            }
+
             return base.OnMouseDown(e);
         }
 
@@ -149,24 +165,11 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
-            if (ShouldRelativeDrag(e))
-            {
-                float min = currentNumberInstantaneous.MinValue.ToSingle(NumberFormatInfo.InvariantInfo);
-                float max = currentNumberInstantaneous.MaxValue.ToSingle(NumberFormatInfo.InvariantInfo);
-                float val = currentNumberInstantaneous.Value.ToSingle(NumberFormatInfo.InvariantInfo);
-
-                relativeValueAtDragStart = (val - min) / (max - min);
-            }
-
             handleMouseInput(e);
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e)
-        {
-            relativeValueAtDragStart = null;
-            commit();
-        }
+        protected override void OnDragEnd(DragEndEvent e) => commit();
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -215,27 +218,29 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Whether a drag event should be relative to the original mouse down position, or absolute based on the cursor.
+        /// Whether mouse drag handling should be relative to the original mouse down position, or absolute based on the cursor.
         /// </summary>
         /// <remarks>
-        /// Generally, this should be used when the cursor is hovering the "nub" portion at the point of mouse down
+        /// Generally, this should be overridden and return <c>true</c> when the cursor is hovering the "nub" portion at the point of mouse down
         /// to give the user more correct control.
         /// </remarks>
-        /// <param name="e">The drag start event.</param>
+        /// <param name="e">The mouse down event.</param>
         /// <returns>Whether to perform a relative drag.</returns>
-        protected virtual bool ShouldRelativeDrag(DragStartEvent e) => false;
+        protected virtual bool HandleAsRelativeMovement(MouseDownEvent e) => false;
 
         private void handleMouseInput(MouseButtonEvent e)
         {
+            float localX = ToLocalSpace(e.ScreenSpaceMousePosition).X;
+
             float newValue;
 
-            if (e is DragEvent drag && relativeValueAtDragStart != null)
+            if (relativeValueAtMouseDown != null && e is DragEvent drag)
             {
-                newValue = relativeValueAtDragStart.Value + (drag.MousePosition.X - drag.MouseDownPosition.X) / UsableWidth;
+                newValue = relativeValueAtMouseDown.Value + (localX - ToLocalSpace(drag.ScreenSpaceMouseDownPosition).X) / UsableWidth;
             }
             else
             {
-                newValue = (e.MousePosition.X - RangePadding) / UsableWidth;
+                newValue = (localX - RangePadding) / UsableWidth;
             }
 
             if (currentNumberInstantaneous.Disabled)
