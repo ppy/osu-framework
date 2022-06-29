@@ -65,17 +65,17 @@ namespace osu.Framework.Input.Handlers.Joystick
         /// Enqueues a <see cref="JoystickAxisInput"/> taking into account the axis deadzone.
         /// </summary>
         private void enqueueJoystickAxisChanged(JoystickAxisSource source, float value) =>
-            enqueueJoystickEvent(new JoystickAxisInput(new JoystickAxis(source, rescaleByDeadzone(value))));
+            enqueueJoystickEvent(new JoystickAxisInput(new JoystickAxis(source, RescaleByDeadzone(value, DeadzoneThreshold.Value))));
 
-        private float rescaleByDeadzone(float axisValue)
+        internal static float RescaleByDeadzone(float axisValue, float deadzoneThreshold)
         {
             float absoluteValue = Math.Abs(axisValue);
 
-            if (absoluteValue < DeadzoneThreshold.Value)
+            if (absoluteValue < deadzoneThreshold)
                 return 0;
 
             // rescale the given axis value such that the edge of the deadzone is considered the "new zero".
-            float absoluteRescaled = (absoluteValue - DeadzoneThreshold.Value) / (1f - DeadzoneThreshold.Value);
+            float absoluteRescaled = (absoluteValue - deadzoneThreshold) / (1f - deadzoneThreshold);
             return Math.Sign(axisValue) * absoluteRescaled;
         }
     }

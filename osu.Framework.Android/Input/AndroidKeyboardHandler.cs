@@ -1,11 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Android.Views;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK.Input;
@@ -44,6 +43,13 @@ namespace osu.Framework.Android.Input
         }
 
         public override bool IsActive => true;
+
+        /// <remarks>
+        /// Android might send Dpad events as <see cref="InputSourceType.Keyboard"/> or'd with <see cref="InputSourceType.Gamepad"/>.
+        /// Both <see cref="GetKeyCodeAsKey"/> and <see cref="AndroidInputExtensions.TryGetJoystickButton"/> handle Dpad (eg. <see cref="Keycode.DpadUp"/>) keycodes,
+        /// so the additional check ensures only one handler handles them.
+        /// </remarks>
+        protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && !inputEvent.Source.HasFlagFast(InputSourceType.Gamepad);
 
         protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
