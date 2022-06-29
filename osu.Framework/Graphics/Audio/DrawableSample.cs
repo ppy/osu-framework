@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Audio
 
         private IAudioMixer? mixer;
 
-        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer?> mixer)
         {
             base.OnMixerChanged(mixer);
 

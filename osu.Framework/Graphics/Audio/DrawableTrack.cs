@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public bool TrackLoaded => track.IsLoaded;
 
-        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer?> mixer)
         {
             base.OnMixerChanged(mixer);
 
