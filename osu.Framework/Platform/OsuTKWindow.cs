@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,10 +33,9 @@ namespace osu.Framework.Platform
         public abstract IGraphicsContext Context { get; }
 
         /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        [CanBeNull]
-        public event Func<bool> ExitRequested;
+        public event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="OsuTKWindow"/> has closed.
@@ -96,7 +97,7 @@ namespace osu.Framework.Platform
             get
             {
                 var display = CurrentDisplayDevice;
-                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0, 0));
+                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0));
             }
         }
 
@@ -112,22 +113,28 @@ namespace osu.Framework.Platform
 
             // Moving or resizing the window needs to check to see if we've moved to a different display.
             // This will update the CurrentDisplay bindable.
-            Move += (sender, e) => checkCurrentDisplay();
-            Resize += (sender, e) =>
+            Move += (_, _) => checkCurrentDisplay();
+            Resize += (_, _) =>
             {
                 checkCurrentDisplay();
                 Resized?.Invoke();
             };
 
-            Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
-            Closed += (sender, e) => Exited?.Invoke();
+            Closing += (_, e) =>
+            {
+                // always block a graceful exit as it's treated as a regular window event.
+                // the host will force-close the window if the game decides not to block the exit.
+                ExitRequested?.Invoke();
+                e.Cancel = true;
+            };
+            Closed += (_, _) => Exited?.Invoke();
 
-            MouseEnter += (sender, args) => cursorInWindow.Value = true;
-            MouseLeave += (sender, args) => cursorInWindow.Value = false;
+            MouseEnter += (_, _) => cursorInWindow.Value = true;
+            MouseLeave += (_, _) => cursorInWindow.Value = false;
 
             supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
-            UpdateFrame += (o, e) => UpdateFrameScheduler.Update();
+            UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
             MakeCurrent();
 
@@ -166,7 +173,7 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Creates a <see cref="OsuTKWindow"/> with given dimensions.
-        /// <para>Note that this will use the default <see cref="osuTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
+        /// <para>Note that this will use the default <see cref="GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected OsuTKWindow(int width, int height)
             : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
@@ -414,7 +421,20 @@ namespace osu.Framework.Platform
             set => OsuTKGameWindow.ClientSize = value;
         }
 
+        public Size MinSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MinSize)} is not supported.");
+        }
+
+        public Size MaxSize
+        {
+            get => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
+            set => throw new InvalidOperationException($@"{nameof(MaxSize)} is not supported.");
+        }
+
         public void Close() => OsuTKGameWindow.Close();
+
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
         public Point PointToScreen(Point point) => OsuTKGameWindow.PointToScreen(point);

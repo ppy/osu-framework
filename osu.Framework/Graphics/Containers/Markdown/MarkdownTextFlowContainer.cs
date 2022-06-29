@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +56,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         {
                             switch (literal.Parent)
                             {
-                                case EmphasisInline _:
+                                case EmphasisInline:
                                     var parent = literal.Parent;
 
                                     var emphases = new List<string>();
@@ -92,8 +94,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         AddImage(linkInline);
                         break;
 
-                    case HtmlInline _:
-                    case HtmlEntityInline _:
+                    case HtmlInline:
+                    case HtmlEntityInline:
                         // Handled by the next literal
                         break;
 

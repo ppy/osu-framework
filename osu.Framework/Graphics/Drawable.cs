@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
@@ -1082,7 +1084,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The origin of this <see cref="Drawable"/>.
         /// </summary>
-        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="osu.Framework.Graphics.Anchor"/> enumeration.</exception>
+        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="Graphics.Anchor"/> enumeration.</exception>
         public virtual Anchor Origin
         {
             get => origin;
@@ -2343,7 +2345,7 @@ namespace osu.Framework.Graphics
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {

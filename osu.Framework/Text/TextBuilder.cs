@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Caching;
@@ -221,7 +223,7 @@ namespace osu.Framework.Text
                 return;
 
             TextBuilderGlyph removedCharacter = Characters[^1];
-            TextBuilderGlyph? previousCharacter = Characters.Count == 1 ? null : (TextBuilderGlyph?)Characters[^2];
+            TextBuilderGlyph? previousCharacter = Characters.Count == 1 ? null : Characters[^2];
 
             Characters.RemoveAt(Characters.Count - 1);
 

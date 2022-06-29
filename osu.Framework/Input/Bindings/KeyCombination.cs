@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -623,10 +625,10 @@ namespace osu.Framework.Input.Bindings
                 yield return InputKey.MouseWheelDown;
 
             if (scrollDelta.X > 0)
-                yield return InputKey.MouseWheelRight;
+                yield return InputKey.MouseWheelLeft;
 
             if (scrollDelta.X < 0)
-                yield return InputKey.MouseWheelLeft;
+                yield return InputKey.MouseWheelRight;
         }
 
         public static InputKey FromMidiKey(MidiKey key) => (InputKey)((int)InputKey.MidiA0 + key - MidiKey.A0);

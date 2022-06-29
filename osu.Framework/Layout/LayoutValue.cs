@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics;
 
@@ -8,7 +10,7 @@ namespace osu.Framework.Layout
 {
     /// <summary>
     /// A member that represents the validation state of the layout of a <see cref="Drawable"/>.
-    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Graphics.Invalidation"/> flags), and validated on-demand when the layout has been re-computed.
+    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Invalidation"/> flags), and validated on-demand when the layout has been re-computed.
     /// </summary>
     public class LayoutValue : LayoutMember
     {
@@ -31,7 +33,7 @@ namespace osu.Framework.Layout
 
     /// <summary>
     /// A member that represents the validation state of a value in the layout of a <see cref="Drawable"/>.
-    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Graphics.Invalidation"/> flags), and validated when an up-to-date value is set.
+    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Invalidation"/> flags), and validated when an up-to-date value is set.
     /// </summary>
     /// <typeparam name="T">The type of value stored.</typeparam>
     public class LayoutValue<T> : LayoutMember

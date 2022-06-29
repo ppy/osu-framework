@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,7 +25,7 @@ namespace osu.Framework.Configuration
         {
             SetDefault(FrameworkSetting.ShowLogOverlay, false);
 
-            SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
+            SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480), new Size(65536, 65536));
             SetDefault(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
             SetDefault(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
             SetDefault(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);

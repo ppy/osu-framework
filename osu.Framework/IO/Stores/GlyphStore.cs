@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -41,6 +44,13 @@ namespace osu.Framework.IO.Stores
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
         /// <summary>
+        /// This is a rare usage of a static framework-wide cache.
+        /// In normal execution font instances are held locally by font stores and this will add no overhead or improvement.
+        /// It exists specifically to avoid overheads of parsing fonts repeatedly in unit tests.
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, BitmapFont> font_cache = new ConcurrentDictionary<string, BitmapFont>();
+
+        /// <summary>
         /// Create a new glyph store.
         /// </summary>
         /// <param name="store">The store to provide font resources.</param>
@@ -66,8 +76,20 @@ namespace osu.Framework.IO.Stores
             try
             {
                 BitmapFont font;
+
                 using (var s = Store.GetStream($@"{AssetName}"))
-                    font = BitmapFont.FromStream(s, FormatHint.Binary, false);
+                {
+                    string hash = s.ComputeMD5Hash();
+
+                    if (font_cache.TryGetValue(hash, out font))
+                    {
+                        Logger.Log($"Cached font load for {AssetName}");
+                    }
+                    else
+                    {
+                        font_cache.TryAdd(hash, font = BitmapFont.FromStream(s, FormatHint.Binary, false));
+                    }
+                }
 
                 completionSource.SetResult(font);
             }

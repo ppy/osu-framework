@@ -1,10 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
+
+#pragma warning disable IDE0052 // Unread private member
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -108,6 +112,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
+            Assert.IsNull(dependencies.Get<object>());
             Assert.IsNotNull(dependencies.Get<ProvidedType1>());
         }
 
@@ -272,6 +277,29 @@ namespace osu.Framework.Tests.Dependencies
 
             Assert.IsNotNull(dependencies.Get<IProviderInterface3>());
             Assert.IsNotNull(dependencies.Get<IProviderInterface2>());
+        }
+
+        [Test]
+        public void TestInheritancePreservesCachingViaBaseType()
+        {
+            var provider = new Provider26();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.AreEqual(provider, dependencies.Get<Provider1>());
+            Assert.IsNull(dependencies.Get<Provider26>());
+        }
+
+        [Test]
+        public void TestImplementationOfDerivedInterfacePreservesCaching()
+        {
+            var provider = new Provider27();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.AreEqual(provider, dependencies.Get<IProviderInterface2>());
+            Assert.IsNull(dependencies.Get<IProviderInterface4>());
+            Assert.IsNull(dependencies.Get<Provider27>());
         }
 
         private interface IProvidedInterface1
@@ -457,6 +485,14 @@ namespace osu.Framework.Tests.Dependencies
         {
         }
 
+        private class Provider26 : Provider1
+        {
+        }
+
+        private class Provider27 : IProviderInterface4
+        {
+        }
+
         [Cached]
         private interface IProviderInterface3 : IProviderInterface2
         {
@@ -464,6 +500,10 @@ namespace osu.Framework.Tests.Dependencies
 
         [Cached]
         private interface IProviderInterface2
+        {
+        }
+
+        private interface IProviderInterface4 : IProviderInterface2
         {
         }
     }

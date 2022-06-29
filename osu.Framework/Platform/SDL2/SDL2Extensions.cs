@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -384,6 +387,7 @@ namespace osu.Framework.Platform.SDL2
                     return Key.F24;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_MENU:
+                case SDL.SDL_Scancode.SDL_SCANCODE_APPLICATION:
                     return Key.Menu;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_STOP:
@@ -1010,6 +1014,75 @@ namespace osu.Framework.Platform.SDL2
 
             str = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
             return true;
+        }
+
+        public static DisplayMode ToDisplayMode(this SDL.SDL_DisplayMode mode, int displayIndex)
+        {
+            SDL.SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
+            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
+        }
+
+        public static string ReadableName(this SDL.SDL_LogCategory category)
+        {
+            switch (category)
+            {
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_APPLICATION:
+                    return "application";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR:
+                    return "error";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ASSERT:
+                    return "assert";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_SYSTEM:
+                    return "system";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_AUDIO:
+                    return "audio";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_VIDEO:
+                    return "video";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_RENDER:
+                    return "render";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_INPUT:
+                    return "input";
+
+                case SDL.SDL_LogCategory.SDL_LOG_CATEGORY_TEST:
+                    return "test";
+
+                default:
+                    return "unknown";
+            }
+        }
+
+        public static string ReadableName(this SDL.SDL_LogPriority priority)
+        {
+            switch (priority)
+            {
+                case SDL.SDL_LogPriority.SDL_LOG_PRIORITY_VERBOSE:
+                    return "verbose";
+
+                case SDL.SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG:
+                    return "debug";
+
+                case SDL.SDL_LogPriority.SDL_LOG_PRIORITY_INFO:
+                    return "info";
+
+                case SDL.SDL_LogPriority.SDL_LOG_PRIORITY_WARN:
+                    return "warn";
+
+                case SDL.SDL_LogPriority.SDL_LOG_PRIORITY_ERROR:
+                    return "error";
+
+                case SDL.SDL_LogPriority.SDL_LOG_PRIORITY_CRITICAL:
+                    return "critical";
+
+                default:
+                    return "unknown";
+            }
         }
     }
 }

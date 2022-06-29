@@ -8,8 +8,6 @@ using osu.Framework.Bindables;
 using osuTK;
 using osu.Framework.Graphics;
 
-#nullable enable
-
 namespace osu.Framework.Utils
 {
     public static class Validation

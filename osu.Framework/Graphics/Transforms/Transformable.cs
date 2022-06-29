@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -224,7 +226,9 @@ namespace osu.Framework.Graphics.Transforms
             }
             else
             {
-                // collection may grow due to abort / completion events.
+                // Use for over foreach as collection may grow due to abort / completion events.
+                // Note that this may mean that in the addition of elements being removed,
+                // `FinishTransforms` may not be called on all items.
                 for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].FinishTransforms();
             }

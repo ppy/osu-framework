@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +22,9 @@ namespace osu.Framework.Input.Handlers.Midi
     public class MidiHandler : InputHandler
     {
         public override string Description => "MIDI";
-        public override bool IsActive => active;
-        private bool active = true;
+        public override bool IsActive => inGoodState;
+
+        private bool inGoodState = true;
 
         private ScheduledDelegate scheduledRefreshDevices;
 
@@ -42,6 +45,7 @@ namespace osu.Framework.Input.Handlers.Midi
             {
                 if (e.NewValue)
                 {
+                    inGoodState = true;
                     host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), 0, 500));
                 }
                 else
@@ -101,11 +105,15 @@ namespace osu.Framework.Input.Handlers.Midi
             }
             catch (Exception e)
             {
-                Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
-                    ? "Couldn't list input devices. Is libasound2-dev installed?"
-                    : "Couldn't list input devices. There may be another application already using MIDI.");
+                string message = RuntimeInfo.OS == RuntimeInfo.Platform.Linux
+                    ? "Is libasound2-dev installed?"
+                    : "There may be another application already using MIDI.";
 
-                active = false;
+                Logger.Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
+
+                // stop attempting to refresh devices until next startup.
+                inGoodState = false;
+                scheduledRefreshDevices?.Cancel();
                 return false;
             }
         }

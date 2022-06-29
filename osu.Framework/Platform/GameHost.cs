@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,6 +24,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -49,6 +52,12 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        /// <summary>
+        /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
+        /// Only use this for benchmarking purposes (see <see cref="maximum_sane_fps"/> for further reasoning).
+        /// </summary>
+        public bool AllowBenchmarkUnlimitedFrames { get; set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -84,7 +93,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Deactivated;
 
-        public event Func<bool> Exiting;
+        /// <summary>
+        /// Invoked when an exit was requested. Always invoked from the update thread.
+        /// </summary>
+        /// <remarks>
+        /// Usually invoked when the window close (X) button or another platform-native exit action has been pressed.
+        /// </remarks>
+        public event Action ExitRequested;
 
         public event Action Exited;
 
@@ -324,8 +339,13 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            var actualException = args.Exception.AsSingular();
+
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
-            logException(args.Exception, "unobserved");
+            logException(actualException, "unobserved");
+
+            if (DebugUtils.IsNUnitRunning)
+                abortExecutionFromException(sender, actualException, false);
         }
 
         private void logException(Exception exception, string type)
@@ -392,30 +412,7 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
-        /// <returns>true to cancel</returns>
-        protected virtual bool OnExitRequested()
-        {
-            if (ExecutionState <= ExecutionState.Stopping) return false;
-
-            bool? response = null;
-
-            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
-
-            //wait for a potentially blocking response
-            while (!response.HasValue)
-            {
-                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-                    threadRunner.RunMainLoop();
-                else
-                    Thread.Sleep(1);
-            }
-
-            if (response == false)
-                return true;
-
-            Exit();
-            return false;
-        }
+        protected void OnExitRequested() => UpdateThread.Scheduler.Add(() => ExitRequested?.Invoke());
 
         protected virtual void OnExited()
         {
@@ -450,11 +447,9 @@ namespace osu.Framework.Platform
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
-            using (var buffer = DrawRoots.Get(UsageType.Write))
+            using (var buffer = DrawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
-
-        private long lastDrawFrameId;
 
         private readonly DepthValue depthValue = new DepthValue();
 
@@ -463,64 +458,60 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (ExecutionState == ExecutionState.Running)
+            if (ExecutionState != ExecutionState.Running)
+                return;
+
+            ObjectUsage<DrawNode> buffer;
+
+            using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                buffer = DrawRoots.GetForRead();
+
+            if (buffer == null)
+                return;
+
+            try
             {
-                using (var buffer = DrawRoots.Get(UsageType.Read))
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+
+                if (!bypassFrontToBackPass.Value)
                 {
-                    if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
-                    {
-                        // if a buffer is not available in single threaded mode there's no point in looping.
-                        // in the general case this should never happen, but may occur during exception handling.
-                        if (executionMode.Value == ExecutionMode.SingleThread)
-                            break;
+                    depthValue.Reset();
 
-                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                            Thread.Sleep(1);
+                    GL.ColorMask(false, false, false, false);
+                    GLWrapper.SetBlend(BlendingParameters.None);
+                    GLWrapper.PushDepthInfo(DepthInfo.Default);
 
-                        continue;
-                    }
-
-                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-
-                    if (!bypassFrontToBackPass.Value)
-                    {
-                        depthValue.Reset();
-
-                        GL.ColorMask(false, false, false, false);
-                        GLWrapper.SetBlend(BlendingParameters.None);
-                        GLWrapper.PushDepthInfo(DepthInfo.Default);
-
-                        // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
-
-                        GLWrapper.PopDepthInfo();
-                        GL.ColorMask(true, true, true, true);
-
-                        // The back pass doesn't write depth, but needs to depth test properly
-                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
-                    }
-                    else
-                    {
-                        // Disable depth testing
-                        GLWrapper.PushDepthInfo(new DepthInfo());
-                    }
-
-                    // Back pass
-                    buffer.Object.Draw(null);
+                    // Front pass
+                    buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
 
                     GLWrapper.PopDepthInfo();
+                    GL.ColorMask(true, true, true, true);
 
-                    lastDrawFrameId = buffer.FrameId;
-                    break;
+                    // The back pass doesn't write depth, but needs to depth test properly
+                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                }
+                else
+                {
+                    // Disable depth testing
+                    GLWrapper.PushDepthInfo(new DepthInfo());
+                }
+
+                // Back pass
+                buffer.Object.Draw(null);
+
+                GLWrapper.PopDepthInfo();
+
+                GLWrapper.FlushCurrentBatch();
+
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                {
+                    Swap();
                 }
             }
-
-            GLWrapper.FlushCurrentBatch();
-
-            using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            finally
             {
-                Swap();
+                buffer.Dispose();
             }
         }
 
@@ -565,7 +556,9 @@ namespace osu.Framework.Platform
                 });
 
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-                await Task.Run(completionEvent.Wait).ConfigureAwait(false);
+                // ReSharper disable once AccessToDisposedClosure
+                if (!await Task.Run(() => completionEvent.Wait(5000)).ConfigureAwait(false))
+                    throw new TimeoutException("Screenshot data did not arrive in a timely fashion");
 
                 var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
@@ -751,7 +744,7 @@ namespace osu.Framework.Platform
                                 break;
 
                             case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
+                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
                                 break;
                         }
 
@@ -1008,7 +1001,24 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
+                CultureInfo culture;
+
+                try
+                {
+                    // After dropping netstandard we can use `predefinedOnly` override.
+                    // See https://github.com/dotnet/runtime/pull/1261/files
+                    culture = CultureInfo.GetCultureInfo(locale.NewValue);
+
+                    // This is best-effort for now to catch cases where dotnet is creating cultures.
+                    // See https://github.com/dotnet/runtime/blob/5877e8b713742b6d80bd1aa9819094be029e3e1f/src/libraries/System.Private.CoreLib/src/System/Globalization/CultureData.Icu.cs#L341-L345
+                    if (culture.ThreeLetterWindowsLanguageName == "ZZZ")
+                        culture = CultureInfo.InvariantCulture;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"Culture for {locale.NewValue} could not be found ({e})");
+                    culture = CultureInfo.InvariantCulture;
+                }
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -1019,19 +1029,34 @@ namespace osu.Framework.Platform
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
         }
 
+        /// <summary>
+        /// Games using osu!framework can generally run at *very* high frame rates when not much is going on.
+        ///
+        /// This can be counter-productive due to the induced allocation and GPU overhead.
+        /// - Allocation overhead can lead to excess garbage collection
+        /// - GPU overhead can lead to unexpected pipeline blocking (and stutters as a result).
+        ///   Also, in general graphics card manufacturers do not test their hardware at insane frame rates and
+        ///   therefore drivers are not optimised to handle this kind of throughput.
+        /// - We only harvest input at 1000hz, so running any higher has zero benefits.
+        ///
+        /// We limit things to the same rate we poll input at, to keep both gamers and their systems happy
+        /// and (more) stutter-free.
+        /// </summary>
+        private const int maximum_sane_fps = GameThread.DEFAULT_ACTIVE_HZ;
+
         private void updateFrameSyncMode()
         {
             if (Window == null)
                 return;
 
-            float refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
                 refreshRate = 60;
 
-            float drawLimiter = refreshRate;
-            float updateLimiter = drawLimiter * 2;
+            int drawLimiter = refreshRate;
+            int updateLimiter = drawLimiter * 2;
 
             setVSyncMode();
 
@@ -1058,8 +1083,15 @@ namespace osu.Framework.Platform
                     break;
 
                 case FrameSync.Unlimited:
-                    drawLimiter = updateLimiter = int.MaxValue;
+                    drawLimiter = int.MaxValue;
+                    updateLimiter = int.MaxValue;
                     break;
+            }
+
+            if (!AllowBenchmarkUnlimitedFrames)
+            {
+                drawLimiter = Math.Min(maximum_sane_fps, drawLimiter);
+                updateLimiter = Math.Min(maximum_sane_fps, updateLimiter);
             }
 
             MaximumDrawHz = drawLimiter;
@@ -1103,7 +1135,9 @@ namespace osu.Framework.Platform
                 case ExecutionState.Stopping:
                 case ExecutionState.Stopped:
                     // Delay disposal until the game has exited
-                    stoppedEvent.Wait();
+                    if (!stoppedEvent.Wait(60000))
+                        throw new InvalidOperationException("Game stuck in runnning state.");
+
                     break;
             }
 
@@ -1173,6 +1207,7 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Home, PlatformAction.MoveToListStart),
             new KeyBinding(InputKey.End, PlatformAction.MoveToListEnd),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Y), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),

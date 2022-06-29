@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -223,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
+            ItemSource.CollectionChanged += (_, _) => setItems(ItemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)
@@ -477,7 +479,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         backgroundColourSelected = value;
-                        UpdateBackgroundColour();
+                        Scheduler.AddOnce(UpdateBackgroundColour);
                     }
                 }
 
@@ -489,17 +491,14 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         foregroundColourSelected = value;
-                        UpdateForegroundColour();
+                        Scheduler.AddOnce(UpdateForegroundColour);
                     }
                 }
 
                 protected virtual void OnSelectChange()
                 {
-                    if (!IsLoaded)
-                        return;
-
-                    UpdateBackgroundColour();
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
 
                 protected override void UpdateBackgroundColour()
@@ -510,13 +509,6 @@ namespace osu.Framework.Graphics.UserInterface
                 protected override void UpdateForegroundColour()
                 {
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
-                }
-
-                protected override void LoadComplete()
-                {
-                    base.LoadComplete();
-                    Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
-                    Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
                 protected override bool OnHover(HoverEvent e)

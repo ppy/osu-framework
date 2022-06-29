@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
@@ -225,13 +227,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             blendingAlphaSrcDropdown.Current.Value = BlendingType.One;
             blendingAlphaDestDropdown.Current.Value = BlendingType.One;
 
-            colourModeDropdown.Current.ValueChanged += v => updateBlending();
-            colourEquation.Current.ValueChanged += v => updateBlending();
-            alphaEquation.Current.ValueChanged += v => updateBlending();
-            blendingSrcDropdown.Current.ValueChanged += v => updateBlending();
-            blendingDestDropdown.Current.ValueChanged += v => updateBlending();
-            blendingAlphaSrcDropdown.Current.ValueChanged += v => updateBlending();
-            blendingAlphaDestDropdown.Current.ValueChanged += v => updateBlending();
+            colourModeDropdown.Current.ValueChanged += _ => updateBlending();
+            colourEquation.Current.ValueChanged += _ => updateBlending();
+            alphaEquation.Current.ValueChanged += _ => updateBlending();
+            blendingSrcDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingDestDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingAlphaSrcDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingAlphaDestDropdown.Current.ValueChanged += _ => updateBlending();
         }
 
         private void switchToCustomBlending()

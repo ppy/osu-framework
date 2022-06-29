@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -14,7 +16,7 @@ using Debug = System.Diagnostics.Debug;
 namespace osu.Framework.Android
 {
     // since `ActivityAttribute` can't be inherited, the below is only provided as an illustrative example of how to setup an activity for best compatibility.
-    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public abstract class AndroidGameActivity : Activity
     {
         protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -33,10 +35,10 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
         [CanBeNull]
-        event Func<bool> ExitRequested;
+        event Action ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> has closed.
@@ -144,7 +146,7 @@ namespace osu.Framework.Platform
         void ClearCurrent();
 
         /// <summary>
-        /// Request close.
+        /// Forcefully closes the window.
         /// </summary>
         void Close();
 
@@ -180,6 +182,18 @@ namespace osu.Framework.Platform
         /// The client size of the window (excluding any window decoration/border).
         /// </summary>
         Size ClientSize { get; }
+
+        /// <summary>
+        /// The minimum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or a size greater than <see cref="MaxSize"/>.</exception>
+        Size MinSize { get; set; }
+
+        /// <summary>
+        /// The maximum size of the window.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
+        Size MaxSize { get; set; }
 
         /// <summary>
         /// The window title.

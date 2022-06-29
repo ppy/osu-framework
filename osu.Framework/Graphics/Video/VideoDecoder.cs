@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using FFmpeg.AutoGen;
 using osuTK;
 using osu.Framework.Graphics.Textures;
@@ -19,6 +21,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Platform.Linux.Native;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
 namespace osu.Framework.Graphics.Video
@@ -104,6 +107,20 @@ namespace osu.Framework.Graphics.Video
 
         internal bool Looping;
 
+        static VideoDecoder()
+        {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // FFmpeg.AutoGen doesn't load libraries as RTLD_GLOBAL, so we must load them ourselves to fix inter-library dependencies
+                // otherwise they would fallback to the system-installed libraries that can differ in version installed.
+                Library.Load("libavutil.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libavcodec.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libavformat.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libavfilter.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                Library.Load("libswscale.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+        }
+
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
@@ -131,7 +148,7 @@ namespace osu.Framework.Graphics.Video
             availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
             handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
 
-            TargetHardwareVideoDecoders.BindValueChanged(e =>
+            TargetHardwareVideoDecoders.BindValueChanged(_ =>
             {
                 // ignore if decoding wasn't initialized yet.
                 if (formatContext == null)
@@ -780,7 +797,7 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NET6_0
+#if NET6_0_OR_GREATER
             AGffmpeg.GetOrLoadLibrary = name =>
             {
                 int version = AGffmpeg.LibraryVersionMap[name];

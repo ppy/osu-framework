@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -1277,7 +1279,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscriber()
         {
-            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
 
             bindableStringList.Disabled = bindableStringList.Disabled;
         }
@@ -1285,9 +1287,9 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscribers()
         {
-            bindableStringList.DisabledChanged += b => Assert.Fail();
-            bindableStringList.DisabledChanged += b => Assert.Fail();
-            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
 
             bindableStringList.Disabled = bindableStringList.Disabled;
         }

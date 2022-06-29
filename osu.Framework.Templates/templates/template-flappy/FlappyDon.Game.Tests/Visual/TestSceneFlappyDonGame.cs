@@ -1,5 +1,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Platform;
+using NUnit.Framework;
 
 namespace FlappyDon.Game.Tests.Visual
 {
@@ -7,6 +8,7 @@ namespace FlappyDon.Game.Tests.Visual
     /// A test scene wrapping the entire game,
     /// including audio.
     /// </summary>
+    [TestFixture]
     public class TestSceneFlappyDonGame : FlappyDonTestScene
     {
         private FlappyDonGame game;

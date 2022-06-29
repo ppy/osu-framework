@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -25,9 +27,9 @@ namespace osu.Framework.Graphics.Primitives
             Y = y;
         }
 
-        public static readonly Vector2I Zero;
+        public static Vector2I Zero { get; } = new Vector2I();
 
-        public static readonly Vector2I One = new Vector2I(1);
+        public static Vector2I One { get; } = new Vector2I(1);
 
         public static implicit operator Vector2(Vector2I r) => new Vector2(r.X, r.Y);
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +19,7 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>Represents an instance of the <see cref="RectangleF"/> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
-        public static readonly RectangleF Empty;
+        public static RectangleF Empty { get; } = new RectangleF();
 
         public float X;
         public float Y;
@@ -50,7 +52,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="RectangleF"/> structure.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the upper-left corner of this <see cref="RectangleF"/> structure.</returns>
+        /// <returns>A <see cref="Vector2"/> that represents the upper-left corner of this <see cref="RectangleF"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2 Location
@@ -64,7 +66,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Gets or sets the size of this <see cref="RectangleF"/>.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the width and height of this <see cref="RectangleF"/> structure.</returns>
+        /// <returns>A <see cref="Vector2"/> that represents the width and height of this <see cref="RectangleF"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2 Size
@@ -129,7 +131,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Tests whether obj is a <see cref="RectangleF"/> with the same location and size of this <see cref="RectangleF"/>.</summary>
         /// <returns>This method returns true if obj is a <see cref="RectangleF"/> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="RectangleF"/>; otherwise, false.</returns>
-        /// <param name="obj">The <see cref="System.Object"/> to test.</param>
+        /// <param name="obj">The <see cref="object"/> to test.</param>
         /// <filterpriority>1</filterpriority>
         public override bool Equals(object obj) => obj is RectangleF rec && Equals(rec);
 

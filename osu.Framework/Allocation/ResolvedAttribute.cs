@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -95,7 +97,7 @@ namespace osu.Framework.Allocation
                     cacheInfo = new CacheInfo(cacheInfo.Name ?? property.Name, attribute.Parent);
                 }
 
-                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable(), cacheInfo);
+                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.IsNullable(), cacheInfo);
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }

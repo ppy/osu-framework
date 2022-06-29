@@ -1,0 +1,170 @@
+name: Build FFmpeg
+on: workflow_dispatch
+
+jobs:
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+          - arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: ilammy/setup-nasm@v1
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/macOS/fetch_and_build.sh
+        env:
+          arch: ${{ matrix.arch }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: macOS-${{ matrix.arch }}
+          path: build-${{ matrix.arch }}
+
+  combine-macos:
+    name: Combine macOS libs
+    runs-on: macos-latest
+    needs: build-macos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: macOS-x86_64
+          path: macOS-x86_64
+      - uses: actions/download-artifact@v3
+        with:
+          name: macOS-arm64
+          path: macOS-arm64
+
+      - name: Combine
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/macOS/combine_universal.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: macOS-universal
+          path: macOS-universal
+
+  build-win:
+    name: Build Windows
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86
+          - x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install make nasm gcc mingw-w64
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/win/fetch_and_build.sh
+        env:
+          arch: ${{ matrix.arch }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: win-${{ matrix.arch }}
+          path: build-${{ matrix.arch }}
+
+  # The win-arm64 build runs in a special MinGW container to cross-compile successfully.
+  build-win-arm64:
+    name: Build Windows (arm64)
+    runs-on: ubuntu-latest
+    container:
+      image: mstorsjo/llvm-mingw:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/win/fetch_and_build.sh
+        env:
+          arch: arm64
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: win-arm64
+          path: build-arm64
+
+  build-linux:
+    name: Build Linux (x64)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:16.04
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git curl gcc make nasm
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/linux/fetch_and_build.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-x64
+          path: build-x64
+
+  make-pr:
+    name: Create pull request
+    runs-on: ubuntu-latest
+    needs:
+      - combine-macos
+      - build-win
+      - build-win-arm64
+      - build-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: macOS-universal
+          path: osu.Framework.NativeLibs/runtimes/osx/native
+      - uses: actions/download-artifact@v3
+        with:
+          name: linux-x64
+          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+      - uses: actions/download-artifact@v3
+        with:
+          name: win-arm64
+          path: osu.Framework.NativeLibs/runtimes/win-arm64/native
+      - uses: actions/download-artifact@v3
+        with:
+          name: win-x64
+          path: osu.Framework.NativeLibs/runtimes/win-x64/native
+      - uses: actions/download-artifact@v3
+        with:
+          name: win-x86
+          path: osu.Framework.NativeLibs/runtimes/win-x86/native
+
+      - uses: peter-evans/create-pull-request@v2
+        with:
+          commit-message: Update FFmpeg binaries
+          title: Update FFmpeg binaries
+          body: This PR has been auto-generated to update the FFmpeg binaries.
+          branch: update-ffmpeg-binaries
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'

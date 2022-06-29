@@ -1,8 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using Android.Views;
+using osu.Framework.Extensions.EnumExtensions;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
@@ -10,33 +14,27 @@ namespace osu.Framework.Android.Input
     public static class AndroidInputExtensions
     {
         /// <summary>
-        /// Returns the corresponding <see cref="MouseButton"/> for a mouse button given as a <see cref="MotionEventButtonState"/>.
+        /// Returns the corresponding <see cref="MouseButton"/>s for a mouse button given as a <see cref="MotionEventButtonState"/>.
         /// </summary>
-        /// <param name="motionEventMouseButton">The given button. Must not be a raw state or a non-mouse button.</param>
-        /// <returns>The corresponding <see cref="MouseButton"/>.</returns>
+        /// <param name="motionEventMouseButton">The given button state. Must not be a raw state or a non-mouse button.</param>
+        /// <returns>The corresponding <see cref="MouseButton"/>s.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the provided button <paramref name="motionEventMouseButton"/> is not a </exception>
-        public static MouseButton ToMouseButton(this MotionEventButtonState motionEventMouseButton)
+        public static IEnumerable<MouseButton> ToMouseButtons(this MotionEventButtonState motionEventMouseButton)
         {
-            switch (motionEventMouseButton)
-            {
-                case MotionEventButtonState.Primary:
-                    return MouseButton.Left;
+            if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Primary))
+                yield return MouseButton.Left;
 
-                case MotionEventButtonState.Secondary:
-                    return MouseButton.Right;
+            if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Secondary))
+                yield return MouseButton.Right;
 
-                case MotionEventButtonState.Tertiary:
-                    return MouseButton.Middle;
+            if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Tertiary))
+                yield return MouseButton.Middle;
 
-                case MotionEventButtonState.Back:
-                    return MouseButton.Button1;
+            if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Back))
+                yield return MouseButton.Button1;
 
-                case MotionEventButtonState.Forward:
-                    return MouseButton.Button2;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(motionEventMouseButton), motionEventMouseButton, "Given button is not a mouse button.");
-            }
+            if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Forward))
+                yield return MouseButton.Button2;
         }
 
         /// <summary>

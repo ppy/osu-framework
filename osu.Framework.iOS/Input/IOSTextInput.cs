@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using Foundation;
 using osu.Framework.Input;
 
@@ -8,10 +10,12 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSTextInput : TextInputSource
     {
+        private readonly IOSGameHost host;
         private readonly IOSGameView view;
 
-        public IOSTextInput(IOSGameView view)
+        public IOSTextInput(IOSGameHost host, IOSGameView view)
         {
+            this.host = host;
             this.view = view;
         }
 
@@ -25,6 +29,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
+            host.TextFieldHandler.KeyboardActive = true;
         }
 
         protected override void EnsureTextInputActivated(bool allowIme)
@@ -40,6 +45,7 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
+            host.TextFieldHandler.KeyboardActive = false;
         }
     }
 }

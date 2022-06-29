@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RelativeSizeAxes = Axes.Both
             });
 
-            stack.ScreenPushed += (last, current) =>
+            stack.ScreenPushed += (_, current) =>
             {
                 if (current is TestScreenSlow slow)
                     slowLoaders.Add(slow);
@@ -504,6 +506,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
             AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 3 destination is screen 1", () => screen3.Destination == screen1);
             AddAssert("screen 2 resumed not fired", () => screen2.ResumedFrom == null);
             AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd == double.MaxValue);
             AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
@@ -513,7 +516,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
             AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 3 destination is screen 1", () => screen3.Destination == screen1);
             AddAssert("screen 2 exited fired", () => screen2.ExitedTo == screen1);
+            AddAssert("screen 2 destination is screen 1", () => screen2.Destination == screen1);
             AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom == screen2);
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
@@ -982,6 +987,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public IScreen EnteredFrom;
             public IScreen ExitedTo;
+            public IScreen Destination;
 
             public IScreen SuspendedTo;
             public IScreen ResumedFrom;
@@ -1085,22 +1091,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderThickness = 0;
             }
 
-            public override void OnEntering(IScreen last)
+            public override void OnEntering(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
-                EnteredFrom = last;
+                EnteredFrom = e.Last;
                 Entered?.Invoke();
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)last).DummyBindable);
+                    DummyBindable.BindTo(((TestScreen)e.Last).DummyBindable);
                     LeasedCopy = DummyBindable.BeginLease(true);
                 }
 
-                base.OnEntering(last);
+                base.OnEntering(e);
 
-                if (last != null)
+                if (e.Last != null)
                 {
                     //only show the pop button if we are entered form another screen.
                     popButton.Alpha = 1;
@@ -1111,39 +1117,41 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 this.FadeIn(1000);
             }
 
-            public override bool OnExiting(IScreen next)
+            public override bool OnExiting(ScreenExitEvent e)
             {
                 attemptTransformMutation();
 
-                ExitedTo = next;
+                ExitedTo = e.Next;
+                Destination = e.Destination;
+
                 Exited?.Invoke();
 
                 if (Exiting?.Invoke() == true)
                     return true;
 
                 this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
-                return base.OnExiting(next);
+                return base.OnExiting(e);
             }
 
-            public override void OnSuspending(IScreen next)
+            public override void OnSuspending(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
-                SuspendedTo = next;
+                SuspendedTo = e.Next;
                 Suspended?.Invoke();
 
-                base.OnSuspending(next);
+                base.OnSuspending(e);
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
-            public override void OnResuming(IScreen last)
+            public override void OnResuming(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
-                ResumedFrom = last;
+                ResumedFrom = e.Last;
                 Resumed?.Invoke();
 
-                base.OnResuming(last);
+                base.OnResuming(e);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -109,7 +111,7 @@ namespace osu.Framework.Platform
             new InputHandler[]
             {
                 new KeyboardHandler(),
-#if NET6_0
+#if NET6_0_OR_GREATER
                 // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
                 new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif

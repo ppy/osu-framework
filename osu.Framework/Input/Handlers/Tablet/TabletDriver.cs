@@ -1,7 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0
+#nullable disable
+
+#if NET6_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,9 +31,9 @@ namespace osu.Framework.Input.Handlers.Tablet
         public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
         {
-            Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
+            Log.Output += (_, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
 
-            deviceHub.DevicesChanged += (sender, args) =>
+            deviceHub.DevicesChanged += (_, args) =>
             {
                 // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
                 if (!Tablets.Any() && args.Additions.Any())
@@ -62,7 +64,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     foreach (var endpoint in device.InputDevices)
                     {
                         endpoint.Report += DeviceReported;
-                        endpoint.ConnectionStateChanged += (sender, connected) =>
+                        endpoint.ConnectionStateChanged += (_, connected) =>
                         {
                             if (!connected)
                                 endpoint.Report -= DeviceReported;

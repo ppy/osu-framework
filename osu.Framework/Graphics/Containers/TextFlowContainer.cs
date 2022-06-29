@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 using System;
@@ -222,7 +224,7 @@ namespace osu.Framework.Graphics.Containers
             where TSpriteText : SpriteText, new()
             => AddPart(CreateChunkFor(text, true, () => new TSpriteText(), creationParameters));
 
-        /// <inheritdoc cref="AddText{TSpriteText}(LocalisableString,System.Action{TSpriteText})"/>
+        /// <inheritdoc cref="AddText{TSpriteText}(LocalisableString,Action{TSpriteText})"/>
         public ITextPart AddText(LocalisableString text, Action<SpriteText> creationParameters = null)
             => AddPart(CreateChunkFor(text, true, CreateSpriteText, creationParameters));
 

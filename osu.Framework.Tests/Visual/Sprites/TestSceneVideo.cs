@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -103,7 +105,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("make video hidden", () => video.Hide());
 
             AddWaitStep("wait a bit", 10);
-
             AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
 
             AddStep("reset decode state", () => didDecode = false);
@@ -125,6 +126,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("Jump back to before start time", () => clock.CurrentTime = -30000);
 
+            AddWaitStep("wait a bit", 10);
             AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
 
             AddStep("reset decode state", () => didDecode = false);

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -141,8 +144,6 @@ namespace osu.Framework.Graphics.OpenGL
         {
             ResetId++;
 
-            Trace.Assert(shader_stack.Count == 0);
-
             reset_scheduler.Update();
 
             stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
@@ -163,6 +164,11 @@ namespace osu.Framework.Graphics.OpenGL
             foreach (var b in batch_reset_list)
                 b.ResetCounters();
             batch_reset_list.Clear();
+
+            currentShader?.Unbind();
+            currentShader = null;
+            shader_stack.Clear();
+            GL.UseProgram(0);
 
             viewport_stack.Clear();
             ortho_stack.Clear();
@@ -903,18 +909,15 @@ namespace osu.Framework.Graphics.OpenGL
             ScheduleDisposal(GL.DeleteFramebuffer, frameBuffer);
         }
 
-        private static int currentShader;
+        private static readonly Stack<Shader> shader_stack = new Stack<Shader>();
+        private static Shader currentShader;
 
-        private static readonly Stack<int> shader_stack = new Stack<int>();
-
-        public static void UseProgram(int? shader)
+        public static void UseProgram([CanBeNull] Shader shader)
         {
             ThreadSafety.EnsureDrawThread();
 
             if (shader != null)
-            {
-                shader_stack.Push(shader.Value);
-            }
+                shader_stack.Push(shader);
             else
             {
                 shader_stack.Pop();
@@ -924,16 +927,17 @@ namespace osu.Framework.Graphics.OpenGL
                     return;
             }
 
-            int s = shader ?? shader_stack.Peek();
+            shader ??= shader_stack.Peek();
 
-            if (currentShader == s) return;
+            if (currentShader == shader)
+                return;
 
             FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
 
             FlushCurrentBatch();
 
-            GL.UseProgram(s);
-            currentShader = s;
+            GL.UseProgram(shader);
+            currentShader = shader;
         }
 
         internal static void SetUniform<T>(IUniformWithValue<T> uniform)

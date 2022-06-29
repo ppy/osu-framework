@@ -1,10 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Diagnostics;
 using System.Threading;
-
-#nullable enable
 
 namespace osu.Framework.Threading
 {
@@ -24,9 +21,9 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The total tasks this synchronization context has run.
         /// </summary>
-        public int TotalTasksRun => scheduler.TotalTasksRun;
+        public int TotalTasksRun => scheduler?.TotalTasksRun ?? 0;
 
-        private readonly Scheduler scheduler;
+        private Scheduler? scheduler;
 
         public GameThreadSynchronizationContext(GameThread gameThread)
         {
@@ -35,24 +32,39 @@ namespace osu.Framework.Threading
 
         public override void Send(SendOrPostCallback callback, object? state)
         {
-            var scheduledDelegate = scheduler.Add(() => callback(state));
+            var scheduledDelegate = scheduler?.Add(() => callback(state));
 
-            Debug.Assert(scheduledDelegate != null);
+            if (scheduledDelegate == null)
+                return;
 
             while (scheduledDelegate.State < ScheduledDelegate.RunState.Complete)
             {
-                if (scheduler.IsMainThread)
-                    scheduler.Update();
+                var runScheduler = scheduler;
+
+                if (runScheduler == null)
+                    return;
+
+                if (runScheduler.IsMainThread)
+                    runScheduler.Update();
                 else
                     Thread.Sleep(1);
             }
         }
 
-        public override void Post(SendOrPostCallback callback, object? state) => scheduler.Add(() => callback(state));
+        public override void Post(SendOrPostCallback callback, object? state) => scheduler?.Add(() => callback(state));
 
         /// <summary>
         /// Run any pending work queued against this synchronization context.
         /// </summary>
-        public void RunWork() => scheduler.Update();
+        public void RunWork() => scheduler?.Update();
+
+        /// <summary>
+        /// Disassociate any references to the <see cref="GameThread"/> provided at construction time.
+        /// This ensures external components cannot hold a reference to potentially expensive game instances.
+        /// </summary>
+        public void DisassociateGameThread()
+        {
+            scheduler = null;
+        }
     }
 }

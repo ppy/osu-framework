@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.States;
 using osuTK;
@@ -15,6 +17,9 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// The relative change in scroll associated with this event.
         /// </summary>
+        /// <remarks>
+        /// Delta is positive when mouse wheel scrolled to the up or left, in non-"natural" scroll mode (ie. the classic way).
+        /// </remarks>
         public readonly Vector2 ScrollDelta;
 
         /// <summary>

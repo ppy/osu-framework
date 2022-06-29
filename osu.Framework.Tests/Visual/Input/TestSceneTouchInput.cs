@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -463,10 +465,10 @@ namespace osu.Framework.Tests.Visual.Input
 
                         break;
 
-                    case MouseDownEvent _:
-                    case MouseMoveEvent _:
-                    case DragEvent _:
-                    case MouseUpEvent _:
+                    case MouseDownEvent:
+                    case MouseMoveEvent:
+                    case DragEvent:
+                    case MouseUpEvent:
                         if (HandleMouse?.Invoke((MouseEvent)e) != false)
                         {
                             MouseEvents.Enqueue((MouseEvent)e);

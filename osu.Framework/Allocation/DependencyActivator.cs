@@ -1,12 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Allocation
 {
@@ -28,6 +31,12 @@ namespace osu.Framework.Allocation
         private readonly List<CacheDependencyDelegate> buildCacheActivators = new List<CacheDependencyDelegate>();
 
         private readonly DependencyActivator baseActivator;
+
+        static DependencyActivator()
+        {
+            // Attributes could have been added or removed when using hot-reload.
+            HotReloadCallbackReceiver.CompilationFinished += _ => activator_cache.Clear();
+        }
 
         private DependencyActivator(Type type)
         {

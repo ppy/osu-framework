@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -429,7 +431,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 positionLayout.Validate();
 
-                Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
+                static Anchor switchAxisAnchors(Anchor originalValue, Anchor toDisable, Anchor toEnable) => (originalValue & ~toDisable) | toEnable;
             }
         }
 
@@ -591,6 +593,7 @@ namespace osu.Framework.Graphics.UserInterface
             return base.OnKeyDown(e);
         }
 
+        protected override bool OnMouseDown(MouseDownEvent e) => true;
         protected override bool OnClick(ClickEvent e) => true;
         protected override bool OnHover(HoverEvent e) => true;
 
@@ -739,7 +742,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColour = value;
-                    UpdateBackgroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
                 }
             }
 
@@ -754,7 +757,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColour = value;
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
             }
 
@@ -769,7 +772,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColourHover = value;
-                    UpdateBackgroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
                 }
             }
 
@@ -784,7 +787,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColourHover = value;
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
             }
 
@@ -797,8 +800,8 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     state = value;
 
-                    UpdateForegroundColour();
-                    UpdateBackgroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
 
                     StateChanged?.Invoke(state);
                 }
@@ -833,14 +836,15 @@ namespace osu.Framework.Graphics.UserInterface
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                Background.Colour = BackgroundColour;
-                Foreground.Colour = ForegroundColour;
+
+                Scheduler.AddOnce(UpdateBackgroundColour);
+                Scheduler.AddOnce(UpdateForegroundColour);
             }
 
             protected override bool OnHover(HoverEvent e)
             {
-                UpdateBackgroundColour();
-                UpdateForegroundColour();
+                Scheduler.AddOnce(UpdateBackgroundColour);
+                Scheduler.AddOnce(UpdateForegroundColour);
 
                 Schedule(() =>
                 {
@@ -853,8 +857,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                UpdateBackgroundColour();
-                UpdateForegroundColour();
+                Scheduler.AddOnce(UpdateBackgroundColour);
+                Scheduler.AddOnce(UpdateForegroundColour);
                 base.OnHoverLost(e);
             }
 

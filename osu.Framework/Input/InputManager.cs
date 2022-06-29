@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -394,7 +396,7 @@ namespace osu.Framework.Input
             if (previousFocus != null)
             {
                 previousFocus.HasFocus = false;
-                previousFocus.TriggerEvent(new FocusLostEvent(state));
+                previousFocus.TriggerEvent(new FocusLostEvent(state, potentialFocusTarget));
 
                 if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
             }
@@ -406,7 +408,7 @@ namespace osu.Framework.Input
             if (FocusedDrawable != null)
             {
                 FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerEvent(new FocusEvent(state));
+                FocusedDrawable.TriggerEvent(new FocusEvent(state, previousFocus));
             }
 
             return true;
@@ -888,9 +890,9 @@ namespace osu.Framework.Input
                 case KeyDownEvent k:
                     return !k.Repeat;
 
-                case DragEvent _:
-                case ScrollEvent _:
-                case MouseMoveEvent _:
+                case DragEvent:
+                case ScrollEvent:
+                case MouseMoveEvent:
                     return false;
 
                 default:

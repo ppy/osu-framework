@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -112,7 +114,7 @@ namespace osu.Framework.Screens
             ScreenPushed?.Invoke(source, newScreen);
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
-            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
+            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(new ScreenTransitionEvent(source, newScreen));
 
             if (source == null)
             {
@@ -174,7 +176,7 @@ namespace osu.Framework.Screens
             void performSuspend()
             {
                 log($"suspended {getTypeString(from)} (waiting on {getTypeString(to)})");
-                from.OnSuspending(to);
+                from.OnSuspending(new ScreenTransitionEvent(from, to));
                 sourceDrawable.Expire();
             }
         }
@@ -236,7 +238,7 @@ namespace osu.Framework.Screens
                 IScreen exitSource = exitCandidate;
                 exitCandidate = CurrentScreen;
 
-                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false);
+                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false, destination: target);
 
                 if (exitBlocked)
                 {
@@ -277,8 +279,9 @@ namespace osu.Framework.Screens
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="shouldFireExitEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
         /// <param name="shouldFireResumeEvent">Whether <see cref="IScreen.OnResuming"/> should be fired on the resuming screen.</param>
+        /// <param name="destination">The final <see cref="IScreen"/> of an exit operation.</param>
         /// <returns>Whether the exit was blocked.</returns>
-        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
+        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true, IScreen destination = null)
         {
             if (stack.Count == 0)
                 return false;
@@ -296,7 +299,7 @@ namespace osu.Framework.Screens
 
                 // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
                 // OnExiting should still be called regardless.
-                bool blockRequested = toExit.OnExiting(next);
+                bool blockRequested = toExit.OnExiting(new ScreenExitEvent(toExit, next, destination ?? next));
 
                 if ((source == null || toExit.ValidForResume) && blockRequested)
                     return true;
@@ -359,7 +362,7 @@ namespace osu.Framework.Screens
 
             if (CurrentScreen.ValidForResume)
             {
-                CurrentScreen.OnResuming(source);
+                CurrentScreen.OnResuming(new ScreenTransitionEvent(source, CurrentScreen));
 
                 // Screens are expired when they are suspended - lifetime needs to be reset when resumed
                 CurrentScreen.AsDrawable().LifetimeEnd = double.MaxValue;

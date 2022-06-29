@@ -1,12 +1,16 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -16,9 +20,15 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureStore : ResourceStore<TextureUpload>
+    /// <summary>
+    /// Provides drawable-ready <see cref="Texture"/>s sourced from any number of provided sources (via constructor parameter or <see cref="AddTextureSource"/>).
+    /// </summary>
+    public class TextureStore : ITextureStore
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+
+        private readonly ResourceStore<TextureUpload> uploadStore = new ResourceStore<TextureUpload>();
+        private readonly List<ITextureStore> nestedStores = new List<ITextureStore>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -34,15 +44,14 @@ namespace osu.Framework.Graphics.Textures
         public readonly float ScaleAdjust;
 
         public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
-            : base(store)
         {
+            if (store != null)
+                AddTextureSource(store);
+
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
 
             ScaleAdjust = scaleAdjust;
-
-            AddExtension(@"png");
-            AddExtension(@"jpg");
 
             if (useAtlas)
             {
@@ -51,7 +60,43 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private Texture getTexture(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(base.Get(name), wrapModeS, wrapModeT);
+        /// <summary>
+        /// Adds a texture data lookup source to load <see cref="Texture"/>s with.
+        /// </summary>
+        /// <remarks>
+        /// Lookup sources can be implemented easily using a <see cref="TextureLoaderStore"/> to provide the final <see cref="TextureUpload"/>.
+        /// </remarks>
+        /// <param name="store">The store to add.</param>
+        public virtual void AddTextureSource(IResourceStore<TextureUpload> store) => uploadStore.AddStore(store);
+
+        /// <summary>
+        /// Removes a texture data lookup source.
+        /// </summary>
+        /// <param name="store">The store to remove.</param>
+        public virtual void RemoveTextureStore(IResourceStore<TextureUpload> store) => uploadStore.RemoveStore(store);
+
+        /// <summary>
+        /// Adds a nested texture store to use during <see cref="Texture"/> lookup if not found in this store.
+        /// </summary>
+        /// <remarks>
+        /// Of note, nested stores will use their own sources and not include any sources added via <see cref="AddTextureSource"/>.
+        /// </remarks>
+        /// <param name="store">The store to add.</param>
+        public virtual void AddStore(ITextureStore store)
+        {
+            lock (nestedStores)
+                nestedStores.Add(store);
+        }
+
+        /// <summary>
+        /// Removes a nested texture store.
+        /// </summary>
+        /// <param name="store">The store to remove.</param>
+        public virtual void RemoveStore(ITextureStore store)
+        {
+            lock (nestedStores)
+                nestedStores.Remove(store);
+        }
 
         private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
@@ -83,7 +128,7 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The texture.</returns>
-        public new Task<Texture> GetAsync(string name, CancellationToken cancellationToken) => GetAsync(name, default, default, cancellationToken);
+        public Task<Texture> GetAsync(string name, CancellationToken cancellationToken) => GetAsync(name, default, default, cancellationToken);
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -101,7 +146,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
-        public new Texture Get(string name) => Get(name, default, default);
+        public Texture Get(string name) => Get(name, default, default);
 
         private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
 
@@ -113,6 +158,50 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
         public virtual Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            var texture = get(name, wrapModeS, wrapModeT);
+
+            if (texture == null)
+            {
+                lock (nestedStores)
+                {
+                    foreach (var nested in nestedStores)
+                    {
+                        if ((texture = nested.Get(name, wrapModeS, wrapModeT)) != null)
+                            break;
+                    }
+                }
+            }
+
+            return texture;
+        }
+
+        public Stream GetStream(string name)
+        {
+            var stream = uploadStore.GetStream(name);
+
+            if (stream == null)
+            {
+                lock (nestedStores)
+                {
+                    foreach (var nested in nestedStores)
+                    {
+                        if ((stream = nested.GetStream(name)) != null)
+                            break;
+                    }
+                }
+            }
+
+            return stream;
+        }
+
+        public IEnumerable<string> GetAvailableResources()
+        {
+            lock (nestedStores)
+                return uploadStore.GetAvailableResources().Concat(nestedStores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames()).ToArray();
+        }
+
+        private Texture get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (string.IsNullOrEmpty(name)) return null;
 
@@ -151,7 +240,7 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                tex = getTexture(name, wrapModeS, wrapModeT);
+                tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
                 if (tex != null)
                     tex.LookupKey = key;
 
@@ -220,5 +309,28 @@ namespace osu.Framework.Graphics.Textures
                 textureCache.Remove(texture.LookupKey);
             }
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+
+                uploadStore.Dispose();
+                lock (nestedStores) nestedStores.ForEach(s => s.Dispose());
+            }
+        }
+
+        #endregion
     }
 }

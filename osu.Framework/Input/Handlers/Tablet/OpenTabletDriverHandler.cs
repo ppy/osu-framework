@@ -1,8 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0
+#nullable disable
+
+#if NET6_0_OR_GREATER
 using System.Linq;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -10,6 +13,7 @@ using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -38,6 +42,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
+        private Task lastInitTask;
+
         public override bool Initialize(GameHost host)
         {
             outputMode = new AbsoluteTabletMode(this);
@@ -48,30 +54,34 @@ namespace osu.Framework.Input.Handlers.Tablet
             AreaSize.BindValueChanged(_ => updateInputArea(device), true);
             Rotation.BindValueChanged(_ => updateInputArea(device), true);
 
-            Enabled.BindValueChanged(d =>
+            Enabled.BindValueChanged(enabled =>
             {
-                if (d.NewValue && tabletDriver == null)
+                if (enabled.NewValue)
                 {
-                    tabletDriver = TabletDriver.Create();
-                    tabletDriver.TabletsChanged += (s, e) =>
+                    lastInitTask = Task.Run(() =>
                     {
-                        device = e.Any() ? tabletDriver.InputDevices.First() : null;
-
-                        if (device != null)
+                        tabletDriver = TabletDriver.Create();
+                        tabletDriver.TabletsChanged += (_, e) =>
                         {
-                            device.OutputMode = outputMode;
-                            outputMode.Tablet = device.CreateReference();
+                            device = e.Any() ? tabletDriver.InputDevices.First() : null;
 
-                            updateInputArea(device);
-                            updateOutputArea(host.Window);
-                        }
-                    };
-                    tabletDriver.DeviceReported += handleDeviceReported;
-                    tabletDriver.Detect();
+                            if (device != null)
+                            {
+                                device.OutputMode = outputMode;
+                                outputMode.Tablet = device.CreateReference();
+
+                                updateInputArea(device);
+                                updateOutputArea(host.Window);
+                            }
+                        };
+                        tabletDriver.DeviceReported += handleDeviceReported;
+                        tabletDriver.Detect();
+                    });
                 }
-                else if (!d.NewValue && tabletDriver != null)
+                else
                 {
-                    tabletDriver.Dispose();
+                    lastInitTask?.WaitSafely();
+                    tabletDriver?.Dispose();
                     tabletDriver = null;
                 }
             }, true);

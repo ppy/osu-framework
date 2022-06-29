@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -20,16 +22,20 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer ToolbarContent;
 
-        protected readonly ScrollContainer<Drawable> ScrollContent;
-
         protected readonly FillFlowContainer MainHorizontalContent;
 
-        protected ToolWindow(string title, string keyHelpText)
+        protected ScrollContainer<Drawable> ScrollContent;
+
+        protected readonly SearchContainer SearchContainer;
+
+        protected ToolWindow(string title, string keyHelpText, bool supportsSearch = false)
         {
             AutoSizeAxes = Axes.X;
             Height = HEIGHT;
 
             Masking = true; // for cursor masking
+
+            BasicTextBox queryTextBox;
 
             AddRangeInternal(new Drawable[]
             {
@@ -98,12 +104,39 @@ namespace osu.Framework.Graphics.Visualisation
                                     RelativeSizeAxes = Axes.Y,
                                     AutoSizeAxes = Axes.X,
                                     Direction = FillDirection.Horizontal,
-                                    Children = new Drawable[]
+                                    Child = new GridContainer
                                     {
-                                        ScrollContent = new BasicScrollContainer<Drawable>
+                                        RelativeSizeAxes = Axes.Y,
+                                        Width = WIDTH,
+                                        RowDimensions = new[]
                                         {
-                                            RelativeSizeAxes = Axes.Y,
-                                            Width = WIDTH
+                                            new Dimension(GridSizeMode.AutoSize),
+                                            new Dimension(GridSizeMode.Distributed)
+                                        },
+                                        Content = new[]
+                                        {
+                                            new Drawable[]
+                                            {
+                                                queryTextBox = new BasicTextBox
+                                                {
+                                                    Width = WIDTH,
+                                                    Height = 30,
+                                                    PlaceholderText = "Search...",
+                                                    Alpha = supportsSearch ? 1 : 0,
+                                                }
+                                            },
+                                            new Drawable[]
+                                            {
+                                                ScrollContent = new BasicScrollContainer<Drawable>
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Child = SearchContainer = new SearchContainer
+                                                    {
+                                                        AutoSizeAxes = Axes.Y,
+                                                        RelativeSizeAxes = Axes.X,
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -113,6 +146,8 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 new CursorContainer()
             });
+
+            queryTextBox.Current.BindValueChanged(term => SearchContainer.SearchTerm = term.NewValue, true);
         }
 
         protected void AddButton(string text, Action action)

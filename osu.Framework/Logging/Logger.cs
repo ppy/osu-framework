@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -87,7 +89,7 @@ namespace osu.Framework.Logging
 
         private readonly GlobalStatistic<int> logCount;
 
-        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
+        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLowerInvariant()));
 
         private Logger(LoggingTarget target = LoggingTarget.Runtime)
             : this(target.ToString(), false)
@@ -97,7 +99,7 @@ namespace osu.Framework.Logging
 
         private Logger(string name, bool checkedReserved)
         {
-            name = name.ToLower();
+            name = name.ToLowerInvariant();
 
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
@@ -252,7 +254,7 @@ namespace osu.Framework.Logging
         {
             lock (static_sync_lock)
             {
-                string nameLower = name.ToLower();
+                string nameLower = name.ToLowerInvariant();
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
@@ -310,7 +312,7 @@ namespace osu.Framework.Logging
             IEnumerable<string> lines = logOutput
                                         .Replace(@"\r\n", @"\n")
                                         .Split('\n')
-                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} [{level.ToString().ToLower()}]: {s.Trim()}");
+                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} [{level.ToString().ToLowerInvariant()}]: {s.Trim()}");
 
             if (outputToListeners)
             {
@@ -339,7 +341,7 @@ namespace osu.Framework.Logging
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
-                            consoleLog($"[{Name.ToLower()}] {line}");
+                            consoleLog($"[{Name.ToLowerInvariant()}] {line}");
 
                             if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
                                 consoleLog($"Console output is being limited. Please check {Filename} for full logs.");

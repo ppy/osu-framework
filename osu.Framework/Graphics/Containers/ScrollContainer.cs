@@ -1,19 +1,22 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public abstract class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+    public abstract class ScrollContainer<T> : Container<T>, IScrollContainer, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -164,15 +167,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        /// <summary>
-        /// The direction in which scrolling is supported.
-        /// </summary>
-        protected readonly Direction ScrollDirection;
+        public Direction ScrollDirection { get; }
 
         /// <summary>
         /// The direction in which scrolling is supported, converted to an int for array index lookups.
         /// </summary>
         protected int ScrollDim => ScrollDirection == Direction.Horizontal ? 0 : 1;
+
+        private readonly LayoutValue<IScrollContainer> parentScrollContainerCache = new LayoutValue<IScrollContainer>(Invalidation.Parent);
+
+        private IScrollContainer parentScrollContainer => parentScrollContainerCache.IsValid
+            ? parentScrollContainerCache.Value
+            : parentScrollContainerCache.Value = this.FindClosestParent<IScrollContainer>();
 
         /// <summary>
         /// Creates a scroll container.
@@ -198,6 +204,8 @@ namespace osu.Framework.Graphics.Containers
             Scrollbar.Hide();
             Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
+
+            AddLayout(parentScrollContainerCache);
         }
 
         private float lastUpdateDisplayableContent = -1;
@@ -243,6 +251,13 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
                 return false;
 
+            if (parentScrollContainer != null && parentScrollContainer.ScrollDirection != ScrollDirection)
+            {
+                bool dragWasMostlyHorizontal = Math.Abs(e.Delta.X) > Math.Abs(e.Delta.Y);
+                if (dragWasMostlyHorizontal != (ScrollDirection == Direction.Horizontal))
+                    return false;
+            }
+
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
 
@@ -274,12 +289,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left)
+                return false;
 
             // Continue from where we currently are scrolled to.
             Target = Current;
-
-            return true;
+            return false;
         }
 
         // We keep track of this because input events may happen at different intervals than update frames
@@ -363,6 +378,16 @@ namespace osu.Framework.Graphics.Containers
             if (Content.AliveInternalChildren.Count == 0)
                 return false;
 
+            if (parentScrollContainer != null && parentScrollContainer.ScrollDirection != ScrollDirection)
+            {
+                bool scrollWasMostlyHorizontal = Math.Abs(e.ScrollDelta.X) > Math.Abs(e.ScrollDelta.Y);
+
+                // For horizontal scrolling containers, vertical scroll is also used to perform horizontal traversal.
+                // Due to this, we only block horizontal scroll in vertical containers, but not vice-versa.
+                if (scrollWasMostlyHorizontal && ScrollDirection == Direction.Vertical)
+                    return false;
+            }
+
             bool isPrecise = e.IsPrecise;
 
             Vector2 scrollDelta = e.ScrollDelta;
@@ -370,7 +395,7 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
                 scrollDeltaFloat = scrollDelta.X;
 
-            scrollByOffset((isPrecise ? 10 : ScrollDistance) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
+            scrollByOffset(ScrollDistance * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
             return true;
         }
 
