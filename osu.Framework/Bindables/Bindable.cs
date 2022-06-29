@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
@@ -145,11 +146,10 @@ namespace osu.Framework.Bindables
         /// Creates a new bindable instance initialised with a default value.
         /// </summary>
         /// <param name="defaultValue">The initial and default value for this bindable.</param>
-        /// <remarks>Consider to pass a default value for non-nullable <typeparamref name="T"/>.</remarks>
+        /// <remarks>Consider passing a default value for non-nullable <typeparamref name="T"/>.</remarks>
         public Bindable(T defaultValue = default!)
         {
-            // It lacks a way to represent "warn if called with non-nullable T".
-            // Not verifying to avoid breaking tons of existing usages.
+            // TODO: add a custom analyser warning about no default value provided for non-nullable T
             value = this.defaultValue = defaultValue;
         }
 
@@ -362,7 +362,9 @@ namespace osu.Framework.Bindables
 
         internal virtual void UnbindAllInternal()
         {
-            leasedBindable?.Return();
+            // TODO: annotate isLeased with [MemberNotNull(nameof(leasedBindable))] on .NET 5+ to satisfy the nullability check
+            if (isLeased)
+                leasedBindable.AsNonNull().Return();
 
             UnbindEvents();
             UnbindBindings();
