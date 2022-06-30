@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IEnumerable<Transform> Transforms => targetGroupingTrackers.SelectMany(t => t.Transforms);
+        public IEnumerable<Transform> Transforms => targetGroupingTrackers?.SelectMany(t => t.Transforms) ?? Array.Empty<Transform>();
 
         /// <summary>
         /// Retrieves the <see cref="Transform"/>s for a given target member.
@@ -63,13 +63,16 @@ namespace osu.Framework.Graphics.Transforms
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
 
-                foreach (var tracker in targetGroupingTrackers)
+                if (targetGroupingTrackers != null)
                 {
-                    for (int i = 0; i < tracker.Transforms.Count; i++)
+                    foreach (var tracker in targetGroupingTrackers)
                     {
-                        var t = tracker.Transforms[i];
-                        if (t.EndTime > max)
-                            max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                        for (int i = 0; i < tracker.Transforms.Count; i++)
+                        {
+                            var t = tracker.Transforms[i];
+                            if (t.EndTime > max)
+                                max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                        }
                     }
                 }
 
@@ -88,15 +91,22 @@ namespace osu.Framework.Graphics.Transforms
         protected void UpdateTransforms()
         {
             TransformDelay = 0;
+
+            if (targetGroupingTrackers == null)
+                return;
+
             updateTransforms(Time.Current);
         }
 
         private double lastUpdateTransformsTime;
 
-        private readonly List<TargetGroupingTransformTracker> targetGroupingTrackers = new List<TargetGroupingTransformTracker>();
+        private List<TargetGroupingTransformTracker> targetGroupingTrackers;
 
         private TargetGroupingTransformTracker getTrackerFor(string targetMember)
         {
+            if (targetGroupingTrackers == null)
+                return null;
+
             foreach (var t in targetGroupingTrackers)
             {
                 if (t.TargetMembers.Contains(targetMember))
@@ -108,6 +118,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping, bool createIfNotExisting)
         {
+            targetGroupingTrackers ??= new List<TargetGroupingTransformTracker>();
+
             foreach (var t in targetGroupingTrackers)
             {
                 if (t.TargetGrouping == targetGrouping)
@@ -130,6 +142,9 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
         private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
+            if (targetGroupingTrackers == null)
+                return;
+
             bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
@@ -179,6 +194,9 @@ namespace osu.Framework.Graphics.Transforms
         {
             EnsureTransformMutationAllowed();
 
+            if (targetGroupingTrackers == null)
+                return;
+
             if (targetMember != null)
             {
                 getTrackerFor(targetMember)?.ClearTransformsAfter(time, targetMember);
@@ -219,6 +237,9 @@ namespace osu.Framework.Graphics.Transforms
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
             EnsureTransformMutationAllowed();
+
+            if (targetGroupingTrackers == null)
+                return;
 
             if (targetMember != null)
             {
