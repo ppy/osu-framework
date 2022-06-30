@@ -20,8 +20,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             Precision = 0.005f,
         };
 
-        private readonly JoystickButton[] axisDirectionButtons = new JoystickButton[(int)JoystickAxisSource.AxisCount];
-
         public override string Description => "Joystick / Gamepad";
 
         public override bool IsActive => true;
@@ -65,32 +63,9 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         /// <summary>
         /// Enqueues a <see cref="JoystickAxisInput"/> taking into account the axis deadzone.
-        /// Also enqueues <see cref="JoystickButtonInput"/> events depending on whether the axis has changed direction.
         /// </summary>
-        private void enqueueJoystickAxisChanged(JoystickAxis axis)
-        {
-            float value = rescaleByDeadzone(axis.Value);
-
-            int index = (int)axis.Source;
-            var currentButton = axisDirectionButtons[index];
-            var expectedButton = getAxisButtonForInput(index, value);
-
-            // if a directional button is pressed and does not match that for the new axis direction, release it
-            if (currentButton != 0 && expectedButton != currentButton)
-            {
-                enqueueJoystickButtonUp(currentButton);
-                axisDirectionButtons[index] = currentButton = 0;
-            }
-
-            // if we expect a directional button to be pressed, and it is not, press it
-            if (expectedButton != 0 && expectedButton != currentButton)
-            {
-                enqueueJoystickButtonDown(expectedButton);
-                axisDirectionButtons[index] = expectedButton;
-            }
-
-            enqueueJoystickEvent(new JoystickAxisInput(new JoystickAxis(axis.Source, value)));
-        }
+        private void enqueueJoystickAxisChanged(JoystickAxisSource source, float value) =>
+            enqueueJoystickEvent(new JoystickAxisInput(new JoystickAxis(source, rescaleByDeadzone(value))));
 
         private float rescaleByDeadzone(float axisValue)
         {
@@ -102,17 +77,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             // rescale the given axis value such that the edge of the deadzone is considered the "new zero".
             float absoluteRescaled = (absoluteValue - DeadzoneThreshold.Value) / (1f - DeadzoneThreshold.Value);
             return Math.Sign(axisValue) * absoluteRescaled;
-        }
-
-        private static JoystickButton getAxisButtonForInput(int axisIndex, float axisValue)
-        {
-            if (axisValue > 0)
-                return JoystickButton.FirstAxisPositive + axisIndex;
-
-            if (axisValue < 0)
-                return JoystickButton.FirstAxisNegative + axisIndex;
-
-            return 0;
         }
     }
 }
