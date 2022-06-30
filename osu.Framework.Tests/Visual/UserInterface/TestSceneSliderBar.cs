@@ -290,7 +290,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             }
 
-            protected override bool HandleAsRelativeMovement(MouseDownEvent e) => nub.ReceivePositionalInputAt(e.ScreenSpaceMouseDownPosition);
+            protected override bool ShouldHandleAsRelativeDrag(MouseDownEvent e) => nub.ReceivePositionalInputAt(e.ScreenSpaceMouseDownPosition);
 
             protected override void UpdateValue(float value)
             {

@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (HandleAsRelativeMovement(e))
+            if (ShouldHandleAsRelativeDrag(e))
             {
                 float min = currentNumberInstantaneous.MinValue.ToSingle(NumberFormatInfo.InvariantInfo);
                 float max = currentNumberInstantaneous.MaxValue.ToSingle(NumberFormatInfo.InvariantInfo);
@@ -218,15 +218,15 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Whether mouse drag handling should be relative to the original mouse down position, or absolute based on the cursor.
+        /// Whether mouse handling should be relative to the distance travelled, or absolute in line with the exact position of the cursor.
         /// </summary>
         /// <remarks>
-        /// Generally, this should be overridden and return <c>true</c> when the cursor is hovering the "nub" portion at the point of mouse down
+        /// Generally, this should be overridden and return <c>true</c> when the cursor is hovering a "nub" or "thumb" portion at the point of mouse down
         /// to give the user more correct control.
         /// </remarks>
         /// <param name="e">The mouse down event.</param>
         /// <returns>Whether to perform a relative drag.</returns>
-        protected virtual bool HandleAsRelativeMovement(MouseDownEvent e) => false;
+        protected virtual bool ShouldHandleAsRelativeDrag(MouseDownEvent e) => false;
 
         private void handleMouseInput(MouseButtonEvent e)
         {
