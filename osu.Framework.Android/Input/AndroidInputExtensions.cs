@@ -282,6 +282,13 @@ namespace osu.Framework.Android.Input
             Axis.Wheel,
         };
 
+        /// <summary>
+        /// Returns the corresponding <see cref="JoystickAxisSource"/> for an <see cref="Axis"/>.
+        /// </summary>
+        /// <returns><c>true</c> if provided <paramref name="axis"/> maps to a <see cref="JoystickAxisSource"/>.</returns>
+        /// <remarks>
+        /// <see cref="Axis.Gas"/> and <see cref="Axis.Brake"/> are deliberately excluded as those axes are 1:1 mirrors of the <see cref="Axis.Rtrigger"/> and <see cref="Axis.Ltrigger"/>.
+        /// </remarks>
         public static bool TryGetJoystickAxisSource(this Axis axis, out JoystickAxisSource joystickAxis)
         {
             switch (axis)

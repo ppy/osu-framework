@@ -144,7 +144,9 @@ namespace osu.Framework.Android.Input
         {
             if (!axis.TryGetJoystickAxisSource(out var joystickAxisSource))
             {
-                if (historyPosition == HISTORY_CURRENT)
+                // Brake and Gas axes mirror the left and right trigger respectively, so they are not included in TryGetJoystickAxisSource to avoid double-reporting.
+                // don't log as they're not handled on purpose.
+                if (axis != Axis.Brake && axis != Axis.Gas && historyPosition == HISTORY_CURRENT)
                     Logger.Log($"Unknown joystick axis: {axis}");
 
                 return;
