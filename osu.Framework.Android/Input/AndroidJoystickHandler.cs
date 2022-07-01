@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
 using Android.Views;
 using osu.Framework.Bindables;
 using osu.Framework.Input;
@@ -67,110 +68,125 @@ namespace osu.Framework.Android.Input
         /// <remarks>See xmldoc <see cref="AndroidKeyboardHandler.ShouldHandleEvent"/></remarks>
         protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && inputEvent.Source != InputSourceType.Keyboard;
 
-        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
-        {
-            switch (genericMotionEvent.Action)
-            {
-                case MotionEventActions.Move:
-                    // PointerCount / GetPointerId is probably related to number of joysticks connected. framework only handles one joystick, so coalesce instead of handling separately.
-                    for (int i = 0; i < genericMotionEvent.PointerCount; i++)
-                    {
-                        var motionRanges = genericMotionEvent.Device?.MotionRanges;
-
-                        enqueueInput(motionRanges != null && motionRanges.Count > 0
-                            ? new JoystickAxisInput(getJoystickAxesForMotionRange(genericMotionEvent, i, motionRanges))
-                            : new JoystickAxisInput(getAllJoystickAxes(genericMotionEvent, i)));
-
-                        foreach (var input in getDpadInputs(genericMotionEvent, i))
-                            enqueueInput(input);
-                    }
-
-                    break;
-            }
-        }
-
         protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetJoystickButton(out var button))
-                enqueueInput(new JoystickButtonInput(button, true));
+                enqueueButtonDown(button);
         }
 
         protected override void OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetJoystickButton(out var button))
-                enqueueInput(new JoystickButtonInput(button, false));
+                enqueueButtonUp(button);
         }
 
-        private IEnumerable<JoystickAxis> getJoystickAxesForMotionRange(MotionEvent motionEvent, int pointerIndex, IEnumerable<InputDevice.MotionRange> motionRanges)
+        /// <summary>
+        /// The <see cref="InputDevice"/> for which the <see cref="availableAxes"/> are valid.
+        /// <c>null</c> iff the current device could not be determined, in that case, <see cref="availableAxes"/> fall back to <see cref="AndroidInputExtensions.ALL_AXES"/>.
+        /// </summary>
+        private string? lastDeviceDescriptor;
+
+        /// <summary>
+        /// The axes that are reported as supported by the current <see cref="MotionEvent"/>.<see cref="InputDevice"/>.
+        /// <see cref="AndroidInputExtensions.ALL_AXES"/> if the current device doesn't report axes information.
+        /// </summary>
+        private IEnumerable<Axis> availableAxes = AndroidInputExtensions.ALL_AXES;
+
+        /// <summary>
+        /// Updates <see cref="availableAxes"/> to be appropriate for the current <paramref name="device"/>.
+        /// </summary>
+        private void updateAvailableAxesForDevice(InputDevice? device)
         {
-            foreach (var motionRange in motionRanges)
+            if (device?.Descriptor == null)
             {
-                if (tryGetJoystickAxis(motionEvent, pointerIndex, motionRange.Axis, out var joystickAxis))
-                    yield return joystickAxis;
+                if (lastDeviceDescriptor == null)
+                    return;
+
+                // use the default if this device is unknown.
+                lastDeviceDescriptor = null;
+                availableAxes = AndroidInputExtensions.ALL_AXES;
+                return;
+            }
+
+            if (device.Descriptor == lastDeviceDescriptor)
+                return;
+
+            lastDeviceDescriptor = device.Descriptor;
+
+            var motionRanges = device.MotionRanges;
+
+            availableAxes = motionRanges != null && motionRanges.Count > 0
+                // skip Dpad axes as they're handled separately in `applyDpadInput`
+                ? motionRanges.Select(m => m.Axis).Where(a => a != Axis.HatX && a != Axis.HatY).Distinct().ToList()
+                : AndroidInputExtensions.ALL_AXES;
+        }
+
+        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
+        {
+            switch (genericMotionEvent.Action)
+            {
+                case MotionEventActions.Move:
+                    updateAvailableAxesForDevice(genericMotionEvent.Device);
+                    genericMotionEvent.HandleHistorically(apply);
+                    break;
             }
         }
 
-        private IEnumerable<JoystickAxis> getAllJoystickAxes(MotionEvent motionEvent, int pointerIndex)
+        private void apply(MotionEvent motionEvent, int historyPosition)
         {
-            foreach (var axis in AndroidInputExtensions.ALL_AXES)
-            {
-                if (tryGetJoystickAxis(motionEvent, pointerIndex, axis, out var joystickAxis))
-                    yield return joystickAxis;
-            }
+            foreach (var axis in availableAxes)
+                applyAxisInput(motionEvent, historyPosition, axis);
+
+            applyDpadInput(motionEvent, historyPosition);
         }
 
-        private bool tryGetJoystickAxis(MotionEvent motionEvent, int pointerIndex, Axis axis, out JoystickAxis joystickAxis)
+        private void applyAxisInput(MotionEvent motionEvent, int historyPosition, Axis axis)
         {
             if (!axis.TryGetJoystickAxisSource(out var joystickAxisSource))
             {
-                if (axis != Axis.HatX && axis != Axis.HatY)
+                if (historyPosition == HISTORY_CURRENT)
                     Logger.Log($"Unknown joystick axis: {axis}");
 
-                joystickAxis = new JoystickAxis();
-                return false;
+                return;
             }
 
-            float value = motionEvent.GetAxisValue(axis, pointerIndex);
-
-            if (float.IsNaN(value))
+            if (motionEvent.TryGet(axis, out float value, historyPosition))
             {
-                joystickAxis = new JoystickAxis();
-                return false;
+                value = JoystickHandler.RescaleByDeadzone(value, DeadzoneThreshold.Value);
+                enqueueInput(new JoystickAxisInput(new JoystickAxis(joystickAxisSource, value)));
             }
-
-            value = JoystickHandler.RescaleByDeadzone(value, DeadzoneThreshold.Value);
-
-            joystickAxis = new JoystickAxis(joystickAxisSource, value);
-            return true;
         }
 
         private float lastDpadX;
         private float lastDpadY;
 
-        private IEnumerable<JoystickButtonInput> getDpadInputs(MotionEvent motionEvent, int pointerIndex)
+        private void applyDpadInput(MotionEvent motionEvent, int historyPosition)
         {
-            float x = motionEvent.GetAxisValue(Axis.HatX, pointerIndex);
+            float x = motionEvent.Get(Axis.HatX, historyPosition);
 
             if (x != lastDpadX)
             {
-                if (x == 0) yield return new JoystickButtonInput(lastDpadX > 0 ? JoystickButton.GamePadDPadRight : JoystickButton.GamePadDPadLeft, false);
-                if (x > 0) yield return new JoystickButtonInput(JoystickButton.GamePadDPadRight, true);
-                if (x < 0) yield return new JoystickButtonInput(JoystickButton.GamePadDPadLeft, true);
+                if (x == 0) enqueueButtonUp(lastDpadX > 0 ? JoystickButton.GamePadDPadRight : JoystickButton.GamePadDPadLeft);
+                if (x > 0) enqueueButtonDown(JoystickButton.GamePadDPadRight);
+                if (x < 0) enqueueButtonDown(JoystickButton.GamePadDPadLeft);
 
                 lastDpadX = x;
             }
 
-            float y = motionEvent.GetAxisValue(Axis.HatY, pointerIndex);
+            float y = motionEvent.Get(Axis.HatY, historyPosition);
 
             if (y != lastDpadY)
             {
-                if (y == 0) yield return new JoystickButtonInput(lastDpadY > 0 ? JoystickButton.GamePadDPadDown : JoystickButton.GamePadDPadUp, false);
-                if (y > 0) yield return new JoystickButtonInput(JoystickButton.GamePadDPadDown, true);
-                if (y < 0) yield return new JoystickButtonInput(JoystickButton.GamePadDPadUp, true);
+                if (y == 0) enqueueButtonUp(lastDpadY > 0 ? JoystickButton.GamePadDPadDown : JoystickButton.GamePadDPadUp);
+                if (y > 0) enqueueButtonDown(JoystickButton.GamePadDPadDown);
+                if (y < 0) enqueueButtonDown(JoystickButton.GamePadDPadUp);
 
                 lastDpadY = y;
             }
         }
+
+        private void enqueueButtonDown(JoystickButton button) => enqueueInput(new JoystickButtonInput(button, true));
+        private void enqueueButtonUp(JoystickButton button) => enqueueInput(new JoystickButtonInput(button, false));
 
         private void enqueueInput(IInput input)
         {
