@@ -93,7 +93,7 @@ namespace osu.Framework.Utils
             if (validClipEdges < 3)
                 return Span<Vector2>.Empty;
 
-            return buffer[..inputCount];
+            return buffer.Slice(0, inputCount);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

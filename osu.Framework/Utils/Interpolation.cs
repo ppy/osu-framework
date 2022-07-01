@@ -28,7 +28,7 @@ namespace osu.Framework.Utils
         /// <param name="exponent">The exponent of the exponential. An exponent of 0 results in the start values, whereas larger exponents make the result converge to the final value.</param>
         public static double Damp(double start, double final, double @base, double exponent)
         {
-            if (@base is < 0 or > 1)
+            if (@base < 0 || @base > 1)
                 throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
 
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
@@ -390,7 +390,9 @@ namespace osu.Framework.Utils
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue, TEasing>));
                 else
                 {
-                    if (FormatterServices.GetSafeUninitializedObject(typeof(TValue)) is not IInterpolable<TValue> typeRef)
+                    var typeRef = FormatterServices.GetSafeUninitializedObject(typeof(TValue)) as IInterpolable<TValue>;
+
+                    if (typeRef == null)
                         throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
 
                     FUNCTION = typeRef.ValueAt;
