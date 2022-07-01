@@ -20,6 +20,11 @@ namespace osu.Framework.Input.States
         public readonly float[] AxesValues = new float[MAX_AXES];
 
         /// <summary>
+        /// Currently simulated <see cref="JoystickButton"/> for each <see cref="JoystickAxis"/>. <c>0</c> if no button press is simulated.
+        /// </summary>
+        internal readonly JoystickButton[] AxisDirectionButtons = new JoystickButton[MAX_AXES];
+
+        /// <summary>
         /// Retrieves all <see cref="JoystickAxis"/> with their current value (regardless of inactive ones).
         /// </summary>
         public IEnumerable<JoystickAxis> GetAxes() =>

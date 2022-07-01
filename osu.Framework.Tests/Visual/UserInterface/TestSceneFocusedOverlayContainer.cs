@@ -138,13 +138,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     return true;
                 }
 
-                return true;
-            }
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                base.OnMouseDown(e);
-                return true;
+                return false;
             }
 
             protected override void PopIn()

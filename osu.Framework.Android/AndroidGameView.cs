@@ -64,6 +64,13 @@ namespace osu.Framework.Android
 
         private readonly Game game;
 
+        private InputMethodManager inputMethodManager;
+
+        /// <summary>
+        /// Whether <see cref="AndroidTextInput"/> is active.
+        /// </summary>
+        private bool textInputActive;
+
         public AndroidGameView(AndroidGameActivity activity, Game game)
             : base(activity)
         {
@@ -94,6 +101,11 @@ namespace osu.Framework.Android
             // this needs to happen in the constructor
             Focusable = true;
             FocusableInTouchMode = true;
+
+            // disable ugly green border when view is focused via hardware keyboard/mouse.
+            DefaultFocusHighlightEnabled = false;
+
+            inputMethodManager = Activity.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
         protected override void CreateFrameBuffer()
@@ -128,6 +140,13 @@ namespace osu.Framework.Android
 
                 default:
                     KeyDown?.Invoke(keyCode, e);
+
+                    // Releasing backspace on a physical keyboard when text input is active will not send a key up event.
+                    // Manually send one to prevent the key from getting stuck.
+                    // This does mean that key repeat is handled by the OS, instead of by the usual `InputManager` handling.
+                    if (keyCode == Keycode.Del && e.IsFromSource(InputSourceType.Keyboard) && textInputActive)
+                        KeyUp?.Invoke(Keycode.Del, new KeyEvent(e.DownTime, e.EventTime, KeyEventActions.Up, Keycode.Del, 0, e.MetaState, e.DeviceId, e.ScanCode, e.Flags, e.Source));
+
                     return true;
             }
         }
@@ -235,13 +254,41 @@ namespace osu.Framework.Android
             };
         }
 
-        public override bool OnCheckIsTextEditor() => true;
+        public override bool OnCheckIsTextEditor() => textInputActive;
 
+        /// <returns><c>null</c> to disable input methods</returns>
         public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
         {
+            // Properly disable native input methods so that the software keyboard doesn't unexpectedly open.
+            // Eg. when pressing keys on a hardware keyboard.
+            if (!textInputActive)
+                return null;
+
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
+        }
+
+        internal void StartTextInput()
+        {
+            textInputActive = true;
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager.RestartInput(this); // this syncs the Android input method state with `OnCreateInputConnection()`.
+                RequestFocus();
+                inputMethodManager?.ShowSoftInput(this, 0);
+            });
+        }
+
+        internal void StopTextInput()
+        {
+            textInputActive = false;
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager.RestartInput(this);
+                inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
+                ClearFocus();
+            });
         }
 
         public override void SwapBuffers()
