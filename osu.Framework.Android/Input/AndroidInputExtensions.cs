@@ -6,12 +6,126 @@ using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input;
+using osu.Framework.Logging;
+using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
 {
     public static class AndroidInputExtensions
     {
+        /// <summary>
+        /// Denotes the current (last) event in a <see cref="MotionEvent"/>'s history.
+        /// </summary>
+        public const int HISTORY_CURRENT = -1;
+
+        public delegate void MotionEventHandler(MotionEvent motionEvent, int historyPosition);
+
+        /// <summary>
+        /// Handles all events in this <see cref="MotionEvent"/>'s history in a chronological fashion (up to and including <see cref="HISTORY_CURRENT"/>).
+        /// </summary>
+        /// <param name="motionEvent">The <see cref="MotionEvent"/> to handle the history of.</param>
+        /// <param name="handler">The <see cref="MotionEventHandler"/> to handle the events.</param>
+        /// <remarks>
+        /// Used in lieu of <see cref="HandleHistoricallyPerPointer"/> when the input infrastructure can only handle one pointer
+        /// and/or when the <see cref="MotionEvent"/> is expected to report only one pointer.
+        /// </remarks>
+        public static void HandleHistorically(this MotionEvent motionEvent, MotionEventHandler handler)
+        {
+            if (motionEvent.PointerCount > 1)
+            {
+                Logger.Log($"{nameof(HandleHistorically)} was used when PointerCount ({motionEvent.PointerCount}) was greater than 1. Events for pointers other than the first have been dropped.");
+                Logger.Log($"MotionEvent: {motionEvent}");
+            }
+
+            for (int h = 0; h < motionEvent.HistorySize; h++)
+            {
+                handler(motionEvent, h);
+            }
+
+            handler(motionEvent, HISTORY_CURRENT);
+        }
+
+        public delegate void MotionEventPerPointerHandler(MotionEvent motionEvent, int historyPosition, int pointerIndex);
+
+        /// <summary>
+        /// Handles all events in this <see cref="MotionEvent"/>'s history in a chronological fashion, sequentially calling <paramref name="handler"/> for each pointer.
+        /// </summary>
+        /// <param name="motionEvent">The <see cref="MotionEvent"/> to handle the history of.</param>
+        /// <param name="handler">The <see cref="MotionEventPerPointerHandler"/> to handle the events.</param>
+        public static void HandleHistoricallyPerPointer(this MotionEvent motionEvent, MotionEventPerPointerHandler handler)
+        {
+            for (int h = 0; h < motionEvent.HistorySize; h++)
+            {
+                for (int p = 0; p < motionEvent.PointerCount; p++)
+                {
+                    handler(motionEvent, h, p);
+                }
+            }
+
+            for (int p = 0; p < motionEvent.PointerCount; p++)
+            {
+                handler(motionEvent, HISTORY_CURRENT, p);
+            }
+        }
+
+        /// <summary>
+        /// Returns the value of the requested axis.
+        /// </summary>
+        /// <param name="motionEvent">The <see cref="MotionEvent"/> to get the value from.</param>
+        /// <param name="axis">The <see cref="Axis"/> identifier for the axis value to retrieve.</param>
+        /// <param name="historyPosition">Which historical value to return; must be in range [<c>0</c>, <see cref="MotionEvent.HistorySize"/>), or the constant <see cref="HISTORY_CURRENT"/>.</param>
+        /// <param name="pointerIndex">Raw index of pointer to retrieve; must be in range [<c>0</c>, <see cref="MotionEvent.PointerCount"/>).</param>
+        /// <returns>The value of the axis, or <c>0</c> if the axis is not available.</returns>
+        /// <remarks><paramref name="historyPosition"/>s different from <see cref="HISTORY_CURRENT"/> are valid only for <see cref="MotionEventActions.Move"/> events.</remarks>
+        public static float Get(this MotionEvent motionEvent, Axis axis, int historyPosition = HISTORY_CURRENT, int pointerIndex = 0)
+            => historyPosition == HISTORY_CURRENT
+                ? motionEvent.GetAxisValue(axis, pointerIndex)
+                : motionEvent.GetHistoricalAxisValue(axis, pointerIndex, historyPosition);
+
+        /// <summary>
+        /// Gets the <paramref name="value"/> of the requested axis, returning <c>true</c> if it's valid.
+        /// </summary>
+        /// <param name="motionEvent">The <see cref="MotionEvent"/> to get the value from.</param>
+        /// <param name="axis">The <see cref="Axis"/> identifier for the axis value to retrieve.</param>
+        /// <param name="value">The value of the axis, or <c>0</c> if the axis is not available.</param>
+        /// <param name="historyPosition">Which historical <paramref name="value"/> to return; must be in range [<c>0</c>, <see cref="MotionEvent.HistorySize"/>),
+        /// or the constant <see cref="HISTORY_CURRENT"/>.</param>
+        /// <param name="pointerIndex">Raw index of pointer to retrieve; must be in range [<c>0</c>, <see cref="MotionEvent.PointerCount"/>).</param>
+        /// <returns>Whether the returned <paramref name="value"/> is valid.</returns>
+        /// <remarks><paramref name="historyPosition"/>s different from <see cref="HISTORY_CURRENT"/> are valid only for <see cref="MotionEventActions.Move"/> events.</remarks>
+        public static bool TryGet(this MotionEvent motionEvent, Axis axis, out float value, int historyPosition = HISTORY_CURRENT, int pointerIndex = 0)
+        {
+            value = historyPosition == HISTORY_CURRENT
+                ? motionEvent.GetAxisValue(axis, pointerIndex)
+                : motionEvent.GetHistoricalAxisValue(axis, pointerIndex, historyPosition);
+
+            return float.IsFinite(value);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Axis.X"/> and <see cref="Axis.Y"/> axes of the event, returning <c>true</c> if they're valid.
+        /// </summary>
+        /// <param name="motionEvent">The <see cref="MotionEvent"/> to get the axes from.</param>
+        /// <param name="position"><see cref="Vector2"/> containing the <see cref="Axis.X"/> and <see cref="Axis.Y"/> axes of the event.</param>
+        /// <param name="historyPosition">Which historical <paramref name="position"/> to return; must be in range [<c>0</c>, <see cref="MotionEvent.HistorySize"/>),
+        /// or the constant <see cref="HISTORY_CURRENT"/>.</param>
+        /// <param name="pointerIndex">Raw index of pointer to retrieve; must be in range [<c>0</c>, <see cref="MotionEvent.PointerCount"/>).</param>
+        /// <returns>Whether the returned <paramref name="position"/> is valid.</returns>
+        /// <remarks><paramref name="historyPosition"/>s different from <see cref="HISTORY_CURRENT"/> are valid only for <see cref="MotionEventActions.Move"/> events.</remarks>
+        public static bool TryGetPosition(this MotionEvent motionEvent, out Vector2 position, int historyPosition = HISTORY_CURRENT, int pointerIndex = 0)
+        {
+            if (motionEvent.TryGet(Axis.X, out float x, historyPosition, pointerIndex)
+                && motionEvent.TryGet(Axis.Y, out float y, historyPosition, pointerIndex))
+            {
+                position = new Vector2(x, y);
+                return true;
+            }
+
+            position = Vector2.Zero;
+            return false;
+        }
+
         /// <summary>
         /// Returns the corresponding <see cref="MouseButton"/>s for a mouse button given as a <see cref="MotionEventButtonState"/>.
         /// </summary>

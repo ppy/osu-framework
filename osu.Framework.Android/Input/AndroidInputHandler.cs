@@ -17,6 +17,9 @@ namespace osu.Framework.Android.Input
     /// </summary>
     public abstract class AndroidInputHandler : InputHandler
     {
+        /// <inheritdoc cref="AndroidInputExtensions.HISTORY_CURRENT"/>
+        protected const int HISTORY_CURRENT = AndroidInputExtensions.HISTORY_CURRENT;
+
         /// <summary>
         /// The <see cref="InputSourceType"/>s that this <see cref="AndroidInputHandler"/> will handle.
         /// </summary>
