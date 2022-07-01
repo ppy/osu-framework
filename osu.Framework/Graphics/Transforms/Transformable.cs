@@ -104,13 +104,13 @@ namespace osu.Framework.Graphics.Transforms
 
         private TargetGroupingTransformTracker getTrackerFor(string targetMember)
         {
-            if (targetGroupingTrackers == null)
-                return null;
-
-            foreach (var t in targetGroupingTrackers)
+            if (targetGroupingTrackers != null)
             {
-                if (t.TargetMembers.Contains(targetMember))
-                    return t;
+                foreach (var t in targetGroupingTrackers)
+                {
+                    if (t.TargetMembers.Contains(targetMember))
+                        return t;
+                }
             }
 
             return null;
@@ -118,19 +118,23 @@ namespace osu.Framework.Graphics.Transforms
 
         private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping, bool createIfNotExisting)
         {
-            targetGroupingTrackers ??= new List<TargetGroupingTransformTracker>();
-
-            foreach (var t in targetGroupingTrackers)
+            if (targetGroupingTrackers != null)
             {
-                if (t.TargetGrouping == targetGrouping)
-                    return t;
+                foreach (var t in targetGroupingTrackers)
+                {
+                    if (t.TargetGrouping == targetGrouping)
+                        return t;
+                }
             }
 
             if (!createIfNotExisting)
                 return null;
 
             var tracker = new TargetGroupingTransformTracker(this, targetGrouping);
+
+            targetGroupingTrackers ??= new List<TargetGroupingTransformTracker>();
             targetGroupingTrackers.Add(tracker);
+
             return tracker;
         }
 
@@ -192,10 +196,10 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            EnsureTransformMutationAllowed();
-
             if (targetGroupingTrackers == null)
                 return;
+
+            EnsureTransformMutationAllowed();
 
             if (targetMember != null)
             {
@@ -236,10 +240,10 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            EnsureTransformMutationAllowed();
-
             if (targetGroupingTrackers == null)
                 return;
+
+            EnsureTransformMutationAllowed();
 
             if (targetMember != null)
             {
