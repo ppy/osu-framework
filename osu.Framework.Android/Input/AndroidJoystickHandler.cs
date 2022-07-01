@@ -72,6 +72,8 @@ namespace osu.Framework.Android.Input
         {
             if (keycode.TryGetJoystickButton(out var button))
                 enqueueButtonDown(button);
+            else
+                Logger.Log($"Unknown joystick keycode: {keycode}");
         }
 
         protected override void OnKeyUp(Keycode keycode, KeyEvent e)

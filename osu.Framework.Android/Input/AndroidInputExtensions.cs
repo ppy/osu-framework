@@ -245,6 +245,7 @@ namespace osu.Framework.Android.Input
                     button = JoystickButton.GamePadStart;
                     return true;
 
+                case Keycode.Back:
                 case Keycode.ButtonSelect:
                     button = JoystickButton.GamePadBack;
                     return true;
