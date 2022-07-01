@@ -116,9 +116,28 @@ namespace osu.Framework.Android.Input
             var motionRanges = device.MotionRanges;
 
             availableAxes = motionRanges != null && motionRanges.Count > 0
-                // skip Dpad axes as they're handled separately in `applyDpadInput`
-                ? motionRanges.Select(m => m.Axis).Where(a => a != Axis.HatX && a != Axis.HatY).Distinct().ToList()
+                ? motionRanges.Select(m => m.Axis).Where(isValid).Distinct().ToList()
                 : AndroidInputExtensions.ALL_AXES;
+
+            bool isValid(Axis axis)
+            {
+                switch (axis)
+                {
+                    // D-pad axes are handled separately in `applyDpadInput`
+                    case Axis.HatX:
+                    case Axis.HatY:
+                    // Brake and Gas axes mirror the left and right trigger and are therefore ignored
+                    case Axis.Gas:
+                    case Axis.Brake:
+                        return false;
+                }
+
+                if (axis.TryGetJoystickAxisSource(out _))
+                    return true;
+
+                Logger.Log($"Unknown joystick axis: {axis}");
+                return false;
+            }
         }
 
         protected override void OnGenericMotion(MotionEvent genericMotionEvent)
@@ -142,17 +161,8 @@ namespace osu.Framework.Android.Input
 
         private void applyAxisInput(MotionEvent motionEvent, int historyPosition, Axis axis)
         {
-            if (!axis.TryGetJoystickAxisSource(out var joystickAxisSource))
-            {
-                // Brake and Gas axes mirror the left and right trigger respectively, so they are not included in TryGetJoystickAxisSource to avoid double-reporting.
-                // don't log as they're not handled on purpose.
-                if (axis != Axis.Brake && axis != Axis.Gas && historyPosition == HISTORY_CURRENT)
-                    Logger.Log($"Unknown joystick axis: {axis}");
-
-                return;
-            }
-
-            if (motionEvent.TryGet(axis, out float value, historyPosition))
+            if (axis.TryGetJoystickAxisSource(out var joystickAxisSource)
+                && motionEvent.TryGet(axis, out float value, historyPosition))
             {
                 value = JoystickHandler.RescaleByDeadzone(value, DeadzoneThreshold.Value);
                 enqueueInput(new JoystickAxisInput(new JoystickAxis(joystickAxisSource, value)));
