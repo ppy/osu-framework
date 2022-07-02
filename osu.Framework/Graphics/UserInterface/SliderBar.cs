@@ -231,6 +231,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(MouseButtonEvent e)
         {
+            if (currentNumberInstantaneous.Disabled)
+                return;
+
             float localX = ToLocalSpace(e.ScreenSpaceMousePosition).X;
 
             float newValue;
@@ -243,9 +246,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 newValue = (localX - RangePadding) / UsableWidth;
             }
-
-            if (currentNumberInstantaneous.Disabled)
-                return;
 
             currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : 0);
             onUserChange(currentNumberInstantaneous.Value);
