@@ -126,12 +126,13 @@ namespace osu.Framework.Graphics.UserInterface
                 float val = currentNumberInstantaneous.Value.ToSingle(NumberFormatInfo.InvariantInfo);
 
                 relativeValueAtMouseDown = (val - min) / (max - min);
+
+                // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
+                // This is generally an expectation by most OSes and UIs.
                 handleClick = false;
             }
             else
             {
-                // Click shouldn't be handled if relative movement is happening.
-                // This is generally an expectation by most OSes and UIs.
                 handleClick = true;
                 relativeValueAtMouseDown = null;
             }
