@@ -48,23 +48,18 @@ namespace osu.Framework.Android.Input
 
         protected override void OnTouch(MotionEvent touchEvent)
         {
-            Touch touch;
-
             switch (touchEvent.ActionMasked)
             {
                 // MotionEventActions.Down arrives at the beginning of a touch event chain and implies the 0th pointer is pressed.
                 // ActionIndex is generally not valid here.
                 case MotionEventActions.Down:
-                    if (tryGetEventTouch(touchEvent, HISTORY_CURRENT, 0, out touch))
-                        enqueueInput(new TouchInput(touch, true));
+                    applyTouchInput(touchEvent, HISTORY_CURRENT, 0);
                     break;
 
                 // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
                 case MotionEventActions.PointerDown:
                 case MotionEventActions.PointerUp:
-                    if (tryGetEventTouch(touchEvent, HISTORY_CURRENT, touchEvent.ActionIndex, out touch))
-                        enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
-
+                    applyTouchInput(touchEvent, HISTORY_CURRENT, touchEvent.ActionIndex);
                     break;
 
                 // events that apply to every pointer (up to PointerCount).
@@ -73,8 +68,7 @@ namespace osu.Framework.Android.Input
                 case MotionEventActions.Cancel:
                     for (int i = 0; i < touchEvent.PointerCount; i++)
                     {
-                        if (tryGetEventTouch(touchEvent, HISTORY_CURRENT, i, out touch))
-                            enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
+                        applyTouchInput(touchEvent, HISTORY_CURRENT, i);
                     }
 
                     break;
@@ -90,6 +84,12 @@ namespace osu.Framework.Android.Input
             if (tryGetEventPosition(hoverEvent, HISTORY_CURRENT, 0, out var position))
                 enqueueInput(new MousePositionAbsoluteInput { Position = position });
             enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+        }
+
+        private void applyTouchInput(MotionEvent touchEvent, int historyPosition, int pointerIndex)
+        {
+            if (tryGetEventTouch(touchEvent, historyPosition, pointerIndex, out var touch))
+                enqueueInput(new TouchInput(touch, touchEvent.ActionMasked.IsTouchDownAction()));
         }
 
         private bool tryGetEventTouch(MotionEvent motionEvent, int historyPosition, int pointerIndex, out Touch touch)
