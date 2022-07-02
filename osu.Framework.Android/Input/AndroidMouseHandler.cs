@@ -179,7 +179,7 @@ namespace osu.Framework.Android.Input
                     break;
 
                 case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(genericMotionEvent));
+                    handleScrollEvent(genericMotionEvent);
                     break;
             }
         }
@@ -193,7 +193,7 @@ namespace osu.Framework.Android.Input
                     break;
 
                 case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(capturedPointerEvent));
+                    handleScrollEvent(capturedPointerEvent);
                     break;
 
                 case MotionEventActions.ButtonPress:
@@ -211,9 +211,15 @@ namespace osu.Framework.Android.Input
                 handleMouseButton(button, pressed);
         }
 
-        private Vector2 getEventScroll(MotionEvent e) =>
-            // Android reports horizontal scroll opposite of what framework expects.
-            new Vector2(-e.GetAxisValue(Axis.Hscroll), e.GetAxisValue(Axis.Vscroll));
+        private void handleScrollEvent(MotionEvent scrollEvent)
+        {
+            if (scrollEvent.TryGet(Axis.Hscroll, out float h)
+                && scrollEvent.TryGet(Axis.Vscroll, out float v))
+            {
+                // Android reports horizontal scroll opposite of what framework expects.
+                enqueueInput(new MouseScrollRelativeInput { Delta = new Vector2(-h, v) });
+            }
+        }
 
         private void handleMouseMoveEvent(MotionEvent evt)
         {
@@ -243,8 +249,6 @@ namespace osu.Framework.Android.Input
         private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
 
         private void handleMouseButton(MouseButton button, bool pressed) => enqueueInput(new MouseButtonInput(button, pressed));
-
-        private void handleMouseWheel(Vector2 delta) => enqueueInput(new MouseScrollRelativeInput { Delta = delta });
 
         private void enqueueInput(IInput input)
         {
