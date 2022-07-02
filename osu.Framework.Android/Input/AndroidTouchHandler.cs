@@ -1,12 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -64,11 +62,8 @@ namespace osu.Framework.Android.Input
                 // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
                 case MotionEventActions.PointerDown:
                 case MotionEventActions.PointerUp:
-                    if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
-                    {
-                        if (tryGetEventTouch(touchEvent, touchEvent.ActionIndex, out touch))
-                            enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
-                    }
+                    if (tryGetEventTouch(touchEvent, touchEvent.ActionIndex, out touch))
+                        enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
 
                     break;
 
@@ -76,7 +71,7 @@ namespace osu.Framework.Android.Input
                 case MotionEventActions.Move:
                 case MotionEventActions.Up:
                 case MotionEventActions.Cancel:
-                    for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
+                    for (int i = 0; i < touchEvent.PointerCount; i++)
                     {
                         if (tryGetEventTouch(touchEvent, i, out touch))
                             enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
@@ -99,15 +94,20 @@ namespace osu.Framework.Android.Input
 
         private bool tryGetEventTouch(MotionEvent e, int index, out Touch touch)
         {
-            if (tryGetEventPosition(e, index, out var position))
+            if (tryGetTouchSource(e.GetPointerId(index), out var touchSource)
+                && tryGetEventPosition(e, index, out var position))
             {
-                touch = new Touch((TouchSource)e.GetPointerId(index), position);
+                touch = new Touch(touchSource, position);
                 return true;
             }
-            else
+
+            touch = new Touch();
+            return false;
+
+            bool tryGetTouchSource(int pointerId, out TouchSource source)
             {
-                touch = new Touch();
-                return false;
+                source = (TouchSource)pointerId;
+                return source >= TouchSource.Touch1 && source <= TouchSource.Touch10;
             }
         }
 
