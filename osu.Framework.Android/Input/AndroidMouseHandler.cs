@@ -221,9 +221,9 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleMouseMoveEvent(MotionEvent evt)
+        private void handleMouseMoveEvent(MotionEvent mouseMoveEvent)
         {
-            evt.HandleHistorically(apply);
+            mouseMoveEvent.HandleHistorically(apply);
 
             absolutePositionReceived = true;
 
@@ -238,9 +238,9 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private void handleMouseMoveRelativeEvent(MotionEvent evt)
+        private void handleMouseMoveRelativeEvent(MotionEvent capturedPointerEvent)
         {
-            evt.HandleHistorically(apply);
+            capturedPointerEvent.HandleHistorically(apply);
 
             void apply(MotionEvent e, int historyPosition)
             {
