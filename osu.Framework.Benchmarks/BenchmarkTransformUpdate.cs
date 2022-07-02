@@ -14,6 +14,7 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkTransformUpdate : BenchmarkTest
     {
         private TestBox target;
+        private TestBox targetNoTransforms;
 
         public override void SetUp()
         {
@@ -23,7 +24,8 @@ namespace osu.Framework.Benchmarks
 
             ManualClock clock;
 
-            target = new TestBox { Clock = new FramedClock(clock = new ManualClock()) };
+            targetNoTransforms = new TestBox { Clock = new FramedClock(clock = new ManualClock()) };
+            target = new TestBox { Clock = new FramedClock(clock) };
 
             // transform one target member over a long period
             target.RotateTo(360, transforms_count * 2);
@@ -34,6 +36,13 @@ namespace osu.Framework.Benchmarks
 
             clock.CurrentTime = target.LatestTransformEndTime;
             target.Clock.ProcessFrame();
+        }
+
+        [Benchmark]
+        public void UpdateTransformsWithNonePresent()
+        {
+            for (int i = 0; i < 10000; i++)
+                targetNoTransforms.UpdateTransforms();
         }
 
         [Benchmark]

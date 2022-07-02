@@ -629,7 +629,7 @@ namespace osu.Framework.Platform
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
             float clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            JoystickAxisChanged?.Invoke(new JoystickAxis(axisSource, clamped));
+            JoystickAxisChanged?.Invoke(axisSource, clamped);
         }
 
         private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
@@ -1619,7 +1619,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when a joystick axis changes.
         /// </summary>
-        public event Action<JoystickAxis> JoystickAxisChanged;
+        public event Action<JoystickAxisSource, float> JoystickAxisChanged;
 
         /// <summary>
         /// Invoked when the user presses a button on a joystick.
