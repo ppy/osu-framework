@@ -70,7 +70,7 @@ namespace osu.Framework.Android.Input
 
             // it's possible that Android forcefully released capture if we were unfocused.
             // so we update here when we get focus again.
-            View.FocusChange += (sender, args) =>
+            View.FocusChange += (_, args) =>
             {
                 if (args.HasFocus)
                     updatePointerCapture();
