@@ -1,11 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -384,9 +381,10 @@ namespace osu.Framework.Utils
 
                 var parameters = typeof(InterpolationFunc<TValue, TEasing>)
                                  .GetMethod(nameof(InterpolationFunc<TValue, TEasing>.Invoke))
-                                 ?.GetParameters().Select(p => p.ParameterType).ToArray();
+                                 ?.GetParameters().Select(p => p.ParameterType).ToArray()
+                                 ?? Array.Empty<Type>();
 
-                MethodInfo valueAtMethod = typeof(GenericInterpolation<TEasing>).GetMethod(interpolation_method, parameters);
+                var valueAtMethod = typeof(GenericInterpolation<TEasing>).GetMethod(interpolation_method, parameters);
 
                 if (valueAtMethod != null)
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue, TEasing>));
