@@ -140,13 +140,13 @@ namespace osu.Framework.Android.Input
         {
             // some implementations might send Mouse1 and Mouse2 as keyboard keycodes, so we handle those here.
             if (keycode.TryGetMouseButton(out var button))
-                handleMouseDown(button);
+                handleMouseButton(button, true);
         }
 
         protected override void OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetMouseButton(out var button))
-                handleMouseUp(button);
+                handleMouseButton(button, false);
         }
 
         protected override void OnHover(MotionEvent hoverEvent)
@@ -174,13 +174,8 @@ namespace osu.Framework.Android.Input
             switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.ButtonPress:
-                    foreach (var button in genericMotionEvent.ActionButton.ToMouseButtons())
-                        handleMouseDown(button);
-                    break;
-
                 case MotionEventActions.ButtonRelease:
-                    foreach (var button in genericMotionEvent.ActionButton.ToMouseButtons())
-                        handleMouseUp(button);
+                    handleButtonEvent(genericMotionEvent);
                     break;
 
                 case MotionEventActions.Scroll:
@@ -202,15 +197,18 @@ namespace osu.Framework.Android.Input
                     break;
 
                 case MotionEventActions.ButtonPress:
-                    foreach (var button in capturedPointerEvent.ActionButton.ToMouseButtons())
-                        handleMouseDown(button);
-                    break;
-
                 case MotionEventActions.ButtonRelease:
-                    foreach (var button in capturedPointerEvent.ActionButton.ToMouseButtons())
-                        handleMouseUp(button);
+                    handleButtonEvent(capturedPointerEvent);
                     break;
             }
+        }
+
+        private void handleButtonEvent(MotionEvent buttonEvent)
+        {
+            bool pressed = buttonEvent.Action == MotionEventActions.ButtonPress;
+
+            foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
+                handleMouseButton(button, pressed);
         }
 
         private Vector2 getEventScroll(MotionEvent e) =>
@@ -244,9 +242,7 @@ namespace osu.Framework.Android.Input
 
         private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
 
-        private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
-
-        private void handleMouseUp(MouseButton button) => enqueueInput(new MouseButtonInput(button, false));
+        private void handleMouseButton(MouseButton button, bool pressed) => enqueueInput(new MouseButtonInput(button, pressed));
 
         private void handleMouseWheel(Vector2 delta) => enqueueInput(new MouseScrollRelativeInput { Delta = delta });
 
