@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
@@ -46,7 +45,7 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        protected override void OnTouch(MotionEvent touchEvent)
+        protected override bool OnTouch(MotionEvent touchEvent)
         {
             switch (touchEvent.ActionMasked)
             {
@@ -54,31 +53,34 @@ namespace osu.Framework.Android.Input
                 // ActionIndex is generally not valid here.
                 case MotionEventActions.Down:
                     applyTouchInput(touchEvent, HISTORY_CURRENT, 0);
-                    break;
+                    return true;
 
                 // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
                 case MotionEventActions.PointerDown:
                 case MotionEventActions.PointerUp:
                     applyTouchInput(touchEvent, HISTORY_CURRENT, touchEvent.ActionIndex);
-                    break;
+                    return true;
 
                 // events that apply to every pointer (up to PointerCount).
                 case MotionEventActions.Move:
                 case MotionEventActions.Up:
                 case MotionEventActions.Cancel:
                     touchEvent.HandleHistoricallyPerPointer(applyTouchInput);
-                    break;
+                    return true;
 
                 default:
-                    Logger.Log($"Unknown touch event action: {touchEvent.Action}, masked: {touchEvent.ActionMasked}");
-                    break;
+                    return false;
             }
         }
 
-        protected override void OnHover(MotionEvent hoverEvent)
+        protected override bool OnHover(MotionEvent hoverEvent)
         {
             hoverEvent.HandleHistorically(apply);
             enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+
+            // TODO: handle stylus events based on hoverEvent.Action
+            // stylus should probably have it's own handler.
+            return true;
 
             void apply(MotionEvent e, int historyPosition)
             {

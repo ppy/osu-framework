@@ -68,18 +68,26 @@ namespace osu.Framework.Android.Input
         /// <remarks>See xmldoc <see cref="AndroidKeyboardHandler.ShouldHandleEvent"/></remarks>
         protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && inputEvent.Source != InputSourceType.Keyboard;
 
-        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetJoystickButton(out var button))
+            {
                 enqueueButtonDown(button);
-            else
-                Logger.Log($"Unknown joystick keycode: {keycode}");
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetJoystickButton(out var button))
+            {
                 enqueueButtonUp(button);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -142,14 +150,17 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
+        protected override bool OnGenericMotion(MotionEvent genericMotionEvent)
         {
             switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.Move:
                     updateAvailableAxesForDevice(genericMotionEvent.Device);
                     genericMotionEvent.HandleHistorically(apply);
-                    break;
+                    return true;
+
+                default:
+                    return false;
             }
         }
 

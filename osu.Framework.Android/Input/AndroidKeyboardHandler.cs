@@ -52,20 +52,24 @@ namespace osu.Framework.Android.Input
         /// </remarks>
         protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && !inputEvent.Source.HasFlagFast(InputSourceType.Gamepad);
 
-        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
                 enqueueInput(new KeyboardKeyInput(key, true));
+
+            return key != Key.Unknown;
         }
 
-        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
                 enqueueInput(new KeyboardKeyInput(key, false));
+
+            return key != Key.Unknown;
         }
 
         /// <summary>

@@ -136,70 +136,109 @@ namespace osu.Framework.Android.Input
             View.PointerCapture = shouldCapture;
         }
 
-        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
             // some implementations might send Mouse1 and Mouse2 as keyboard keycodes, so we handle those here.
             if (keycode.TryGetMouseButton(out var button))
+            {
                 handleMouseButton(button, true);
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetMouseButton(out var button))
+            {
                 handleMouseButton(button, false);
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnHover(MotionEvent hoverEvent)
+        protected override bool OnHover(MotionEvent hoverEvent)
         {
             switch (hoverEvent.Action)
             {
                 case MotionEventActions.HoverMove:
                     handleMouseMoveEvent(hoverEvent);
-                    break;
+                    return true;
+
+                // related to the mouse entering/exiting the view,
+                // and the mouse "losing" hover state as the screen is touched (the mouse pointer disappears)
+                // no need to log, and no need to handle them in any way here.
+                case MotionEventActions.HoverEnter:
+                case MotionEventActions.HoverExit:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        protected override void OnTouch(MotionEvent touchEvent)
+        protected override bool OnTouch(MotionEvent touchEvent)
         {
             switch (touchEvent.Action)
             {
                 case MotionEventActions.Move:
                     handleMouseMoveEvent(touchEvent);
-                    break;
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
+        protected override bool OnGenericMotion(MotionEvent genericMotionEvent)
         {
             switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.ButtonPress:
                 case MotionEventActions.ButtonRelease:
                     handleButtonEvent(genericMotionEvent);
-                    break;
+                    return true;
 
                 case MotionEventActions.Scroll:
                     handleScrollEvent(genericMotionEvent);
-                    break;
+                    return true;
+
+                // fired when buttons are pressed, but these don't have reliable ActionButton information
+                case MotionEventActions.Up:
+                case MotionEventActions.Down:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        protected override void OnCapturedPointer(MotionEvent capturedPointerEvent)
+        protected override bool OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
             switch (capturedPointerEvent.Action)
             {
                 case MotionEventActions.Move:
                     handleMouseMoveRelativeEvent(capturedPointerEvent);
-                    break;
+                    return true;
 
                 case MotionEventActions.Scroll:
                     handleScrollEvent(capturedPointerEvent);
-                    break;
+                    return true;
 
                 case MotionEventActions.ButtonPress:
                 case MotionEventActions.ButtonRelease:
                     handleButtonEvent(capturedPointerEvent);
-                    break;
+                    return true;
+
+                // fired when buttons are pressed, but these don't have reliable ActionButton information
+                case MotionEventActions.Up:
+                case MotionEventActions.Down:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
