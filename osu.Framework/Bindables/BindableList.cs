@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
@@ -350,22 +351,22 @@ namespace osu.Framework.Bindables
         object? IList.this[int index]
         {
             get => this[index];
-            set => this[index] = (T)value!;
+            set => this[index] = (T)value.AsNonNull();
         }
 
         int IList.Add(object? value)
         {
-            Add((T)value!);
+            Add((T)value.AsNonNull());
             return Count - 1;
         }
 
-        bool IList.Contains(object? value) => Contains((T)value!);
+        bool IList.Contains(object? value) => Contains((T)value.AsNonNull());
 
-        int IList.IndexOf(object? value) => IndexOf((T)value!);
+        int IList.IndexOf(object? value) => IndexOf((T)value.AsNonNull());
 
-        void IList.Insert(int index, object? value) => Insert(index, (T)value!);
+        void IList.Insert(int index, object? value) => Insert(index, (T)value.AsNonNull());
 
-        void IList.Remove(object? value) => Remove((T)value!);
+        void IList.Remove(object? value) => Remove((T)value.AsNonNull());
 
         bool IList.IsFixedSize => false;
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -255,7 +256,7 @@ namespace osu.Framework.Bindables
 
                 default:
                     if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, input.ToString()!);
+                        Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
                         Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
 
@@ -413,7 +414,9 @@ namespace osu.Framework.Bindables
         void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
             // Deserialize returns null for json literal "null".
-            Value = serializer.Deserialize<T>(reader)!;
+            var result = serializer.Deserialize<T>(reader);
+            Debug.Assert(result != null);
+            Value = result;
         }
 
         private LeasedBindable<T>? leasedBindable;
