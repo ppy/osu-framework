@@ -4,11 +4,14 @@
 #nullable disable
 
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK;
@@ -24,6 +27,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private readonly SpriteText sliderBarText;
         private readonly TestSliderBar sliderBar;
         private readonly SliderBar<double> transferOnCommitSliderBar;
+        private readonly TestSliderBarWithNub sliderBarWithNub;
 
         public TestSceneSliderBar()
         {
@@ -78,6 +82,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     transferOnCommitSliderBar = new BasicSliderBar<double>
                     {
                         TransferValueOnCommit = true,
+                        Size = new Vector2(200, 10),
+                        BackgroundColour = Color4.White,
+                        SelectionColour = Color4.Pink,
+                        KeyboardStep = 1,
+                        Current = sliderBarValue
+                    },
+                    new SpriteText
+                    {
+                        Text = "w/ Nub:",
+                    },
+                    sliderBarWithNub = new TestSliderBarWithNub
+                    {
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
@@ -202,6 +218,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
         }
 
+        [Test]
+        public void TestAbsoluteDrag()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.1f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag",
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.4f, 1f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(-2, false);
+        }
+
+        [Test]
+        public void TestRelativeDrag()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag",
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.75f, 1f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(3, false);
+        }
+
+        [Test]
+        public void TestRelativeClick()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
+        }
+
         private void checkValue(int expected, bool disabled)
         {
             if (disabled)
@@ -217,6 +270,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public class TestSliderBar : BasicSliderBar<double>
         {
+        }
+
+        public class TestSliderBarWithNub : BasicSliderBar<double>
+        {
+            private Box nub;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Add(nub = new Box
+                {
+                    Colour = Color4.Blue,
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.CentreLeft,
+                    RelativeSizeAxes = Axes.Y,
+                    RelativePositionAxes = Axes.X,
+                    Width = 80,
+                });
+            }
+
+            protected override bool ShouldHandleAsRelativeDrag(MouseDownEvent e) => nub.ReceivePositionalInputAt(e.ScreenSpaceMouseDownPosition);
+
+            protected override void UpdateValue(float value)
+            {
+                base.UpdateValue(value);
+                nub.X = value;
+            }
         }
     }
 }
