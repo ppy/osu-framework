@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Android.OS;
 using Android.Views;
@@ -45,7 +43,7 @@ namespace osu.Framework.Android.Input
 
         protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.MouseRelative, InputSourceType.Touchpad };
 
-        private AndroidGameWindow window;
+        private AndroidGameWindow window = null!;
 
         /// <summary>
         /// Whether a non-relative mouse event has ever been received.
