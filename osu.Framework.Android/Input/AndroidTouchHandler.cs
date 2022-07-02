@@ -66,11 +66,7 @@ namespace osu.Framework.Android.Input
                 case MotionEventActions.Move:
                 case MotionEventActions.Up:
                 case MotionEventActions.Cancel:
-                    for (int i = 0; i < touchEvent.PointerCount; i++)
-                    {
-                        applyTouchInput(touchEvent, HISTORY_CURRENT, i);
-                    }
-
+                    touchEvent.HandleHistoricallyPerPointer(applyTouchInput);
                     break;
 
                 default:
@@ -81,9 +77,14 @@ namespace osu.Framework.Android.Input
 
         protected override void OnHover(MotionEvent hoverEvent)
         {
-            if (tryGetEventPosition(hoverEvent, HISTORY_CURRENT, 0, out var position))
-                enqueueInput(new MousePositionAbsoluteInput { Position = position });
+            hoverEvent.HandleHistorically(apply);
             enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+
+            void apply(MotionEvent e, int historyPosition)
+            {
+                if (tryGetEventPosition(e, historyPosition, 0, out var position))
+                    enqueueInput(new MousePositionAbsoluteInput { Position = position });
+            }
         }
 
         private void applyTouchInput(MotionEvent touchEvent, int historyPosition, int pointerIndex)
