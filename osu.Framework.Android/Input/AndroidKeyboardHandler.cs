@@ -7,6 +7,7 @@ using Android.Views;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
@@ -56,7 +57,7 @@ namespace osu.Framework.Android.Input
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
-                PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
+                enqueueInput(new KeyboardKeyInput(key, true));
         }
 
         protected override void OnKeyUp(Keycode keycode, KeyEvent e)
@@ -64,7 +65,7 @@ namespace osu.Framework.Android.Input
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
-                PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
+                enqueueInput(new KeyboardKeyInput(key, false));
         }
 
         /// <summary>
@@ -182,6 +183,12 @@ namespace osu.Framework.Android.Input
 
             // this is the worst case scenario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
+        }
+
+        private void enqueueInput(IInput input)
+        {
+            PendingInputs.Enqueue(input);
+            FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
     }
 }

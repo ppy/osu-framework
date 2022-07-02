@@ -9,6 +9,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Input;
 
@@ -57,7 +58,7 @@ namespace osu.Framework.Android.Input
                 // ActionIndex is generally not valid here.
                 case MotionEventActions.Down:
                     if (tryGetEventTouch(touchEvent, 0, out touch))
-                        PendingInputs.Enqueue(new TouchInput(touch, true));
+                        enqueueInput(new TouchInput(touch, true));
                     break;
 
                 // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
@@ -66,7 +67,7 @@ namespace osu.Framework.Android.Input
                     if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
                     {
                         if (tryGetEventTouch(touchEvent, touchEvent.ActionIndex, out touch))
-                            PendingInputs.Enqueue(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
+                            enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
                     }
 
                     break;
@@ -78,7 +79,7 @@ namespace osu.Framework.Android.Input
                     for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
                     {
                         if (tryGetEventTouch(touchEvent, i, out touch))
-                            PendingInputs.Enqueue(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
+                            enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
                     }
 
                     break;
@@ -92,8 +93,8 @@ namespace osu.Framework.Android.Input
         protected override void OnHover(MotionEvent hoverEvent)
         {
             if (tryGetEventPosition(hoverEvent, 0, out var position))
-                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
-            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+                enqueueInput(new MousePositionAbsoluteInput { Position = position });
+            enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
         }
 
         private bool tryGetEventTouch(MotionEvent e, int index, out Touch touch)
@@ -126,6 +127,12 @@ namespace osu.Framework.Android.Input
 
             position = new Vector2(x * View.ScaleX, y * View.ScaleY);
             return true;
+        }
+
+        private void enqueueInput(IInput input)
+        {
+            PendingInputs.Enqueue(input);
+            FrameStatistics.Increment(StatisticsCounterType.TouchEvents);
         }
     }
 }
