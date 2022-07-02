@@ -55,14 +55,14 @@ namespace osu.Framework.Android.Input
                 // MotionEventActions.Down arrives at the beginning of a touch event chain and implies the 0th pointer is pressed.
                 // ActionIndex is generally not valid here.
                 case MotionEventActions.Down:
-                    if (tryGetEventTouch(touchEvent, 0, out touch))
+                    if (tryGetEventTouch(touchEvent, HISTORY_CURRENT, 0, out touch))
                         enqueueInput(new TouchInput(touch, true));
                     break;
 
                 // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
                 case MotionEventActions.PointerDown:
                 case MotionEventActions.PointerUp:
-                    if (tryGetEventTouch(touchEvent, touchEvent.ActionIndex, out touch))
+                    if (tryGetEventTouch(touchEvent, HISTORY_CURRENT, touchEvent.ActionIndex, out touch))
                         enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
 
                     break;
@@ -73,7 +73,7 @@ namespace osu.Framework.Android.Input
                 case MotionEventActions.Cancel:
                     for (int i = 0; i < touchEvent.PointerCount; i++)
                     {
-                        if (tryGetEventTouch(touchEvent, i, out touch))
+                        if (tryGetEventTouch(touchEvent, HISTORY_CURRENT, i, out touch))
                             enqueueInput(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
                     }
 
@@ -87,15 +87,15 @@ namespace osu.Framework.Android.Input
 
         protected override void OnHover(MotionEvent hoverEvent)
         {
-            if (tryGetEventPosition(hoverEvent, 0, out var position))
+            if (tryGetEventPosition(hoverEvent, HISTORY_CURRENT, 0, out var position))
                 enqueueInput(new MousePositionAbsoluteInput { Position = position });
             enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
         }
 
-        private bool tryGetEventTouch(MotionEvent e, int index, out Touch touch)
+        private bool tryGetEventTouch(MotionEvent motionEvent, int historyPosition, int pointerIndex, out Touch touch)
         {
-            if (tryGetTouchSource(e.GetPointerId(index), out var touchSource)
-                && tryGetEventPosition(e, index, out var position))
+            if (tryGetTouchSource(motionEvent.GetPointerId(pointerIndex), out var touchSource)
+                && tryGetEventPosition(motionEvent, historyPosition, pointerIndex, out var position))
             {
                 touch = new Touch(touchSource, position);
                 return true;
@@ -111,10 +111,10 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        private bool tryGetEventPosition(MotionEvent e, int index, out Vector2 position)
+        private bool tryGetEventPosition(MotionEvent motionEvent, int historyPosition, int pointerIndex, out Vector2 position)
         {
-            if (e.TryGet(Axis.X, out float x, pointerIndex: index)
-                && e.TryGet(Axis.Y, out float y, pointerIndex: index))
+            if (motionEvent.TryGet(Axis.X, out float x, historyPosition, pointerIndex)
+                && motionEvent.TryGet(Axis.Y, out float y, historyPosition, pointerIndex))
             {
                 position = new Vector2(x * View.ScaleX, y * View.ScaleY);
                 return true;
