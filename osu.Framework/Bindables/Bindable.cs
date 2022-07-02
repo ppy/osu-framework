@@ -146,10 +146,10 @@ namespace osu.Framework.Bindables
         /// Creates a new bindable instance initialised with a default value.
         /// </summary>
         /// <param name="defaultValue">The initial and default value for this bindable.</param>
-        /// <remarks>Consider passing a default value for non-nullable <typeparamref name="T"/>.</remarks>
         public Bindable(T defaultValue = default!)
         {
             // TODO: add a custom analyser warning about no default value provided for non-nullable T
+            // remember to also check for derived class constructors
             value = this.defaultValue = defaultValue;
         }
 

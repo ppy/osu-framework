@@ -29,7 +29,6 @@ namespace osu.Framework.Bindables
         public BindableWithCurrent(T defaultValue = default!)
             : base(defaultValue)
         {
-            // Not verifying, as base Bindable constructor
         }
 
         protected override Bindable<T> CreateInstance() => new BindableWithCurrent<T>();
