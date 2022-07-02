@@ -127,6 +127,7 @@ namespace osu.Framework.Android.Input
                 case Keycode.Star:
                     return Key.KeypadMultiply;
 
+                case Keycode.Backslash:
                 case Keycode.Pound:
                     return Key.BackSlash; // english keyboard layout
 
@@ -138,6 +139,9 @@ namespace osu.Framework.Android.Input
 
                 case Keycode.Power:
                     return Key.Sleep;
+
+                case Keycode.MoveHome:
+                    return Key.Home;
 
                 case Keycode.MoveEnd:
                     return Key.End;
@@ -178,6 +182,9 @@ namespace osu.Framework.Android.Input
                 case Keycode.At:
                 case Keycode.Apostrophe:
                     return Key.Quote;
+
+                case Keycode.NumpadEnter:
+                    return Key.KeypadEnter;
             }
 
             if (Enum.TryParse(keyCode.ToString(), out Key key))
