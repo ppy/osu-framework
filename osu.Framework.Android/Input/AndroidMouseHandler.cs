@@ -223,30 +223,31 @@ namespace osu.Framework.Android.Input
 
         private void handleMouseMoveEvent(MotionEvent evt)
         {
-            // https://developer.android.com/reference/android/View/MotionEvent#batching
-            for (int i = 0; i < evt.HistorySize; i++)
-                handleMouseMove(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
-
-            handleMouseMove(new Vector2(evt.GetX(), evt.GetY()));
+            evt.HandleHistorically(apply);
 
             absolutePositionReceived = true;
 
             // we may lose pointer capture if we lose focus / the app goes to the background,
             // so we use this opportunity to update capture if the user has requested it.
             updatePointerCapture();
+
+            void apply(MotionEvent e, int historyPosition)
+            {
+                if (e.TryGetPosition(out var position, historyPosition))
+                    enqueueInput(new MousePositionAbsoluteInput { Position = position });
+            }
         }
 
         private void handleMouseMoveRelativeEvent(MotionEvent evt)
         {
-            for (int i = 0; i < evt.HistorySize; i++)
-                handleMouseMoveRelative(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
+            evt.HandleHistorically(apply);
 
-            handleMouseMoveRelative(new Vector2(evt.GetX(), evt.GetY()));
+            void apply(MotionEvent e, int historyPosition)
+            {
+                if (e.TryGetPosition(out var delta, historyPosition))
+                    enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
+            }
         }
-
-        private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
-
-        private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
 
         private void handleMouseButton(MouseButton button, bool pressed) => enqueueInput(new MouseButtonInput(button, pressed));
 
