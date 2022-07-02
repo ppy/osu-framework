@@ -113,20 +113,18 @@ namespace osu.Framework.Android.Input
 
         private bool tryGetEventPosition(MotionEvent e, int index, out Vector2 position)
         {
-            float x = e.GetX(index);
-            float y = e.GetY(index);
+            if (e.TryGet(Axis.X, out float x, pointerIndex: index)
+                && e.TryGet(Axis.Y, out float y, pointerIndex: index))
+            {
+                position = new Vector2(x * View.ScaleX, y * View.ScaleY);
+                return true;
+            }
 
             // in empirical testing, `MotionEvent.Get{X,Y}()` methods can return NaN positions early on in the android activity's lifetime.
             // these nonsensical inputs then cause issues later down the line when they are converted into framework inputs.
             // as there is really nothing to recover from such inputs, drop them entirely.
-            if (float.IsNaN(x) || float.IsNaN(y))
-            {
-                position = Vector2.Zero;
-                return false;
-            }
-
-            position = new Vector2(x * View.ScaleX, y * View.ScaleY);
-            return true;
+            position = Vector2.Zero;
+            return false;
         }
 
         private void enqueueInput(IInput input)
