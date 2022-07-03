@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using NUnit.Framework;
 
 namespace osu.Framework.Extensions.ObjectExtensions
 {
@@ -23,6 +24,7 @@ namespace osu.Framework.Extensions.ObjectExtensions
         public static T AsNonNull<T>(this T? obj)
             where T : class
         {
+            Trace.Assert(obj != null);
             Debug.Assert(obj != null);
             return obj;
         }
