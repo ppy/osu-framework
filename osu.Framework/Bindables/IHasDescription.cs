@@ -11,6 +11,6 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// The description for this object.
         /// </summary>
-        string? Description { get; }
+        string Description { get; }
     }
 }

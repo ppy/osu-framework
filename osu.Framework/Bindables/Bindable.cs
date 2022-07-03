@@ -380,7 +380,7 @@ namespace osu.Framework.Bindables
             tThem.removeWeakReference(weakReference);
         }
 
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         public override string ToString() => value?.ToString() ?? string.Empty;
 
