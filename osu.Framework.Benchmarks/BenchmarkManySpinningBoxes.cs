@@ -13,7 +13,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkManySpinningBoxes : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]

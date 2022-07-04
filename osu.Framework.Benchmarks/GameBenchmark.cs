@@ -15,7 +15,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public abstract class GameBenchmark
     {
-        private ManualGameHost gameHost;
+        private ManualGameHost gameHost = null!;
 
         protected Game Game { get; private set; }
 

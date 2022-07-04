@@ -11,7 +11,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkCompositeDrawableAllocations : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]

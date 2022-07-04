@@ -18,9 +18,9 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkDependencyContainer : GameBenchmark
     {
-        private Game game;
-        private TestBdlReceiver bdlReceiver;
-        private TestCachedReceiver cachedReceiver;
+        private Game game = null!;
+        private TestBdlReceiver bdlReceiver = null!;
+        private TestCachedReceiver cachedReceiver = null!;
 
         public override void SetUp()
         {

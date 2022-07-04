@@ -12,8 +12,8 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkLocalisedBindableString
     {
-        private LocalisationManager manager;
-        private TemporaryNativeStorage storage;
+        private LocalisationManager manager = null!;
+        private TemporaryNativeStorage storage = null!;
 
         [GlobalSetup]
         public void GlobalSetup()

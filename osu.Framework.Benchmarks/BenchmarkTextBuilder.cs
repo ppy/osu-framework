@@ -13,7 +13,7 @@ namespace osu.Framework.Benchmarks
     {
         private readonly ITexturedGlyphLookupStore store = new TestStore();
 
-        private TextBuilder textBuilder;
+        private TextBuilder textBuilder = null!;
 
         [Benchmark]
         public void AddCharacters() => initialiseBuilder(false);

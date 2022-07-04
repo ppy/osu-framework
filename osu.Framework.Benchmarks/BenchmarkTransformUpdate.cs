@@ -11,8 +11,8 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkTransformUpdate : BenchmarkTest
     {
-        private TestBox target;
-        private TestBox targetNoTransforms;
+        private TestBox target = null!;
+        private TestBox targetNoTransforms = null!;
 
         public override void SetUp()
         {

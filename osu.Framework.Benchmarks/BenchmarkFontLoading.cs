@@ -16,8 +16,8 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkFontLoading : BenchmarkTest
     {
-        private NamespacedResourceStore<byte[]> baseResources;
-        private TemporaryNativeStorage sharedTemp;
+        private NamespacedResourceStore<byte[]> baseResources = null!;
+        private TemporaryNativeStorage sharedTemp = null!;
 
         public override void SetUp()
         {
