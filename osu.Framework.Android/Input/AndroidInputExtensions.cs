@@ -173,25 +173,30 @@ namespace osu.Framework.Android.Input
             return false;
         }
 
-        public static bool TryGetJoystickButton(this Keycode keycode, out JoystickButton button)
+        public static bool TryGetJoystickButton(this KeyEvent e, out JoystickButton button)
         {
+            var keycode = e.KeyCode;
+
+            if (keycode >= Keycode.Button1 && keycode <= Keycode.Button16)
+            {
+                // JoystickButtons 1-16 are used below.
+                button = JoystickButton.Button17 + (keycode - Keycode.Button1);
+                return true;
+            }
+
             switch (keycode)
             {
+                // Dpad keycodes are _not_ joystick buttons, but are instead used for arrow keys on a keyboard.
+                // as evident from KeyEvent.isGamePadButton():
+                // https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/view/KeyEvent.java;l=1899-1936;drc=11e61ab1fd1f868ee8ddd6fc86662f4f09df1a6a
                 case Keycode.DpadUp:
-                    button = JoystickButton.GamePadDPadUp;
-                    return true;
-
                 case Keycode.DpadDown:
-                    button = JoystickButton.GamePadDPadDown;
-                    return true;
-
                 case Keycode.DpadLeft:
-                    button = JoystickButton.GamePadDPadLeft;
-                    return true;
-
                 case Keycode.DpadRight:
-                    button = JoystickButton.GamePadDPadRight;
-                    return true;
+                case Keycode.Back when e.Source == InputSourceType.Keyboard:
+                default:
+                    button = JoystickButton.FirstButton;
+                    return false;
 
                 case Keycode.ButtonA:
                     button = JoystickButton.GamePadA;
@@ -254,16 +259,6 @@ namespace osu.Framework.Android.Input
                     button = JoystickButton.Button16; // generic button
                     return true;
             }
-
-            if (keycode >= Keycode.Button1 && keycode <= Keycode.Button16)
-            {
-                // JoystickButtons 1-16 are used above.
-                button = JoystickButton.Button17 + (keycode - Keycode.Button1);
-                return true;
-            }
-
-            button = JoystickButton.FirstButton;
-            return false;
         }
 
         /// <summary>

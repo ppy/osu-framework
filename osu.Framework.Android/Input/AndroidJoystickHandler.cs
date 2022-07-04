@@ -32,7 +32,7 @@ namespace osu.Framework.Android.Input
             InputSourceType.Dpad,
             InputSourceType.Gamepad,
             InputSourceType.Joystick,
-            // joysticks sometimes present themselves as a keyboard (in addition to Gamepad) when buttons are pressed. see `ShouldHandleEvent`
+            // joysticks sometimes present themselves as a keyboard in OnKey{Up,Down} events.
             InputSourceType.Keyboard
         };
 
@@ -65,26 +65,17 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        /// <remarks>See xmldoc <see cref="AndroidKeyboardHandler.ShouldHandleEvent"/></remarks>
-        protected override bool ShouldHandleEvent(InputEvent? inputEvent)
-            => base.ShouldHandleEvent(inputEvent)
-               && (inputEvent.Source != InputSourceType.Keyboard
-                   // explicitly handle gamepad keycodes from "keyboards" (every gamepad button except the D-pad ones are included).
-                   // D-pad keycodes are overloaded; covering arrow keys on a keyboard, synthesized trackball (Android hardware feature from 2009) events,
-                   // and joystick/gamepad D-pads (according to the docs, but not yet seen in practice)
-                   || (inputEvent is KeyEvent keyEvent && KeyEvent.IsGamepadButton(keyEvent.KeyCode)));
-
         protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
-            if (keycode.TryGetJoystickButton(out var button))
+            if (e.TryGetJoystickButton(out var button))
                 enqueueButtonDown(button);
-            else
+            else if (e.Source != InputSourceType.Keyboard) // keyboard only events are handled in AndroidKeyboardHandler.
                 Logger.Log($"Unknown joystick keycode: {keycode}");
         }
 
         protected override void OnKeyUp(Keycode keycode, KeyEvent e)
         {
-            if (keycode.TryGetJoystickButton(out var button))
+            if (e.TryGetJoystickButton(out var button))
                 enqueueButtonUp(button);
         }
 
