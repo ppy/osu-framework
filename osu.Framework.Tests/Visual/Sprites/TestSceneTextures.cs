@@ -229,7 +229,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
 
                 TotalCompletedLookups++;
-                return getFunc("sample-texture");
+                return getFunc("sample-texture.png");
             }
 
             public void Reset()
