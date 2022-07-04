@@ -66,7 +66,13 @@ namespace osu.Framework.Android.Input
         }
 
         /// <remarks>See xmldoc <see cref="AndroidKeyboardHandler.ShouldHandleEvent"/></remarks>
-        protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && inputEvent.Source != InputSourceType.Keyboard;
+        protected override bool ShouldHandleEvent(InputEvent? inputEvent)
+            => base.ShouldHandleEvent(inputEvent)
+               && (inputEvent.Source != InputSourceType.Keyboard
+                   // explicitly handle gamepad keycodes from "keyboards" (every gamepad button except the D-pad ones are included).
+                   // D-pad keycodes are overloaded; covering arrow keys on a keyboard, synthesized trackball (Android hardware feature from 2009) events,
+                   // and joystick/gamepad D-pads (according to the docs, but not yet seen in practice)
+                   || (inputEvent is KeyEvent keyEvent && KeyEvent.IsGamepadButton(keyEvent.KeyCode)));
 
         protected override void OnKeyDown(Keycode keycode, KeyEvent e)
         {
