@@ -63,7 +63,7 @@ namespace osu.Framework.Benchmarks
             {
                 base.Update();
 
-                Drawable drawable = null;
+                Drawable? drawable = null;
 
                 switch (Mode)
                 {

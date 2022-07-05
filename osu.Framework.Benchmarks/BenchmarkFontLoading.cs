@@ -91,7 +91,7 @@ namespace osu.Framework.Benchmarks
             {
                 foreach (var p in props)
                 {
-                    object propValue = p.GetValue(null);
+                    object? propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     var icon = (IconUsage)propValue;
