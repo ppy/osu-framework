@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,6 +16,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -840,19 +842,54 @@ namespace osu.Framework.Platform
             }
         }
 
+        private readonly long?[] activeTouches = new long?[TouchState.MAX_TOUCH_COUNT];
+
+        private TouchSource? getTouchSource(long fingerId)
+        {
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (fingerId == activeTouches[i])
+                    return (TouchSource)i;
+            }
+
+            return null;
+        }
+
+        private TouchSource? assignNextAvailableTouchSource(long fingerId)
+        {
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (activeTouches[i] != null) continue;
+
+                activeTouches[i] = fingerId;
+                return (TouchSource)i;
+            }
+
+            // we only handle up to TouchState.MAX_TOUCH_COUNT. Ignore any further touches for now.
+            return null;
+        }
+
         private void handleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
         {
-            var source = (TouchSource)evtTfinger.fingerId;
+            var eventType = (SDL.SDL_EventType)evtTfinger.type;
 
-            if (source > TouchSource.Touch10)
+            var existingSource = getTouchSource(evtTfinger.fingerId);
+
+            if (eventType == SDL.SDL_EventType.SDL_FINGERDOWN)
+            {
+                Debug.Assert(existingSource == null);
+                existingSource = assignNextAvailableTouchSource(evtTfinger.fingerId);
+            }
+
+            if (existingSource == null)
                 return;
 
             float x = evtTfinger.x * Size.Width;
             float y = evtTfinger.y * Size.Height;
 
-            var touch = new Touch(source, new Vector2(x, y));
+            var touch = new Touch(existingSource.Value, new Vector2(x, y));
 
-            switch ((SDL.SDL_EventType)evtTfinger.type)
+            switch (eventType)
             {
                 case SDL.SDL_EventType.SDL_FINGERDOWN:
                 case SDL.SDL_EventType.SDL_FINGERMOTION:
