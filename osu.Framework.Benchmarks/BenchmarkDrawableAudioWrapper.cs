@@ -37,7 +37,7 @@ namespace osu.Framework.Benchmarks
 
             public bool TransferBetween { get; set; }
 
-            private AudioContainer lastContainer;
+            private AudioContainer? lastContainer;
 
             protected override void LoadComplete()
             {
