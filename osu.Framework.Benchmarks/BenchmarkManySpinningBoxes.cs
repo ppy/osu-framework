@@ -47,7 +47,7 @@ namespace osu.Framework.Benchmarks
 
         private class TestGame : Game
         {
-            public Container MainContent;
+            public Container MainContent = null!;
 
             protected override void LoadComplete()
             {

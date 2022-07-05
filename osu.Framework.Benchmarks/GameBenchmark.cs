@@ -17,7 +17,7 @@ namespace osu.Framework.Benchmarks
     {
         private ManualGameHost gameHost = null!;
 
-        protected Game Game { get; private set; }
+        protected Game Game { get; private set; } = null!;
 
         [GlobalSetup]
         [OneTimeSetUp]
