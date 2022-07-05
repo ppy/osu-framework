@@ -37,7 +37,7 @@ namespace osu.Framework.Threading
         /// </summary>
         public bool Cancelled => State == RunState.Cancelled;
 
-        public RunState State;
+        public RunState State { get; private set; }
 
         /// <summary>
         /// The work task.
