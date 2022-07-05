@@ -30,8 +30,8 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public virtual void TearDown()
         {
-            gameHost?.Exit();
-            gameHost?.Dispose();
+            gameHost.Exit();
+            gameHost.Dispose();
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public void TearDown()
         {
-            sharedTemp?.Dispose();
+            sharedTemp.Dispose();
         }
 
         [Params(1, 10, 100, 1000, 10000)]
