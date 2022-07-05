@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -39,7 +37,7 @@ namespace osu.Framework.Benchmarks
 
             public bool TransferBetween { get; set; }
 
-            private AudioContainer lastContainer;
+            private AudioContainer? lastContainer;
 
             protected override void LoadComplete()
             {

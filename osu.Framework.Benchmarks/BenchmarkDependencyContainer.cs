@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Threading;
 using BenchmarkDotNet.Attributes;
 using JetBrains.Annotations;
@@ -20,9 +18,9 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkDependencyContainer : GameBenchmark
     {
-        private Game game;
-        private TestBdlReceiver bdlReceiver;
-        private TestCachedReceiver cachedReceiver;
+        private Game game = null!;
+        private TestBdlReceiver bdlReceiver = null!;
+        private TestCachedReceiver cachedReceiver = null!;
 
         public override void SetUp()
         {
@@ -65,13 +63,13 @@ namespace osu.Framework.Benchmarks
         private class TestCachedReceiver : Drawable
         {
             [Resolved]
-            private GameHost host { get; set; }
+            private GameHost host { get; set; } = null!;
 
             [Resolved]
-            private FrameworkConfigManager frameworkConfigManager { get; set; }
+            private FrameworkConfigManager frameworkConfigManager { get; set; } = null!;
 
             [Resolved]
-            private FrameworkDebugConfigManager frameworkDebugConfigManager { get; set; }
+            private FrameworkDebugConfigManager frameworkDebugConfigManager { get; set; } = null!;
         }
 
         private class TestGame : Game
