@@ -63,13 +63,13 @@ namespace osu.Framework.Benchmarks
         private class TestCachedReceiver : Drawable
         {
             [Resolved]
-            private GameHost host { get; set; }
+            private GameHost host { get; set; } = null!;
 
             [Resolved]
-            private FrameworkConfigManager frameworkConfigManager { get; set; }
+            private FrameworkConfigManager frameworkConfigManager { get; set; } = null!;
 
             [Resolved]
-            private FrameworkDebugConfigManager frameworkDebugConfigManager { get; set; }
+            private FrameworkDebugConfigManager frameworkDebugConfigManager { get; set; } = null!;
         }
 
         private class TestGame : Game
