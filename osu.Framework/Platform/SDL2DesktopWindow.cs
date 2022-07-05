@@ -489,6 +489,7 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
+            // SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
@@ -841,6 +842,27 @@ namespace osu.Framework.Platform
 
         private void handleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
         {
+            var source = (TouchSource)evtTfinger.fingerId;
+
+            if (source > TouchSource.Touch10)
+                return;
+
+            float x = evtTfinger.x * Size.Width;
+            float y = evtTfinger.y * Size.Height;
+
+            var touch = new Touch(source, new Vector2(x, y));
+
+            switch ((SDL.SDL_EventType)evtTfinger.type)
+            {
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                    TouchDown?.Invoke(touch);
+                    break;
+
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                    TouchUp?.Invoke(touch);
+                    break;
+            }
         }
 
         private void handleControllerDeviceEvent(SDL.SDL_ControllerDeviceEvent evtCdevice)
@@ -1630,6 +1652,10 @@ namespace osu.Framework.Platform
         /// Invoked when the user releases a button on a joystick.
         /// </summary>
         public event Action<JoystickButton> JoystickButtonUp;
+
+        public event Action<Touch> TouchDown;
+
+        public event Action<Touch> TouchUp;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.
