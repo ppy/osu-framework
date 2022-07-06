@@ -123,7 +123,6 @@ namespace osu.Framework.Threading
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                //todo: error handling
                 sd.RunTaskInternal();
 
                 TotalTasksRun++;
