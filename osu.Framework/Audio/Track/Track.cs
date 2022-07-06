@@ -82,10 +82,25 @@ namespace osu.Framework.Audio.Track
         /// <returns>Whether the seek was successful.</returns>
         public abstract bool Seek(double seek);
 
+        public abstract Task<bool> SeekAsync(double seek);
+
+        public virtual Task StartAsync()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
+
+            return Task.CompletedTask;
+        }
+
         public virtual void Start()
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
+        }
+
+        public virtual Task StopAsync()
+        {
+            return Task.CompletedTask;
         }
 
         public virtual void Stop()

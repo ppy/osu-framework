@@ -227,11 +227,14 @@ namespace osu.Framework.Audio.Track
             StopAsync().WaitSafely();
         }
 
-        public Task StopAsync() => EnqueueAction(() =>
+        public override Task StopAsync()
         {
-            stopInternal();
-            isRunning = isPlayed = false;
-        });
+            return EnqueueAction(() =>
+            {
+                stopInternal();
+                isRunning = isPlayed = false;
+            });
+        }
 
         private void stopInternal()
         {
@@ -256,11 +259,16 @@ namespace osu.Framework.Audio.Track
             StartAsync().WaitSafely();
         }
 
-        public Task StartAsync() => EnqueueAction(() =>
+        public override async Task StartAsync()
         {
-            if (startInternal())
-                isRunning = isPlayed = true;
-        });
+            await base.StartAsync().ConfigureAwait(false);
+
+            await EnqueueAction(() =>
+            {
+                if (startInternal())
+                    isRunning = isPlayed = true;
+            }).ConfigureAwait(false);
+        }
 
         private bool startInternal()
         {
@@ -291,7 +299,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
-        public async Task<bool> SeekAsync(double seek)
+        public override async Task<bool> SeekAsync(double seek)
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
