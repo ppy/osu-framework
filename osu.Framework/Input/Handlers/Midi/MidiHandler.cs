@@ -234,14 +234,12 @@ namespace osu.Framework.Input.Handlers.Midi
 
             void noteOn()
             {
-                Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
                 PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
 
             void noteOff()
             {
-                Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
                 PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
