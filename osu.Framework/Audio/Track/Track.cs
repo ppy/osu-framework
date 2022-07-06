@@ -13,8 +13,8 @@ namespace osu.Framework.Audio.Track
         public event Action? Completed;
         public event Action? Failed;
 
-        protected virtual void RaiseCompleted() => Completed?.Invoke();
-        protected virtual void RaiseFailed() => Failed?.Invoke();
+        protected void RaiseCompleted() => Completed?.Invoke();
+        protected void RaiseFailed() => Failed?.Invoke();
 
         public virtual bool IsDummyDevice => true;
 
@@ -38,11 +38,18 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Restarts this track from the <see cref="RestartPoint"/> while retaining adjustments.
         /// </summary>
-        public virtual void Restart()
+        public void Restart()
         {
             Stop();
             Seek(RestartPoint);
             Start();
+        }
+
+        public async Task RestartAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
+            await SeekAsync(RestartPoint).ConfigureAwait(false);
+            await StartAsync().ConfigureAwait(false);
         }
 
         public virtual void ResetSpeedAdjustments()

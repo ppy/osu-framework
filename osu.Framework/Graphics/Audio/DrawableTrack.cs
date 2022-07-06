@@ -94,6 +94,8 @@ namespace osu.Framework.Graphics.Audio
             RemoveAllAdjustments(AdjustableProperty.Tempo);
         }
 
+        public Task RestartAsync() => track.RestartAsync();
+
         public Task<bool> SeekAsync(double seek) => track.SeekAsync(seek);
 
         public Task StartAsync() => track.StartAsync();
