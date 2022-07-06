@@ -220,12 +220,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsDummyDevice => false;
 
-        public override void Stop()
-        {
-            base.Stop();
-
-            StopAsync().WaitSafely();
-        }
+        public override void Stop() => StopAsync().WaitSafely();
 
         public override Task StopAsync()
         {
@@ -254,21 +249,17 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            base.Start();
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
 
             StartAsync().WaitSafely();
         }
 
-        public override async Task StartAsync()
+        public override Task StartAsync() => EnqueueAction(() =>
         {
-            await base.StartAsync().ConfigureAwait(false);
-
-            await EnqueueAction(() =>
-            {
-                if (startInternal())
-                    isRunning = isPlayed = true;
-            }).ConfigureAwait(false);
-        }
+            if (startInternal())
+                isRunning = isPlayed = true;
+        });
 
         private bool startInternal()
         {
