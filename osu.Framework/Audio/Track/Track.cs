@@ -45,12 +45,12 @@ namespace osu.Framework.Audio.Track
             Start();
         }
 
-        public async Task RestartAsync()
+        public Task RestartAsync() => EnqueueAction(() =>
         {
-            await StopAsync().ConfigureAwait(false);
-            await SeekAsync(RestartPoint).ConfigureAwait(false);
-            await StartAsync().ConfigureAwait(false);
-        }
+            Stop();
+            Seek(RestartPoint);
+            Start();
+        });
 
         public virtual void ResetSpeedAdjustments()
         {
