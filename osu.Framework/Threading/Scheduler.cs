@@ -100,20 +100,29 @@ namespace osu.Framework.Threading
         /// Run any pending work tasks.
         /// </summary>
         /// <returns>The number of tasks that were run.</returns>
-        public virtual int Update()
+        public int Update()
         {
-            lock (queueLock)
+            bool hasTimedTasks = timedTasks.Count > 0;
+            bool hasPerUpdateTasks = perUpdateTasks.Count > 0;
+
+            if (hasTimedTasks || hasPerUpdateTasks) // avoid taking out a lock if there are no items.
             {
-                queueTimedTasks();
-                queuePerUpdateTasks();
+                lock (queueLock)
+                {
+                    queueTimedTasks();
+                    queuePerUpdateTasks();
+                }
             }
 
             int countToRun = runQueue.Count;
+
+            if (countToRun == 0)
+                return 0; // avoid taking out a lock via getNextTask() if there are no items.
+
             int countRun = 0;
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                //todo: error handling
                 sd.RunTaskInternal();
 
                 TotalTasksRun++;
@@ -127,10 +136,11 @@ namespace osu.Framework.Threading
 
         private void queueTimedTasks()
         {
-            double currentTimeLocal = currentTime;
-
-            if (timedTasks.Count > 0)
+            // Already checked before this method is called, but helps with path prediction?
+            if (timedTasks.Count != 0)
             {
+                double currentTimeLocal = currentTime;
+
                 foreach (var sd in timedTasks)
                 {
                     if (sd.ExecutionTime <= currentTimeLocal)
@@ -174,19 +184,23 @@ namespace osu.Framework.Threading
 
         private void queuePerUpdateTasks()
         {
-            for (int i = 0; i < perUpdateTasks.Count; i++)
+            // Already checked before this method is called, but helps with path prediction?
+            if (perUpdateTasks.Count != 0)
             {
-                ScheduledDelegate task = perUpdateTasks[i];
-
-                task.SetNextExecution(null);
-
-                if (task.Cancelled)
+                for (int i = 0; i < perUpdateTasks.Count; i++)
                 {
-                    perUpdateTasks.RemoveAt(i--);
-                    continue;
-                }
+                    ScheduledDelegate task = perUpdateTasks[i];
 
-                enqueue(task);
+                    task.SetNextExecution(null);
+
+                    if (task.Cancelled)
+                    {
+                        perUpdateTasks.RemoveAt(i--);
+                        continue;
+                    }
+
+                    enqueue(task);
+                }
             }
         }
 
