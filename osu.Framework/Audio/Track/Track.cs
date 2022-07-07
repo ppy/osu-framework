@@ -5,6 +5,7 @@ using osu.Framework.Statistics;
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.Audio.Track
 {
@@ -38,12 +39,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Restarts this track from the <see cref="RestartPoint"/> while retaining adjustments.
         /// </summary>
-        public void Restart()
-        {
-            Stop();
-            Seek(RestartPoint);
-            Start();
-        }
+        public void Restart() => RestartAsync().WaitSafely();
 
         public Task RestartAsync() => EnqueueAction(() =>
         {
