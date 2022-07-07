@@ -5,6 +5,7 @@ using osu.Framework.Statistics;
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.Audio.Track
 {
@@ -13,8 +14,8 @@ namespace osu.Framework.Audio.Track
         public event Action? Completed;
         public event Action? Failed;
 
-        protected virtual void RaiseCompleted() => Completed?.Invoke();
-        protected virtual void RaiseFailed() => Failed?.Invoke();
+        protected void RaiseCompleted() => Completed?.Invoke();
+        protected void RaiseFailed() => Failed?.Invoke();
 
         public virtual bool IsDummyDevice => true;
 
@@ -38,12 +39,14 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Restarts this track from the <see cref="RestartPoint"/> while retaining adjustments.
         /// </summary>
-        public virtual void Restart()
+        public void Restart() => RestartAsync().WaitSafely();
+
+        public Task RestartAsync() => EnqueueAction(() =>
         {
             Stop();
             Seek(RestartPoint);
             Start();
-        }
+        });
 
         public virtual void ResetSpeedAdjustments()
         {
@@ -82,15 +85,15 @@ namespace osu.Framework.Audio.Track
         /// <returns>Whether the seek was successful.</returns>
         public abstract bool Seek(double seek);
 
-        public virtual void Start()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
-        }
+        public abstract Task<bool> SeekAsync(double seek);
 
-        public virtual void Stop()
-        {
-        }
+        public abstract Task StartAsync();
+
+        public abstract void Start();
+
+        public abstract Task StopAsync();
+
+        public abstract void Stop();
 
         public abstract bool IsRunning { get; }
 
