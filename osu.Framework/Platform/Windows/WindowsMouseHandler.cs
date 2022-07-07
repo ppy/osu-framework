@@ -64,7 +64,7 @@ namespace osu.Framework.Platform.Windows
             if (message != Native.Input.WM_INPUT)
                 return IntPtr.Zero;
 
-            if (Native.Input.IsMouseMessageSourceTouch())
+            if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
                 return IntPtr.Zero;
 
             int payloadSize = sizeof(RawInputData);

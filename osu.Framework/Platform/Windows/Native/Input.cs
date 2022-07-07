@@ -48,23 +48,10 @@ namespace osu.Framework.Platform.Windows.Native
         public const long MI_WP_SIGNATURE_MASK = 0xFFFFFF00;
 
         // https://docs.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
-        private static bool isTouchEvent(long dw) => (dw & MI_WP_SIGNATURE_MASK) == MI_WP_SIGNATURE && (dw & 0x80) == 0x80;
+        public static bool IsTouchEvent(long dw) => (dw & MI_WP_SIGNATURE_MASK) == MI_WP_SIGNATURE && (dw & 0x80) == 0x80;
 
         [DllImport("user32.dll", SetLastError = false)]
-        private static extern long GetMessageExtraInfo();
-
-        /// <summary>
-        /// Whether the current mouse messages is sourced from a touch device (generated for touchscreens).
-        /// </summary>
-        public static bool IsMouseMessageSourceTouch()
-        {
-            long extraInfo = GetMessageExtraInfo();
-
-            if (isTouchEvent(extraInfo))
-                return true;
-
-            return (extraInfo & 0x82) == 0x82;
-        }
+        public static extern long GetMessageExtraInfo();
     }
 
     /// <summary>
