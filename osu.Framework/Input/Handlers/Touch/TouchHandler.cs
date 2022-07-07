@@ -3,6 +3,7 @@
 
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Input.Handlers.Touch
 {
@@ -48,7 +49,7 @@ namespace osu.Framework.Input.Handlers.Touch
         private void enqueueTouch(Input.Touch touch, bool activate)
         {
             PendingInputs.Enqueue(new TouchInput(touch, activate));
-            // FrameStatistics.Increment(StatisticsCounterType.TouchEvents);
+            FrameStatistics.Increment(StatisticsCounterType.TouchEvents);
         }
     }
 }
