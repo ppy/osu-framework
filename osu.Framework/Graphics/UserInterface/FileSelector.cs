@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 foreach (var file in files.OrderBy(d => d.Name))
                 {
-                    if (!file.Attributes.HasFlagFast(FileAttributes.Hidden))
+                    if (ShowHiddenItems.Value || !file.Attributes.HasFlagFast(FileAttributes.Hidden))
                         items.Add(CreateFileItem(file));
                 }
 
@@ -71,6 +71,16 @@ namespace osu.Framework.Graphics.UserInterface
             protected DirectoryListingFile(FileInfo file)
             {
                 File = file;
+
+                try
+                {
+                    if (File?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                        ApplyHiddenState();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // checking attributes on access-controlled files will throw an error so we handle it here to prevent a crash
+                }
             }
 
             protected override bool OnClick(ClickEvent e)
