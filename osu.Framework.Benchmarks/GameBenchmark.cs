@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,9 +15,9 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public abstract class GameBenchmark
     {
-        private ManualGameHost gameHost;
+        private ManualGameHost gameHost = null!;
 
-        protected Game Game { get; private set; }
+        protected Game Game { get; private set; } = null!;
 
         [GlobalSetup]
         [OneTimeSetUp]
@@ -32,8 +30,8 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public virtual void TearDown()
         {
-            gameHost?.Exit();
-            gameHost?.Dispose();
+            gameHost.Exit();
+            gameHost.Dispose();
         }
 
         /// <summary>

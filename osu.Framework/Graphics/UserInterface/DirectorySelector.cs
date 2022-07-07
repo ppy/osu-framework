@@ -23,12 +23,22 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private FillFlowContainer directoryFlow;
 
+        protected readonly BindableBool ShowHiddenItems = new BindableBool();
+
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
 
         /// <summary>
         /// Create the breadcrumb part of the control.
         /// </summary>
         protected abstract DirectorySelectorBreadcrumbDisplay CreateBreadcrumb();
+
+        /// <summary>
+        /// Create a button that toggles the display of hidden items.
+        /// </summary>
+        /// <remarks>
+        /// Unless overridden, a toggle button will not be added.
+        /// </remarks>
+        protected virtual Drawable CreateHiddenToggleButton() => Empty();
 
         protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
@@ -71,7 +81,25 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     new Drawable[]
                     {
-                        CreateBreadcrumb()
+                        new GridContainer
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            ColumnDimensions = new[]
+                            {
+                                new Dimension(),
+                                new Dimension(GridSizeMode.AutoSize),
+                            },
+                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                            Content = new[]
+                            {
+                                new[]
+                                {
+                                    CreateBreadcrumb(),
+                                    CreateHiddenToggleButton()
+                                }
+                            }
+                        }
                     },
                     new Drawable[]
                     {
@@ -90,7 +118,8 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            CurrentPath.BindValueChanged(updateDisplay, true);
+            ShowHiddenItems.ValueChanged += _ => updateDisplay();
+            CurrentPath.BindValueChanged(_ => updateDisplay(), true);
         }
 
         /// <summary>
@@ -100,7 +129,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool directoryChanging;
 
-        private void updateDisplay(ValueChangedEvent<DirectoryInfo> directory)
+        private void updateDisplay()
         {
             if (directoryChanging)
                 return;
@@ -111,7 +140,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 directoryFlow.Clear();
 
-                var newDirectory = directory.NewValue;
+                var newDirectory = CurrentPath.Value;
                 bool notifyError = false;
                 ICollection<DirectorySelectorItem> items = Array.Empty<DirectorySelectorItem>();
 
@@ -168,7 +197,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
                 {
-                    if (!dir.Attributes.HasFlagFast(FileAttributes.Hidden))
+                    if (ShowHiddenItems.Value || !dir.Attributes.HasFlagFast(FileAttributes.Hidden))
                         items.Add(CreateDirectoryItem(dir));
                 }
 

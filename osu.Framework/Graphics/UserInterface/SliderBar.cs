@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Globalization;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osuTK.Input;
@@ -114,10 +115,28 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
+        private float? relativeValueAtMouseDown;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            handleClick = true;
+            if (ShouldHandleAsRelativeDrag(e))
+            {
+                float min = currentNumberInstantaneous.MinValue.ToSingle(NumberFormatInfo.InvariantInfo);
+                float max = currentNumberInstantaneous.MaxValue.ToSingle(NumberFormatInfo.InvariantInfo);
+                float val = currentNumberInstantaneous.Value.ToSingle(NumberFormatInfo.InvariantInfo);
+
+                relativeValueAtMouseDown = (val - min) / (max - min);
+
+                // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
+                // This is generally an expectation by most OSes and UIs.
+                handleClick = false;
+            }
+            else
+            {
+                handleClick = true;
+                relativeValueAtMouseDown = null;
+            }
+
             return base.OnMouseDown(e);
         }
 
@@ -151,11 +170,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e)
-        {
-            handleMouseInput(e);
-            commit();
-        }
+        protected override void OnDragEnd(DragEndEvent e) => commit();
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -203,14 +218,36 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private void handleMouseInput(UIEvent e)
-        {
-            float xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
+        /// <summary>
+        /// Whether mouse handling should be relative to the distance travelled, or absolute in line with the exact position of the cursor.
+        /// </summary>
+        /// <remarks>
+        /// Generally, this should be overridden and return <c>true</c> when the cursor is hovering a "nub" or "thumb" portion at the point of mouse down
+        /// to give the user more correct control.
+        /// </remarks>
+        /// <param name="e">The mouse down event.</param>
+        /// <returns>Whether to perform a relative drag.</returns>
+        protected virtual bool ShouldHandleAsRelativeDrag(MouseDownEvent e) => false;
 
+        private void handleMouseInput(MouseButtonEvent e)
+        {
             if (currentNumberInstantaneous.Disabled)
                 return;
 
-            currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
+            float localX = ToLocalSpace(e.ScreenSpaceMousePosition).X;
+
+            float newValue;
+
+            if (relativeValueAtMouseDown != null && e is DragEvent drag)
+            {
+                newValue = relativeValueAtMouseDown.Value + (localX - ToLocalSpace(drag.ScreenSpaceMouseDownPosition).X) / UsableWidth;
+            }
+            else
+            {
+                newValue = (localX - RangePadding) / UsableWidth;
+            }
+
+            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : 0);
             onUserChange(currentNumberInstantaneous.Value);
         }
 

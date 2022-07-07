@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -18,8 +16,8 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkFontLoading : BenchmarkTest
     {
-        private NamespacedResourceStore<byte[]> baseResources;
-        private TemporaryNativeStorage sharedTemp;
+        private NamespacedResourceStore<byte[]> baseResources = null!;
+        private TemporaryNativeStorage sharedTemp = null!;
 
         public override void SetUp()
         {
@@ -32,7 +30,7 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public void TearDown()
         {
-            sharedTemp?.Dispose();
+            sharedTemp.Dispose();
         }
 
         [Params(1, 10, 100, 1000, 10000)]
@@ -93,7 +91,7 @@ namespace osu.Framework.Benchmarks
             {
                 foreach (var p in props)
                 {
-                    object propValue = p.GetValue(null);
+                    object? propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     var icon = (IconUsage)propValue;

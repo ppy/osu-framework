@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
@@ -16,7 +14,7 @@ namespace osu.Framework.Benchmarks
         public int ItemCount { get; set; }
 
         private readonly object[] objects = new object[1000];
-        private WeakList<object> weakList;
+        private WeakList<object> weakList = null!;
 
         public override void SetUp()
         {
