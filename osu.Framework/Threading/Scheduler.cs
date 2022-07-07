@@ -136,63 +136,71 @@ namespace osu.Framework.Threading
 
         private void queueTimedTasks()
         {
-            double currentTimeLocal = currentTime;
-
-            foreach (var sd in timedTasks)
+            // Already checked before this method is called, but helps with path prediction?
+            if (timedTasks.Count != 0)
             {
-                if (sd.ExecutionTime <= currentTimeLocal)
+                double currentTimeLocal = currentTime;
+
+                foreach (var sd in timedTasks)
                 {
-                    tasksToRemove.Add(sd);
-
-                    if (sd.Cancelled) continue;
-
-                    if (sd.RepeatInterval == 0)
+                    if (sd.ExecutionTime <= currentTimeLocal)
                     {
-                        // handling of every-frame tasks is slightly different to reduce overhead.
-                        perUpdateTasks.Add(sd);
-                        continue;
+                        tasksToRemove.Add(sd);
+
+                        if (sd.Cancelled) continue;
+
+                        if (sd.RepeatInterval == 0)
+                        {
+                            // handling of every-frame tasks is slightly different to reduce overhead.
+                            perUpdateTasks.Add(sd);
+                            continue;
+                        }
+
+                        if (sd.RepeatInterval > 0)
+                        {
+                            if (timedTasks.Count > LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL)
+                                throw new ArgumentException("Too many timed tasks are in the queue!");
+
+                            // schedule the next repeat of the task.
+                            sd.SetNextExecution(currentTimeLocal);
+                            tasksToSchedule.Add(sd);
+                        }
+
+                        if (!sd.Completed) enqueue(sd);
                     }
-
-                    if (sd.RepeatInterval > 0)
-                    {
-                        if (timedTasks.Count > LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL)
-                            throw new ArgumentException("Too many timed tasks are in the queue!");
-
-                        // schedule the next repeat of the task.
-                        sd.SetNextExecution(currentTimeLocal);
-                        tasksToSchedule.Add(sd);
-                    }
-
-                    if (!sd.Completed) enqueue(sd);
                 }
+
+                foreach (var t in tasksToRemove)
+                    timedTasks.Remove(t);
+
+                tasksToRemove.Clear();
+
+                foreach (var t in tasksToSchedule)
+                    timedTasks.AddInPlace(t);
+
+                tasksToSchedule.Clear();
             }
-
-            foreach (var t in tasksToRemove)
-                timedTasks.Remove(t);
-
-            tasksToRemove.Clear();
-
-            foreach (var t in tasksToSchedule)
-                timedTasks.AddInPlace(t);
-
-            tasksToSchedule.Clear();
         }
 
         private void queuePerUpdateTasks()
         {
-            for (int i = 0; i < perUpdateTasks.Count; i++)
+            // Already checked before this method is called, but helps with path prediction?
+            if (perUpdateTasks.Count != 0)
             {
-                ScheduledDelegate task = perUpdateTasks[i];
-
-                task.SetNextExecution(null);
-
-                if (task.Cancelled)
+                for (int i = 0; i < perUpdateTasks.Count; i++)
                 {
-                    perUpdateTasks.RemoveAt(i--);
-                    continue;
-                }
+                    ScheduledDelegate task = perUpdateTasks[i];
 
-                enqueue(task);
+                    task.SetNextExecution(null);
+
+                    if (task.Cancelled)
+                    {
+                        perUpdateTasks.RemoveAt(i--);
+                        continue;
+                    }
+
+                    enqueue(task);
+                }
             }
         }
 
