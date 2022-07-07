@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
@@ -14,7 +12,7 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkHashing
     {
         private const string test_string = @"A string with reasonable length";
-        private MemoryStream memoryStream;
+        private MemoryStream memoryStream = null!;
 
         [Benchmark]
         public string StringMD5() => test_string.ComputeMD5Hash();

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using Android.Content;
 using Android.Graphics;
@@ -15,19 +13,19 @@ using Android.Views.InputMethods;
 using osu.Framework.Android.Input;
 using osu.Framework.Logging;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 using osuTK.Graphics;
-using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
 {
     public class AndroidGameView : osuTK.Android.AndroidGameView
     {
-        public AndroidGameHost Host { get; private set; }
+        public AndroidGameHost? Host { get; private set; }
 
-        public AndroidGameActivity Activity { get; }
+        public AndroidGameActivity Activity { get; } = null!;
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
@@ -62,7 +60,14 @@ namespace osu.Framework.Android
             }
         }
 
-        private readonly Game game;
+        private readonly Game game = null!;
+
+        private InputMethodManager? inputMethodManager;
+
+        /// <summary>
+        /// Whether <see cref="AndroidTextInput"/> is active.
+        /// </summary>
+        private bool textInputActive;
 
         public AndroidGameView(AndroidGameActivity activity, Game game)
             : base(activity)
@@ -94,6 +99,11 @@ namespace osu.Framework.Android
             // this needs to happen in the constructor
             Focusable = true;
             FocusableInTouchMode = true;
+
+            // disable ugly green border when view is focused via hardware keyboard/mouse.
+            DefaultFocusHighlightEnabled = false;
+
+            inputMethodManager = Activity.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
         protected override void CreateFrameBuffer()
@@ -116,8 +126,10 @@ namespace osu.Framework.Android
             return false;
         }
 
-        public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
+            if (e == null) return base.OnKeyDown(keyCode, e);
+
             switch (keyCode)
             {
                 // Do not consume Volume keys, so the system can handle them
@@ -128,18 +140,29 @@ namespace osu.Framework.Android
 
                 default:
                     KeyDown?.Invoke(keyCode, e);
+
+                    // Releasing backspace on a physical keyboard when text input is active will not send a key up event.
+                    // Manually send one to prevent the key from getting stuck.
+                    // This does mean that key repeat is handled by the OS, instead of by the usual `InputManager` handling.
+                    if (keyCode == Keycode.Del && e.IsFromSource(InputSourceType.Keyboard) && textInputActive)
+                        KeyUp?.Invoke(Keycode.Del, new KeyEvent(e.DownTime, e.EventTime, KeyEventActions.Up, Keycode.Del, 0, e.MetaState, e.DeviceId, e.ScanCode, e.Flags, e.Source));
+
                     return true;
             }
         }
 
-        public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
+            if (e == null) return base.OnKeyLongPress(keyCode, e);
+
             KeyLongPress?.Invoke(keyCode, e);
             return true;
         }
 
-        public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
+            if (e == null) return base.OnKeyUp(keyCode, e);
+
             KeyUp?.Invoke(keyCode, e);
             return true;
         }
@@ -187,12 +210,10 @@ namespace osu.Framework.Android
         /// </summary>
         private void updateSafeArea()
         {
-            Debug.Assert(Display != null);
-
             // compute the usable screen area.
 
             var screenSize = new Point();
-            Display.GetRealSize(screenSize);
+            Display.AsNonNull().GetRealSize(screenSize);
             var screenArea = new RectangleI(0, 0, screenSize.X, screenSize.Y);
             var usableScreenArea = screenArea;
 
@@ -235,13 +256,43 @@ namespace osu.Framework.Android
             };
         }
 
-        public override bool OnCheckIsTextEditor() => true;
+        public override bool OnCheckIsTextEditor() => textInputActive;
 
-        public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
+        /// <returns><c>null</c> to disable input methods</returns>
+        public override IInputConnection? OnCreateInputConnection(EditorInfo? outAttrs)
         {
+            if (outAttrs == null) throw new ArgumentNullException(nameof(outAttrs));
+
+            // Properly disable native input methods so that the software keyboard doesn't unexpectedly open.
+            // Eg. when pressing keys on a hardware keyboard.
+            if (!textInputActive)
+                return null;
+
             outAttrs.ImeOptions = ImeFlags.NoExtractUi | ImeFlags.NoFullscreen;
             outAttrs.InputType = InputTypes.TextVariationVisiblePassword | InputTypes.TextFlagNoSuggestions;
             return new AndroidInputConnection(this, true);
+        }
+
+        internal void StartTextInput()
+        {
+            textInputActive = true;
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager?.RestartInput(this); // this syncs the Android input method state with `OnCreateInputConnection()`.
+                RequestFocus();
+                inputMethodManager?.ShowSoftInput(this, 0);
+            });
+        }
+
+        internal void StopTextInput()
+        {
+            textInputActive = false;
+            Activity.RunOnUiThread(() =>
+            {
+                inputMethodManager?.RestartInput(this);
+                inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
+                ClearFocus();
+            });
         }
 
         public override void SwapBuffers()
@@ -269,27 +320,27 @@ namespace osu.Framework.Android
         /// <summary>
         /// Invoked on a key down event.
         /// </summary>
-        public new event Action<Keycode, KeyEvent> KeyDown;
+        public new event Action<Keycode, KeyEvent>? KeyDown;
 
         /// <summary>
         /// Invoked on a key up event.
         /// </summary>
-        public new event Action<Keycode, KeyEvent> KeyUp;
+        public new event Action<Keycode, KeyEvent>? KeyUp;
 
         /// <summary>
         /// Invoked on a key long press event.
         /// </summary>
-        public event Action<Keycode, KeyEvent> KeyLongPress;
+        public event Action<Keycode, KeyEvent>? KeyLongPress;
 
         /// <summary>
         /// Invoked when text is committed by an <see cref="AndroidInputConnection"/>.
         /// </summary>
-        public event Action<string> CommitText;
+        public event Action<string>? CommitText;
 
         /// <summary>
         /// Invoked when the <see cref="game"/> has been started on the <see cref="Host"/>.
         /// </summary>
-        public event Action<AndroidGameHost> HostStarted;
+        public event Action<AndroidGameHost>? HostStarted;
 
         #endregion
     }

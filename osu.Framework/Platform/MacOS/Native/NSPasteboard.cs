@@ -33,7 +33,7 @@ namespace osu.Framework.Platform.MacOS.Native
         internal NSArray? ReadObjectsForClasses(NSArray classArray, NSDictionary? optionDict)
         {
             var result = Cocoa.SendIntPtr(Handle, sel_read_objects_for_classes, classArray.Handle, optionDict?.Handle ?? IntPtr.Zero);
-            return result == IntPtr.Zero ? (NSArray?)null : new NSArray(result);
+            return result == IntPtr.Zero ? null : new NSArray(result);
         }
 
         internal bool WriteObjects(NSArray objects) => Cocoa.SendBool(Handle, sel_write_objects, objects.Handle);

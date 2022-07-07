@@ -248,7 +248,7 @@ namespace osu.Framework.Testing
                 toolbar.AddAssembly(asm.GetName().Name, asm);
 
             Assembly.BindValueChanged(updateList);
-            RunAllSteps.BindValueChanged(v => runTests(null));
+            RunAllSteps.BindValueChanged(_ => runTests(null));
             PlaybackRate.BindValueChanged(e =>
             {
                 rateAdjustClock.Rate = e.NewValue;

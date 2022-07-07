@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
@@ -13,7 +11,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkStreamExtensions
     {
-        private MemoryStream memoryStream;
+        private MemoryStream memoryStream = null!;
 
         [Params(100, 10000, 1000000)]
         public int Length { get; set; }

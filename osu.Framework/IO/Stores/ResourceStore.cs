@@ -61,7 +61,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Adds a resource store to this store.
+        /// Adds a nested resource store to this store.
         /// </summary>
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(IResourceStore<T> store)

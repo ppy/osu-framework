@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Configuration
 
             using (var host = new TestHeadlessGameHost())
             {
-                host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+                host.Run(new TestGame((h, _) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
             }
 
             Assert.AreEqual(5, sensitivity);
@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Configuration
         {
             using (var host = new TestHeadlessGameHost(bypassCleanup: true))
             {
-                host.Run(new TestGame((h, config) =>
+                host.Run(new TestGame((h, _) =>
                 {
                     storage = h.Storage;
                     h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = 5;
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Configuration
 
             using (var host = new TestHeadlessGameHost())
             {
-                host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+                host.Run(new TestGame((h, _) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
             }
 
             Assert.AreEqual(5, sensitivity);

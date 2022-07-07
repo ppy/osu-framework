@@ -523,9 +523,9 @@ namespace osu.Framework.Tests.IO
             };
 
             request.Started += () => { };
-            request.Failed += e => { };
-            request.DownloadProgress += (l1, l2) => { };
-            request.UploadProgress += (l1, l2) => { };
+            request.Failed += _ => { };
+            request.DownloadProgress += (_, _) => { };
+            request.UploadProgress += (_, _) => { };
 
             Assert.DoesNotThrow(request.Perform);
 
@@ -553,9 +553,9 @@ namespace osu.Framework.Tests.IO
             using (request)
             {
                 request.Started += () => { };
-                request.Failed += e => { };
-                request.DownloadProgress += (l1, l2) => { };
-                request.UploadProgress += (l1, l2) => { };
+                request.Failed += _ => { };
+                request.DownloadProgress += (_, _) => { };
+                request.UploadProgress += (_, _) => { };
 
                 Assert.DoesNotThrow(request.Perform);
             }

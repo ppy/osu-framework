@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Exceptions
                 {
                     g.Add(loadTarget);
                     loadTarget.PerformAsyncLoad();
-                }, g => loadable.Parent == loadTarget);
+                }, _ => loadable.Parent == loadTarget);
             });
         }
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.Exceptions
                     g.Add(loadTarget);
                     loadTarget.PerformAsyncLoad();
                     loadTarget.PerformAsyncLoad(false);
-                }, g => loadable.Parent == loadTarget);
+                }, _ => loadable.Parent == loadTarget);
             });
         }
 
@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Exceptions
                 runGameWithLogic(g =>
                 {
                     g.Add(loadTarget);
-                    loadTarget.PerformAsyncLoad().ContinueWith(t => allowDispose = true);
+                    loadTarget.PerformAsyncLoad().ContinueWith(_ => allowDispose = true);
                 }, g =>
                 {
                     // The following code is done here for a very specific reason, but can occur naturally in normal use

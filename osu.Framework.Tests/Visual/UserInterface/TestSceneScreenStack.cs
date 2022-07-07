@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RelativeSizeAxes = Axes.Both
             });
 
-            stack.ScreenPushed += (last, current) =>
+            stack.ScreenPushed += (_, current) =>
             {
                 if (current is TestScreenSlow slow)
                     slowLoaders.Add(slow);

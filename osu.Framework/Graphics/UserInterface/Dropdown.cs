@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
+            ItemSource.CollectionChanged += (_, _) => setItems(ItemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)

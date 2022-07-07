@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Threading.Tasks;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
@@ -32,6 +33,23 @@ namespace osu.Framework.Audio.Track
             }
 
             return seekOffset == seek;
+        }
+
+        public override Task<bool> SeekAsync(double seek)
+        {
+            return Task.FromResult(Seek(seek));
+        }
+
+        public override Task StartAsync()
+        {
+            Start();
+            return Task.CompletedTask;
+        }
+
+        public override Task StopAsync()
+        {
+            Stop();
+            return Task.CompletedTask;
         }
 
         public override void Start()

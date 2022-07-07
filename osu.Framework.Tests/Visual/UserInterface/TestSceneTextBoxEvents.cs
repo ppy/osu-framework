@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestCommitIsNewTextSecondTime()
         {
-            AddStep("add handler to reset on commit", () => textBox.OnCommit += (sender, isNew) =>
+            AddStep("add handler to reset on commit", () => textBox.OnCommit += (_, isNew) =>
             {
                 if (!isNew)
                     return;

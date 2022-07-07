@@ -1,17 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Android.Runtime;
 using FFmpeg.AutoGen;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Logging;
 
@@ -151,11 +149,9 @@ namespace osu.Framework.Android.Graphics.Video
             const string java_vm_field_name = "java_vm";
 
             var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
-            object jvmPtrObj = jvmPtrInfo?.GetValue(null);
+            object? jvmPtrObj = jvmPtrInfo?.GetValue(null);
 
-            Debug.Assert(jvmPtrObj != null);
-
-            int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
+            int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj.AsNonNull(), null);
             if (result < 0)
                 throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
         }

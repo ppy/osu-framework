@@ -1,11 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Benchmarks
 {
@@ -21,14 +20,14 @@ namespace osu.Framework.Benchmarks
         [Benchmark(Baseline = true)]
         public Bindable<int> GetBoundCopyOld() => new BindableOld<int>().GetBoundCopy();
 
-        private class BindableOld<T> : Bindable<T>
+        private class BindableOld<T> : Bindable<T> where T : notnull
         {
-            public BindableOld(T defaultValue = default)
+            public BindableOld(T defaultValue = default!)
                 : base(defaultValue)
             {
             }
 
-            protected override Bindable<T> CreateInstance() => (BindableOld<T>)Activator.CreateInstance(GetType(), Value);
+            protected override Bindable<T> CreateInstance() => (BindableOld<T>)Activator.CreateInstance(GetType(), Value).AsNonNull();
         }
     }
 }

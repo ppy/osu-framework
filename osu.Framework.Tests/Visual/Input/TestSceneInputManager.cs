@@ -253,7 +253,7 @@ namespace osu.Framework.Tests.Visual.Input
                     Width = host.Window.ClientSize.Width * 2 / 3f,
                     Height = host.Window.ClientSize.Height * 2 / 3f,
                 }
-                : (RectangleF?)null;
+                : null;
         }
     }
 }

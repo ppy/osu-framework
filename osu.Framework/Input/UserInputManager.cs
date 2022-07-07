@@ -73,7 +73,7 @@ namespace osu.Framework.Input
 
                     break;
 
-                case MouseScrollChangeEvent _:
+                case MouseScrollChangeEvent:
                     if (Host.Window?.CursorInWindow.Value == false)
                         return;
 

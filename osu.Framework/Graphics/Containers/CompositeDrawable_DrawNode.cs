@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
                 shrunkDrawRectangle = shrunkDrawRectangle.Shrink(new Vector2(Math.Min(shrunkDrawRectangle.Width / 2, shrinkage), Math.Min(shrunkDrawRectangle.Height / 2, shrinkage)));
 
                 maskingInfo = !Source.Masking
-                    ? (MaskingInfo?)null
+                    ? null
                     : new MaskingInfo
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,

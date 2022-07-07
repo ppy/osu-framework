@@ -51,7 +51,7 @@ namespace osu.Framework.Statistics
 
             logger = new Lazy<Logger>(() =>
             {
-                var l = Logger.GetLogger($"performance-{threadName?.ToLower() ?? "unknown"}");
+                var l = Logger.GetLogger($"performance-{threadName?.ToLowerInvariant() ?? "unknown"}");
                 l.OutputToListeners = false;
                 return l;
             });
