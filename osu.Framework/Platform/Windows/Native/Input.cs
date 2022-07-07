@@ -47,7 +47,11 @@ namespace osu.Framework.Platform.Windows.Native
         public const long MI_WP_SIGNATURE = 0xFF515700;
         public const long MI_WP_SIGNATURE_MASK = 0xFFFFFF00;
 
-        // https://docs.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
+        /// <summary>
+        /// https://docs.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
+        /// </summary>
+        /// <param name="dw"><see cref="GetMessageExtraInfo"/> for the current <see cref="WM_INPUT"/> event.</param>
+        /// <returns><c>true</c> if this <see cref="WM_INPUT"/> event is from a finger touch, <c>false</c> if it's from mouse or pen input.</returns>
         public static bool IsTouchEvent(long dw) => (dw & MI_WP_SIGNATURE_MASK) == MI_WP_SIGNATURE && (dw & 0x80) == 0x80;
 
         [DllImport("user32.dll", SetLastError = false)]

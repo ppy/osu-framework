@@ -1691,8 +1691,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<JoystickButton> JoystickButtonUp;
 
+        /// <summary>
+        /// Invoked when a finger moves or touches a touchscreen.
+        /// </summary>
         public event Action<Touch> TouchDown;
 
+        /// <summary>
+        /// Invoked when a finger leaves the touchscreen.
+        /// </summary>
         public event Action<Touch> TouchUp;
 
         /// <summary>
