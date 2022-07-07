@@ -898,6 +898,7 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_EventType.SDL_FINGERUP:
                     TouchUp?.Invoke(touch);
+                    activeTouches[(int)existingSource] = null;
                     break;
             }
         }
