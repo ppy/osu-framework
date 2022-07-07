@@ -65,6 +65,7 @@ namespace osu.Framework.Platform.Windows
                 return IntPtr.Zero;
 
             if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
+                // touch events are handled by TouchHandler
                 return IntPtr.Zero;
 
             int payloadSize = sizeof(RawInputData);
