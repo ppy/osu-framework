@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -414,9 +413,8 @@ namespace osu.Framework.Bindables
         void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
             // Deserialize returns null for json literal "null".
-            var result = serializer.Deserialize<T>(reader);
-            Debug.Assert(result != null);
-            Value = result;
+            // The nullability of type parameter T is unavailable here, so we can't do any validation.
+            Value = serializer.Deserialize<T>(reader).AsNonNull();
         }
 
         private LeasedBindable<T>? leasedBindable;
