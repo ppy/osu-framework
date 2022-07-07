@@ -109,8 +109,8 @@ namespace osu.Framework.Threading
             {
                 lock (queueLock)
                 {
-                    if (hasTimedTasks) queueTimedTasks();
-                    if (perUpdateTasks.Count > 0) queuePerUpdateTasks();
+                    queueTimedTasks();
+                    queuePerUpdateTasks();
                 }
             }
 
