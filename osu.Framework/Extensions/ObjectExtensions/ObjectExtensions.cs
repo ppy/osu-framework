@@ -19,7 +19,7 @@ namespace osu.Framework.Extensions.ObjectExtensions
         /// <param name="obj">The nullable object.</param>
         /// <typeparam name="T">The type of the object.</typeparam>
         /// <returns>The non-nullable object corresponding to <paramref name="obj"/>.</returns>
-        [return: NotNullIfNotNull("obj")]
+        [return: NotNull]
         public static T AsNonNull<T>(this T? obj) => obj!;
 
         /// <summary>
