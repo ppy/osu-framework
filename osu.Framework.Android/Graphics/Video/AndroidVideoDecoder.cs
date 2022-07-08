@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using Java.Interop;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Logging;
 
@@ -158,7 +157,7 @@ namespace osu.Framework.Android.Graphics.Video
         {
             if (targetHwDecoders.HasFlagFast(HardwareVideoDecoder.MediaCodec))
             {
-                string formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
+                string? formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
 
                 switch (formatName)
                 {
