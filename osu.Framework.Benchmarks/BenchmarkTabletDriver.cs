@@ -9,7 +9,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkTabletDriver : BenchmarkTest
     {
-        private TabletDriver driver;
+        private TabletDriver driver = null!;
 
         public override void SetUp()
         {

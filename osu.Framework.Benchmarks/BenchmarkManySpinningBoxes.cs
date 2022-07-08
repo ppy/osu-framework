@@ -13,7 +13,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkManySpinningBoxes : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]
@@ -47,7 +47,7 @@ namespace osu.Framework.Benchmarks
 
         private class TestGame : Game
         {
-            public Container MainContent;
+            public Container MainContent = null!;
 
             protected override void LoadComplete()
             {

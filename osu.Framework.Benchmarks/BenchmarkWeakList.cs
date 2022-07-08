@@ -14,7 +14,7 @@ namespace osu.Framework.Benchmarks
         public int ItemCount { get; set; }
 
         private readonly object[] objects = new object[1000];
-        private WeakList<object> weakList;
+        private WeakList<object> weakList = null!;
 
         public override void SetUp()
         {

@@ -14,7 +14,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkBeginAbsoluteSequence : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]
@@ -104,9 +104,9 @@ namespace osu.Framework.Benchmarks
 
         private class TestGame : Game
         {
-            public Container Flat;
-            public Container VeryNested;
-            public Container SlightlyNested;
+            public Container Flat = null!;
+            public Container VeryNested = null!;
+            public Container SlightlyNested = null!;
 
             protected override void LoadComplete()
             {

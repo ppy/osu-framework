@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -25,7 +27,10 @@ namespace osu.Framework.IO.Stores
     /// </remarks>
     public class RawCachingGlyphStore : GlyphStore
     {
-        public Storage CacheStorage;
+        /// <summary>
+        /// A storage backing to be used for storing decompressed glyph sheets.
+        /// </summary>
+        internal Storage CacheStorage { get; set; }
 
         public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
             : base(store, assetName, textureLoader)
@@ -53,21 +58,38 @@ namespace osu.Framework.IO.Stores
 
             using (var stream = Store.GetStream(filename))
             {
+                // The md5 of the original (compressed png) content.
                 string streamMd5 = stream.ComputeMD5Hash();
+
+                // The md5 of the access filename, including font name and page number.
                 string filenameMd5 = filename.ComputeMD5Hash();
 
                 string accessFilename = $"{filenameMd5}#{streamMd5}";
 
+                // Finding an existing file validates that the file both exists on disk, and was generated for the correct font.
+                // It doesn't guarantee that the generated cache file is in a good state.
                 string existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                 if (existing != null)
                 {
                     string[] split = existing.Split('#');
-                    return pageLookup[page] = new PageInfo
+
+                    int width = int.Parse(split[2]);
+                    int height = int.Parse(split[3]);
+
+                    // Sanity check that the length of the file is expected, based on the width and height.
+                    // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
+                    using (var testStream = CacheStorage.GetStream(existing))
                     {
-                        Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
-                        Filename = existing
-                    };
+                        if (testStream.Length == width * height)
+                        {
+                            return pageLookup[page] = new PageInfo
+                            {
+                                Size = new Size(width, height),
+                                Filename = existing
+                            };
+                        }
+                    }
                 }
 
                 using (var convert = GetPageImage(page))
@@ -85,7 +107,7 @@ namespace osu.Framework.IO.Stores
 
                     accessFilename += $"#{convert.Width}#{convert.Height}";
 
-                    using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
+                    using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
                         outStream.Write(buffer.Memory.Span);
 
                     return pageLookup[page] = new PageInfo

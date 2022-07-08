@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using JetBrains.Annotations;
 using NUnit.Framework;
@@ -318,6 +321,20 @@ namespace osu.Framework.Tests.Dependencies
             });
         }
 
+        [Test]
+        public void TestResolveWithNullableReferenceTypes()
+        {
+            var dependencies = new DependencyContainer();
+            var receiver = new Receiver14();
+
+            // Throws with missing non-nullable dependency.
+            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver));
+
+            // Cache the non-nullable dependency.
+            dependencies.CacheAs(new BaseObject());
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+        }
+
         private interface IBaseInterface
         {
         }
@@ -435,5 +452,16 @@ namespace osu.Framework.Tests.Dependencies
             [BackgroundDependencyLoader(true)]
             private void load(int testObject) => TestObject = testObject;
         }
+
+#nullable enable
+        [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+        private class Receiver14
+        {
+            [BackgroundDependencyLoader]
+            private void load(BaseObject nonNullObject, DerivedObject? nullableObject)
+            {
+            }
+        }
+#nullable disable
     }
 }

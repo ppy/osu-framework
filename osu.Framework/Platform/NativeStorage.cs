@@ -1,11 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Platform
 {
@@ -38,6 +41,13 @@ namespace osu.Framework.Platform
 
             if (File.Exists(path))
                 File.Delete(path);
+        }
+
+        public override void Move(string from, string to)
+        {
+            // Retry move operations as it can fail on windows intermittently with IOExceptions:
+            // The process cannot access the file because it is being used by another process.
+            General.AttemptWithRetryOnException<IOException>(() => File.Move(GetFullPath(from), GetFullPath(to)));
         }
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));

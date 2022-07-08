@@ -9,7 +9,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkScreenExtensions : GameBenchmark
     {
-        private Screen testScreen;
+        private Screen testScreen = null!;
 
         [Test]
         [Benchmark]

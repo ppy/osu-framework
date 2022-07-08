@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
@@ -89,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
                 shrunkDrawRectangle = shrunkDrawRectangle.Shrink(new Vector2(Math.Min(shrunkDrawRectangle.Width / 2, shrinkage), Math.Min(shrunkDrawRectangle.Height / 2, shrinkage)));
 
                 maskingInfo = !Source.Masking
-                    ? (MaskingInfo?)null
+                    ? null
                     : new MaskingInfo
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,

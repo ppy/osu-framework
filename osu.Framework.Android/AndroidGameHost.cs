@@ -9,6 +9,7 @@ using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
@@ -63,7 +64,7 @@ namespace osu.Framework.Android
         public override IEnumerable<string> UserStoragePaths => new[]
         {
             // not null as internal "external storage" is always available.
-            Application.Context.GetExternalFilesDir(string.Empty)!.ToString(),
+            Application.Context.GetExternalFilesDir(string.Empty).AsNonNull().ToString(),
         };
 
         public override bool OpenFileExternally(string filename) => false;

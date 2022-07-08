@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -59,7 +61,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Adds a resource store to this store.
+        /// Adds a nested resource store to this store.
         /// </summary>
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(IResourceStore<T> store)

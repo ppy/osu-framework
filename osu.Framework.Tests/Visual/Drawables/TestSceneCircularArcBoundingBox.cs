@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -66,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         protected override void LoadComplete()
         {
-            controlPoints.BindCollectionChanged((_, __) =>
+            controlPoints.BindCollectionChanged((_, _) =>
             {
                 var copy = controlPoints.ToArray();
                 if (copy.Length != 3)

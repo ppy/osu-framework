@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using FFmpeg.AutoGen;
 using osuTK;
 using osu.Framework.Graphics.Textures;
@@ -146,7 +148,7 @@ namespace osu.Framework.Graphics.Video
             availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
             handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
 
-            TargetHardwareVideoDecoders.BindValueChanged(e =>
+            TargetHardwareVideoDecoders.BindValueChanged(_ =>
             {
                 // ignore if decoding wasn't initialized yet.
                 if (formatContext == null)

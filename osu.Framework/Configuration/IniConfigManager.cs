@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -83,7 +85,7 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
+                using (var stream = storage.CreateFileSafely(Filename))
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)

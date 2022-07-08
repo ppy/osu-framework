@@ -10,8 +10,8 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkLocalisableString
     {
-        private string string1;
-        private string string2;
+        private string string1 = null!;
+        private string string2 = null!;
         private LocalisableString localisableString1;
         private LocalisableString localisableString2;
         private LocalisableString romanisableString1;

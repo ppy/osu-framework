@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using Java.Interop;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Logging;
 
@@ -142,7 +143,7 @@ namespace osu.Framework.Android.Graphics.Video
             : base(videoStream)
         {
             // Hardware decoding with MediaCodec requires that we pass a Java VM pointer
-            // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only)
+            // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only).
 
             int result = av_jni_set_java_vm(JniEnvironment.Runtime.InvocationPointer.ToPointer(), null);
             if (result < 0)

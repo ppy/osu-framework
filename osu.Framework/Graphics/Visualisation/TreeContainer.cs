@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
@@ -26,14 +28,14 @@ namespace osu.Framework.Graphics.Visualisation
             set
             {
                 if (value == null)
-                    ScrollContent.Clear(false);
+                    SearchContainer.Clear(false);
                 else
-                    ScrollContent.Child = value;
+                    SearchContainer.Child = value;
             }
         }
 
         public TreeContainer()
-            : base("Draw Visualiser", "(Ctrl+F1 to toggle)")
+            : base("Draw Visualiser", "(Ctrl+F1 to toggle)", true)
         {
             AddInternal(waitingText = new SpriteText
             {

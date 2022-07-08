@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -28,7 +30,13 @@ namespace osu.Framework.Statistics
 
         internal static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
 
-        internal static void Add(StatisticsCounterType type, long amount) => COUNTERS[(int)type] += amount;
+        internal static void Add(StatisticsCounterType type, long amount)
+        {
+            if (amount < 0)
+                throw new ArgumentException($"Statistics counter {type} was attempted to be decremented via {nameof(Add)} call.", nameof(amount));
+
+            COUNTERS[(int)type] += amount;
+        }
     }
 
     internal enum PerformanceCollectionType

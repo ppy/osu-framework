@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -121,7 +123,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     },
                 };
 
-                State.ValueChanged += e => FireCount++;
+                State.ValueChanged += _ => FireCount++;
             }
 
             public int FireCount { get; private set; }
@@ -136,13 +138,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     return true;
                 }
 
-                return true;
-            }
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                base.OnMouseDown(e);
-                return true;
+                return false;
             }
 
             protected override void PopIn()

@@ -3,9 +3,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework" Version="2021.1029.0" />
+    <ProjectReference Include="..\FlappyDon.Resources\FlappyDon.Resources.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FlappyDon.Resources\FlappyDon.Resources.csproj" />
+    <ProjectReference Include="..\..\..\..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
 </Project>

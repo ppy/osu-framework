@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -146,8 +148,7 @@ namespace osu.Framework.Testing.Input
 
         protected override bool OnScroll(ScrollEvent e)
         {
-            var delta = new Vector2(e.ScrollDelta.X, -e.ScrollDelta.Y);
-            circle.MoveTo(circle.Position + delta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
+            circle.MoveTo(circle.Position - e.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
             return base.OnScroll(e);
         }
 

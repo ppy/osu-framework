@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -45,7 +47,7 @@ namespace osu.Framework.Allocation
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_, __) => { };
+                    return (_, _) => { };
 
                 case 1:
                     var method = loaderMethods[0];
@@ -58,8 +60,8 @@ namespace osu.Framework.Allocation
                     Debug.Assert(attribute != null);
 
                     bool permitNulls = attribute.permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType)
-                                                 .Select(t => getDependency(t, type, permitNulls || t.IsNullable())).ToArray();
+                    var parameterGetters = method.GetParameters()
+                                                 .Select(parameter => getDependency(parameter.ParameterType, type, permitNulls || parameter.IsNullable())).ToArray();
 
                     return (target, dc) =>
                     {

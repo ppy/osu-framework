@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -465,7 +467,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             OnCommit = null;
 
-            unbindInput();
+            unbindInput(false);
 
             base.Dispose(isDisposing);
         }
@@ -935,7 +937,6 @@ namespace osu.Framework.Graphics.UserInterface
             // `FinalizeImeComposition()` crashes if textbox isn't fully loaded.
             if (IsLoaded) FinalizeImeComposition(false);
 
-            int startBefore = selectionStart;
             selectionStart = selectionEnd = 0;
 
             TextFlow?.Clear();
@@ -943,8 +944,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
             insertString(value, d => d.FinishTransforms());
-
-            selectionStart = Math.Clamp(startBefore, 0, text.Length);
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -1190,7 +1189,7 @@ namespace osu.Framework.Graphics.UserInterface
             // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
             FinalizeImeComposition(false);
 
-            unbindInput();
+            unbindInput(e.NextFocused is TextBox);
 
             updateCaretVisibility();
 
@@ -1210,7 +1209,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocus(FocusEvent e)
         {
-            bindInput();
+            bindInput(e.PreviouslyFocused is TextBox);
 
             updateCaretVisibility();
         }
@@ -1224,7 +1223,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool textInputBound;
 
-        private void bindInput()
+        private void bindInput(bool previousFocusWasTextBox)
         {
             if (textInputBound)
             {
@@ -1232,7 +1231,14 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            textInput.Activate(AllowIme);
+            // TextBox has special handling of text input activation when focus is changed directly from one TextBox to another.
+            // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
+
+            if (previousFocusWasTextBox)
+                textInput.EnsureActivated(AllowIme);
+            else
+                textInput.Activate(AllowIme);
+
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
             textInput.OnImeResult += handleImeResult;
@@ -1240,14 +1246,17 @@ namespace osu.Framework.Graphics.UserInterface
             textInputBound = true;
         }
 
-        private void unbindInput()
+        private void unbindInput(bool nextFocusIsTextBox)
         {
             if (!textInputBound)
                 return;
 
             textInputBound = false;
 
-            textInput.Deactivate();
+            // see the comment above, in `bindInput(bool)`.
+            if (!nextFocusIsTextBox)
+                textInput.Deactivate();
+
             textInput.OnTextInput -= handleTextInput;
             textInput.OnImeComposition -= handleImeComposition;
             textInput.OnImeResult -= handleImeResult;

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Extensions;
@@ -49,6 +51,13 @@ namespace osu.Framework.Tests.Localisation
             Assert.Throws<InvalidOperationException>(() => EnumD.Item1.GetLocalisableDescription());
         }
 
+        [Test]
+        public void TestLocalisableStringDescription()
+        {
+            object description = TestStrings.Romanisable;
+            Assert.AreEqual(description, description.GetLocalisableDescription());
+        }
+
         public enum EnumA
         {
             Item1,
@@ -63,7 +72,7 @@ namespace osu.Framework.Tests.Localisation
             Item1,
 
             [LocalisableDescription(typeof(TestStrings), nameof(TestStrings.B))]
-            Item2
+            Item2,
         }
 
         public enum EnumC
@@ -88,6 +97,8 @@ namespace osu.Framework.Tests.Localisation
             public static LocalisableString A => "Localised A";
 
             public static readonly LocalisableString B = "Localised B";
+
+            public static LocalisableString Romanisable => new RomanisableString("Original", "Romanised");
 
             public LocalisableString Instance => string.Empty;
         }

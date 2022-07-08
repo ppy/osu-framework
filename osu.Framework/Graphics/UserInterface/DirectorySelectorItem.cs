@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -38,6 +40,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// Creates the sprite text to be used for the item text.
         /// </summary>
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
+
+        /// <summary>
+        /// Called when this <see cref="DirectorySelectorItem"/> is a representation of a hidden item.
+        /// Used to customize the appearance of hidden items.
+        /// </summary>
+        protected virtual void ApplyHiddenState() => Alpha = 0.5f;
 
         [BackgroundDependencyLoader]
         private void load()

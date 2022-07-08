@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
@@ -358,7 +360,10 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 if (InternalChildren.Count != 1)
-                    throw new InvalidOperationException($"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(InternalChildren)} (currently {InternalChildren.Count})!");
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(InternalChildren)} (currently {InternalChildren.Count})!");
+                }
 
                 return InternalChildren[0];
             }
@@ -1331,8 +1336,11 @@ namespace osu.Framework.Graphics.Containers
 
             if (propagateChildren)
             {
-                foreach (var c in internalChildren)
-                    c.FinishTransforms(true, targetMember);
+                // Use for over foreach as collection may grow due to abort / completion events.
+                // Note that this may mean that in the addition of elements being removed,
+                // `FinishTransforms` may not be called on all items.
+                for (int i = 0; i < internalChildren.Count; i++)
+                    internalChildren[i].FinishTransforms(true, targetMember);
             }
         }
 
@@ -1715,8 +1723,13 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        {
+            if (newSize.X == 0 || newSize.Y == 0)
+                throw new ArgumentException($@"{nameof(newSize)} must be non-zero, but is {newSize}.", nameof(newSize));
+
+            return this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
+        }
 
         /// <summary>
         /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="CompositeDrawable"/>.

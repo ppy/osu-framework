@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -109,7 +111,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.DefaultChanged += v => changed1++;
+            bindable1.DefaultChanged += _ => changed1++;
             bindable2.DefaultChanged += _ =>
             {
                 bindable2.Default = "won't change";
@@ -167,7 +169,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.ValueChanged += v => changed1++;
+            bindable1.ValueChanged += _ => changed1++;
             bindable2.ValueChanged += _ =>
             {
                 bindable2.Value = "won't change";
@@ -218,7 +220,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.DisabledChanged += v => changed1++;
+            bindable1.DisabledChanged += _ => changed1++;
             bindable2.DisabledChanged += _ =>
             {
                 bindable2.Disabled = false;
@@ -267,7 +269,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.MinValueChanged += v => changed1++;
+            bindable1.MinValueChanged += _ => changed1++;
             bindable2.MinValueChanged += _ =>
             {
                 bindable2.MinValue = 1337;
@@ -316,7 +318,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.MaxValueChanged += v => changed1++;
+            bindable1.MaxValueChanged += _ => changed1++;
             bindable2.MaxValueChanged += _ =>
             {
                 bindable2.MaxValue = 1337;

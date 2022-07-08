@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -421,6 +423,13 @@ namespace osu.Framework.Testing
             checkForErrors();
             runner.RunTestBlocking(this);
             checkForErrors();
+
+            if (Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1")
+            {
+                // Force any unobserved exceptions to fire against the current test run.
+                // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
+                collectAndFireUnobserved();
+            }
         }
 
         [OneTimeTearDown]
@@ -454,6 +463,12 @@ namespace osu.Framework.Testing
 
             if (runTask.Exception != null)
                 throw runTask.Exception;
+        }
+
+        private static void collectAndFireUnobserved()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         private class TestSceneHost : TestRunHeadlessGameHost

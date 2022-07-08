@@ -5,8 +5,6 @@ using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 
-#nullable enable
-
 namespace osu.Framework.Extensions
 {
     public static class PopoverExtensions

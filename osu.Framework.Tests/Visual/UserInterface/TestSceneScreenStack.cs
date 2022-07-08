@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RelativeSizeAxes = Axes.Both
             });
 
-            stack.ScreenPushed += (last, current) =>
+            stack.ScreenPushed += (_, current) =>
             {
                 if (current is TestScreenSlow slow)
                     slowLoaders.Add(slow);

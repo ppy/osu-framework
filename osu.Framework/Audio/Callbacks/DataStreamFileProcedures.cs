@@ -4,8 +4,6 @@
 using System;
 using System.IO;
 
-#nullable enable
-
 namespace osu.Framework.Audio.Callbacks
 {
     /// <summary>
