@@ -65,6 +65,7 @@ namespace osu.Framework.Platform.Windows
                 return IntPtr.Zero;
 
             if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
+                // sometimes GetMessageExtraInfo returns 0, so additionally, mouse.ExtraInformation is checked below.
                 // touch events are handled by TouchHandler
                 return IntPtr.Zero;
 
@@ -76,6 +77,10 @@ namespace osu.Framework.Platform.Windows
                 return IntPtr.Zero;
 
             var mouse = data.Mouse;
+
+            // `ExtraInformation` doens't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
+            if (Native.Input.HasTouchFlag(mouse.ExtraInformation))
+                return IntPtr.Zero;
 
             //TODO: this isn't correct.
             if (mouse.ExtraInformation > 0)
