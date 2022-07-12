@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Audio
         private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
             int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
-            if (requiredPointCount == resampledPointCount)
+            if (requiredPointCount == resampledPointCount && !cancelSource.IsCancellationRequested)
                 return;
 
             cancelGeneration();
