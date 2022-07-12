@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -15,7 +13,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkManySpinningBoxes : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]
@@ -49,7 +47,7 @@ namespace osu.Framework.Benchmarks
 
         private class TestGame : Game
         {
-            public Container MainContent;
+            public Container MainContent = null!;
 
             protected override void LoadComplete()
             {

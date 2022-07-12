@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading.Tasks;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
@@ -92,6 +93,14 @@ namespace osu.Framework.Graphics.Audio
             RemoveAllAdjustments(AdjustableProperty.Frequency);
             RemoveAllAdjustments(AdjustableProperty.Tempo);
         }
+
+        public Task RestartAsync() => track.RestartAsync();
+
+        public Task<bool> SeekAsync(double seek) => track.SeekAsync(seek);
+
+        public Task StartAsync() => track.StartAsync();
+
+        public Task StopAsync() => track.StopAsync();
 
         public bool Seek(double seek) => track.Seek(seek);
 

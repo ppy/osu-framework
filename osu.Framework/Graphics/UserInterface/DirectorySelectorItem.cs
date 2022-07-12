@@ -41,6 +41,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
+        /// <summary>
+        /// Called when this <see cref="DirectorySelectorItem"/> is a representation of a hidden item.
+        /// Used to customize the appearance of hidden items.
+        /// </summary>
+        protected virtual void ApplyHiddenState() => Alpha = 0.5f;
+
         [BackgroundDependencyLoader]
         private void load()
         {

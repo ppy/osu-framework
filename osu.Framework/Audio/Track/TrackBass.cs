@@ -220,18 +220,16 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsDummyDevice => false;
 
-        public override void Stop()
-        {
-            base.Stop();
+        public override void Stop() => StopAsync().WaitSafely();
 
-            StopAsync().WaitSafely();
+        public override Task StopAsync()
+        {
+            return EnqueueAction(() =>
+            {
+                stopInternal();
+                isRunning = isPlayed = false;
+            });
         }
-
-        public Task StopAsync() => EnqueueAction(() =>
-        {
-            stopInternal();
-            isRunning = isPlayed = false;
-        });
 
         private void stopInternal()
         {
@@ -251,12 +249,13 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            base.Start();
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
 
             StartAsync().WaitSafely();
         }
 
-        public Task StartAsync() => EnqueueAction(() =>
+        public override Task StartAsync() => EnqueueAction(() =>
         {
             if (startInternal())
                 isRunning = isPlayed = true;
@@ -291,7 +290,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
-        public async Task<bool> SeekAsync(double seek)
+        public override async Task<bool> SeekAsync(double seek)
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
