@@ -204,14 +204,14 @@ namespace osu.Framework.Graphics.Audio
             // It will stop unnecessary task churn if invalidation is occuring often.
             resampledPointCount = requiredPointCount;
 
-            Logger.Log($"Waveform resampling with {requiredPointCount} points...");
-
             cancelSource = new CancellationTokenSource();
             var token = cancelSource.Token;
 
             Waveform.GenerateResampledAsync(resampledPointCount.Value, token)
                     .ContinueWith(task =>
                     {
+                        Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {Waveform.GetPoints().Count:N0})...");
+
                         var resampled = task.GetResultSafely();
 
                         var points = resampled.GetPoints();
@@ -219,8 +219,6 @@ namespace osu.Framework.Graphics.Audio
                         double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
                         double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
                         double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
-
-                        Logger.Log($"Waveform resample complete with {points.Count} points.");
 
                         Schedule(() =>
                         {

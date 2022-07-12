@@ -13,6 +13,7 @@ using ManagedBass;
 using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Track
 {
@@ -81,7 +82,10 @@ namespace osu.Framework.Audio.Track
             {
                 // for the time being, this code cannot run if there is no bass device available.
                 if (Bass.CurrentDevice <= 0)
+                {
+                    Logger.Log("Failed to read waveform as no bass device is available.");
                     return;
+                }
 
                 fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
