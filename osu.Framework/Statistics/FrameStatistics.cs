@@ -88,5 +88,6 @@ namespace osu.Framework.Statistics
         JoystickEvents,
         MidiEvents,
         TabletEvents,
+        TouchEvents,
     }
 }
