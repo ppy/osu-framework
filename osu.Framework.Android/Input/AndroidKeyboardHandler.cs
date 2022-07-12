@@ -1,12 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK.Input;
 
@@ -51,6 +50,8 @@ namespace osu.Framework.Android.Input
 
             if (key != Key.Unknown)
                 PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
+            else if (!KeyEvent.IsGamepadButton(keycode)) // gamepad buttons are handled in AndroidJoystickHandler
+                Logger.Log($"Unknown keyboard keycode: {keycode}");
         }
 
         protected override void OnKeyUp(Keycode keycode, KeyEvent e)
