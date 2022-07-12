@@ -87,78 +87,85 @@ namespace osu.Framework.Audio.Track
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
-                Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
-
-                long length = Bass.ChannelGetLength(decodeStream);
-
-                // Each "point" is generated from a number of samples, each sample contains a number of channels
-                int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
-
-                int bytesPerPoint = samplesPerPoint * TrackBass.BYTES_PER_SAMPLE;
-
-                points.Capacity = (int)(length / bytesPerPoint);
-
-                // Each iteration pulls in several samples
-                int bytesPerIteration = bytesPerPoint * points_per_iteration;
-                float[] sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
-
-                // Read sample data
-                while (length > 0)
+                try
                 {
-                    length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
-                    int samplesRead = (int)(length / TrackBass.BYTES_PER_SAMPLE);
+                    Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
 
-                    // Each point is composed of multiple samples
-                    for (int i = 0; i < samplesRead; i += samplesPerPoint)
+                    long length = Bass.ChannelGetLength(decodeStream);
+
+                    // Each "point" is generated from a number of samples, each sample contains a number of channels
+                    int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
+
+                    int bytesPerPoint = samplesPerPoint * TrackBass.BYTES_PER_SAMPLE;
+
+                    points.Capacity = (int)(length / bytesPerPoint);
+
+                    // Each iteration pulls in several samples
+                    int bytesPerIteration = bytesPerPoint * points_per_iteration;
+                    float[] sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
+
+                    // Read sample data
+                    while (length > 0)
                     {
-                        // Channels are interleaved in the sample data (data[0] -> channel0, data[1] -> channel1, data[2] -> channel0, etc)
-                        // samplesPerPoint assumes this interleaving behaviour
-                        var point = new Point(info.Channels);
+                        length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
+                        int samplesRead = (int)(length / TrackBass.BYTES_PER_SAMPLE);
 
-                        for (int j = i; j < i + samplesPerPoint; j += info.Channels)
+                        // Each point is composed of multiple samples
+                        for (int i = 0; i < samplesRead; i += samplesPerPoint)
                         {
-                            // Find the maximum amplitude for each channel in the point
+                            // Channels are interleaved in the sample data (data[0] -> channel0, data[1] -> channel1, data[2] -> channel0, etc)
+                            // samplesPerPoint assumes this interleaving behaviour
+                            var point = new Point(info.Channels);
+
+                            for (int j = i; j < i + samplesPerPoint; j += info.Channels)
+                            {
+                                // Find the maximum amplitude for each channel in the point
+                                for (int c = 0; c < info.Channels; c++)
+                                    point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(sampleBuffer[j + c]));
+                            }
+
+                            // BASS may provide unclipped samples, so clip them ourselves
                             for (int c = 0; c < info.Channels; c++)
-                                point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(sampleBuffer[j + c]));
+                                point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
+
+                            points.Add(point);
                         }
-
-                        // BASS may provide unclipped samples, so clip them ourselves
-                        for (int c = 0; c < info.Channels; c++)
-                            point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
-
-                        points.Add(point);
                     }
-                }
 
-                Bass.ChannelSetPosition(decodeStream, 0);
-                length = Bass.ChannelGetLength(decodeStream);
+                    Bass.ChannelSetPosition(decodeStream, 0);
+                    length = Bass.ChannelGetLength(decodeStream);
 
-                // Read FFT data
-                float[] bins = new float[fft_bins];
-                int currentPoint = 0;
-                long currentByte = 0;
+                    // Read FFT data
+                    float[] bins = new float[fft_bins];
+                    int currentPoint = 0;
+                    long currentByte = 0;
 
-                while (length > 0)
-                {
-                    length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
-                    currentByte += length;
-
-                    double lowIntensity = computeIntensity(info, bins, low_min, mid_min);
-                    double midIntensity = computeIntensity(info, bins, mid_min, high_min);
-                    double highIntensity = computeIntensity(info, bins, high_min, high_max);
-
-                    // In general, the FFT function will read more data than the amount of data we have in one point
-                    // so we'll be setting intensities for all points whose data fits into the amount read by the FFT
-                    // We know that each data point required sampleDataPerPoint amount of data
-                    for (; currentPoint < points.Count && currentPoint * bytesPerPoint < currentByte; currentPoint++)
+                    while (length > 0)
                     {
-                        points[currentPoint].LowIntensity = lowIntensity;
-                        points[currentPoint].MidIntensity = midIntensity;
-                        points[currentPoint].HighIntensity = highIntensity;
-                    }
-                }
+                        length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
+                        currentByte += length;
 
-                channels = info.Channels;
+                        double lowIntensity = computeIntensity(info, bins, low_min, mid_min);
+                        double midIntensity = computeIntensity(info, bins, mid_min, high_min);
+                        double highIntensity = computeIntensity(info, bins, high_min, high_max);
+
+                        // In general, the FFT function will read more data than the amount of data we have in one point
+                        // so we'll be setting intensities for all points whose data fits into the amount read by the FFT
+                        // We know that each data point required sampleDataPerPoint amount of data
+                        for (; currentPoint < points.Count && currentPoint * bytesPerPoint < currentByte; currentPoint++)
+                        {
+                            points[currentPoint].LowIntensity = lowIntensity;
+                            points[currentPoint].MidIntensity = midIntensity;
+                            points[currentPoint].HighIntensity = highIntensity;
+                        }
+                    }
+
+                    channels = info.Channels;
+                }
+                finally
+                {
+                    Bass.StreamFree(decodeStream);
+                }
             }, cancelSource.Token);
         }
 
