@@ -96,10 +96,7 @@ namespace osu.Framework.Tests.Audio
         {
             allComponents.Dispose();
             allComponents.Update(); // Actually runs the disposal.
-
-            // See AudioThread.FreeDevice().
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
-                Bass.Free();
+            Bass.Free();
         }
     }
 }
