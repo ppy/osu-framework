@@ -25,6 +25,49 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected readonly BindableBool ShowHiddenItems = new BindableBool();
 
+        /// <summary>
+        /// Create the content to be displayed in this <see cref="DirectorySelector"/>.
+        /// </summary>
+        /// <returns>The content to be displayed in this <see cref="DirectorySelector"/>.</returns>
+        protected virtual Drawable CreateDirectorySelectorContainer()
+        {
+            return new GridContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                RowDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(),
+                },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        CreateBreadcrumb()
+                    },
+                    new[]
+                    {
+                        CreateHiddenToggleButton()
+                    },
+                    new Drawable[]
+                    {
+                        CreateScrollContainer().With(d =>
+                        {
+                            d.RelativeSizeAxes = Axes.Both;
+                            d.Child = directoryFlow = new FillFlowContainer
+                            {
+                                AutoSizeAxes = Axes.Y,
+                                RelativeSizeAxes = Axes.X,
+                                Direction = FillDirection.Vertical,
+                                Spacing = new Vector2(2),
+                            };
+                        })
+                    }
+                },
+            };
+        }
+
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
 
         /// <summary>
@@ -69,41 +112,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             initialPath ??= gameHost.InitialFileSelectorPath;
 
-            InternalChild = new GridContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                RowDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(),
-                },
-                Content = new[]
-                {
-                    new Drawable[]
-                    {
-                        CreateBreadcrumb()
-                    },
-                    new[]
-                    {
-                        CreateHiddenToggleButton()
-                    },
-                    new Drawable[]
-                    {
-                        CreateScrollContainer().With(d =>
-                        {
-                            d.RelativeSizeAxes = Axes.Both;
-                            d.Child = directoryFlow = new FillFlowContainer
-                            {
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(2),
-                            };
-                        })
-                    }
-                },
-            };
+            InternalChild = CreateDirectorySelectorContainer();
 
             ShowHiddenItems.ValueChanged += _ => updateDisplay();
             CurrentPath.BindValueChanged(_ => updateDisplay(), true);
