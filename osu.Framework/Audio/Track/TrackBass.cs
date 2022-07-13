@@ -455,6 +455,8 @@ namespace osu.Framework.Audio.Track
             if (IsDisposed)
                 return;
 
+            cleanUpSyncs();
+
             if (activeStream != 0)
             {
                 isRunning = false;
@@ -468,12 +470,6 @@ namespace osu.Framework.Audio.Track
 
             fileCallbacks?.Dispose();
             fileCallbacks = null;
-
-            stopCallback?.Dispose();
-            stopCallback = null;
-
-            endCallback?.Dispose();
-            endCallback = null;
 
             base.Dispose(disposing);
         }
