@@ -75,31 +75,18 @@ namespace osu.Framework.Graphics.UserInterface
                 RowDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.AutoSize),
                     new Dimension(),
                 },
                 Content = new[]
                 {
                     new Drawable[]
                     {
-                        new GridContainer
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            ColumnDimensions = new[]
-                            {
-                                new Dimension(),
-                                new Dimension(GridSizeMode.AutoSize),
-                            },
-                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                            Content = new[]
-                            {
-                                new[]
-                                {
-                                    CreateBreadcrumb(),
-                                    CreateHiddenToggleButton()
-                                }
-                            }
-                        }
+                        CreateBreadcrumb()
+                    },
+                    new[]
+                    {
+                        CreateHiddenToggleButton()
                     },
                     new Drawable[]
                     {
@@ -115,7 +102,7 @@ namespace osu.Framework.Graphics.UserInterface
                             };
                         })
                     }
-                }
+                },
             };
 
             ShowHiddenItems.ValueChanged += _ => updateDisplay();

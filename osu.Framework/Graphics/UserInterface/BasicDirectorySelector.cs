@@ -5,7 +5,6 @@
 
 using System.IO;
 using osu.Framework.Graphics.Containers;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -13,11 +12,10 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 
-        protected override Drawable CreateHiddenToggleButton() => new BasicButton
+        protected override Drawable CreateHiddenToggleButton() => new BasicCheckbox
         {
-            Size = new Vector2(200, 25),
-            Text = "Toggle hidden items",
-            Action = ShowHiddenItems.Toggle,
+            LabelText = "Show hidden items",
+            Current = { BindTarget = ShowHiddenItems }
         };
 
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
