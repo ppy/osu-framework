@@ -65,8 +65,6 @@ namespace osu.Framework.Tests.Audio
         {
             RunOnAudioThread(() =>
             {
-                Mixer.Update();
-
                 foreach (var c in components)
                     c.Update();
             });
