@@ -18,6 +18,7 @@ using Vortice.DXGI;
 using Vulkan;
 using GetPName = Veldrid.OpenGLBinding.GetPName;
 using GraphicsBackend = Veldrid.GraphicsBackend;
+using PrimitiveTopology = Veldrid.PrimitiveTopology;
 using StencilOperation = Veldrid.StencilOperation;
 using StringName = Veldrid.OpenGLBinding.StringName;
 using VertexAttribPointerType = osuTK.Graphics.ES30.VertexAttribPointerType;
@@ -254,6 +255,30 @@ namespace osu.Framework.Graphics.Veldrid
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        public static PrimitiveTopology ToPrimitiveTopology(this Rendering.PrimitiveTopology type)
+        {
+            switch (type)
+            {
+                case Rendering.PrimitiveTopology.Points:
+                    return PrimitiveTopology.PointList;
+
+                case Rendering.PrimitiveTopology.Lines:
+                    return PrimitiveTopology.LineList;
+
+                case Rendering.PrimitiveTopology.LineStrip:
+                    return PrimitiveTopology.LineStrip;
+
+                case Rendering.PrimitiveTopology.Triangles:
+                    return PrimitiveTopology.TriangleList;
+
+                case Rendering.PrimitiveTopology.TriangleStrip:
+                    return PrimitiveTopology.TriangleStrip;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
 
