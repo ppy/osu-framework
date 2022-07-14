@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                     new[]
                     {
-                        CreateHiddenToggleButton()
+                        CreateHiddenItemToggle()
                     },
                     new Drawable[]
                     {
@@ -89,12 +89,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract DirectorySelectorBreadcrumbDisplay CreateBreadcrumb();
 
         /// <summary>
-        /// Create a button that toggles the display of hidden items.
+        /// Create a drawable that toggles the display of hidden items.
         /// </summary>
         /// <remarks>
-        /// Unless overridden, a toggle button will not be added.
+        /// Unless overridden, a toggle will not be added.
         /// </remarks>
-        protected virtual Drawable CreateHiddenToggleButton() => Empty();
+        protected virtual Drawable CreateHiddenItemToggle() => Empty();
 
         protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
