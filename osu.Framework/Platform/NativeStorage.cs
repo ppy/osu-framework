@@ -99,7 +99,10 @@ namespace osu.Framework.Platform
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
 
                 default:
-                    return new FlushingStream(path, mode, access);
+                    if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                        return new FlushingStream(path, mode, access);
+
+                    return new FileStream(path, mode, access);
             }
         }
 

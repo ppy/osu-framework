@@ -160,7 +160,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Uses a temporary file to ensure a file is written to completion before existing at its specified location.
         /// </summary>
-        private class SafeWriteStream : FlushingStream
+        private class SafeWriteStream : FileStream
         {
             private readonly string temporaryPath;
             private readonly string finalPath;
@@ -178,6 +178,22 @@ namespace osu.Framework.Platform
 
             protected override void Dispose(bool disposing)
             {
+                if (!isDisposed)
+                {
+                    if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                    {
+                        try
+                        {
+                            Flush(true);
+                        }
+                        catch
+                        {
+                            // this may fail due to a lower level file access issue.
+                            // we don't want to throw in disposal though.
+                        }
+                    }
+                }
+
                 base.Dispose(disposing);
 
                 if (!isDisposed)
