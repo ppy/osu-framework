@@ -183,7 +183,8 @@ namespace osu.Framework.Platform
                     // this was added to work around some hardware writing zeroes to a file
                     // before writing actual content, causing corrupt files to exist on disk.
                     // as of .NET 6, flushing is very expensive on macOS so this is limited to only Windows,
-                    // but it may be entirely unnecessary due to the temporary file copying performed on this class.
+                    // but it may also be entirely unnecessary due to the temporary file copying performed on this class.
+                    // see: https://github.com/ppy/osu-framework/issues/5231
                     if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
                     {
                         try
