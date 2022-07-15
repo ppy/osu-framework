@@ -99,6 +99,9 @@ namespace osu.Framework.Platform
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
 
                 default:
+                    // this was added to work around some hardware writing zeroes to a file
+                    // before writing actual content, causing corrupt files to exist on disk.
+                    // as of .NET 6, flushing is very expensive on macOS so this is limited to only Windows.
                     if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
                         return new FlushingStream(path, mode, access);
 
