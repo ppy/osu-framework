@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
@@ -29,7 +27,7 @@ namespace osu.Framework.Android
             set { }
         }
 
-        public event Action CursorStateChanged;
+        public event Action? CursorStateChanged;
 
         public override CursorState CursorState
         {

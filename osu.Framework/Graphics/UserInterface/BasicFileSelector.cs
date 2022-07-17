@@ -6,12 +6,20 @@
 using System.IO;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicFileSelector : FileSelector
     {
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
+
+        protected override Drawable CreateHiddenToggleButton() => new BasicButton
+        {
+            Size = new Vector2(200, 25),
+            Text = "Toggle hidden items",
+            Action = ShowHiddenItems.Toggle,
+        };
 
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
 

@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -16,7 +14,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkBeginAbsoluteSequence : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]
@@ -106,9 +104,9 @@ namespace osu.Framework.Benchmarks
 
         private class TestGame : Game
         {
-            public Container Flat;
-            public Container VeryNested;
-            public Container SlightlyNested;
+            public Container Flat = null!;
+            public Container VeryNested = null!;
+            public Container SlightlyNested = null!;
 
             protected override void LoadComplete()
             {

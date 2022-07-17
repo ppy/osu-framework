@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
 using osu.Framework.Screens;
@@ -11,7 +9,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkScreenExtensions : GameBenchmark
     {
-        private Screen testScreen;
+        private Screen testScreen = null!;
 
         [Test]
         [Benchmark]

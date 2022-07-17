@@ -32,7 +32,7 @@ namespace osu.Framework.Android.Input
             InputSourceType.Dpad,
             InputSourceType.Gamepad,
             InputSourceType.Joystick,
-            // joysticks sometimes present themselves as a keyboard (in addition to Gamepad) when buttons are pressed. see `ShouldHandleEvent`
+            // joysticks sometimes present themselves as a keyboard in OnKey{Up,Down} events.
             InputSourceType.Keyboard
         };
 
@@ -65,29 +65,28 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        /// <remarks>See xmldoc <see cref="AndroidKeyboardHandler.ShouldHandleEvent"/></remarks>
-        protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && inputEvent.Source != InputSourceType.Keyboard;
-
         protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
-            if (keycode.TryGetJoystickButton(out var button))
+            if (e.TryGetJoystickButton(out var button))
             {
                 enqueueButtonDown(button);
                 return true;
             }
 
-            return false;
+            // keyboard keys are logged in AndroidKeyboardHandler
+            return e.Source == InputSourceType.Keyboard;
         }
 
         protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
-            if (keycode.TryGetJoystickButton(out var button))
+            if (e.TryGetJoystickButton(out var button))
             {
                 enqueueButtonUp(button);
                 return true;
             }
 
-            return false;
+            // keyboard keys are logged in AndroidKeyboardHandler
+            return e.Source == InputSourceType.Keyboard;
         }
 
         /// <summary>

@@ -216,8 +216,6 @@ namespace osu.Framework.Input.Handlers.Midi
 
         private void dispatchEvent(byte eventType, byte key, byte velocity)
         {
-            Logger.Log($"Handling MIDI event {eventType:X2}:{key:X2}:{velocity:X2}");
-
             // Low nibble only contains channel data in note on/off messages
             // Ignore to receive messages from all channels
             switch (eventType & 0xF0)
@@ -234,17 +232,15 @@ namespace osu.Framework.Input.Handlers.Midi
                     break;
             }
 
-            void noteOff()
+            void noteOn()
             {
-                Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
-                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
 
-            void noteOn()
+            void noteOff()
             {
-                Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
-                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
         }

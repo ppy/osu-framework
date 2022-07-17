@@ -37,6 +37,8 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly InfoOverlay overlay;
         private InputManager inputManager;
 
+        protected override bool BlockPositionalInput => Searching;
+
         public DrawVisualiser()
         {
             RelativeSizeAxes = Axes.Both;
@@ -318,8 +320,6 @@ namespace osu.Framework.Graphics.Visualisation
                 drawableInspector.InspectedDrawable.Value = newHighlight.Target;
             }
         }
-
-        protected override bool OnMouseDown(MouseDownEvent e) => Searching;
 
         protected override bool OnClick(ClickEvent e)
         {

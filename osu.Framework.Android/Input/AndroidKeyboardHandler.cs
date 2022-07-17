@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Android.Views;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK.Input;
@@ -45,21 +45,17 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        /// <remarks>
-        /// Android might send Dpad events as <see cref="InputSourceType.Keyboard"/> or'd with <see cref="InputSourceType.Gamepad"/>.
-        /// Both <see cref="GetKeyCodeAsKey"/> and <see cref="AndroidInputExtensions.TryGetJoystickButton"/> handle Dpad (eg. <see cref="Keycode.DpadUp"/>) keycodes,
-        /// so the additional check ensures only one handler handles them.
-        /// </remarks>
-        protected override bool ShouldHandleEvent(InputEvent? inputEvent) => base.ShouldHandleEvent(inputEvent) && !inputEvent.Source.HasFlagFast(InputSourceType.Gamepad);
-
         protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
+            {
                 enqueueInput(new KeyboardKeyInput(key, true));
+                return true;
+            }
 
-            return key != Key.Unknown;
+            return false;
         }
 
         protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
@@ -67,9 +63,12 @@ namespace osu.Framework.Android.Input
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
+            {
                 enqueueInput(new KeyboardKeyInput(key, false));
+                return true;
+            }
 
-            return key != Key.Unknown;
+            return false;
         }
 
         /// <summary>

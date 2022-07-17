@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,6 +16,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -489,6 +491,7 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
+            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
@@ -839,8 +842,65 @@ namespace osu.Framework.Platform
             }
         }
 
+        private readonly long?[] activeTouches = new long?[TouchState.MAX_TOUCH_COUNT];
+
+        private TouchSource? getTouchSource(long fingerId)
+        {
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (fingerId == activeTouches[i])
+                    return (TouchSource)i;
+            }
+
+            return null;
+        }
+
+        private TouchSource? assignNextAvailableTouchSource(long fingerId)
+        {
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (activeTouches[i] != null) continue;
+
+                activeTouches[i] = fingerId;
+                return (TouchSource)i;
+            }
+
+            // we only handle up to TouchState.MAX_TOUCH_COUNT. Ignore any further touches for now.
+            return null;
+        }
+
         private void handleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
         {
+            var eventType = (SDL.SDL_EventType)evtTfinger.type;
+
+            var existingSource = getTouchSource(evtTfinger.fingerId);
+
+            if (eventType == SDL.SDL_EventType.SDL_FINGERDOWN)
+            {
+                Debug.Assert(existingSource == null);
+                existingSource = assignNextAvailableTouchSource(evtTfinger.fingerId);
+            }
+
+            if (existingSource == null)
+                return;
+
+            float x = evtTfinger.x * Size.Width;
+            float y = evtTfinger.y * Size.Height;
+
+            var touch = new Touch(existingSource.Value, new Vector2(x, y));
+
+            switch (eventType)
+            {
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                    TouchDown?.Invoke(touch);
+                    break;
+
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                    TouchUp?.Invoke(touch);
+                    activeTouches[(int)existingSource] = null;
+                    break;
+            }
         }
 
         private void handleControllerDeviceEvent(SDL.SDL_ControllerDeviceEvent evtCdevice)
@@ -1630,6 +1690,16 @@ namespace osu.Framework.Platform
         /// Invoked when the user releases a button on a joystick.
         /// </summary>
         public event Action<JoystickButton> JoystickButtonUp;
+
+        /// <summary>
+        /// Invoked when a finger moves or touches a touchscreen.
+        /// </summary>
+        public event Action<Touch> TouchDown;
+
+        /// <summary>
+        /// Invoked when a finger leaves the touchscreen.
+        /// </summary>
+        public event Action<Touch> TouchUp;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.
