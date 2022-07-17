@@ -55,7 +55,7 @@ namespace osu.Framework.Development
         public static bool LogPerformanceIssues { get; internal set; }
 
         // https://stackoverflow.com/a/2186634
-        private static bool isDebugAssembly(Assembly assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
+        private static bool isDebugAssembly(Assembly assembly) => assembly.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled);
 
         /// <summary>
         /// Gets the entry assembly, or calling assembly otherwise.
