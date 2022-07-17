@@ -8,15 +8,15 @@ namespace osu.Framework.Text
 {
     public sealed class TexturedCharacterGlyph : ITexturedCharacterGlyph
     {
-        public Texture Texture { get; }
+        public Texture? Texture { get; }
 
         public float XOffset => glyph.XOffset * Scale;
         public float YOffset => glyph.YOffset * Scale;
         public float XAdvance => glyph.XAdvance * Scale;
         public float Baseline => glyph.Baseline * Scale;
         public char Character => glyph.Character;
-        public float Width => Texture.Width * Scale;
-        public float Height => Texture.Height * Scale;
+        public float Width => (Texture?.Width ?? 0) * Scale;
+        public float Height => (Texture?.Height ?? 0) * Scale;
 
         /// <summary>
         /// An adjustment factor in scale. This is applied to all other returned metric properties.
@@ -31,7 +31,7 @@ namespace osu.Framework.Text
         /// <param name="glyph">The glyph.</param>
         /// <param name="texture">The texture.</param>
         /// <param name="scale">A scale factor to apply to exposed glyph metrics.</param>
-        public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scale = 1)
+        public TexturedCharacterGlyph(CharacterGlyph glyph, Texture? texture, float scale = 1)
         {
             this.glyph = glyph;
             Scale = scale;

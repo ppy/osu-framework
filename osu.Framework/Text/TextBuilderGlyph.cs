@@ -12,7 +12,7 @@ namespace osu.Framework.Text
     /// </summary>
     public struct TextBuilderGlyph : ITexturedCharacterGlyph
     {
-        public readonly Texture Texture => Glyph.Texture;
+        public readonly Texture? Texture => Glyph.Texture;
         public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
         public readonly float YOffset => Glyph.YOffset * textSize;
         public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;

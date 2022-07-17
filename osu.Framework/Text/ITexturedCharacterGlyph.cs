@@ -13,7 +13,7 @@ namespace osu.Framework.Text
         /// <summary>
         /// The texture for this character.
         /// </summary>
-        Texture Texture { get; }
+        Texture? Texture { get; }
 
         /// <summary>
         /// The width of the area that should be drawn.
