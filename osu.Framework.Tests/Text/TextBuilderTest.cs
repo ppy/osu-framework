@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -572,12 +570,12 @@ namespace osu.Framework.Tests.Text
 
         private readonly struct TestFontUsage
         {
-            private readonly string family;
-            private readonly string weight;
+            private readonly string? family;
+            private readonly string? weight;
             private readonly bool italics;
             private readonly bool fixedWidth;
 
-            public TestFontUsage(string family = null, string weight = null, bool italics = false, bool fixedWidth = false)
+            public TestFontUsage(string? family = null, string? weight = null, bool italics = false, bool fixedWidth = false)
             {
                 this.family = family;
                 this.weight = weight;
@@ -606,7 +604,7 @@ namespace osu.Framework.Tests.Text
                 return glyphs.FirstOrDefault(g => g.Font.FontName == fontName && g.Glyph.Character == character).Glyph;
             }
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new NotImplementedException();
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => throw new NotImplementedException();
         }
 
         private readonly struct GlyphEntry
