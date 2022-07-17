@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
-using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
 using osuTK.Graphics.ES30;
@@ -128,7 +127,6 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        [CanBeNull]
         public ITexturedCharacterGlyph Get(string fontName, char character)
         {
             var key = (fontName, character);

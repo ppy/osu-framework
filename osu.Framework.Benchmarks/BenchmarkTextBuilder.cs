@@ -49,7 +49,7 @@ namespace osu.Framework.Benchmarks
         {
             public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(new CharacterGlyph(character, character, character, character, character, null), Texture.WhitePixel);
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
         }
     }
 }
