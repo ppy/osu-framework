@@ -815,7 +815,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_FINGERDOWN:
                 case SDL.SDL_EventType.SDL_FINGERUP:
                 case SDL.SDL_EventType.SDL_FINGERMOTION:
-                    handleTouchFingerEvent(e.tfinger);
+                    HandleTouchFingerEvent(e.tfinger);
                     break;
 
                 case SDL.SDL_EventType.SDL_DROPFILE:
@@ -869,7 +869,7 @@ namespace osu.Framework.Platform
             return null;
         }
 
-        private void handleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
+        protected virtual void HandleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
         {
             var eventType = (SDL.SDL_EventType)evtTfinger.type;
 
@@ -1634,6 +1634,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<Vector2> MouseMove;
 
+        protected void TriggerMouseMove(float x, float y) => MouseMove?.Invoke(new Vector2(x, y));
+
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window (via relative / raw input).
         /// </summary>
@@ -1644,10 +1646,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<MouseButton> MouseDown;
 
+        protected void TriggerMouseDown(MouseButton button) => MouseDown?.Invoke(button);
+
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
         public event Action<MouseButton> MouseUp;
+
+        protected void TriggerMouseUp(MouseButton button) => MouseUp?.Invoke(button);
 
         /// <summary>
         /// Invoked when the user presses a key.

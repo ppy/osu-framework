@@ -15,6 +15,7 @@ using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using osuTK.Input;
 using SDL2;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
@@ -247,6 +248,32 @@ namespace osu.Framework.Platform.Windows
         }
 
         #endregion
+
+        protected override void HandleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
+        {
+            if (evtTfinger.TryGetTouchName(out string name) && name == "pen")
+            {
+                // Windows Ink tablet/pen handling
+                // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)
+
+                TriggerMouseMove(evtTfinger.x * Size.Width, evtTfinger.y * Size.Height);
+
+                switch ((SDL.SDL_EventType)evtTfinger.type)
+                {
+                    case SDL.SDL_EventType.SDL_FINGERDOWN:
+                        TriggerMouseDown(MouseButton.Left);
+                        break;
+
+                    case SDL.SDL_EventType.SDL_FINGERUP:
+                        TriggerMouseUp(MouseButton.Left);
+                        break;
+                }
+
+                return;
+            }
+
+            base.HandleTouchFingerEvent(evtTfinger);
+        }
 
         public override Size Size
         {
