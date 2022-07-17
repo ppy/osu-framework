@@ -283,7 +283,7 @@ namespace osu.Framework.Text
                     for (int i = Characters.Count - 1; i >= 0; i--)
                     {
                         var character = Characters[i];
-                        character.DrawRectangle = character.DrawRectangle.Offset(0, currentLineBase.Value - lastLineBase.Value);
+                        character.DrawRectangle = character.DrawRectangle.Offset(0, currentLineBase!.Value - lastLineBase!.Value);
                         Characters[i] = character;
 
                         if (character.OnNewLine)
