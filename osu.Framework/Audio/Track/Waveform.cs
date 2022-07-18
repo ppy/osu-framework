@@ -81,7 +81,7 @@ namespace osu.Framework.Audio.Track
             readTask = Task.Run(() =>
             {
                 // for the time being, this code cannot run if there is no bass device available.
-                if (Bass.CurrentDevice <= 0)
+                if (Bass.CurrentDevice < 0)
                 {
                     Logger.Log("Failed to read waveform as no bass device is available.");
                     return;
