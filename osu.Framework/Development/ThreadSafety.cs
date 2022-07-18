@@ -84,7 +84,7 @@ namespace osu.Framework.Development
         /// <summary>
         /// The current execution mode.
         /// </summary>
-        internal static ExecutionMode ExecutionMode;
+        internal static ExecutionMode ExecutionMode = default;
 
         /// <summary>
         /// Resets all statics for the current thread.
