@@ -1570,8 +1570,17 @@ namespace osu.Framework.Graphics.UserInterface
             float start = getPositionAt(startIndex) - textContainerPosX + LeftRightPadding;
             float end = getPositionAt(endIndex) - textContainerPosX + LeftRightPadding;
 
-            start = Math.Clamp(start, LeftRightPadding, DrawWidth - LeftRightPadding);
-            end = Math.Clamp(end, LeftRightPadding, DrawWidth - LeftRightPadding);
+            if (LeftRightPadding <= DrawWidth - LeftRightPadding)
+            {
+                start = Math.Clamp(start, LeftRightPadding, DrawWidth - LeftRightPadding);
+                end = Math.Clamp(end, LeftRightPadding, DrawWidth - LeftRightPadding);
+            }
+            else
+            {
+                // DrawWidth is probably zero/invalid, sane fallback instead of throwing in Math.Clamp
+                start = 0;
+                end = 0;
+            }
 
             var compositionTextRectangle = new RectangleF
             {
