@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
