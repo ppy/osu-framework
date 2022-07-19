@@ -187,6 +187,11 @@ namespace osu.Framework.Android.Input
                     handleMouseMoveEvent(touchEvent);
                     return true;
 
+                // fired when buttons are pressed, but these don't have reliable ActionButton information
+                case MotionEventActions.Up:
+                case MotionEventActions.Down:
+                    return true;
+
                 default:
                     return false;
             }
