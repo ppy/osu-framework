@@ -47,6 +47,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnHover(HoverEvent e) => BlockPositionalInput;
         protected override bool OnMouseDown(MouseDownEvent e) => BlockPositionalInput;
+        protected override bool OnMouseMove(MouseMoveEvent e) => BlockPositionalInput;
         protected override bool OnScroll(ScrollEvent e) => BlockScrollInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
     }
 }

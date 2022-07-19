@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
@@ -197,7 +197,9 @@ namespace osu.Framework.Graphics.Audio
 
             cancelGeneration();
 
-            if (Waveform == null)
+            var originalWaveform = Waveform;
+
+            if (originalWaveform == null)
                 return;
 
             // This should be set before the operation is run.
@@ -207,35 +209,37 @@ namespace osu.Framework.Graphics.Audio
             cancelSource = new CancellationTokenSource();
             var token = cancelSource.Token;
 
-            Waveform.GenerateResampledAsync(resampledPointCount.Value, token)
-                    .ContinueWith(task =>
-                    {
-                        Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {Waveform.GetPoints().Count:N0})...");
+            Task.Run(async () =>
+            {
+                var resampled = await originalWaveform.GenerateResampledAsync(resampledPointCount.Value, token).ConfigureAwait(false);
 
-                        var resampled = task.GetResultSafely();
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
 
-                        var points = resampled.GetPoints();
-                        int channels = resampled.GetChannels();
-                        double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                        double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                        double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
 
-                        Schedule(() =>
-                        {
-                            if (token.IsCancellationRequested)
-                                return;
+                var points = await resampled.GetPointsAsync().ConfigureAwait(false);
+                int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
 
-                            resampledPoints = points;
-                            resampledChannels = channels;
-                            resampledMaxHighIntensity = maxHighIntensity;
-                            resampledMaxMidIntensity = maxMidIntensity;
-                            resampledMaxLowIntensity = maxLowIntensity;
-                            resampledVersion = InvalidationID;
+                double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
 
-                            OnWaveformRegenerated(resampled);
-                            Invalidate(Invalidation.DrawNode);
-                        });
-                    }, token);
+                Schedule(() =>
+                {
+                    if (token.IsCancellationRequested)
+                        return;
+
+                    resampledPoints = points;
+                    resampledChannels = channels;
+                    resampledMaxHighIntensity = maxHighIntensity;
+                    resampledMaxMidIntensity = maxMidIntensity;
+                    resampledMaxLowIntensity = maxLowIntensity;
+                    resampledVersion = InvalidationID;
+
+                    OnWaveformRegenerated(resampled);
+                    Invalidate(Invalidation.DrawNode);
+                });
+            }, token);
         });
 
         private void cancelGeneration()
