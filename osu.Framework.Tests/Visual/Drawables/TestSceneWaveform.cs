@@ -129,6 +129,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddUntilStep("wait for load", () => graph.Regenerated);
+
+            AddUntilStep("wait for sampling", () => graph.Waveform.GetPoints().Count > 0);
         }
 
         private void startStop()
@@ -211,6 +213,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public Waveform Waveform
             {
+                get => graph.Waveform;
                 set => graph.Waveform = value;
             }
 

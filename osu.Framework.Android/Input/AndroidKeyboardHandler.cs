@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK.Input;

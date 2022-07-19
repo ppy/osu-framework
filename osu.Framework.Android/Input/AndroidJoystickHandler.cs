@@ -73,7 +73,7 @@ namespace osu.Framework.Android.Input
                 return true;
             }
 
-            // keyboard keys are logged in AndroidKeyboardHandler
+            // keyboard only events are handled in AndroidKeyboardHandler
             return e.Source == InputSourceType.Keyboard;
         }
 
@@ -85,7 +85,7 @@ namespace osu.Framework.Android.Input
                 return true;
             }
 
-            // keyboard keys are logged in AndroidKeyboardHandler
+            // keyboard only events are handled in AndroidKeyboardHandler
             return e.Source == InputSourceType.Keyboard;
         }
 
