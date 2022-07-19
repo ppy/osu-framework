@@ -12,12 +12,8 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
-using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Graphics.Veldrid.Buffers;
-using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
-using osu.Framework.Threading;
-using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
@@ -46,6 +42,8 @@ namespace osu.Framework.Graphics.Veldrid
 
         internal VeldridIndexData SharedLinearIndex { get; }
         internal VeldridIndexData SharedQuadIndex { get; }
+
+        private DeviceBuffer? boundVertexBuffer;
 
         private GraphicsPipelineDescription pipeline = new GraphicsPipelineDescription
         {
@@ -267,6 +265,21 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.SetFramebuffer(Device.SwapchainFramebuffer);
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
+
+        public void BindVertexBuffer(DeviceBuffer buffer, VertexLayoutDescription layout)
+        {
+            if (buffer == boundVertexBuffer)
+                return;
+
+            Commands.SetVertexBuffer(0, buffer);
+            pipeline.ShaderSet.VertexLayouts[0] = layout;
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+
+            boundVertexBuffer = buffer;
+        }
+
+        public void BindIndexBuffer(DeviceBuffer buffer, IndexFormat format) => Commands.SetIndexBuffer(buffer, format);
 
         public void DrawVertices(PrimitiveTopology type, int indexStart, int indicesCount)
         {
