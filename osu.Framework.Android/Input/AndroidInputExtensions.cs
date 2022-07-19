@@ -131,7 +131,6 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <param name="motionEventMouseButton">The given button state. Must not be a raw state or a non-mouse button.</param>
         /// <returns>The corresponding <see cref="MouseButton"/>s.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if the provided button <paramref name="motionEventMouseButton"/> is not a </exception>
         public static IEnumerable<MouseButton> ToMouseButtons(this MotionEventButtonState motionEventMouseButton)
         {
             if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Primary))
