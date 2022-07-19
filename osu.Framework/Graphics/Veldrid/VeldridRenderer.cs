@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Veldrid.Batches;
+using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -43,6 +44,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         private IGraphicsSurface graphicsSurface = null!;
 
+        internal VeldridIndexData SharedLinearIndex { get; }
+        internal VeldridIndexData SharedQuadIndex { get; }
+
         private GraphicsPipelineDescription pipeline = new GraphicsPipelineDescription
         {
             RasterizerState = RasterizerStateDescription.CullNone,
@@ -51,6 +55,12 @@ namespace osu.Framework.Graphics.Veldrid
         };
 
         private static readonly GlobalStatistic<int> stat_graphics_pipeline_created = GlobalStatistics.Get<int>(nameof(VeldridRenderer), "Total pipelines created");
+
+        public VeldridRenderer()
+        {
+            SharedLinearIndex = new VeldridIndexData(this);
+            SharedQuadIndex = new VeldridIndexData(this);
+        }
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {

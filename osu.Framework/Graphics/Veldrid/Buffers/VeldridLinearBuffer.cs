@@ -10,31 +10,6 @@ using BufferUsage = Veldrid.BufferUsage;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal static class VeldridLinearIndexData
-    {
-        private static int maxAmountIndices;
-
-        public static int MaxAmountIndices
-        {
-            get => maxAmountIndices;
-            set
-            {
-                if (value == maxAmountIndices)
-                    return;
-
-                maxAmountIndices = value;
-
-                indexBuffer?.Dispose();
-                indexBuffer = null;
-            }
-        }
-
-        private static DeviceBuffer indexBuffer;
-
-        // todo: uhhhhhhhhhh....
-        public static DeviceBuffer IndexBuffer => indexBuffer ??= Vd.Factory.CreateBuffer(new BufferDescription((uint)(MaxAmountIndices * sizeof(ushort)), BufferUsage.IndexBuffer));
-    }
-
     /// <summary>
     /// This type of vertex buffer lets the ith vertex be referenced by the ith index.
     /// </summary>
@@ -56,23 +31,23 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             base.Initialise();
 
-            if (amountVertices > VeldridLinearIndexData.MaxAmountIndices)
+            if (amountVertices > renderer.SharedLinearIndex.Capacity)
             {
-                VeldridLinearIndexData.MaxAmountIndices = amountVertices;
+                renderer.SharedLinearIndex.Capacity = amountVertices;
 
                 ushort[] indices = new ushort[amountVertices];
 
                 for (ushort i = 0; i < amountVertices; i++)
                     indices[i] = i;
 
-                renderer.Commands.UpdateBuffer(VeldridLinearIndexData.IndexBuffer, 0, indices);
+                renderer.Commands.UpdateBuffer(renderer.SharedLinearIndex.Buffer, 0, indices);
             }
         }
 
         public override void Bind()
         {
             base.Bind();
-            renderer.BindIndexBuffer(VeldridLinearIndexData.IndexBuffer, IndexFormat.UInt16);
+            renderer.BindIndexBuffer(renderer.SharedLinearIndex.Buffer, IndexFormat.UInt16);
         }
 
         protected override PrimitiveTopology Type { get; }
