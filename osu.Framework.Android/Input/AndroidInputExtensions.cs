@@ -358,7 +358,7 @@ namespace osu.Framework.Android.Input
                     return false;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
+                    throw new ArgumentOutOfRangeException(nameof(action), action, "Motion event action is not a touch action.");
             }
         }
     }
