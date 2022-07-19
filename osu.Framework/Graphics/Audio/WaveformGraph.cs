@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Audio
 
             Task.Run(async () =>
             {
-                var resampled = await originalWaveform.GenerateResampledAsync(resampledPointCount.Value, token).ConfigureAwait(false);
+                var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
                 int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
 
