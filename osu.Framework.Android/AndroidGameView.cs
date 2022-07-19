@@ -100,8 +100,11 @@ namespace osu.Framework.Android
             Focusable = true;
             FocusableInTouchMode = true;
 
-            // disable ugly green border when view is focused via hardware keyboard/mouse.
-            DefaultFocusHighlightEnabled = false;
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                // disable ugly green border when view is focused via hardware keyboard/mouse.
+                DefaultFocusHighlightEnabled = false;
+            }
 
             inputMethodManager = Activity.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
