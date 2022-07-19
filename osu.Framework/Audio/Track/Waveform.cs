@@ -74,12 +74,13 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public Waveform(Stream data)
+        public Waveform([CanBeNull] Stream data)
         {
-            if (data == null) return;
-
             readTask = Task.Run(() =>
             {
+                if (data == null)
+                    return;
+
                 // for the time being, this code cannot run if there is no bass device available.
                 if (Bass.CurrentDevice < 0)
                 {
