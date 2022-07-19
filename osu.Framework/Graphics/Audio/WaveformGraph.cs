@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Extensions;
@@ -197,9 +198,9 @@ namespace osu.Framework.Graphics.Audio
 
             cancelGeneration();
 
-            var resampleWaveform = Waveform;
+            var originalWaveform = Waveform;
 
-            if (resampleWaveform == null)
+            if (originalWaveform == null)
                 return;
 
             // This should be set before the operation is run.
@@ -209,14 +210,17 @@ namespace osu.Framework.Graphics.Audio
             cancelSource = new CancellationTokenSource();
             var token = cancelSource.Token;
 
-            resampleWaveform.GenerateResampledAsync(resampledPointCount.Value, token).ContinueWith(task =>
+            Task.Run(async () =>
             {
-                Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {resampleWaveform.GetPoints().Count:N0})...");
+                var resampled = await originalWaveform.GenerateResampledAsync(resampledPointCount.Value, token).ConfigureAwait(false);
 
-                var resampled = task.GetResultSafely();
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
 
-                var points = resampled.GetPoints();
-                int channels = resampled.GetChannels();
+                Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
+
+                var points = await resampled.GetPointsAsync().ConfigureAwait(false);
+                int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
+
                 double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
                 double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
                 double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
