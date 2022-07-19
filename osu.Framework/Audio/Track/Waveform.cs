@@ -292,11 +292,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public async Task<List<Point>> GetPointsAsync()
         {
-            if (readTask == null)
-                return points;
-
             await readTask.ConfigureAwait(false);
-
             return points;
         }
 
