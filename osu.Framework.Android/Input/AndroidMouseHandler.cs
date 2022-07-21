@@ -181,6 +181,24 @@ namespace osu.Framework.Android.Input
 
         protected override bool OnTouch(MotionEvent touchEvent)
         {
+            // Support for taps and clicks on a DualShock 4 touchpad. Regular mice (MotionEventToolType.Mouse) don't need this special handling.
+            //
+            // DS4 touchpad is reported as InputSourceType.Mouse and _not_ InputSourceType.Touchpad, so the ToolType is the only differentiating factor.
+            // This might also be needed for handling taps/clicks on a regular touchpad (untested).
+            if (touchEvent.GetToolType(0) == MotionEventToolType.Finger)
+            {
+                switch (touchEvent.Action)
+                {
+                    case MotionEventActions.Down:
+                        handleMouseButton(MouseButton.Left, true);
+                        return true;
+
+                    case MotionEventActions.Up:
+                        handleMouseButton(MouseButton.Left, false);
+                        return true;
+                }
+            }
+
             switch (touchEvent.Action)
             {
                 case MotionEventActions.Move:
