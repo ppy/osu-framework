@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Android.Views;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -228,7 +229,7 @@ namespace osu.Framework.Android.Input
 
         private void logUnhandledEvent(string methodName, InputEvent inputEvent)
         {
-            Logger.Log($"Unknown {Description} {methodName} event: {inputEvent}");
+            Logger.Log($"Unknown {GetType().ReadableName()}.{methodName} event: {inputEvent}");
         }
     }
 }
