@@ -65,5 +65,23 @@ namespace osu.Framework.Tests.Threading
 
             Assert.That(exited.Wait(30000));
         }
+
+        [Test]
+        public void EnsureScheduledTaskReturnOnDisposal()
+        {
+            ManualResetEventSlim exited = new ManualResetEventSlim();
+
+            using (var taskScheduler = new ThreadedTaskScheduler(4, "test"))
+            {
+                Task.Run(async () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    await Task.Factory.StartNew(() => { }, default, TaskCreationOptions.HideScheduler, taskScheduler).ConfigureAwait(false);
+                    exited.Set();
+                });
+            }
+
+            Assert.That(exited.Wait(30000));
+        }
     }
 }
