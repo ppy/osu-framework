@@ -67,19 +67,19 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
-        public void EnsureScheduledTaskReturnOnDisposal()
+        public void EnsureScheduledTaskReturnsOnDisposal()
         {
             ManualResetEventSlim exited = new ManualResetEventSlim();
+            ThreadedTaskScheduler taskScheduler = new ThreadedTaskScheduler(4, "test");
 
-            using (var taskScheduler = new ThreadedTaskScheduler(4, "test"))
+            taskScheduler.Dispose();
+
+            Task.Run(async () =>
             {
-                Task.Run(async () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    await Task.Factory.StartNew(() => { }, default, TaskCreationOptions.HideScheduler, taskScheduler).ConfigureAwait(false);
-                    exited.Set();
-                });
-            }
+                // ReSharper disable once AccessToDisposedClosure
+                await Task.Factory.StartNew(() => { }, default, TaskCreationOptions.HideScheduler, taskScheduler).ConfigureAwait(false);
+                exited.Set();
+            });
 
             Assert.That(exited.Wait(30000));
         }
