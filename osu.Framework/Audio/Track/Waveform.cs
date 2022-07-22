@@ -74,14 +74,15 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public Waveform(Stream data)
+        public Waveform([CanBeNull] Stream data)
         {
-            if (data == null) return;
-
             readTask = Task.Run(() =>
             {
+                if (data == null)
+                    return;
+
                 // for the time being, this code cannot run if there is no bass device available.
-                if (Bass.CurrentDevice <= 0)
+                if (Bass.CurrentDevice < 0)
                 {
                     Logger.Log("Failed to read waveform as no bass device is available.");
                     return;
@@ -292,34 +293,21 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public async Task<List<Point>> GetPointsAsync()
         {
-            if (readTask == null)
-                return points;
-
             await readTask.ConfigureAwait(false);
-
             return points;
         }
 
         /// <summary>
         /// Gets the number of channels represented by each <see cref="Point"/>.
         /// </summary>
-        public int GetChannels()
-        {
-            readTask?.WaitSafely();
-
-            return channels;
-        }
+        public int GetChannels() => GetChannelsAsync().GetResultSafely();
 
         /// <summary>
         /// Gets the number of channels represented by each <see cref="Point"/>.
         /// </summary>
         public async Task<int> GetChannelsAsync()
         {
-            if (readTask == null)
-                return channels;
-
             await readTask.ConfigureAwait(false);
-
             return channels;
         }
 
