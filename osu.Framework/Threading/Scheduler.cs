@@ -296,8 +296,8 @@ namespace osu.Framework.Threading
                 if (timedTasks.Count % LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL == 0)
                 {
                     Logger.Log($"{this} has {timedTasks.Count} timed tasks pending", LoggingTarget.Performance);
-                    Logger.Log($"- First task: {timedTasks.First().Task?.Method} targeting {timedTasks.First().Task?.Target}", LoggingTarget.Performance);
-                    Logger.Log($"- Last task: {timedTasks.Last().Task?.Method} targeting {timedTasks.Last().Task?.Target}", LoggingTarget.Performance);
+                    Logger.Log($"- First task: {timedTasks.First()}", LoggingTarget.Performance);
+                    Logger.Log($"- Last task: {timedTasks.Last()}", LoggingTarget.Performance);
                 }
             }
         }

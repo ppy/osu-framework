@@ -19,5 +19,7 @@ namespace osu.Framework.Threading
         }
 
         protected override void InvokeTask() => Task(Data);
+
+        public override string ToString() => $"method \"{Task.Method}\" targeting \"{Task.Target}\" with data \"{Data}\" executing at {ExecutionTime:N0} with repeat {RepeatInterval}";
     }
 }

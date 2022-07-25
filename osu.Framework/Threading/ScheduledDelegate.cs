@@ -141,6 +141,8 @@ namespace osu.Framework.Threading
             }
         }
 
+        public override string ToString() => $"method \"{Task?.Method}\" targeting \"{Task?.Target}\" executing at {ExecutionTime:N0} with repeat {RepeatInterval}";
+
         /// <summary>
         /// The current state of a scheduled delegate.
         /// </summary>
