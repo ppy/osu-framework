@@ -4,7 +4,6 @@
 #nullable disable
 
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 using osuTK;
 using System;
 using osu.Framework.Graphics.Primitives;
@@ -73,7 +72,7 @@ namespace osu.Framework.Graphics.UserInterface
                 halfCircleBatch?.Dispose();
 
                 // Amount of points is multiplied by 2 to account for each part requiring two vertices.
-                halfCircleBatch = renderer.CreateLinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveType.TriangleStrip);
+                halfCircleBatch = renderer.CreateLinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveTopology.TriangleStrip);
             }
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;

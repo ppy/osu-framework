@@ -5,7 +5,6 @@
 
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
@@ -210,7 +209,7 @@ namespace osu.Framework.Graphics.Lines
                 // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
                 // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
                 // grouping of vertices into primitives.
-                halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveType.Triangles);
+                halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveTopology.Triangles);
                 quadBatch ??= renderer.CreateQuadBatch<TexturedVertex3D>(200, 10);
 
                 GLWrapper.PushDepthInfo(DepthInfo.Default);

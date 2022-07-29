@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -21,8 +20,8 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="size">Number of quads.</param>
         /// <param name="maxBuffers">Maximum number of vertex buffers.</param>
-        /// <param name="primitiveType">The type of primitive the vertices are drawn as.</param>
-        IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveType primitiveType) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
+        /// <param name="topology">The type of primitive the vertices are drawn as.</param>
+        IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
         /// <summary>
         /// Creates a new quad vertex batch, accepting vertices and drawing as quads.
