@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Utils;
 using osuTK.Graphics.ES30;
 
@@ -63,9 +64,9 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void PopulateContents()
+            protected override void PopulateContents(IRenderer renderer)
             {
-                base.PopulateContents();
+                base.PopulateContents(renderer);
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
@@ -78,10 +79,10 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            protected override void DrawContents()
+            protected override void DrawContents(IRenderer renderer)
             {
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                    base.DrawContents();
+                    base.DrawContents(renderer);
 
                 GLWrapper.SetBlend(effectBlending);
 
@@ -91,7 +92,7 @@ namespace osu.Framework.Graphics.Containers
                 DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                    base.DrawContents();
+                    base.DrawContents(renderer);
             }
 
             private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
