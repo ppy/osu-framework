@@ -12,8 +12,8 @@ using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -281,7 +281,7 @@ namespace osu.Framework.Graphics.Lines
 
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 }, clipToRootNode: true);
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
 
         protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData);
 

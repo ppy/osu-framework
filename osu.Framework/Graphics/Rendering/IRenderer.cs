@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK.Graphics.ES30;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -16,6 +16,6 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="renderBufferFormats">Any render buffer formats.</param>
         /// <param name="filteringMode">The texture filtering mode.</param>
         /// <returns>The <see cref="IFrameBuffer"/>.</returns>
-        IFrameBuffer CreateFrameBuffer(RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear);
+        IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
     }
 }

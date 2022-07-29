@@ -13,7 +13,6 @@ using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Utils;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -130,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
         private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
         {
-            public BufferedContainerDrawNodeSharedData(RenderbufferInternalFormat[] formats, bool pixelSnapping, bool clipToRootNode)
+            public BufferedContainerDrawNodeSharedData(RenderBufferFormat[] formats, bool pixelSnapping, bool clipToRootNode)
                 : base(2, formats, pixelSnapping, clipToRootNode)
             {
             }

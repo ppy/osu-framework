@@ -7,7 +7,7 @@ using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
-using osuTK.Graphics.ES30;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics
 {
@@ -46,12 +46,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         private readonly IFrameBuffer[] effectBuffers;
 
-        private readonly RenderbufferInternalFormat[] formats;
+        private readonly RenderBufferFormat[] formats;
 
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
         /// </summary>
-        public BufferedDrawNodeSharedData(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedDrawNodeSharedData(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
             : this(0, formats, pixelSnapping, clipToRootNode)
         {
         }
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics
         /// This amounts to setting the texture filtering mode to "nearest".</param>
         /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node..</param>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
-        public BufferedDrawNodeSharedData(int effectBufferCount, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
         {
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics
             if (MainBuffer != null)
                 return;
 
-            All filterMode = PixelSnapping ? All.Nearest : All.Linear;
+            TextureFilteringMode filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
 
             MainBuffer = renderer.CreateFrameBuffer(formats, filterMode);
             for (int i = 0; i < effectBuffers.Length; i++)
