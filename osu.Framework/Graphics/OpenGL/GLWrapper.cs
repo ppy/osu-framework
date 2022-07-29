@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Development;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -19,6 +20,7 @@ using osu.Framework.Statistics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
@@ -95,6 +97,9 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
         private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
+
+        private static readonly Stack<IVertexBatch<TexturedVertex2D>> quad_batches = new Stack<IVertexBatch<TexturedVertex2D>>();
+        private static readonly QuadBatch<TexturedVertex2D> default_quad_batch = new QuadBatch<TexturedVertex2D>(100, 1000);
 
         public static bool IsInitialized { get; private set; }
 
@@ -178,6 +183,9 @@ namespace osu.Framework.Graphics.OpenGL
             depth_stack.Clear();
             scissor_state_stack.Clear();
             scissor_offset_stack.Clear();
+
+            quad_batches.Clear();
+            quad_batches.Push(default_quad_batch);
 
             BindFrameBuffer(DefaultFrameBuffer);
 
@@ -985,6 +993,12 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
         }
+
+        internal static IVertexBatch<TexturedVertex2D> DefaultQuadBatch => quad_batches.Peek();
+
+        internal static void PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => quad_batches.Push(quadBatch);
+
+        internal static void PopQuadBatch() => quad_batches.Pop();
     }
 
     public struct MaskingInfo : IEquatable<MaskingInfo>

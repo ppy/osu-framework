@@ -3,13 +3,11 @@
 
 #nullable disable
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
@@ -20,6 +18,7 @@ using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
@@ -136,10 +135,10 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
             {
                 startQuery();
-                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
                 DrawOpaqueInteriorSubTreeSamples = endQuery();
             }
 
@@ -150,10 +149,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
                 startQuery();
-                base.Draw(vertexAction);
+                base.Draw(renderer);
                 DrawSamples = endQuery();
             }
 

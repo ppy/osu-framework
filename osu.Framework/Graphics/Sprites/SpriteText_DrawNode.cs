@@ -6,8 +6,8 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics;
@@ -46,9 +46,9 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 Shader.Bind();
 
@@ -72,10 +72,10 @@ namespace osu.Framework.Graphics.Sprites
                                 shadowQuad.TopRight + shadowOffset,
                                 shadowQuad.BottomLeft + shadowOffset,
                                 shadowQuad.BottomRight + shadowOffset),
-                            finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                            finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                 }
 
                 Shader.Unbind();

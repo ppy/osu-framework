@@ -7,8 +7,8 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(Action<TexturedVertex2D> vertexAction)
+        public sealed override void Draw(IRenderer renderer)
         {
             if (RequiresRedraw)
             {
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics
                         GLWrapper.PushOrtho(screenSpaceDrawRectangle);
                         GLWrapper.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(vertexAction);
+                        Child.Draw(renderer);
 
                         GLWrapper.PopOrtho();
                     }
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
-            base.Draw(vertexAction);
+            base.Draw(renderer);
             DrawContents();
 
             Shader.Unbind();
