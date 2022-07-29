@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Shaders;
+
 namespace osu.Framework.Graphics.Rendering
 {
     /// <summary>
@@ -8,5 +10,8 @@ namespace osu.Framework.Graphics.Rendering
     /// </summary>
     public interface IRenderer
     {
+        internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+
+        internal IShader CreateShader(string name, params IShaderPart[] parts);
     }
 }

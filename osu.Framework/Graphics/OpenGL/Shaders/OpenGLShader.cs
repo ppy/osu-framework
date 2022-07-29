@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
@@ -16,7 +17,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     internal class OpenGLShader : IShader
     {
         private readonly string name;
-        private readonly List<OpenGLShaderPart> parts;
+        private readonly OpenGLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
 
@@ -33,10 +34,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
-        internal OpenGLShader(string name, List<OpenGLShaderPart> parts)
+        internal OpenGLShader(string name, OpenGLShaderPart[] parts)
         {
             this.name = name;
-            this.parts = parts;
+            this.parts = parts.Where(p => p != null).ToArray();
 
             GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
@@ -49,8 +50,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             if (IsLoaded)
                 throw new InvalidOperationException("Attempting to compile an already-compiled shader.");
 
-            parts.RemoveAll(p => p == null);
-            if (parts.Count == 0)
+            if (parts.Length == 0)
                 return;
 
             programID = CreateProgram();

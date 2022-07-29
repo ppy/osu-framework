@@ -4,9 +4,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Shaders;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -59,15 +61,16 @@ namespace osu.Framework.Tests.Shaders
         private class TestShaderManager : ShaderManager
         {
             public TestShaderManager(IResourceStore<byte[]> store)
-                : base(store)
+                : base(new OpenGLRenderer(), store)
             {
             }
 
-            internal override OpenGLShader CreateShader(string name, List<OpenGLShaderPart> parts) => new TestOpenGLShader(name, parts);
+            internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
+                => new TestOpenGLShader(name, parts.Cast<OpenGLShaderPart>().ToArray());
 
             private class TestOpenGLShader : OpenGLShader
             {
-                internal TestOpenGLShader(string name, List<OpenGLShaderPart> parts)
+                internal TestOpenGLShader(string name, OpenGLShaderPart[] parts)
                     : base(name, parts)
                 {
                 }
