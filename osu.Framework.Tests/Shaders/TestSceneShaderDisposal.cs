@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using osu.Framework.Graphics.OpenGL.Shaders;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -17,7 +18,7 @@ namespace osu.Framework.Tests.Shaders
     public class TestSceneShaderDisposal : FrameworkTestScene
     {
         private ShaderManager manager;
-        private Shader shader;
+        private OpenGLShader shader;
 
         private WeakReference<IShader> shaderRef;
 
@@ -27,7 +28,7 @@ namespace osu.Framework.Tests.Shaders
             AddStep("setup manager", () =>
             {
                 manager = new TestShaderManager(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
-                shader = (Shader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+                shader = (OpenGLShader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
                 shaderRef = new WeakReference<IShader>(shader);
 
                 shader.EnsureShaderCompiled();
@@ -62,11 +63,11 @@ namespace osu.Framework.Tests.Shaders
             {
             }
 
-            internal override Shader CreateShader(string name, List<ShaderPart> parts) => new TestShader(name, parts);
+            internal override OpenGLShader CreateShader(string name, List<OpenGLShaderPart> parts) => new TestOpenGLShader(name, parts);
 
-            private class TestShader : Shader
+            private class TestOpenGLShader : OpenGLShader
             {
-                internal TestShader(string name, List<ShaderPart> parts)
+                internal TestOpenGLShader(string name, List<OpenGLShaderPart> parts)
                     : base(name, parts)
                 {
                 }

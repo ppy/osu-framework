@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Shaders;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -14,8 +15,8 @@ namespace osu.Framework.Graphics.Shaders
     {
         private const string shader_prefix = @"sh_";
 
-        private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
+        private readonly ConcurrentDictionary<string, OpenGLShaderPart> partCache = new ConcurrentDictionary<string, OpenGLShaderPart>();
+        private readonly ConcurrentDictionary<(string, string), OpenGLShader> shaderCache = new ConcurrentDictionary<(string, string), OpenGLShader>();
 
         private readonly IResourceStore<byte[]> store;
 
@@ -44,10 +45,10 @@ namespace osu.Framework.Graphics.Shaders
         {
             var tuple = (vertex, fragment);
 
-            if (shaderCache.TryGetValue(tuple, out Shader? shader))
+            if (shaderCache.TryGetValue(tuple, out OpenGLShader? shader))
                 return shader;
 
-            List<ShaderPart> parts = new List<ShaderPart>
+            List<OpenGLShaderPart> parts = new List<OpenGLShaderPart>
             {
                 createShaderPart(vertex, ShaderType.VertexShader),
                 createShaderPart(fragment, ShaderType.FragmentShader)
@@ -56,18 +57,18 @@ namespace osu.Framework.Graphics.Shaders
             return shaderCache[tuple] = CreateShader($"{vertex}/{fragment}", parts);
         }
 
-        internal virtual Shader CreateShader(string name, List<ShaderPart> parts) => new Shader(name, parts);
+        internal virtual OpenGLShader CreateShader(string name, List<OpenGLShaderPart> parts) => new OpenGLShader(name, parts);
 
-        private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
+        private OpenGLShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
         {
             name = ensureValidName(name, type);
 
-            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart? part))
+            if (!bypassCache && partCache.TryGetValue(name, out OpenGLShaderPart? part))
                 return part;
 
             byte[]? rawData = LoadRaw(name);
 
-            part = new ShaderPart(name, rawData, type, this);
+            part = new OpenGLShaderPart(name, rawData, type, this);
 
             //cache even on failure so we don't try and fail every time.
             partCache[name] = part;

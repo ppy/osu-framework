@@ -19,6 +19,7 @@ using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Shaders;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
@@ -916,10 +917,10 @@ namespace osu.Framework.Graphics.OpenGL
             ScheduleDisposal(GL.DeleteFramebuffer, frameBuffer);
         }
 
-        private static readonly Stack<Shader> shader_stack = new Stack<Shader>();
-        private static Shader currentShader;
+        private static readonly Stack<IShader> shader_stack = new Stack<IShader>();
+        private static IShader currentShader;
 
-        public static void UseProgram([CanBeNull] Shader shader)
+        public static void UseProgram([CanBeNull] IShader shader)
         {
             ThreadSafety.EnsureDrawThread();
 
@@ -943,7 +944,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            GL.UseProgram(shader);
+            GL.UseProgram((OpenGLShader)shader);
             currentShader = shader;
         }
 

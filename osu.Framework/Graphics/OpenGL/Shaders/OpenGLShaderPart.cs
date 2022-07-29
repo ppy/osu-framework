@@ -7,13 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Shaders
+namespace osu.Framework.Graphics.OpenGL.Shaders
 {
-    internal class ShaderPart : IShaderPart
+    internal class OpenGLShaderPart : IShaderPart
     {
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Shaders
 
         private readonly ShaderManager manager;
 
-        internal ShaderPart(string name, byte[] data, ShaderType type, ShaderManager manager)
+        internal OpenGLShaderPart(string name, byte[] data, ShaderType type, ShaderManager manager)
         {
             Name = name;
             Type = type;
@@ -146,18 +146,18 @@ namespace osu.Framework.Graphics.Shaders
             Compiled = compileResult == 1;
 
             if (!Compiled)
-                throw new Shader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
+                throw new OpenGLShader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
 
             return Compiled;
         }
 
-        public static implicit operator int(ShaderPart program) => program.partID;
+        public static implicit operator int(OpenGLShaderPart program) => program.partID;
 
         #region IDisposable Support
 
         protected internal bool IsDisposed { get; private set; }
 
-        ~ShaderPart()
+        ~OpenGLShaderPart()
         {
             GLWrapper.ScheduleDisposal(s => s.Dispose(false), this);
         }

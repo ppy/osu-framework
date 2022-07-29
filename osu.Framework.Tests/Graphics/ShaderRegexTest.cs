@@ -5,14 +5,14 @@
 
 using System.Text.RegularExpressions;
 using NUnit.Framework;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.OpenGL.Shaders;
 
 namespace osu.Framework.Tests.Graphics
 {
     [TestFixture]
     public class ShaderRegexTest
     {
-        private readonly Regex shaderAttributeRegex = new Regex(ShaderPart.SHADER_ATTRIBUTE_PATTERN);
+        private readonly Regex shaderAttributeRegex = new Regex(OpenGLShaderPart.SHADER_ATTRIBUTE_PATTERN);
 
         [Test]
         public void TestComment()
