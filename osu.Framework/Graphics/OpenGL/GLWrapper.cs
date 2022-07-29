@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Development;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -98,7 +97,7 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
 
         private static readonly Stack<IVertexBatch<TexturedVertex2D>> quad_batches = new Stack<IVertexBatch<TexturedVertex2D>>();
-        private static readonly QuadBatch<TexturedVertex2D> default_quad_batch = new QuadBatch<TexturedVertex2D>(100, 1000);
+        private static IVertexBatch<TexturedVertex2D> defaultQuadBatch;
 
         public static bool IsInitialized { get; private set; }
 
@@ -118,6 +117,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+
+            defaultQuadBatch = host.Renderer.CreateQuadBatch<TexturedVertex2D>(100, 1000);
 
             IsInitialized = true;
 
@@ -184,7 +185,7 @@ namespace osu.Framework.Graphics.OpenGL
             scissor_offset_stack.Clear();
 
             quad_batches.Clear();
-            quad_batches.Push(default_quad_batch);
+            quad_batches.Push(defaultQuadBatch);
 
             BindFrameBuffer(DefaultFrameBuffer);
 

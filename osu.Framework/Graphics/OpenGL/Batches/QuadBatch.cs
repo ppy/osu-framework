@@ -8,9 +8,9 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Batches
+namespace osu.Framework.Graphics.OpenGL.Batches
 {
-    public class QuadBatch<T> : VertexBatch<T>
+    internal class QuadBatch<T> : VertexBatch<T>
         where T : struct, IEquatable<T>, IVertex
     {
         public QuadBatch(int size, int maxBuffers)

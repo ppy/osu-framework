@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
 using osuTK;
 using System;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
@@ -24,7 +23,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected new CircularProgress Source => (CircularProgress)base.Source;
 
-        private LinearBatch<TexturedVertex2D> halfCircleBatch;
+        private IVertexBatch<TexturedVertex2D> halfCircleBatch;
 
         private float angle;
         private float innerRadius = 1;
@@ -57,7 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
 
-        private void updateVertexBuffer()
+        private void updateVertexBuffer(IRenderer renderer)
         {
             const float start_angle = 0;
 
@@ -74,7 +73,7 @@ namespace osu.Framework.Graphics.UserInterface
                 halfCircleBatch?.Dispose();
 
                 // Amount of points is multiplied by 2 to account for each part requiring two vertices.
-                halfCircleBatch = new LinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveType.TriangleStrip);
+                halfCircleBatch = renderer.CreateLinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveType.TriangleStrip);
             }
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
@@ -156,7 +155,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             texture.TextureGL.Bind();
 
-            updateVertexBuffer();
+            updateVertexBuffer(renderer);
 
             Shader.Unbind();
         }

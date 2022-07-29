@@ -5,12 +5,12 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Batches
+namespace osu.Framework.Graphics.OpenGL.Batches
 {
-    public class LinearBatch<T> : VertexBatch<T>
+    internal class LinearBatch<T> : VertexBatch<T>
         where T : struct, IEquatable<T>, IVertex
     {
         private readonly PrimitiveType type;
