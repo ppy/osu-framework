@@ -6,21 +6,23 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    public class FrameBuffer : IDisposable
+    internal class FrameBuffer : IFrameBuffer
     {
-        private int frameBuffer = -1;
+        public Texture Texture { get; private set; }
 
-        public TextureGL Texture { get; private set; }
+        private int frameBuffer = -1;
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
         private bool isInitialised;
+        private TextureGL textureGL;
 
         private readonly All filteringMode;
         private readonly RenderbufferInternalFormat[] renderBufferFormats;
@@ -48,11 +50,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 if (isInitialised)
                 {
-                    Texture.Width = (int)Math.Ceiling(size.X);
-                    Texture.Height = (int)Math.Ceiling(size.Y);
+                    textureGL.Width = (int)Math.Ceiling(size.X);
+                    textureGL.Height = (int)Math.Ceiling(size.Y);
 
-                    Texture.SetData(new TextureUpload());
-                    Texture.Upload();
+                    textureGL.SetData(new TextureUpload());
+                    textureGL.Upload();
                 }
             }
         }
@@ -60,11 +62,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private void initialise()
         {
             frameBuffer = GL.GenFramebuffer();
-            Texture = new FrameBufferTexture(Size, filteringMode);
+            Texture = new Texture(textureGL = new FrameBufferTexture(Size, filteringMode));
 
             GLWrapper.BindFrameBuffer(frameBuffer);
 
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, textureGL.TextureId, 0);
             GLWrapper.BindTexture(null);
 
             if (renderBufferFormats != null)
@@ -131,8 +133,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             if (isInitialised)
             {
-                Texture?.Dispose();
-                Texture = null;
+                textureGL?.Dispose();
+                textureGL = null;
 
                 GLWrapper.DeleteFrameBuffer(frameBuffer);
 

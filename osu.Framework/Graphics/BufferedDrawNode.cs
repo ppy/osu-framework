@@ -85,6 +85,8 @@ namespace osu.Framework.Graphics
 
         public sealed override void Draw(IRenderer renderer)
         {
+            SharedData.Initialise(renderer);
+
             if (RequiresRedraw)
             {
                 FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
@@ -143,14 +145,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to bind.</param>
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
-        protected IDisposable BindFrameBuffer(FrameBuffer frameBuffer)
+        protected IDisposable BindFrameBuffer(IFrameBuffer frameBuffer)
         {
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
             frameBuffer.Bind();
 
-            return new ValueInvokeOnDisposal<FrameBuffer>(frameBuffer, b => b.Unbind());
+            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
         }
 
         private IDisposable establishFrameBufferViewport()
@@ -158,7 +160,8 @@ namespace osu.Framework.Graphics
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1, (int)frameBufferSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1,
+                (int)frameBufferSize.Y + 1);
 
             GLWrapper.PushMaskingInfo(new MaskingInfo
             {

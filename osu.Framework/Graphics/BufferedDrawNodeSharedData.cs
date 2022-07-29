@@ -6,6 +6,7 @@
 using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
@@ -27,7 +28,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="FrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
         /// </summary>
-        public FrameBuffer MainBuffer { get; }
+        public IFrameBuffer MainBuffer { get; private set; }
 
         /// <summary>
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
@@ -43,7 +44,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A set of <see cref="FrameBuffer"/>s which are used in a ping-pong manner to render effects to.
         /// </summary>
-        private readonly FrameBuffer[] effectBuffers;
+        private readonly IFrameBuffer[] effectBuffers;
+
+        private readonly RenderbufferInternalFormat[] formats;
 
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
@@ -67,16 +70,23 @@ namespace osu.Framework.Graphics
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
+            this.formats = formats;
             PixelSnapping = pixelSnapping;
-            All filterMode = pixelSnapping ? All.Nearest : All.Linear;
-
             ClipToRootNode = clipToRootNode;
 
-            MainBuffer = new FrameBuffer(formats, filterMode);
-            effectBuffers = new FrameBuffer[effectBufferCount];
+            effectBuffers = new IFrameBuffer[effectBufferCount];
+        }
 
-            for (int i = 0; i < effectBufferCount; i++)
-                effectBuffers[i] = new FrameBuffer(formats, filterMode);
+        public void Initialise(IRenderer renderer)
+        {
+            if (MainBuffer != null)
+                return;
+
+            All filterMode = PixelSnapping ? All.Nearest : All.Linear;
+
+            MainBuffer = renderer.CreateFrameBuffer(formats, filterMode);
+            for (int i = 0; i < effectBuffers.Length; i++)
+                effectBuffers[i] = renderer.CreateFrameBuffer(formats, filterMode);
         }
 
         private int currentEffectBuffer = -1;
@@ -84,13 +94,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="FrameBuffer"/> which contains the most up-to-date drawn effect.
         /// </summary>
-        public FrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
+        public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
 
         /// <summary>
         /// Retrieves the next <see cref="FrameBuffer"/> which effects can be rendered to.
         /// </summary>
         /// <exception cref="InvalidOperationException">If there are no available effect buffers.</exception>
-        public FrameBuffer GetNextEffectBuffer()
+        public IFrameBuffer GetNextEffectBuffer()
         {
             if (effectBuffers.Length == 0)
                 throw new InvalidOperationException($"The {nameof(BufferedDrawNode)} requested an effect buffer, but none were available.");
@@ -114,10 +124,9 @@ namespace osu.Framework.Graphics
 
         protected virtual void Dispose(bool isDisposing)
         {
-            MainBuffer.Dispose();
-
+            MainBuffer?.Dispose();
             for (int i = 0; i < effectBuffers.Length; i++)
-                effectBuffers[i].Dispose();
+                effectBuffers[i]?.Dispose();
         }
     }
 }
