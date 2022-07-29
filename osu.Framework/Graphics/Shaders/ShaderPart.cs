@@ -8,11 +8,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart : IDisposable
+    internal class ShaderPart : IShaderPart
     {
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 

@@ -13,7 +13,7 @@ using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Shader : IShader, IDisposable
+    public class Shader : IShader
     {
         private readonly string name;
         private readonly List<ShaderPart> parts;
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public bool IsLoaded { get; private set; }
 
-        internal bool IsBound { get; private set; }
+        public bool IsBound { get; private set; }
 
         private int programID = -1;
 
