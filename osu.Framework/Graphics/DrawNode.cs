@@ -9,7 +9,6 @@ using System.Threading;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -260,9 +259,9 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Draws a <see cref="FrameBuffer"/> to the screen.
+        /// Draws an <see cref="IFrameBuffer"/> to the screen.
         /// </summary>
-        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
+        /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to draw.</param>
         /// <param name="vertexQuad">The destination vertices.</param>
         /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>

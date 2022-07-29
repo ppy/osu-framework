@@ -6,7 +6,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
@@ -20,12 +19,12 @@ namespace osu.Framework.Graphics
         protected new IBufferedDrawable Source => (IBufferedDrawable)base.Source;
 
         /// <summary>
-        /// The child <see cref="DrawNode"/> which is used to populate the <see cref="FrameBuffer"/>s with.
+        /// The child <see cref="DrawNode"/> which is used to populate the <see cref="IFrameBuffer"/>s with.
         /// </summary>
         protected DrawNode Child { get; private set; }
 
         /// <summary>
-        /// Data shared amongst all <see cref="BufferedDrawNode"/>s, providing storage for <see cref="FrameBuffer"/>s.
+        /// Data shared amongst all <see cref="BufferedDrawNode"/>s, providing storage for <see cref="IFrameBuffer"/>s.
         /// </summary>
         protected readonly BufferedDrawNodeSharedData SharedData;
 
@@ -75,7 +74,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Retrieves the version of the state of this <see cref="DrawNode"/>.
-        /// The <see cref="BufferedDrawNode"/> will only re-render if this version is greater than that of the rendered <see cref="FrameBuffer"/>s.
+        /// The <see cref="BufferedDrawNode"/> will only re-render if this version is greater than that of the rendered <see cref="IFrameBuffer"/>s.
         /// </summary>
         /// <remarks>
         /// By default, the <see cref="BufferedDrawNode"/> is re-rendered with every <see cref="DrawNode"/> invalidation.
@@ -141,9 +140,9 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Binds and initialises a <see cref="FrameBuffer"/> if required.
+        /// Binds and initialises an <see cref="IFrameBuffer"/> if required.
         /// </summary>
-        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to bind.</param>
+        /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to bind.</param>
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
         protected IDisposable BindFrameBuffer(IFrameBuffer frameBuffer)
         {

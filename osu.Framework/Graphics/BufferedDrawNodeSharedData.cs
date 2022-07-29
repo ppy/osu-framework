@@ -5,7 +5,6 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 
@@ -26,7 +25,7 @@ namespace osu.Framework.Graphics
         internal long DrawVersion = -1;
 
         /// <summary>
-        /// The <see cref="FrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
+        /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
         /// </summary>
         public IFrameBuffer MainBuffer { get; private set; }
 
@@ -42,7 +41,7 @@ namespace osu.Framework.Graphics
         public readonly bool ClipToRootNode;
 
         /// <summary>
-        /// A set of <see cref="FrameBuffer"/>s which are used in a ping-pong manner to render effects to.
+        /// A set of <see cref="IFrameBuffer"/>s which are used in a ping-pong manner to render effects to.
         /// </summary>
         private readonly IFrameBuffer[] effectBuffers;
 
@@ -92,12 +91,12 @@ namespace osu.Framework.Graphics
         private int currentEffectBuffer = -1;
 
         /// <summary>
-        /// The <see cref="FrameBuffer"/> which contains the most up-to-date drawn effect.
+        /// The <see cref="IFrameBuffer"/> which contains the most up-to-date drawn effect.
         /// </summary>
         public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
 
         /// <summary>
-        /// Retrieves the next <see cref="FrameBuffer"/> which effects can be rendered to.
+        /// Retrieves the next <see cref="IFrameBuffer"/> which effects can be rendered to.
         /// </summary>
         /// <exception cref="InvalidOperationException">If there are no available effect buffers.</exception>
         public IFrameBuffer GetNextEffectBuffer()
