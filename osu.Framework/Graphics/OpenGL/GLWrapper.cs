@@ -18,8 +18,9 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
 using static osu.Framework.Threading.ScheduledDelegate;
@@ -95,6 +96,9 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
         private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
+
+        private static readonly Stack<IVertexBatch<TexturedVertex2D>> quad_batches = new Stack<IVertexBatch<TexturedVertex2D>>();
+        private static readonly QuadBatch<TexturedVertex2D> default_quad_batch = new QuadBatch<TexturedVertex2D>(100, 1000);
 
         public static bool IsInitialized { get; private set; }
 
@@ -178,6 +182,9 @@ namespace osu.Framework.Graphics.OpenGL
             depth_stack.Clear();
             scissor_state_stack.Clear();
             scissor_offset_stack.Clear();
+
+            quad_batches.Clear();
+            quad_batches.Push(default_quad_batch);
 
             BindFrameBuffer(DefaultFrameBuffer);
 
@@ -985,57 +992,11 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
         }
-    }
 
-    public struct MaskingInfo : IEquatable<MaskingInfo>
-    {
-        public RectangleI ScreenSpaceAABB;
-        public RectangleF MaskingRect;
+        internal static IVertexBatch<TexturedVertex2D> DefaultQuadBatch => quad_batches.Peek();
 
-        public Quad ConservativeScreenSpaceQuad;
+        internal static void PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => quad_batches.Push(quadBatch);
 
-        /// <summary>
-        /// This matrix transforms screen space coordinates to masking space (likely the parent
-        /// space of the container doing the masking).
-        /// It is used by a shader to determine which pixels to discard.
-        /// </summary>
-        public Matrix3 ToMaskingSpace;
-
-        public float CornerRadius;
-        public float CornerExponent;
-
-        public float BorderThickness;
-        public ColourInfo BorderColour;
-
-        public float BlendRange;
-        public float AlphaExponent;
-
-        public Vector2 EdgeOffset;
-
-        public bool Hollow;
-        public float HollowCornerRadius;
-
-        public readonly bool Equals(MaskingInfo other) => this == other;
-
-        public static bool operator ==(in MaskingInfo left, in MaskingInfo right) =>
-            left.ScreenSpaceAABB == right.ScreenSpaceAABB &&
-            left.MaskingRect == right.MaskingRect &&
-            left.ConservativeScreenSpaceQuad.Equals(right.ConservativeScreenSpaceQuad) &&
-            left.ToMaskingSpace == right.ToMaskingSpace &&
-            left.CornerRadius == right.CornerRadius &&
-            left.CornerExponent == right.CornerExponent &&
-            left.BorderThickness == right.BorderThickness &&
-            left.BorderColour.Equals(right.BorderColour) &&
-            left.BlendRange == right.BlendRange &&
-            left.AlphaExponent == right.AlphaExponent &&
-            left.EdgeOffset == right.EdgeOffset &&
-            left.Hollow == right.Hollow &&
-            left.HollowCornerRadius == right.HollowCornerRadius;
-
-        public static bool operator !=(in MaskingInfo left, in MaskingInfo right) => !(left == right);
-
-        public override readonly bool Equals(object obj) => obj is MaskingInfo other && this == other;
-
-        public override readonly int GetHashCode() => 0; // Shouldn't be used; simplifying implementation here.
+        internal static void PopQuadBatch() => quad_batches.Pop();
     }
 }

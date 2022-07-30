@@ -7,8 +7,8 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(Action<TexturedVertex2D> vertexAction)
+        public sealed override void Draw(IRenderer renderer)
         {
             if (RequiresRedraw)
             {
@@ -101,12 +101,12 @@ namespace osu.Framework.Graphics
                         GLWrapper.PushOrtho(screenSpaceDrawRectangle);
                         GLWrapper.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(vertexAction);
+                        Child.Draw(renderer);
 
                         GLWrapper.PopOrtho();
                     }
 
-                    PopulateContents();
+                    PopulateContents(renderer);
                 }
 
                 SharedData.DrawVersion = GetDrawVersion();
@@ -114,8 +114,8 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
-            base.Draw(vertexAction);
-            DrawContents();
+            base.Draw(renderer);
+            DrawContents(renderer);
 
             Shader.Unbind();
         }
@@ -124,14 +124,16 @@ namespace osu.Framework.Graphics
         /// Populates the contents of the effect buffers of <see cref="SharedData"/>.
         /// This is invoked after <see cref="Child"/> has been rendered to the main buffer.
         /// </summary>
-        protected virtual void PopulateContents()
+        /// <param name="renderer"></param>
+        protected virtual void PopulateContents(IRenderer renderer)
         {
         }
 
         /// <summary>
         /// Draws the applicable effect buffers of <see cref="SharedData"/> to the back buffer.
         /// </summary>
-        protected virtual void DrawContents()
+        /// <param name="renderer"></param>
+        protected virtual void DrawContents(IRenderer renderer)
         {
             DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }

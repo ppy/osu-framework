@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
@@ -203,9 +204,9 @@ namespace osu.Framework.Graphics.Lines
                     addLineQuads(segment, texRect);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || segments.Count == 0)
                     return;
