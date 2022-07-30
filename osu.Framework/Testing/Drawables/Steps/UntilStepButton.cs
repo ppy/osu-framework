@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 
@@ -32,7 +33,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private Stopwatch elapsedTime;
 
-        public UntilStepButton(Func<bool> waitUntilTrueDelegate, bool isSetupStep = false)
+        public UntilStepButton(Func<bool> waitUntilTrueDelegate, bool isSetupStep = false, Func<string> getFailureMessage = null)
             : base(isSetupStep)
         {
             updateText();
@@ -53,7 +54,16 @@ namespace osu.Framework.Testing.Drawables.Steps
                     Success();
                 }
                 else if (!Debugger.IsAttached && elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
-                    throw new TimeoutException($"\"{Text}\" timed out");
+                {
+                    StringBuilder builder = new StringBuilder();
+
+                    builder.Append($"\"{Text}\" timed out");
+
+                    if (getFailureMessage != null)
+                        builder.Append($": {getFailureMessage()}");
+
+                    throw new TimeoutException(builder.ToString());
+                }
 
                 Action?.Invoke();
             };
