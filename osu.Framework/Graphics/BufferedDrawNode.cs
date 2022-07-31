@@ -84,7 +84,8 @@ namespace osu.Framework.Graphics
 
         public sealed override void Draw(IRenderer renderer)
         {
-            SharedData.Initialise(renderer);
+            if (!SharedData.IsInitialised)
+                SharedData.Initialise(renderer);
 
             if (RequiresRedraw)
             {

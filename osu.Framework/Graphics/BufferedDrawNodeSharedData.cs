@@ -40,6 +40,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public readonly bool ClipToRootNode;
 
+        public bool IsInitialised { get; private set; }
+
         /// <summary>
         /// A set of <see cref="IFrameBuffer"/>s which are used in a ping-pong manner to render effects to.
         /// </summary>
@@ -78,7 +80,7 @@ namespace osu.Framework.Graphics
 
         public void Initialise(IRenderer renderer)
         {
-            if (MainBuffer != null)
+            if (IsInitialised)
                 return;
 
             TextureFilteringMode filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
@@ -86,6 +88,8 @@ namespace osu.Framework.Graphics
             MainBuffer = renderer.CreateFrameBuffer(formats, filterMode);
             for (int i = 0; i < effectBuffers.Length; i++)
                 effectBuffers[i] = renderer.CreateFrameBuffer(formats, filterMode);
+
+            IsInitialised = true;
         }
 
         private int currentEffectBuffer = -1;
@@ -123,6 +127,9 @@ namespace osu.Framework.Graphics
 
         protected virtual void Dispose(bool isDisposing)
         {
+            if (!IsInitialised)
+                return;
+
             MainBuffer?.Dispose();
             for (int i = 0; i < effectBuffers.Length; i++)
                 effectBuffers[i]?.Dispose();
