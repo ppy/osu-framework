@@ -274,7 +274,7 @@ namespace osu.Framework.Graphics
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
             if (frameBuffer.Texture.TextureGL.Bind())
-                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+                DrawQuad(frameBuffer.Texture.TextureGL, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         /// <summary>
