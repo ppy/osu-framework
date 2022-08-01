@@ -21,6 +21,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
 using static osu.Framework.Threading.ScheduledDelegate;

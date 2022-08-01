@@ -4,6 +4,7 @@
 #nullable disable
 
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures

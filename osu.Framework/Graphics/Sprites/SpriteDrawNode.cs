@@ -7,7 +7,6 @@ using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Sprites
