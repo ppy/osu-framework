@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(renderer);
 
-                if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
+                if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
                 Shader.Bind();

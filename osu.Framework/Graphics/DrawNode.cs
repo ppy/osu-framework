@@ -9,7 +9,6 @@ using System.Threading;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Batches;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -260,22 +259,22 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Draws a <see cref="FrameBuffer"/> to the screen.
+        /// Draws an <see cref="IFrameBuffer"/> to the screen.
         /// </summary>
-        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
+        /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to draw.</param>
         /// <param name="vertexQuad">The destination vertices.</param>
         /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
-        protected void DrawFrameBuffer(FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+        protected void DrawFrameBuffer(IFrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
                                        Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
-            if (frameBuffer.Texture.Bind())
-                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            if (frameBuffer.Texture.TextureGL.Bind())
+                DrawQuad(frameBuffer.Texture.TextureGL, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         /// <summary>
