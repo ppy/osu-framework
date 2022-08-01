@@ -13,6 +13,10 @@ namespace osu.Framework.Graphics.Rendering
     /// </summary>
     public interface IRenderer
     {
+        public const int VERTICES_PER_QUAD = 4;
+
+        public const int VERTICES_PER_TRIANGLE = 4;
+
         internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
 
         internal IShader CreateShader(string name, params IShaderPart[] parts);
@@ -24,10 +28,6 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="filteringMode">The texture filtering mode.</param>
         /// <returns>The <see cref="IFrameBuffer"/>.</returns>
         IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
-
-        public const int VERTICES_PER_QUAD = 4;
-
-        public const int VERTICES_PER_TRIANGLE = 4;
 
         /// <summary>
         /// Creates a new linear vertex batch, accepting vertices and drawing as a given primitive type.
