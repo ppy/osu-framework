@@ -23,6 +23,9 @@ namespace osu.Framework.Graphics.Lines
         public IShader TextureShader { get; private set; }
         private IShader pathShader;
 
+        [Resolved]
+        private IRenderer renderer { get; set; }
+
         public Path()
         {
             AutoSizeAxes = Axes.Both;
@@ -259,7 +262,7 @@ namespace osu.Framework.Graphics.Lines
 
         protected Texture Texture
         {
-            get => texture ?? Texture.WhitePixel;
+            get => texture ?? renderer.WhitePixel;
             set
             {
                 if (texture == value)

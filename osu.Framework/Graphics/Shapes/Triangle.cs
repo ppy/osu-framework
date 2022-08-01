@@ -3,7 +3,7 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.Textures;
+using osu.Framework.Allocation;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -22,7 +22,15 @@ namespace osu.Framework.Graphics.Shapes
         /// </summary>
         public Triangle()
         {
-            Texture = Texture.WhitePixel;
+            // Setting the texture would normally set a size of (1, 1), but since the texture is set from BDL it needs to be set here instead.
+            // RelativeSizeAxes may not behave as expected if this is not done.
+            Size = Vector2.One;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(IRenderer renderer)
+        {
+            Texture ??= renderer.WhitePixel;
         }
 
         public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;

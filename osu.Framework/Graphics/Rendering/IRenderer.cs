@@ -10,6 +10,8 @@ namespace osu.Framework.Graphics.Rendering
     /// </summary>
     public interface IRenderer
     {
+        Texture WhitePixel { get; }
+
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
         /// </summary>

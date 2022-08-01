@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Batches;
 using osuTK;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
 using System.Runtime.CompilerServices;
@@ -119,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
-            private void drawEdgeEffect()
+            private void drawEdgeEffect(IRenderer renderer)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
@@ -154,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
                 DrawQuad(
-                    Texture.WhitePixel,
+                    renderer.WhitePixel,
                     screenSpaceMaskingQuad.Value,
                     colour, null, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
@@ -190,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
 
                 base.Draw(renderer);
 
-                drawEdgeEffect();
+                drawEdgeEffect(renderer);
 
                 if (maskingInfo != null)
                 {

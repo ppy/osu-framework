@@ -3,8 +3,10 @@
 
 #nullable disable
 
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK.Graphics;
@@ -15,6 +17,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneCircularProgress : FrameworkTestScene
     {
+        [Resolved]
+        private IRenderer renderer { get; set; }
+
         private readonly CircularProgress clock;
 
         private int rotateMode;
@@ -149,7 +154,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (textureMode)
             {
                 case 0:
-                    clock.Texture = Texture.WhitePixel;
+                    clock.Texture = renderer.WhitePixel;
                     break;
 
                 case 1:

@@ -11,6 +11,12 @@ namespace osu.Framework.Graphics.OpenGL
 {
     public class OpenGLRenderer : IRenderer
     {
+        public Texture WhitePixel => whitePixel.Value;
+
+        // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
+        private readonly Lazy<TextureWhitePixel> whitePixel = new Lazy<TextureWhitePixel>(() =>
+            new TextureAtlas(TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
+
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             All glFilteringMode;
