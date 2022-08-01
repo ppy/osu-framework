@@ -5,10 +5,10 @@
 
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Utils;
 using osu.Framework.Graphics.Sprites;
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+        public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
             : base(formats, pixelSnapping, cachedFrameBuffer)
         {
         }
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Containers
         /// or the size of the container (i.e. framebuffer) changes.
         /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
         /// </param>
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+        public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
         {
             UsingCachedFrameBuffer = cachedFrameBuffer;
 

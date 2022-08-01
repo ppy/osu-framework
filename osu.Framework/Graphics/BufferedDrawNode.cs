@@ -6,7 +6,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
@@ -20,12 +19,12 @@ namespace osu.Framework.Graphics
         protected new IBufferedDrawable Source => (IBufferedDrawable)base.Source;
 
         /// <summary>
-        /// The child <see cref="DrawNode"/> which is used to populate the <see cref="FrameBuffer"/>s with.
+        /// The child <see cref="DrawNode"/> which is used to populate the <see cref="IFrameBuffer"/>s with.
         /// </summary>
         protected DrawNode Child { get; private set; }
 
         /// <summary>
-        /// Data shared amongst all <see cref="BufferedDrawNode"/>s, providing storage for <see cref="FrameBuffer"/>s.
+        /// Data shared amongst all <see cref="BufferedDrawNode"/>s, providing storage for <see cref="IFrameBuffer"/>s.
         /// </summary>
         protected readonly BufferedDrawNodeSharedData SharedData;
 
@@ -75,7 +74,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Retrieves the version of the state of this <see cref="DrawNode"/>.
-        /// The <see cref="BufferedDrawNode"/> will only re-render if this version is greater than that of the rendered <see cref="FrameBuffer"/>s.
+        /// The <see cref="BufferedDrawNode"/> will only re-render if this version is greater than that of the rendered <see cref="IFrameBuffer"/>s.
         /// </summary>
         /// <remarks>
         /// By default, the <see cref="BufferedDrawNode"/> is re-rendered with every <see cref="DrawNode"/> invalidation.
@@ -85,6 +84,9 @@ namespace osu.Framework.Graphics
 
         public sealed override void Draw(IRenderer renderer)
         {
+            if (!SharedData.IsInitialised)
+                SharedData.Initialise(renderer);
+
             if (RequiresRedraw)
             {
                 FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
@@ -139,18 +141,18 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Binds and initialises a <see cref="FrameBuffer"/> if required.
+        /// Binds and initialises an <see cref="IFrameBuffer"/> if required.
         /// </summary>
-        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to bind.</param>
+        /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to bind.</param>
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
-        protected IDisposable BindFrameBuffer(FrameBuffer frameBuffer)
+        protected IDisposable BindFrameBuffer(IFrameBuffer frameBuffer)
         {
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
             frameBuffer.Bind();
 
-            return new ValueInvokeOnDisposal<FrameBuffer>(frameBuffer, b => b.Unbind());
+            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
         }
 
         private IDisposable establishFrameBufferViewport()
@@ -158,7 +160,8 @@ namespace osu.Framework.Graphics
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1, (int)frameBufferSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1,
+                (int)frameBufferSize.Y + 1);
 
             GLWrapper.PushMaskingInfo(new MaskingInfo
             {

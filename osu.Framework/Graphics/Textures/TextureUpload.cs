@@ -9,8 +9,8 @@ using System.Runtime.InteropServices;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
-        /// Create an empty upload. Used by <see cref="FrameBuffer"/> for initialisation.
+        /// Create an empty upload. Used by <see cref="IFrameBuffer"/> for initialisation.
         /// </summary>
         internal TextureUpload()
         {
