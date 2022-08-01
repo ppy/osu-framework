@@ -6,9 +6,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;

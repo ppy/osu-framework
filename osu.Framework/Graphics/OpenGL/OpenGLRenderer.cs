@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.OpenGL.Batches;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
@@ -50,5 +52,11 @@ namespace osu.Framework.Graphics.OpenGL
 
             return new FrameBuffer(glFormats, glFilteringMode);
         }
+
+        public IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+            => new LinearBatch<TVertex>(size, maxBuffers, topology);
+
+        public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+            => new QuadBatch<TVertex>(size, maxBuffers);
     }
 }
