@@ -148,8 +148,16 @@ namespace osu.Framework.Graphics.Textures
         /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
         /// The provided upload will be disposed after the upload is completed.
         /// </summary>
-        /// <param name="upload"></param>
+        /// <param name="upload">The texture data to upload.</param>
         public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null);
+
+        /// <summary>
+        /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
+        /// The provided upload will be disposed after the upload is completed.
+        /// </summary>
+        /// <param name="upload">The texture data to upload.</param>
+        /// <param name="opacity">The texture's opacity, if known.</param>
+        public void SetData(ITextureUpload upload, Opacity opacity) => SetData(upload, WrapModeS, WrapModeT, opacity);
 
         internal virtual void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
         {

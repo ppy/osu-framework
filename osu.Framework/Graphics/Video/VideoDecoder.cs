@@ -644,7 +644,8 @@ namespace osu.Framework.Graphics.Video
 
                 var upload = new VideoTextureUpload(frame);
 
-                tex.SetData(upload);
+                // We do not support videos with transparency at this point, so the upload's opacity as well as the texture's opacity is always opaque.
+                tex.SetData(upload, Opacity.Opaque);
                 decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
             }
         }
