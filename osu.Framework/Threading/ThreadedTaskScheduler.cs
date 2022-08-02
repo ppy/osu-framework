@@ -92,7 +92,8 @@ namespace osu.Framework.Threading
             catch (ObjectDisposedException)
             {
                 // tasks may have been disposed. there's no easy way to check on this other than catch for it.
-                Logger.Log($"Task was attempted to be run on a {nameof(ThreadedTaskScheduler)} ({name}) after it was disposed. Will be silently dropped.");
+                Logger.Log($"Task was queued for execution on a {nameof(ThreadedTaskScheduler)} ({name}) after it was disposed. The task will be executed inline.");
+                TryExecuteTask(task);
             }
         }
 
