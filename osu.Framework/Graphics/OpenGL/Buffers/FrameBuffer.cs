@@ -25,12 +25,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public FrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
         {
             frameBuffer = GL.GenFramebuffer();
-            Texture = renderer.CreateTexture(textureGL = new FrameBufferTexture(filteringMode), WrapMode.None, WrapMode.None);
+            Texture = renderer.CreateTexture(textureGL = new FrameBufferTexture(renderer, filteringMode), WrapMode.None, WrapMode.None);
 
             GLWrapper.BindFrameBuffer(frameBuffer);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, textureGL.TextureId, 0);
-            GLWrapper.BindTexture(null);
+            renderer.BindTexture(0);
 
             if (renderBufferFormats != null)
             {
@@ -123,11 +123,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #endregion
 
-        private class FrameBufferTexture : TextureGLSingle
+        private class FrameBufferTexture : TextureGL
         {
-            public FrameBufferTexture(All filteringMode = All.Linear)
-                : base(1, 1, true, filteringMode)
+            private readonly OpenGLRenderer renderer;
+
+            public FrameBufferTexture(OpenGLRenderer renderer, All filteringMode = All.Linear)
+                : base(renderer, 1, 1, true, filteringMode)
             {
+                this.renderer = renderer;
                 BypassTextureUploadQueueing = true;
 
                 SetData(new TextureUpload());
@@ -137,13 +140,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             public override int Width
             {
                 get => base.Width;
-                set => base.Width = Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
+                set => base.Width = renderer == null ? value : Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
 
             public override int Height
             {
                 get => base.Height;
-                set => base.Height = Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
+                set => base.Height = renderer == null ? value : Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
         }
     }

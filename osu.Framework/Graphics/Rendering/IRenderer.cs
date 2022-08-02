@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Textures;
+using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Rendering
@@ -12,7 +13,35 @@ namespace osu.Framework.Graphics.Rendering
     /// </summary>
     public interface IRenderer
     {
+        public const int MAX_MIPMAP_LEVELS = 3;
+
+        public const int VERTICES_PER_QUAD = 4;
+
+        public const int VERTICES_PER_TRIANGLE = 4;
+
+        /// <summary>
+        /// The current horizontal texture wrap mode.
+        /// </summary>
+        WrapMode CurrentWrapModeS { get; }
+
+        /// <summary>
+        /// The current vertical texture wrap mode.
+        /// </summary>
+        WrapMode CurrentWrapModeT { get; }
+
         Texture WhitePixel { get; }
+
+        internal void BeginFrame(Vector2 windowSize);
+
+        /// <summary>
+        /// Binds a texture.
+        /// </summary>
+        /// <param name="texture">The texture to bind.</param>
+        /// <param name="unit">The unit to bind the texture to.</param>
+        /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
+        /// <returns>Whether <paramref name="texture"/> was newly-bound.</returns>
+        bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.

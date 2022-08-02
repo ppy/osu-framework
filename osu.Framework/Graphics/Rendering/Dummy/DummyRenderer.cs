@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Textures;
+using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
@@ -12,7 +13,16 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     /// </summary>
     public sealed class DummyRenderer : IRenderer
     {
+        public WrapMode CurrentWrapModeS => WrapMode.None;
+        public WrapMode CurrentWrapModeT => WrapMode.None;
         public Texture WhitePixel { get; } = new Texture(new DummyNativeTexture(), WrapMode.None, WrapMode.None);
+
+        void IRenderer.BeginFrame(Vector2 windowSize)
+        {
+        }
+
+        public bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+            => true;
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer();

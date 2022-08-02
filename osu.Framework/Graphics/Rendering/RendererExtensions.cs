@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
@@ -25,22 +24,22 @@ namespace osu.Framework.Graphics.Rendering
             if (!texture.Available)
                 throw new ObjectDisposedException(texture.ToString(), "Can not draw a triangle with a disposed texture.");
 
-            if (!GLWrapper.BindTexture((TextureGL)texture.NativeTexture))
+            if (!renderer.BindTexture(texture))
                 return;
 
             RectangleF texRect = texture.GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
 
             // If clamp to edge is active, allow the texture coordinates to penetrate by half the repeated atlas margin width
-            if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+            if (renderer.CurrentWrapModeS == WrapMode.ClampToEdge || renderer.CurrentWrapModeT == WrapMode.ClampToEdge)
             {
                 Vector2 inflationVector = Vector2.Zero;
 
-                const int mipmap_padding_requirement = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) / 2;
+                const int mipmap_padding_requirement = (1 << IRenderer.MAX_MIPMAP_LEVELS) / 2;
 
-                if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
+                if (renderer.CurrentWrapModeS == WrapMode.ClampToEdge)
                     inflationVector.X = mipmap_padding_requirement / (float)texture.Width;
-                if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+                if (renderer.CurrentWrapModeT == WrapMode.ClampToEdge)
                     inflationVector.Y = mipmap_padding_requirement / (float)texture.Height;
                 texRect = texRect.Inflate(inflationVector);
             }
@@ -99,22 +98,22 @@ namespace osu.Framework.Graphics.Rendering
             if (!texture.Available)
                 throw new ObjectDisposedException(texture.ToString(), "Can not draw a quad with a disposed texture.");
 
-            if (!GLWrapper.BindTexture((TextureGL)texture.NativeTexture))
+            if (!renderer.BindTexture(texture))
                 return;
 
             RectangleF texRect = texture.GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
 
             // If clamp to edge is active, allow the texture coordinates to penetrate by half the repeated atlas margin width
-            if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+            if (renderer.CurrentWrapModeS == WrapMode.ClampToEdge || renderer.CurrentWrapModeT == WrapMode.ClampToEdge)
             {
                 Vector2 inflationVector = Vector2.Zero;
 
-                const int mipmap_padding_requirement = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) / 2;
+                const int mipmap_padding_requirement = (1 << IRenderer.MAX_MIPMAP_LEVELS) / 2;
 
-                if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
+                if (renderer.CurrentWrapModeS == WrapMode.ClampToEdge)
                     inflationVector.X = mipmap_padding_requirement / (float)texture.Width;
-                if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+                if (renderer.CurrentWrapModeT == WrapMode.ClampToEdge)
                     inflationVector.Y = mipmap_padding_requirement / (float)texture.Height;
                 texRect = texRect.Inflate(inflationVector);
             }
