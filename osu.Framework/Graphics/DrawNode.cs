@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
+            => ((TextureGL)texture.NativeTexture).DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
 
         /// <summary>
         /// Draws a triangle to the screen.
@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
-            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: textureCoords);
+            => ((TextureGL)texture.NativeTexture).DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: textureCoords);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -273,8 +273,8 @@ namespace osu.Framework.Graphics
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
-            if (frameBuffer.Texture.TextureGL.Bind())
-                DrawQuad(frameBuffer.Texture.TextureGL, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            if (frameBuffer.Texture.Bind())
+                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride, textureRect);
         }
 
         /// <summary>

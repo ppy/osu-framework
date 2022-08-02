@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 shader.Bind();
-                texture.TextureGL.Bind();
+                texture.Bind();
 
                 Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
 

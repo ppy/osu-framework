@@ -1,33 +1,26 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osuTK;
-using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
-        public virtual TextureGL TextureGL { get; }
+        internal virtual INativeTexture NativeTexture { get; }
 
-        public string Filename;
-        public string AssetName;
+        public string Filename = string.Empty;
+        public string AssetName = string.Empty;
 
         /// <summary>
         /// A lookup key used by <see cref="TextureStore"/>s.
         /// </summary>
-        internal string LookupKey;
+        internal string LookupKey = string.Empty;
 
         /// <summary>
         /// At what multiple of our expected resolution is our underlying texture?
@@ -37,23 +30,39 @@ namespace osu.Framework.Graphics.Textures
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
-        public Opacity Opacity => TextureGL.Opacity;
+        public Opacity Opacity { get; protected set; } = Opacity.Mixed;
 
-        public WrapMode WrapModeS => TextureGL.WrapModeS;
+        /// <summary>
+        /// The texture wrap mode in horizontal direction.
+        /// </summary>
+        public readonly WrapMode WrapModeS;
 
-        public WrapMode WrapModeT => TextureGL.WrapModeT;
+        /// <summary>
+        /// The texture wrap mode in vertical direction.
+        /// </summary>
+        public readonly WrapMode WrapModeT;
 
         /// <summary>
         /// Create a new texture.
         /// </summary>
-        /// <param name="textureGl">The GL texture.</param>
-        public Texture(TextureGL textureGl)
+        /// <param name="nativeTexture">The GL texture.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        internal Texture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
         {
-            TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+            NativeTexture = nativeTexture ?? throw new ArgumentNullException(nameof(nativeTexture));
+            WrapModeS = wrapModeS;
+            WrapModeT = wrapModeT;
         }
 
-        public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
-            : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
+        /// <summary>
+        /// Creates a new texture using the same backing texture as another <see cref="Texture"/>.
+        /// </summary>
+        /// <param name="parent">The other <see cref="Texture"/>.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        public Texture(Texture parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : this(parent.NativeTexture, wrapModeS, wrapModeT)
         {
         }
 
@@ -76,16 +85,17 @@ namespace osu.Framework.Graphics.Textures
                 cropRectangle *= scale;
             }
 
-            return new Texture(new TextureGLSub(cropRectangle, TextureGL, wrapModeS, wrapModeT));
+            return new TextureRegion(this, cropRectangle, wrapModeS, wrapModeT);
         }
 
         /// <summary>
         /// Creates a texture from a data stream representing a bitmap.
         /// </summary>
+        /// <param name="renderer"></param>
         /// <param name="stream">The data stream containing the texture data.</param>
         /// <param name="atlas">The atlas to add the texture to.</param>
         /// <returns>The created texture.</returns>
-        public static Texture FromStream(Stream stream, TextureAtlas atlas = null)
+        public static Texture? FromStream(IRenderer renderer, Stream? stream, TextureAtlas? atlas = null)
         {
             if (stream == null || stream.Length == 0)
                 return null;
@@ -93,7 +103,7 @@ namespace osu.Framework.Graphics.Textures
             try
             {
                 var data = new TextureUpload(stream);
-                Texture tex = atlas == null ? new Texture(data.Width, data.Height) : new Texture(atlas.Add(data.Width, data.Height));
+                Texture tex = atlas?.Add(data.Width, data.Height) ?? renderer.CreateTexture(data.Width, data.Height);
                 tex.SetData(data);
                 return tex;
             }
@@ -103,88 +113,170 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        public int Width
+        public virtual int Width
         {
-            get => TextureGL.Width;
-            set => TextureGL.Width = value;
+            get => NativeTexture.Width;
+            set => NativeTexture.Width = value;
         }
 
-        public int Height
+        public virtual int Height
         {
-            get => TextureGL.Height;
-            set => TextureGL.Height = value;
+            get => NativeTexture.Height;
+            set => NativeTexture.Height = value;
         }
 
         public Vector2 Size => new Vector2(Width, Height);
+
+        public bool Bind(int unit = 0) => Bind(unit, WrapModeS, WrapModeT);
+
+        public bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            if (NativeTexture.Bind(unit, wrapModeS, wrapModeT))
+            {
+                BindCount++;
+                return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
         /// The provided upload will be disposed after the upload is completed.
         /// </summary>
         /// <param name="upload"></param>
-        public void SetData(ITextureUpload upload)
-        {
-            TextureGL?.SetData(upload);
-        }
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null);
 
-        protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
+        internal virtual void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
         {
-            RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
+            if (!Available)
+                throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
-            if (ScaleAdjust != 1)
+            if (upload.Bounds.Width > NativeTexture.MaxSize || upload.Bounds.Height > NativeTexture.MaxSize)
+                throw new TextureTooLargeForGLException();
+
+            if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
-                texRect.Width *= ScaleAdjust;
-                texRect.Height *= ScaleAdjust;
-                texRect.X *= ScaleAdjust;
-                texRect.Y *= ScaleAdjust;
+                upload.Bounds = new RectangleI(0, 0, Width, Height);
+
+                if (upload.Bounds.Width * upload.Bounds.Height > upload.Data.Length)
+                {
+                    throw new InvalidOperationException(
+                        $"Size of texture upload ({upload.Bounds.Width}x{upload.Bounds.Height}) does not contain enough data ({upload.Data.Length} < {upload.Bounds.Width * upload.Bounds.Height})");
+                }
             }
 
+            UpdateOpacity(upload, ref opacity);
+
+            NativeTexture.SetData(upload);
+        }
+
+        protected static Opacity ComputeOpacity(ITextureUpload upload)
+        {
+            // TODO: Investigate performance issues and revert functionality once we are sure there is no overhead.
+            // see https://github.com/ppy/osu/issues/9307
+            return Opacity.Mixed;
+
+            // ReadOnlySpan<Rgba32> data = upload.Data;
+            //
+            // if (data.Length == 0)
+            //     return Opacity.Transparent;
+            //
+            // int firstPixelValue = data[0].A;
+            //
+            // // Check if the first pixel has partial transparency (neither fully-opaque nor fully-transparent).
+            // if (firstPixelValue != 0 && firstPixelValue != 255)
+            //     return Opacity.Mixed;
+            //
+            // // The first pixel is GUARANTEED to be either fully-opaque or fully-transparent.
+            // // Now we need to go through the rest of the image and check that every other pixel matches this value.
+            // for (int i = 1; i < data.Length; i++)
+            // {
+            //     if (data[i].A != firstPixelValue)
+            //         return Opacity.Mixed;
+            // }
+            //
+            // return firstPixelValue == 0 ? Opacity.Transparent : Opacity.Opaque;
+        }
+
+        protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
+        {
+            // Compute opacity if it doesn't have a value yet
+            uploadOpacity ??= ComputeOpacity(upload);
+
+            // Update the texture's opacity depending on the upload's opacity.
+            // If the upload covers the entire bounds of the texture, it fully
+            // determines the texture's opacity. Otherwise, it can only turn
+            // the texture's opacity into a mixed state (if it disagrees with
+            // the texture's existing opacity).
+            if (upload.Bounds == GetTextureRect().AABB && upload.Level == 0)
+                Opacity = uploadOpacity.Value;
+            else if (uploadOpacity.Value != Opacity)
+                Opacity = Opacity.Mixed;
+        }
+
+        /// <summary>
+        /// Computes the UV coordinates of a sub-area of this texture.
+        /// </summary>
+        /// <param name="area">A display-space area of this texture to compute the UV coordinates of.<br/>
+        /// The full area is used if not provided: (0, 0, <see cref="DisplayWidth"/>, <see cref="DisplayHeight"/>).</param>
+        /// <returns>The UV coordinates of <paramref name="area"/> in this texture.</returns>
+        public virtual RectangleF GetTextureRect(RectangleF? area = null)
+        {
+            RectangleF texRect = area ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
+
+            texRect.X *= ScaleAdjust / Width;
+            texRect.Y *= ScaleAdjust / Height;
+            texRect.Width *= ScaleAdjust / Width;
+            texRect.Height *= ScaleAdjust / Height;
+
             return texRect;
-        }
-
-        public RectangleF GetTextureRect(RectangleF? textureRect = null) => TextureGL.GetTextureRect(TextureBounds(textureRect));
-
-        /// <summary>
-        /// Draws a triangle to the screen.
-        /// </summary>
-        /// <param name="vertexTriangle">The triangle to draw.</param>
-        /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="textureRect">The texture rectangle in texture space.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
-        /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
-        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                   Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
-        {
-            if (TextureGL == null || !TextureGL.Bind()) return;
-
-            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, TextureBounds(textureCoords));
-        }
-
-        /// <summary>
-        /// Draws a quad to the screen.
-        /// </summary>
-        /// <param name="vertexQuad">The quad to draw.</param>
-        /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="textureRect">The texture rectangle in texture space.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
-        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
-        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
-        internal void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                               Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
-        {
-            if (TextureGL == null || !TextureGL.Bind()) return;
-
-            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride, TextureBounds(textureCoords));
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
 
         /// <summary>
-        /// Whether <see cref="TextureGL"/> is in a usable state.
+        /// Whether <see cref="NativeTexture"/> is in a usable state.
         /// </summary>
-        public virtual bool Available => TextureGL.Available;
+        public virtual bool Available => NativeTexture.Available;
+
+        /// <summary>
+        /// Whether the latest data has been uploaded.
+        /// </summary>
+        public bool UploadComplete => NativeTexture.UploadComplete;
+
+        /// <summary>
+        /// Flush any unprocessed uploads without actually uploading.
+        /// </summary>
+        internal void FlushUploads() => NativeTexture.FlushUploads();
+
+        internal bool HasSameNativeTexture(Texture other) => NativeTexture == other.NativeTexture;
+
+        /// <summary>
+        /// By default, texture uploads are queued for upload at the beginning of each frame, allowing loading them ahead of time.
+        /// When this is true, this will be bypassed and textures will only be uploaded on use. Should be set for every-frame texture uploads
+        /// to avoid overloading the global queue.
+        /// </summary>
+        public bool BypassTextureUploadQueueing
+        {
+            get => NativeTexture.BypassTextureUploadQueueing;
+            set => NativeTexture.BypassTextureUploadQueueing = value;
+        }
+
+        #region TextureVisualiser Support
+
+        internal bool IsAtlasTexture { get; set; }
+
+        /// <summary>
+        /// The total amount of times this <see cref="Texture"/> was bound.
+        /// </summary>
+        internal ulong BindCount { get; private set; }
+
+        internal int GetByteSize() => NativeTexture.GetByteSize();
+
+        internal string Identifier => NativeTexture.Identifier;
+
+        #endregion
 
         #region Disposal
 

@@ -22,10 +22,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private int frameBuffer;
         private TextureGL textureGL;
 
-        public FrameBuffer(RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
+        public FrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
         {
             frameBuffer = GL.GenFramebuffer();
-            Texture = new Texture(textureGL = new FrameBufferTexture(filteringMode));
+            Texture = renderer.CreateTexture(textureGL = new FrameBufferTexture(filteringMode), WrapMode.None, WrapMode.None);
 
             GLWrapper.BindFrameBuffer(frameBuffer);
 

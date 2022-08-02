@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Textures;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -19,5 +20,16 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="filteringMode">The texture filtering mode.</param>
         /// <returns>The <see cref="IFrameBuffer"/>.</returns>
         IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
+
+        /// <summary>
+        /// Creates a new texture.
+        /// </summary>
+        Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
+                              WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default);
+
+        /// <summary>
+        /// Creates a new video texture.
+        /// </summary>
+        Texture CreateVideoTexture(int width, int height);
     }
 }

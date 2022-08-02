@@ -5,7 +5,6 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using JetBrains.Annotations;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -32,7 +30,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly List<ITextureStore> nestedStores = new List<ITextureStore>();
 
         private readonly IRenderer renderer;
-        private readonly All filteringMode;
+        private readonly TextureFilteringMode filteringMode;
         private readonly bool manualMipmaps;
 
         protected TextureAtlas Atlas;
@@ -45,7 +43,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly float ScaleAdjust;
 
-        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
         {
             if (store != null)
                 AddTextureSource(store);
@@ -59,7 +57,7 @@ namespace osu.Framework.Graphics.Textures
             if (useAtlas)
             {
                 int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
-                Atlas = new TextureAtlas(size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
+                Atlas = new TextureAtlas(renderer, size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
             }
         }
 
@@ -105,11 +103,11 @@ namespace osu.Framework.Graphics.Textures
         {
             if (upload == null) return null;
 
-            TextureGL glTexture = null;
+            Texture tex = null;
 
             if (Atlas != null)
             {
-                if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
+                if ((tex = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
                 {
                     Logger.Log(
                         $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
@@ -117,9 +115,8 @@ namespace osu.Framework.Graphics.Textures
                 }
             }
 
-            glTexture ??= new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
-
-            Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
+            tex ??= renderer.CreateTexture(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
+            tex.ScaleAdjust = ScaleAdjust;
             tex.SetData(upload);
 
             return tex;
@@ -305,8 +302,8 @@ namespace osu.Framework.Graphics.Textures
                 {
                     // we are doing this locally as right now, Textures don't dispose the underlying texture (leaving it to GC finalizers).
                     // in the case of a purge operation we are pretty sure this is the intended behaviour.
-                    tex?.TextureGL?.Dispose();
-                    tex?.Dispose();
+                    if (tex != null)
+                        new DisposableTexture(tex).Dispose();
                 }
 
                 textureCache.Remove(texture.LookupKey);

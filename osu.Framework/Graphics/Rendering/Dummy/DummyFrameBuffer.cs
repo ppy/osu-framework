@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     /// </summary>
     internal class DummyFrameBuffer : IFrameBuffer
     {
-        public Texture Texture => new Texture(1, 1);
+        public Texture Texture { get; } = new Texture(new DummyNativeTexture(), WrapMode.None, WrapMode.None);
         public Vector2 Size { get; set; }
 
         public void Bind()

@@ -10,11 +10,12 @@ using osuTK.Graphics.ES30;
 using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
-    public abstract class TextureGL : IDisposable
+    public abstract class TextureGL : INativeTexture
     {
         /// <summary>
         /// The texture wrap mode in horizontal direction.
@@ -44,7 +45,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public bool BypassTextureUploadQueueing;
 
         /// <summary>
-        /// Whether this <see cref="TextureGL"/> can used for drawing.
+        /// Whether this <see cref="TextureGL"/> can used for ing.
         /// </summary>
         public bool Available { get; private set; } = true;
 
@@ -196,5 +197,47 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             else if (uploadOpacity.Value != Opacity)
                 Opacity = Opacity.Mixed;
         }
+
+        #region INativeTexture
+
+        bool INativeTexture.UploadComplete => throw new NotImplementedException();
+
+        bool INativeTexture.IsQueuedForUpload
+        {
+            get => IsQueuedForUpload;
+            set => IsQueuedForUpload = value;
+        }
+
+        bool INativeTexture.BypassTextureUploadQueueing
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+
+        string INativeTexture.Identifier => throw new NotImplementedException();
+
+        int INativeTexture.MaxSize => throw new NotImplementedException();
+
+        bool INativeTexture.Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            throw new NotImplementedException();
+        }
+
+        int INativeTexture.GetByteSize()
+        {
+            throw new NotImplementedException();
+        }
+
+        void INativeTexture.FlushUploads()
+        {
+            FlushUploads();
+        }
+
+        bool INativeTexture.Upload()
+        {
+            return Upload();
+        }
+
+        #endregion
     }
 }
