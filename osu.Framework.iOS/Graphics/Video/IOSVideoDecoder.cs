@@ -9,7 +9,6 @@ using FFmpeg.AutoGen;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 
-
 namespace osu.Framework.iOS.Graphics.Video
 {
     // ReSharper disable InconsistentNaming
