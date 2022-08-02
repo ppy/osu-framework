@@ -6,13 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.OpenGL.Shaders;
 using osuTK;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
-        private static readonly HashSet<Shader> all_shaders = new HashSet<Shader>();
+        private static readonly HashSet<OpenGLShader> all_shaders = new HashSet<OpenGLShader>();
         private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
@@ -53,7 +54,7 @@ namespace osu.Framework.Graphics.Shaders
             ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
         }
 
-        public static void Register(Shader shader)
+        public static void Register(OpenGLShader shader)
         {
             if (!all_shaders.Add(shader)) return;
 
@@ -67,7 +68,7 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        public static void Unregister(Shader shader)
+        public static void Unregister(OpenGLShader shader)
         {
             if (!all_shaders.Remove(shader)) return;
 

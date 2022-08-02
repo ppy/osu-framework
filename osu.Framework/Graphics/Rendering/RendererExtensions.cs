@@ -3,7 +3,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -168,7 +167,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="texture">The texture to fill the triangle with.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the polygon's vertices (translated from the corresponding quad's rectangle).</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -193,7 +192,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
         /// <param name="vertexQuad">The destination vertices.</param>
         /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
-        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
         public static void DrawFrameBuffer(this IRenderer renderer, IFrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D>? vertexAction = null,

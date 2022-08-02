@@ -5,6 +5,8 @@ using System;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -43,6 +45,10 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>Whether <paramref name="texture"/> was newly-bound.</returns>
         bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
 
+        internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+
+        internal IShader CreateShader(string name, params IShaderPart[] parts);
+
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
         /// </summary>
@@ -61,6 +67,21 @@ namespace osu.Framework.Graphics.Rendering
         /// Creates a new video texture.
         /// </summary>
         Texture CreateVideoTexture(int width, int height);
+
+        /// <summary>
+        /// Creates a new linear vertex batch, accepting vertices and drawing as a given primitive type.
+        /// </summary>
+        /// <param name="size">Number of quads.</param>
+        /// <param name="maxBuffers">Maximum number of vertex buffers.</param>
+        /// <param name="topology">The type of primitive the vertices are drawn as.</param>
+        IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
+
+        /// <summary>
+        /// Creates a new quad vertex batch, accepting vertices and drawing as quads.
+        /// </summary>
+        /// <param name="size">Number of quads.</param>
+        /// <param name="maxBuffers">Maximum number of vertex buffers.</param>
+        IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
         #region TextureVisualiser Support
 

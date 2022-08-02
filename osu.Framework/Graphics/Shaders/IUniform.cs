@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Shaders
     {
         void Update();
 
-        Shader Owner { get; }
+        IShader Owner { get; }
         int Location { get; }
         string Name { get; }
     }

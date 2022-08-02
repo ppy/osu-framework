@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Batches;
 using osuTK;
 using osu.Framework.Graphics.Colour;
 using System;
@@ -64,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// The vertex batch used for child quads during the back-to-front pass.
             /// </summary>
-            private QuadBatch<TexturedVertex2D> quadBatch;
+            private IVertexBatch<TexturedVertex2D> quadBatch;
 
             private int sourceChildrenCount;
 
@@ -170,18 +169,18 @@ namespace osu.Framework.Graphics.Containers
 
             private bool mayHaveOwnVertexBatch(int amountChildren) => forceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
-            private void updateQuadBatch()
+            private void updateQuadBatch(IRenderer renderer)
             {
                 if (Children == null)
                     return;
 
                 if (quadBatch == null && mayHaveOwnVertexBatch(sourceChildrenCount))
-                    quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
+                    quadBatch = renderer.CreateQuadBatch<TexturedVertex2D>(100, 1000);
             }
 
             public override void Draw(IRenderer renderer)
             {
-                updateQuadBatch();
+                updateQuadBatch(renderer);
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
                 if (quadBatch != null)
@@ -232,7 +231,7 @@ namespace osu.Framework.Graphics.Containers
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
                 {
-                    updateQuadBatch();
+                    updateQuadBatch(renderer);
 
                     // Prefer to use own vertex batch instead of the parent-owned one.
                     if (quadBatch != null)

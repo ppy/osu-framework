@@ -5,6 +5,9 @@ using System;
 using System.Linq;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.OpenGL.Batches;
+using osu.Framework.Graphics.OpenGL.Shaders;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
@@ -89,6 +92,29 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
+        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        {
+            ShaderType glType;
+
+            switch (partType)
+            {
+                case ShaderPartType.Fragment:
+                    glType = ShaderType.FragmentShader;
+                    break;
+
+                case ShaderPartType.Vertex:
+                    glType = ShaderType.VertexShader;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unsupported shader part type: {partType}", nameof(partType));
+            }
+
+            return new OpenGLShaderPart(name, rawData, glType, manager);
+        }
+
+        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts) => new OpenGLShader(name, parts.Cast<OpenGLShaderPart>().ToArray());
+
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             All glFilteringMode;
@@ -163,6 +189,12 @@ namespace osu.Framework.Graphics.OpenGL
 
             return tex;
         }
+
+        public IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+            => new LinearBatch<TVertex>(size, maxBuffers, topology);
+
+        public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+            => new QuadBatch<TVertex>(size, maxBuffers);
 
         internal event Action<Texture>? TextureCreated;
 
