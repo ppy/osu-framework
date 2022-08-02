@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Shaders
     internal class GlobalUniform<T> : IUniformWithValue<T>
         where T : struct, IEquatable<T>
     {
-        public Shader Owner { get; }
+        public IShader Owner { get; }
         public int Location { get; }
         public string Name { get; }
 
@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         public UniformMapping<T> PendingChange;
 
-        public GlobalUniform(Shader owner, string name, int uniformLocation)
+        public GlobalUniform(IShader owner, string name, int uniformLocation)
         {
             Owner = owner;
             Name = name;

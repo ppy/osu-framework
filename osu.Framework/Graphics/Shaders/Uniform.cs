@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Shaders
     public class Uniform<T> : IUniformWithValue<T>
         where T : struct, IEquatable<T>
     {
-        public Shader Owner { get; }
+        public IShader Owner { get; }
         public string Name { get; }
         public int Location { get; }
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        public Uniform(Shader owner, string name, int uniformLocation)
+        public Uniform(IShader owner, string name, int uniformLocation)
         {
             Owner = owner;
             Name = name;
