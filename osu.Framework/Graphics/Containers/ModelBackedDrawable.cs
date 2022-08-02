@@ -46,8 +46,7 @@ namespace osu.Framework.Graphics.Containers
 
                 model = value;
 
-                if (IsLoaded)
-                    updateDrawable();
+                Scheduler.AddOnce(updateDrawable);
             }
         }
 
@@ -90,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updateDrawable();
+            Scheduler.AddOnce(updateDrawable);
         }
 
         private void updateDrawable()

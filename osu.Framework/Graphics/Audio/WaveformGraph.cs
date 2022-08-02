@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Layout;
@@ -324,14 +324,16 @@ namespace osu.Framework.Graphics.Audio
                 }
             }
 
-            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
+
+                vertexBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(1000, 10);
 
                 shader.Bind();
                 texture.TextureGL.Bind();
@@ -410,7 +412,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 base.Dispose(isDisposing);
 
-                vertexBatch.Dispose();
+                vertexBatch?.Dispose();
             }
         }
     }

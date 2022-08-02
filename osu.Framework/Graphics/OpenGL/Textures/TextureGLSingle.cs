@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
@@ -33,8 +32,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private static readonly LockedWeakList<TextureGLSingle> all_textures = new LockedWeakList<TextureGLSingle>();
 
         public const int MAX_MIPMAP_LEVELS = 3;
-
-        private static readonly Action<TexturedVertex2D> default_quad_action = new QuadBatch<TexturedVertex2D>(100, 1000).AddAction;
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -244,7 +241,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
-            vertexAction ??= default_quad_action;
+            vertexAction ??= GLWrapper.DefaultQuadBatch.AddAction;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -318,7 +315,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            vertexAction ??= default_quad_action;
+            vertexAction ??= GLWrapper.DefaultQuadBatch.AddAction;
 
             vertexAction(new TexturedVertex2D
             {

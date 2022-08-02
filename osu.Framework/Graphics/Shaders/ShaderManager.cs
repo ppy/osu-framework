@@ -3,10 +3,9 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -14,16 +13,18 @@ namespace osu.Framework.Graphics.Shaders
     {
         private const string shader_prefix = @"sh_";
 
-        private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
+        private readonly ConcurrentDictionary<string, IShaderPart> partCache = new ConcurrentDictionary<string, IShaderPart>();
+        private readonly ConcurrentDictionary<(string, string), IShader> shaderCache = new ConcurrentDictionary<(string, string), IShader>();
 
+        private readonly IRenderer renderer;
         private readonly IResourceStore<byte[]> store;
 
         /// <summary>
         /// Constructs a new <see cref="ShaderManager"/>.
         /// </summary>
-        public ShaderManager(IResourceStore<byte[]> store)
+        public ShaderManager(IRenderer renderer, IResourceStore<byte[]> store)
         {
+            this.renderer = renderer;
             this.store = store;
         }
 
@@ -44,39 +45,37 @@ namespace osu.Framework.Graphics.Shaders
         {
             var tuple = (vertex, fragment);
 
-            if (shaderCache.TryGetValue(tuple, out Shader? shader))
+            if (shaderCache.TryGetValue(tuple, out IShader? shader))
                 return shader;
 
-            List<ShaderPart> parts = new List<ShaderPart>
-            {
-                createShaderPart(vertex, ShaderType.VertexShader),
-                createShaderPart(fragment, ShaderType.FragmentShader)
-            };
-
-            return shaderCache[tuple] = CreateShader($"{vertex}/{fragment}", parts);
+            return shaderCache[tuple] = CreateShader(
+                renderer,
+                $"{vertex}/{fragment}",
+                createShaderPart(vertex, ShaderPartType.Vertex),
+                createShaderPart(fragment, ShaderPartType.Fragment));
         }
 
-        internal virtual Shader CreateShader(string name, List<ShaderPart> parts) => new Shader(name, parts);
+        internal virtual IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts) => renderer.CreateShader(name, parts);
 
-        private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
+        private IShaderPart createShaderPart(string name, ShaderPartType partType, bool bypassCache = false)
         {
-            name = ensureValidName(name, type);
+            name = ensureValidName(name, partType);
 
-            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart? part))
+            if (!bypassCache && partCache.TryGetValue(name, out IShaderPart? part))
                 return part;
 
             byte[]? rawData = LoadRaw(name);
 
-            part = new ShaderPart(name, rawData, type, this);
+            part = renderer.CreateShaderPart(this, name, rawData, partType);
 
             //cache even on failure so we don't try and fail every time.
             partCache[name] = part;
             return part;
         }
 
-        private string ensureValidName(string name, ShaderType type)
+        private string ensureValidName(string name, ShaderPartType partType)
         {
-            string ending = getFileEnding(type);
+            string ending = getFileEnding(partType);
 
             if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
                 name = shader_prefix + name;
@@ -86,14 +85,14 @@ namespace osu.Framework.Graphics.Shaders
             return name + ending;
         }
 
-        private string getFileEnding(ShaderType type)
+        private string getFileEnding(ShaderPartType partType)
         {
-            switch (type)
+            switch (partType)
             {
-                case ShaderType.FragmentShader:
+                case ShaderPartType.Fragment:
                     return @".fs";
 
-                case ShaderType.VertexShader:
+                case ShaderPartType.Vertex:
                     return @".vs";
             }
 

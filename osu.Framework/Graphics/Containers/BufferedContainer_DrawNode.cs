@@ -5,15 +5,14 @@
 
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Utils;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -63,9 +62,9 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void PopulateContents()
+            protected override void PopulateContents(IRenderer renderer)
             {
-                base.PopulateContents();
+                base.PopulateContents(renderer);
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
@@ -78,10 +77,10 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            protected override void DrawContents()
+            protected override void DrawContents(IRenderer renderer)
             {
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                    base.DrawContents();
+                    base.DrawContents(renderer);
 
                 GLWrapper.SetBlend(effectBlending);
 
@@ -91,13 +90,13 @@ namespace osu.Framework.Graphics.Containers
                 DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                    base.DrawContents();
+                    base.DrawContents(renderer);
             }
 
             private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
             {
-                FrameBuffer current = SharedData.CurrentEffectBuffer;
-                FrameBuffer target = SharedData.GetNextEffectBuffer();
+                IFrameBuffer current = SharedData.CurrentEffectBuffer;
+                IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
                 GLWrapper.SetBlend(BlendingParameters.None);
 
@@ -130,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
         private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
         {
-            public BufferedContainerDrawNodeSharedData(RenderbufferInternalFormat[] formats, bool pixelSnapping, bool clipToRootNode)
+            public BufferedContainerDrawNodeSharedData(RenderBufferFormat[] formats, bool pixelSnapping, bool clipToRootNode)
                 : base(2, formats, pixelSnapping, clipToRootNode)
             {
             }
