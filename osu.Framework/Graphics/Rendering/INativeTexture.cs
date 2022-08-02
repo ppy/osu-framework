@@ -10,6 +10,11 @@ namespace osu.Framework.Graphics.Rendering
     internal interface INativeTexture : IDisposable
     {
         /// <summary>
+        /// The renderer that created this texture.
+        /// </summary>
+        IRenderer Renderer { get; }
+
+        /// <summary>
         /// An identifier for this texture, to show up in the <see cref="TextureVisualiser"/>.
         /// </summary>
         string Identifier { get; }
@@ -81,5 +86,10 @@ namespace osu.Framework.Graphics.Rendering
         /// The size of this texture in bytes.
         /// </summary>
         int GetByteSize();
+
+        /// <summary>
+        /// The total amount of times this <see cref="INativeTexture"/> was bound.
+        /// </summary>
+        ulong BindCount { get; }
     }
 }

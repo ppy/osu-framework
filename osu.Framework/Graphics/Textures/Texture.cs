@@ -128,18 +128,21 @@ namespace osu.Framework.Graphics.Textures
 
         public Vector2 Size => new Vector2(Width, Height);
 
+        /// <summary>
+        /// Binds this texture for drawing.
+        /// </summary>
+        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
+        /// <returns>Whether the texture was successfully bound.</returns>
         public bool Bind(int unit = 0) => Bind(unit, WrapModeS, WrapModeT);
 
-        public bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (NativeTexture.Bind(unit, wrapModeS, wrapModeT))
-            {
-                BindCount++;
-                return true;
-            }
-
-            return false;
-        }
+        /// <summary>
+        /// Binds this texture for drawing.
+        /// </summary>
+        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
+        /// <param name="wrapModeS">The horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The vertical wrap mode.</param>
+        /// <returns>Whether the texture was successfully bound.</returns>
+        public bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT) => NativeTexture.Renderer.BindTexture(this, unit, wrapModeS, wrapModeT);
 
         /// <summary>
         /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
@@ -271,7 +274,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// The total amount of times this <see cref="Texture"/> was bound.
         /// </summary>
-        internal ulong BindCount { get; private set; }
+        internal ulong BindCount => NativeTexture.BindCount;
 
         internal int GetByteSize() => NativeTexture.GetByteSize();
 

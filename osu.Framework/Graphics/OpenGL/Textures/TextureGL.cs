@@ -22,6 +22,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         protected readonly OpenGLRenderer Renderer;
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
+        IRenderer INativeTexture.Renderer => Renderer;
+
         public string Identifier
         {
             get
@@ -48,9 +50,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
         private readonly Rgba32 initialisationColour;
 
-        /// <summary>
-        /// The total amount of times this <see cref="TextureGL"/> was bound.
-        /// </summary>
         public ulong BindCount { get; protected set; }
 
         /// <summary>

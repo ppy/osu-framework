@@ -17,7 +17,12 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     {
         public WrapMode CurrentWrapModeS => WrapMode.None;
         public WrapMode CurrentWrapModeT => WrapMode.None;
-        public Texture WhitePixel { get; } = new Texture(new DummyNativeTexture(), WrapMode.None, WrapMode.None);
+        public Texture WhitePixel { get; }
+
+        public DummyRenderer()
+        {
+            WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
+        }
 
         void IRenderer.BeginFrame(Vector2 windowSize)
         {
@@ -33,11 +38,11 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyShader();
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
-            => new DummyFrameBuffer();
+            => new DummyFrameBuffer(this);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
                                      WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
-            => new Texture(new DummyNativeTexture { Width = width, Height = height }, wrapModeS, wrapModeT);
+            => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height)
             => CreateTexture(width, height);

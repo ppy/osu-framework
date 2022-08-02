@@ -10,6 +10,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     /// </summary>
     internal class DummyNativeTexture : INativeTexture
     {
+        public IRenderer Renderer { get; }
+
         public string Identifier => string.Empty;
         public int MaxSize => 4096; // Sane default for testing purposes.
         public int Width { get; set; } = 1;
@@ -18,6 +20,11 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool BypassTextureUploadQueueing { get; set; }
         public bool UploadComplete => true;
         public bool IsQueuedForUpload { get; set; }
+
+        public DummyNativeTexture(IRenderer renderer)
+        {
+            Renderer = renderer;
+        }
 
         public void FlushUploads()
         {
@@ -32,6 +39,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT) => true;
 
         public int GetByteSize() => 0;
+
+        public ulong BindCount => 0;
 
         public void Dispose()
         {
