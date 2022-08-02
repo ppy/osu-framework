@@ -6,6 +6,7 @@ using System.IO;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Visualisation;
 using osuTK;
 
 namespace osu.Framework.Graphics.Textures
@@ -27,9 +28,19 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 1;
 
+        /// <summary>
+        /// The width of this texture when drawn to the screen.
+        /// </summary>
         public float DisplayWidth => Width / ScaleAdjust;
+
+        /// <summary>
+        /// The height of this texture when drawn to the screen.
+        /// </summary>
         public float DisplayHeight => Height / ScaleAdjust;
 
+        /// <summary>
+        /// The texture opacity.
+        /// </summary>
         public Opacity Opacity { get; protected set; } = Opacity.Mixed;
 
         /// <summary>
@@ -114,18 +125,27 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
+        /// <summary>
+        /// The width of this <see cref="Texture"/>.
+        /// </summary>
         public virtual int Width
         {
             get => NativeTexture.Width;
             set => NativeTexture.Width = value;
         }
 
+        /// <summary>
+        /// The height of this <see cref="Texture"/>.
+        /// </summary>
         public virtual int Height
         {
             get => NativeTexture.Height;
             set => NativeTexture.Height = value;
         }
 
+        /// <summary>
+        /// The size of this <see cref="Texture"/>.
+        /// </summary>
         public Vector2 Size => new Vector2(Width, Height);
 
         /// <summary>
@@ -262,6 +282,10 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         internal void FlushUploads() => NativeTexture.FlushUploads();
 
+        /// <summary>
+        /// Whether this <see cref="Texture"/> shares the same native texture backing as another.
+        /// </summary>
+        /// <param name="other">The other <see cref="Texture"/>.</param>
         internal bool HasSameNativeTexture(Texture other) => NativeTexture == other.NativeTexture;
 
         /// <summary>
@@ -277,6 +301,9 @@ namespace osu.Framework.Graphics.Textures
 
         #region TextureVisualiser Support
 
+        /// <summary>
+        /// Whether this <see cref="Texture"/> is part of a <see cref="TextureAtlas"/>.
+        /// </summary>
         internal bool IsAtlasTexture { get; set; }
 
         /// <summary>
@@ -284,8 +311,14 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         internal ulong BindCount => NativeTexture.BindCount;
 
+        /// <summary>
+        /// The size of this texture in bytes.
+        /// </summary>
         internal int GetByteSize() => NativeTexture.GetByteSize();
 
+        /// <summary>
+        /// An identifier for this texture to show up in the <see cref="TextureVisualiser"/>.
+        /// </summary>
         internal string Identifier => NativeTexture.Identifier;
 
         #endregion
