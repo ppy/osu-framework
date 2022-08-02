@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics
         /// <param name="renderer"></param>
         protected virtual void DrawContents(IRenderer renderer)
         {
-            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
+            renderer.DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
         /// <summary>

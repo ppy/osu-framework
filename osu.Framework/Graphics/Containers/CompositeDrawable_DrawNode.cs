@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                DrawQuad(
+                renderer.DrawQuad(
                     renderer.WhitePixel,
                     screenSpaceMaskingQuad.Value,
                     colour, null, null, null,
