@@ -13,6 +13,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -260,10 +261,11 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 var game = parent.Get<Game>();
                 var host = parent.Get<GameHost>();
+                var renderer = parent.Get<IRenderer>();
 
                 BlockingOnlineStore = new BlockingResourceStore(new NamespacedResourceStore<byte[]>(game.Resources, "Textures"));
-                NormalStore = new TextureStore(host.CreateTextureLoaderStore(BlockingOnlineStore));
-                LargeStore = new LargeTextureStore(host.CreateTextureLoaderStore(BlockingOnlineStore));
+                NormalStore = new TextureStore(renderer, host.CreateTextureLoaderStore(BlockingOnlineStore));
+                LargeStore = new LargeTextureStore(renderer, host.CreateTextureLoaderStore(BlockingOnlineStore));
 
                 return base.CreateChildDependencies(parent);
             }

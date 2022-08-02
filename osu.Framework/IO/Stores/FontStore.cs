@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
 using JetBrains.Annotations;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
 using osu.Framework.Text;
 using osuTK.Graphics.ES30;
@@ -32,10 +33,11 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Construct a font store to be added to a parent font store via <see cref="AddStore"/>.
         /// </summary>
+        /// <param name="renderer">The renderer to create textures with.</param>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : this(store, scaleAdjust, false)
+        public FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+            : this(renderer, store, scaleAdjust, false)
         {
         }
 
@@ -43,16 +45,17 @@ namespace osu.Framework.IO.Stores
         /// Construct a font store with a custom filtering mode to be added to a parent font store via <see cref="AddStore"/>.
         /// All fonts that use the specified filter mode should be nested inside this store to make optimal use of texture atlases.
         /// </summary>
+        /// <param name="renderer">The renderer to create textures with.</param>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
         /// <param name="minFilterMode">The texture minification filtering mode to use.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All minFilterMode = All.Linear)
-            : this(store, scaleAdjust, true, filteringMode: minFilterMode)
+        public FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All minFilterMode = All.Linear)
+            : this(renderer, store, scaleAdjust, true, filteringMode: minFilterMode)
         {
         }
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
-            : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
+        internal FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
+            : base(renderer, store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
         {
             this.cacheStorage = cacheStorage;
         }
