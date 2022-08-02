@@ -200,8 +200,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         event Action<Texture>? IRenderer.TextureCreated
         {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
+            add => TextureCreated += value;
+            remove => TextureCreated -= value;
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
