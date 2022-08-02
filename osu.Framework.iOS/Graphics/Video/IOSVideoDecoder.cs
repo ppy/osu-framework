@@ -6,7 +6,9 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
+
 
 namespace osu.Framework.iOS.Graphics.Video
 {
@@ -123,13 +125,13 @@ namespace osu.Framework.iOS.Graphics.Video
         [DllImport(dll_name)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public IOSVideoDecoder(string filename)
-            : base(filename)
+        public IOSVideoDecoder(IRenderer renderer, string filename)
+            : base(renderer, filename)
         {
         }
 
-        public IOSVideoDecoder(Stream videoStream)
-            : base(videoStream)
+        public IOSVideoDecoder(IRenderer renderer, Stream videoStream)
+            : base(renderer, videoStream)
         {
         }
 

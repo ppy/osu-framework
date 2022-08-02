@@ -19,6 +19,7 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux.Native;
@@ -96,6 +97,8 @@ namespace osu.Framework.Graphics.Video
 
         private double? skipOutputUntilTime;
 
+        private readonly IRenderer renderer;
+
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
         private readonly ConcurrentQueue<Action> decoderCommands;
 
@@ -124,20 +127,23 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
+        /// <param name="renderer">The renderer to display the video.</param>
         /// <param name="filename">The path to the file that should be decoded.</param>
-        public VideoDecoder(string filename)
-            : this(File.OpenRead(filename))
+        public VideoDecoder(IRenderer renderer, string filename)
+            : this(renderer, File.OpenRead(filename))
         {
         }
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video stream.
         /// </summary>
+        /// <param name="renderer">The renderer to display the video.</param>
         /// <param name="videoStream">The stream that should be decoded.</param>
-        public VideoDecoder(Stream videoStream)
+        public VideoDecoder(IRenderer renderer, Stream videoStream)
         {
             ffmpeg = CreateFuncs();
 
+            this.renderer = renderer;
             this.videoStream = videoStream;
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
