@@ -5,14 +5,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
@@ -23,22 +21,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal class TextureGLSingle : TextureGL
     {
-        /// <summary>
-        /// Contains all currently-active <see cref="TextureGLSingle"/>es.
-        /// </summary>
-        private static readonly LockedWeakList<TextureGLSingle> all_textures = new LockedWeakList<TextureGLSingle>();
-
         public const int MAX_MIPMAP_LEVELS = 3;
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
-        /// <summary>
-        /// Invoked when a new <see cref="TextureGLAtlas"/> is created.
-        /// </summary>
-        /// <remarks>
-        /// Invocation from the draw or update thread cannot be assumed.
-        /// </remarks>
-        public static event Action<TextureGLSingle> TextureCreated;
 
         private int internalWidth;
         private int internalHeight;
@@ -75,16 +61,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
-
-            all_textures.Add(this);
-
-            TextureCreated?.Invoke(this);
         }
-
-        /// <summary>
-        /// Retrieves all currently-active <see cref="TextureGLSingle"/>s.
-        /// </summary>
-        public static TextureGLSingle[] GetAllTextures() => all_textures.ToArray();
 
         #region Disposal
 
@@ -96,8 +73,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-
-            all_textures.Remove(this);
 
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
