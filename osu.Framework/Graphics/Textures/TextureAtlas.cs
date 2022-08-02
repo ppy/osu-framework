@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Textures
             RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
             subTextureBounds.Add(bounds);
 
-            using (var whiteTex = new TextureAtlasRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
+            using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
                 // Generate white padding as if the white texture was wrapped, even though it isn't
                 whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
 
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Textures
                 subTextureBounds.Add(bounds);
 
                 // atlasTexture can't be null after findPosition().
-                return new TextureAtlasRegion(atlasTexture.AsNonNull(), bounds, wrapModeS, wrapModeT);
+                return new TextureRegion(atlasTexture.AsNonNull(), bounds, wrapModeS, wrapModeT);
             }
         }
 

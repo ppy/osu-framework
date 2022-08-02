@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Textures
                 : base(parent)
             {
                 this.parent = parent;
-                parent.IsAtlasTexture = true;
+                IsAtlasTexture = parent.IsAtlasTexture = true;
             }
 
             internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)

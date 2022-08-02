@@ -90,5 +90,26 @@ namespace osu.Framework.Tests.Graphics
             Assert.GreaterOrEqual(atlas_size * rect.X, TextureAtlas.PADDING, message: "Texture has insufficient padding");
             Assert.GreaterOrEqual(atlas_size * rect.Y, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, message: "Texture is placed on top of the white pixel");
         }
+
+        [Test]
+        public void TestSubTextureIsAtlasTexture()
+        {
+            const int atlas_size = 1024;
+
+            var atlas = new TextureAtlas(new DummyRenderer(), atlas_size, atlas_size);
+
+            // Direct atlas texture.
+            var tex1 = atlas.Add(1, 1).AsNonNull();
+
+            // TextureRegion.
+            var tex2 = tex1.Crop(new RectangleF(0, 0, 1, 1));
+
+            // Redirected texture.
+            var tex3 = new Texture(tex1);
+
+            Assert.True(tex1.IsAtlasTexture);
+            Assert.True(tex2.IsAtlasTexture);
+            Assert.True(tex3.IsAtlasTexture);
+        }
     }
 }

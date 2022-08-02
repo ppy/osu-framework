@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.OpenGL
             }
 
             bool didBind = texture.Bind(unit, wrapModeS ?? texture.WrapModeS, wrapModeT ?? texture.WrapModeT);
-            lastBoundTextureIsAtlas[unit] = texture is TextureAtlasRegion;
+            lastBoundTextureIsAtlas[unit] = texture.IsAtlasTexture;
 
             return didBind;
         }

@@ -64,6 +64,7 @@ namespace osu.Framework.Graphics.Textures
         public Texture(Texture parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
             : this(parent.NativeTexture, wrapModeS, wrapModeT)
         {
+            IsAtlasTexture = parent.IsAtlasTexture;
         }
 
         /// <summary>
