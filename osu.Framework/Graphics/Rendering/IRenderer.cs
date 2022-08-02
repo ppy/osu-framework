@@ -31,15 +31,22 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         WrapMode CurrentWrapModeT { get; }
 
+        /// <summary>
+        /// The texture for a white pixel.
+        /// </summary>
         Texture WhitePixel { get; }
 
+        /// <summary>
+        /// Resets any states to prepare for drawing a new frame.
+        /// </summary>
+        /// <param name="windowSize">The full window size.</param>
         internal void BeginFrame(Vector2 windowSize);
 
         /// <summary>
         /// Binds a texture.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
-        /// <param name="unit">The unit to bind the texture to.</param>
+        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
         /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
         /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
         /// <returns>Whether <paramref name="texture"/> was newly-bound.</returns>
@@ -85,8 +92,14 @@ namespace osu.Framework.Graphics.Rendering
 
         #region TextureVisualiser Support
 
+        /// <summary>
+        /// An event which is invoked every time a <see cref="Texture"/> is created.
+        /// </summary>
         internal event Action<Texture> TextureCreated;
 
+        /// <summary>
+        /// Retrieves all <see cref="Texture"/>s that have been created.
+        /// </summary>
         internal Texture[] GetAllTextures();
 
         #endregion

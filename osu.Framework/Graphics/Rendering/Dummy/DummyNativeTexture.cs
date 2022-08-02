@@ -5,6 +5,9 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
+    /// <summary>
+    /// An <see cref="INativeTexture"/> that does nothing. May be used for tests that don't have a visual output.
+    /// </summary>
     internal class DummyNativeTexture : INativeTexture
     {
         public string Identifier => string.Empty;

@@ -62,8 +62,19 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
         void SetData(ITextureUpload upload);
 
+        /// <summary>
+        /// Uploads this texture.
+        /// </summary>
+        /// <returns>Whether any uploads occurred.</returns>
         bool Upload();
 
+        /// <summary>
+        /// Binds this texture for drawing.
+        /// </summary>
+        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
+        /// <param name="wrapModeS">The horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The vertical wrap mode.</param>
+        /// <returns>Whether the texture was successfully bound.</returns>
         bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT);
 
         /// <summary>

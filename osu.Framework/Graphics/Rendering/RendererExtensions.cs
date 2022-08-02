@@ -17,6 +17,17 @@ namespace osu.Framework.Graphics.Rendering
 {
     public static class RendererExtensions
     {
+        /// <summary>
+        /// Draws a textured triangle to the screen.
+        /// </summary>
+        /// <param name="renderer">The renderer to draw the texture with.</param>
+        /// <param name="texture">The texture to fill the triangle with.</param>
+        /// <param name="vertexTriangle">The triangle to draw.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         public static void DrawTriangle(this IRenderer renderer, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
                                         Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
@@ -91,6 +102,18 @@ namespace osu.Framework.Graphics.Rendering
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.Area);
         }
 
+        /// <summary>
+        /// Draws a textured quad to the screen.
+        /// </summary>
+        /// <param name="renderer">The renderer to draw the texture with.</param>
+        /// <param name="texture">The texture to fill the triangle with.</param>
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         public static void DrawQuad(this IRenderer renderer, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D>? vertexAction = null,
                                     Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {

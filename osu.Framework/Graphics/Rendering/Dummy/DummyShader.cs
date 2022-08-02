@@ -6,7 +6,10 @@ using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
-    public class DummyShader : IShader
+    /// <summary>
+    /// An <see cref="IShader"/> that does nothing. May be used for tests that don't have a visual output.
+    /// </summary>
+    internal class DummyShader : IShader
     {
         public void Bind()
         {
