@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Textures
                 upload.Bounds = adjustedBounds;
             }
 
-            // Todo: Not sure if this is correct...
+            UpdateOpacity(upload, ref opacity);
             parent.SetData(upload, wrapModeS, wrapModeT, opacity);
         }
 
