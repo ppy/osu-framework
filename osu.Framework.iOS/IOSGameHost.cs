@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Foundation;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
