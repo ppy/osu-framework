@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Textures
 
             // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
             // occupies half of the padded space.
-            atlasTexture = new InternalAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
+            atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
             RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
             subTextureBounds.Add(bounds);
