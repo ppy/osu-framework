@@ -52,11 +52,6 @@ namespace osu.Framework.Graphics.Rendering
         bool UploadComplete { get; }
 
         /// <summary>
-        /// Whether the texture is currently queued for upload.
-        /// </summary>
-        bool IsQueuedForUpload { get; }
-
-        /// <summary>
         /// Flush any unprocessed uploads without actually uploading.
         /// </summary>
         void FlushUploads();

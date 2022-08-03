@@ -234,6 +234,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
+        /// <summary>
+        /// Whether the texture is currently queued for upload.
+        /// </summary>
         public bool IsQueuedForUpload { get; set; }
 
         private bool tryGetNextUpload(out ITextureUpload upload)
