@@ -21,7 +21,6 @@ namespace osu.Framework.Graphics.Textures
         /// </remarks>
         internal virtual INativeTexture NativeTexture { get; }
 
-        public string Filename = string.Empty;
         public string AssetName = string.Empty;
 
         /// <summary>
