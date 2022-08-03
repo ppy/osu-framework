@@ -7,14 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Layout;
@@ -192,52 +192,54 @@ namespace osu.Framework.Graphics.Audio
         private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
             int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
-            if (requiredPointCount == resampledPointCount)
+            if (requiredPointCount == resampledPointCount && !cancelSource.IsCancellationRequested)
                 return;
 
             cancelGeneration();
 
-            if (Waveform == null)
+            var originalWaveform = Waveform;
+
+            if (originalWaveform == null)
                 return;
 
             // This should be set before the operation is run.
             // It will stop unnecessary task churn if invalidation is occuring often.
             resampledPointCount = requiredPointCount;
 
-            Logger.Log($"Waveform resampling with {requiredPointCount} points...");
-
             cancelSource = new CancellationTokenSource();
             var token = cancelSource.Token;
 
-            Waveform.GenerateResampledAsync(resampledPointCount.Value, token)
-                    .ContinueWith(task =>
-                    {
-                        var resampled = task.GetResultSafely();
+            Task.Run(async () =>
+            {
+                var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
-                        var points = resampled.GetPoints();
-                        int channels = resampled.GetChannels();
-                        double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                        double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                        double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
 
-                        Logger.Log($"Waveform resample complete with {points.Count} points.");
+                Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
 
-                        Schedule(() =>
-                        {
-                            if (token.IsCancellationRequested)
-                                return;
+                var points = await resampled.GetPointsAsync().ConfigureAwait(false);
+                int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
 
-                            resampledPoints = points;
-                            resampledChannels = channels;
-                            resampledMaxHighIntensity = maxHighIntensity;
-                            resampledMaxMidIntensity = maxMidIntensity;
-                            resampledMaxLowIntensity = maxLowIntensity;
-                            resampledVersion = InvalidationID;
+                double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
 
-                            OnWaveformRegenerated(resampled);
-                            Invalidate(Invalidation.DrawNode);
-                        });
-                    }, token);
+                Schedule(() =>
+                {
+                    if (token.IsCancellationRequested)
+                        return;
+
+                    resampledPoints = points;
+                    resampledChannels = channels;
+                    resampledMaxHighIntensity = maxHighIntensity;
+                    resampledMaxMidIntensity = maxMidIntensity;
+                    resampledMaxLowIntensity = maxLowIntensity;
+                    resampledVersion = InvalidationID;
+
+                    OnWaveformRegenerated(resampled);
+                    Invalidate(Invalidation.DrawNode);
+                });
+            }, token);
         });
 
         private void cancelGeneration()
@@ -322,14 +324,16 @@ namespace osu.Framework.Graphics.Audio
                 }
             }
 
-            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
+
+                vertexBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(1000, 10);
 
                 shader.Bind();
                 texture.TextureGL.Bind();
@@ -408,7 +412,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 base.Dispose(isDisposing);
 
-                vertexBatch.Dispose();
+                vertexBatch?.Dispose();
             }
         }
     }

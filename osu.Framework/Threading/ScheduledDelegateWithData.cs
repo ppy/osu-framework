@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 
 namespace osu.Framework.Threading
@@ -21,5 +19,7 @@ namespace osu.Framework.Threading
         }
 
         protected override void InvokeTask() => Task(Data);
+
+        public override string ToString() => $"method \"{Task.Method}\" targeting \"{Task.Target}\" with data \"{Data}\" executing at {ExecutionTime:N0} with repeat {RepeatInterval}";
     }
 }

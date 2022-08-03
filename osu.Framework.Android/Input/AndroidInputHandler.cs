@@ -17,6 +17,9 @@ namespace osu.Framework.Android.Input
     /// </summary>
     public abstract class AndroidInputHandler : InputHandler
     {
+        /// <inheritdoc cref="AndroidInputExtensions.HISTORY_CURRENT"/>
+        protected const int HISTORY_CURRENT = AndroidInputExtensions.HISTORY_CURRENT;
+
         /// <summary>
         /// The <see cref="InputSourceType"/>s that this <see cref="AndroidInputHandler"/> will handle.
         /// </summary>
@@ -127,7 +130,7 @@ namespace osu.Framework.Android.Input
         /// <param name="inputEvent">The <see cref="InputEvent"/> to check.</param>
         /// <returns><c>true</c> if the <paramref name="inputEvent"/>'s <see cref="InputSourceType"/> matches <see cref="HandledEventSources"/>.</returns>
         /// <remarks>Should be checked before handling events.</remarks>
-        private bool shouldHandleEvent([NotNullWhen(true)] InputEvent? inputEvent)
+        protected virtual bool ShouldHandleEvent([NotNullWhen(true)] InputEvent? inputEvent)
         {
             return inputEvent != null && eventSourceBitmask.HasFlagFast(inputEvent.Source);
         }
@@ -137,7 +140,7 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleCapturedPointer(object sender, View.CapturedPointerEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
                 OnCapturedPointer(e.Event);
                 e.Handled = true;
@@ -149,7 +152,7 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleGenericMotion(object sender, View.GenericMotionEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
                 OnGenericMotion(e.Event);
                 e.Handled = true;
@@ -161,7 +164,7 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleHover(object sender, View.HoverEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
                 OnHover(e.Event);
                 e.Handled = true;
@@ -173,7 +176,7 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleKeyDown(Keycode keycode, KeyEvent e)
         {
-            if (shouldHandleEvent(e))
+            if (ShouldHandleEvent(e))
             {
                 OnKeyDown(keycode, e);
             }
@@ -184,7 +187,7 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleKeyUp(Keycode keycode, KeyEvent e)
         {
-            if (shouldHandleEvent(e))
+            if (ShouldHandleEvent(e))
             {
                 OnKeyUp(keycode, e);
             }
@@ -195,7 +198,7 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleTouch(object sender, View.TouchEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
                 OnTouch(e.Event);
                 e.Handled = true;

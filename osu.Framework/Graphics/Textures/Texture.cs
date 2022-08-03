@@ -6,12 +6,12 @@
 using System;
 using System.IO;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 

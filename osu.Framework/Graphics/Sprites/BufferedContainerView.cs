@@ -3,13 +3,12 @@
 
 #nullable disable
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Sprites
@@ -136,27 +135,27 @@ namespace osu.Framework.Graphics.Sprites
                 sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
-                if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
+                if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
                 Shader.Bind();
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
-                    drawMainBuffer(vertexAction);
+                    drawMainBuffer();
 
-                drawEffectBuffer(vertexAction);
+                drawEffectBuffer();
 
                 if (sourceEffectPlacement == EffectPlacement.Behind)
-                    drawMainBuffer(vertexAction);
+                    drawMainBuffer();
 
                 Shader.Unbind();
             }
 
-            private void drawMainBuffer(Action<TexturedVertex2D> vertexAction)
+            private void drawMainBuffer()
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -165,10 +164,10 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
-            private void drawEffectBuffer(Action<TexturedVertex2D> vertexAction)
+            private void drawEffectBuffer()
             {
                 if (!shouldDrawEffectBuffer)
                     return;
@@ -177,7 +176,7 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>

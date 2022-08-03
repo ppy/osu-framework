@@ -54,6 +54,7 @@ namespace osu.Framework.Android
                 new AndroidMouseHandler(gameView),
                 new AndroidKeyboardHandler(gameView),
                 new AndroidTouchHandler(gameView),
+                new AndroidJoystickHandler(gameView),
                 new MidiHandler()
             };
 

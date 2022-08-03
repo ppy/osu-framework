@@ -29,6 +29,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -52,6 +53,8 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        public IRenderer Renderer { get; private set; }
 
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
@@ -319,6 +322,8 @@ namespace osu.Framework.Platform
             };
         }
 
+        protected virtual IRenderer CreateRenderer() => new OpenGLRenderer();
+
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
         /// This is a blocking call and should not be invoked during periods of user activity unless memory is critical.
@@ -483,7 +488,7 @@ namespace osu.Framework.Platform
                     GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
                     GLWrapper.PopDepthInfo();
                     GL.ColorMask(true, true, true, true);
@@ -498,7 +503,7 @@ namespace osu.Framework.Platform
                 }
 
                 // Back pass
-                buffer.Object.Draw(null);
+                buffer.Object.Draw(Renderer);
 
                 GLWrapper.PopDepthInfo();
 
@@ -654,6 +659,8 @@ namespace osu.Framework.Platform
 
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
+
+            Renderer = CreateRenderer();
 
             try
             {

@@ -5,15 +5,14 @@
 
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
@@ -33,11 +32,8 @@ namespace osu.Framework.Graphics.Lines
             private float radius;
             private IShader pathShader;
 
-            // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-            // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-            // grouping of vertices into primitives.
-            private readonly LinearBatch<TexturedVertex3D> halfCircleBatch = new LinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveType.Triangles);
-            private readonly QuadBatch<TexturedVertex3D> quadBatch = new QuadBatch<TexturedVertex3D>(200, 10);
+            private IVertexBatch<TexturedVertex3D> halfCircleBatch;
+            private IVertexBatch<TexturedVertex3D> quadBatch;
 
             public PathDrawNode(Path source)
                 : base(source)
@@ -203,12 +199,18 @@ namespace osu.Framework.Graphics.Lines
                     addLineQuads(segment, texRect);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || segments.Count == 0)
                     return;
+
+                // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
+                // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+                // grouping of vertices into primitives.
+                halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveTopology.Triangles);
+                quadBatch ??= renderer.CreateQuadBatch<TexturedVertex3D>(200, 10);
 
                 GLWrapper.PushDepthInfo(DepthInfo.Default);
 
@@ -230,8 +232,8 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.Dispose(isDisposing);
 
-                halfCircleBatch.Dispose();
-                quadBatch.Dispose();
+                halfCircleBatch?.Dispose();
+                quadBatch?.Dispose();
             }
         }
     }
