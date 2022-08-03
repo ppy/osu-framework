@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Whether the texture is currently queued for upload.
         /// </summary>
-        bool IsQueuedForUpload { get; set; }
+        bool IsQueuedForUpload { get; }
 
         /// <summary>
         /// Flush any unprocessed uploads without actually uploading.
