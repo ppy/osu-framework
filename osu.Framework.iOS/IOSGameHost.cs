@@ -14,6 +14,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
+using osu.Framework.iOS.Graphics;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
@@ -33,6 +34,8 @@ namespace osu.Framework.iOS
         {
             this.gameView = gameView;
         }
+
+        protected override IRenderer CreateRenderer() => new IOSOpenGLRenderer(gameView);
 
         protected override void SetupForRun()
         {

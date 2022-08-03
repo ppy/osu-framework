@@ -27,6 +27,8 @@ namespace osu.Framework.iOS
 
         public HiddenTextField KeyboardTextField { get; }
 
+        public int DefaultFrameBuffer;
+
         [Export("layerClass")]
         public static Class LayerClass() => GetLayerClass();
 
@@ -104,7 +106,7 @@ namespace osu.Framework.iOS
         protected override void CreateFrameBuffer()
         {
             base.CreateFrameBuffer();
-            GLWrapper.DefaultFrameBuffer = Framebuffer;
+            DefaultFrameBuffer = Framebuffer;
         }
 
         private bool needsResizeFrameBuffer;
