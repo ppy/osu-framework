@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -19,11 +18,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     public sealed class DummyRenderer : IRenderer
     {
         public int MaxTextureSize => int.MaxValue;
-        public int MaxRenderBufferSize => int.MaxValue;
         public int MaxTexturesUploadedPerFrame { get; set; } = int.MaxValue;
         public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
-        public bool IsEmbedded => false;
-        public ulong ResetId => 0;
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
@@ -134,10 +130,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target) => disposalAction(target);
 
-        void IRenderer.EnqueueTextureUpload(INativeTexture texture)
-        {
-        }
-
         IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
@@ -161,14 +153,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyVertexBatch<TVertex>();
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
-        {
-        }
-
-        void IRenderer.RegisterVertexBufferUse(IVertexBuffer buffer)
-        {
-        }
-
-        void IRenderer.SetActiveBatch(IVertexBatch batch)
         {
         }
 

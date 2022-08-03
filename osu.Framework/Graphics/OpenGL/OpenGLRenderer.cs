@@ -37,10 +37,23 @@ namespace osu.Framework.Graphics.OpenGL
         private const int vbo_free_check_interval = 300;
 
         public int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
+
+        /// <summary>
+        /// The maximum allowed render buffer size.
+        /// </summary>
         public int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
+
         public int MaxTexturesUploadedPerFrame { get; set; } = 32;
         public int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
+
+        /// <summary>
+        /// Whether the current platform is embedded.
+        /// </summary>
         public bool IsEmbedded { get; private set; }
+
+        /// <summary>
+        /// The current reset index.
+        /// </summary>
         public ulong ResetId { get; private set; }
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
@@ -747,8 +760,6 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        void IRenderer.EnqueueTextureUpload(INativeTexture texture) => EnqueueTextureUpload(texture);
-
         public bool BindTexture(int textureId, int unit = 0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (wrapModeS != CurrentWrapModeS)
@@ -930,9 +941,11 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
+        /// <summary>
+        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
         public void RegisterVertexBufferUse(IVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
-
-        void IRenderer.RegisterVertexBufferUse(IVertexBuffer buffer) => RegisterVertexBufferUse(buffer);
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -953,8 +966,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastActiveBatch = batch;
         }
-
-        void IRenderer.SetActiveBatch(IVertexBatch batch) => SetActiveBatch(batch);
 
         void IRenderer.SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
 

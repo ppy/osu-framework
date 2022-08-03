@@ -36,11 +36,6 @@ namespace osu.Framework.Graphics.Rendering
         int MaxTextureSize { get; }
 
         /// <summary>
-        /// The maximum allowed render buffer size.
-        /// </summary>
-        int MaxRenderBufferSize { get; }
-
-        /// <summary>
         /// The maximum number of texture uploads to dequeue and upload per frame.
         /// Defaults to 32.
         /// </summary>
@@ -51,16 +46,6 @@ namespace osu.Framework.Graphics.Rendering
         /// Defaults to 2 megapixels (8mb alloc).
         /// </summary>
         int MaxPixelsUploadedPerFrame { get; set; }
-
-        /// <summary>
-        /// Whether the current platform is embedded.
-        /// </summary>
-        bool IsEmbedded { get; }
-
-        /// <summary>
-        /// The current reset index.
-        /// </summary>
-        ulong ResetId { get; }
 
         /// <summary>
         /// The current masking parameters.
@@ -262,12 +247,6 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="target">The target to be disposed.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
-        /// <summary>
-        /// Enqueues a texture to be uploaded in the next frame.
-        /// </summary>
-        /// <param name="texture">The texture to be uploaded.</param>
-        internal void EnqueueTextureUpload(INativeTexture texture);
-
         internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
 
         internal IShader CreateShader(string name, params IShaderPart[] parts);
@@ -311,22 +290,6 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
         internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : struct, IEquatable<T>;
-
-        /// <summary>
-        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
-        /// </summary>
-        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
-        internal void RegisterVertexBufferUse(IVertexBuffer buffer);
-
-        /// <summary>
-        /// Sets the last vertex batch used for drawing.
-        /// <para>
-        /// This is done so that various methods that change GL state can force-draw the batch
-        /// before continuing with the state change.
-        /// </para>
-        /// </summary>
-        /// <param name="batch">The batch.</param>
-        internal void SetActiveBatch(IVertexBatch batch);
 
         /// <summary>
         /// Sets the current draw depth.
