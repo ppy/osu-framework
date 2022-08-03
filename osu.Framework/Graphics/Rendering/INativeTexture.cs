@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Rendering
         int GetByteSize();
 
         /// <summary>
-        /// The total amount of times this <see cref="INativeTexture"/> was bound.
+        /// The total amount of times this <see cref="INativeTexture"/> has ever been bound.
         /// </summary>
         ulong BindCount { get; }
     }
