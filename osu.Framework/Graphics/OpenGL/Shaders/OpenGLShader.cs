@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
@@ -16,6 +17,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class OpenGLShader : IShader
     {
+        private readonly IRenderer renderer;
         private readonly string name;
         private readonly OpenGLShaderPart[] parts;
 
@@ -34,12 +36,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
-        internal OpenGLShader(string name, OpenGLShaderPart[] parts)
+        internal OpenGLShader(IRenderer renderer, string name, OpenGLShaderPart[] parts)
         {
+            this.renderer = renderer;
             this.name = name;
             this.parts = parts.Where(p => p != null).ToArray();
 
-            GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
+            renderer.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
 
         private void compile()
@@ -84,7 +87,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             EnsureShaderCompiled();
 
-            GLWrapper.UseProgram(this);
+            renderer.UseProgram(this);
 
             foreach (var uniform in uniformsValues)
                 uniform?.Update();
@@ -97,7 +100,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             if (!IsBound)
                 return;
 
-            GLWrapper.UseProgram(null);
+            renderer.UseProgram(null);
 
             IsBound = false;
         }
@@ -201,9 +204,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             {
                 int location = GL.GetUniformLocation(this, name);
 
-                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
+                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(renderer, this, name, location);
 
-                return new Uniform<T>(this, name, location);
+                return new Uniform<T>(renderer, this, name, location);
             }
         }
 
@@ -223,7 +226,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         ~OpenGLShader()
         {
-            GLWrapper.ScheduleDisposal(s => s.Dispose(false), this);
+            renderer.ScheduleDisposal(s => s.Dispose(false), this);
         }
 
         public void Dispose()

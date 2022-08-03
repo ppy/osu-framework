@@ -18,16 +18,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public Texture Texture { get; }
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
-
+        private readonly OpenGLRenderer renderer;
         private int frameBuffer;
         private TextureGL textureGL;
 
         public FrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
         {
+            this.renderer = renderer;
             frameBuffer = GL.GenFramebuffer();
             Texture = renderer.CreateTexture(textureGL = new FrameBufferTexture(renderer, filteringMode), WrapMode.None, WrapMode.None);
 
-            GLWrapper.BindFrameBuffer(frameBuffer);
+            renderer.BindFrameBuffer(frameBuffer);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, textureGL.TextureId, 0);
             renderer.BindTexture(0);
@@ -35,10 +36,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (renderBufferFormats != null)
             {
                 foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new RenderBuffer(format));
+                    attachedRenderBuffers.Add(new RenderBuffer(renderer, format));
             }
 
-            GLWrapper.UnbindFrameBuffer(frameBuffer);
+            renderer.UnbindFrameBuffer(frameBuffer);
         }
 
         private Vector2 size = Vector2.One;
@@ -69,7 +70,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public void Bind()
         {
-            GLWrapper.BindFrameBuffer(frameBuffer);
+            renderer.BindFrameBuffer(frameBuffer);
 
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Bind(Size);
@@ -86,14 +87,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Unbind();
 
-            GLWrapper.UnbindFrameBuffer(frameBuffer);
+            renderer.UnbindFrameBuffer(frameBuffer);
         }
 
         #region Disposal
 
         ~FrameBuffer()
         {
-            GLWrapper.ScheduleDisposal(b => b.Dispose(false), this);
+            renderer.ScheduleDisposal(b => b.Dispose(false), this);
         }
 
         public void Dispose()
@@ -112,7 +113,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             textureGL?.Dispose();
             textureGL = null;
 
-            GLWrapper.DeleteFrameBuffer(frameBuffer);
+            renderer.DeleteFrameBuffer(frameBuffer);
             frameBuffer = -1;
 
             foreach (var buffer in attachedRenderBuffers)
@@ -140,13 +141,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             public override int Width
             {
                 get => base.Width;
-                set => base.Width = renderer == null ? value : Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
+                set => base.Width = renderer == null ? value : Math.Clamp(value, 1, renderer.MaxTextureSize);
             }
 
             public override int Height
             {
                 get => base.Height;
-                set => base.Height = renderer == null ? value : Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
+                set => base.Height = renderer == null ? value : Math.Clamp(value, 1, renderer.MaxTextureSize);
             }
         }
     }

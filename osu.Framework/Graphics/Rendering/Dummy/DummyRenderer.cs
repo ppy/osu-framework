@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyShaderPart();
 
         IShader IRenderer.CreateShader(string name, params IShaderPart[] parts)
-            => new DummyShader();
+            => new DummyShader(this);
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);

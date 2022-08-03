@@ -252,6 +252,20 @@ namespace osu.Framework.Graphics.OpenGL
             vertexBuffersInUse.RemoveAll(b => !b.InUse);
         }
 
+        public bool BindBuffer(BufferTarget target, int buffer)
+        {
+            int bufferIndex = target - BufferTarget.ArrayBuffer;
+            if (lastBoundBuffers[bufferIndex] == buffer)
+                return false;
+
+            lastBoundBuffers[bufferIndex] = buffer;
+            GL.BindBuffer(target, buffer);
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+
+            return true;
+        }
+
         public bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
         {
             if (texture is TextureWhitePixel && lastBoundTextureIsAtlas[unit])
@@ -754,7 +768,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (lastActiveTextureUnit == unit && lastBoundTexture[unit] == textureId)
                 return false;
 
-            GLWrapper.FlushCurrentBatch();
+            flushCurrentBatch();
 
             GL.ActiveTexture(TextureUnit.Texture0 + unit);
             GL.BindTexture(TextureTarget.Texture2D, textureId);
@@ -785,10 +799,10 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported shader part type: {partType}", nameof(partType));
             }
 
-            return new OpenGLShaderPart(name, rawData, glType, manager);
+            return new OpenGLShaderPart(this, name, rawData, glType, manager);
         }
 
-        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts) => new OpenGLShader(name, parts.Cast<OpenGLShaderPart>().ToArray());
+        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts) => new OpenGLShader(this, name, parts.Cast<OpenGLShaderPart>().ToArray());
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -866,10 +880,10 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         public IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
-            => new LinearBatch<TVertex>(size, maxBuffers, topology);
+            => new LinearBatch<TVertex>(this, size, maxBuffers, topology);
 
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
-            => new QuadBatch<TVertex>(size, maxBuffers);
+            => new QuadBatch<TVertex>(this, size, maxBuffers);
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {
@@ -920,7 +934,15 @@ namespace osu.Framework.Graphics.OpenGL
 
         void IRenderer.RegisterVertexBufferUse(IVertexBuffer buffer) => RegisterVertexBufferUse(buffer);
 
-        void IRenderer.SetActiveBatch(IVertexBatch batch)
+        /// <summary>
+        /// Sets the last vertex batch used for drawing.
+        /// <para>
+        /// This is done so that various methods that change GL state can force-draw the batch
+        /// before continuing with the state change.
+        /// </para>
+        /// </summary>
+        /// <param name="batch">The batch.</param>
+        internal void SetActiveBatch(IVertexBatch batch)
         {
             if (lastActiveBatch == batch)
                 return;
@@ -931,6 +953,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastActiveBatch = batch;
         }
+
+        void IRenderer.SetActiveBatch(IVertexBatch batch) => SetActiveBatch(batch);
 
         void IRenderer.SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
 

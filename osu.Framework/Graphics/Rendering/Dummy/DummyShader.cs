@@ -11,6 +11,13 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     /// </summary>
     internal class DummyShader : IShader
     {
+        private readonly IRenderer renderer;
+
+        public DummyShader(IRenderer renderer)
+        {
+            this.renderer = renderer;
+        }
+
         public void Bind()
         {
             IsBound = true;
@@ -27,7 +34,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public Uniform<T> GetUniform<T>(string name)
             where T : struct, IEquatable<T>
         {
-            return new Uniform<T>(this, name, 0);
+            return new Uniform<T>(renderer, this, name, 0);
         }
 
         public void Dispose()
