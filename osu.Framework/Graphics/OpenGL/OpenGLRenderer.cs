@@ -28,7 +28,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    public class OpenGLRenderer : IRenderer
+    internal class OpenGLRenderer : IRenderer
     {
         /// <summary>
         /// The interval (in frames) before checking whether VBOs should be freed.
@@ -735,7 +735,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        internal void EnqueueTextureUpload(INativeTexture texture)
+        public void EnqueueTextureUpload(INativeTexture texture)
         {
             if (texture.IsQueuedForUpload)
                 return;
@@ -749,7 +749,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         void IRenderer.EnqueueTextureUpload(INativeTexture texture) => EnqueueTextureUpload(texture);
 
-        internal bool BindTexture(int textureId, int unit = 0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        public bool BindTexture(int textureId, int unit = 0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (wrapModeS != CurrentWrapModeS)
             {
@@ -869,7 +869,7 @@ namespace osu.Framework.Graphics.OpenGL
         public Texture CreateVideoTexture(int width, int height)
             => CreateTexture(new VideoTexture(this, width, height), WrapMode.None, WrapMode.None);
 
-        internal Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
+        public Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             var tex = new Texture(nativeTexture, wrapModeS, wrapModeT);
 
@@ -930,7 +930,7 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        internal void RegisterVertexBufferUse(IVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
+        public void RegisterVertexBufferUse(IVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
 
         void IRenderer.RegisterVertexBufferUse(IVertexBuffer buffer) => RegisterVertexBufferUse(buffer);
 
@@ -942,7 +942,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </para>
         /// </summary>
         /// <param name="batch">The batch.</param>
-        internal void SetActiveBatch(IVertexBatch batch)
+        public void SetActiveBatch(IVertexBatch batch)
         {
             if (lastActiveBatch == batch)
                 return;
@@ -983,7 +983,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch?.Draw();
         }
 
-        internal event Action<Texture>? TextureCreated;
+        public event Action<Texture>? TextureCreated;
 
         event Action<Texture>? IRenderer.TextureCreated
         {
