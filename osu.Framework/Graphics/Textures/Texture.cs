@@ -13,6 +13,12 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
+        /// <summary>
+        /// The platform-specific native texture representation.
+        /// </summary>
+        /// <remarks>
+        /// Disposal of this object is not managed by <see cref="Texture"/> itself since <see cref="Texture"/>s are usually part of a global <see cref="TextureStore"/>.
+        /// </remarks>
         internal virtual INativeTexture NativeTexture { get; }
 
         public string Filename = string.Empty;
