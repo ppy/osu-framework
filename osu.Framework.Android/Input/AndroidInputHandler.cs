@@ -32,8 +32,6 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected readonly AndroidGameView View;
 
-        public override string Description => base.Description.Replace("Android", null);
-
         /// <summary>
         /// Bitmask of all <see cref="HandledEventSources"/>.
         /// </summary>
