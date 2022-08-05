@@ -1034,7 +1034,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void KillFocus() => killFocus();
 
-        private string lastCommitText;
+        private string lastCommitText = string.Empty;
 
         private void killFocus()
         {

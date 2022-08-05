@@ -188,10 +188,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
         }
 
-        [TestCase(true, true)]
-        [TestCase(true, false)]
-        [TestCase(false, false)]
-        public void CommitOnFocusLost(bool commitOnFocusLost, bool changeText)
+        [TestCase(true, true, false)]
+        [TestCase(true, false, false)]
+        [TestCase(false, false, false)]
+        [TestCase(true, true, true)]
+        [TestCase(true, false, true)]
+        [TestCase(false, false, true)]
+        public void CommitOnFocusLost(bool commitOnFocusLost, bool changeText, bool withInitialText)
         {
             InsertableTextBox textBox = null;
 
@@ -205,10 +208,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 textBoxes.Add(textBox = new InsertableTextBox
                 {
-                    Text = "Default Text",
                     CommitOnFocusLost = commitOnFocusLost,
                     Size = new Vector2(500, 30),
                 });
+
+                if (withInitialText)
+                    textBox.Text = "Default Text";
 
                 textBox.OnCommit += (_, newText) =>
                 {

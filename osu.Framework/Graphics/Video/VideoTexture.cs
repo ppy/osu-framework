@@ -5,42 +5,24 @@
 
 using System;
 using System.Diagnostics;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
+using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Video
 {
-    internal unsafe class VideoTexture : TextureGLSingle
+    internal unsafe class VideoTexture : TextureGL
     {
         private int[] textureIds;
 
-        /// <summary>
-        /// Whether the latest frame data has been uploaded.
-        /// </summary>
-        public bool UploadComplete { get; private set; }
-
-        public VideoTexture(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-            : base(width, height, true, All.Linear, wrapModeS, wrapModeT)
+        public VideoTexture(OpenGLRenderer renderer, int width, int height)
+            : base(renderer, width, height, true)
         {
         }
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
-
-        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
-        {
-            if (uploadOpacity != null && uploadOpacity != Opacity.Opaque)
-                throw new InvalidOperationException("Video texture uploads must always be opaque");
-
-            UploadComplete = false;
-
-            // We do not support videos with transparency at this point,
-            // so the upload's opacity as well as the texture's opacity
-            // is always opaque.
-            base.SetData(upload, wrapModeS, wrapModeT, Opacity = Opacity.Opaque);
-        }
 
         public override int TextureId => textureIds?[0] ?? 0;
 
@@ -48,7 +30,7 @@ namespace osu.Framework.Graphics.Video
 
         public override int GetByteSize() => textureSize;
 
-        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
+        public override bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
@@ -61,7 +43,7 @@ namespace osu.Framework.Graphics.Video
             bool anyBound = false;
 
             for (int i = 0; i < textureIds.Length; i++)
-                anyBound |= GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
+                anyBound |= Renderer.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
 
             if (anyBound)
                 BindCount++;
@@ -85,7 +67,7 @@ namespace osu.Framework.Graphics.Video
 
                 for (uint i = 0; i < textureIds.Length; i++)
                 {
-                    GLWrapper.BindTexture(textureIds[i]);
+                    Renderer.BindTexture(textureIds[i]);
 
                     int width = videoUpload.GetPlaneWidth(i);
                     int height = videoUpload.GetPlaneHeight(i);
@@ -105,7 +87,7 @@ namespace osu.Framework.Graphics.Video
 
             for (uint i = 0; i < textureIds.Length; i++)
             {
-                GLWrapper.BindTexture(textureIds[i]);
+                Renderer.BindTexture(textureIds[i]);
 
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[i]);
 
@@ -114,8 +96,6 @@ namespace osu.Framework.Graphics.Video
             }
 
             GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
-
-            UploadComplete = true;
         }
 
         #region Disposal
@@ -126,7 +106,7 @@ namespace osu.Framework.Graphics.Video
 
             memoryLease?.Dispose();
 
-            GLWrapper.ScheduleDisposal(v =>
+            Renderer.ScheduleDisposal(v =>
             {
                 int[] ids = v.textureIds;
 

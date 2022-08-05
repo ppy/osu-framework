@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     internal interface IVertexBuffer
     {
         /// <summary>
-        /// The <see cref="GLWrapper.ResetId"/> when this <see cref="IVertexBuffer"/> was last used.
+        /// The <see cref="OpenGLRenderer.ResetId"/> when this <see cref="IVertexBuffer"/> was last used.
         /// </summary>
         ulong LastUseResetId { get; }
 
