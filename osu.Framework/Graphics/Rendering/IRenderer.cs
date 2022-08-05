@@ -7,8 +7,8 @@ using osu.Framework.Graphics.Textures;
 using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Rendering

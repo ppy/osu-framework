@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using osuTK;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.OpenGL.Vertices
+namespace osu.Framework.Graphics.Rendering.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct UncolouredVertex2D : IEquatable<UncolouredVertex2D>, IVertex

@@ -8,10 +8,10 @@ using osu.Framework.Graphics.Textures;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines

@@ -10,14 +10,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.OpenGL.Vertices
+namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     /// <summary>
     /// Helper method that provides functionality to enable and bind vertex attributes.
     /// </summary>
-    public static class VertexUtils<T>
+    internal static class VertexUtils<T>
         where T : struct, IVertex
     {
         /// <summary>
