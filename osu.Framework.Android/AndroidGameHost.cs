@@ -87,7 +87,7 @@ namespace osu.Framework.Android
             => new AndroidTextureLoaderStore(underlyingStore);
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
-            => new AndroidVideoDecoder(stream);
+            => new AndroidVideoDecoder(Renderer, stream);
 
         public override bool SuspendToBackground()
         {

@@ -31,17 +31,13 @@ namespace osu.Framework.Graphics.Audio
     public class WaveformGraph : Drawable
     {
         private IShader shader;
-        private readonly Texture texture;
-
-        public WaveformGraph()
-        {
-            texture = Texture.WhitePixel;
-        }
+        private Texture texture;
 
         [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, IRenderer renderer)
         {
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            texture = renderer.WhitePixel;
         }
 
         private float resolution = 1;
@@ -336,7 +332,7 @@ namespace osu.Framework.Graphics.Audio
                 vertexBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(1000, 10);
 
                 shader.Bind();
-                texture.TextureGL.Bind();
+                texture.Bind();
 
                 Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
 
@@ -402,7 +398,7 @@ namespace osu.Framework.Graphics.Audio
                     quadToDraw *= DrawInfo.Matrix;
 
                     if (quadToDraw.Size.X != 0 && quadToDraw.Size.Y != 0)
-                        DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                        renderer.DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 shader.Unbind();

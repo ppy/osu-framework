@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Lines
 
                 pathShader.Bind();
 
-                texture.TextureGL.Bind();
+                texture.Bind();
 
                 updateVertexBuffer();
 

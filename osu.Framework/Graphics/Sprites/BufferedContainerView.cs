@@ -145,17 +145,17 @@ namespace osu.Framework.Graphics.Sprites
                 Shader.Bind();
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
-                    drawMainBuffer();
+                    drawMainBuffer(renderer);
 
-                drawEffectBuffer();
+                drawEffectBuffer(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.Behind)
-                    drawMainBuffer();
+                    drawMainBuffer(renderer);
 
                 Shader.Unbind();
             }
 
-            private void drawMainBuffer()
+            private void drawMainBuffer(IRenderer renderer)
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -164,10 +164,10 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                renderer.DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
-            private void drawEffectBuffer()
+            private void drawEffectBuffer(IRenderer renderer)
             {
                 if (!shouldDrawEffectBuffer)
                     return;
@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.Sprites
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                renderer.DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>

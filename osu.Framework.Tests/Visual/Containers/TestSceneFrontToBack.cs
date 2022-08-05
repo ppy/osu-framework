@@ -16,7 +16,6 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Tests.Visual.Containers
@@ -39,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkDebugConfigManager debugConfig, TextureStore store)
+        private void load(FrameworkDebugConfigManager debugConfig, TextureStore store, IRenderer renderer)
         {
             var texture = store.Get(@"sample-texture");
             var repeatedTexture = store.Get(@"sample-texture", WrapMode.Repeat, WrapMode.Repeat);
@@ -51,7 +50,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("add sprites with repeat", () => addMoreDrawables(repeatedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
             AddStep("add sprites with edge clamp", () => addMoreDrawables(edgeClampedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
             AddStep("add sprites with border clamp", () => addMoreDrawables(borderClampedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
-            AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel, new RectangleF(0, 0, 1, 1)));
+            AddStep("add boxes", () => addMoreDrawables(renderer.WhitePixel, new RectangleF(0, 0, 1, 1)));
             AddToggleStep("disable front to back", val =>
             {
                 debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val);

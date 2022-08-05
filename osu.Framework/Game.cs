@@ -23,7 +23,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework
 {
@@ -139,8 +138,8 @@ namespace osu.Framework
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
-            Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
-                filteringMode: DefaultTextureFilteringMode == TextureFilteringMode.Linear ? All.Linear : All.Nearest);
+            Textures = new TextureStore(Host.Renderer, Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
+                filteringMode: DefaultTextureFilteringMode);
 
             Textures.AddTextureSource(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
@@ -171,11 +170,11 @@ namespace osu.Framework
             var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
-            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
+            Fonts = new FontStore(Host.Renderer, useAtlas: true, cacheStorage: cacheStorage);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
-            Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
+            Fonts.AddStore(localFonts = new FontStore(Host.Renderer, useAtlas: false));
 
             // Roboto (FrameworkFont.Regular)
             addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");

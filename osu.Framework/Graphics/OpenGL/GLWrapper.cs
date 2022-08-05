@@ -242,8 +242,6 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
 
-            last_bound_texture.AsSpan().Clear();
-            last_bound_texture_is_atlas.AsSpan().Clear();
             last_bound_buffers.AsSpan().Clear();
         }
 
@@ -319,7 +317,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        public static void EnqueueTextureUpload(TextureGL texture)
+        internal static void EnqueueTextureUpload(TextureGL texture)
         {
             if (texture.IsQueuedForUpload)
                 return;
@@ -403,75 +401,6 @@ namespace osu.Framework.Graphics.OpenGL
             }
 
             vertex_buffers_in_use.RemoveAll(b => !b.InUse);
-        }
-
-        internal static WrapMode CurrentWrapModeS { get; private set; }
-
-        internal static WrapMode CurrentWrapModeT { get; private set; }
-
-        private static readonly int[] last_bound_texture = new int[16];
-        private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
-        private static TextureUnit lastActiveTextureUnit;
-
-        internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
-        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
-
-        /// <summary>
-        /// Binds a texture to draw with.
-        /// </summary>
-        /// <param name="texture">The texture to bind.</param>
-        /// <param name="unit">The texture unit to bind it to.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
-        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-        {
-            bool didBind = BindTexture(texture?.TextureId ?? 0, unit, wrapModeS, wrapModeT);
-            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
-
-            return didBind;
-        }
-
-        /// <summary>
-        /// Binds a texture to draw with.
-        /// </summary>
-        /// <param name="textureId">The texture to bind.</param>
-        /// <param name="unit">The texture unit to bind it to.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
-        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-        {
-            int index = GetTextureUnitId(unit);
-
-            if (wrapModeS != CurrentWrapModeS)
-            {
-                // Will flush the current batch internally.
-                GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
-                CurrentWrapModeS = wrapModeS;
-            }
-
-            if (wrapModeT != CurrentWrapModeT)
-            {
-                // Will flush the current batch internally.
-                GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
-                CurrentWrapModeT = wrapModeT;
-            }
-
-            if (lastActiveTextureUnit == unit && last_bound_texture[index] == textureId)
-                return false;
-
-            FlushCurrentBatch();
-
-            GL.ActiveTexture(unit);
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
-
-            last_bound_texture[index] = textureId;
-            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
-            lastActiveTextureUnit = unit;
-
-            FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
-            return true;
         }
 
         private static BlendingParameters lastBlendingParameters;

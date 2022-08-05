@@ -5,13 +5,14 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
@@ -23,6 +24,9 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer<TexturePanel> atlasFlow;
         private readonly FillFlowContainer<TexturePanel> textureFlow;
+
+        [Resolved]
+        private IRenderer renderer { get; set; }
 
         public TextureVisualiser()
             : base("Textures", "(Ctrl+F3 to toggle)")
@@ -67,10 +71,10 @@ namespace osu.Framework.Graphics.Visualisation
         {
             base.PopIn();
 
-            foreach (var tex in TextureGLSingle.GetAllTextures())
+            foreach (var tex in renderer.GetAllTextures())
                 addTexture(tex);
 
-            TextureGLSingle.TextureCreated += addTexture;
+            renderer.TextureCreated += addTexture;
         }
 
         protected override void PopOut()
@@ -80,12 +84,12 @@ namespace osu.Framework.Graphics.Visualisation
             atlasFlow.Clear();
             textureFlow.Clear();
 
-            TextureGLSingle.TextureCreated -= addTexture;
+            renderer.TextureCreated -= addTexture;
         }
 
-        private void addTexture(TextureGLSingle texture) => Schedule(() =>
+        private void addTexture(Texture texture) => Schedule(() =>
         {
-            var target = texture is TextureGLAtlas ? atlasFlow : textureFlow;
+            var target = texture.IsAtlasTexture ? atlasFlow : textureFlow;
 
             if (target.Any(p => p.Texture == texture))
                 return;
@@ -95,18 +99,18 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class TexturePanel : CompositeDrawable
         {
-            private readonly WeakReference<TextureGLSingle> textureReference;
+            private readonly WeakReference<Texture> textureReference;
 
-            public TextureGLSingle Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
+            public Texture Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
 
             private readonly SpriteText titleText;
             private readonly SpriteText footerText;
 
             private readonly UsageBackground usage;
 
-            public TexturePanel(TextureGLSingle texture)
+            public TexturePanel(Texture texture)
             {
-                textureReference = new WeakReference<TextureGLSingle>(texture);
+                textureReference = new WeakReference<Texture>(texture);
 
                 Size = new Vector2(100, 132);
 
@@ -161,7 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
                         return;
                     }
 
-                    titleText.Text = $"{texture.TextureId}. {texture.Width}x{texture.Height} ";
+                    titleText.Text = $"{texture.Identifier}. {texture.Width}x{texture.Height} ";
                     footerText.Text = Precision.AlmostBigger(usage.AverageUsagesPerFrame, 1) ? $"{usage.AverageUsagesPerFrame:N0} binds" : string.Empty;
                 }
                 catch { }
@@ -170,13 +174,13 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class UsageBackground : Box, IHasTooltip
         {
-            private readonly WeakReference<TextureGLSingle> textureReference;
+            private readonly WeakReference<Texture> textureReference;
 
             private ulong lastBindCount;
 
             public float AverageUsagesPerFrame { get; private set; }
 
-            public UsageBackground(WeakReference<TextureGLSingle> textureReference)
+            public UsageBackground(WeakReference<Texture> textureReference)
             {
                 this.textureReference = textureReference;
             }
@@ -189,7 +193,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 private ColourInfo drawColour;
 
-                private WeakReference<TextureGLSingle> textureReference;
+                private WeakReference<Texture> textureReference;
 
                 public UsageBackgroundDrawNode(Box source)
                     : base(source)
@@ -235,12 +239,12 @@ namespace osu.Framework.Graphics.Visualisation
                     const float border_width = 4;
 
                     // border
-                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour);
+                    renderer.DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour);
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // background
-                    DrawQuad(Texture, shrunkenQuad, Color4.Black);
+                    renderer.DrawQuad(Texture, shrunkenQuad, Color4.Black);
 
                     float aspect = (float)texture.Width / texture.Height;
 
@@ -261,7 +265,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                     // texture
                     texture.Bind();
-                    DrawQuad(texture, shrunkenQuad, Color4.White);
+                    renderer.DrawQuad(texture, shrunkenQuad, Color4.White);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

@@ -477,7 +477,10 @@ namespace osu.Framework.Platform
             try
             {
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                {
                     GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                }
 
                 if (!bypassFrontToBackPass.Value)
                 {
@@ -692,8 +695,8 @@ namespace osu.Framework.Platform
                 Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
-
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
+                Dependencies.CacheAs(Renderer);
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
@@ -1239,7 +1242,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(Renderer, stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

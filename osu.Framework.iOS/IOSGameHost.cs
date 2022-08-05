@@ -93,7 +93,7 @@ namespace osu.Framework.iOS
             => new IOSTextureLoaderStore(underlyingStore);
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
-            => new IOSVideoDecoder(stream);
+            => new IOSVideoDecoder(Renderer, stream);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => MacOSGameHost.KeyBindings;
     }

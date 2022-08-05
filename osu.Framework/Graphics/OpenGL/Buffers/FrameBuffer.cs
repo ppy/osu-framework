@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -18,19 +16,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public Texture Texture { get; }
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
+        private readonly TextureGL textureGL;
+        private readonly int frameBuffer;
 
-        private int frameBuffer;
-        private TextureGL textureGL;
-
-        public FrameBuffer(RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
+        public FrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
         {
             frameBuffer = GL.GenFramebuffer();
-            Texture = new Texture(textureGL = new FrameBufferTexture(filteringMode));
+            Texture = renderer.CreateTexture(textureGL = new FrameBufferTexture(renderer, filteringMode), WrapMode.None, WrapMode.None);
 
             GLWrapper.BindFrameBuffer(frameBuffer);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, textureGL.TextureId, 0);
-            GLWrapper.BindTexture(null);
+            renderer.BindTexture(0);
 
             if (renderBufferFormats != null)
             {
@@ -109,11 +106,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
-            textureGL?.Dispose();
-            textureGL = null;
-
+            textureGL.Dispose();
             GLWrapper.DeleteFrameBuffer(frameBuffer);
-            frameBuffer = -1;
 
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Dispose();
@@ -123,10 +117,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #endregion
 
-        private class FrameBufferTexture : TextureGLSingle
+        private class FrameBufferTexture : TextureGL
         {
-            public FrameBufferTexture(All filteringMode = All.Linear)
-                : base(1, 1, true, filteringMode)
+            public FrameBufferTexture(OpenGLRenderer renderer, All filteringMode = All.Linear)
+                : base(renderer, 1, 1, true, filteringMode)
             {
                 BypassTextureUploadQueueing = true;
 
