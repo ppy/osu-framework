@@ -1,16 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Input.States;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Input;
 
@@ -49,85 +45,95 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        protected override void OnTouch(MotionEvent touchEvent)
+        protected override bool OnTouch(MotionEvent touchEvent)
         {
-            Touch touch;
-
             switch (touchEvent.ActionMasked)
             {
                 // MotionEventActions.Down arrives at the beginning of a touch event chain and implies the 0th pointer is pressed.
                 // ActionIndex is generally not valid here.
                 case MotionEventActions.Down:
-                    if (tryGetEventTouch(touchEvent, 0, out touch))
-                        PendingInputs.Enqueue(new TouchInput(touch, true));
-                    break;
+                    applyTouchInput(touchEvent, HISTORY_CURRENT, 0);
+                    return true;
 
                 // events that apply only to the ActionIndex pointer (other pointers' states remain unchanged)
                 case MotionEventActions.PointerDown:
                 case MotionEventActions.PointerUp:
-                    if (touchEvent.ActionIndex < TouchState.MAX_TOUCH_COUNT)
-                    {
-                        if (tryGetEventTouch(touchEvent, touchEvent.ActionIndex, out touch))
-                            PendingInputs.Enqueue(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.PointerDown));
-                    }
-
-                    break;
+                    applyTouchInput(touchEvent, HISTORY_CURRENT, touchEvent.ActionIndex);
+                    return true;
 
                 // events that apply to every pointer (up to PointerCount).
                 case MotionEventActions.Move:
                 case MotionEventActions.Up:
                 case MotionEventActions.Cancel:
-                    for (int i = 0; i < Math.Min(touchEvent.PointerCount, TouchState.MAX_TOUCH_COUNT); i++)
-                    {
-                        if (tryGetEventTouch(touchEvent, i, out touch))
-                            PendingInputs.Enqueue(new TouchInput(touch, touchEvent.ActionMasked == MotionEventActions.Move));
-                    }
-
-                    break;
+                    touchEvent.HandleHistoricallyPerPointer(applyTouchInput);
+                    return true;
 
                 default:
-                    Logger.Log($"Unknown touch event action: {touchEvent.Action}, masked: {touchEvent.ActionMasked}");
-                    break;
+                    return false;
             }
         }
 
-        protected override void OnHover(MotionEvent hoverEvent)
+        protected override bool OnHover(MotionEvent hoverEvent)
         {
-            if (tryGetEventPosition(hoverEvent, 0, out var position))
-                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
-            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+            hoverEvent.HandleHistorically(apply);
+            enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+
+            // TODO: handle stylus events based on hoverEvent.Action
+            // stylus should probably have it's own handler.
+            return true;
+
+            void apply(MotionEvent e, int historyPosition)
+            {
+                if (tryGetEventPosition(e, historyPosition, 0, out var position))
+                    enqueueInput(new MousePositionAbsoluteInput { Position = position });
+            }
         }
 
-        private bool tryGetEventTouch(MotionEvent e, int index, out Touch touch)
+        private void applyTouchInput(MotionEvent touchEvent, int historyPosition, int pointerIndex)
         {
-            if (tryGetEventPosition(e, index, out var position))
+            if (tryGetEventTouch(touchEvent, historyPosition, pointerIndex, out var touch))
+                enqueueInput(new TouchInput(touch, touchEvent.ActionMasked.IsTouchDownAction()));
+        }
+
+        private bool tryGetEventTouch(MotionEvent motionEvent, int historyPosition, int pointerIndex, out Touch touch)
+        {
+            if (tryGetTouchSource(motionEvent.GetPointerId(pointerIndex), out var touchSource)
+                && tryGetEventPosition(motionEvent, historyPosition, pointerIndex, out var position))
             {
-                touch = new Touch((TouchSource)e.GetPointerId(index), position);
+                touch = new Touch(touchSource, position);
                 return true;
             }
-            else
+
+            touch = new Touch();
+            return false;
+
+            bool tryGetTouchSource(int pointerId, out TouchSource source)
             {
-                touch = new Touch();
-                return false;
+                source = (TouchSource)pointerId;
+                return source >= TouchSource.Touch1 && source <= TouchSource.Touch10;
             }
         }
 
-        private bool tryGetEventPosition(MotionEvent e, int index, out Vector2 position)
+        private bool tryGetEventPosition(MotionEvent motionEvent, int historyPosition, int pointerIndex, out Vector2 position)
         {
-            float x = e.GetX(index);
-            float y = e.GetY(index);
+            if (motionEvent.TryGet(Axis.X, out float x, historyPosition, pointerIndex)
+                && motionEvent.TryGet(Axis.Y, out float y, historyPosition, pointerIndex))
+            {
+                position = new Vector2(x * View.ScaleX, y * View.ScaleY);
+                return true;
+            }
 
             // in empirical testing, `MotionEvent.Get{X,Y}()` methods can return NaN positions early on in the android activity's lifetime.
             // these nonsensical inputs then cause issues later down the line when they are converted into framework inputs.
             // as there is really nothing to recover from such inputs, drop them entirely.
-            if (float.IsNaN(x) || float.IsNaN(y))
-            {
-                position = Vector2.Zero;
-                return false;
-            }
+            position = Vector2.Zero;
+            return false;
+        }
 
-            position = new Vector2(x * View.ScaleX, y * View.ScaleY);
-            return true;
+        private void enqueueInput(IInput input)
+        {
+            PendingInputs.Enqueue(input);
+            FrameStatistics.Increment(StatisticsCounterType.TouchEvents);
         }
     }
 }
