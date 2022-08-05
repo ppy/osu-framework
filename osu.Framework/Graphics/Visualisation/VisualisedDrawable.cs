@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Visualisation
                             : new Sprite
                             {
                                 // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
-                                Texture = new Texture(spriteTarget.Texture.TextureGL),
+                                Texture = new Texture(spriteTarget.Texture),
                                 Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,

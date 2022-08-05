@@ -3,8 +3,10 @@
 
 #nullable disable
 
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK.Graphics;
@@ -15,23 +17,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneCircularProgress : FrameworkTestScene
     {
-        private readonly CircularProgress clock;
+        [Resolved]
+        private IRenderer renderer { get; set; }
+
+        private CircularProgress clock;
 
         private int rotateMode;
         private const double period = 4000;
         private const double transition_period = 2000;
 
-        private readonly Texture gradientTextureHorizontal;
-        private readonly Texture gradientTextureVertical;
-        private readonly Texture gradientTextureBoth;
+        private Texture gradientTextureHorizontal;
+        private Texture gradientTextureVertical;
+        private Texture gradientTextureBoth;
 
-        public TestSceneCircularProgress()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             const int width = 128;
 
             var image = new Image<Rgba32>(width, 1);
 
-            gradientTextureHorizontal = new Texture(width, 1, true);
+            gradientTextureHorizontal = renderer.CreateTexture(width, 1, true);
 
             for (int i = 0; i < width; ++i)
             {
@@ -43,7 +49,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             image = new Image<Rgba32>(width, 1);
 
-            gradientTextureVertical = new Texture(1, width, true);
+            gradientTextureVertical = renderer.CreateTexture(1, width, true);
 
             for (int i = 0; i < width; ++i)
             {
@@ -55,7 +61,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             image = new Image<Rgba32>(width, width);
 
-            gradientTextureBoth = new Texture(width, width, true);
+            gradientTextureBoth = renderer.CreateTexture(width, width, true);
 
             for (int i = 0; i < width; ++i)
             {
@@ -149,7 +155,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (textureMode)
             {
                 case 0:
-                    clock.Texture = Texture.WhitePixel;
+                    clock.Texture = renderer.WhitePixel;
                     break;
 
                 case 1:

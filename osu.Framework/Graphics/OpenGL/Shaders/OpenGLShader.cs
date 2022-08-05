@@ -5,18 +5,21 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
+using System.Linq;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics.ES30;
 using static osu.Framework.Threading.ScheduledDelegate;
 
-namespace osu.Framework.Graphics.Shaders
+namespace osu.Framework.Graphics.OpenGL.Shaders
 {
-    public class Shader : IShader, IDisposable
+    internal class OpenGLShader : IShader
     {
+        private readonly IRenderer renderer;
         private readonly string name;
-        private readonly List<ShaderPart> parts;
+        private readonly OpenGLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
 
@@ -29,16 +32,17 @@ namespace osu.Framework.Graphics.Shaders
 
         public bool IsLoaded { get; private set; }
 
-        internal bool IsBound { get; private set; }
+        public bool IsBound { get; private set; }
 
         private int programID = -1;
 
-        internal Shader(string name, List<ShaderPart> parts)
+        internal OpenGLShader(IRenderer renderer, string name, OpenGLShaderPart[] parts)
         {
+            this.renderer = renderer;
             this.name = name;
-            this.parts = parts;
+            this.parts = parts.Where(p => p != null).ToArray();
 
-            GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
+            renderer.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
 
         private void compile()
@@ -49,8 +53,7 @@ namespace osu.Framework.Graphics.Shaders
             if (IsLoaded)
                 throw new InvalidOperationException("Attempting to compile an already-compiled shader.");
 
-            parts.RemoveAll(p => p == null);
-            if (parts.Count == 0)
+            if (parts.Length == 0)
                 return;
 
             programID = CreateProgram();
@@ -84,7 +87,7 @@ namespace osu.Framework.Graphics.Shaders
 
             EnsureShaderCompiled();
 
-            GLWrapper.UseProgram(this);
+            renderer.UseProgram(this);
 
             foreach (var uniform in uniformsValues)
                 uniform?.Update();
@@ -97,7 +100,7 @@ namespace osu.Framework.Graphics.Shaders
             if (!IsBound)
                 return;
 
-            GLWrapper.UseProgram(null);
+            renderer.UseProgram(null);
 
             IsBound = false;
         }
@@ -120,7 +123,7 @@ namespace osu.Framework.Graphics.Shaders
 
         private protected virtual bool CompileInternal()
         {
-            foreach (ShaderPart p in parts)
+            foreach (OpenGLShaderPart p in parts)
             {
                 if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
@@ -201,9 +204,9 @@ namespace osu.Framework.Graphics.Shaders
             {
                 int location = GL.GetUniformLocation(this, name);
 
-                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
+                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(renderer, this, name, location);
 
-                return new Uniform<T>(this, name, location);
+                return new Uniform<T>(renderer, this, name, location);
             }
         }
 
@@ -215,15 +218,15 @@ namespace osu.Framework.Graphics.Shaders
 
         public override string ToString() => $@"{name} Shader (Compiled: {programID != -1})";
 
-        public static implicit operator int(Shader shader) => shader.programID;
+        public static implicit operator int(OpenGLShader shader) => shader.programID;
 
         #region IDisposable Support
 
         protected internal bool IsDisposed { get; private set; }
 
-        ~Shader()
+        ~OpenGLShader()
         {
-            GLWrapper.ScheduleDisposal(s => s.Dispose(false), this);
+            renderer.ScheduleDisposal(s => s.Dispose(false), this);
         }
 
         public void Dispose()
@@ -252,7 +255,7 @@ namespace osu.Framework.Graphics.Shaders
         public class PartCompilationFailedException : Exception
         {
             public PartCompilationFailedException(string partName, string log)
-                : base($"A {typeof(ShaderPart)} failed to compile: {partName}:\n{log.Trim()}")
+                : base($"A {typeof(OpenGLShaderPart)} failed to compile: {partName}:\n{log.Trim()}")
             {
             }
         }
@@ -260,7 +263,7 @@ namespace osu.Framework.Graphics.Shaders
         public class ProgramLinkingFailedException : Exception
         {
             public ProgramLinkingFailedException(string programName, string log)
-                : base($"A {typeof(Shader)} failed to link: {programName}:\n{log.Trim()}")
+                : base($"A {typeof(OpenGLShader)} failed to link: {programName}:\n{log.Trim()}")
             {
             }
         }

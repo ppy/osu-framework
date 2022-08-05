@@ -5,6 +5,7 @@
 
 using System.IO;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Tests.Visual.Sprites
@@ -59,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             private readonly TestVideo source;
 
-            protected override bool RequiresRoundedShader => useRoundedShader ?? base.RequiresRoundedShader;
+            protected override bool RequiresRoundedShader(IRenderer renderer) => useRoundedShader ?? base.RequiresRoundedShader(renderer);
 
             private bool? useRoundedShader;
 

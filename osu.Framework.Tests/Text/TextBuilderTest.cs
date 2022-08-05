@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Text;
@@ -623,7 +624,7 @@ namespace osu.Framework.Tests.Text
 
         private readonly struct TestGlyph : ITexturedCharacterGlyph
         {
-            public Texture Texture => new Texture(1, 1);
+            public Texture Texture => new DummyRenderer().CreateTexture(1, 1);
             public float XOffset { get; }
             public float YOffset { get; }
             public float XAdvance { get; }

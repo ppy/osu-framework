@@ -10,11 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Layout;
@@ -31,17 +30,13 @@ namespace osu.Framework.Graphics.Audio
     public class WaveformGraph : Drawable
     {
         private IShader shader;
-        private readonly Texture texture;
-
-        public WaveformGraph()
-        {
-            texture = Texture.WhitePixel;
-        }
+        private Texture texture;
 
         [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, IRenderer renderer)
         {
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            texture = renderer.WhitePixel;
         }
 
         private float resolution = 1;
@@ -211,7 +206,7 @@ namespace osu.Framework.Graphics.Audio
 
             Task.Run(async () =>
             {
-                var resampled = await originalWaveform.GenerateResampledAsync(resampledPointCount.Value, token).ConfigureAwait(false);
+                var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
                 int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
 
@@ -324,24 +319,26 @@ namespace osu.Framework.Graphics.Audio
                 }
             }
 
-            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
+                vertexBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(1000, 10);
+
                 shader.Bind();
-                texture.TextureGL.Bind();
+                texture.Bind();
 
                 Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
 
                 // We're dealing with a _large_ number of points, so we need to optimise the quadToDraw * drawInfo.Matrix multiplications below
                 // for points that are going to be masked out anyway. This allows for higher resolution graphs at larger scales with virtually no performance loss.
                 // Since the points are generated in the local coordinate space, we need to convert the screen space masking quad coordinates into the local coordinate space
-                RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
+                RectangleF localMaskingRectangle = (Quad.FromRectangle(renderer.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
 
                 float separation = drawSize.X / (points.Count - 1);
 
@@ -400,7 +397,7 @@ namespace osu.Framework.Graphics.Audio
                     quadToDraw *= DrawInfo.Matrix;
 
                     if (quadToDraw.Size.X != 0 && quadToDraw.Size.Y != 0)
-                        DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                        renderer.DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 shader.Unbind();
@@ -410,7 +407,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 base.Dispose(isDisposing);
 
-                vertexBatch.Dispose();
+                vertexBatch?.Dispose();
             }
         }
     }

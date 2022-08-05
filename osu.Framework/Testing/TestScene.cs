@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
@@ -301,6 +302,29 @@ namespace osu.Framework.Testing
             });
         });
 
+        protected void AddUntilStep<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint) => schedule(() =>
+        {
+            ConstraintResult lastResult = null;
+
+            StepsContainer.Add(
+                new UntilStepButton(
+                    () =>
+                    {
+                        lastResult = constraint().Resolve().ApplyTo(actualValue());
+                        return lastResult.IsSuccess;
+                    },
+                    addStepsAsSetupSteps,
+                    () =>
+                    {
+                        var writer = new TextMessageWriter(string.Empty);
+                        lastResult.WriteMessageTo(writer);
+                        return writer.ToString().TrimStart();
+                    })
+                {
+                    Text = description ?? @"Until",
+                });
+        });
+
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
@@ -325,6 +349,31 @@ namespace osu.Framework.Testing
                 ExtendedDescription = extendedDescription,
                 CallStack = new StackTrace(1),
                 Assertion = assert,
+            });
+        });
+
+        protected void AddAssert<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint, string extendedDescription = null) => schedule(() =>
+        {
+            ConstraintResult lastResult = null;
+
+            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps, () =>
+            {
+                if (lastResult == null)
+                    return string.Empty;
+
+                var writer = new TextMessageWriter(string.Empty);
+                lastResult.WriteMessageTo(writer);
+                return writer.ToString().TrimStart();
+            })
+            {
+                Text = description,
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1),
+                Assertion = () =>
+                {
+                    lastResult = constraint().Resolve().ApplyTo(actualValue());
+                    return lastResult.IsSuccess;
+                }
             });
         });
 

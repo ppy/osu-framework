@@ -6,14 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 
-namespace osu.Framework.Graphics.Batches
+namespace osu.Framework.Graphics.OpenGL.Batches
 {
-    public abstract class VertexBatch<T> : IVertexBatch, IDisposable
+    internal abstract class VertexBatch<T> : IVertexBatch<T>
         where T : struct, IEquatable<T>, IVertex
     {
         public List<VertexBuffer<T>> VertexBuffers = new List<VertexBuffer<T>>();
@@ -29,16 +29,18 @@ namespace osu.Framework.Graphics.Batches
         private int currentBufferIndex;
         private int currentVertexIndex;
 
+        private readonly OpenGLRenderer renderer;
         private readonly int maxBuffers;
 
         private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
 
-        protected VertexBatch(int bufferSize, int maxBuffers)
+        protected VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxBuffers)
         {
             // Vertex buffers of size 0 don't make any sense. Let's not blindly hope for good behavior of OpenGL.
             Trace.Assert(bufferSize > 0);
 
             Size = bufferSize;
+            this.renderer = renderer;
             this.maxBuffers = maxBuffers;
 
             AddAction = Add;
@@ -63,14 +65,14 @@ namespace osu.Framework.Graphics.Batches
 
         #endregion
 
-        public void ResetCounters()
+        void IVertexBatch.ResetCounters()
         {
             changeBeginIndex = -1;
             currentBufferIndex = 0;
             currentVertexIndex = 0;
         }
 
-        protected abstract VertexBuffer<T> CreateVertexBuffer();
+        protected abstract VertexBuffer<T> CreateVertexBuffer(OpenGLRenderer renderer);
 
         /// <summary>
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
@@ -78,7 +80,7 @@ namespace osu.Framework.Graphics.Batches
         /// <param name="v">The vertex to add.</param>
         public void Add(T v)
         {
-            GLWrapper.SetActiveBatch(this);
+            renderer.SetActiveBatch(this);
 
             if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
             {
@@ -88,7 +90,7 @@ namespace osu.Framework.Graphics.Batches
 
             // currentIndex will change after Draw() above, so this cannot be in an else-condition
             while (currentBufferIndex >= VertexBuffers.Count)
-                VertexBuffers.Add(CreateVertexBuffer());
+                VertexBuffers.Add(CreateVertexBuffer(renderer));
 
             if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
             {
@@ -105,7 +107,7 @@ namespace osu.Framework.Graphics.Batches
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
         /// This is a cached delegate of <see cref="Add"/> that should be used in memory-critical locations such as <see cref="DrawNode"/>s.
         /// </summary>
-        public readonly Action<T> AddAction;
+        public Action<T> AddAction { get; private set; }
 
         public int Draw()
         {

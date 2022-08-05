@@ -29,6 +29,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -52,6 +53,8 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        public IRenderer Renderer { get; private set; }
 
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
@@ -319,6 +322,8 @@ namespace osu.Framework.Platform
             };
         }
 
+        protected virtual IRenderer CreateRenderer() => new OpenGLRenderer();
+
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
         /// This is a blocking call and should not be invoked during periods of user activity unless memory is critical.
@@ -472,37 +477,37 @@ namespace osu.Framework.Platform
             try
             {
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                 if (!bypassFrontToBackPass.Value)
                 {
                     depthValue.Reset();
 
                     GL.ColorMask(false, false, false, false);
-                    GLWrapper.SetBlend(BlendingParameters.None);
-                    GLWrapper.PushDepthInfo(DepthInfo.Default);
+                    Renderer.SetBlend(BlendingParameters.None);
+                    Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
-                    GLWrapper.PopDepthInfo();
+                    Renderer.PopDepthInfo();
                     GL.ColorMask(true, true, true, true);
 
                     // The back pass doesn't write depth, but needs to depth test properly
-                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    Renderer.PushDepthInfo(new DepthInfo(true, false));
                 }
                 else
                 {
                     // Disable depth testing
-                    GLWrapper.PushDepthInfo(new DepthInfo());
+                    Renderer.PushDepthInfo(new DepthInfo());
                 }
 
                 // Back pass
-                buffer.Object.Draw(null);
+                buffer.Object.Draw(Renderer);
 
-                GLWrapper.PopDepthInfo();
+                Renderer.PopDepthInfo();
 
-                GLWrapper.FlushCurrentBatch();
+                Renderer.FinishFrame();
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                 {
@@ -655,6 +660,8 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
+            Renderer = CreateRenderer();
+
             try
             {
                 if (!host_running_mutex.Wait(10000))
@@ -685,8 +692,8 @@ namespace osu.Framework.Platform
                 Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
-
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
+                Dependencies.CacheAs(Renderer);
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
@@ -1232,7 +1239,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(Renderer, stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

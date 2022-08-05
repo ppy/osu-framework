@@ -7,17 +7,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Shaders
+namespace osu.Framework.Graphics.OpenGL.Shaders
 {
-    internal class ShaderPart : IDisposable
+    internal class OpenGLShaderPart : IShaderPart
     {
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
+        private readonly IRenderer renderer;
         internal string Name;
         internal bool HasCode;
         internal bool Compiled;
@@ -37,8 +39,9 @@ namespace osu.Framework.Graphics.Shaders
 
         private readonly ShaderManager manager;
 
-        internal ShaderPart(string name, byte[] data, ShaderType type, ShaderManager manager)
+        internal OpenGLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
         {
+            this.renderer = renderer;
             Name = name;
             Type = type;
 
@@ -145,20 +148,20 @@ namespace osu.Framework.Graphics.Shaders
             Compiled = compileResult == 1;
 
             if (!Compiled)
-                throw new Shader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
+                throw new OpenGLShader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
 
             return Compiled;
         }
 
-        public static implicit operator int(ShaderPart program) => program.partID;
+        public static implicit operator int(OpenGLShaderPart program) => program.partID;
 
         #region IDisposable Support
 
         protected internal bool IsDisposed { get; private set; }
 
-        ~ShaderPart()
+        ~OpenGLShaderPart()
         {
-            GLWrapper.ScheduleDisposal(s => s.Dispose(false), this);
+            renderer.ScheduleDisposal(s => s.Dispose(false), this);
         }
 
         public void Dispose()
