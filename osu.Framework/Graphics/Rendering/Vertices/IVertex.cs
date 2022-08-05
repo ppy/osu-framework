@@ -3,7 +3,7 @@
 
 #nullable disable
 
-namespace osu.Framework.Graphics.OpenGL.Vertices
+namespace osu.Framework.Graphics.Rendering.Vertices
 {
     public interface IVertex
     {

@@ -11,8 +11,8 @@ using osu.Framework.Graphics.Colour;
 using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {

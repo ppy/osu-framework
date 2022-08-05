@@ -9,13 +9,13 @@ using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.OpenGL.Vertices
+namespace osu.Framework.Graphics.Rendering.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct TexturedVertex3D : IEquatable<TexturedVertex3D>, IVertex
+    public struct TimedTexturedVertex2D : IEquatable<TimedTexturedVertex2D>, IVertex
     {
-        [VertexMember(3, VertexAttribPointerType.Float)]
-        public Vector3 Position;
+        [VertexMember(2, VertexAttribPointerType.Float)]
+        public Vector2 Position;
 
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Color4 Colour;
@@ -23,6 +23,9 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 TexturePosition;
 
-        public readonly bool Equals(TexturedVertex3D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
+        [VertexMember(1, VertexAttribPointerType.Float)]
+        public float Time;
+
+        public readonly bool Equals(TimedTexturedVertex2D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time);
     }
 }
