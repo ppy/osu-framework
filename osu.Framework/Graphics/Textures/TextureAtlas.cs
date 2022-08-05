@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -41,7 +41,9 @@ namespace osu.Framework.Graphics.Textures
                 if (atlasTexture == null)
                     Reset();
 
-                return new TextureWhitePixel(atlasTexture.AsNonNull());
+                Debug.Assert(atlasTexture != null, "Atlas texture should not be null after Reset().");
+
+                return new TextureWhitePixel(atlasTexture);
             }
         }
 
@@ -67,7 +69,7 @@ namespace osu.Framework.Graphics.Textures
 
             // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
             // occupies half of the padded space.
-            atlasTexture = new InternalAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
+            atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
             RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
             subTextureBounds.Add(bounds);
@@ -95,11 +97,12 @@ namespace osu.Framework.Graphics.Textures
             lock (textureRetrievalLock)
             {
                 Vector2I position = findPosition(width, height);
+                Debug.Assert(atlasTexture != null, "Atlas texture should not be null after findPosition().");
+
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
-                // atlasTexture can't be null after findPosition().
-                return new TextureRegion(atlasTexture.AsNonNull(), bounds, wrapModeS, wrapModeT);
+                return new TextureRegion(atlasTexture, bounds, wrapModeS, wrapModeT);
             }
         }
 

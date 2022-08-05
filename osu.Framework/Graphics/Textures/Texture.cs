@@ -13,9 +13,14 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
+        /// <summary>
+        /// The platform-specific native texture representation.
+        /// </summary>
+        /// <remarks>
+        /// Disposal of this object is not managed by <see cref="Texture"/> itself since <see cref="Texture"/>s are usually part of a global <see cref="TextureStore"/>.
+        /// </remarks>
         internal virtual INativeTexture NativeTexture { get; }
 
-        public string Filename = string.Empty;
         public string AssetName = string.Empty;
 
         /// <summary>
@@ -307,7 +312,7 @@ namespace osu.Framework.Graphics.Textures
         internal bool IsAtlasTexture { get; set; }
 
         /// <summary>
-        /// The total amount of times this <see cref="Texture"/> was bound.
+        /// The total amount of times this <see cref="Texture"/> has ever been bound.
         /// </summary>
         internal ulong BindCount => NativeTexture.BindCount;
 

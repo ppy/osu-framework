@@ -52,11 +52,6 @@ namespace osu.Framework.Graphics.Rendering
         bool UploadComplete { get; }
 
         /// <summary>
-        /// Whether the texture is currently queued for upload.
-        /// </summary>
-        bool IsQueuedForUpload { get; set; }
-
-        /// <summary>
         /// Flush any unprocessed uploads without actually uploading.
         /// </summary>
         void FlushUploads();
@@ -88,7 +83,7 @@ namespace osu.Framework.Graphics.Rendering
         int GetByteSize();
 
         /// <summary>
-        /// The total amount of times this <see cref="INativeTexture"/> was bound.
+        /// The total amount of times this <see cref="INativeTexture"/> has ever been bound.
         /// </summary>
         ulong BindCount { get; }
     }
