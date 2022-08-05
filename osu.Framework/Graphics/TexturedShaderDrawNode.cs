@@ -3,15 +3,13 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
 {
     public abstract class TexturedShaderDrawNode : DrawNode
     {
-        protected IShader Shader => RequiresRoundedShader ? RoundedTextureShader : TextureShader;
-
         protected IShader TextureShader { get; private set; }
         protected IShader RoundedTextureShader { get; private set; }
 
@@ -30,6 +28,17 @@ namespace osu.Framework.Graphics
             RoundedTextureShader = Source.RoundedTextureShader;
         }
 
-        protected virtual bool RequiresRoundedShader => GLWrapper.IsMaskingActive;
+        /// <summary>
+        /// Gets the appropriate <see cref="IShader"/> to use for the current masking state.
+        /// This will return <see cref="RoundedTextureShader"/> if masking is active, otherwise <see cref="TextureShader"/>.
+        /// </summary>
+        /// <param name="renderer">The renderer that will be drawn with.</param>
+        protected IShader GetAppropriateShader(IRenderer renderer) => RequiresRoundedShader(renderer) ? RoundedTextureShader : TextureShader;
+
+        /// <summary>
+        /// Whether rounded texture is required for the current draw state (masking, etc).
+        /// </summary>
+        /// <param name="renderer">The renderer that will be drawn with.</param>
+        protected virtual bool RequiresRoundedShader(IRenderer renderer) => renderer.IsMaskingActive;
     }
 }

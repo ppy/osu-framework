@@ -8,7 +8,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
@@ -60,10 +59,6 @@ namespace osu.Framework.Graphics.Textures
         public TextureUpload(Image<Rgba32> image)
         {
             this.image = image;
-
-            if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
-                throw new TextureTooLargeForGLException();
-
             pixelMemory = image.CreateReadOnlyPixelMemory();
         }
 

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -52,7 +51,6 @@ namespace osu.Framework.Platform
 
             // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
             IsEmbedded = version.Contains("OpenGL ES");
-            GLWrapper.IsEmbedded = IsEmbedded;
 
             version = GL.GetString(StringName.ShadingLanguageVersion);
 

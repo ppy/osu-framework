@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public int MaxSize => GLWrapper.MaxTextureSize;
+        public int MaxSize => Renderer.MaxTextureSize;
 
         public virtual int Width { get; set; }
         public virtual int Height { get; set; }
@@ -63,9 +63,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
         public TextureGL(OpenGLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
         {
+            Renderer = renderer;
             Width = width;
             Height = height;
-            Renderer = renderer;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
 
-            GLWrapper.ScheduleDisposal(texture =>
+            Renderer.ScheduleDisposal(texture =>
             {
                 int disposableId = texture.textureId;
 
@@ -175,7 +175,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 uploadQueue.Enqueue(upload);
 
                 if (requireUpload && !BypassTextureUploadQueueing)
-                    GLWrapper.EnqueueTextureUpload(this);
+                    Renderer.EnqueueTextureUpload(this);
             }
         }
 

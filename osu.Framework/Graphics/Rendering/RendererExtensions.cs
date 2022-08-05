@@ -4,7 +4,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -57,7 +56,7 @@ namespace osu.Framework.Graphics.Rendering
             RectangleF coordRect = texture.GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
-            vertexAction ??= GLWrapper.DefaultQuadBatch.AddAction;
+            vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -144,7 +143,7 @@ namespace osu.Framework.Graphics.Rendering
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            vertexAction ??= GLWrapper.DefaultQuadBatch.AddAction;
+            vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
             vertexAction(new TexturedVertex2D
             {
@@ -198,7 +197,7 @@ namespace osu.Framework.Graphics.Rendering
                                           Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where T : IConvexPolygon
         {
-            var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
+            var maskingQuad = renderer.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
 
             var clipper = new ConvexPolygonClipper<Quad, T>(ref maskingQuad, ref polygon);
             Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];
