@@ -5,7 +5,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
@@ -93,19 +92,19 @@ namespace osu.Framework.Graphics
 
                 SharedData.ResetCurrentEffectBuffer();
 
-                using (establishFrameBufferViewport())
+                using (establishFrameBufferViewport(renderer))
                 {
                     // Fill the frame buffer with drawn children
                     using (BindFrameBuffer(SharedData.MainBuffer))
                     {
                         // We need to draw children as if they were zero-based to the top-left of the texture.
                         // We can do this by adding a translation component to our (orthogonal) projection matrix.
-                        GLWrapper.PushOrtho(screenSpaceDrawRectangle);
-                        GLWrapper.Clear(new ClearInfo(backgroundColour));
+                        renderer.PushOrtho(screenSpaceDrawRectangle);
+                        renderer.Clear(new ClearInfo(backgroundColour));
 
                         Child.Draw(renderer);
 
-                        GLWrapper.PopOrtho();
+                        renderer.PopOrtho();
                     }
 
                     PopulateContents(renderer);
@@ -114,12 +113,14 @@ namespace osu.Framework.Graphics
                 SharedData.DrawVersion = GetDrawVersion();
             }
 
-            Shader.Bind();
+            var shader = GetAppropriateShader(renderer);
+
+            shader.Bind();
 
             base.Draw(renderer);
             DrawContents(renderer);
 
-            Shader.Unbind();
+            shader.Unbind();
         }
 
         /// <summary>
@@ -155,7 +156,7 @@ namespace osu.Framework.Graphics
             return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
         }
 
-        private IDisposable establishFrameBufferViewport()
+        private IDisposable establishFrameBufferViewport(IRenderer renderer)
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
@@ -163,7 +164,7 @@ namespace osu.Framework.Graphics
             RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1,
                 (int)frameBufferSize.Y + 1);
 
-            GLWrapper.PushMaskingInfo(new MaskingInfo
+            renderer.PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = screenSpaceMaskingRect,
                 MaskingRect = screenSpaceDrawRectangle,
@@ -173,19 +174,19 @@ namespace osu.Framework.Graphics
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-            GLWrapper.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
-            GLWrapper.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
-            GLWrapper.PushScissorOffset(screenSpaceMaskingRect.Location);
+            renderer.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            renderer.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            renderer.PushScissorOffset(screenSpaceMaskingRect.Location);
 
-            return new ValueInvokeOnDisposal<BufferedDrawNode>(this, d => d.returnViewport());
+            return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), tup => tup.node.returnViewport(tup.renderer));
         }
 
-        private void returnViewport()
+        private void returnViewport(IRenderer renderer)
         {
-            GLWrapper.PopScissorOffset();
-            GLWrapper.PopViewport();
-            GLWrapper.PopScissor();
-            GLWrapper.PopMaskingInfo();
+            renderer.PopScissorOffset();
+            renderer.PopViewport();
+            renderer.PopScissor();
+            renderer.PopMaskingInfo();
         }
 
         private void clipDrawRectangle()

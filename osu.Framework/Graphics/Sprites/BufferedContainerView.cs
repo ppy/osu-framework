@@ -6,7 +6,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -142,7 +141,9 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
-                Shader.Bind();
+                var shader = GetAppropriateShader(renderer);
+
+                shader.Bind();
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
                     drawMainBuffer(renderer);
@@ -152,7 +153,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (sourceEffectPlacement == EffectPlacement.Behind)
                     drawMainBuffer(renderer);
 
-                Shader.Unbind();
+                shader.Unbind();
             }
 
             private void drawMainBuffer(IRenderer renderer)
@@ -163,7 +164,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(DrawColourInfo.Blending);
+                renderer.SetBlend(DrawColourInfo.Blending);
                 renderer.DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
@@ -172,7 +173,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (!shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(sourceEffectBlending);
+                renderer.SetBlend(sourceEffectBlending);
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 

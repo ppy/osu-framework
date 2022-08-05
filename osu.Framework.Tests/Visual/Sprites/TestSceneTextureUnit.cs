@@ -121,17 +121,19 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 public override void Draw(IRenderer renderer)
                 {
+                    var shader = GetAppropriateShader(renderer);
+
                     redTex.Bind(1);
                     greenTex.Bind(2);
                     blueTex.Bind(3);
 
                     int unitId = unit - TextureUnit.Texture0;
-                    Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
+                    shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
 
                     base.Draw(renderer);
 
                     unitId = 0;
-                    Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
+                    shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

@@ -150,13 +150,15 @@ namespace osu.Framework.Graphics.UserInterface
             if (texture?.Available != true)
                 return;
 
-            Shader.Bind();
+            var shader = GetAppropriateShader(renderer);
+
+            shader.Bind();
 
             texture.Bind();
 
             updateVertexBuffer(renderer);
 
-            Shader.Unbind();
+            shader.Unbind();
         }
 
         protected override void Dispose(bool isDisposing)

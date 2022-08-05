@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 
@@ -13,7 +12,7 @@ namespace osu.Framework.Graphics
     {
         private class ProxyDrawable : Drawable
         {
-            private readonly ulong[] drawNodeValidationIds = new ulong[GLWrapper.MAX_DRAW_NODES];
+            private readonly ulong[] drawNodeValidationIds = new ulong[IRenderer.MAX_DRAW_NODES];
             private readonly DrawNode[] originalDrawNodes;
 
             internal ProxyDrawable(Drawable original)

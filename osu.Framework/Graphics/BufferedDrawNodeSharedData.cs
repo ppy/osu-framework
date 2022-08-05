@@ -4,7 +4,7 @@
 #nullable disable
 
 using System;
-using osu.Framework.Graphics.OpenGL;
+using System.Diagnostics;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 
@@ -49,6 +49,8 @@ namespace osu.Framework.Graphics
 
         private readonly RenderBufferFormat[] formats;
 
+        private IRenderer renderer;
+
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
         /// </summary>
@@ -82,6 +84,8 @@ namespace osu.Framework.Graphics
         {
             if (IsInitialised)
                 return;
+
+            this.renderer = renderer;
 
             TextureFilteringMode filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
 
@@ -121,14 +125,13 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            GLWrapper.ScheduleDisposal(d => d.Dispose(true), this);
+            renderer?.ScheduleDisposal(d => d.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
         {
-            if (!IsInitialised)
-                return;
+            Debug.Assert(IsInitialised);
 
             MainBuffer?.Dispose();
             for (int i = 0; i < effectBuffers.Length; i++)

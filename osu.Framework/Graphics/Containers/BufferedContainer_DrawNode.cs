@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
@@ -68,12 +67,12 @@ namespace osu.Framework.Graphics.Containers
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
-                    GLWrapper.PushScissorState(false);
+                    renderer.PushScissorState(false);
 
                     if (blurRadius.X > 0) drawBlurredFrameBuffer(renderer, blurRadius.X, blurSigma.X, blurRotation);
                     if (blurRadius.Y > 0) drawBlurredFrameBuffer(renderer, blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
-                    GLWrapper.PopScissorState();
+                    renderer.PopScissorState();
                 }
             }
 
@@ -82,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
                     base.DrawContents(renderer);
 
-                GLWrapper.SetBlend(effectBlending);
+                renderer.SetBlend(effectBlending);
 
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
@@ -98,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
                 IFrameBuffer current = SharedData.CurrentEffectBuffer;
                 IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
-                GLWrapper.SetBlend(BlendingParameters.None);
+                renderer.SetBlend(BlendingParameters.None);
 
                 using (BindFrameBuffer(target))
                 {
