@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Video
 
             memoryLease?.Dispose();
 
-            GLWrapper.ScheduleDisposal(v =>
+            Renderer.ScheduleDisposal(v =>
             {
                 int[] ids = v.textureIds;
 

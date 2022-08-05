@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,7 +55,7 @@ namespace osu.Framework.Graphics.Textures
 
             if (useAtlas)
             {
-                int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
+                int size = Math.Min(max_atlas_size, renderer.MaxTextureSize);
                 Atlas = new TextureAtlas(renderer, size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
             }
         }
@@ -248,7 +247,7 @@ namespace osu.Framework.Graphics.Textures
             }
             catch (TextureTooLargeForGLException)
             {
-                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({renderer.MaxTextureSize}px).", level: LogLevel.Error);
             }
             finally
             {

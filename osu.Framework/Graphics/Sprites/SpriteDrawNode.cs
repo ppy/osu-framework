@@ -6,7 +6,6 @@
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Sprites
@@ -71,7 +70,7 @@ namespace osu.Framework.Graphics.Sprites
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            if (GLWrapper.IsMaskingActive)
+            if (renderer.IsMaskingActive)
                 renderer.DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
             else
                 renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
@@ -84,14 +83,16 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            Shader.Bind();
+            var shader = GetAppropriateShader(renderer);
+
+            shader.Bind();
 
             Blit(renderer);
 
-            Shader.Unbind();
+            shader.Unbind();
         }
 
-        protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
+        protected override bool RequiresRoundedShader(IRenderer renderer) => base.RequiresRoundedShader(renderer) || InflationAmount != Vector2.Zero;
 
         protected override void DrawOpaqueInterior(IRenderer renderer)
         {

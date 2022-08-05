@@ -5,7 +5,6 @@
 
 using System;
 using System.Threading;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics
@@ -77,11 +76,11 @@ namespace osu.Framework.Graphics
         /// <param name="renderer">The renderer to draw with.</param>
         public virtual void Draw(IRenderer renderer)
         {
-            GLWrapper.SetBlend(DrawColourInfo.Blending);
+            renderer.SetBlend(DrawColourInfo.Blending);
 
             // This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.
             // The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.
-            GLWrapper.SetDrawDepth(drawDepth);
+            renderer.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -128,7 +127,7 @@ namespace osu.Framework.Graphics
         /// <param name="renderer">The renderer to draw with.</param>
         protected virtual void DrawOpaqueInterior(IRenderer renderer)
         {
-            GLWrapper.SetDrawDepth(drawDepth);
+            renderer.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -153,7 +152,7 @@ namespace osu.Framework.Graphics
             if (Interlocked.Decrement(ref referenceCount) != 0)
                 return;
 
-            GLWrapper.ScheduleDisposal(node => node.Dispose(true), this);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 

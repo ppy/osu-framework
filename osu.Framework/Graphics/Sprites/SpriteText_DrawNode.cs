@@ -50,7 +50,9 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(renderer);
 
-                Shader.Bind();
+                var shader = GetAppropriateShader(renderer);
+
+                shader.Bind();
 
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
                 float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
@@ -78,7 +80,7 @@ namespace osu.Framework.Graphics.Sprites
                     renderer.DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                 }
 
-                Shader.Unbind();
+                shader.Unbind();
             }
         }
 

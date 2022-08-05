@@ -477,40 +477,37 @@ namespace osu.Framework.Platform
             try
             {
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                {
-                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-                }
 
                 if (!bypassFrontToBackPass.Value)
                 {
                     depthValue.Reset();
 
                     GL.ColorMask(false, false, false, false);
-                    GLWrapper.SetBlend(BlendingParameters.None);
-                    GLWrapper.PushDepthInfo(DepthInfo.Default);
+                    Renderer.SetBlend(BlendingParameters.None);
+                    Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
                     buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
-                    GLWrapper.PopDepthInfo();
+                    Renderer.PopDepthInfo();
                     GL.ColorMask(true, true, true, true);
 
                     // The back pass doesn't write depth, but needs to depth test properly
-                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    Renderer.PushDepthInfo(new DepthInfo(true, false));
                 }
                 else
                 {
                     // Disable depth testing
-                    GLWrapper.PushDepthInfo(new DepthInfo());
+                    Renderer.PushDepthInfo(new DepthInfo());
                 }
 
                 // Back pass
                 buffer.Object.Draw(Renderer);
 
-                GLWrapper.PopDepthInfo();
+                Renderer.PopDepthInfo();
 
-                GLWrapper.FlushCurrentBatch();
+                Renderer.FinishFrame();
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                 {
