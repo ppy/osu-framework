@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// <summary>
     /// Helper method that provides functionality to enable and bind vertex attributes.
     /// </summary>
-    public static class VertexUtils<T>
+    internal static class VertexUtils<T>
         where T : struct, IVertex
     {
         /// <summary>
