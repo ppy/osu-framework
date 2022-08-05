@@ -32,14 +32,14 @@ namespace osu.Framework.Tests.IO
 
         static TestWebRequest()
         {
-            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("OSU_TESTS_LOCAL_HTTPBIN") == "1";
 
             if (localHttpBin)
             {
                 // httpbin very frequently falls over and causes random tests to fail
-                // Thus appveyor builds rely on a local httpbin instance to run the tests
+                // Thus github actions builds rely on a local httpbin instance to run the tests
 
-                host = "127.0.0.1";
+                host = "127.0.0.1:8080";
                 protocols = new[] { default_protocol };
             }
             else
@@ -67,9 +67,9 @@ namespace osu.Framework.Tests.IO
         /// Not recommended as it would block the thread, but we've deemed to allow this for now.
         /// </summary>
         [Test, Retry(5)]
-        public void TestValidGetFromTask()
+        public void TestValidGetFromTask([ValueSource(nameof(protocols))] string protocol)
         {
-            string url = $"https://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new JsonWebRequest<HttpBinGetResponse>(url)
             {
                 Method = HttpMethod.Get,
