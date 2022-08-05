@@ -63,9 +63,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
         public TextureGL(OpenGLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
         {
+            Renderer = renderer;
             Width = width;
             Height = height;
-            Renderer = renderer;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
