@@ -54,7 +54,7 @@ namespace osu.Framework.Timing
 
         public void ChangeSource(IClock? source)
         {
-            Debug.Assert(source != null);
+            if (source == null) return;
 
             CurrentTime = LastFrameTime = source.CurrentTime;
             Source = source;
