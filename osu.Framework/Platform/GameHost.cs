@@ -226,7 +226,9 @@ namespace osu.Framework.Platform
 
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+
+            if (thread.Monitor != null)
+                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -998,7 +1000,11 @@ namespace osu.Framework.Platform
 
             PerformanceLogging.BindValueChanged(logging =>
             {
-                Threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                Threads.ForEach(t =>
+                {
+                    if (t.Monitor != null)
+                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
