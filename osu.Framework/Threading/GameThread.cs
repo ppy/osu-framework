@@ -86,7 +86,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The culture of this thread.
         /// </summary>
-        public CultureInfo CurrentCulture
+        public CultureInfo? CurrentCulture
         {
             get => culture;
             set
@@ -97,7 +97,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private CultureInfo culture;
+        private CultureInfo? culture;
 
         /// <summary>
         /// The target number of updates per second when the game window is active.
