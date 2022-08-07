@@ -3,6 +3,7 @@
 
 using osu.Framework.Extensions.TypeExtensions;
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
@@ -51,8 +52,10 @@ namespace osu.Framework.Timing
 
         private const int fps_calculation_interval = 250;
 
-        public void ChangeSource(IClock source)
+        public void ChangeSource(IClock? source)
         {
+            Debug.Assert(source != null);
+
             CurrentTime = LastFrameTime = source.CurrentTime;
             Source = source;
         }
