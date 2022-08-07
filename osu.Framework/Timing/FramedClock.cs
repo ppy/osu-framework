@@ -3,7 +3,6 @@
 
 using osu.Framework.Extensions.TypeExtensions;
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
