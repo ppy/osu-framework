@@ -19,6 +19,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -110,7 +111,7 @@ namespace osu.Framework.Graphics.Performance
         public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
-            monitor = thread.Monitor;
+            monitor = thread.Monitor.AsNonNull();
             this.uploadPool = uploadPool;
 
             Origin = Anchor.TopRight;
