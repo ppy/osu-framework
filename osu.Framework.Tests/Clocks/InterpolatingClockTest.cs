@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using NUnit.Framework;
@@ -14,8 +12,8 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class InterpolatingClockTest
     {
-        private TestClock source;
-        private InterpolatingFramedClock interpolating;
+        private TestClock source = null!;
+        private InterpolatingFramedClock interpolating = null!;
 
         [SetUp]
         public void SetUp()
