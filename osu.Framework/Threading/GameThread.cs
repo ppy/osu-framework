@@ -488,7 +488,7 @@ namespace osu.Framework.Threading
                 {
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
-                        initializedEvent?.Dispose();
+                        initializedEvent.Dispose();
 
                         synchronizationContext.DisassociateGameThread();
 
