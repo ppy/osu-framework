@@ -10,12 +10,11 @@ namespace osu.Framework.Tests.Localisation
     [TestFixture]
     public class CultureInfoHelperTest
     {
-        private const string invariant_culture = "invariant";
-        private const string current_culture = "";
+        private const string invariant_culture = "";
 
         [TestCase("en-US", true, "en-US")]
         [TestCase("invalid name", false, invariant_culture)]
-        [TestCase(current_culture, true, current_culture)]
+        [TestCase(invariant_culture, true, invariant_culture)]
         [TestCase("ko_KR", false, invariant_culture)]
         public void TestTryGetCultureInfo(string name, bool expectedReturnValue, string expectedCultureName)
         {
@@ -25,10 +24,6 @@ namespace osu.Framework.Tests.Localisation
             {
                 case invariant_culture:
                     expectedCulture = CultureInfo.InvariantCulture;
-                    break;
-
-                case current_culture:
-                    expectedCulture = CultureInfo.CurrentCulture;
                     break;
 
                 default:
