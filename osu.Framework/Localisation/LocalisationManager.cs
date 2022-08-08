@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using osu.Framework.Bindables;
@@ -8,7 +9,7 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationManager
+    public partial class LocalisationManager : IDisposable
     {
         public IBindable<LocalisationParameters> CurrentParameters => currentParameters;
 
@@ -119,5 +120,18 @@ namespace osu.Framework.Localisation
         /// </remarks>
         /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
         protected virtual LocalisationParameters CreateLocalisationParameters() => new LocalisationParameters(currentLocale?.Storage, configPreferUnicode.Value);
+
+        protected virtual void Dispose(bool disposing)
+        {
+            currentParameters.UnbindAll();
+            configLocale.UnbindAll();
+            configPreferUnicode.UnbindAll();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

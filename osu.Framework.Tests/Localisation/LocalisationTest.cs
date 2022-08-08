@@ -31,10 +31,18 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("en", new FakeStorage("en"));
         }
 
+        [TearDown]
+        public void Teardown()
+        {
+            manager?.Dispose();
+            config?.Dispose();
+        }
+
         [Test]
         public void TestNoLanguagesAdded()
         {
             // reinitialise without the default language
+            manager.Dispose();
             manager = new LocalisationManager(config);
 
             var localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
