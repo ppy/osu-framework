@@ -92,7 +92,13 @@ namespace osu.Framework.Localisation
 
             if (currentLocale == null)
             {
-                if (!CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture))
+                CultureInfo culture;
+
+                if (string.IsNullOrEmpty(locale.NewValue))
+                {
+                    culture = CultureInfo.CurrentCulture;
+                }
+                else if (!CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out culture))
                 {
                     if (locale.OldValue == locale.NewValue)
                         // equal values mean invalid locale on startup, no real way to recover other than to set to default.

@@ -10,17 +10,11 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Wrapper around <see cref="CultureInfo.GetCultureInfo(string)"/> providing common behaviour and exception handling.
         /// </summary>
-        /// <param name="name">Name of the culture, or empty string for <see cref="CultureInfo.CurrentCulture"/>.</param>
-        /// <param name="culture">The <see cref="CultureInfo"/> with the specified <paramref name="name"/>, or <see cref="CultureInfo.InvariantCulture"/> on failure.</param>
+        /// <param name="name">Name of the culture.</param>
+        /// <param name="culture">The <see cref="CultureInfo"/> with the specified <paramref name="name"/>.</param>
         /// <returns>Whether the culture was successfully retrieved and a is .NET/OS predefined culture.</returns>
         public static bool TryGetCultureInfo(string name, out CultureInfo culture)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                culture = CultureInfo.CurrentCulture;
-                return true;
-            }
-
             try
             {
 #if NET6_0_OR_GREATER
