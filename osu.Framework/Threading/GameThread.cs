@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Threading;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
@@ -488,7 +489,9 @@ namespace osu.Framework.Threading
                 {
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
-                        initializedEvent.Dispose();
+
+                        if (initializedEvent.IsNotNull())
+                            initializedEvent.Dispose();
 
                         synchronizationContext.DisassociateGameThread();
 
