@@ -98,21 +98,21 @@ namespace osu.Framework.Tests.Platform
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
 
-                async void waitAction()
+                async Task waitAction()
                 {
-                    using (var received = new ManualResetEventSlim(false))
+                    using (var received = new SemaphoreSlim(0))
                     {
                         serverChannel.MessageReceived += message =>
                         {
                             Assert.AreEqual("example", message.Bar);
                             // ReSharper disable once AccessToDisposedClosure
-                            received.Set();
+                            received.Release();
                             return null;
                         };
 
                         await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
 
-                        if (!received.Wait(10000))
+                        if (!await received.WaitAsync(10000).ConfigureAwait(false))
                             throw new TimeoutException("Message was not received in a timely fashion");
                     }
                 }
