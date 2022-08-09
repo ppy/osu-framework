@@ -74,6 +74,12 @@ namespace osu.Framework.Tests.Visual.Localisation
             }));
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            manager?.Dispose();
+            base.Dispose(isDisposing);
+        }
+
         [Test]
         public void TestTextFlowLocalisation()
         {
