@@ -1,16 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
-using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
@@ -68,8 +66,7 @@ namespace osu.Framework.Threading
         /// in <see cref="ExecutionMode.SingleThread"/> execution mode <see cref="ThreadRunner"/> drives its <see cref="GameThread"/>s
         /// manually and sequentially on the main OS thread of the game process.
         /// </summary>
-        [CanBeNull]
-        public Thread Thread { get; private set; }
+        public Thread? Thread { get; private set; }
 
         /// <summary>
         /// The thread's scheduler.
@@ -80,7 +77,7 @@ namespace osu.Framework.Threading
         /// Attach a handler to delegate responsibility for per-frame exceptions.
         /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
         /// </summary>
-        public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
+        public EventHandler<UnhandledExceptionEventArgs>? UnhandledException;
 
         /// <summary>
         /// A synchronisation context which posts to this thread.
@@ -90,7 +87,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The culture of this thread.
         /// </summary>
-        public CultureInfo CurrentCulture
+        public CultureInfo? CurrentCulture
         {
             get => culture;
             set
@@ -101,7 +98,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private CultureInfo culture;
+        private CultureInfo? culture;
 
         /// <summary>
         /// The target number of updates per second when the game window is active.
@@ -141,14 +138,14 @@ namespace osu.Framework.Threading
 
         private readonly GameThreadSynchronizationContext synchronizationContext;
 
-        internal PerformanceMonitor Monitor { get; }
+        internal PerformanceMonitor? Monitor { get; }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
         /// <summary>
         /// The main work which is fired on each frame.
         /// </summary>
-        protected event Action OnNewFrame;
+        protected event Action? OnNewFrame;
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
@@ -164,7 +161,7 @@ namespace osu.Framework.Threading
         /// </summary>
         private volatile bool exitRequested;
 
-        internal GameThread(Action onNewFrame = null, string name = "unknown", bool monitorPerformance = true)
+        internal GameThread(Action? onNewFrame = null, string name = "unknown", bool monitorPerformance = true)
         {
             OnNewFrame = onNewFrame;
 
@@ -269,7 +266,7 @@ namespace osu.Framework.Threading
 
                 Clock.Throttling = withThrottling;
 
-                Monitor.MakeCurrent();
+                Monitor?.MakeCurrent();
 
                 updateCulture();
 
@@ -492,7 +489,9 @@ namespace osu.Framework.Threading
                 {
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
-                        initializedEvent?.Dispose();
+
+                        if (initializedEvent.IsNotNull())
+                            initializedEvent.Dispose();
 
                         synchronizationContext.DisassociateGameThread();
 
