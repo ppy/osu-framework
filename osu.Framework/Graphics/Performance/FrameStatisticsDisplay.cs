@@ -110,7 +110,10 @@ namespace osu.Framework.Graphics.Performance
         public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
+
+            Debug.Assert(thread.Monitor != null);
             monitor = thread.Monitor;
+
             this.uploadPool = uploadPool;
 
             Origin = Anchor.TopRight;

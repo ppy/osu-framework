@@ -15,7 +15,7 @@ namespace osu.Framework.Bindables
     public interface IBindable : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
-        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
+        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind with.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         void BindTo(IBindable them);

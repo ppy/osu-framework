@@ -447,6 +447,9 @@ namespace osu.Framework
 
             localFonts?.Dispose();
             localFonts = null;
+
+            Localisation?.Dispose();
+            Localisation = null;
         }
     }
 }
