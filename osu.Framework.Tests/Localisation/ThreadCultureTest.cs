@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Localisation
             });
 
             AddUntilStep("wait for query", () => cultures.Count == 3);
-            AddAssert($"culture is {name}", () => cultures.All(c => c.Name == name));
+            AddAssert($"culture is {name}", () => cultures.Select(c => c.Name), () => Is.All.EqualTo(name));
         }
 
         private void assertThreadCulture(string name)
