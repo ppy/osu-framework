@@ -593,6 +593,11 @@ namespace osu.Framework.Platform
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
             SDL.SDL_GetWindowSize(SDLWindowHandle, out int actualW, out int _);
 
+            // When minimised on windows, values may be zero.
+            // If we receive zeroes for either of these, it seems safe to completely ignore them.
+            if (actualW <= 0 || w <= 0)
+                return;
+
             Scale = (float)w / actualW;
             Size = new Size(w, h);
 
