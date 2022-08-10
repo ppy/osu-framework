@@ -28,6 +28,8 @@ namespace osu.Framework.Platform
 
         internal bool IsEmbedded { get; private set; }
 
+        public GraphicsBackendMetadata? RendererMetadata { get; protected set; }
+
         public abstract bool VerticalSync { get; set; }
 
         protected abstract IntPtr CreateContext();
@@ -43,6 +45,13 @@ namespace osu.Framework.Platform
             MakeCurrent(Context);
 
             loadTKBindings();
+
+            RendererMetadata =
+                new GraphicsBackendMetadata(
+                    rendererName: GL.GetString(StringName.Renderer),
+                    vendor: GL.GetString(StringName.Vendor),
+                    versionString: GL.GetString(StringName.Version)
+                );
 
             string version = GL.GetString(StringName.Version);
             string versionNumberSubstring = getVersionNumberSubstring(version);

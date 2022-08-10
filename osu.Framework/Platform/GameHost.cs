@@ -531,9 +531,25 @@ namespace osu.Framework.Platform
             Window.SwapBuffers();
 
             if (Window.VerticalSync)
-                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                // we will likely want to give the user control over this in the future as an advanced setting.
-                GL.Finish();
+            {
+                if ((platformWorkarounds & PlatformWorkaround.FinishAfterSwapVSync) != 0)
+                {
+                    // Some drivers (namely Gen9 drivers, like for UHD 630 (see ppy/osu-framework#5164) and Iris Plus 655 (see ppy/osu#7447))
+                    //  need explicit framerate stabilization on an uncapped framerate
+                    //  due to driver bugs, and a glFinish alone is mostly sufficient for that purpose.
+                    GL.Finish();
+                }
+            }
+            else
+            {
+                if ((platformWorkarounds & PlatformWorkaround.FinishAfterSwapNoVSync) != 0)
+                {
+                    // Some drivers require explicit synchronization due to scheduling issues,
+                    //  to stabilize frametime and improve latency in most cases
+                    //  where this workaround is needed.
+                    GL.Finish();
+                }
+            }
         }
 
         /// <summary>
@@ -747,6 +763,20 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
+                        // Force recalculation of workarounds, as we're finally able to get renderer metadata
+
+                        GraphicsBackendMetadata? rendererMetadata = Window.RendererMetadata;
+
+                        platformWorkarounds =
+                            rendererMetadata.HasValue
+                            ? PlatformWorkaroundDetector.DetectWorkaround(rendererMetadata.Value)
+                            : PlatformWorkaround.None; // If the renderer provides no metadata, assume no workarounds needed
+
+                        // We don't need to know the workaround mode in the logs
+                        //  if no workaround is being applied.
+                        if (platformWorkarounds != PlatformWorkaround.None)
+                            Logger.Log("Changed workaround mode to " + platformWorkarounds);
+
                         switch (Window)
                         {
                             case SDL2DesktopWindow window:
@@ -929,6 +959,8 @@ namespace osu.Framework.Platform
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
         private Bindable<bool> bypassFrontToBackPass;
+
+        private PlatformWorkaround platformWorkarounds = PlatformWorkaround.None;
 
         private Bindable<FrameSync> frameSyncMode;
 
