@@ -6,7 +6,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering
 {
-    public struct StencilInfo : IEquatable<StencilInfo>
+    public readonly struct StencilInfo : IEquatable<StencilInfo>
     {
         /// <summary>
         /// The default stencil properties.
@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Rendering
         public readonly StencilOp TestPassedOperation;
 
         public StencilInfo(bool stencilTest = false, StencilFunction testFunction = StencilFunction.Always, int testValue = 1, int mask = 0xff,
-            StencilOp stencilFailed = StencilOp.Keep, StencilOp depthFailed = StencilOp.Keep, StencilOp passed = StencilOp.Replace)
+                   StencilOp stencilFailed = StencilOp.Keep, StencilOp depthFailed = StencilOp.Keep, StencilOp passed = StencilOp.Replace)
         {
             StencilTest = stencilTest;
             TestFunction = testFunction;
