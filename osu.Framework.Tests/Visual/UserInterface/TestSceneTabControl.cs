@@ -235,6 +235,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
         }
 
+        [Test]
+        public void TestSelectNotPresentItem()
+        {
+            AddStep("remove item 6", () => simpleTabcontrol.RemoveItem(TestEnum.Test6));
+            AddStep("select item 6", () => simpleTabcontrol.Current.Value = TestEnum.Test6);
+
+            AddAssert("current is 6", () => simpleTabcontrol.Current.Value == TestEnum.Test6);
+            AddAssert("no tab selected", () => simpleTabcontrol.SelectedTab == null);
+        }
+
         [TestCase(true)]
         [TestCase(false)]
         public void SelectNull(bool autoSort)
