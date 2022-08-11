@@ -46,8 +46,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 ushort[] indices = new ushort[amountVertices];
 
-                for (ushort i = 0; i < amountVertices; i++)
-                    indices[i] = i;
+                for (int i = 0; i < amountVertices; i++)
+                    indices[i] = (ushort)i;
 
                 Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);

@@ -49,9 +49,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 ushort[] indices = new ushort[amountIndices];
 
-                for (ushort i = 0, j = 0; j < amountIndices; i += IRenderer.VERTICES_PER_QUAD, j += indices_per_quad)
+                for (int i = 0, j = 0; j < amountIndices; i += IRenderer.VERTICES_PER_QUAD, j += indices_per_quad)
                 {
-                    indices[j] = i;
+                    indices[j] = (ushort)i;
                     indices[j + 1] = (ushort)(i + 1);
                     indices[j + 2] = (ushort)(i + 3);
                     indices[j + 3] = (ushort)(i + 2);
