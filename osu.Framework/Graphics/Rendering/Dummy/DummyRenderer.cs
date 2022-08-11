@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public Vector2I ScissorOffset => Vector2I.Zero;
         public Matrix4 ProjectionMatrix => Matrix4.Identity;
         public DepthInfo CurrentDepthInfo => DepthInfo.Default;
+        public StencilInfo CurrentStencilInfo => StencilInfo.Default;
         public WrapMode CurrentWrapModeS => WrapMode.None;
         public WrapMode CurrentWrapModeT => WrapMode.None;
         public bool IsMaskingActive => false;

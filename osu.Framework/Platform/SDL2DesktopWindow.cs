@@ -454,7 +454,6 @@ namespace osu.Framework.Platform
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
             }
 
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
             SDL.SDL_LogSetPriority((int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL.SDL_LogSetOutputFunction(logOutputDelegate = (_, categoryInt, priority, messagePtr) =>
             {
@@ -499,6 +498,7 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL.SDL_StopTextInput();
 
+            graphicsBackend.InitialiseBeforeWindowCreation();
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
