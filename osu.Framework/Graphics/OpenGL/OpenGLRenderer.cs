@@ -891,7 +891,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         public IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
-            => new LinearBatch<TVertex>(this, size, maxBuffers, topology);
+            => new LinearBatch<TVertex>(this, size, maxBuffers, OpenGLUtils.ToPrimitiveType(topology));
 
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
             => new QuadBatch<TVertex>(this, size, maxBuffers);
