@@ -19,14 +19,16 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
-        /// Applies a new projection matrix by multiplying with the current one.
-        /// Call <see cref="PopLocalMatrix"/> after using.
+        /// Applies a new projection matrix so that all drawn vertices are transformed by <paramref name="matrix"/>.
+        /// This also affects masking. Call <see cref="PopLocalMatrix"/> after using.
         /// </summary>
         /// <param name="renderer">The renderer.</param>
         /// <param name="matrix">The matrix.</param>
         public static void PushLocalMatrix(this IRenderer renderer, Matrix4 matrix)
         {
             var currentMasking = renderer.CurrentMaskingInfo;
+            // normally toMaskingSpace is fed vertices already in screen space coordinates,
+            // but since we are modifying the matrix the vertices are in local space
             currentMasking.ToMaskingSpace = new Matrix3(matrix) * currentMasking.ToMaskingSpace;
             renderer.PushMaskingInfo(currentMasking, true);
             renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
