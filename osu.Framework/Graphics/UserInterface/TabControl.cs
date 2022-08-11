@@ -206,7 +206,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
                 Current.Value = Items.First();
 
-            Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
+            Current.BindValueChanged(v =>
+            {
+                if (v.NewValue != null && tabMap.TryGetValue(v.NewValue, out var found))
+                    selectTab(found);
+                else
+                    selectTab(null);
+            }, true);
 
             // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead
             if (AutoSort && Current.Value != null)
