@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics
 
                         Child.Draw(renderer);
 
-                        renderer.PopOrtho();
+                        renderer.PopProjectionMatrix();
                     }
 
                     PopulateContents(renderer);

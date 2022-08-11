@@ -58,11 +58,6 @@ namespace osu.Framework.Graphics.Rendering
         RectangleI Viewport { get; }
 
         /// <summary>
-        /// The current orthographic projection rectangle.
-        /// </summary>
-        RectangleF Ortho { get; }
-
-        /// <summary>
         /// The current scissor rectangle.
         /// </summary>
         RectangleI Scissor { get; }
@@ -201,15 +196,24 @@ namespace osu.Framework.Graphics.Rendering
         void PopScissorOffset();
 
         /// <summary>
-        /// Applies a new orthographic projection rectangle.
+        /// Applies a new orthographic projection rectangle. Pop with <see cref="PopProjectionMatrix"/>.
         /// </summary>
         /// <param name="ortho">The rectangle to create the orthographic projection from.</param>
-        void PushOrtho(RectangleF ortho);
+        public void PushOrtho(RectangleF ortho)
+        {
+            PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, -1, 1));
+        }
 
         /// <summary>
-        /// Restores the last orthographic projection rectangle.
+        /// Applies a new projection matrix.
         /// </summary>
-        void PopOrtho();
+        /// <param name="matrix">The matrix.</param>
+        void PushProjectionMatrix(Matrix4 matrix);
+
+        /// <summary>
+        /// Restores the last projection matrix.
+        /// </summary>
+        void PopProjectionMatrix();
 
         /// <summary>
         /// Applies new masking parameters.
