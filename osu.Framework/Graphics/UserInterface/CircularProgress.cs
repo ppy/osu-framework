@@ -25,7 +25,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         public CircularProgress()
         {
-            Current.ValueChanged += _ => Invalidate(Invalidation.DrawNode);
+            Current.ValueChanged += c =>
+            {
+                if (!double.IsFinite(c.NewValue))
+                    throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
+
+                Invalidate(Invalidation.DrawNode);
+            };
         }
 
         public IShader RoundedTextureShader { get; private set; }
@@ -89,6 +95,9 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
+                if (!float.IsFinite(value))
+                    throw new ArgumentException($"{nameof(InnerRadius)} must be finite, but is {value}.");
+
                 innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
