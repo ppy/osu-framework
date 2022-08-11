@@ -203,14 +203,7 @@ namespace osu.Framework.Graphics.Lines
                 halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveTopology.Triangles);
                 quadBatch ??= renderer.CreateQuadBatch<TexturedVertex3D>(200, 10);
 
-                // We are applying a 2d matrix but in 2d z is homogenous while in 3d w is
-                var mat = new Matrix4(DrawInfo.Matrix);
-                mat.Row3.X = mat.Row2.X;
-                mat.Row2.X = 0;
-                mat.Row3.Y = mat.Row2.Y;
-                mat.Row2.Y = 0;
-
-                renderer.PushLocalMatrix(mat);
+                renderer.PushLocalMatrix(DrawInfo.Matrix);
                 renderer.PushDepthInfo(DepthInfo.Default);
 
                 // Blending is removed to allow for correct blending between the wedges of the path.
