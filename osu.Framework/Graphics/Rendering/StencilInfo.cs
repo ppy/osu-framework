@@ -35,17 +35,17 @@ namespace osu.Framework.Graphics.Rendering
         public readonly int Mask;
 
         /// <summary>
-        /// The operation to perform on the stencil buffer in case the stencil test failed.
+        /// The operation to perform on the stencil buffer when the stencil test fails.
         /// </summary>
         public readonly StencilOp StencilTestFailOperation;
 
         /// <summary>
-        /// The operation to perform on the stencil buffer in case the depth test failed.
+        /// The operation to perform on the stencil buffer when the depth test fails.
         /// </summary>
         public readonly StencilOp DepthTestFailOperation;
 
         /// <summary>
-        /// The operation to perform on the stencil buffer in case the stencil test passed.
+        /// The operation to perform on the stencil buffer when both the stencil and depth tests pass.
         /// </summary>
         public readonly StencilOp TestPassedOperation;
 
