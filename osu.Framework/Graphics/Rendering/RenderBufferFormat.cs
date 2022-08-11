@@ -11,19 +11,9 @@ namespace osu.Framework.Graphics.Rendering
         D16,
 
         /// <summary>
-        /// 24-bit depth format.
-        /// </summary>
-        D24,
-
-        /// <summary>
         /// 32-bit depth format.
         /// </summary>
         D32,
-
-        /// <summary>
-        /// 8-bit stencil format.
-        /// </summary>
-        S8,
 
         /// <summary>
         /// 24-bit depth + 8-bit stencil format.

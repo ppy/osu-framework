@@ -846,16 +846,8 @@ namespace osu.Framework.Graphics.OpenGL
                             glFormats[i] = RenderbufferInternalFormat.DepthComponent16;
                             break;
 
-                        case RenderBufferFormat.D24:
-                            glFormats[i] = RenderbufferInternalFormat.DepthComponent24;
-                            break;
-
                         case RenderBufferFormat.D32:
                             glFormats[i] = RenderbufferInternalFormat.DepthComponent32f;
-                            break;
-
-                        case RenderBufferFormat.S8:
-                            glFormats[i] = RenderbufferInternalFormat.StencilIndex8;
                             break;
 
                         case RenderBufferFormat.D24S8:
