@@ -83,6 +83,11 @@ namespace osu.Framework.Graphics.Rendering
         DepthInfo CurrentDepthInfo { get; }
 
         /// <summary>
+        /// The current stencil parameters.
+        /// </summary>
+        StencilInfo CurrentStencilInfo { get; }
+
+        /// <summary>
         /// The current horizontal texture wrap mode.
         /// </summary>
         WrapMode CurrentWrapModeS { get; }
