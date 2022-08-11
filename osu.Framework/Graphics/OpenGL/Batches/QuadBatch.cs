@@ -16,8 +16,6 @@ namespace osu.Framework.Graphics.OpenGL.Batches
         public QuadBatch(OpenGLRenderer renderer, int size, int maxBuffers)
             : base(renderer, size, maxBuffers)
         {
-            if (size > QuadVertexBuffer<T>.MAX_QUADS)
-                throw new OverflowException($"Attempted to initialise a {nameof(QuadVertexBuffer<T>)} with more than {nameof(QuadVertexBuffer<T>)}.{nameof(QuadVertexBuffer<T>.MAX_QUADS)} quads ({QuadVertexBuffer<T>.MAX_QUADS}).");
         }
 
         protected override VertexBuffer<T> CreateVertexBuffer(OpenGLRenderer renderer) => new QuadVertexBuffer<T>(renderer, Size, BufferUsageHint.DynamicDraw);

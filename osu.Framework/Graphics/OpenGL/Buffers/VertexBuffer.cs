@@ -16,6 +16,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     internal abstract class VertexBuffer<T> : IVertexBuffer, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
+        /// <summary>
+        /// The maximum number of vertices supported by this buffer.
+        /// </summary>
+        public const int MAX_VERTICES = ushort.MaxValue;
+
         protected static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
         protected readonly OpenGLRenderer Renderer;
