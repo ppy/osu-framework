@@ -74,9 +74,6 @@ namespace osu.Framework.Graphics.Lines
 
                 Vector2 current = origin + pointOnCircle(theta) * radius;
                 Color4 currentColour = colourAt(current);
-                current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
-
-                Vector2 screenOrigin = Vector2Extensions.Transform(origin, DrawInfo.Matrix);
                 Color4 originColour = colourAt(origin);
 
                 for (int i = 1; i <= amountPoints; i++)
@@ -84,7 +81,7 @@ namespace osu.Framework.Graphics.Lines
                     // Center point
                     halfCircleBatch.Add(new TexturedVertex3D
                     {
-                        Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
+                        Position = new Vector3(origin.X, origin.Y, 1),
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                         Colour = originColour
                     });
@@ -100,7 +97,6 @@ namespace osu.Framework.Graphics.Lines
                     float angularOffset = Math.Min(i * step, thetaDiff);
                     current = origin + pointOnCircle(theta + dir * angularOffset) * radius;
                     currentColour = colourAt(current);
-                    current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                     // Second outer point
                     halfCircleBatch.Add(new TexturedVertex3D
@@ -118,19 +114,15 @@ namespace osu.Framework.Graphics.Lines
                 Line lineLeft = new Line(line.StartPoint + ortho * radius, line.EndPoint + ortho * radius);
                 Line lineRight = new Line(line.StartPoint - ortho * radius, line.EndPoint - ortho * radius);
 
-                Line screenLineLeft = new Line(Vector2Extensions.Transform(lineLeft.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineLeft.EndPoint, DrawInfo.Matrix));
-                Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
-                Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
-
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
+                    Position = new Vector3(lineRight.EndPoint.X, lineRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineRight.EndPoint)
                 });
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
+                    Position = new Vector3(lineRight.StartPoint.X, lineRight.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineRight.StartPoint)
                 });
@@ -138,8 +130,8 @@ namespace osu.Framework.Graphics.Lines
                 // Each "quad" of the slider is actually rendered as 2 quads, being split in half along the approximating line.
                 // On this line the depth is 1 instead of 0, which is done properly handle self-overlap using the depth buffer.
                 // Thus the middle vertices need to be added twice (once for each quad).
-                Vector3 firstMiddlePoint = new Vector3(screenLine.StartPoint.X, screenLine.StartPoint.Y, 1);
-                Vector3 secondMiddlePoint = new Vector3(screenLine.EndPoint.X, screenLine.EndPoint.Y, 1);
+                Vector3 firstMiddlePoint = new Vector3(line.StartPoint.X, line.StartPoint.Y, 1);
+                Vector3 secondMiddlePoint = new Vector3(line.EndPoint.X, line.EndPoint.Y, 1);
                 Color4 firstMiddleColour = colourAt(line.StartPoint);
                 Color4 secondMiddleColour = colourAt(line.EndPoint);
 
@@ -161,13 +153,13 @@ namespace osu.Framework.Graphics.Lines
 
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
+                    Position = new Vector3(lineLeft.EndPoint.X, lineLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineLeft.EndPoint)
                 });
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
+                    Position = new Vector3(lineLeft.StartPoint.X, lineLeft.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineLeft.StartPoint)
                 });
@@ -211,6 +203,14 @@ namespace osu.Framework.Graphics.Lines
                 halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveTopology.Triangles);
                 quadBatch ??= renderer.CreateQuadBatch<TexturedVertex3D>(200, 10);
 
+                // We are applying a 2d matrix but in 2d z is homogenous while in 3d w is
+                var mat = new Matrix4(DrawInfo.Matrix);
+                mat.Row3.X = mat.Row2.X;
+                mat.Row2.X = 0;
+                mat.Row3.Y = mat.Row2.Y;
+                mat.Row2.Y = 0;
+
+                renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
                 renderer.PushDepthInfo(DepthInfo.Default);
 
                 // Blending is removed to allow for correct blending between the wedges of the path.
@@ -225,6 +225,7 @@ namespace osu.Framework.Graphics.Lines
                 pathShader.Unbind();
 
                 renderer.PopDepthInfo();
+                renderer.PopProjectionMatrix();
             }
 
             protected override void Dispose(bool isDisposing)
