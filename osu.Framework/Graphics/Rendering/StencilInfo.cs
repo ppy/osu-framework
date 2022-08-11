@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -15,14 +14,14 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <summary>
         /// Whether stencil testing should occur.
-        /// If this is false, no <see cref="StencilOp"/> will occur (use <see cref="StencilFunction.Always"/> instead).
+        /// If this is false, no <see cref="StencilOperation"/> will occur (use <see cref="DepthStencilFunction.Always"/> instead).
         /// </summary>
         public readonly bool StencilTest;
 
         /// <summary>
         /// The stencil test function.
         /// </summary>
-        public readonly StencilFunction TestFunction;
+        public readonly DepthStencilFunction TestFunction;
 
         /// <summary>
         /// The stencil test value to compare against.
@@ -37,20 +36,20 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The operation to perform on the stencil buffer when the stencil test fails.
         /// </summary>
-        public readonly StencilOp StencilTestFailOperation;
+        public readonly StencilOperation StencilTestFailOperation;
 
         /// <summary>
         /// The operation to perform on the stencil buffer when the depth test fails.
         /// </summary>
-        public readonly StencilOp DepthTestFailOperation;
+        public readonly StencilOperation DepthTestFailOperation;
 
         /// <summary>
         /// The operation to perform on the stencil buffer when both the stencil and depth tests pass.
         /// </summary>
-        public readonly StencilOp TestPassedOperation;
+        public readonly StencilOperation TestPassedOperation;
 
-        public StencilInfo(bool stencilTest = false, StencilFunction testFunction = StencilFunction.Always, int testValue = 1, int mask = 0xff,
-                   StencilOp stencilFailed = StencilOp.Keep, StencilOp depthFailed = StencilOp.Keep, StencilOp passed = StencilOp.Replace)
+        public StencilInfo(bool stencilTest = false, DepthStencilFunction testFunction = DepthStencilFunction.Always, int testValue = 1, int mask = 0xff,
+                   StencilOperation stencilFailed = StencilOperation.Keep, StencilOperation depthFailed = StencilOperation.Keep, StencilOperation passed = StencilOperation.Replace)
         {
             StencilTest = stencilTest;
             TestFunction = testFunction;
