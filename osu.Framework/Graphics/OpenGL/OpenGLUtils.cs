@@ -33,36 +33,36 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        public static DepthFunction ToDepthFunction(DepthTestFunction depthTestFunction)
+        public static DepthFunction ToDepthFunction(DepthStencilFunction testFunction)
         {
-            switch (depthTestFunction)
+            switch (testFunction)
             {
-                case DepthTestFunction.Never:
+                case DepthStencilFunction.Never:
                     return DepthFunction.Never;
 
-                case DepthTestFunction.LessThan:
+                case DepthStencilFunction.LessThan:
                     return DepthFunction.Less;
 
-                case DepthTestFunction.LessThanOrEqual:
+                case DepthStencilFunction.LessThanOrEqual:
                     return DepthFunction.Lequal;
 
-                case DepthTestFunction.Equal:
+                case DepthStencilFunction.Equal:
                     return DepthFunction.Equal;
 
-                case DepthTestFunction.GreaterThanOrEqual:
+                case DepthStencilFunction.GreaterThanOrEqual:
                     return DepthFunction.Gequal;
 
-                case DepthTestFunction.Greater:
+                case DepthStencilFunction.Greater:
                     return DepthFunction.Greater;
 
-                case DepthTestFunction.NotEqual:
+                case DepthStencilFunction.NotEqual:
                     return DepthFunction.Notequal;
 
-                case DepthTestFunction.Always:
+                case DepthStencilFunction.Always:
                     return DepthFunction.Always;
 
                 default:
-                    throw new ArgumentException($"Unsupported depth test function: {depthTestFunction}.", nameof(depthTestFunction));
+                    throw new ArgumentException($"Unsupported depth test function: {testFunction}.", nameof(testFunction));
             }
         }
     }

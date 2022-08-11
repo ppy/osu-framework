@@ -28,9 +28,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The depth test function.
         /// </summary>
-        public readonly DepthTestFunction Function;
+        public readonly DepthStencilFunction Function;
 
-        public DepthInfo(bool depthTest = true, bool writeDepth = true, DepthTestFunction function = DepthTestFunction.LessThan)
+        public DepthInfo(bool depthTest = true, bool writeDepth = true, DepthStencilFunction function = DepthStencilFunction.LessThan)
         {
             DepthTest = depthTest;
             WriteDepth = writeDepth;
