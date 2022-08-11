@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
 
@@ -33,6 +34,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             this.amountVertices = amountVertices;
             Type = type;
+
+            Debug.Assert(amountVertices <= MAX_VERTICES);
         }
 
         protected override void Initialise()
@@ -43,8 +46,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 ushort[] indices = new ushort[amountVertices];
 
-                for (ushort i = 0; i < amountVertices; i++)
-                    indices[i] = i;
+                for (int i = 0; i < amountVertices; i++)
+                    indices[i] = (ushort)i;
 
                 Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
