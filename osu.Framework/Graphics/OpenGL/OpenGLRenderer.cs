@@ -891,10 +891,32 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         public IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
-            => new LinearBatch<TVertex>(this, size, maxBuffers, OpenGLUtils.ToPrimitiveType(topology));
+        {
+            if (size <= 0)
+                throw new ArgumentException("Linear batch size must be > 0.", nameof(size));
+
+            if (size > LinearVertexBuffer<TVertex>.MAX_VERTICES)
+                throw new ArgumentException($"Linear batch may not have more than {LinearVertexBuffer<TVertex>.MAX_VERTICES} vertices.", nameof(size));
+
+            if (maxBuffers <= 0)
+                throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
+
+            return new LinearBatch<TVertex>(this, size, maxBuffers, OpenGLUtils.ToPrimitiveType(topology));
+        }
 
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
-            => new QuadBatch<TVertex>(this, size, maxBuffers);
+        {
+            if (size <= 0)
+                throw new ArgumentException("Quad batch size must be > 0.", nameof(size));
+
+            if (size > QuadVertexBuffer<TVertex>.MAX_QUADS)
+                throw new ArgumentException($"Quad batch may not have more than {QuadVertexBuffer<TVertex>.MAX_QUADS} quads.", nameof(size));
+
+            if (maxBuffers <= 0)
+                throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
+
+            return new QuadBatch<TVertex>(this, size, maxBuffers);
+        }
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {

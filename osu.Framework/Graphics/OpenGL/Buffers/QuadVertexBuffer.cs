@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             : base(renderer, amountQuads * IRenderer.VERTICES_PER_QUAD, usage)
         {
             amountIndices = amountQuads * indices_per_quad;
-            Debug.Assert(amountIndices <= ushort.MaxValue);
+            Debug.Assert(amountIndices <= MAX_VERTICES);
         }
 
         protected override void Initialise()

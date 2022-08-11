@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -36,9 +35,6 @@ namespace osu.Framework.Graphics.OpenGL.Batches
 
         protected VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxBuffers)
         {
-            // Vertex buffers of size 0 don't make any sense. Let's not blindly hope for good behavior of OpenGL.
-            Trace.Assert(bufferSize > 0);
-
             Size = bufferSize;
             this.renderer = renderer;
             this.maxBuffers = maxBuffers;
