@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -29,9 +28,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The depth test function.
         /// </summary>
-        public readonly DepthFunction Function;
+        public readonly DepthTestFunction Function;
 
-        public DepthInfo(bool depthTest = true, bool writeDepth = true, DepthFunction function = DepthFunction.Less)
+        public DepthInfo(bool depthTest = true, bool writeDepth = true, DepthTestFunction function = DepthTestFunction.LessThan)
         {
             DepthTest = depthTest;
             WriteDepth = writeDepth;

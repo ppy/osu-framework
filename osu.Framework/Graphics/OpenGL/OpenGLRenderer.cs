@@ -722,7 +722,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (depthInfo.DepthTest)
             {
                 GL.Enable(EnableCap.DepthTest);
-                GL.DepthFunc(depthInfo.Function);
+                GL.DepthFunc(OpenGLUtils.ToDepthFunction(depthInfo.Function));
             }
             else
                 GL.Disable(EnableCap.DepthTest);
