@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Rendering
             TestPassedOperation = passed;
         }
 
-        public bool Equals (StencilInfo other) =>
+        public bool Equals(StencilInfo other) =>
             other.StencilTest == StencilTest &&
             other.TestFunction == TestFunction &&
             other.TestValue == TestValue &&

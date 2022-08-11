@@ -738,7 +738,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             stencilStack.Push(stencilInfo);
 
-            if ( CurrentStencilInfo.Equals(stencilInfo) )
+            if (CurrentStencilInfo.Equals(stencilInfo))
                 return;
 
             CurrentStencilInfo = stencilInfo;
@@ -752,7 +752,7 @@ namespace osu.Framework.Graphics.OpenGL
             stencilStack.Pop();
             StencilInfo stencilInfo = stencilStack.Peek();
 
-            if ( CurrentStencilInfo.Equals(stencilInfo) )
+            if (CurrentStencilInfo.Equals(stencilInfo))
                 return;
 
             CurrentStencilInfo = stencilInfo;
@@ -763,7 +763,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             flushCurrentBatch();
 
-            if ( stencilInfo.StencilTest )
+            if (stencilInfo.StencilTest)
             {
                 GL.Enable(EnableCap.StencilTest);
                 GL.StencilFunc(stencilInfo.TestFunction, stencilInfo.TestValue, stencilInfo.Mask);
