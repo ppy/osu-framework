@@ -28,9 +28,6 @@ namespace osu.Framework.Graphics.OpenGL
                 case PrimitiveTopology.TriangleStrip:
                     return PrimitiveType.TriangleStrip;
 
-                case PrimitiveTopology.TriangleFan:
-                    return PrimitiveType.TriangleFan;
-
                 default:
                     throw new ArgumentException($"Unsupported vertex topology: {topology}.", nameof(topology));
             }

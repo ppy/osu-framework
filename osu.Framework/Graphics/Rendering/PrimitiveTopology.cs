@@ -9,7 +9,6 @@ namespace osu.Framework.Graphics.Rendering
         Lines,
         LineStrip,
         Triangles,
-        TriangleStrip,
-        TriangleFan
+        TriangleStrip
     }
 }
