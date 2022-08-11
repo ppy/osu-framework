@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Lines
                 mat.Row3.Y = mat.Row2.Y;
                 mat.Row2.Y = 0;
 
-                renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
+                renderer.PushLocalMatrix(mat);
                 renderer.PushDepthInfo(DepthInfo.Default);
 
                 // Blending is removed to allow for correct blending between the wedges of the path.
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Lines
                 pathShader.Unbind();
 
                 renderer.PopDepthInfo();
-                renderer.PopProjectionMatrix();
+                renderer.PopLocalMatrix();
             }
 
             protected override void Dispose(bool isDisposing)

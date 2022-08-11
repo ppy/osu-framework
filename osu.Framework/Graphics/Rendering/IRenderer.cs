@@ -196,15 +196,6 @@ namespace osu.Framework.Graphics.Rendering
         void PopScissorOffset();
 
         /// <summary>
-        /// Applies a new orthographic projection rectangle. Pop with <see cref="PopProjectionMatrix"/>.
-        /// </summary>
-        /// <param name="ortho">The rectangle to create the orthographic projection from.</param>
-        public void PushOrtho(RectangleF ortho)
-        {
-            PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, -1, 1));
-        }
-
-        /// <summary>
         /// Applies a new projection matrix.
         /// </summary>
         /// <param name="matrix">The matrix.</param>

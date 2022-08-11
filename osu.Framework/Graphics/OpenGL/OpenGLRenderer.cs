@@ -465,7 +465,7 @@ namespace osu.Framework.Graphics.OpenGL
                 actualRect.Height = -viewport.Height;
             }
 
-            (this as IRenderer).PushOrtho(viewport);
+            this.PushOrtho(viewport);
 
             viewportStack.Push(actualRect);
 
