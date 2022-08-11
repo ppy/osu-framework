@@ -235,6 +235,17 @@ namespace osu.Framework.Graphics.Rendering
         void PopDepthInfo();
 
         /// <summary>
+        /// Applies new stencil parameters.
+        /// </summary>
+        /// <param name="stencilInfo">The stencil parameters.</param>
+        void PushStencilInfo (StencilInfo stencilInfo);
+
+        /// <summary>
+        /// Restores the last stencil parameters.
+        /// </summary>
+        void PopStencilInfo ();
+
+        /// <summary>
         /// Schedules an expensive operation to a queue from which a maximum of one operation is performed per frame.
         /// </summary>
         /// <param name="operation">The operation to schedule.</param>
