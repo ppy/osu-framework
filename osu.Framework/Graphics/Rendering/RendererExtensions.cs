@@ -98,7 +98,12 @@ namespace osu.Framework.Graphics.Rendering
                 Colour = drawColour.BottomRight.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.Area);
+            long area = (long)vertexTriangle.Area;
+
+            // Area may incorrect return a negative value, so guard against that case for now.
+            // See https://sentry.ppy.sh/organizations/ppy/issues/5739.
+            if (area > 0)
+                FrameStatistics.Add(StatisticsCounterType.Pixels, area);
         }
 
         /// <summary>
@@ -178,7 +183,12 @@ namespace osu.Framework.Graphics.Rendering
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
+            long area = (long)vertexQuad.Area;
+
+            // Area may incorrect return a negative value, so guard against that case for now.
+            // See https://sentry.ppy.sh/organizations/ppy/issues/5739.
+            if (area > 0)
+                FrameStatistics.Add(StatisticsCounterType.Pixels, area);
         }
 
         /// <summary>
