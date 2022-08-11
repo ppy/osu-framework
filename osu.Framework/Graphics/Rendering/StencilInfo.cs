@@ -9,6 +9,11 @@ namespace osu.Framework.Graphics.Rendering
     public struct StencilInfo : IEquatable<StencilInfo>
     {
         /// <summary>
+        /// The default stencil properties.
+        /// </summary>
+        public static StencilInfo Default => new StencilInfo(false);
+
+        /// <summary>
         /// Whether stencil testing should occur.
         /// If this is false, no <see cref="StencilOp"/> will occur (use <see cref="StencilFunction.Always"/> instead).
         /// </summary>

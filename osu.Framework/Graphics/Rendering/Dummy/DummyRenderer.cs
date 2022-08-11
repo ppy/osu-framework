@@ -126,6 +126,14 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
+        public void PushStencilInfo(StencilInfo stencilInfo)
+        {
+        }
+
+        public void PopStencilInfo()
+        {
+        }
+
         public void ScheduleExpensiveOperation(ScheduledDelegate operation) => operation.RunTask();
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target) => disposalAction(target);
