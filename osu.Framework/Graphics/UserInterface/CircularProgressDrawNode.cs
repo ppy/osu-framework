@@ -43,7 +43,6 @@ namespace osu.Framework.Graphics.UserInterface
             drawSize = Source.DrawSize;
             angle = (float)Source.Current.Value * two_pi;
             innerRadius = Source.InnerRadius;
-            quad = Source.ToLocalSpace(Source.ScreenSpaceDrawQuad);
         }
 
         private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Sin(angle), -MathF.Cos(angle));
