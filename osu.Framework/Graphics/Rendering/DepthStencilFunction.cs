@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The test passes when the incoming value is greater than the value in the buffer.
         /// </summary>
-        Greater,
+        GreaterThan,
 
         /// <summary>
         /// The test passes when the incoming value is not equal to the value in the buffer.
