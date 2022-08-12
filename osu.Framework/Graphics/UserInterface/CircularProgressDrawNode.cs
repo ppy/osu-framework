@@ -11,7 +11,6 @@ using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
-using osu.Framework.Graphics.OpenGL.Buffers;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -30,7 +29,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Vector2 drawSize;
         private Texture texture;
-        Quad quad;
 
         public CircularProgressDrawNode(CircularProgress source)
             : base(source)
@@ -108,16 +106,16 @@ namespace osu.Framework.Graphics.UserInterface
                 Colour = currentColour
             });
 
-            for ( int i = 1; i < amountPoints; i++ )
+            for (int i = 1; i < amountPoints; i++)
             {
-                float fract = (float)i / ( amountPoints - 1 );
+                float fract = (float)i / (amountPoints - 1);
 
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
                 float angularOffset = Math.Min(fract * two_pi, dir * angle);
                 float normalisedOffset = angularOffset / two_pi;
 
-                if ( dir < 0 )
+                if (dir < 0)
                     normalisedOffset += 1.0f;
 
                 // Update `current`
@@ -128,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
                 halfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = Vector2.Lerp(current, origin, innerRadius),
-                    TexturePosition = new Vector2(texRect.Left + ( normalisedOffset + prevOffset ) / 2 * texRect.Width, texRect.Top),
+                    TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
                     Colour = originColour
                 });
 
