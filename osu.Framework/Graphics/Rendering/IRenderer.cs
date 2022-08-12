@@ -78,6 +78,11 @@ namespace osu.Framework.Graphics.Rendering
         DepthInfo CurrentDepthInfo { get; }
 
         /// <summary>
+        /// The current stencil parameters.
+        /// </summary>
+        StencilInfo CurrentStencilInfo { get; }
+
+        /// <summary>
         /// The current horizontal texture wrap mode.
         /// </summary>
         WrapMode CurrentWrapModeS { get; }
@@ -228,6 +233,17 @@ namespace osu.Framework.Graphics.Rendering
         /// Restores the last depth parameters.
         /// </summary>
         void PopDepthInfo();
+
+        /// <summary>
+        /// Applies new stencil parameters.
+        /// </summary>
+        /// <param name="stencilInfo">The stencil parameters.</param>
+        void PushStencilInfo(StencilInfo stencilInfo);
+
+        /// <summary>
+        /// Restores the last stencil parameters.
+        /// </summary>
+        void PopStencilInfo();
 
         /// <summary>
         /// Schedules an expensive operation to a queue from which a maximum of one operation is performed per frame.

@@ -498,6 +498,7 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL.SDL_StopTextInput();
 
+            graphicsBackend.InitialiseBeforeWindowCreation();
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
