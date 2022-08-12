@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
@@ -158,16 +159,39 @@ namespace osu.Framework.Timing
         {
             try
             {
-                bool success = adjustableSource?.Seek(position) != false;
+                // To simplify seek processing, handle the case of a null source up-front.
+                if (adjustableSource == null)
+                {
+                    decoupledStopwatch.Seek(position);
+                    return true;
+                }
+
+                Debug.Assert(adjustableSource != null);
+
+                // Begin by performing a seek on the source clock.
+                bool success = adjustableSource.Seek(position);
 
                 if (IsCoupled)
+                {
+                    // If coupled, regardless of the success of the seek on the source, use the updated
+                    // source's current position. This is done because in the case of a seek failure, the
+                    // source may update the value
+                    decoupledStopwatch.Seek(adjustableSource.CurrentTime);
+
                     return success;
+                }
+                else
+                {
+                    // If decoupled, a seek operation should cause the decoupled clock to seek regardless
+                    // of whether the source clock could handle the target location.
 
-                if (!success)
-                    //if we failed to seek then stop the source and use decoupled mode.
-                    adjustableSource?.Stop();
+                    // In the case of the source seek failing, ensure the source is stopped for safety..
+                    if (!success)
+                        adjustableSource?.Stop();
 
-                return decoupledStopwatch.Seek(position);
+                    // ..then perform the requested seek precisely on the decoupled clock.
+                    return decoupledStopwatch.Seek(position);
+                }
             }
             finally
             {
