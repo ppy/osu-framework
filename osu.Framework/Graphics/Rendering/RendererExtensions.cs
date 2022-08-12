@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
-        /// Applies a new orthographic projection rectangle. Pop with <see cref="IRenderer.PopProjectionMatrix"/>.
+        /// Applies a new orthographic projection rectangle. Pop with <see cref="PopOrtho"/> or <see cref="IRenderer.PopProjectionMatrix"/>.
         /// </summary>
         /// <param name="renderer">The renderer.</param>
         /// <param name="ortho">The rectangle to create the orthographic projection from.</param>
@@ -245,6 +245,12 @@ namespace osu.Framework.Graphics.Rendering
         {
             renderer.PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, -1, 1));
         }
+
+        /// <summary>
+        /// Restores the last projection rectangle.
+        /// </summary>
+        /// <param name="renderer">The renderer.</param>
+        public static void PopOrtho(this IRenderer renderer) => renderer.PopProjectionMatrix();
 
         /// <summary>
         /// Applies a new projection matrix so that all drawn vertices are transformed by <paramref name="matrix"/>.
