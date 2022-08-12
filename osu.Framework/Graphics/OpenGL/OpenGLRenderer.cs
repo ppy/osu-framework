@@ -767,7 +767,10 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 GL.Enable(EnableCap.StencilTest);
                 GL.StencilFunc(OpenGLUtils.ToStencilFunction(stencilInfo.TestFunction), stencilInfo.TestValue, stencilInfo.Mask);
-                GL.StencilOp(OpenGLUtils.ToStencilOperation(stencilInfo.StencilTestFailOperation), OpenGLUtils.ToStencilOperation(stencilInfo.DepthTestFailOperation), OpenGLUtils.ToStencilOperation(stencilInfo.TestPassedOperation));
+                GL.StencilOp(
+                    OpenGLUtils.ToStencilOperation(stencilInfo.StencilTestFailOperation),
+                    OpenGLUtils.ToStencilOperation(stencilInfo.DepthTestFailOperation),
+                    OpenGLUtils.ToStencilOperation(stencilInfo.TestPassedOperation));
             }
             else
                 GL.Disable(EnableCap.StencilTest);
