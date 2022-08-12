@@ -76,20 +76,6 @@ namespace osu.Framework.Graphics.Shapes
                     drawFan(renderer);
             }
 
-            private static float getAngle(Vector2 diff)
-            {
-                return MathF.Atan2(diff.Y, diff.X);
-            }
-
-            private static int getWinding(float from, float to)
-            {
-                float diff = (to - from + MathF.PI) % (MathF.PI * 2);
-                if (diff < 0)
-                    diff += MathF.PI * 2;
-
-                return diff - MathF.PI >= 0 ? 1 : -1;
-            }
-
             private void drawNonZero(IRenderer renderer)
             {
                 var activeShader = renderer.IsMaskingActive ? roundedShader : shader;
@@ -121,10 +107,10 @@ namespace osu.Framework.Graphics.Shapes
                     }
                 }
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
-                float lastAngle = getAngle(vertices[1] - vertices[0]);
+                float lastAngle = angleBetween(vertices[0], vertices[1]);
                 for (int i = 2; i < vertices.Count; i++)
                 {
-                    float angle = getAngle(vertices[i] - vertices[0]);
+                    float angle = angleBetween(vertices[0], vertices[i]);
                     int nextWinding = getWinding(lastAngle, angle);
                     if (nextWinding != winding)
                     {
