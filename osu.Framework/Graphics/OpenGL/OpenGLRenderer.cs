@@ -59,9 +59,6 @@ namespace osu.Framework.Graphics.OpenGL
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
 
         public RectangleI Viewport { get; private set; }
-
-        // this replaces the old ortho - we need its size to properly set viewports.
-        private Vector2 matrixScale => new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
         public RectangleI Scissor { get; private set; }
         public Vector2I ScissorOffset { get; private set; }
         public Matrix4 ProjectionMatrix { get; private set; }
@@ -673,7 +670,8 @@ namespace osu.Framework.Graphics.OpenGL
             if (isPushing)
             {
                 // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
-                Vector2 viewportScale = Vector2.Multiply(Viewport.Size, matrixScale);
+                Vector2 projectionScale = new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
+                Vector2 viewportScale = Vector2.Multiply(Viewport.Size, projectionScale);
 
                 Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - ScissorOffset) * viewportScale;
                 Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;
