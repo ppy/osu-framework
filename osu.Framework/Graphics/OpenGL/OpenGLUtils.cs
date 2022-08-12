@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.OpenGL
                 case DepthStencilFunction.GreaterThanOrEqual:
                     return DepthFunction.Gequal;
 
-                case DepthStencilFunction.Greater:
+                case DepthStencilFunction.GreaterThan:
                     return DepthFunction.Greater;
 
                 case DepthStencilFunction.NotEqual:
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.OpenGL
                 case DepthStencilFunction.GreaterThanOrEqual:
                     return StencilFunction.Gequal;
 
-                case DepthStencilFunction.Greater:
+                case DepthStencilFunction.GreaterThan:
                     return StencilFunction.Greater;
 
                 case DepthStencilFunction.NotEqual:
