@@ -102,6 +102,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
 
             Assert.IsFalse(decoupleable.IsRunning, "Coupled should not be running.");
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(source.CurrentTime));
         }
 
         /// <summary>
