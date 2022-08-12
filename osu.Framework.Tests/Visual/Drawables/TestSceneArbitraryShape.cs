@@ -24,7 +24,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         private List<SpriteIcon> directionGuides = new List<SpriteIcon>();
         private bool isShapeValid;
         private Box boundngBox;
-        public TestSceneArbitraryShape ()
+
+        public TestSceneArbitraryShape()
         {
             Add(new CircularContainer()
             {
@@ -62,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             shape.Texture = store.Get(@"sample-texture");
         }
 
-        protected override bool OnClick (ClickEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
             DragHandle handle = new DragHandle() { Position = Content.ToLocalSpace(e.ScreenSpaceMousePosition) };
             handle.Dragged += onHandleDragged;
@@ -72,13 +73,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             return true;
         }
 
-        private void onHandleDragged (DragHandle handle, DragEvent e)
+        private void onHandleDragged(DragHandle handle, DragEvent e)
         {
             handle.Position = Content.ToLocalSpace(e.ScreenSpaceMousePosition);
             isShapeValid = false;
         }
 
-        protected override void Update ()
+        protected override void Update()
         {
             base.Update();
             if (!isShapeValid)
@@ -86,9 +87,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 int guideIndex = -1;
                 Vector2 lastPoint = Vector2.Zero;
 
-                void addGuide (Vector2 from, Vector2 to)
+                void addGuide(Vector2 from, Vector2 to)
                 {
-                    if ( directionGuides.Count <= guideIndex )
+                    if (directionGuides.Count <= guideIndex)
                     {
                         SpriteIcon guide = new SpriteIcon()
                         {
@@ -135,19 +136,19 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class DragHandle : Circle
         {
-            public DragHandle ()
+            public DragHandle()
             {
                 Size = new Vector2(10);
                 Origin = Anchor.Centre;
                 Colour = Colour4.Yellow;
             }
 
-            protected override bool OnDragStart (DragStartEvent e)
+            protected override bool OnDragStart(DragStartEvent e)
             {
                 return true;
             }
 
-            protected override void OnDrag (DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Dragged?.Invoke(this, e);
             }

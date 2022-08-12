@@ -35,12 +35,12 @@ namespace osu.Framework.Graphics.Shapes
 
             private FillRule fillRule;
 
-            public ArbitraryShapeDrawNode (ArbitraryShape source)
+            public ArbitraryShapeDrawNode(ArbitraryShape source)
                 : base(source)
             {
             }
 
-            public override void ApplyState ()
+            public override void ApplyState()
             {
                 base.ApplyState();
 
@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Shapes
                 int winding = 0;
                 void setWinding()
                 {
-                    if(winding < 0)
+                    if (winding < 0)
                     {
                         renderer.PushStencilInfo(new StencilInfo(
                             true, DepthStencilFunction.Always, 1,
@@ -120,7 +120,6 @@ namespace osu.Framework.Graphics.Shapes
                         ));
                     }
                 }
-                
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
                 float lastAngle = getAngle(vertices[1] - vertices[0]);
                 for (int i = 2; i < vertices.Count; i++)
