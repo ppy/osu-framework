@@ -59,7 +59,6 @@ namespace osu.Framework.Graphics.OpenGL
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
 
         public RectangleI Viewport { get; private set; }
-        public RectangleF Ortho { get; private set; }
         public RectangleI Scissor { get; private set; }
         public Vector2I ScissorOffset { get; private set; }
         public Matrix4 ProjectionMatrix { get; private set; }
@@ -89,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
         private readonly Stack<RectangleI> viewportStack = new Stack<RectangleI>();
-        private readonly Stack<RectangleF> orthoStack = new Stack<RectangleF>();
+        private readonly Stack<Matrix4> projectionMatrixStack = new Stack<Matrix4>();
         private readonly Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
         private readonly Stack<RectangleI> scissorRectStack = new Stack<RectangleI>();
         private readonly Stack<DepthInfo> depthStack = new Stack<DepthInfo>();
@@ -178,7 +177,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.UseProgram(0);
 
             viewportStack.Clear();
-            orthoStack.Clear();
+            projectionMatrixStack.Clear();
             maskingStack.Clear();
             scissorRectStack.Clear();
             frameBufferStack.Clear();
@@ -195,7 +194,7 @@ namespace osu.Framework.Graphics.OpenGL
             Scissor = RectangleI.Empty;
             ScissorOffset = Vector2I.Zero;
             Viewport = RectangleI.Empty;
-            Ortho = RectangleF.Empty;
+            ProjectionMatrix = Matrix4.Identity;
 
             PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y));
@@ -467,7 +466,7 @@ namespace osu.Framework.Graphics.OpenGL
                 actualRect.Height = -viewport.Height;
             }
 
-            PushOrtho(viewport);
+            this.PushOrtho(viewport);
 
             viewportStack.Push(actualRect);
 
@@ -483,7 +482,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             Trace.Assert(viewportStack.Count > 1);
 
-            PopOrtho();
+            PopProjectionMatrix();
 
             viewportStack.Pop();
             RectangleI actualRect = viewportStack.Peek();
@@ -567,35 +566,33 @@ namespace osu.Framework.Graphics.OpenGL
             ScissorOffset = offset;
         }
 
-        public void PushOrtho(RectangleF ortho)
+        public void PushProjectionMatrix(Matrix4 matrix)
         {
             flushCurrentBatch();
 
-            orthoStack.Push(ortho);
-            if (Ortho == ortho)
+            projectionMatrixStack.Push(matrix);
+            if (ProjectionMatrix == matrix)
                 return;
 
-            Ortho = ortho;
+            ProjectionMatrix = matrix;
 
-            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
         }
 
-        public void PopOrtho()
+        public void PopProjectionMatrix()
         {
-            Trace.Assert(orthoStack.Count > 1);
+            Trace.Assert(projectionMatrixStack.Count > 1);
 
             flushCurrentBatch();
 
-            orthoStack.Pop();
-            RectangleF actualRect = orthoStack.Peek();
+            projectionMatrixStack.Pop();
+            Matrix4 matrix = projectionMatrixStack.Peek();
 
-            if (Ortho == actualRect)
+            if (ProjectionMatrix == matrix)
                 return;
 
-            Ortho = actualRect;
+            ProjectionMatrix = matrix;
 
-            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
         }
 
@@ -677,7 +674,8 @@ namespace osu.Framework.Graphics.OpenGL
             if (isPushing)
             {
                 // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
-                Vector2 viewportScale = Vector2.Divide(Viewport.Size, Ortho.Size);
+                Vector2 projectionScale = new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
+                Vector2 viewportScale = Vector2.Multiply(Viewport.Size, projectionScale);
 
                 Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - ScissorOffset) * viewportScale;
                 Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;

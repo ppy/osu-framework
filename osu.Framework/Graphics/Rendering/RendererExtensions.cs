@@ -235,5 +235,70 @@ namespace osu.Framework.Graphics.Rendering
 
             renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
         }
+
+        /// <summary>
+        /// Applies a new orthographic projection rectangle.
+        /// </summary>
+        /// <remarks>
+        /// After usage, restore the last state with <see cref="PopOrtho"/> or <see cref="IRenderer.PopProjectionMatrix"/>.
+        /// </remarks>
+        /// <param name="renderer">The renderer.</param>
+        /// <param name="ortho">The rectangle to create the orthographic projection from.</param>
+        public static void PushOrtho(this IRenderer renderer, RectangleF ortho)
+        {
+            renderer.PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, -1, 1));
+        }
+
+        /// <summary>
+        /// Restores the last projection rectangle.
+        /// </summary>
+        /// <param name="renderer">The renderer.</param>
+        public static void PopOrtho(this IRenderer renderer) => renderer.PopProjectionMatrix();
+
+        /// <summary>
+        /// Applies a new projection matrix so that all drawn vertices are transformed by <paramref name="matrix"/>. This also affects masking.
+        /// </summary>
+        /// <remarks>
+        /// After usage, restore the last state with <see cref="PopLocalMatrix"/>.
+        /// </remarks>
+        /// <param name="renderer">The renderer.</param>
+        /// <param name="matrix">The matrix.</param>
+        public static void PushLocalMatrix(this IRenderer renderer, Matrix4 matrix)
+        {
+            var currentMasking = renderer.CurrentMaskingInfo;
+            // normally toMaskingSpace is fed vertices already in screen space coordinates,
+            // but since we are modifying the matrix the vertices are in local space
+            currentMasking.ToMaskingSpace = new Matrix3(matrix) * currentMasking.ToMaskingSpace;
+            renderer.PushMaskingInfo(currentMasking, true);
+            renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
+        }
+
+        /// <inheritdoc cref="PushLocalMatrix(IRenderer, Matrix4)"/>
+        public static void PushLocalMatrix(this IRenderer renderer, Matrix3 matrix)
+        {
+            var currentMasking = renderer.CurrentMaskingInfo;
+            // normally toMaskingSpace is fed vertices already in screen space coordinates,
+            // but since we are modifying the matrix the vertices are in local space
+            currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
+            renderer.PushMaskingInfo(currentMasking, true);
+
+            // this makes sure it also works for 3D vertices like the ones path uses
+            Matrix4 mat = new Matrix4(matrix);
+            mat.Row3.X = mat.Row2.X;
+            mat.Row2.X = 0;
+            mat.Row3.Y = mat.Row2.Y;
+            mat.Row2.Y = 0;
+            renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
+        }
+
+        /// <summary>
+        /// Restores the last projection matrix after a call to <see cref="PushLocalMatrix(IRenderer, Matrix4)"/>.
+        /// </summary>
+        /// <param name="renderer">The renderer.</param>
+        public static void PopLocalMatrix(this IRenderer renderer)
+        {
+            renderer.PopProjectionMatrix();
+            renderer.PopMaskingInfo();
+        }
     }
 }

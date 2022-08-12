@@ -103,11 +103,11 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        public void PushOrtho(RectangleF ortho)
+        public void PushProjectionMatrix(Matrix4 matrix)
         {
         }
 
-        public void PopOrtho()
+        public void PopProjectionMatrix()
         {
         }
 
