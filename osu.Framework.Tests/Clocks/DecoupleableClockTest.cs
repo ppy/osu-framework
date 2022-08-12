@@ -277,7 +277,7 @@ namespace osu.Framework.Tests.Clocks
         {
             decoupleable.Seek(1000);
 
-            Assert.AreEqual(source.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Source time should match coupled time.");
         }
 
         /// <summary>
