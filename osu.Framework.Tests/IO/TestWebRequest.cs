@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
@@ -221,8 +222,6 @@ namespace osu.Framework.Tests.IO
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
-
-            Assert.IsEmpty(request.GetResponseString());
 
             Assert.IsTrue(hasThrown);
         }
@@ -646,6 +645,7 @@ namespace osu.Framework.Tests.IO
             {
                 Method = HttpMethod.Post,
                 AllowInsecureRequests = true,
+                ContentType = "application/json"
             };
 
             var testObject = new TestObject();
@@ -664,14 +664,12 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentLength > 0);
             Assert.IsTrue(responseObject.Json != null);
             Assert.AreEqual(testObject.TestString, responseObject.Json.TestString);
-
-            Assert.IsTrue(responseObject.Headers.ContentType == null);
         }
 
         [Test, Retry(5)]
         public void TestNoContentPost([Values(true, false)] bool async)
         {
-            var request = new WebRequest($"{default_protocol}://{host}/anything")
+            var request = new WebRequest($"{default_protocol}://{host}/post")
             {
                 Method = HttpMethod.Post,
                 AllowInsecureRequests = true,
@@ -817,56 +815,113 @@ namespace osu.Framework.Tests.IO
             Assert.AreEqual(bytes_count, request.ResponseStream.Length);
         }
 
+        private static Dictionary<string, string> convertDictionary(Dictionary<string, object> dict)
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach (var kvp in dict)
+            {
+                switch (kvp.Value)
+                {
+                    case string strValue:
+                        result[kvp.Key] = strValue;
+                        break;
+
+                    case JArray strArray:
+                        result[kvp.Key] = strArray.Count == 0 ? null : strArray[0].ToString();
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private static T convertObject<T>(object obj) where T : IConvertible
+        {
+            switch (obj)
+            {
+                case int intVal:
+                    return (T)Convert.ChangeType(intVal, typeof(T));
+
+                case string strVal:
+                    return (T)Convert.ChangeType(strVal, typeof(T));
+
+                case JArray strArray:
+                    return (T)Convert.ChangeType(strArray.Count == 0 ? string.Empty : strArray[0], typeof(T));
+
+                default:
+                    return default;
+            }
+        }
+
         [Serializable]
+        [JsonObject(MemberSerialization.OptIn)]
         private class HttpBinGetResponse
         {
-            [JsonProperty("args")]
-            public Dictionary<string, string> Arguments { get; set; }
+            public Dictionary<string, string> Arguments => convertDictionary(arguments);
 
             [JsonProperty("headers")]
             public HttpBinHeaders Headers { get; set; }
 
             [JsonProperty("url")]
             public string Url { get; set; }
+
+            [JsonProperty("args")]
+            private Dictionary<string, object> arguments { get; set; }
         }
 
         [Serializable]
+        [JsonObject(MemberSerialization.OptIn)]
         private class HttpBinPostResponse
         {
             [JsonProperty("data")]
             public string Data { get; set; }
 
-            [JsonProperty("form")]
-            public IDictionary<string, string> Form { get; set; }
+            public Dictionary<string, string> Form => convertDictionary(form);
 
             [JsonProperty("headers")]
             public HttpBinHeaders Headers { get; set; }
 
             [JsonProperty("json")]
             public TestObject Json { get; set; }
-        }
-
-        [Serializable]
-        private class HttpBinPutResponse
-        {
-            [JsonProperty("args")]
-            public Dictionary<string, string> Arguments { get; set; }
 
             [JsonProperty("form")]
-            public Dictionary<string, string> Form { get; set; }
+            private Dictionary<string, object> form { get; set; }
         }
 
         [Serializable]
+        [JsonObject(MemberSerialization.OptIn)]
+        private class HttpBinPutResponse
+        {
+            public Dictionary<string, string> Arguments => convertDictionary(arguments);
+
+            public Dictionary<string, string> Form => convertDictionary(form);
+
+            [JsonProperty("args")]
+            private Dictionary<string, object> arguments { get; set; }
+
+            [JsonProperty("form")]
+            private Dictionary<string, object> form { get; set; }
+        }
+
+        [Serializable]
+        [JsonObject(MemberSerialization.OptIn)]
         public class HttpBinHeaders
         {
+            public int ContentLength => convertObject<int>(contentLength);
+
+            public string ContentType => convertObject<string>(contentType);
+
+            public string UserAgent => convertObject<string>(userAgent);
+
             [JsonProperty("Content-Length")]
-            public int ContentLength { get; set; }
+            private object contentLength { get; set; }
 
             [JsonProperty("Content-Type")]
-            public string ContentType { get; set; }
+            private object contentType { get; set; }
 
             [JsonProperty("User-Agent")]
-            public string UserAgent { get; set; }
+            private object userAgent { get; set; }
         }
 
         [Serializable]
