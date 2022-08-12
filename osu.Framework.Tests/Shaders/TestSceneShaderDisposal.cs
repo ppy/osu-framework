@@ -66,13 +66,16 @@ namespace osu.Framework.Tests.Shaders
             }
 
             internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
-                => new TestOpenGLShader(name, parts.Cast<OpenGLShaderPart>().ToArray());
+                => new TestOpenGLShader(renderer, name, parts.Cast<OpenGLShaderPart>().ToArray());
 
             private class TestOpenGLShader : OpenGLShader
             {
-                internal TestOpenGLShader(string name, OpenGLShaderPart[] parts)
-                    : base(name, parts)
+                private readonly IRenderer renderer;
+
+                internal TestOpenGLShader(IRenderer renderer, string name, OpenGLShaderPart[] parts)
+                    : base(renderer, name, parts)
                 {
+                    this.renderer = renderer;
                 }
 
                 private protected override int CreateProgram() => 1337;
@@ -81,7 +84,7 @@ namespace osu.Framework.Tests.Shaders
 
                 private protected override void SetupUniforms()
                 {
-                    Uniforms.Add("test", new Uniform<int>(this, "test", 1));
+                    Uniforms.Add("test", new Uniform<int>(renderer, this, "test", 1));
                 }
 
                 private protected override string GetProgramLog() => string.Empty;

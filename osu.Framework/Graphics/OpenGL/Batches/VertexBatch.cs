@@ -5,10 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Batches
@@ -29,16 +28,15 @@ namespace osu.Framework.Graphics.OpenGL.Batches
         private int currentBufferIndex;
         private int currentVertexIndex;
 
+        private readonly OpenGLRenderer renderer;
         private readonly int maxBuffers;
 
         private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
 
-        protected VertexBatch(int bufferSize, int maxBuffers)
+        protected VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxBuffers)
         {
-            // Vertex buffers of size 0 don't make any sense. Let's not blindly hope for good behavior of OpenGL.
-            Trace.Assert(bufferSize > 0);
-
             Size = bufferSize;
+            this.renderer = renderer;
             this.maxBuffers = maxBuffers;
 
             AddAction = Add;
@@ -70,7 +68,7 @@ namespace osu.Framework.Graphics.OpenGL.Batches
             currentVertexIndex = 0;
         }
 
-        protected abstract VertexBuffer<T> CreateVertexBuffer();
+        protected abstract VertexBuffer<T> CreateVertexBuffer(OpenGLRenderer renderer);
 
         /// <summary>
         /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
@@ -78,7 +76,7 @@ namespace osu.Framework.Graphics.OpenGL.Batches
         /// <param name="v">The vertex to add.</param>
         public void Add(T v)
         {
-            GLWrapper.SetActiveBatch(this);
+            renderer.SetActiveBatch(this);
 
             if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
             {
@@ -88,7 +86,7 @@ namespace osu.Framework.Graphics.OpenGL.Batches
 
             // currentIndex will change after Draw() above, so this cannot be in an else-condition
             while (currentBufferIndex >= VertexBuffers.Count)
-                VertexBuffers.Add(CreateVertexBuffer());
+                VertexBuffers.Add(CreateVertexBuffer(renderer));
 
             if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
             {

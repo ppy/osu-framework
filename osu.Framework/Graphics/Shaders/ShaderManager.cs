@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
 
@@ -117,7 +116,7 @@ namespace osu.Framework.Graphics.Shaders
 
                 store.Dispose();
 
-                GLWrapper.ScheduleDisposal(s =>
+                renderer.ScheduleDisposal(s =>
                 {
                     foreach (var shader in s.shaderCache.Values)
                         shader.Dispose();

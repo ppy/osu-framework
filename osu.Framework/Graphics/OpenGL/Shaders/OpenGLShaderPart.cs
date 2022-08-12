@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
+        private readonly IRenderer renderer;
         internal string Name;
         internal bool HasCode;
         internal bool Compiled;
@@ -38,8 +39,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly ShaderManager manager;
 
-        internal OpenGLShaderPart(string name, byte[] data, ShaderType type, ShaderManager manager)
+        internal OpenGLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
         {
+            this.renderer = renderer;
             Name = name;
             Type = type;
 
@@ -159,7 +161,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         ~OpenGLShaderPart()
         {
-            GLWrapper.ScheduleDisposal(s => s.Dispose(false), this);
+            renderer.ScheduleDisposal(s => s.Dispose(false), this);
         }
 
         public void Dispose()

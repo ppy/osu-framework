@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// Schedules a new disposal action to be executed at a later point in time.
         /// This method can be called concurrently from multiple threads.
-        /// By default the disposal will run <see cref="GLWrapper.MAX_DRAW_NODES"/> frames after enqueueing.
+        /// By default the disposal will run <see cref="IRenderer.MAX_DRAW_NODES"/> frames after enqueueing.
         /// </summary>
         /// <param name="disposalAction">The disposal action to be executed.</param>
         /// <param name="target">The target.</param>
@@ -89,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 action = disposeAction;
                 this.target = target;
-                RemainingFrameDelay = GLWrapper.MAX_DRAW_NODES;
+                RemainingFrameDelay = IRenderer.MAX_DRAW_NODES;
             }
 
             public void Run() => action(target);

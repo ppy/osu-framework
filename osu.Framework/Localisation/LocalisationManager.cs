@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using osu.Framework.Bindables;
@@ -8,7 +9,7 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationManager
+    public partial class LocalisationManager : IDisposable
     {
         public IBindable<LocalisationParameters> CurrentParameters => currentParameters;
 
@@ -91,7 +92,23 @@ namespace osu.Framework.Localisation
 
             if (currentLocale == null)
             {
-                var culture = string.IsNullOrEmpty(locale.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(locale.NewValue);
+                CultureInfo culture;
+
+                if (string.IsNullOrEmpty(locale.NewValue))
+                {
+                    culture = CultureInfo.CurrentCulture;
+                }
+                else if (!CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out culture))
+                {
+                    if (locale.OldValue == locale.NewValue)
+                        // equal values mean invalid locale on startup, no real way to recover other than to set to default.
+                        configLocale.SetDefault();
+                    else
+                        // revert to the old locale if the new one is invalid.
+                        configLocale.Value = locale.OldValue;
+
+                    return;
+                }
 
                 for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
                 {
@@ -119,5 +136,18 @@ namespace osu.Framework.Localisation
         /// </remarks>
         /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
         protected virtual LocalisationParameters CreateLocalisationParameters() => new LocalisationParameters(currentLocale?.Storage, configPreferUnicode.Value);
+
+        protected virtual void Dispose(bool disposing)
+        {
+            currentParameters.UnbindAll();
+            configLocale.UnbindAll();
+            configPreferUnicode.UnbindAll();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

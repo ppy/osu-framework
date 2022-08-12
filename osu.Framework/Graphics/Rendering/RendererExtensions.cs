@@ -4,10 +4,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.Utils;
@@ -57,7 +56,7 @@ namespace osu.Framework.Graphics.Rendering
             RectangleF coordRect = texture.GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
-            vertexAction ??= GLWrapper.DefaultQuadBatch.AddAction;
+            vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -99,7 +98,12 @@ namespace osu.Framework.Graphics.Rendering
                 Colour = drawColour.BottomRight.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.Area);
+            long area = (long)vertexTriangle.Area;
+
+            // Area may incorrect return a negative value, so guard against that case for now.
+            // See https://sentry.ppy.sh/organizations/ppy/issues/5739.
+            if (area > 0)
+                FrameStatistics.Add(StatisticsCounterType.Pixels, area);
         }
 
         /// <summary>
@@ -144,7 +148,7 @@ namespace osu.Framework.Graphics.Rendering
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            vertexAction ??= GLWrapper.DefaultQuadBatch.AddAction;
+            vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
             vertexAction(new TexturedVertex2D
             {
@@ -179,7 +183,12 @@ namespace osu.Framework.Graphics.Rendering
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
+            long area = (long)vertexQuad.Area;
+
+            // Area may incorrect return a negative value, so guard against that case for now.
+            // See https://sentry.ppy.sh/organizations/ppy/issues/5739.
+            if (area > 0)
+                FrameStatistics.Add(StatisticsCounterType.Pixels, area);
         }
 
         /// <summary>
@@ -198,7 +207,7 @@ namespace osu.Framework.Graphics.Rendering
                                           Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where T : IConvexPolygon
         {
-            var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
+            var maskingQuad = renderer.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
 
             var clipper = new ConvexPolygonClipper<Quad, T>(ref maskingQuad, ref polygon);
             Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];

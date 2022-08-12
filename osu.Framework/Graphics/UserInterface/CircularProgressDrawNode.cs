@@ -9,8 +9,8 @@ using System;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -150,13 +150,15 @@ namespace osu.Framework.Graphics.UserInterface
             if (texture?.Available != true)
                 return;
 
-            Shader.Bind();
+            var shader = GetAppropriateShader(renderer);
+
+            shader.Bind();
 
             texture.Bind();
 
             updateVertexBuffer(renderer);
 
-            Shader.Unbind();
+            shader.Unbind();
         }
 
         protected override void Dispose(bool isDisposing)

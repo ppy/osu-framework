@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using NUnit.Framework;
@@ -13,8 +11,8 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class DecoupleableClockTest
     {
-        private TestClockWithRange source;
-        private TestDecoupleableClock decoupleable;
+        private TestClockWithRange source = null!;
+        private TestDecoupleableClock decoupleable = null!;
 
         [SetUp]
         public void SetUp()

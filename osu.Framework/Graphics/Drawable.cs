@@ -30,7 +30,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -58,6 +58,9 @@ namespace osu.Framework.Graphics
     public abstract partial class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
+
+        [Resolved(CanBeNull = true)]
+        private IRenderer renderer { get; set; }
 
         protected Drawable()
         {
@@ -107,8 +110,11 @@ namespace osu.Framework.Graphics
             OnDispose?.Invoke();
             OnDispose = null;
 
-            for (int i = 0; i < drawNodes.Length; i++)
-                drawNodes[i]?.Dispose();
+            renderer?.ScheduleDisposal(d =>
+            {
+                for (int i = 0; i < d.drawNodes.Length; i++)
+                    d.drawNodes[i]?.Dispose();
+            }, this);
 
             IsDisposed = true;
         }
@@ -1840,7 +1846,7 @@ namespace osu.Framework.Graphics
 
         #region DrawNode
 
-        private readonly DrawNode[] drawNodes = new DrawNode[GLWrapper.MAX_DRAW_NODES];
+        private readonly DrawNode[] drawNodes = new DrawNode[IRenderer.MAX_DRAW_NODES];
 
         /// <summary>
         /// Generates the <see cref="DrawNode"/> for ourselves.

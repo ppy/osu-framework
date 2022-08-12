@@ -5,14 +5,13 @@
 
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
@@ -212,10 +211,10 @@ namespace osu.Framework.Graphics.Lines
                 halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveTopology.Triangles);
                 quadBatch ??= renderer.CreateQuadBatch<TexturedVertex3D>(200, 10);
 
-                GLWrapper.PushDepthInfo(DepthInfo.Default);
+                renderer.PushDepthInfo(DepthInfo.Default);
 
                 // Blending is removed to allow for correct blending between the wedges of the path.
-                GLWrapper.SetBlend(BlendingParameters.None);
+                renderer.SetBlend(BlendingParameters.None);
 
                 pathShader.Bind();
 
@@ -225,7 +224,7 @@ namespace osu.Framework.Graphics.Lines
 
                 pathShader.Unbind();
 
-                GLWrapper.PopDepthInfo();
+                renderer.PopDepthInfo();
             }
 
             protected override void Dispose(bool isDisposing)

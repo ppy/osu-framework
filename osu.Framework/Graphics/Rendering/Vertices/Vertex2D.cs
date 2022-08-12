@@ -9,7 +9,7 @@ using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.OpenGL.Vertices
+namespace osu.Framework.Graphics.Rendering.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct Vertex2D : IEquatable<Vertex2D>, IVertex

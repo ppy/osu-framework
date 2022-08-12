@@ -4,7 +4,8 @@
 #nullable disable
 
 using System;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using System.Diagnostics;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -28,11 +29,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly int amountVertices;
 
-        public LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
-            : base(amountVertices, usage)
+        public LinearVertexBuffer(OpenGLRenderer renderer, int amountVertices, PrimitiveType type, BufferUsageHint usage)
+            : base(renderer, amountVertices, usage)
         {
             this.amountVertices = amountVertices;
             Type = type;
+
+            Debug.Assert(amountVertices <= MAX_VERTICES);
         }
 
         protected override void Initialise()
@@ -43,10 +46,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 ushort[] indices = new ushort[amountVertices];
 
-                for (ushort i = 0; i < amountVertices; i++)
-                    indices[i] = i;
+                for (int i = 0; i < amountVertices; i++)
+                    indices[i] = (ushort)i;
 
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 LinearIndexData.MaxAmountIndices = amountVertices;
@@ -58,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
         }
 
         protected override PrimitiveType Type { get; }

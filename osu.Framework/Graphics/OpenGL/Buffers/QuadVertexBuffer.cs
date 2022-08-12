@@ -5,8 +5,8 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -34,11 +34,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public const int MAX_QUADS = ushort.MaxValue / indices_per_quad;
 
-        public QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
-            : base(amountQuads * IRenderer.VERTICES_PER_QUAD, usage)
+        public QuadVertexBuffer(OpenGLRenderer renderer, int amountQuads, BufferUsageHint usage)
+            : base(renderer, amountQuads * IRenderer.VERTICES_PER_QUAD, usage)
         {
             amountIndices = amountQuads * indices_per_quad;
-            Debug.Assert(amountIndices <= ushort.MaxValue);
+            Debug.Assert(amountIndices <= MAX_VERTICES);
         }
 
         protected override void Initialise()
@@ -49,9 +49,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 ushort[] indices = new ushort[amountIndices];
 
-                for (ushort i = 0, j = 0; j < amountIndices; i += IRenderer.VERTICES_PER_QUAD, j += indices_per_quad)
+                for (int i = 0, j = 0; j < amountIndices; i += IRenderer.VERTICES_PER_QUAD, j += indices_per_quad)
                 {
-                    indices[j] = i;
+                    indices[j] = (ushort)i;
                     indices[j + 1] = (ushort)(i + 1);
                     indices[j + 2] = (ushort)(i + 3);
                     indices[j + 3] = (ushort)(i + 2);
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     indices[j + 5] = (ushort)(i + 1);
                 }
 
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountIndices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 QuadIndexData.MaxAmountIndices = amountIndices;
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
         }
 
         protected override int ToElements(int vertices) => 3 * vertices / 2;

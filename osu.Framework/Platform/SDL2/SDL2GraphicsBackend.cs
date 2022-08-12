@@ -57,6 +57,11 @@ namespace osu.Framework.Platform.SDL2
             return ret;
         }
 
+        public override void InitialiseBeforeWindowCreation()
+        {
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
+        }
+
         public override void Initialise(IWindow window)
         {
             if (!(window is SDL2DesktopWindow sdlWindow))
