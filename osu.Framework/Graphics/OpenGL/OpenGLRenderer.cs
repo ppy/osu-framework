@@ -846,6 +846,18 @@ namespace osu.Framework.Graphics.OpenGL
                             glFormats[i] = RenderbufferInternalFormat.DepthComponent16;
                             break;
 
+                        case RenderBufferFormat.D32:
+                            glFormats[i] = RenderbufferInternalFormat.DepthComponent32f;
+                            break;
+
+                        case RenderBufferFormat.D24S8:
+                            glFormats[i] = RenderbufferInternalFormat.Depth24Stencil8;
+                            break;
+
+                        case RenderBufferFormat.D32S8:
+                            glFormats[i] = RenderbufferInternalFormat.Depth32fStencil8;
+                            break;
+
                         default:
                             throw new ArgumentException($"Unsupported render buffer format: {renderBufferFormats[i]}", nameof(renderBufferFormats));
                     }
