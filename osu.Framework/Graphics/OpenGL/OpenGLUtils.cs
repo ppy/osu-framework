@@ -32,5 +32,38 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported vertex topology: {topology}.", nameof(topology));
             }
         }
+
+        public static DepthFunction ToDepthFunction(DepthStencilFunction testFunction)
+        {
+            switch (testFunction)
+            {
+                case DepthStencilFunction.Never:
+                    return DepthFunction.Never;
+
+                case DepthStencilFunction.LessThan:
+                    return DepthFunction.Less;
+
+                case DepthStencilFunction.LessThanOrEqual:
+                    return DepthFunction.Lequal;
+
+                case DepthStencilFunction.Equal:
+                    return DepthFunction.Equal;
+
+                case DepthStencilFunction.GreaterThanOrEqual:
+                    return DepthFunction.Gequal;
+
+                case DepthStencilFunction.Greater:
+                    return DepthFunction.Greater;
+
+                case DepthStencilFunction.NotEqual:
+                    return DepthFunction.Notequal;
+
+                case DepthStencilFunction.Always:
+                    return DepthFunction.Always;
+
+                default:
+                    throw new ArgumentException($"Unsupported depth test function: {testFunction}.", nameof(testFunction));
+            }
+        }
     }
 }
