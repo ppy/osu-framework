@@ -345,7 +345,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestRestartAfterAbort([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/delay/10")
             {
                 Method = HttpMethod.Get,
                 AllowInsecureRequests = true,
