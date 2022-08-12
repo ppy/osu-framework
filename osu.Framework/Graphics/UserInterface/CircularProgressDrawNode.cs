@@ -139,6 +139,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 prevOffset = normalisedOffset;
             }
+
             renderer.PopLocalMatrix();
         }
 

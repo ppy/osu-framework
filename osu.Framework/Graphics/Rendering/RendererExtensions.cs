@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Rendering
             currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
             renderer.PushMaskingInfo(currentMasking, true);
 
-            // ths makes sure it also works for 3D vertices like the ones path uses
+            // this makes sure it also works for 3D vertices like the ones path uses
             Matrix4 mat = new Matrix4(matrix);
             mat.Row3.X = mat.Row2.X;
             mat.Row2.X = 0;
