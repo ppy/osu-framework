@@ -195,18 +195,56 @@ namespace osu.Framework.Graphics.Shapes
             }
         }
 
+        private static float angleBetween(Vector2 from, Vector2 to)
+        {
+            var diff = to - from;
+            return MathF.Atan2(diff.Y, diff.X);
+        }
+
+        private static int getWinding(float from, float to)
+        {
+            float diff = (to - from + MathF.PI) % (MathF.PI * 2);
+            if (diff < 0)
+                diff += MathF.PI * 2;
+
+            return diff > MathF.PI ? 1 : -1;
+        }
+
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
-            //var localPos = ToLocalSpace(screenSpacePos);
-            //float pathRadiusSquared = PathRadius * PathRadius;
+            if (!Contains(screenSpacePos) || vertices.Count < 3)
+                return false;
 
-            //foreach ( var t in segments )
-            //{
-            //    if ( t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared )
-            //        return true;
-            //}
+            var localPos = ToLocalSpace(screenSpacePos) + vertexBounds.TopLeft;
+            var origin = vertices[0];
+            if (fillRule == FillRule.Fan)
+            {
+                for (int i = 2; i < vertices.Count; i++)
+                {
+                    if (new Primitives.Triangle(origin, vertices[i - 1], vertices[i]).Contains(localPos))
+                        return true;
+                }
 
-            return false;
+                return false;
+            }
+            else
+            {
+                int totalWinding = 0;
+                float lastAngle = angleBetween(origin, vertices[1]);
+                for (int i = 2; i < vertices.Count; i++)
+                {
+                    float angle = angleBetween(origin, vertices[i]);
+                    if (new Primitives.Triangle(origin, vertices[i - 1], vertices[i]).Contains(localPos))
+                        totalWinding += getWinding(lastAngle, angle);
+
+                    lastAngle = angle;
+                }
+
+                if (fillRule == FillRule.NonZero)
+                    return totalWinding != 0;
+                else
+                    return totalWinding % 2 != 0;
+            }
         }
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - vertexBounds.TopLeft;

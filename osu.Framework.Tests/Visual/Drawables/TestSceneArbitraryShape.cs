@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Anchor = Anchor.Centre,
                         Colour = Colour4.HotPink.Opacity(0.5f)
                     },
-                    shape = new ArbitraryShape()
+                    shape = new HoverableShape()
                     {
                         Anchor = Anchor.Centre
                     }
@@ -130,6 +130,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             boundngBox.Position = shape.Position;
             boundngBox.Size = shape.Size;
+            shape.Colour = shape.IsHovered ? Colour4.Red : Colour4.White;
         }
 
         private class DragHandle : Circle
@@ -152,6 +153,14 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
 
             public event Action<DragHandle, DragEvent>? Dragged;
+        }
+
+        private class HoverableShape : ArbitraryShape
+        {
+            protected override bool OnHover(HoverEvent e)
+            {
+                return true;
+            }
         }
     }
 }

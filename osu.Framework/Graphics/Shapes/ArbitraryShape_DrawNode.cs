@@ -76,12 +76,12 @@ namespace osu.Framework.Graphics.Shapes
                     drawFan(renderer);
             }
 
-            private float getAngle(Vector2 diff)
+            private static float getAngle(Vector2 diff)
             {
                 return MathF.Atan2(diff.Y, diff.X);
             }
 
-            private int getWinding(float from, float to)
+            private static int getWinding(float from, float to)
             {
                 float diff = (to - from + MathF.PI) % (MathF.PI * 2);
                 if (diff < 0)
