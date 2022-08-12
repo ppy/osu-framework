@@ -64,6 +64,7 @@ namespace osu.Framework.Graphics.OpenGL
         public Vector2I ScissorOffset { get; private set; }
         public Matrix4 ProjectionMatrix { get; private set; }
         public DepthInfo CurrentDepthInfo { get; private set; }
+        public StencilInfo CurrentStencilInfo { get; private set; }
         public WrapMode CurrentWrapModeS { get; private set; }
         public WrapMode CurrentWrapModeT { get; private set; }
         public bool IsMaskingActive => maskingStack.Count > 1;
@@ -92,6 +93,7 @@ namespace osu.Framework.Graphics.OpenGL
         private readonly Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
         private readonly Stack<RectangleI> scissorRectStack = new Stack<RectangleI>();
         private readonly Stack<DepthInfo> depthStack = new Stack<DepthInfo>();
+        private readonly Stack<StencilInfo> stencilStack = new Stack<StencilInfo>();
         private readonly Stack<Vector2I> scissorOffsetStack = new Stack<Vector2I>();
         private readonly Stack<IShader> shaderStack = new Stack<IShader>();
         private readonly Stack<bool> scissorStateStack = new Stack<bool>();
@@ -181,6 +183,7 @@ namespace osu.Framework.Graphics.OpenGL
             scissorRectStack.Clear();
             frameBufferStack.Clear();
             depthStack.Clear();
+            stencilStack.Clear();
             scissorStateStack.Clear();
             scissorOffsetStack.Clear();
 
@@ -209,6 +212,7 @@ namespace osu.Framework.Graphics.OpenGL
             }, true);
 
             PushDepthInfo(DepthInfo.Default);
+            PushStencilInfo(StencilInfo.Default);
             Clear(new ClearInfo(Color4.Black));
 
             freeUnusedVertexBuffers();
@@ -728,6 +732,48 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.Disable(EnableCap.DepthTest);
 
             GL.DepthMask(depthInfo.WriteDepth);
+        }
+
+        public void PushStencilInfo(StencilInfo stencilInfo)
+        {
+            stencilStack.Push(stencilInfo);
+
+            if (CurrentStencilInfo.Equals(stencilInfo))
+                return;
+
+            CurrentStencilInfo = stencilInfo;
+            setStencilInfo(stencilInfo);
+        }
+
+        public void PopStencilInfo()
+        {
+            Trace.Assert(stencilStack.Count > 1);
+
+            stencilStack.Pop();
+            StencilInfo stencilInfo = stencilStack.Peek();
+
+            if (CurrentStencilInfo.Equals(stencilInfo))
+                return;
+
+            CurrentStencilInfo = stencilInfo;
+            setStencilInfo(CurrentStencilInfo);
+        }
+
+        private void setStencilInfo(StencilInfo stencilInfo)
+        {
+            flushCurrentBatch();
+
+            if (stencilInfo.StencilTest)
+            {
+                GL.Enable(EnableCap.StencilTest);
+                GL.StencilFunc(OpenGLUtils.ToStencilFunction(stencilInfo.TestFunction), stencilInfo.TestValue, stencilInfo.Mask);
+                GL.StencilOp(
+                    OpenGLUtils.ToStencilOperation(stencilInfo.StencilTestFailOperation),
+                    OpenGLUtils.ToStencilOperation(stencilInfo.DepthTestFailOperation),
+                    OpenGLUtils.ToStencilOperation(stencilInfo.TestPassedOperation));
+            }
+            else
+                GL.Disable(EnableCap.StencilTest);
         }
 
         public void ScheduleExpensiveOperation(ScheduledDelegate operation)

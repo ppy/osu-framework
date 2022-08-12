@@ -65,5 +65,71 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported depth test function: {testFunction}.", nameof(testFunction));
             }
         }
+
+        public static StencilFunction ToStencilFunction(DepthStencilFunction testFunction)
+        {
+            switch (testFunction)
+            {
+                case DepthStencilFunction.Never:
+                    return StencilFunction.Never;
+
+                case DepthStencilFunction.LessThan:
+                    return StencilFunction.Less;
+
+                case DepthStencilFunction.LessThanOrEqual:
+                    return StencilFunction.Lequal;
+
+                case DepthStencilFunction.Equal:
+                    return StencilFunction.Equal;
+
+                case DepthStencilFunction.GreaterThanOrEqual:
+                    return StencilFunction.Gequal;
+
+                case DepthStencilFunction.Greater:
+                    return StencilFunction.Greater;
+
+                case DepthStencilFunction.NotEqual:
+                    return StencilFunction.Notequal;
+
+                case DepthStencilFunction.Always:
+                    return StencilFunction.Always;
+
+                default:
+                    throw new ArgumentException($"Unsupported stencil test function: {testFunction}.", nameof(testFunction));
+            }
+        }
+
+        public static StencilOp ToStencilOperation(StencilOperation operation)
+        {
+            switch (operation)
+            {
+                case StencilOperation.Zero:
+                    return StencilOp.Zero;
+
+                case StencilOperation.Invert:
+                    return StencilOp.Invert;
+
+                case StencilOperation.Replace:
+                    return StencilOp.Replace;
+
+                case StencilOperation.Keep:
+                    return StencilOp.Keep;
+
+                case StencilOperation.Increase:
+                    return StencilOp.Incr;
+
+                case StencilOperation.Decrease:
+                    return StencilOp.Decr;
+
+                case StencilOperation.IncreaseWrap:
+                    return StencilOp.IncrWrap;
+
+                case StencilOperation.DecreaseWrap:
+                    return StencilOp.DecrWrap;
+
+                default:
+                    throw new ArgumentException($"Unsupported stencil operation: {operation}.", nameof(operation));
+            }
+        }
     }
 }

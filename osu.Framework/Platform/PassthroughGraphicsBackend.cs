@@ -36,6 +36,8 @@ namespace osu.Framework.Platform
 
         public abstract void SwapBuffers();
 
+        public abstract void InitialiseBeforeWindowCreation();
+
         public virtual void Initialise(IWindow window)
         {
             Context = CreateContext();
