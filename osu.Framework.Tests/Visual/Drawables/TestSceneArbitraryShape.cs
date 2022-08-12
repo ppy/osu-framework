@@ -18,34 +18,35 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneArbitraryShape : FrameworkTestScene
     {
-        private ArbitraryShape shape;
-        private Dropdown<FillRule> dropdown;
-        private List<DragHandle> handles = new List<DragHandle>();
-        private List<SpriteIcon> directionGuides = new List<SpriteIcon>();
+        private readonly ArbitraryShape shape;
+        private readonly List<DragHandle> handles = new List<DragHandle>();
+        private readonly List<SpriteIcon> directionGuides = new List<SpriteIcon>();
+        private readonly Box boundingBox;
         private bool isShapeValid;
-        private Box boundngBox;
 
         public TestSceneArbitraryShape()
         {
-            Add(new CircularContainer()
+            Add(new CircularContainer
             {
                 Masking = true,
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new Box() { Colour = Colour4.Gray, RelativeSizeAxes = Axes.Both },
-                    boundngBox = new Box()
+                    new Box { Colour = Colour4.Gray, RelativeSizeAxes = Axes.Both },
+                    boundingBox = new Box
                     {
                         Anchor = Anchor.Centre,
                         Colour = Colour4.HotPink.Opacity(0.5f)
                     },
-                    shape = new HoverableShape()
+                    shape = new HoverableShape
                     {
                         Anchor = Anchor.Centre
                     }
                 }
             });
-            Add(dropdown = new BasicDropdown<FillRule>()
+
+            Dropdown<FillRule> dropdown;
+            Add(dropdown = new BasicDropdown<FillRule>
             {
                 Width = 300,
                 Items = Enum.GetValues<FillRule>()
@@ -65,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         protected override bool OnClick(ClickEvent e)
         {
-            DragHandle handle = new DragHandle() { Position = Content.ToLocalSpace(e.ScreenSpaceMousePosition) };
+            DragHandle handle = new DragHandle { Position = Content.ToLocalSpace(e.ScreenSpaceMousePosition) };
             handle.Dragged += onHandleDragged;
             Add(handle);
             handles.Add(handle);
@@ -82,6 +83,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         protected override void Update()
         {
             base.Update();
+
             if (!isShapeValid)
             {
                 int guideIndex = -1;
@@ -91,7 +93,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     if (directionGuides.Count <= guideIndex)
                     {
-                        SpriteIcon guide = new SpriteIcon()
+                        SpriteIcon guide = new SpriteIcon
                         {
                             Icon = FontAwesome.Solid.ChevronRight,
                             Size = new Vector2(20),
@@ -100,37 +102,42 @@ namespace osu.Framework.Tests.Visual.Drawables
                         };
                         directionGuides.Add(guide);
                         Add(guide);
-
                     }
+
                     directionGuides[guideIndex].Position = (from + to) / 2;
                     directionGuides[guideIndex].Rotation = MathF.Atan2((to - from).Y, (to - from).X) / MathF.PI * 180;
                     guideIndex++;
                 }
 
                 shape.ClearVertices();
+
                 foreach (var i in handles)
                 {
                     var pos = i.Position - Content.DrawSize / 2;
                     shape.AddVertex(pos);
+
                     if (guideIndex >= 0)
                     {
                         addGuide(lastPoint, i.Position);
                     }
                     else guideIndex++;
+
                     lastPoint = i.Position;
                 }
+
                 if (handles.Count >= 3)
                 {
                     addGuide(lastPoint, handles[0].Position);
                 }
-                isShapeValid = true;
 
+                isShapeValid = true;
             }
+
             if (handles.Any())
                 shape.Position = handles[0].Position - Content.DrawSize / 2 - shape.PositionInBoundingBox(handles[0].Position - Content.DrawSize / 2);
 
-            boundngBox.Position = shape.Position;
-            boundngBox.Size = shape.Size;
+            boundingBox.Position = shape.Position;
+            boundingBox.Size = shape.Size;
             shape.Colour = shape.IsHovered ? Colour4.Red : Colour4.White;
         }
 

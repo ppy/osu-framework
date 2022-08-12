@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
-using System;
 using osu.Framework.Graphics.Colour;
 using System.Linq;
 
@@ -89,6 +88,7 @@ namespace osu.Framework.Graphics.Shapes
                 // we are counting the amount of times a clockwise and counterclockwise triangle was
                 // drawn over a pixel
                 int winding = 0;
+
                 void setWinding()
                 {
                     if (winding < 0)
@@ -106,12 +106,15 @@ namespace osu.Framework.Graphics.Shapes
                         ));
                     }
                 }
+
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
                 float lastAngle = angleBetween(vertices[0], vertices[1]);
+
                 for (int i = 2; i < vertices.Count; i++)
                 {
                     float angle = angleBetween(vertices[0], vertices[i]);
                     int nextWinding = getWinding(lastAngle, angle);
+
                     if (nextWinding != winding)
                     {
                         if (winding != 0)
@@ -119,8 +122,8 @@ namespace osu.Framework.Graphics.Shapes
                         winding = nextWinding;
                         setWinding();
                     }
-                    lastAngle = angle;
 
+                    lastAngle = angle;
                     renderer.DrawTriangle(renderer.WhitePixel, new Primitives.Triangle(
                         vertices[0],
                         vertices[i - 1],
@@ -158,6 +161,7 @@ namespace osu.Framework.Graphics.Shapes
                     passed: StencilOperation.Invert
                 ));
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
+
                 for (int i = 2; i < vertices.Count; i++)
                 {
                     renderer.DrawTriangle(renderer.WhitePixel, new Primitives.Triangle(
@@ -197,6 +201,7 @@ namespace osu.Framework.Graphics.Shapes
                 var vertexAction = renderer.DefaultQuadBatch.AddAction;
                 RectangleF texRect = texture.GetTextureRect();
                 Vector4 texVec = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom);
+
                 for (int i = 2; i < vertices.Count; i++)
                 {
                     var v0 = vertices[0];

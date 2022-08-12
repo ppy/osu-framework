@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Shapes
 
         [Resolved]
         private IRenderer renderer { get; set; }
+
         private ulong verticeInvalidationId = 1;
 
         public ArbitraryShape()
@@ -58,6 +59,7 @@ namespace osu.Framework.Graphics.Shapes
                 Invalidate(Invalidation.DrawNode);
             }
         }
+
         private readonly List<Vector2> vertices = new List<Vector2>();
 
         public IReadOnlyList<Vector2> Vertices
@@ -217,6 +219,7 @@ namespace osu.Framework.Graphics.Shapes
 
             var localPos = ToLocalSpace(screenSpacePos) + vertexBounds.TopLeft;
             var origin = vertices[0];
+
             if (fillRule == FillRule.Fan)
             {
                 for (int i = 2; i < vertices.Count; i++)
@@ -231,6 +234,7 @@ namespace osu.Framework.Graphics.Shapes
             {
                 int totalWinding = 0;
                 float lastAngle = angleBetween(origin, vertices[1]);
+
                 for (int i = 2; i < vertices.Count; i++)
                 {
                     float angle = angleBetween(origin, vertices[i]);
