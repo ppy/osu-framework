@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Rendering
         public readonly StencilOperation TestPassedOperation;
 
         public StencilInfo(bool stencilTest = true, DepthStencilFunction testFunction = DepthStencilFunction.Always, int testValue = 1, int mask = 0xff,
-                   StencilOperation stencilFailed = StencilOperation.Keep, StencilOperation depthFailed = StencilOperation.Keep, StencilOperation passed = StencilOperation.Replace)
+                           StencilOperation stencilFailed = StencilOperation.Keep, StencilOperation depthFailed = StencilOperation.Keep, StencilOperation passed = StencilOperation.Replace)
         {
             StencilTest = stencilTest;
             TestFunction = testFunction;
