@@ -136,7 +136,7 @@ namespace osu.Framework.Extensions.TypeExtensions
 #if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(eventInfo));
 #else
-            return false;
+            return checkNullabilityMobile(eventInfo.CustomAttributes);
 #endif
         }
 
@@ -156,7 +156,7 @@ namespace osu.Framework.Extensions.TypeExtensions
 #if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(parameterInfo));
 #else
-            return false;
+            return checkNullabilityMobile(parameterInfo.CustomAttributes);
 #endif
         }
 
@@ -176,7 +176,7 @@ namespace osu.Framework.Extensions.TypeExtensions
 #if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(fieldInfo));
 #else
-            return false;
+            return checkNullabilityMobile(fieldInfo.CustomAttributes);
 #endif
         }
 
@@ -196,12 +196,18 @@ namespace osu.Framework.Extensions.TypeExtensions
 #if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(propertyInfo));
 #else
-            return false;
+            return checkNullabilityMobile(propertyInfo.CustomAttributes);
 #endif
         }
 
 #if NET6_0_OR_GREATER
         private static bool isNullableInfo(NullabilityInfo info) => info.WriteState == NullabilityState.Nullable || info.ReadState == NullabilityState.Nullable;
+#else
+        /// <summary>
+        /// Mono + netstandard2.1 doesn't truly support NullabilityInfo. This falls back to checking the attributes for an internal compiler-generated member.
+        /// </summary>
+        private static bool checkNullabilityMobile(IEnumerable<CustomAttributeData> customAttributes)
+            => RuntimeInfo.IsMobile && customAttributes.Any(a => a.AttributeType?.FullName == "System.Runtime.CompilerServices.NullableAttribute");
 #endif
     }
 
