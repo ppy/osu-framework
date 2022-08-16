@@ -84,19 +84,26 @@ namespace osu.Framework.Timing
             // process the decoupled clock to update the current proposed time.
             decoupledClock.ProcessFrame();
 
-            // if the source clock is started as a result of becoming capable of handling the decoupled time, the proposed time may change to reflect the interpolated source time.
-            // however the interpolated source time that was calculated inside base.ProcessFrame() (above) did not consider the current (post-seek) time of the source.
-            // in all other cases the proposed time will match before and after clocks are started/stopped.
-            double proposedTime = ProposedCurrentTime;
-            double elapsedTime = ProposedElapsedTime;
-
             if (IsRunning)
             {
                 if (IsCoupled)
                 {
                     // when coupled, we want to stop when our source clock stops.
                     if (!sourceRunning)
+                    {
                         Stop();
+
+                        // if the source stops, ensure that we are immediately in sync with its time value.
+                        //
+                        // note that this *won't* apply when a Stop() call is made. in such a case, the interpolated value will
+                        // remain as current (as this is more expected behaviour – if we did a transfer there would be a jump, potentially
+                        // backwards.
+                        if (adjustableSource != null)
+                        {
+                            decoupledStopwatch.Seek(adjustableSource.CurrentTime);
+                            decoupledClock.ProcessFrame();
+                        }
+                    }
                 }
                 else
                 {
@@ -110,6 +117,12 @@ namespace osu.Framework.Timing
                 // when coupled and not running, we want to start when the source clock starts.
                 Start();
             }
+
+            // if the source clock is started as a result of becoming capable of handling the decoupled time, the proposed time may change to reflect the interpolated source time.
+            // however the interpolated source time that was calculated inside base.ProcessFrame() (above) did not consider the current (post-seek) time of the source.
+            // in all other cases the proposed time will match before and after clocks are started/stopped.
+            double proposedTime = ProposedCurrentTime;
+            double elapsedTime = ProposedElapsedTime;
 
             elapsedFrameTime = elapsedTime;
 
