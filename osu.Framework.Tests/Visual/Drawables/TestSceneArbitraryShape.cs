@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             Add(dropdown = new BasicDropdown<FillRule>
             {
                 Width = 300,
-                Items = Enum.GetValues<FillRule>()
+                Items = (FillRule[])Enum.GetValues(typeof(FillRule))
             });
 
             dropdown.Current.ValueChanged += v =>
