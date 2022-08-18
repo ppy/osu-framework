@@ -263,6 +263,7 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
+                    onTextSelectionChanged(TextSelectionType.All);
                     return true;
 
                 // Cursor Manipulation
@@ -318,26 +319,34 @@ namespace osu.Framework.Graphics.UserInterface
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
                     ExpandSelectionBy(-1);
+                    onTextSelectionChanged(TextSelectionType.Character);
                     return true;
 
                 case PlatformAction.SelectForwardChar:
                     ExpandSelectionBy(1);
+                    onTextSelectionChanged(TextSelectionType.Character);
                     return true;
 
                 case PlatformAction.SelectBackwardWord:
                     ExpandSelectionBy(GetBackwardWordAmount());
+                    onTextSelectionChanged(TextSelectionType.Word);
                     return true;
 
                 case PlatformAction.SelectForwardWord:
                     ExpandSelectionBy(GetForwardWordAmount());
+                    onTextSelectionChanged(TextSelectionType.Word);
                     return true;
 
                 case PlatformAction.SelectBackwardLine:
                     ExpandSelectionBy(GetBackwardLineAmount());
+                    // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
+                    onTextSelectionChanged(TextSelectionType.All);
                     return true;
 
                 case PlatformAction.SelectForwardLine:
                     ExpandSelectionBy(GetForwardLineAmount());
+                    // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
+                    onTextSelectionChanged(TextSelectionType.All);
                     return true;
             }
 
@@ -391,6 +400,7 @@ namespace osu.Framework.Graphics.UserInterface
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
             moveSelection(amount, false);
+            onTextSelectionChanged(TextSelectionType.Deselect);
         }
 
         /// <summary>
@@ -833,6 +843,49 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Invoked whenever the selected text has changed.
+        /// </summary>
+        /// <param name="selectionType">The type of selection change that occured.</param>
+        protected virtual void OnTextSelectionChanged(TextSelectionType selectionType)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever text is deselected.
+        /// </summary>
+        protected virtual void OnTextDeselected()
+        {
+        }
+
+        private void onTextSelectionChanged(TextSelectionType selectionType)
+        {
+            if (lastSelectionStart == selectionStart && lastSelectionEnd == selectionEnd) return;
+
+            switch (selectionType)
+            {
+                case TextSelectionType.Deselect:
+                    if (lastSelectionStart != lastSelectionEnd && (lastSelectionStart > 0 || lastSelectionEnd > 0))
+                        OnTextDeselected();
+                    break;
+
+                case TextSelectionType.Character:
+                    OnTextSelectionChanged(selectionType);
+                    break;
+
+                case TextSelectionType.Word:
+                case TextSelectionType.All:
+                    if (selectionLength > 0)
+                        OnTextSelectionChanged(selectionType);
+                    else
+                        OnTextDeselected();
+                    break;
+            }
+
+            lastSelectionStart = selectionStart;
+            lastSelectionEnd = selectionEnd;
+        }
+
+        /// <summary>
         /// Invoked whenever the IME composition has changed.
         /// </summary>
         /// <param name="newComposition">The current text of the composition.</param>
@@ -950,6 +1003,9 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
+
+        private int lastSelectionStart;
+        private int lastSelectionEnd;
 
         /// <summary>
         /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
@@ -1099,8 +1155,6 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = doubleClickWord[0];
                     selectionEnd = doubleClickWord[1];
                 }
-
-                cursorAndLayout.Invalidate();
             }
             else
             {
@@ -1109,9 +1163,11 @@ namespace osu.Framework.Graphics.UserInterface
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
                     GetContainingInputManager().ChangeFocus(this);
-
-                cursorAndLayout.Invalidate();
             }
+
+            cursorAndLayout.Invalidate();
+
+            onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character);
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -1149,6 +1205,9 @@ namespace osu.Framework.Graphics.UserInterface
             doubleClickWord = new[] { selectionStart, selectionEnd };
 
             cursorAndLayout.Invalidate();
+
+            onTextSelectionChanged(TextSelectionType.Word);
+
             return true;
         }
 
@@ -1175,6 +1234,8 @@ namespace osu.Framework.Graphics.UserInterface
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
             cursorAndLayout.Invalidate();
+
+            onTextSelectionChanged(TextSelectionType.Deselect);
 
             return false;
         }
@@ -1513,6 +1574,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (userEvent) OnImeComposition(newComposition, removeCount, addCount, oldStart != selectionStart || oldEnd != selectionEnd);
 
+            onTextSelectionChanged(newSelectionLength > 0 ? TextSelectionType.Character : TextSelectionType.Deselect);
+
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
         }
@@ -1595,5 +1658,28 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
+
+        public enum TextSelectionType
+        {
+            /// <summary>
+            /// A character was added or removed from the selection.
+            /// </summary>
+            Character,
+
+            /// <summary>
+            /// A word was added or removed from the selection.
+            /// </summary>
+            Word,
+
+            /// <summary>
+            /// All of the text was selected (i.e. via Ctrl+A or Cmd+A).
+            /// </summary>
+            All,
+
+            /// <summary>
+            /// Text was deselected.
+            /// </summary>
+            Deselect
+        };
     }
 }
