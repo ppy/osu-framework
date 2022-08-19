@@ -16,10 +16,6 @@
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Label="Sourcelink3" Condition=" '$(EnableSourceLink)' == 'true' ">
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-  </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
