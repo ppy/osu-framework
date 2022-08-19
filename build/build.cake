@@ -135,6 +135,7 @@ Task("PackFramework")
                 args.Append($"/p:GenerateDocumentationFile=true");
                 args.Append("/p:IncludeSymbols=true");
                 args.Append("/p:SymbolPackageFormat=snupkg");
+                args.Append("/p:PublishRepositoryUrl=true");
 
                 return args;
             }
