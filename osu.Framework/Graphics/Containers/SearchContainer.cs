@@ -126,14 +126,14 @@ namespace osu.Framework.Graphics.Containers
         private static bool checkTerm(string haystack, string needle, bool nonContiguous)
         {
             if (!nonContiguous)
-                return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
+                return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) >= 0;
 
             int index = 0;
 
             for (int i = 0; i < needle.Length; i++)
             {
                 // string.IndexOf doesn't have an overload which takes both a `startIndex` and `StringComparison` mode.
-                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.OrdinalIgnoreCase);
+                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
                 if (found < 0)
                     return false;
 
