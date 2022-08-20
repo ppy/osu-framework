@@ -185,6 +185,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Change locale to es", () => configManager.SetValue(FrameworkSetting.Locale, "es"));
             setTerm("Adiós");
             checkCount(1);
+            setTerm("Adios");
+            checkCount(1);
             setTerm("Goodbye");
             checkCount(1);
         }
