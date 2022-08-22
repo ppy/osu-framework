@@ -39,7 +39,7 @@ namespace osu.Framework.Configuration
         /// Get the full configuration for logging purposes.
         /// </summary>
         /// <remarks>
-        /// Excludes any potentially sensitive information via </remarks>
+        /// Excludes any potentially sensitive information via <see cref="CheckLookupContainsPrivateInformation"/>.</remarks>
         /// <returns></returns>
         public virtual IDictionary<TLookup, string> GetCurrentConfigurationForLogging() => ConfigStore
                                                                                            .Where(kvp => !CheckLookupContainsPrivateInformation(kvp.Key))
