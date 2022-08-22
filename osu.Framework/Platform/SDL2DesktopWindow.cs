@@ -1229,12 +1229,29 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Fullscreen:
-                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.Value.RefreshRate, currentDisplay.Index);
+                    try
+                    {
+                        var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.Value.RefreshRate, currentDisplay.Index);
 
-                    Size = new Size(closestMode.w, closestMode.h);
+                        Size = new Size(closestMode.w, closestMode.h);
 
-                    SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                        SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
+                        SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    }
+                    catch
+                    {
+                        Logger.Log($"Unable to set specified fullscreen resolution ({sizeFullscreen} on display {windowDisplayIndexBindable}), resetting to defaults and trying again");
+
+                        // If a fullscreen display mode could not be retrieved, fallback to defaults and try again.
+                        if (!sizeFullscreen.IsDefault)
+                        {
+                            sizeFullscreen.SetDefault();
+                            windowDisplayIndexBindable.SetDefault();
+                            updateWindowSpecifics();
+                            return;
+                        }
+                    }
+
                     break;
 
                 case WindowState.FullscreenBorderless:
