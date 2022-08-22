@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             try
             {
-                if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                if (directory?.Attributes.HasFlagFast(FileAttributes.System) == true) { }
+                else if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
                     ApplyHiddenState();
             }
             catch (UnauthorizedAccessException)
