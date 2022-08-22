@@ -5,6 +5,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
@@ -82,7 +83,9 @@ namespace osu.Framework.IO.Stores
                     // Filename format is "filenameHashMD5#contentHashMD5#width#height"
                     string[] split = existing.Split('#');
 
-                    if (split.Length == 4 && int.TryParse(split[2], out int width) && int.TryParse(split[3], out int height))
+                    if (split.Length == 4
+                        && int.TryParse(split[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int width)
+                        && int.TryParse(split[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int height))
                     {
                         // Sanity check that the length of the file is expected, based on the width and height.
                         // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
@@ -113,7 +116,7 @@ namespace osu.Framework.IO.Stores
                     foreach (string f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
                         CacheStorage.Delete(f);
 
-                    accessFilename += $"#{convert.Width}#{convert.Height}";
+                    accessFilename += FormattableString.Invariant($"#{convert.Width}#{convert.Height}");
 
                     using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
                         outStream.Write(buffer.Memory.Span);
