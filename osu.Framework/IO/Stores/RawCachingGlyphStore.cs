@@ -1,14 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SharpFNT;
@@ -30,17 +31,22 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// A storage backing to be used for storing decompressed glyph sheets.
         /// </summary>
-        internal Storage CacheStorage { get; set; }
+        internal Storage? CacheStorage { get; set; }
 
-        public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
+        private readonly Dictionary<string, Stream> pageStreamHandles = new Dictionary<string, Stream>();
+
+        private readonly Dictionary<int, PageInfo> pageLookup = new Dictionary<int, PageInfo>();
+
+        public RawCachingGlyphStore(ResourceStore<byte[]> store, string? assetName = null, IResourceStore<TextureUpload>? textureLoader = null)
             : base(store, assetName, textureLoader)
         {
         }
 
-        private readonly Dictionary<int, PageInfo> pageLookup = new Dictionary<int, PageInfo>();
-
         protected override TextureUpload LoadCharacter(Character character)
         {
+            if (CacheStorage == null)
+                throw new InvalidOperationException($"{nameof(CacheStorage)} should be set before requesting characters.");
+
             // Use simple global locking for the time being.
             // If necessary, a per-lookup-key (page number) locking mechanism could be implemented similar to TextureStore.
             lock (pageLookup)
@@ -54,6 +60,8 @@ namespace osu.Framework.IO.Stores
 
         private PageInfo createCachedPageInfo(int page)
         {
+            Debug.Assert(CacheStorage != null);
+
             string filename = GetFilenameForPage(page);
 
             using (var stream = Store.GetStream(filename))
@@ -68,26 +76,29 @@ namespace osu.Framework.IO.Stores
 
                 // Finding an existing file validates that the file both exists on disk, and was generated for the correct font.
                 // It doesn't guarantee that the generated cache file is in a good state.
-                string existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
+                string? existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                 if (existing != null)
                 {
+                    // Filename format is "filenameHashMD5#contentHashMD5#width#height"
                     string[] split = existing.Split('#');
 
-                    int width = int.Parse(split[2]);
-                    int height = int.Parse(split[3]);
-
-                    // Sanity check that the length of the file is expected, based on the width and height.
-                    // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
-                    using (var testStream = CacheStorage.GetStream(existing))
+                    if (split.Length == 4
+                        && int.TryParse(split[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int width)
+                        && int.TryParse(split[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int height))
                     {
-                        if (testStream.Length == width * height)
+                        // Sanity check that the length of the file is expected, based on the width and height.
+                        // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
+                        using (var testStream = CacheStorage.GetStream(existing))
                         {
-                            return pageLookup[page] = new PageInfo
+                            if (testStream.Length == width * height)
                             {
-                                Size = new Size(width, height),
-                                Filename = existing
-                            };
+                                return pageLookup[page] = new PageInfo
+                                {
+                                    Size = new Size(width, height),
+                                    Filename = existing
+                                };
+                            }
                         }
                     }
                 }
@@ -105,7 +116,7 @@ namespace osu.Framework.IO.Stores
                     foreach (string f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
                         CacheStorage.Delete(f);
 
-                    accessFilename += $"#{convert.Width}#{convert.Height}";
+                    accessFilename += FormattableString.Invariant($"#{convert.Width}#{convert.Height}");
 
                     using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
                         outStream.Write(buffer.Memory.Span);
@@ -119,10 +130,10 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        private readonly Dictionary<string, Stream> pageStreamHandles = new Dictionary<string, Stream>();
-
         private TextureUpload createTextureUpload(Character character, PageInfo page)
         {
+            Debug.Assert(CacheStorage != null);
+
             int pageWidth = page.Size.Width;
 
             int characterByteRegion = pageWidth * character.Height;
@@ -164,17 +175,17 @@ namespace osu.Framework.IO.Stores
         {
             base.Dispose(disposing);
 
-            if (pageStreamHandles != null)
+            if (pageStreamHandles.IsNotNull())
             {
                 foreach (var h in pageStreamHandles)
-                    h.Value?.Dispose();
+                    h.Value.Dispose();
             }
         }
 
-        private class PageInfo
+        private record PageInfo
         {
-            public string Filename;
-            public Size Size;
+            public string Filename { get; set; } = string.Empty;
+            public Size Size { get; set; }
         }
     }
 }
