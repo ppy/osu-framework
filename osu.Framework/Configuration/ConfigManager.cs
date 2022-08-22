@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Bindables;
@@ -33,6 +34,23 @@ namespace osu.Framework.Configuration
         {
             this.defaultOverrides = defaultOverrides;
         }
+
+        /// <summary>
+        /// Get the full configuration for logging purposes.
+        /// </summary>
+        /// <remarks>
+        /// Excludes any potentially sensitive information via <see cref="CheckLookupContainsPrivateInformation"/>.</remarks>
+        /// <returns></returns>
+        public virtual IDictionary<TLookup, string> GetCurrentConfigurationForLogging() => ConfigStore
+                                                                                           .Where(kvp => !CheckLookupContainsPrivateInformation(kvp.Key))
+                                                                                           .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString());
+
+        /// <summary>
+        /// Check whether a specific lookup may contain private user information.
+        /// </summary>
+        /// <param name="lookup">The lookup type to check.</param>
+        /// <returns>Whether private information is present.</returns>
+        protected virtual bool CheckLookupContainsPrivateInformation(TLookup lookup) => false;
 
         /// <summary>
         /// Set all required default values via Set() calls.
