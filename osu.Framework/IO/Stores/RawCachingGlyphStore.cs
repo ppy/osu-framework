@@ -79,22 +79,23 @@ namespace osu.Framework.IO.Stores
 
                 if (existing != null)
                 {
+                    // Filename format is "filenameHashMD5#contentHashMD5#width#height"
                     string[] split = existing.Split('#');
 
-                    int width = int.Parse(split[2]);
-                    int height = int.Parse(split[3]);
-
-                    // Sanity check that the length of the file is expected, based on the width and height.
-                    // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
-                    using (var testStream = CacheStorage.GetStream(existing))
+                    if (split.Length == 4 && int.TryParse(split[2], out int width) && int.TryParse(split[3], out int height))
                     {
-                        if (testStream.Length == width * height)
+                        // Sanity check that the length of the file is expected, based on the width and height.
+                        // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
+                        using (var testStream = CacheStorage.GetStream(existing))
                         {
-                            return pageLookup[page] = new PageInfo
+                            if (testStream.Length == width * height)
                             {
-                                Size = new Size(width, height),
-                                Filename = existing
-                            };
+                                return pageLookup[page] = new PageInfo
+                                {
+                                    Size = new Size(width, height),
+                                    Filename = existing
+                                };
+                            }
                         }
                     }
                 }
@@ -180,8 +181,8 @@ namespace osu.Framework.IO.Stores
 
         private record PageInfo
         {
-            public string Filename { get; init; } = string.Empty;
-            public Size Size { get; init; }
+            public string Filename { get; set; } = string.Empty;
+            public Size Size { get; set; }
         }
     }
 }
