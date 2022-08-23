@@ -27,8 +27,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             try
             {
-                if (directory?.Attributes.HasFlagFast(FileAttributes.System) == true) { }
-                else if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                bool isHidden = directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true;
+
+                // System drives show up as `System | Hidden | Directory` but shouldn't be shown in a hidden state.
+                bool isSystem = directory?.Attributes.HasFlagFast(FileAttributes.System) == true;
+
+                if (isHidden && !isSystem)
                     ApplyHiddenState();
             }
             catch (UnauthorizedAccessException)
