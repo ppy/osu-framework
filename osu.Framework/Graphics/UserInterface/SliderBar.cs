@@ -223,9 +223,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (!uncommittedChanges)
                 return false;
 
-            if (currentNumberInstantaneous.Disabled)
-                return false;
-
             current.Value = currentNumberInstantaneous.Value;
             uncommittedChanges = false;
             return true;
