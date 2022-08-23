@@ -29,7 +29,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 bool isHidden = directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true;
 
-                // System drives show up as `System | Hidden | Directory` but shouldn't be shown in a hidden state.
+                // On Windows, system drives are returned with `System | Hidden | Directory` file attributes,
+                // but the expectation is that they shouldn't be shown in a hidden state.
                 bool isSystemDrive = directory?.Parent == null;
 
                 if (isHidden && !isSystemDrive)
