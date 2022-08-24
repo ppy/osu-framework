@@ -103,6 +103,7 @@ namespace osu.Framework.Graphics.Containers
                     currentlyDraggedItem = null;
                     ListContainer.Clear();
                     itemMap.Clear();
+                    OnItemsChanged();
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
