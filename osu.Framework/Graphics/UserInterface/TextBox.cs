@@ -1689,7 +1689,7 @@ namespace osu.Framework.Graphics.UserInterface
             Word,
 
             /// <summary>
-            /// All of the text was selected (i.e. via Ctrl+A or Cmd+A).
+            /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
             /// </summary>
             All
         };
