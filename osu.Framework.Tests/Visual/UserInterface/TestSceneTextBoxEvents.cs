@@ -229,6 +229,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestSelectAfterOutOfBandSelectionChange()
+        {
+            AddStep("select all text", () => InputManager.Keys(PlatformAction.SelectAll));
+            AddAssert("text selection event (all)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.All);
+
+            AddStep("delete all text", () => InputManager.Keys(PlatformAction.Delete));
+            AddAssert("user text removed event raised", () => textBox.UserRemovedTextQueue.Dequeue() == default_text);
+
+            AddAssert("no text is selected", () => textBox.SelectedText, () => Is.Empty);
+            AddStep("invoke caret select action", () => InputManager.Keys(PlatformAction.SelectForwardChar));
+            AddAssert("no text is selected", () => textBox.SelectedText, () => Is.Empty);
+
+            AddAssert("no text selection event", () => textBox.TextSelectionQueue, () => Has.Exactly(0).Items);
+        }
+
+        [Test]
         public void TestImeCompositionInvokesEvent()
         {
             startComposition();

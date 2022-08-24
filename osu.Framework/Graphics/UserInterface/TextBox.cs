@@ -260,6 +260,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.SelectAll:
+                    storeTextSelectionBeforeChange();
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
@@ -318,32 +319,38 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
+                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(-1);
                     onTextSelectionChanged(TextSelectionType.Character);
                     return true;
 
                 case PlatformAction.SelectForwardChar:
+                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(1);
                     onTextSelectionChanged(TextSelectionType.Character);
                     return true;
 
                 case PlatformAction.SelectBackwardWord:
+                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetBackwardWordAmount());
                     onTextSelectionChanged(TextSelectionType.Word);
                     return true;
 
                 case PlatformAction.SelectForwardWord:
+                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetForwardWordAmount());
                     onTextSelectionChanged(TextSelectionType.Word);
                     return true;
 
                 case PlatformAction.SelectBackwardLine:
+                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetBackwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
                     onTextSelectionChanged(TextSelectionType.All);
                     return true;
 
                 case PlatformAction.SelectForwardLine:
+                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetForwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
                     onTextSelectionChanged(TextSelectionType.All);
@@ -397,10 +404,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected void MoveCursorBy(int amount)
         {
+            storeTextSelectionBeforeChange();
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
             moveSelection(amount, false);
-            onTextSelectionChanged(TextSelectionType.Deselect);
+            onTextDeselected();
         }
 
         /// <summary>
@@ -843,7 +851,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Invoked whenever the selected text has changed.
+        /// Invoked whenever text selection changes. For deselection, see <seealso cref="OnTextDeselected"/>.
         /// </summary>
         /// <param name="selectionType">The type of selection change that occured.</param>
         protected virtual void OnTextSelectionChanged(TextSelectionType selectionType)
@@ -851,7 +859,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Invoked whenever text is deselected.
+        /// Invoked whenever selected text is deselected. For selection, see <seealso cref="OnTextSelectionChanged"/>.
         /// </summary>
         protected virtual void OnTextDeselected()
         {
@@ -859,28 +867,26 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void onTextSelectionChanged(TextSelectionType selectionType)
         {
-            if (lastSelectionStart == selectionStart && lastSelectionEnd == selectionEnd) return;
+            if (lastSelectionStart == selectionStart && lastSelectionEnd == selectionEnd)
+                return;
 
-            switch (selectionType)
-            {
-                case TextSelectionType.Deselect:
-                    if (lastSelectionStart != lastSelectionEnd && (lastSelectionStart > 0 || lastSelectionEnd > 0))
-                        OnTextDeselected();
-                    break;
+            if (selectionLength > 0)
+                OnTextSelectionChanged(selectionType);
+            else
+                onTextDeselected();
+        }
 
-                case TextSelectionType.Character:
-                    OnTextSelectionChanged(selectionType);
-                    break;
+        private void onTextDeselected()
+        {
+            if (lastSelectionStart == selectionStart && lastSelectionEnd == selectionEnd)
+                return;
 
-                case TextSelectionType.Word:
-                case TextSelectionType.All:
-                    if (selectionLength > 0)
-                        OnTextSelectionChanged(selectionType);
-                    else
-                        OnTextDeselected();
-                    break;
-            }
+            if (lastSelectionStart != lastSelectionEnd)
+                OnTextDeselected();
+        }
 
+        private void storeTextSelectionBeforeChange()
+        {
             lastSelectionStart = selectionStart;
             lastSelectionEnd = selectionEnd;
         }
@@ -1134,6 +1140,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
+            storeTextSelectionBeforeChange();
+
             if (doubleClickWord != null)
             {
                 //select words at a time
@@ -1183,6 +1191,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             FinalizeImeComposition(true);
 
+            storeTextSelectionBeforeChange();
+
             if (text.Length == 0) return true;
 
             if (AllowClipboardExport)
@@ -1231,11 +1241,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
+            storeTextSelectionBeforeChange();
+
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
             cursorAndLayout.Invalidate();
 
-            onTextSelectionChanged(TextSelectionType.Deselect);
+            onTextDeselected();
 
             return false;
         }
@@ -1494,6 +1506,8 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
+            storeTextSelectionBeforeChange();
+
             // used for tracking the selection to report for `OnImeComposition()`
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
@@ -1574,7 +1588,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (userEvent) OnImeComposition(newComposition, removeCount, addCount, oldStart != selectionStart || oldEnd != selectionEnd);
 
-            onTextSelectionChanged(newSelectionLength > 0 ? TextSelectionType.Character : TextSelectionType.Deselect);
+            if (newSelectionLength > 0)
+                onTextSelectionChanged(TextSelectionType.Character);
+            else
+                onTextDeselected();
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -1674,12 +1691,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <summary>
             /// All of the text was selected (i.e. via Ctrl+A or Cmd+A).
             /// </summary>
-            All,
-
-            /// <summary>
-            /// Text was deselected.
-            /// </summary>
-            Deselect
+            All
         };
     }
 }
