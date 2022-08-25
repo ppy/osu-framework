@@ -346,7 +346,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 SelectionMoved = true
             }));
             AddAssert("input error event raised", () => textBox.InputErrorQueue.Dequeue());
-            AddAssert("text selection event (all)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Character);
         }
 
         [Test]
@@ -484,7 +483,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text selection event (all)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.All);
 
             startComposition();
-            AddAssert("text deselect event", () => textBox.TextDeselectionQueue.Dequeue());
             AddAssert("user text removed event not raised", () => textBox.UserRemovedTextQueue.Count == 0);
             AddAssert("text matches expected", () => textBox.Text == composition_text);
         }

@@ -1588,11 +1588,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (userEvent) OnImeComposition(newComposition, removeCount, addCount, oldStart != selectionStart || oldEnd != selectionEnd);
 
-            if (newSelectionLength > 0)
-                onTextSelectionChanged(TextSelectionType.Character);
-            else
-                onTextDeselected();
-
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
         }
