@@ -65,7 +65,17 @@ namespace osu.Framework.Graphics.UserInterface
             current.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
             current.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
             current.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
-            current.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
+            current.DisabledChanged += disabled =>
+            {
+                if (disabled)
+                {
+                    // revert any changes before disabling to make sure we are in a consistent state.
+                    currentNumberInstantaneous.Value = current.Value;
+                    uncommittedChanges = false;
+                }
+
+                currentNumberInstantaneous.Disabled = disabled;
+            };
 
             currentNumberInstantaneous.ValueChanged += e =>
             {

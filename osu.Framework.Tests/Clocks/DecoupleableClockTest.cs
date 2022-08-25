@@ -304,7 +304,9 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.IsCoupled = false;
             decoupleable.Seek(1000);
 
-            Assert.AreEqual(decoupleable.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
+            Assert.AreEqual(decoupleable.CurrentTime, 1000, "Decoupled time should match seek target.");
+            // Seek on the source is not performed as the clock is stopped.
+            Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Source time should not match coupled time.");
         }
 
         /// <summary>

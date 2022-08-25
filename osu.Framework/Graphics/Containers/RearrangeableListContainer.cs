@@ -75,6 +75,13 @@ namespace osu.Framework.Graphics.Containers
             Items.CollectionChanged += collectionChanged;
         }
 
+        /// <summary>
+        /// Fired whenever new drawable items are added or removed from <see cref="ListContainer"/>.
+        /// </summary>
+        protected virtual void OnItemsChanged()
+        {
+        }
+
         private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
@@ -96,6 +103,7 @@ namespace osu.Framework.Graphics.Containers
                     currentlyDraggedItem = null;
                     ListContainer.Clear();
                     itemMap.Clear();
+                    OnItemsChanged();
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
@@ -120,7 +128,8 @@ namespace osu.Framework.Graphics.Containers
                 itemMap.Remove(item);
             }
 
-            reSort();
+            sortItems();
+            OnItemsChanged();
         }
 
         private void addItems(IList items)
@@ -160,11 +169,12 @@ namespace osu.Framework.Graphics.Containers
                         ListContainer.Add(d);
                 }
 
-                reSort();
+                sortItems();
+                OnItemsChanged();
             }
         }
 
-        private void reSort()
+        private void sortItems()
         {
             for (int i = 0; i < Items.Count; i++)
             {
@@ -271,7 +281,7 @@ namespace osu.Framework.Graphics.Containers
             Items.Move(srcIndex, dstIndex);
 
             // Todo: this could be optimised, but it's a very simple iteration over all the items
-            reSort();
+            sortItems();
         }
 
         /// <summary>

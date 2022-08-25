@@ -48,5 +48,7 @@ for:
 deploy:
   - provider: Environment
     name: nuget
+    skip_symbols: false
+    artifact: /.*(\.|\.s)nupkg/
   - provider: Environment
     name: github

@@ -181,11 +181,11 @@ namespace osu.Framework.Timing
 
                 Debug.Assert(adjustableSource != null);
 
-                // Begin by performing a seek on the source clock.
-                bool success = adjustableSource.Seek(position);
-
                 if (IsCoupled)
                 {
+                    // Begin by performing a seek on the source clock.
+                    bool success = adjustableSource.Seek(position);
+
                     // If coupled, regardless of the success of the seek on the source, use the updated
                     // source's current position. This is done because in the case of a seek failure, the
                     // source may update the value
@@ -198,8 +198,10 @@ namespace osu.Framework.Timing
                     // If decoupled, a seek operation should cause the decoupled clock to seek regardless
                     // of whether the source clock could handle the target location.
 
-                    // In the case of the source seek failing, ensure the source is stopped for safety..
-                    if (!success)
+                    // In the case the source is running, attempt a seek and stop it if that seek fails.
+                    // Note that we don't need to perform a seek if the source is not running.
+                    // This is important to improve performance in the decoupled case if the source clock's Seek call is not immediate.
+                    if (adjustableSource.IsRunning && !adjustableSource.Seek(position))
                         adjustableSource?.Stop();
 
                     // ..then perform the requested seek precisely on the decoupled clock.
