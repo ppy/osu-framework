@@ -1506,8 +1506,6 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            storeTextSelectionBeforeChange();
-
             // used for tracking the selection to report for `OnImeComposition()`
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
