@@ -233,6 +233,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (e.Action.IsCommonTextEditingAction() && ImeCompositionActive)
                 return true;
 
+            var lastSelectionBounds = getTextSelectionBounds();
+
             switch (e.Action)
             {
                 // Clipboard
@@ -260,11 +262,10 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.SelectAll:
-                    storeTextSelectionBeforeChange();
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
-                    onTextSelectionChanged(TextSelectionType.All);
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 // Cursor Manipulation
@@ -319,41 +320,35 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
-                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(-1);
-                    onTextSelectionChanged(TextSelectionType.Character);
+                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardChar:
-                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(1);
-                    onTextSelectionChanged(TextSelectionType.Character);
+                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectBackwardWord:
-                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetBackwardWordAmount());
-                    onTextSelectionChanged(TextSelectionType.Word);
+                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardWord:
-                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetForwardWordAmount());
-                    onTextSelectionChanged(TextSelectionType.Word);
+                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectBackwardLine:
-                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetBackwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
-                    onTextSelectionChanged(TextSelectionType.All);
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardLine:
-                    storeTextSelectionBeforeChange();
                     ExpandSelectionBy(GetForwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
-                    onTextSelectionChanged(TextSelectionType.All);
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
             }
 
@@ -404,11 +399,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected void MoveCursorBy(int amount)
         {
-            storeTextSelectionBeforeChange();
+            var lastSelectionBounds = getTextSelectionBounds();
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
             moveSelection(amount, false);
-            onTextDeselected();
+            onTextDeselected(lastSelectionBounds);
         }
 
         /// <summary>
@@ -865,31 +860,27 @@ namespace osu.Framework.Graphics.UserInterface
         {
         }
 
-        private void onTextSelectionChanged(TextSelectionType selectionType)
+        private void onTextSelectionChanged(TextSelectionType selectionType, (int start, int end) lastSelectionBounds)
         {
-            if (lastSelectionStart == selectionStart && lastSelectionEnd == selectionEnd)
+            if (lastSelectionBounds.start == selectionStart && lastSelectionBounds.end == selectionEnd)
                 return;
 
             if (selectionLength > 0)
                 OnTextSelectionChanged(selectionType);
             else
-                onTextDeselected();
+                onTextDeselected(lastSelectionBounds);
         }
 
-        private void onTextDeselected()
+        private void onTextDeselected((int start, int end) lastSelectionBounds)
         {
-            if (lastSelectionStart == selectionStart && lastSelectionEnd == selectionEnd)
+            if (lastSelectionBounds.start == selectionStart && lastSelectionBounds.end == selectionEnd)
                 return;
 
-            if (lastSelectionStart != lastSelectionEnd)
+            if (lastSelectionBounds.start != lastSelectionBounds.end)
                 OnTextDeselected();
         }
 
-        private void storeTextSelectionBeforeChange()
-        {
-            lastSelectionStart = selectionStart;
-            lastSelectionEnd = selectionEnd;
-        }
+        private (int start, int end) getTextSelectionBounds() => (selectionStart, selectionEnd);
 
         /// <summary>
         /// Invoked whenever the IME composition has changed.
@@ -1009,9 +1000,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
-
-        private int lastSelectionStart;
-        private int lastSelectionEnd;
 
         /// <summary>
         /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
@@ -1140,7 +1128,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
-            storeTextSelectionBeforeChange();
+            var lastSelectionBounds = getTextSelectionBounds();
 
             if (doubleClickWord != null)
             {
@@ -1175,7 +1163,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
 
-            onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character);
+            onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -1191,7 +1179,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             FinalizeImeComposition(true);
 
-            storeTextSelectionBeforeChange();
+            var lastSelectionBounds = getTextSelectionBounds();
 
             if (text.Length == 0) return true;
 
@@ -1216,7 +1204,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
 
-            onTextSelectionChanged(TextSelectionType.Word);
+            onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
 
             return true;
         }
@@ -1241,13 +1229,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
-            storeTextSelectionBeforeChange();
+            var lastSelectionBounds = getTextSelectionBounds();
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
             cursorAndLayout.Invalidate();
 
-            onTextDeselected();
+            onTextDeselected(lastSelectionBounds);
 
             return false;
         }
