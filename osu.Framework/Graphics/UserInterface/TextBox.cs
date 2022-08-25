@@ -1687,6 +1687,6 @@ namespace osu.Framework.Graphics.UserInterface
             /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
             /// </summary>
             All
-        };
+        }
     }
 }
