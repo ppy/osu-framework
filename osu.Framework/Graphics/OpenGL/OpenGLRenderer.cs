@@ -16,7 +16,6 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Video;
 using osu.Framework.Lists;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -85,7 +84,7 @@ namespace osu.Framework.Graphics.OpenGL
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
-        private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
+        private readonly List<IOpenGLVertexBuffer> vertexBuffersInUse = new List<IOpenGLVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
         private readonly Stack<RectangleI> viewportStack = new Stack<RectangleI>();
         private readonly Stack<Matrix4> projectionMatrixStack = new Stack<Matrix4>();
@@ -908,7 +907,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            return new FrameBuffer(this, glFormats, glFilteringMode);
+            return new OpenGLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
@@ -934,7 +933,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         public Texture CreateVideoTexture(int width, int height)
-            => CreateTexture(new VideoTexture(this, width, height), WrapMode.None, WrapMode.None);
+            => CreateTexture(new VideoTextureGL(this, width, height), WrapMode.None, WrapMode.None);
 
         public Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
         {
@@ -951,13 +950,13 @@ namespace osu.Framework.Graphics.OpenGL
             if (size <= 0)
                 throw new ArgumentException("Linear batch size must be > 0.", nameof(size));
 
-            if (size > LinearVertexBuffer<TVertex>.MAX_VERTICES)
-                throw new ArgumentException($"Linear batch may not have more than {LinearVertexBuffer<TVertex>.MAX_VERTICES} vertices.", nameof(size));
+            if (size > OpenGLLinearBuffer<TVertex>.MAX_VERTICES)
+                throw new ArgumentException($"Linear batch may not have more than {OpenGLLinearBuffer<TVertex>.MAX_VERTICES} vertices.", nameof(size));
 
             if (maxBuffers <= 0)
                 throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
 
-            return new LinearBatch<TVertex>(this, size, maxBuffers, OpenGLUtils.ToPrimitiveType(topology));
+            return new OpenGLLinearBatch<TVertex>(this, size, maxBuffers, OpenGLUtils.ToPrimitiveType(topology));
         }
 
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
@@ -965,13 +964,13 @@ namespace osu.Framework.Graphics.OpenGL
             if (size <= 0)
                 throw new ArgumentException("Quad batch size must be > 0.", nameof(size));
 
-            if (size > QuadVertexBuffer<TVertex>.MAX_QUADS)
-                throw new ArgumentException($"Quad batch may not have more than {QuadVertexBuffer<TVertex>.MAX_QUADS} quads.", nameof(size));
+            if (size > OpenGLQuadBuffer<TVertex>.MAX_QUADS)
+                throw new ArgumentException($"Quad batch may not have more than {OpenGLQuadBuffer<TVertex>.MAX_QUADS} quads.", nameof(size));
 
             if (maxBuffers <= 0)
                 throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
 
-            return new QuadBatch<TVertex>(this, size, maxBuffers);
+            return new OpenGLQuadBatch<TVertex>(this, size, maxBuffers);
         }
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
@@ -1020,10 +1019,10 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
-        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
+        /// Notifies that a <see cref="IOpenGLVertexBuffer"/> has begun being used.
         /// </summary>
-        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
-        public void RegisterVertexBufferUse(IVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
+        /// <param name="buffer">The <see cref="IOpenGLVertexBuffer"/> in use.</param>
+        public void RegisterVertexBufferUse(IOpenGLVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.

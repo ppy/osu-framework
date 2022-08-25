@@ -11,16 +11,16 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal class FrameBuffer : IFrameBuffer
+    internal class OpenGLFrameBuffer : IFrameBuffer
     {
         public Texture Texture { get; }
 
-        private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
+        private readonly List<OpenGLRenderBuffer> attachedRenderBuffers = new List<OpenGLRenderBuffer>();
         private readonly OpenGLRenderer renderer;
         private readonly TextureGL textureGL;
         private readonly int frameBuffer;
 
-        public FrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
+        public OpenGLFrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
         {
             this.renderer = renderer;
             frameBuffer = GL.GenFramebuffer();
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (renderBufferFormats != null)
             {
                 foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new RenderBuffer(renderer, format));
+                    attachedRenderBuffers.Add(new OpenGLRenderBuffer(renderer, format));
             }
 
             renderer.UnbindFrameBuffer(frameBuffer);
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #region Disposal
 
-        ~FrameBuffer()
+        ~OpenGLFrameBuffer()
         {
             renderer.ScheduleDisposal(b => b.Dispose(false), this);
         }
