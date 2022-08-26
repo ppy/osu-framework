@@ -37,11 +37,35 @@ namespace osu.Framework.Tests.Containers
 
             // Remove
             Assert.DoesNotThrow(() => container.Remove(sprite, false));
+            Assert.IsFalse(sprite.IsDisposed);
             Assert.IsFalse(container.Contains(sprite));
 
             // Re-add
             Assert.DoesNotThrow(() => container.Add(sprite));
             Assert.IsTrue(container.Contains(sprite));
+        }
+
+        /// <summary>
+        /// Tests if a drawable is added then removed with disposal, it can't be added again.
+        /// </summary>
+        [Test]
+        public void TestAttemptAddAfterDisposal()
+        {
+            var container = new Container();
+            var sprite = new Sprite();
+
+            // Add
+            Assert.DoesNotThrow(() => container.Add(sprite));
+            Assert.IsTrue(container.Contains(sprite));
+
+            // Remove with disposal
+            Assert.DoesNotThrow(() => container.Remove(sprite, true));
+            Assert.IsTrue(sprite.IsDisposed);
+            Assert.IsFalse(container.Contains(sprite));
+
+            // Attempts re-add
+            Assert.Throws<ObjectDisposedException>(() => container.Add(sprite));
+            Assert.IsFalse(container.Contains(sprite));
         }
 
         /// <summary>
