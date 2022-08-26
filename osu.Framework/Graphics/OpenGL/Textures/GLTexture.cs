@@ -17,7 +17,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
-    internal class TextureGL : INativeTexture
+    internal class GLTexture : INativeTexture
     {
         protected readonly GLRenderer Renderer;
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public ulong BindCount { get; protected set; }
 
         /// <summary>
-        /// Creates a new <see cref="TextureGL"/>.
+        /// Creates a new <see cref="GLTexture"/>.
         /// </summary>
         /// <param name="renderer"></param>
         /// <param name="width">The width of the texture.</param>
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public TextureGL(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
+        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
         {
             Renderer = renderer;
             Width = width;
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             GC.SuppressFinalize(this);
         }
 
-        ~TextureGL()
+        ~GLTexture()
         {
             Dispose(false);
         }

@@ -12,11 +12,11 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
-    internal unsafe class VideoTextureGL : TextureGL
+    internal unsafe class GLVideoTexture : GLTexture
     {
         private int[] textureIds;
 
-        public VideoTextureGL(GLRenderer renderer, int width, int height)
+        public GLVideoTexture(GLRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
         {
         }

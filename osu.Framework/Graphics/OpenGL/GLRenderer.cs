@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.OpenGL
         private readonly GlobalStatistic<int> statTextureUploadsPerformed = GlobalStatistics.Get<int>(nameof(GLRenderer), "Texture uploads performed");
 
         private readonly ConcurrentQueue<ScheduledDelegate> expensiveOperationQueue = new ConcurrentQueue<ScheduledDelegate>();
-        private readonly ConcurrentQueue<TextureGL> textureUploadQueue = new ConcurrentQueue<TextureGL>();
+        private readonly ConcurrentQueue<GLTexture> textureUploadQueue = new ConcurrentQueue<GLTexture>();
         private readonly GLDisposalQueue disposalQueue = new GLDisposalQueue();
 
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.OpenGL
             int uploadedPixels = 0;
 
             // continue attempting to upload textures until enough uploads have been performed.
-            while (textureUploadQueue.TryDequeue(out TextureGL? texture))
+            while (textureUploadQueue.TryDequeue(out GLTexture? texture))
             {
                 statTextureUploadsDequeued.Value++;
 
@@ -791,7 +791,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        public void EnqueueTextureUpload(TextureGL texture)
+        public void EnqueueTextureUpload(GLTexture texture)
         {
             if (texture.IsQueuedForUpload)
                 return;
@@ -929,11 +929,11 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported filtering mode: {filteringMode}", nameof(filteringMode));
             }
 
-            return CreateTexture(new TextureGL(this, width, height, manualMipmaps, glFilteringMode, initialisationColour), wrapModeS, wrapModeT);
+            return CreateTexture(new GLTexture(this, width, height, manualMipmaps, glFilteringMode, initialisationColour), wrapModeS, wrapModeT);
         }
 
         public Texture CreateVideoTexture(int width, int height)
-            => CreateTexture(new VideoTextureGL(this, width, height), WrapMode.None, WrapMode.None);
+            => CreateTexture(new GLVideoTexture(this, width, height), WrapMode.None, WrapMode.None);
 
         public Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
         {
