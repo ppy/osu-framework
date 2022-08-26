@@ -100,7 +100,8 @@ namespace osu.Framework.Graphics.Containers
             set => container.Children = value;
         }
 
-        public int RemoveAll(Predicate<T> match) => container.RemoveAll(match);
+        public int RemoveAll(Predicate<T> match, bool disposeImmediately) =>
+            container.RemoveAll(match, disposeImmediately);
 
         public T Child
         {
@@ -135,14 +136,17 @@ namespace osu.Framework.Graphics.Containers
             container.AddRange(collection);
         }
 
-        public bool Remove(T drawable) => container.Remove(drawable);
+        public bool Remove(T drawable, bool disposeImmediately) => container.Remove(drawable, disposeImmediately);
+
+        bool ICollection<T>.Remove(T item) => container.Remove(item, true);
+
         int ICollection<T>.Count => container.Count;
 
         public bool IsReadOnly => container.IsReadOnly;
 
-        public void RemoveRange(IEnumerable<T> range)
+        public void RemoveRange(IEnumerable<T> range, bool disposeImmediately)
         {
-            container.RemoveRange(range);
+            container.RemoveRange(range, disposeImmediately);
         }
 
         int IReadOnlyCollection<T>.Count => container.Count;
