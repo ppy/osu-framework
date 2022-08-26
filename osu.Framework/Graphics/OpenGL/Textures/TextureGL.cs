@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal class TextureGL : INativeTexture
     {
-        protected readonly OpenGLRenderer Renderer;
+        protected readonly GLRenderer Renderer;
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
         IRenderer INativeTexture.Renderer => Renderer;
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public TextureGL(OpenGLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
+        public TextureGL(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
         {
             Renderer = renderer;
             Width = width;

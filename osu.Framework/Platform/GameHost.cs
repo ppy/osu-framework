@@ -325,7 +325,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new OpenGLRenderer();
+        protected virtual IRenderer CreateRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.

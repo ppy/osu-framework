@@ -218,10 +218,10 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
-        /// Draws a <see cref="OpenGLFrameBuffer"/> to the screen.
+        /// Draws a <see cref="GLFrameBuffer"/> to the screen.
         /// </summary>
         /// <param name="renderer">The renderer to draw the framebuffer with.</param>
-        /// <param name="frameBuffer">The <see cref="OpenGLFrameBuffer"/> to draw.</param>
+        /// <param name="frameBuffer">The <see cref="GLFrameBuffer"/> to draw.</param>
         /// <param name="vertexQuad">The destination vertices.</param>
         /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>

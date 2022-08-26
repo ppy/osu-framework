@@ -304,7 +304,7 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <summary>
         /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IOpenGLVertexBuffer"/>s.
+        /// The draw depth is written to every vertex added to <see cref="IGLVertexBuffer"/>s.
         /// </summary>
         /// <param name="drawDepth">The draw depth.</param>
         internal void SetDrawDepth(float drawDepth);

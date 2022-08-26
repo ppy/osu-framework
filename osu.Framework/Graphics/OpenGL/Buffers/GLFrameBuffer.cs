@@ -11,16 +11,16 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal class OpenGLFrameBuffer : IFrameBuffer
+    internal class GLFrameBuffer : IFrameBuffer
     {
         public Texture Texture { get; }
 
-        private readonly List<OpenGLRenderBuffer> attachedRenderBuffers = new List<OpenGLRenderBuffer>();
-        private readonly OpenGLRenderer renderer;
+        private readonly List<GLRenderBuffer> attachedRenderBuffers = new List<GLRenderBuffer>();
+        private readonly GLRenderer renderer;
         private readonly TextureGL textureGL;
         private readonly int frameBuffer;
 
-        public OpenGLFrameBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
+        public GLFrameBuffer(GLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
         {
             this.renderer = renderer;
             frameBuffer = GL.GenFramebuffer();
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (renderBufferFormats != null)
             {
                 foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new OpenGLRenderBuffer(renderer, format));
+                    attachedRenderBuffers.Add(new GLRenderBuffer(renderer, format));
             }
 
             renderer.UnbindFrameBuffer(frameBuffer);
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #region Disposal
 
-        ~OpenGLFrameBuffer()
+        ~GLFrameBuffer()
         {
             renderer.ScheduleDisposal(b => b.Dispose(false), this);
         }
@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private class FrameBufferTexture : TextureGL
         {
-            public FrameBufferTexture(OpenGLRenderer renderer, All filteringMode = All.Linear)
+            public FrameBufferTexture(GLRenderer renderer, All filteringMode = All.Linear)
                 : base(renderer, 1, 1, true, filteringMode)
             {
                 BypassTextureUploadQueueing = true;

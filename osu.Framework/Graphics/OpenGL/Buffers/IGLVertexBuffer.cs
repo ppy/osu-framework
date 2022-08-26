@@ -6,22 +6,22 @@
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     /// <summary>
-    /// Internal interface for all <see cref="OpenGLVertexBuffer{T}"/>s.
+    /// Internal interface for all <see cref="GLVertexBuffer{T}"/>s.
     /// </summary>
-    internal interface IOpenGLVertexBuffer
+    internal interface IGLVertexBuffer
     {
         /// <summary>
-        /// The <see cref="OpenGLRenderer.ResetId"/> when this <see cref="IOpenGLVertexBuffer"/> was last used.
+        /// The <see cref="GLRenderer.ResetId"/> when this <see cref="IGLVertexBuffer"/> was last used.
         /// </summary>
         ulong LastUseResetId { get; }
 
         /// <summary>
-        /// Whether this <see cref="IOpenGLVertexBuffer"/> is currently in use.
+        /// Whether this <see cref="IGLVertexBuffer"/> is currently in use.
         /// </summary>
         bool InUse { get; }
 
         /// <summary>
-        /// Frees all resources allocated by this <see cref="IOpenGLVertexBuffer"/>.
+        /// Frees all resources allocated by this <see cref="IGLVertexBuffer"/>.
         /// </summary>
         void Free();
     }

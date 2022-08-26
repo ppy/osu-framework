@@ -8,7 +8,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    public static class OpenGLBufferFormatExtensions
+    public static class GLBufferFormatExtensions
     {
         public static FramebufferAttachment GetAttachmentType(this RenderbufferInternalFormat format)
         {

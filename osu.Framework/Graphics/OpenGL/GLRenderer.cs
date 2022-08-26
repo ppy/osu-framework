@@ -27,7 +27,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    internal class OpenGLRenderer : IRenderer
+    internal class GLRenderer : IRenderer
     {
         /// <summary>
         /// The interval (in frames) before checking whether VBOs should be freed.
@@ -72,10 +72,10 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected virtual int BackbufferFramebuffer => 0;
 
-        private readonly GlobalStatistic<int> statExpensiveOperationsQueued = GlobalStatistics.Get<int>(nameof(OpenGLRenderer), "Expensive operation queue length");
-        private readonly GlobalStatistic<int> statTextureUploadsQueued = GlobalStatistics.Get<int>(nameof(OpenGLRenderer), "Texture upload queue length");
-        private readonly GlobalStatistic<int> statTextureUploadsDequeued = GlobalStatistics.Get<int>(nameof(OpenGLRenderer), "Texture uploads dequeued");
-        private readonly GlobalStatistic<int> statTextureUploadsPerformed = GlobalStatistics.Get<int>(nameof(OpenGLRenderer), "Texture uploads performed");
+        private readonly GlobalStatistic<int> statExpensiveOperationsQueued = GlobalStatistics.Get<int>(nameof(GLRenderer), "Expensive operation queue length");
+        private readonly GlobalStatistic<int> statTextureUploadsQueued = GlobalStatistics.Get<int>(nameof(GLRenderer), "Texture upload queue length");
+        private readonly GlobalStatistic<int> statTextureUploadsDequeued = GlobalStatistics.Get<int>(nameof(GLRenderer), "Texture uploads dequeued");
+        private readonly GlobalStatistic<int> statTextureUploadsPerformed = GlobalStatistics.Get<int>(nameof(GLRenderer), "Texture uploads performed");
 
         private readonly ConcurrentQueue<ScheduledDelegate> expensiveOperationQueue = new ConcurrentQueue<ScheduledDelegate>();
         private readonly ConcurrentQueue<TextureGL> textureUploadQueue = new ConcurrentQueue<TextureGL>();
@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.OpenGL
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
-        private readonly List<IOpenGLVertexBuffer> vertexBuffersInUse = new List<IOpenGLVertexBuffer>();
+        private readonly List<IGLVertexBuffer> vertexBuffersInUse = new List<IGLVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
         private readonly Stack<RectangleI> viewportStack = new Stack<RectangleI>();
         private readonly Stack<Matrix4> projectionMatrixStack = new Stack<Matrix4>();
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.OpenGL
         private bool isInitialised;
         private int lastActiveTextureUnit;
 
-        public OpenGLRenderer()
+        public GLRenderer()
         {
             whitePixel = new Lazy<TextureWhitePixel>(() =>
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
@@ -319,7 +319,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             flushCurrentBatch();
 
-            GL.UseProgram((OpenGLShader)shader);
+            GL.UseProgram((GLShader)shader);
             currentShader = shader;
         }
 
@@ -723,7 +723,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (depthInfo.DepthTest)
             {
                 GL.Enable(EnableCap.DepthTest);
-                GL.DepthFunc(OpenGLUtils.ToDepthFunction(depthInfo.Function));
+                GL.DepthFunc(GLUtils.ToDepthFunction(depthInfo.Function));
             }
             else
                 GL.Disable(EnableCap.DepthTest);
@@ -763,11 +763,11 @@ namespace osu.Framework.Graphics.OpenGL
             if (stencilInfo.StencilTest)
             {
                 GL.Enable(EnableCap.StencilTest);
-                GL.StencilFunc(OpenGLUtils.ToStencilFunction(stencilInfo.TestFunction), stencilInfo.TestValue, stencilInfo.Mask);
+                GL.StencilFunc(GLUtils.ToStencilFunction(stencilInfo.TestFunction), stencilInfo.TestValue, stencilInfo.Mask);
                 GL.StencilOp(
-                    OpenGLUtils.ToStencilOperation(stencilInfo.StencilTestFailOperation),
-                    OpenGLUtils.ToStencilOperation(stencilInfo.DepthTestFailOperation),
-                    OpenGLUtils.ToStencilOperation(stencilInfo.TestPassedOperation));
+                    GLUtils.ToStencilOperation(stencilInfo.StencilTestFailOperation),
+                    GLUtils.ToStencilOperation(stencilInfo.DepthTestFailOperation),
+                    GLUtils.ToStencilOperation(stencilInfo.TestPassedOperation));
             }
             else
                 GL.Disable(EnableCap.StencilTest);
@@ -853,10 +853,10 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported shader part type: {partType}", nameof(partType));
             }
 
-            return new OpenGLShaderPart(this, name, rawData, glType, manager);
+            return new GLShaderPart(this, name, rawData, glType, manager);
         }
 
-        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts) => new OpenGLShader(this, name, parts.Cast<OpenGLShaderPart>().ToArray());
+        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -907,7 +907,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            return new OpenGLFrameBuffer(this, glFormats, glFilteringMode);
+            return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
@@ -950,13 +950,13 @@ namespace osu.Framework.Graphics.OpenGL
             if (size <= 0)
                 throw new ArgumentException("Linear batch size must be > 0.", nameof(size));
 
-            if (size > OpenGLLinearBuffer<TVertex>.MAX_VERTICES)
-                throw new ArgumentException($"Linear batch may not have more than {OpenGLLinearBuffer<TVertex>.MAX_VERTICES} vertices.", nameof(size));
+            if (size > GLLinearBuffer<TVertex>.MAX_VERTICES)
+                throw new ArgumentException($"Linear batch may not have more than {GLLinearBuffer<TVertex>.MAX_VERTICES} vertices.", nameof(size));
 
             if (maxBuffers <= 0)
                 throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
 
-            return new OpenGLLinearBatch<TVertex>(this, size, maxBuffers, OpenGLUtils.ToPrimitiveType(topology));
+            return new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
         }
 
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
@@ -964,13 +964,13 @@ namespace osu.Framework.Graphics.OpenGL
             if (size <= 0)
                 throw new ArgumentException("Quad batch size must be > 0.", nameof(size));
 
-            if (size > OpenGLQuadBuffer<TVertex>.MAX_QUADS)
-                throw new ArgumentException($"Quad batch may not have more than {OpenGLQuadBuffer<TVertex>.MAX_QUADS} quads.", nameof(size));
+            if (size > GLQuadBuffer<TVertex>.MAX_QUADS)
+                throw new ArgumentException($"Quad batch may not have more than {GLQuadBuffer<TVertex>.MAX_QUADS} quads.", nameof(size));
 
             if (maxBuffers <= 0)
                 throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
 
-            return new OpenGLQuadBatch<TVertex>(this, size, maxBuffers);
+            return new GLQuadBatch<TVertex>(this, size, maxBuffers);
         }
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
@@ -1019,10 +1019,10 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
-        /// Notifies that a <see cref="IOpenGLVertexBuffer"/> has begun being used.
+        /// Notifies that a <see cref="IGLVertexBuffer"/> has begun being used.
         /// </summary>
-        /// <param name="buffer">The <see cref="IOpenGLVertexBuffer"/> in use.</param>
-        public void RegisterVertexBufferUse(IOpenGLVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
+        /// <param name="buffer">The <see cref="IGLVertexBuffer"/> in use.</param>
+        public void RegisterVertexBufferUse(IGLVertexBuffer buffer) => vertexBuffersInUse.Add(buffer);
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.

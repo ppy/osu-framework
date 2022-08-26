@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// <summary>
     /// Helper method that provides functionality to enable and bind GL vertex attributes.
     /// </summary>
-    internal static class OpenGLVertexUtils<T>
+    internal static class GLVertexUtils<T>
         where T : struct, IVertex
     {
         /// <summary>
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
         private static int amountEnabledAttributes;
 
-        static OpenGLVertexUtils()
+        static GLVertexUtils()
         {
             addAttributesRecursive(typeof(T), 0);
         }

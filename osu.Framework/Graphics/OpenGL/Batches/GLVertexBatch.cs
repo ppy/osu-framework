@@ -12,10 +12,10 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Batches
 {
-    internal abstract class OpenGLVertexBatch<T> : IVertexBatch<T>
+    internal abstract class GLVertexBatch<T> : IVertexBatch<T>
         where T : struct, IEquatable<T>, IVertex
     {
-        public List<OpenGLVertexBuffer<T>> VertexBuffers = new List<OpenGLVertexBuffer<T>>();
+        public List<GLVertexBuffer<T>> VertexBuffers = new List<GLVertexBuffer<T>>();
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
@@ -28,12 +28,12 @@ namespace osu.Framework.Graphics.OpenGL.Batches
         private int currentBufferIndex;
         private int currentVertexIndex;
 
-        private readonly OpenGLRenderer renderer;
+        private readonly GLRenderer renderer;
         private readonly int maxBuffers;
 
-        private OpenGLVertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
+        private GLVertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
 
-        protected OpenGLVertexBatch(OpenGLRenderer renderer, int bufferSize, int maxBuffers)
+        protected GLVertexBatch(GLRenderer renderer, int bufferSize, int maxBuffers)
         {
             Size = bufferSize;
             this.renderer = renderer;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.OpenGL.Batches
         {
             if (disposing)
             {
-                foreach (OpenGLVertexBuffer<T> vbo in VertexBuffers)
+                foreach (GLVertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
             }
         }
@@ -68,10 +68,10 @@ namespace osu.Framework.Graphics.OpenGL.Batches
             currentVertexIndex = 0;
         }
 
-        protected abstract OpenGLVertexBuffer<T> CreateVertexBuffer(OpenGLRenderer renderer);
+        protected abstract GLVertexBuffer<T> CreateVertexBuffer(GLRenderer renderer);
 
         /// <summary>
-        /// Adds a vertex to this <see cref="OpenGLVertexBatch{T}"/>.
+        /// Adds a vertex to this <see cref="GLVertexBatch{T}"/>.
         /// </summary>
         /// <param name="v">The vertex to add.</param>
         public void Add(T v)
@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.OpenGL.Batches
         }
 
         /// <summary>
-        /// Adds a vertex to this <see cref="OpenGLVertexBatch{T}"/>.
+        /// Adds a vertex to this <see cref="GLVertexBatch{T}"/>.
         /// This is a cached delegate of <see cref="Add"/> that should be used in memory-critical locations such as <see cref="DrawNode"/>s.
         /// </summary>
         public Action<T> AddAction { get; private set; }
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.OpenGL.Batches
             if (currentVertexIndex == 0)
                 return 0;
 
-            OpenGLVertexBuffer<T> vertexBuffer = currentVertexBuffer;
+            GLVertexBuffer<T> vertexBuffer = currentVertexBuffer;
             if (changeBeginIndex >= 0)
                 vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
 

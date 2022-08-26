@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         private int[] textureIds;
 
-        public VideoTextureGL(OpenGLRenderer renderer, int width, int height)
+        public VideoTextureGL(GLRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
         {
         }
