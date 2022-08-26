@@ -1,23 +1,22 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Graphics.OpenGL;
-using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Video;
 using osu.Framework.Platform;
+using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Video
+namespace osu.Framework.Graphics.OpenGL.Textures
 {
-    internal unsafe class VideoTexture : TextureGL
+    internal unsafe class GLVideoTexture : GLTexture
     {
         private int[] textureIds;
 
-        public VideoTexture(OpenGLRenderer renderer, int width, int height)
+        public GLVideoTexture(GLRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
         {
         }

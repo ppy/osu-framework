@@ -7,7 +7,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    internal static class OpenGLUtils
+    internal static class GLUtils
     {
         public static PrimitiveType ToPrimitiveType(PrimitiveTopology topology)
         {

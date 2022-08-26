@@ -13,7 +13,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
 {
-    internal class OpenGLShaderPart : IShaderPart
+    internal class GLShaderPart : IShaderPart
     {
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly ShaderManager manager;
 
-        internal OpenGLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
+        internal GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
         {
             this.renderer = renderer;
             Name = name;
@@ -148,18 +148,18 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             Compiled = compileResult == 1;
 
             if (!Compiled)
-                throw new OpenGLShader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
+                throw new GLShader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
 
             return Compiled;
         }
 
-        public static implicit operator int(OpenGLShaderPart program) => program.partID;
+        public static implicit operator int(GLShaderPart program) => program.partID;
 
         #region IDisposable Support
 
         protected internal bool IsDisposed { get; private set; }
 
-        ~OpenGLShaderPart()
+        ~GLShaderPart()
         {
             renderer.ScheduleDisposal(s => s.Dispose(false), this);
         }

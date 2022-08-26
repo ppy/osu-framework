@@ -12,7 +12,7 @@ namespace osu.Framework.Tests.Graphics
     [TestFixture]
     public class ShaderRegexTest
     {
-        private readonly Regex shaderAttributeRegex = new Regex(OpenGLShaderPart.SHADER_ATTRIBUTE_PATTERN);
+        private readonly Regex shaderAttributeRegex = new Regex(GLShaderPart.SHADER_ATTRIBUTE_PATTERN);
 
         [Test]
         public void TestComment()

@@ -10,16 +10,16 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal class RenderBuffer : IDisposable
+    internal class GLRenderBuffer : IDisposable
     {
-        private readonly OpenGLRenderer renderer;
+        private readonly GLRenderer renderer;
         private readonly RenderbufferInternalFormat format;
         private readonly int renderBuffer;
         private readonly int sizePerPixel;
 
         private FramebufferAttachment attachment;
 
-        public RenderBuffer(OpenGLRenderer renderer, RenderbufferInternalFormat format)
+        public GLRenderBuffer(GLRenderer renderer, RenderbufferInternalFormat format)
         {
             this.renderer = renderer;
             this.format = format;
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #region Disposal
 
-        ~RenderBuffer()
+        ~GLRenderBuffer()
         {
             renderer.ScheduleDisposal(b => b.Dispose(false), this);
         }

@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Shaders
     public class TestSceneShaderDisposal : FrameworkTestScene
     {
         private ShaderManager manager;
-        private OpenGLShader shader;
+        private GLShader shader;
 
         private WeakReference<IShader> shaderRef;
 
@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Shaders
             AddStep("setup manager", () =>
             {
                 manager = new TestShaderManager(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
-                shader = (OpenGLShader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+                shader = (GLShader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
                 shaderRef = new WeakReference<IShader>(shader);
 
                 shader.EnsureShaderCompiled();
@@ -61,18 +61,18 @@ namespace osu.Framework.Tests.Shaders
         private class TestShaderManager : ShaderManager
         {
             public TestShaderManager(IResourceStore<byte[]> store)
-                : base(new OpenGLRenderer(), store)
+                : base(new GLRenderer(), store)
             {
             }
 
             internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
-                => new TestOpenGLShader(renderer, name, parts.Cast<OpenGLShaderPart>().ToArray());
+                => new TestGLShader(renderer, name, parts.Cast<GLShaderPart>().ToArray());
 
-            private class TestOpenGLShader : OpenGLShader
+            private class TestGLShader : GLShader
             {
                 private readonly IRenderer renderer;
 
-                internal TestOpenGLShader(IRenderer renderer, string name, OpenGLShaderPart[] parts)
+                internal TestGLShader(IRenderer renderer, string name, GLShaderPart[] parts)
                     : base(renderer, name, parts)
                 {
                     this.renderer = renderer;
