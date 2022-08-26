@@ -3,15 +3,15 @@
 
 #nullable disable
 
-using osu.Framework.Lists;
-using System.Collections.Generic;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
-using osuTK;
-using System.Collections;
-using System.Diagnostics;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Lists;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -206,6 +206,12 @@ namespace osu.Framework.Graphics.Containers
         {
             if (drawable == Content)
                 throw new InvalidOperationException("Content may not be added to itself.");
+
+            if (drawable == null)
+                throw new ArgumentNullException(nameof(drawable));
+
+            if (drawable.IsDisposed)
+                throw new ObjectDisposedException(nameof(drawable));
 
             if (Content == this)
                 AddInternal(drawable);
