@@ -11,9 +11,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal static class OpenGLQuadIndexData
+    internal static class GLQuadIndexData
     {
-        static OpenGLQuadIndexData()
+        static GLQuadIndexData()
         {
             GL.GenBuffers(1, out EBO_ID);
         }
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             base.Initialise();
 
-            if (amountIndices > OpenGLQuadIndexData.MaxAmountIndices)
+            if (amountIndices > GLQuadIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountIndices];
 
@@ -59,10 +59,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     indices[j + 5] = (ushort)(i + 1);
                 }
 
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, OpenGLQuadIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLQuadIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountIndices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
-                OpenGLQuadIndexData.MaxAmountIndices = amountIndices;
+                GLQuadIndexData.MaxAmountIndices = amountIndices;
             }
         }
 
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, OpenGLQuadIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLQuadIndexData.EBO_ID);
         }
 
         protected override int ToElements(int vertices) => 3 * vertices / 2;

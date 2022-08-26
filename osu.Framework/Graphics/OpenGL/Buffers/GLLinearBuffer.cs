@@ -10,9 +10,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal static class OpenGLLinearIndexData
+    internal static class GLLinearIndexData
     {
-        static OpenGLLinearIndexData()
+        static GLLinearIndexData()
         {
             GL.GenBuffers(1, out EBO_ID);
         }
@@ -42,17 +42,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             base.Initialise();
 
-            if (amountVertices > OpenGLLinearIndexData.MaxAmountIndices)
+            if (amountVertices > GLLinearIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountVertices];
 
                 for (int i = 0; i < amountVertices; i++)
                     indices[i] = (ushort)i;
 
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, OpenGLLinearIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
-                OpenGLLinearIndexData.MaxAmountIndices = amountVertices;
+                GLLinearIndexData.MaxAmountIndices = amountVertices;
             }
         }
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, OpenGLLinearIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
         }
 
         protected override PrimitiveType Type { get; }
