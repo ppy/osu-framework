@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Audio
 
             AddStep("move track a container with 0 volume", () =>
             {
-                Remove(track);
+                Remove(track, false);
                 Child = new AudioContainer
                 {
                     RelativeSizeAxes = Axes.Both,

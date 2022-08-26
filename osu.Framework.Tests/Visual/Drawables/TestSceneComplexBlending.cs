@@ -246,10 +246,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void switchOffCustomBlending()
         {
-            settingsBox.Remove(blendingSrcContainer);
-            settingsBox.Remove(blendingDestContainer);
-            settingsBox.Remove(blendingAlphaSrcContainer);
-            settingsBox.Remove(blendingAlphaDestContainer);
+            settingsBox.Remove(blendingSrcContainer, false);
+            settingsBox.Remove(blendingDestContainer, false);
+            settingsBox.Remove(blendingAlphaSrcContainer, false);
+            settingsBox.Remove(blendingAlphaDestContainer, false);
         }
 
         private void updateBlending()

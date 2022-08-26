@@ -322,7 +322,7 @@ namespace osu.Framework.Graphics.Containers
             // manual parts need to be manually removed before clearing contents,
             // to avoid accidentally disposing of them in the process.
             foreach (var manualPart in parts.OfType<TextPartManual>())
-                RemoveRange(manualPart.Drawables);
+                RemoveRange(manualPart.Drawables, false);
 
             // make sure not to clear the list of parts by accident.
             base.Clear(true);

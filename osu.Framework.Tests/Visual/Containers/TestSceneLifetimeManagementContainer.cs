@@ -200,7 +200,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestLifetimeMutatingChildren()
         {
-            AddStep("detach container", () => Remove(container));
+            AddStep("detach container", () => Remove(container, false));
 
             TestLifetimeMutatingChild first = null, second = null;
             AddStep("add children", () =>

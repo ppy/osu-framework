@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Containers
             Assert.IsTrue(container.Contains(sprite));
 
             // Remove
-            Assert.DoesNotThrow(() => container.Remove(sprite));
+            Assert.DoesNotThrow(() => container.Remove(sprite, false));
             Assert.IsFalse(container.Contains(sprite));
 
             // Re-add
@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Containers
                 target.Schedule(() => { });
             });
 
-            AddStep("remove target", () => Remove(target));
+            AddStep("remove target", () => Remove(target, false));
             AddStep("add target to unloaded container", () => Add(new Container { Child = target }));
         }
 
@@ -132,8 +132,8 @@ namespace osu.Framework.Tests.Containers
             Assert.IsTrue(newContainer.First(c => c.Contains(drawableA)) == containerA);
             Assert.IsTrue(newContainer.First(c => c.Contains(drawableB)) == containerB);
 
-            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableA)).Remove(drawableA));
-            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableB)).Remove(drawableB));
+            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableA)).Remove(drawableA, false));
+            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableB)).Remove(drawableB, false));
         }
 
         [Test]
@@ -223,7 +223,7 @@ namespace osu.Framework.Tests.Containers
             AddStep("begin async load", () =>
             {
                 safeContainer.LoadComponentAsync(drawable = new DelayedLoadDrawable(), _ => { });
-                Remove(safeContainer);
+                Remove(safeContainer, false);
             });
 
             AddUntilStep("wait until loading", () => drawable.LoadState == LoadState.Loading);
