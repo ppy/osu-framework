@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
+using Path = System.IO.Path;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -32,7 +33,15 @@ namespace osu.Framework.Graphics.Shaders
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
         /// <param name="name">The shader name.</param>
-        public virtual byte[]? LoadRaw(string name) => store.Get(name);
+        public virtual byte[]? LoadRaw(string name)
+        {
+            name = Path.Combine(Path.GetDirectoryName(name) ?? string.Empty, string.Concat(
+                Path.GetFileNameWithoutExtension(name),
+                renderer.ShaderFilenameSuffix,
+                Path.GetExtension(name)));
+
+            return store.Get(name);
+        }
 
         /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.

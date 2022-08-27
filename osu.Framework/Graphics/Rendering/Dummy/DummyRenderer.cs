@@ -21,6 +21,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public int MaxTextureSize => int.MaxValue;
         public int MaxTexturesUploadedPerFrame { get; set; } = int.MaxValue;
         public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
+        public string ShaderFilenameSuffix => string.Empty;
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
@@ -80,10 +81,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
             => true;
-
-        public void UseProgram(IShader? shader)
-        {
-        }
 
         public void Clear(ClearInfo clearInfo)
         {
