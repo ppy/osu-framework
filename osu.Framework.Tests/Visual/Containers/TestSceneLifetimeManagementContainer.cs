@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("add child", () => container.AddInternal(child = new TestChild(0, 2)));
             skipTo(1);
-            AddStep("remove child", () => container.RemoveInternal(child));
+            AddStep("remove child", () => container.RemoveInternal(child, false));
             AddStep("add same child", () => container.AddInternal(child));
             validate(1);
         }
@@ -250,7 +250,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
                 Logger.Log($"removeChild: {child.ChildID}");
-                container.RemoveInternal(child);
+                container.RemoveInternal(child, true);
             }
 
             void changeLifetime()

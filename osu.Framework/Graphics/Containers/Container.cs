@@ -254,12 +254,7 @@ namespace osu.Framework.Graphics.Containers
             if (Content != this)
                 return Content.Remove(drawable, disposeImmediately);
 
-            bool wasRemoved = RemoveInternal(drawable);
-
-            if (disposeImmediately)
-                drawable.Dispose();
-
-            return wasRemoved;
+            return RemoveInternal(drawable, disposeImmediately);
         }
 
         /// <summary>
@@ -281,9 +276,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if (pred.Invoke(tChild))
                 {
-                    RemoveInternal(tChild);
-                    if (disposeImmediately)
-                        tChild.Dispose();
+                    RemoveInternal(tChild, disposeImmediately);
                     removedCount++;
                     i--;
                 }

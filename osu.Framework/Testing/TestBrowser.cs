@@ -636,7 +636,7 @@ namespace osu.Framework.Testing
                     hasCaught = true;
 
                     OnCaughtError?.Invoke(e);
-                    RemoveInternal(Content);
+                    RemoveInternal(Content, true);
                 }
 
                 return false;

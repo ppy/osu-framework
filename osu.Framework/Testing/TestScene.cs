@@ -92,7 +92,7 @@ namespace osu.Framework.Testing
         protected internal override void ClearInternal(bool disposeChildren = true) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
 
-        protected internal override bool RemoveInternal(Drawable drawable) =>
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         /// <summary>
@@ -406,12 +406,9 @@ namespace osu.Framework.Testing
 
         private void exitNestedGame()
         {
-            if (nestedGame?.Parent == null) return;
-
             // important that we do a synchronous disposal.
             // using Expire() will cause a deadlock in AsyncDisposalQueue.
-            nestedGame.Parent.RemoveInternal(nestedGame);
-            nestedGame.Dispose();
+            nestedGame?.Parent?.RemoveInternal(nestedGame, true);
         }
 
         #region NUnit execution setup
