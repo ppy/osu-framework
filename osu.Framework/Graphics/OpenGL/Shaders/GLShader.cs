@@ -25,6 +25,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
 
+        IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
+
         /// <summary>
         /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
         /// </summary>
@@ -105,11 +107,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             IsBound = false;
         }
 
-        /// <summary>
-        /// Returns a uniform from the shader.
-        /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
             where T : struct, IEquatable<T>
         {
