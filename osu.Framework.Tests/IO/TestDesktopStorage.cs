@@ -74,10 +74,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestCaseSensitivity()
         {
-            // First test if this unit test is running on a filesystem which is case sensitive.
-            File.WriteAllText(Path.Combine(TestRunHeadlessGameHost.TemporaryTestDirectory, "case-sensitivity-test"), "test");
-            bool isCaseSensitive = !File.Exists(Path.Combine(TestRunHeadlessGameHost.TemporaryTestDirectory, "CASE-SENSITIVITY-TEST"));
-            File.Delete("case-sensitivity-test");
+            bool isCaseSensitive = isCaseSensitiveFilesystem();
 
             // Then check our methods match this.
             using (var storage = new TemporaryNativeStorage("test"))
@@ -104,6 +101,16 @@ namespace osu.Framework.Tests.IO
                     Assert.That(nested.GetFiles(string.Empty), Has.One.Items);
                 }
             }
+        }
+
+        private static bool isCaseSensitiveFilesystem()
+        {
+            // First test if this unit test is running on a filesystem which is case sensitive.
+            string testFile = Path.Combine(TestRunHeadlessGameHost.TemporaryTestDirectory, "case-sensitivity-test");
+            File.WriteAllText(testFile, "test");
+            bool isCaseSensitive = !File.Exists(testFile.ToUpperInvariant());
+            File.Delete(testFile);
+            return isCaseSensitive;
         }
     }
 }
