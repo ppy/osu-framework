@@ -23,6 +23,13 @@ namespace osu.Framework.Audio.Track
 
         public virtual bool Looping { get; set; }
 
+        public string Name { get; }
+
+        protected Track(string name)
+        {
+            Name = name;
+        }
+
         /// <summary>
         /// Reset this track to a logical default state.
         /// </summary>
