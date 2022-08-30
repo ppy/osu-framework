@@ -298,7 +298,7 @@ namespace osu.Framework.Graphics.Visualisation
             flow.Add(visualiser);
         }
 
-        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser) => flow.Remove(visualiser, true);
+        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser) => flow.Remove(visualiser, false);
 
         public VisualisedDrawable FindVisualisedDrawable(Drawable drawable)
         {
