@@ -129,8 +129,6 @@ namespace osu.Framework.Platform
 
         public bool CapsLockPressed => SDL.SDL_GetModState().HasFlagFast(SDL.SDL_Keymod.KMOD_CAPS);
 
-        private bool firstDraw = true;
-
         // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
 
         [UsedImplicitly]
@@ -251,6 +249,17 @@ namespace osu.Framework.Platform
                 SDL.SDL_DestroyWindow(SDLWindowHandle);
 
             SDL.SDL_Quit();
+        }
+
+        private bool firstDraw = true;
+
+        public void OnDraw()
+        {
+            if (!firstDraw)
+                return;
+
+            Visible = true;
+            firstDraw = false;
         }
 
         /// <summary>

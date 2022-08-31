@@ -74,6 +74,10 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
+        public void OnDraw()
+        {
+        }
+
         public abstract bool Focused { get; }
 
         public abstract IBindable<bool> IsActive { get; }
