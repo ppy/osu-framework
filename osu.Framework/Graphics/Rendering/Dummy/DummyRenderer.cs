@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
@@ -24,6 +25,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
 
+        public GraphicsBackend BackendType => default;
         public RectangleI Viewport => RectangleI.Empty;
         public RectangleF Ortho => RectangleF.Empty;
         public RectangleI Scissor => RectangleI.Empty;

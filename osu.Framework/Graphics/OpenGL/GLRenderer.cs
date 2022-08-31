@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
@@ -21,6 +22,8 @@ namespace osu.Framework.Graphics.OpenGL
 {
     internal class GLRenderer : Renderer
     {
+        public override GraphicsBackend BackendType => GraphicsBackend.OpenGL;
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>

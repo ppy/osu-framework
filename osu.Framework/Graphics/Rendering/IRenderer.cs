@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Rendering
@@ -40,6 +41,11 @@ namespace osu.Framework.Graphics.Rendering
         /// Maximum number of quads in a quad vertex buffer.
         /// </summary>
         public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
+
+        /// <summary>
+        /// The type of the graphics backend represented by this renderer.
+        /// </summary>
+        GraphicsBackend BackendType { get; }
 
         /// <summary>
         /// The maximum allowed texture size.
