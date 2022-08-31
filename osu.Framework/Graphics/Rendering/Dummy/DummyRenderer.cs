@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         private readonly MaskingInfo maskingInfo;
 
         public GraphicsBackend BackendType => default;
+        public bool VerticalSync { get; set; } = true;
         public RectangleI Viewport => RectangleI.Empty;
         public RectangleF Ortho => RectangleF.Empty;
         public RectangleI Scissor => RectangleI.Empty;
@@ -46,7 +47,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
         }
 
-        void IRenderer.Initialise()
+        void IRenderer.Initialise(IWindowGraphics graphics)
         {
         }
 
@@ -55,6 +56,22 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         void IRenderer.FinishFrame()
+        {
+        }
+
+        void IRenderer.SwapBuffers()
+        {
+        }
+
+        void IRenderer.WaitUntilIdle()
+        {
+        }
+
+        void IRenderer.MakeCurrent()
+        {
+        }
+
+        void IRenderer.ClearCurrent()
         {
         }
 

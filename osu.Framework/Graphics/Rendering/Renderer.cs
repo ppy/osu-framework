@@ -35,6 +35,8 @@ namespace osu.Framework.Graphics.Rendering
 
         public virtual GraphicsBackend BackendType => GraphicsBackend.OpenGL;
 
+        public abstract bool VerticalSync { get; set; }
+
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
         public int MaxTexturesUploadedPerFrame { get; set; } = 32;
@@ -130,9 +132,9 @@ namespace osu.Framework.Graphics.Rendering
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
         }
 
-        void IRenderer.Initialise()
+        void IRenderer.Initialise(IWindowGraphics graphics)
         {
-            Initialise();
+            Initialise(graphics);
 
             defaultQuadBatch = CreateQuadBatch<TexturedVertex2D>(100, 1000);
             resetScheduler.AddDelayed(disposalQueue.CheckPendingDisposals, 0, true);
@@ -277,7 +279,32 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
         /// </summary>
-        protected abstract void Initialise();
+        protected abstract void Initialise(IWindowGraphics graphics);
+
+        /// <summary>
+        /// Swaps the back buffer with the front buffer to display the new frame.
+        /// </summary>
+        protected internal abstract void SwapBuffers();
+
+        /// <summary>
+        /// Waits until all renderer commands have been fully executed GPU-side, as signaled by the graphics backend.
+        /// </summary>
+        /// <remarks>
+        /// This is equivalent to a <c>glFinish</c> call.
+        /// </remarks>
+        protected internal abstract void WaitUntilIdle();
+
+        /// <summary>
+        /// Invoked when the rendering thread is active and commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal abstract void MakeCurrent();
+
+        /// <summary>
+        /// Invoked when the rendering thread is suspended and no more commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal abstract void ClearCurrent();
 
         #region Clear
 
@@ -1007,6 +1034,10 @@ namespace osu.Framework.Graphics.Rendering
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
+        void IRenderer.SwapBuffers() => SwapBuffers();
+        void IRenderer.WaitUntilIdle() => WaitUntilIdle();
+        void IRenderer.MakeCurrent() => MakeCurrent();
+        void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
         void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);

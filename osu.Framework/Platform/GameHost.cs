@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -529,12 +528,13 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            Window.SwapBuffers();
+            Renderer.SwapBuffers();
 
-            if (Window.VerticalSync)
-                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+            if (Renderer.BackendType == GraphicsBackend.OpenGL && Renderer.VerticalSync)
+                // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
-                GL.Finish();
+                Renderer.WaitUntilIdle();
+
         }
 
         /// <summary>
@@ -553,10 +553,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is SDL2DesktopWindow win)
-                        win.MakeCurrent();
-                    else if (GraphicsContext.CurrentContext == null)
-                        throw new GraphicsContextMissingException();
+                    Renderer.MakeCurrent();
 
                     GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
@@ -1103,7 +1100,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
+            DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         /// <summary>

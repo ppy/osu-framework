@@ -27,6 +27,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         private IOpenGLWindowGraphics openGLGraphics = null!;
 
+        public override bool VerticalSync
+        {
+            get => openGLGraphics.VerticalSync;
+            set => openGLGraphics.VerticalSync = value;
+        }
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>
@@ -43,8 +49,11 @@ namespace osu.Framework.Graphics.OpenGL
 
         private bool? lastBlendingEnabledState;
 
-        protected override void Initialise()
+        protected override void Initialise(IWindowGraphics graphics)
         {
+            openGLGraphics = graphics as IOpenGLWindowGraphics ?? throw new ArgumentException($"Window must implement {nameof(IOpenGLWindowGraphics)}.");
+            openGLGraphics.MakeCurrent(openGLGraphics.WindowContext);
+
             string version = GL.GetString(StringName.Version);
             IsEmbedded = version.Contains("OpenGL ES"); // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
 
@@ -60,6 +69,8 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
+
+            openGLGraphics.ClearCurrent();
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)
@@ -71,6 +82,11 @@ namespace osu.Framework.Graphics.OpenGL
 
             base.BeginFrame(windowSize);
         }
+
+        protected internal override void MakeCurrent() => openGLGraphics.MakeCurrent(openGLGraphics.WindowContext);
+        protected internal override void ClearCurrent() => openGLGraphics.ClearCurrent();
+        protected internal override void SwapBuffers() => openGLGraphics.SwapBuffers();
+        protected internal override void WaitUntilIdle() => GL.Finish();
 
         public bool BindBuffer(BufferTarget target, int buffer)
         {
