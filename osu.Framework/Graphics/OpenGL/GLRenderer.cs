@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
@@ -23,6 +24,8 @@ namespace osu.Framework.Graphics.OpenGL
     internal class GLRenderer : Renderer
     {
         public override GraphicsBackend BackendType => GraphicsBackend.OpenGL;
+
+        private IOpenGLWindowGraphics openGLGraphics = null!;
 
         /// <summary>
         /// The maximum allowed render buffer size.
@@ -50,6 +53,13 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+
+            Logger.Log($@"GL Initialized
+                        GL Version:                 {GL.GetString(StringName.Version)}
+                        GL Renderer:                {GL.GetString(StringName.Renderer)}
+                        GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
+                        GL Vendor:                  {GL.GetString(StringName.Vendor)}
+                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)

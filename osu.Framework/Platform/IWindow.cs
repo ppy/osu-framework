@@ -19,6 +19,11 @@ namespace osu.Framework.Platform
     public interface IWindow : IDisposable
     {
         /// <summary>
+        /// The graphics API for this window.
+        /// </summary>
+        internal IWindowGraphics Graphics { get; }
+
+        /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.
         /// </summary>
         void CycleMode();

@@ -28,7 +28,9 @@ namespace osu.Framework.Platform
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
-        private readonly IGraphicsBackend graphicsBackend;
+        private readonly SDL2WindowGraphics graphics;
+
+        IWindowGraphics IWindow.Graphics => graphics;
 
         /// <summary>
         /// Enables or disables vertical sync.
@@ -146,7 +148,7 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
-        public SDL2DesktopWindow()
+        public SDL2DesktopWindow(GraphicsBackend backend)
         {
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
@@ -162,7 +164,7 @@ namespace osu.Framework.Platform
                 Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
             }, IntPtr.Zero);
 
-            graphicsBackend = CreateGraphicsBackend();
+            graphics = CreateGraphics(backend);
 
             SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
@@ -181,16 +183,14 @@ namespace osu.Framework.Platform
             setupInput(config);
         }
 
-        /// <summary>
-        /// Creates the window and initialises the graphics backend.
-        /// </summary>
         public virtual void Create()
         {
-            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
-                                        WindowState.ToFlags();
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN; // shown after first swap to avoid white flash on startup (windows)
+
+            flags |= WindowState.ToFlags();
+            flags |= graphics.BackendType.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
@@ -203,12 +203,11 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL.SDL_StopTextInput();
 
-            graphicsBackend.InitialiseBeforeWindowCreation();
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
 
-            graphicsBackend.Initialise(this);
+            graphics.Initialise();
 
             initialiseWindowingAfterCreation();
         }
@@ -446,7 +445,7 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
+        protected virtual SDL2WindowGraphics CreateGraphics(GraphicsBackend backend) => new SDL2WindowGraphics(this, backend);
 
         public void SetIconFromStream(Stream stream)
         {

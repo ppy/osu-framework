@@ -172,7 +172,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Creates the game window for the host. Should be implemented per-platform if required.
         /// </summary>
-        protected virtual IWindow CreateWindow() => null;
+        protected virtual IWindow CreateWindow(GraphicsBackend backend) => null;
 
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
@@ -703,7 +703,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow();
+                Window = CreateWindow(Renderer.BackendType);
 
                 populateInputHandlers();
 
@@ -717,6 +717,8 @@ namespace osu.Framework.Platform
 
                     Window.Create();
                     Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    Renderer.Initialise(Window.Graphics);
 
                     currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
                     currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());

@@ -22,7 +22,7 @@ namespace osu.Framework.Platform.MacOS
         {
         }
 
-        protected override IWindow CreateWindow() => new MacOSWindow();
+        protected override IWindow CreateWindow(GraphicsBackend backend) => new MacOSWindow(backend);
 
         public override IEnumerable<string> UserStoragePaths
         {
