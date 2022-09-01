@@ -13,6 +13,11 @@ namespace osu.Framework.Audio.Sample
     public interface ISample : IAdjustableAudioComponent
     {
         /// <summary>
+        /// A name identifying this sample internally.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// The length in milliseconds of this <see cref="ISample"/>.
         /// </summary>
         double Length { get; }
