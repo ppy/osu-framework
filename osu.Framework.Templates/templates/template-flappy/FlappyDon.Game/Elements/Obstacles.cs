@@ -141,7 +141,7 @@ namespace FlappyDon.Game.Elements
 
             while (obstaclesToRemove.TryPop(out var obstacle))
             {
-                RemoveInternal(obstacle);
+                RemoveInternal(obstacle, true);
 
                 // Increase the obstacle count, which will reset threshold detection
                 // for the pipe after this one.

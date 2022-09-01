@@ -692,7 +692,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
-                TextFlow.Remove(d);
+                TextFlow.Remove(d, false);
 
                 TextContainer.Add(d);
 
@@ -733,7 +733,7 @@ namespace osu.Framework.Graphics.UserInterface
             List<Drawable> charsRight = new List<Drawable>();
             foreach (Drawable d in TextFlow.Children.Skip(selectionLeft))
                 charsRight.Add(d);
-            TextFlow.RemoveRange(charsRight);
+            TextFlow.RemoveRange(charsRight, false);
 
             // Update their depth to make room for the to-be inserted character.
             int i = selectionLeft;

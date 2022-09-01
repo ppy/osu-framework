@@ -104,7 +104,7 @@ namespace FlappyDon.Game.Elements
             {
                 // Update the number of sprites in the list to match the number we need to cover the whole container
                 while (InternalChildren.Count > spriteNum)
-                    RemoveInternal(InternalChildren.Last());
+                    RemoveInternal(InternalChildren.Last(), true);
 
                 while (InternalChildren.Count < spriteNum)
                     AddInternal(createSprite());

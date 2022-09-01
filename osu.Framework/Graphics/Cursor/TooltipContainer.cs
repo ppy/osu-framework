@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Cursor
                     CurrentTooltip.SetContent(getTargetContent(target));
                 else
                 {
-                    RemoveInternal((Drawable)CurrentTooltip);
+                    RemoveInternal((Drawable)CurrentTooltip, false);
                     CurrentTooltip = proposedTooltip;
                     AddInternal((Drawable)proposedTooltip);
                 }

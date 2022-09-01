@@ -183,8 +183,9 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void refreshScreens()
         {
-            screenContainer.Remove(windowContainer);
+            screenContainer.Remove(windowContainer, false);
             screenContainer.Clear();
+
             var bounds = new RectangleI();
 
             foreach (var display in window.Displays)

@@ -353,8 +353,7 @@ namespace osu.Framework.Testing
         {
             if (CurrentTest?.Parent != null)
             {
-                testContentContainer.Remove(CurrentTest.Parent);
-                CurrentTest.Dispose();
+                testContentContainer.Remove(CurrentTest.Parent, true);
             }
 
             CurrentTest = null;
@@ -399,7 +398,7 @@ namespace osu.Framework.Testing
                 if (newTest.Parent != null)
                 {
                     // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                    testContentContainer.Remove(newTest.Parent);
+                    testContentContainer.Remove(newTest.Parent, true);
                 }
 
                 return;
@@ -637,7 +636,7 @@ namespace osu.Framework.Testing
                     hasCaught = true;
 
                     OnCaughtError?.Invoke(e);
-                    RemoveInternal(Content);
+                    RemoveInternal(Content, true);
                 }
 
                 return false;
