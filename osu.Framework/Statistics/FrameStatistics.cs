@@ -48,7 +48,7 @@ namespace osu.Framework.Statistics
         Sleep,
         Scheduler,
         IPC,
-        Reset,
+        DrawReset,
     }
 
     internal enum StatisticsCounterType

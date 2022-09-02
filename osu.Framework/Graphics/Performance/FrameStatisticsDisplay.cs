@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
 
-                case PerformanceCollectionType.Reset:
+                case PerformanceCollectionType.DrawReset:
                     return Color4.Cyan;
             }
         }

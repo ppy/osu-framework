@@ -479,7 +479,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.Reset))
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                 if (!bypassFrontToBackPass.Value)
