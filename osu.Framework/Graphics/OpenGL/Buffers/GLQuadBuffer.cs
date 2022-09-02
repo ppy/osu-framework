@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     }
 
     internal class GLQuadBuffer<T> : GLVertexBuffer<T>
-        where T : struct, IEquatable<T>, IVertex
+        where T : unmanaged, IEquatable<T>, IVertex
     {
         private readonly int amountIndices;
 

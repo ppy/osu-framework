@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// Helper method that provides functionality to enable and bind GL vertex attributes.
     /// </summary>
     internal static class GLVertexUtils<T>
-        where T : struct, IVertex
+        where T : unmanaged, IVertex
     {
         /// <summary>
         /// The stride of the vertex of type <typeparamref name="T"/>.
