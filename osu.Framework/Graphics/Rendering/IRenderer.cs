@@ -300,7 +300,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
-        internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : struct, IEquatable<T>;
+        internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
 
         /// <summary>
         /// Sets the current draw depth.

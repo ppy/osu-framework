@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
         public static void Set<T>(GlobalProperty property, T value)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
         }
