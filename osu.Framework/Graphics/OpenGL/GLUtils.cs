@@ -33,32 +33,32 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        public static DepthFunction ToDepthFunction(DepthStencilFunction testFunction)
+        public static DepthFunction ToDepthFunction(BufferTestFunction testFunction)
         {
             switch (testFunction)
             {
-                case DepthStencilFunction.Never:
+                case BufferTestFunction.Never:
                     return DepthFunction.Never;
 
-                case DepthStencilFunction.LessThan:
+                case BufferTestFunction.LessThan:
                     return DepthFunction.Less;
 
-                case DepthStencilFunction.LessThanOrEqual:
+                case BufferTestFunction.LessThanOrEqual:
                     return DepthFunction.Lequal;
 
-                case DepthStencilFunction.Equal:
+                case BufferTestFunction.Equal:
                     return DepthFunction.Equal;
 
-                case DepthStencilFunction.GreaterThanOrEqual:
+                case BufferTestFunction.GreaterThanOrEqual:
                     return DepthFunction.Gequal;
 
-                case DepthStencilFunction.GreaterThan:
+                case BufferTestFunction.GreaterThan:
                     return DepthFunction.Greater;
 
-                case DepthStencilFunction.NotEqual:
+                case BufferTestFunction.NotEqual:
                     return DepthFunction.Notequal;
 
-                case DepthStencilFunction.Always:
+                case BufferTestFunction.Always:
                     return DepthFunction.Always;
 
                 default:
@@ -66,32 +66,32 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        public static StencilFunction ToStencilFunction(DepthStencilFunction testFunction)
+        public static StencilFunction ToStencilFunction(BufferTestFunction testFunction)
         {
             switch (testFunction)
             {
-                case DepthStencilFunction.Never:
+                case BufferTestFunction.Never:
                     return StencilFunction.Never;
 
-                case DepthStencilFunction.LessThan:
+                case BufferTestFunction.LessThan:
                     return StencilFunction.Less;
 
-                case DepthStencilFunction.LessThanOrEqual:
+                case BufferTestFunction.LessThanOrEqual:
                     return StencilFunction.Lequal;
 
-                case DepthStencilFunction.Equal:
+                case BufferTestFunction.Equal:
                     return StencilFunction.Equal;
 
-                case DepthStencilFunction.GreaterThanOrEqual:
+                case BufferTestFunction.GreaterThanOrEqual:
                     return StencilFunction.Gequal;
 
-                case DepthStencilFunction.GreaterThan:
+                case BufferTestFunction.GreaterThan:
                     return StencilFunction.Greater;
 
-                case DepthStencilFunction.NotEqual:
+                case BufferTestFunction.NotEqual:
                     return StencilFunction.Notequal;
 
-                case DepthStencilFunction.Always:
+                case BufferTestFunction.Always:
                     return StencilFunction.Always;
 
                 default:
