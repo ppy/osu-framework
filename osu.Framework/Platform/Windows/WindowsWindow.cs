@@ -54,6 +54,8 @@ namespace osu.Framework.Platform.Windows
             detectFullscreenCapability(WindowState);
         }
 
+        protected override IGraphicsBackend CreateGraphicsBackend() => new WindowsSDL2GraphicsBackend();
+
         private CancellationTokenSource fullscreenCapabilityDetectionCancellationSource;
 
         private void detectFullscreenCapability(WindowState state)
