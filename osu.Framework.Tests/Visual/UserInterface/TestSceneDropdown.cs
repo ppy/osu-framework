@@ -181,6 +181,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase(true)]
         public void TestKeyboardSelection(bool cleanSelection)
         {
+            AddStep("Hover dropdown 1", () => InputManager.MoveMouseTo(testDropdown.Header));
+
             if (cleanSelection)
                 AddStep("Clean selection", () => testDropdown.Current.Value = null);
 
