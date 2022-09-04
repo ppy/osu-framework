@@ -10,7 +10,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -91,7 +90,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestExternalBindableChangeKeepsSelection()
         {
             toggleDropdownViaClick(testDropdown, "dropdown1");
-            AddStep("click item 4", () => testDropdown.SelectItem(testDropdown.Menu.Items[4]));
+            AddStep("click item 4", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[4]);
+                InputManager.Click(MouseButton.Left);
+            });
 
             AddAssert("item 4 is selected", () => testDropdown.Current.Value.Identifier == "test 4");
 
@@ -124,7 +127,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => testDropdown.Menu.MaxHeight = float.PositiveInfinity);
             AddAssert("dropdown1 height is calculated automatically", () => testDropdown.Menu.Height == calculatedHeight);
 
-            AddStep("click item 13", () => testDropdown.SelectItem(testDropdown.Menu.Items[13]));
+            AddStep("click item 13", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[13]);
+                InputManager.Click(MouseButton.Left);
+            });
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
             AddAssert("item 13 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(13)));
@@ -377,20 +384,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestDropdown : BasicDropdown<TestModel>
         {
-            public new DropdownMenu Menu => base.Menu;
-
-            protected override DropdownMenu CreateMenu() => new TestDropdownMenu();
-
-            protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
-
-            public void SelectItem(MenuItem item) => ((TestDropdownMenu)Menu).SelectItem(item);
-
-            private class TestDropdownMenu : BasicDropdownMenu
-            {
-                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
-                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
-            }
-
             internal new DropdownMenuItem<TestModel> SelectedItem => base.SelectedItem;
 
             public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
