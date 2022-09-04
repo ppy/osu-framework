@@ -167,6 +167,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("remove three", () => bindableList.Remove("three"));
             AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
+
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
         private void performPlatformAction(PlatformAction action, PlatformActionContainer platformActionContainer, Drawable drawable)
