@@ -2,11 +2,17 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Shaders
 {
     public interface IShader : IDisposable
     {
+        /// <summary>
+        /// All uniforms declared by this shader.
+        /// </summary>
+        internal IReadOnlyDictionary<string, IUniform> Uniforms { get; }
+
         /// <summary>
         /// Binds this shader to be used for rendering.
         /// </summary>
