@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool IsBound { get; private set; }
 
         public Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             return new Uniform<T>(renderer, this, name, 0);
         }
