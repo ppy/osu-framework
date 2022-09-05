@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.Memory;
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     internal abstract class GLVertexBuffer<T> : IGLVertexBuffer, IDisposable
-        where T : struct, IEquatable<T>, IVertex
+        where T : unmanaged, IEquatable<T>, IVertex
     {
         /// <summary>
         /// The maximum number of vertices supported by this buffer.

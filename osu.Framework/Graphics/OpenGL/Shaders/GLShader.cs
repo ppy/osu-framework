@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         }
 
         public Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
@@ -197,7 +197,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             }
 
             IUniform createUniform<T>(string name)
-                where T : struct, IEquatable<T>
+                where T : unmanaged, IEquatable<T>
             {
                 int location = GL.GetUniformLocation(this, name);
 

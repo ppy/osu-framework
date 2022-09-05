@@ -39,6 +39,6 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="name">The name of the uniform.</param>
         /// <returns>The retrieved uniform.</returns>
         Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>;
+            where T : unmanaged, IEquatable<T>;
     }
 }

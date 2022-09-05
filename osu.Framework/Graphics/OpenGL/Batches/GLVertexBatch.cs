@@ -13,7 +13,7 @@ using osu.Framework.Statistics;
 namespace osu.Framework.Graphics.OpenGL.Batches
 {
     internal abstract class GLVertexBatch<T> : IVertexBatch<T>
-        where T : struct, IEquatable<T>, IVertex
+        where T : unmanaged, IEquatable<T>, IVertex
     {
         public List<GLVertexBuffer<T>> VertexBuffers = new List<GLVertexBuffer<T>>();
 
