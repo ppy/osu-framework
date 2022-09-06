@@ -51,11 +51,8 @@ namespace osu.Framework.Graphics
                 case InvalidationSource.Parent:
                     return invalidate(parentInvalidation, flags, out parentInvalidation);
 
-                case InvalidationSource.Child:
-                    return invalidate(childInvalidation, flags, out childInvalidation);
-
                 default:
-                    return false;
+                    return invalidate(childInvalidation, flags, out childInvalidation);
             }
         }
 
