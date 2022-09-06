@@ -5,7 +5,9 @@
 
 using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
@@ -17,6 +19,12 @@ namespace osu.Framework.Platform.SDL2
 {
     public static class SDL2Extensions
     {
+        /// <summary>
+        /// Whether this <paramref name="keycode"/> has the <see cref="SDL.SDLK_SCANCODE_MASK"/> bit set.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasScancodeMask(this SDL.SDL_Keycode keycode) => keycode.HasFlagFast((SDL.SDL_Keycode)SDL.SDLK_SCANCODE_MASK);
+
         public static Key ToKey(this SDL.SDL_Keysym sdlKeysym)
         {
             // Apple devices don't have the notion of NumLock (they have a Clear key instead).
@@ -450,6 +458,95 @@ namespace osu.Framework.Platform.SDL2
                 case SDL.SDL_Scancode.SDL_SCANCODE_SLEEP:
                     return Key.Sleep;
             }
+        }
+
+        public static char GetCharacter(this SDL.SDL_Keycode keycode)
+        {
+            switch (keycode)
+            {
+                case SDL.SDL_Keycode.SDLK_UNKNOWN:
+                    return default;
+
+                case SDL.SDL_Keycode.SDLK_RETURN: // SDLK_RETURN is '\r'
+                    return '\n';
+            }
+
+            if (!keycode.HasScancodeMask())
+            {
+                // keycode is a UCS4 (UTF-32) unicode character.
+                return ((int)keycode).GetCharacter();
+            }
+
+            // key is a scancode
+            switch (keycode)
+            {
+                case SDL.SDL_Keycode.SDLK_KP_DIVIDE:
+                    return '/';
+
+                case SDL.SDL_Keycode.SDLK_KP_MULTIPLY:
+                    return '*';
+
+                case SDL.SDL_Keycode.SDLK_KP_MINUS:
+                    return '-';
+
+                case SDL.SDL_Keycode.SDLK_KP_PLUS:
+                    return '+';
+
+                case SDL.SDL_Keycode.SDLK_KP_ENTER:
+                    return '\n';
+
+                case SDL.SDL_Keycode.SDLK_KP_1:
+                    return '1';
+
+                case SDL.SDL_Keycode.SDLK_KP_2:
+                    return '2';
+
+                case SDL.SDL_Keycode.SDLK_KP_3:
+                    return '3';
+
+                case SDL.SDL_Keycode.SDLK_KP_4:
+                    return '4';
+
+                case SDL.SDL_Keycode.SDLK_KP_5:
+                    return '5';
+
+                case SDL.SDL_Keycode.SDLK_KP_6:
+                    return '6';
+
+                case SDL.SDL_Keycode.SDLK_KP_7:
+                    return '7';
+
+                case SDL.SDL_Keycode.SDLK_KP_8:
+                    return '8';
+
+                case SDL.SDL_Keycode.SDLK_KP_9:
+                    return '9';
+
+                case SDL.SDL_Keycode.SDLK_KP_0:
+                    return '0';
+
+                case SDL.SDL_Keycode.SDLK_KP_PERIOD:
+                    // potentially return ',' as decimal separator based on keyboard layout.
+                    return '.';
+
+                case SDL.SDL_Keycode.SDLK_KP_COMMA:
+                    // this keycode isn't sent for a keyboard that has a comma as a decimal separator.
+                    // handle it anyway for prosperity.
+                    return ',';
+
+                // there are a lot of SDLK_KP_ keys that don't exits on regular keyboards.
+                // can be added if needed.
+
+                default:
+                    return default;
+            }
+        }
+
+        public static KeyboardKey ToKeyboardKey(this SDL.SDL_Keysym sdlKeysym)
+        {
+            var key = sdlKeysym.ToKey();
+            char c = sdlKeysym.sym.GetCharacter();
+            return new KeyboardKey(key, c);
         }
 
         /// <summary>

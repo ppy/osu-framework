@@ -5,6 +5,8 @@
 
 using System.Linq;
 using Foundation;
+using osu.Framework.Extensions;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -54,15 +56,17 @@ namespace osu.Framework.iOS.Input
                 if (key == Key.Unknown || host.TextFieldHandler.Handled(key))
                     continue;
 
+                char character = press.Key.CharactersIgnoringModifiers.GetCharacter();
+
                 switch (press.Phase)
                 {
                     case UIPressPhase.Began:
-                        PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
+                        PendingInputs.Enqueue(new KeyboardKeyInput(new KeyboardKey(key, character), true));
                         break;
 
                     case UIPressPhase.Ended:
                     case UIPressPhase.Cancelled:
-                        PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
+                        PendingInputs.Enqueue(new KeyboardKeyInput(new KeyboardKey(key, character), false));
                         break;
                 }
             }
@@ -84,7 +88,7 @@ namespace osu.Framework.iOS.Input
             if (key == Key.Unknown || host.TextFieldHandler.Handled(key))
                 return;
 
-            PendingInputs.Enqueue(new KeyboardKeyInput(key, isDown));
+            PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(key), isDown));
         }
 
         protected override void Dispose(bool disposing)

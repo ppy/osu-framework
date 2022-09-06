@@ -1092,9 +1092,9 @@ namespace osu.Framework.Platform
 
         private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
         {
-            Key key = evtKey.keysym.ToKey();
+            var key = evtKey.keysym.ToKeyboardKey();
 
-            if (key == Key.Unknown)
+            if (key.Key == Key.Unknown)
             {
                 Logger.Log($"Unknown SDL key: {evtKey.keysym.scancode}, {evtKey.keysym.sym}");
                 return;
@@ -1658,12 +1658,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        public event Action<Key> KeyDown;
+        public event Action<KeyboardKey> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        public event Action<Key> KeyUp;
+        public event Action<KeyboardKey> KeyUp;
 
         /// <summary>
         /// Invoked when the user enters text.

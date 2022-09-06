@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Foundation;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -41,16 +42,16 @@ namespace osu.Framework.iOS.Input
 
                 // NOTE: this makes the assumption that Key.AltLeft triggers the WordPrevious platform action
                 if (range.Length > 1)
-                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.AltLeft, true));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(Key.AltLeft), true));
 
                 if (range.Length > 0)
                 {
-                    PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
-                    PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(key), true));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(key), false));
                 }
 
                 if (range.Length > 1)
-                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.AltLeft, false));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(Key.AltLeft), false));
 
                 return;
             }
@@ -62,13 +63,13 @@ namespace osu.Framework.iOS.Input
                 if (!key.HasValue) continue;
 
                 if (upper)
-                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, true));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(Key.LShift), true));
 
-                PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, true));
-                PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, false));
+                PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(key.Value), true));
+                PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(key.Value), false));
 
                 if (upper)
-                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, false));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(Key.LShift), false));
             }
         }
 
@@ -77,8 +78,8 @@ namespace osu.Framework.iOS.Input
             if (!IsActive)
                 return;
 
-            PendingInputs.Enqueue(new KeyboardKeyInput(Key.Enter, true));
-            PendingInputs.Enqueue(new KeyboardKeyInput(Key.Enter, false));
+            PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(Key.Enter), true));
+            PendingInputs.Enqueue(new KeyboardKeyInput(KeyboardKey.FromKey(Key.Enter), false));
         }
 
         private Key? keyForString(string str, out bool upper)

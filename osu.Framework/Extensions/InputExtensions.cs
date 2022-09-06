@@ -102,5 +102,30 @@ namespace osu.Framework.Extensions
                     return '\\';
             }
         }
+
+        /// <summary>
+        /// Gets the UTF-16 character from a UTF-32 / Unicode scalar value.
+        /// </summary>
+        /// <param name="utf32">Unicode scalar value or UTF-32 code point</param>
+        /// <returns>An UTF-16 <c>char</c>, or <c>default</c> if the Unicode scalar value doesn't map to a single UTF-16 <c>char</c></returns>
+        public static char GetCharacter(this int utf32)
+        {
+            if (utf32 > char.MaxValue || utf32 < char.MinValue)
+                return default;
+
+            char c = (char)utf32;
+
+            if (char.IsSurrogate(c))
+                return default;
+
+            return c;
+        }
+
+        /// <summary>
+        /// Gets a single UTF-16 character from a string encoding a Unicode scalar value.
+        /// </summary>
+        /// <param name="str"><c>string</c> that has a single Unicode scalar value, encoded as one UTF-16 <c>char</c>, or two surrogate pair UTF-16 <c>char</c>s</param>
+        /// <returns>The single UTF-16 character contained in this string, or <c>default</c> if there's more than one.</returns>
+        public static char GetCharacter(this string str) => str.Length == 1 ? str[0] : default;
     }
 }

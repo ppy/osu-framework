@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Android.Views;
+using osu.Framework.Extensions;
+using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -46,9 +48,7 @@ namespace osu.Framework.Android.Input
 
         protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
-            var key = GetKeyCodeAsKey(keycode);
-
-            if (key != Key.Unknown)
+            if (tryGetKeyboardKey(e, out var key))
             {
                 enqueueInput(new KeyboardKeyInput(key, true));
                 return true;
@@ -59,15 +59,19 @@ namespace osu.Framework.Android.Input
 
         protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
-            var key = GetKeyCodeAsKey(keycode);
-
-            if (key != Key.Unknown)
+            if (tryGetKeyboardKey(e, out var key))
             {
                 enqueueInput(new KeyboardKeyInput(key, false));
                 return true;
             }
 
             return false;
+        }
+
+        private static bool tryGetKeyboardKey(KeyEvent e, out KeyboardKey keyboardKey)
+        {
+            keyboardKey = new KeyboardKey(GetKeyCodeAsKey(e.KeyCode), e.GetUnicodeChar(MetaKeyStates.None).GetCharacter());
+            return keyboardKey.Key != Key.Unknown;
         }
 
         /// <summary>

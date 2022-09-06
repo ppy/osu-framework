@@ -34,7 +34,7 @@ namespace osu.Framework.Platform.SDL2
 
             // true if SDL_GetKeyName() returned a proper key/scancode name.
             // see https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/events/SDL_keyboard.c#L1012
-            if (((int)keycode & SDL.SDLK_SCANCODE_MASK) != 0)
+            if (keycode.HasScancodeMask())
                 return name;
 
             // SDL_GetKeyName() returned a unicode character that would be produced if that key was pressed.
