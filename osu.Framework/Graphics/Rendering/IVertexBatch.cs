@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Rendering
     }
 
     public interface IVertexBatch<in TVertex> : IVertexBatch
-        where TVertex : struct, IEquatable<TVertex>, IVertex
+        where TVertex : unmanaged, IEquatable<TVertex>, IVertex
     {
         /// <summary>
         /// Adds a vertex to this <see cref="IVertexBatch{T}"/>.

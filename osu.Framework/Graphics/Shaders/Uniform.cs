@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Rendering;
 namespace osu.Framework.Graphics.Shaders
 {
     public class Uniform<T> : IUniformWithValue<T>
-        where T : struct, IEquatable<T>
+        where T : unmanaged, IEquatable<T>
     {
         public IShader Owner { get; }
         public string Name { get; }

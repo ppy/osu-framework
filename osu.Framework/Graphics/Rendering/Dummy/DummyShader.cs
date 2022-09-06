@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
@@ -12,6 +13,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     internal class DummyShader : IShader
     {
         private readonly IRenderer renderer;
+
+        IReadOnlyDictionary<string, IUniform> IShader.Uniforms { get; } = new Dictionary<string, IUniform>();
 
         public DummyShader(IRenderer renderer)
         {
@@ -32,7 +35,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool IsBound { get; private set; }
 
         public Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             return new Uniform<T>(renderer, this, name, 0);
         }

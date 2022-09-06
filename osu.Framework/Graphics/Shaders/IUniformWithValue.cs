@@ -8,7 +8,7 @@ using System;
 namespace osu.Framework.Graphics.Shaders
 {
     internal interface IUniformWithValue<T> : IUniform
-        where T : struct, IEquatable<T>
+        where T : unmanaged, IEquatable<T>
     {
         ref T GetValueByRef();
         T GetValue();
