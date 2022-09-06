@@ -1,9 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using osu.Framework.Layout;
 
@@ -53,8 +52,11 @@ namespace osu.Framework.Graphics
                     return invalidate(ref childInvalidation, flags);
 
                 default:
-                    throw new ArgumentException("Unexpected invalidation source.", nameof(source));
+                    return throwInvalidSourceException();
             }
+
+            [DoesNotReturn]
+            static bool throwInvalidSourceException() => throw new ArgumentException("Unexpected invalidation source.", nameof(source));
         }
 
         /// <summary>
