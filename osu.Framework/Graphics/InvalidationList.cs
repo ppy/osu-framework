@@ -25,9 +25,9 @@ namespace osu.Framework.Graphics
         {
             this = default;
 
-            invalidate(ref selfInvalidation, initialState);
-            invalidate(ref parentInvalidation, initialState);
-            invalidate(ref childInvalidation, initialState);
+            invalidate(selfInvalidation, initialState, out selfInvalidation);
+            invalidate(parentInvalidation, initialState, out parentInvalidation);
+            invalidate(childInvalidation, initialState, out childInvalidation);
         }
 
         /// <summary>
@@ -43,13 +43,13 @@ namespace osu.Framework.Graphics
             switch (source)
             {
                 case InvalidationSource.Self:
-                    return invalidate(ref selfInvalidation, flags);
+                    return invalidate(selfInvalidation, flags, out selfInvalidation);
 
                 case InvalidationSource.Parent:
-                    return invalidate(ref parentInvalidation, flags);
+                    return invalidate(parentInvalidation, flags, out parentInvalidation);
 
                 case InvalidationSource.Child:
-                    return invalidate(ref childInvalidation, flags);
+                    return invalidate(childInvalidation, flags, out childInvalidation);
 
                 default:
                     return throwInvalidSourceException();
@@ -67,30 +67,24 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Validate(Invalidation validation)
         {
-            return validate(ref selfInvalidation, validation)
-                   | validate(ref parentInvalidation, validation)
-                   | validate(ref childInvalidation, validation);
+            return validate(selfInvalidation, validation, out selfInvalidation)
+                   | validate(parentInvalidation, validation, out parentInvalidation)
+                   | validate(childInvalidation, validation, out childInvalidation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool invalidate(ref Invalidation target, Invalidation flags)
+        private bool invalidate(Invalidation target, Invalidation flags, out Invalidation result)
         {
-            if ((target & flags) == flags)
-                return false;
-
             // Remove all non-layout flags, as they should always propagate and are thus not to be stored.
-            target |= flags & Invalidation.Layout;
-            return true;
+            result = target | (flags & Invalidation.Layout);
+            return (target & flags) != flags;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool validate(ref Invalidation target, Invalidation flags)
+        private bool validate(Invalidation target, Invalidation flags, out Invalidation result)
         {
-            if ((target & flags) == 0)
-                return false;
-
-            target &= ~flags;
-            return true;
+            result = target & ~flags;
+            return (target & flags) != 0;
         }
     }
 }
