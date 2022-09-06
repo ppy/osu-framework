@@ -175,7 +175,7 @@ namespace osu.Framework.Input
             var mouseButtonDifference = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            new KeyboardKeyInput(state?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+            new KeyboardKeyInput(state?.Keyboard, CurrentState.Keyboard).Apply(CurrentState, this);
 
             var touchStateDifference = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
             new TouchInput(touchStateDifference.deactivated, false).Apply(CurrentState, this);

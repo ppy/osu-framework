@@ -78,29 +78,50 @@ namespace osu.Framework.Testing.Input
         }
 
         /// <summary>
-        /// Press a key down. Release with <see cref="ReleaseKey"/>.
+        /// Press a key down. Release with <see cref="ReleaseKey(osu.Framework.Input.KeyboardKey)"/>.
         /// </summary>
         /// <remarks>
-        /// To press and release a key immediately, use <see cref="Key"/>.
+        /// To press and release a key immediately, use <see cref="Key(osu.Framework.Input.KeyboardKey)"/>.
+        /// </remarks>
+        /// <param name="keyboardKey">The key to press.</param>
+        public void PressKey(KeyboardKey keyboardKey) => Input(new KeyboardKeyInput(keyboardKey, true));
+
+        /// <summary>
+        /// Press a key down. Release with <see cref="ReleaseKey(osuTK.Input.Key)"/>.
+        /// </summary>
+        /// <remarks>
+        /// To press and release a key immediately, use <see cref="Key(osuTK.Input.Key)"/>.
         /// </remarks>
         /// <param name="key">The key to press.</param>
-        public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
+        public void PressKey(Key key) => PressKey(KeyboardKey.FromKey(key));
+
+        /// <summary>
+        /// Release a pressed key.
+        /// </summary>
+        /// <param name="keyboardKey">The key to release.</param>
+        public void ReleaseKey(KeyboardKey keyboardKey) => Input(new KeyboardKeyInput(keyboardKey, false));
 
         /// <summary>
         /// Release a pressed key.
         /// </summary>
         /// <param name="key">The key to release.</param>
-        public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
+        public void ReleaseKey(Key key) => ReleaseKey(KeyboardKey.FromKey(key));
+
+        /// <summary>
+        /// Press and release the specified key.
+        /// </summary>
+        /// <param name="keyboardKey">The key to actuate.</param>
+        public void Key(KeyboardKey keyboardKey)
+        {
+            PressKey(keyboardKey);
+            ReleaseKey(keyboardKey);
+        }
 
         /// <summary>
         /// Press and release the specified key.
         /// </summary>
         /// <param name="key">The key to actuate.</param>
-        public void Key(Key key)
-        {
-            PressKey(key);
-            ReleaseKey(key);
-        }
+        public void Key(Key key) => Key(KeyboardKey.FromKey(key));
 
         /// <summary>
         /// Press and release the keys in the specified <see cref="PlatformAction"/>.
