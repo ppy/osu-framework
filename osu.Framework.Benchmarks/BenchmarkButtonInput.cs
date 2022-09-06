@@ -7,6 +7,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK.Input;
+using KeyboardState = osu.Framework.Input.States.KeyboardState;
 
 namespace osu.Framework.Benchmarks
 {
@@ -20,14 +21,14 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public KeyboardKeyInput FromTwoStates(int count)
         {
-            var state1 = new ButtonStates<Key>();
-            var state2 = new ButtonStates<Key>();
+            var state1 = new KeyboardState();
+            var state2 = new KeyboardState();
 
             for (int i = 0; i < count; i++)
-                state1.SetPressed((Key)i, true);
+                state1.Keys.SetPressed((Key)i, true);
 
             for (int i = count; i < 2 * count; i++)
-                state2.SetPressed((Key)i, true);
+                state2.Keys.SetPressed((Key)i, true);
 
             return new KeyboardKeyInput(state1, state2);
         }
