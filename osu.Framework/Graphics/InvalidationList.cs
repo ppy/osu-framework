@@ -33,14 +33,16 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Invalidates a <see cref="InvalidationSource"/> with given <see cref="Invalidation"/> flags.
         /// </summary>
+        /// <remarks>
+        /// Call sites must ensure that on a <see cref="InvalidationSource.Self"/>, <see cref="InvalidationSource.Parent"/> or <see cref="InvalidationSource.Child"/> source is provided.
+        /// </remarks>
         /// <param name="source">The <see cref="InvalidationSource"/> to invalidate.</param>
         /// <param name="flags">The <see cref="Invalidation"/> flags to invalidate with.</param>
         /// <returns>Whether an invalidation was performed.</returns>
-        /// <exception cref="ArgumentException">If <see cref="InvalidationSource"/> was not a valid source.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Invalidate(InvalidationSource source, Invalidation flags)
         {
-            // Guaranteed by preconditions at the callsite.
+            // Guaranteed by preconditions at the call site.
             Debug.Assert(source is InvalidationSource.Self or InvalidationSource.Parent or InvalidationSource.Child);
 
             switch (source)
@@ -51,6 +53,7 @@ namespace osu.Framework.Graphics
                 case InvalidationSource.Parent:
                     return invalidate(parentInvalidation, flags, out parentInvalidation);
 
+                // Guaranteed to be InvalidationSource.Child by the call site of this method.
                 default:
                     return invalidate(childInvalidation, flags, out childInvalidation);
             }
