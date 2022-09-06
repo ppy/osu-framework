@@ -15,12 +15,17 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public abstract class KeyboardEvent : UIEvent
     {
+        /// <inheritdoc cref="Input.KeyboardKey.Key"/>
         public readonly Key Key;
 
-        /// <summary>
-        /// Whether a specific key is pressed.
-        /// </summary>
-        public bool IsPressed(Key key) => CurrentState.Keyboard.Keys.IsPressed(key);
+        /// <inheritdoc cref="Input.KeyboardKey.Character"/>
+        public readonly char Character;
+
+        /// <inheritdoc cref="States.KeyboardState.IsPressed(osuTK.Input.Key)"/>
+        public bool IsPressed(Key key) => CurrentState.Keyboard.IsPressed(key);
+
+        /// <inheritdoc cref="States.KeyboardState.IsPressed(char)"/>
+        public bool IsPressed(char character) => CurrentState.Keyboard.IsPressed(character);
 
         /// <summary>
         /// Whether any key is pressed.
@@ -36,8 +41,9 @@ namespace osu.Framework.Input.Events
             : base(state)
         {
             Key = key;
+            Character = state.Keyboard.Characters[key];
         }
 
-        public override string ToString() => $"{GetType().ReadableName()}({Key})";
+        public override string ToString() => $"{GetType().ReadableName()}({KeyboardKey.ToString(Key, Character)})";
     }
 }

@@ -367,6 +367,40 @@ namespace osu.Framework.Extensions
         public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
 
         /// <summary>
+        /// Gets the string representation of a character.
+        /// </summary>
+        /// <param name="character"></param>
+        /// <returns><c>string</c> with form of <c>'\0'</c>, <c>'a'</c>, <c>'\x7f'</c>, etc.</returns>
+        public static string StringRepresentation(this char character)
+        {
+            // https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/#string-escape-sequences
+            switch (character)
+            {
+                case '\0': return @"'\0'";
+
+                case '\a': return @"'\a'";
+
+                case '\b': return @"'\b'";
+
+                case '\f': return @"'\f'";
+
+                case '\n': return @"'\n'";
+
+                case '\r': return @"'\r'";
+
+                case '\t': return @"'\t'";
+
+                case '\v': return @"'\v'";
+            }
+
+            // ascii control, and delete character
+            if (character < 0x20 || character == '\x7f')
+                return $@"'\x{(int)character:x2}'";
+
+            return @$"'{character}'";
+        }
+
+        /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
         /// </summary>
         /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>
