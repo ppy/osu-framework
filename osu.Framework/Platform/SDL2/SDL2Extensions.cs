@@ -25,12 +25,8 @@ namespace osu.Framework.Platform.SDL2
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasScancodeMask(this SDL.SDL_Keycode keycode) => keycode.HasFlagFast((SDL.SDL_Keycode)SDL.SDLK_SCANCODE_MASK);
 
-        public static Key ToKey(this SDL.SDL_Keysym sdlKeysym)
+        public static Key ToKey(this SDL.SDL_Keysym sdlKeysym, bool numLockOn)
         {
-            // Apple devices don't have the notion of NumLock (they have a Clear key instead).
-            // treat them as if they always have NumLock on (the numpad always performs its primary actions).
-            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
-
             switch (sdlKeysym.scancode)
             {
                 default:
@@ -460,7 +456,7 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
-        public static char GetCharacter(this SDL.SDL_Keycode keycode)
+        public static char GetCharacter(this SDL.SDL_Keycode keycode, bool numLockOn)
         {
             switch (keycode)
             {
@@ -496,38 +492,38 @@ namespace osu.Framework.Platform.SDL2
                     return '\n';
 
                 case SDL.SDL_Keycode.SDLK_KP_1:
-                    return '1';
+                    return numLockOn ? '1' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_2:
-                    return '2';
+                    return numLockOn ? '2' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_3:
-                    return '3';
+                    return numLockOn ? '3' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_4:
-                    return '4';
+                    return numLockOn ? '4' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_5:
-                    return '5';
+                    return numLockOn ? '5' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_6:
-                    return '6';
+                    return numLockOn ? '6' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_7:
-                    return '7';
+                    return numLockOn ? '7' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_8:
-                    return '8';
+                    return numLockOn ? '8' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_9:
-                    return '9';
+                    return numLockOn ? '9' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_0:
-                    return '0';
+                    return numLockOn ? '0' : default;
 
                 case SDL.SDL_Keycode.SDLK_KP_PERIOD:
                     // potentially return ',' as decimal separator based on keyboard layout.
-                    return '.';
+                    return numLockOn ? '.' : '\x7f'; // char for delete
 
                 case SDL.SDL_Keycode.SDLK_KP_COMMA:
                     // this keycode isn't sent for a keyboard that has a comma as a decimal separator.
@@ -544,8 +540,12 @@ namespace osu.Framework.Platform.SDL2
 
         public static KeyboardKey ToKeyboardKey(this SDL.SDL_Keysym sdlKeysym)
         {
-            var key = sdlKeysym.ToKey();
-            char c = sdlKeysym.sym.GetCharacter();
+            // Apple devices don't have the notion of NumLock (they have a Clear key instead).
+            // treat them as if they always have NumLock on (the numpad always performs its primary actions).
+            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
+
+            var key = sdlKeysym.ToKey(numLockOn);
+            char c = sdlKeysym.sym.GetCharacter(numLockOn);
             return new KeyboardKey(key, c);
         }
 
