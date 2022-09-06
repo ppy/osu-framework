@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
@@ -48,11 +49,13 @@ namespace osu.Framework.Tests.Visual.Input
             };
         }
 
-        private readonly List<Key> pressedKeys = new List<Key>();
+        private readonly List<KeyboardKey> pressedKeys = new List<KeyboardKey>();
         private readonly List<MouseButton> pressedMouseButtons = new List<MouseButton>();
         private readonly Dictionary<TestButton, EventCounts> lastEventCounts = new Dictionary<TestButton, EventCounts>();
 
-        private void toggleKey(Key key)
+        private void toggleKey(Key key) => toggleKey(KeyboardKey.FromKey(key));
+
+        private void toggleKey(KeyboardKey key)
         {
             if (!pressedKeys.Contains(key))
             {
