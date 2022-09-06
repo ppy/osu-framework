@@ -7,6 +7,7 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
@@ -121,6 +122,21 @@ namespace osu.Framework.Tests.Input
             AddStep("add back receptor 0", () => Add(receptors[0]));
 
             AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
+        }
+
+        [Test]
+        public void TestKeyCharacterChangingDuringPress()
+        {
+            AddStep("press key as 'a'", () => InputManager.PressKey(new KeyboardKey(Key.A, 'a')));
+
+            AddAssert("key pressed", () => InputManager.CurrentState.Keyboard.IsPressed(Key.A));
+            AddAssert("char pressed", () => InputManager.CurrentState.Keyboard.IsPressed('a'));
+
+            AddStep("release same key as 'b'", () => InputManager.ReleaseKey(new KeyboardKey(Key.A, 'b')));
+
+            AddAssert("key released", () => InputManager.CurrentState.Keyboard.IsPressed(Key.A), () => Is.False);
+            AddAssert("char 'a' not pressed", () => InputManager.CurrentState.Keyboard.IsPressed('a'), () => Is.False);
+            AddAssert("char 'b' not pressed", () => InputManager.CurrentState.Keyboard.IsPressed('b'), () => Is.False);
         }
 
         private class InputReceptor : Box
