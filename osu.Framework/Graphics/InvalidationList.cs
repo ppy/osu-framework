@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using osu.Framework.Layout;
 
@@ -40,6 +40,9 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Invalidate(InvalidationSource source, Invalidation flags)
         {
+            // Guaranteed by preconditions at the callsite.
+            Debug.Assert(source is InvalidationSource.Self or InvalidationSource.Parent or InvalidationSource.Child);
+
             switch (source)
             {
                 case InvalidationSource.Self:
@@ -52,11 +55,8 @@ namespace osu.Framework.Graphics
                     return invalidate(childInvalidation, flags, out childInvalidation);
 
                 default:
-                    return throwInvalidSourceException();
+                    return false;
             }
-
-            [DoesNotReturn]
-            static bool throwInvalidSourceException() => throw new ArgumentException("Unexpected invalidation source.", nameof(source));
         }
 
         /// <summary>
