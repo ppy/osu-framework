@@ -67,7 +67,9 @@ namespace osu.Framework.Graphics.Containers
                     break;
             }
 
-            content.Size = Vector2.Divide(Vector2.One, content.Scale);
+            content.Size = new Vector2(
+                content.Scale.X == 0 ? 0 : 1 / content.Scale.X,
+                content.Scale.Y == 0 ? 0 : 1 / content.Scale.Y);
         }
     }
 
