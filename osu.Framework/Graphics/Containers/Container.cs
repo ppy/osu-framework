@@ -37,6 +37,13 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         /// <summary>
+        /// This is checked when enumerating through this <see cref="Container"/> to throw when
+        /// <see cref="Children"/> was mutated while enumerating (in <see cref="Enumerator"/>).
+        /// This is incremented whenever <see cref="Children"/> is mutated (e.g. with <see cref="Add(T)"/>). 
+        /// </summary>
+        private int version = 0;
+
+        /// <summary>
         /// Constructs a <see cref="Container"/> that stores children.
         /// </summary>
         public Container()
@@ -243,6 +250,8 @@ namespace osu.Framework.Graphics.Containers
                     $"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
             }
 
+            version++;
+
             base.AddInternal(drawable);
         }
 
@@ -298,6 +307,13 @@ namespace osu.Framework.Graphics.Containers
                 Remove(p, disposeImmediately);
         }
 
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
+        {
+            version++;
+
+            return base.RemoveInternal(drawable, disposeImmediately);
+        }
+
         /// <summary>
         /// Removes all children.
         /// </summary>
@@ -316,6 +332,13 @@ namespace osu.Framework.Graphics.Containers
                 Content.Clear(disposeChildren);
             else
                 ClearInternal(disposeChildren);
+        }
+
+        protected internal override void ClearInternal(bool disposeChildren = true)
+        {
+            version++;
+
+            base.ClearInternal(disposeChildren);
         }
 
         /// <summary>
@@ -490,14 +513,22 @@ namespace osu.Framework.Graphics.Containers
         {
             private Container<T> container;
             private int currentIndex;
+            private int version;
 
             internal Enumerator(Container<T> container)
             {
                 this.container = container;
                 currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+                version = container.version;
             }
 
-            public bool MoveNext() => ++currentIndex < container.Count;
+            public bool MoveNext()
+            {
+                if (version != container.version)
+                    throw new InvalidOperationException($"May not add or remove {nameof(Children)} from this {nameof(Container)} during enumeration.");
+
+                return ++currentIndex < container.Count;
+            }
 
             public void Reset() => currentIndex = -1;
 
