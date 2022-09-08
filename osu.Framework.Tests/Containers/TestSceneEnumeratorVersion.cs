@@ -6,23 +6,22 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Tests.Visual;
 
-namespace osu.Framework.Tests.Visual.Containers
+namespace osu.Framework.Tests.Containers
 {
-    public class TestSceneEnumerator : FrameworkTestScene
+    public class TestSceneEnumeratorVersion : FrameworkTestScene
     {
         private Container parent;
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             Child = parent = new Container
             {
-                Child = new Container
-                {
-                }
+                Child = new Container()
             };
-        }
+        });
 
         [Test]
         public void TestEnumeratingNormally()
