@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Containers
         {
             AddStep("iterate through parent doing nothing", () => Assert.DoesNotThrow(() =>
             {
-                foreach (var child in parent)
+                foreach (var _ in parent)
                 {
                 }
             }));
@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Containers
         {
             AddStep("adding child during enumeration fails", () => Assert.Throws<InvalidOperationException>(() =>
             {
-                foreach (var child in parent)
+                foreach (var _ in parent)
                 {
                     parent.Add(new Container());
                 }
@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Containers
         {
             AddStep("clearing children during enumeration fails", () => Assert.Throws<InvalidOperationException>(() =>
             {
-                foreach (var child in parent)
+                foreach (var _ in parent)
                 {
                     parent.Clear();
                 }
