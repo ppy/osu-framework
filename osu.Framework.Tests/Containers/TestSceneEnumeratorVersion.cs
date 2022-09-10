@@ -4,10 +4,12 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 
 namespace osu.Framework.Tests.Containers
 {
+    [HeadlessTest]
     public class TestSceneEnumeratorVersion : FrameworkTestScene
     {
         private Container parent = null!;
