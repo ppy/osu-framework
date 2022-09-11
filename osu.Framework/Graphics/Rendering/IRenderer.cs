@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
@@ -26,9 +25,21 @@ namespace osu.Framework.Graphics.Rendering
 
         public const int MAX_MIPMAP_LEVELS = 3;
 
+        public const int VERTICES_PER_TRIANGLE = 4;
+
         public const int VERTICES_PER_QUAD = 4;
 
-        public const int VERTICES_PER_TRIANGLE = 4;
+        public const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
+
+        /// <summary>
+        /// Maximum number of vertices in a linear vertex buffer.
+        /// </summary>
+        public const int MAX_VERTICES = ushort.MaxValue;
+
+        /// <summary>
+        /// Maximum number of quads in a quad vertex buffer.
+        /// </summary>
+        public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
         /// The maximum allowed texture size.
@@ -304,7 +315,7 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <summary>
         /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IGLVertexBuffer"/>s.
+        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
         /// </summary>
         /// <param name="drawDepth">The draw depth.</param>
         internal void SetDrawDepth(float drawDepth);
