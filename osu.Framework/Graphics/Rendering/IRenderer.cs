@@ -269,9 +269,23 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="target">The target to be disposed.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
-        internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+        /// <summary>
+        /// Creates a new <see cref="IShaderPart"/>.
+        /// </summary>
+        /// <param name="manager">The shader manager to load headers with.</param>
+        /// <param name="name">The name of the shader part.</param>
+        /// <param name="rawData">The content of the shader part.</param>
+        /// <param name="partType">The type of the shader part.</param>
+        /// <returns>The <see cref="IShaderPart"/>.</returns>
+        protected internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
 
-        internal IShader CreateShader(string name, params IShaderPart[] parts);
+        /// <summary>
+        /// Creates a new <see cref="IShader"/>.
+        /// </summary>
+        /// <param name="name">The name of the shader.</param>
+        /// <param name="parts">The <see cref="IShaderPart"/>s associated with this shader.</param>
+        /// <returns>The <see cref="IShader"/>.</returns>
+        protected internal IShader CreateShader(string name, params IShaderPart[] parts);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
