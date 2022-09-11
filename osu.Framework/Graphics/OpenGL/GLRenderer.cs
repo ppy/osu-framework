@@ -115,6 +115,41 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
+        protected override bool SetTextureInternal(INativeTexture? texture, int unit)
+        {
+            if (texture == null)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + unit);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+                return true;
+            }
+
+            switch (texture)
+            {
+                case GLVideoTexture glVideo:
+                    if (glVideo.TextureIds == null)
+                        return false;
+
+                    for (int i = 0; i < glVideo.TextureIds.Length; i++)
+                    {
+                        GL.ActiveTexture(TextureUnit.Texture0 + unit + i);
+                        GL.BindTexture(TextureTarget.Texture2D, glVideo.TextureIds[i]);
+                    }
+
+                    break;
+
+                case GLTexture glTexture:
+                    if (glTexture.TextureId <= 0)
+                        return false;
+
+                    GL.ActiveTexture(TextureUnit.Texture0 + unit);
+                    GL.BindTexture(TextureTarget.Texture2D, glTexture.TextureId);
+                    break;
+            }
+
+            return true;
+        }
+
         protected override void SetFrameBufferInternal(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
 
         /// <summary>
@@ -216,31 +251,6 @@ namespace osu.Framework.Graphics.OpenGL
             }
             else
                 GL.Disable(EnableCap.StencilTest);
-        }
-
-        private protected override void BindTextureInternal(INativeTexture texture, int unit)
-        {
-            switch (texture)
-            {
-                case GLVideoTexture video:
-                    for (int i = 0; i < video.TextureIds.Length; i++)
-                        bindTexture(video.TextureIds[i], unit + i);
-
-                    break;
-
-                case GLTexture single:
-                    bindTexture(single.TextureId, unit);
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(texture));
-            }
-        }
-
-        private void bindTexture(int textureId, int unit)
-        {
-            GL.ActiveTexture(TextureUnit.Texture0 + unit);
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
         }
 
         protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)

@@ -99,8 +99,11 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Stack<IFrameBuffer> frameBufferStack = new Stack<IFrameBuffer>();
         private readonly Stack<IShader> shaderStack = new Stack<IShader>();
         private readonly Stack<bool> scissorStateStack = new Stack<bool>();
+
+        private readonly INativeTexture?[] lastBoundTexture = new INativeTexture?[16];
         private readonly bool[] lastBoundTextureIsAtlas = new bool[16];
-        private readonly INativeTexture[] lastBoundTexture = new INativeTexture[16];
+
+        private readonly Dictionary<INativeTexture, ulong> textureBindCount = new Dictionary<INativeTexture, ulong>();
 
         // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
         private readonly Lazy<TextureWhitePixel> whitePixel;
@@ -261,18 +264,6 @@ namespace osu.Framework.Graphics.Rendering
                 disposalQueue.ScheduleDisposal(disposalAction, target);
             else
                 disposalAction.Invoke(target);
-        }
-
-        /// <summary>
-        /// Enqueues a texture to be uploaded in the next frame.
-        /// </summary>
-        /// <param name="texture">The texture to be uploaded.</param>
-        internal void EnqueueTextureUpload(INativeTexture texture)
-        {
-            if (!isInitialised || textureUploadQueue.Contains(texture))
-                return;
-
-            textureUploadQueue.Enqueue(texture);
         }
 
         /// <summary>
@@ -761,8 +752,43 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Textures
 
-        internal bool BindTexture(INativeTexture texture, int unit = 0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        public bool BindTexture(Texture texture, int unit, WrapMode? wrapModeS, WrapMode? wrapModeT)
         {
+            if (!texture.Available)
+                throw new ObjectDisposedException(nameof(texture), "Can not bind a disposed texture.");
+
+            if (texture is TextureWhitePixel && lastBoundTextureIsAtlas[unit])
+            {
+                // We can use the special white space from any atlas texture.
+                return true;
+            }
+
+            texture.NativeTexture.Upload();
+
+            bool didBind = BindTexture(texture.NativeTexture, unit, wrapModeS ?? texture.WrapModeS, wrapModeT ?? texture.WrapModeT);
+            lastBoundTextureIsAtlas[unit] = texture.IsAtlasTexture;
+
+            return didBind;
+        }
+
+        /// <summary>
+        /// Binds a native texture. Generally used by internal components of renderer implementations.
+        /// </summary>
+        /// <param name="texture">The native texture to bind.</param>
+        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
+        /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
+        /// <returns>Whether the texture was successfully bound.</returns>
+        public bool BindTexture(INativeTexture texture, int unit = 0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        {
+            if (lastActiveTextureUnit == unit && lastBoundTexture[unit] == texture)
+                return true;
+
+            FlushCurrentBatch();
+
+            if (!SetTextureInternal(texture, unit))
+                return false;
+
             if (wrapModeS != CurrentWrapModeS)
             {
                 // Will flush the current batch internally.
@@ -777,26 +803,49 @@ namespace osu.Framework.Graphics.Rendering
                 CurrentWrapModeT = wrapModeT;
             }
 
-            if (lastActiveTextureUnit == unit && lastBoundTexture[unit] == texture)
-                return false;
-
-            FlushCurrentBatch();
-            BindTextureInternal(texture, unit);
-
             lastBoundTexture[unit] = texture;
             lastBoundTextureIsAtlas[unit] = false;
             lastActiveTextureUnit = unit;
 
             FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+            textureBindCount[texture] = textureBindCount.GetValueOrDefault(texture) + 1;
+
             return true;
         }
 
         /// <summary>
-        /// Binds the given texture to the renderer pipeline for drawing.
+        /// Unbinds any bound texture.
         /// </summary>
-        /// <param name="texture">The texture to bind.</param>
+        /// <param name="unit">The sampling unit in which the texture is to be unbound.</param>
+        public void UnbindTexture(int unit = 0)
+        {
+            FlushCurrentBatch();
+
+            SetTextureInternal(null, unit);
+
+            lastBoundTexture[unit] = null;
+            lastBoundTextureIsAtlas[unit] = false;
+        }
+
+        /// <summary>
+        /// Enqueues a texture to be uploaded in the next frame.
+        /// </summary>
+        /// <param name="texture">The texture to be uploaded.</param>
+        internal void EnqueueTextureUpload(INativeTexture texture)
+        {
+            if (!isInitialised || textureUploadQueue.Contains(texture))
+                return;
+
+            textureUploadQueue.Enqueue(texture);
+        }
+
+        /// <summary>
+        /// Informs the graphics device to use the given texture for drawing.
+        /// </summary>
+        /// <param name="texture">The texture, or null to use default texture.</param>
         /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
-        private protected abstract void BindTextureInternal(INativeTexture texture, int unit);
+        /// <returns>Whether the texture was successfully bound.</returns>
+        protected abstract bool SetTextureInternal(INativeTexture? texture, int unit);
 
         #endregion
 
@@ -1015,6 +1064,8 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
+
+        ulong IRenderer.GetTextureBindCount(Texture texture) => textureBindCount.GetValueOrDefault(texture.NativeTexture);
 
         #endregion
     }

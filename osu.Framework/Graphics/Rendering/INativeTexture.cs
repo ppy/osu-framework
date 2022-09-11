@@ -69,22 +69,8 @@ namespace osu.Framework.Graphics.Rendering
         bool Upload();
 
         /// <summary>
-        /// Binds this texture for drawing.
-        /// </summary>
-        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
-        /// <param name="wrapModeS">The horizontal wrap mode.</param>
-        /// <param name="wrapModeT">The vertical wrap mode.</param>
-        /// <returns>Whether the texture was successfully bound.</returns>
-        bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT);
-
-        /// <summary>
         /// The size of this texture in bytes.
         /// </summary>
         int GetByteSize();
-
-        /// <summary>
-        /// The total amount of times this <see cref="INativeTexture"/> has ever been bound.
-        /// </summary>
-        ulong BindCount { get; }
     }
 }

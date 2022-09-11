@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
         /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
         /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
-        /// <returns>Whether <paramref name="texture"/> was newly-bound.</returns>
+        /// <returns>Whether the texture was successfully bound.</returns>
         bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
 
         /// <summary>
@@ -345,6 +345,11 @@ namespace osu.Framework.Graphics.Rendering
         /// Retrieves all <see cref="Texture"/>s that have been created.
         /// </summary>
         internal Texture[] GetAllTextures();
+
+        /// <summary>
+        /// Returns the total amount of times the texture has ever been bound.
+        /// </summary>
+        internal ulong GetTextureBindCount(Texture texture);
 
         #endregion
     }

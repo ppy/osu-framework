@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
@@ -30,8 +31,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             renderer.BindFrameBuffer(this);
 
+            Debug.Assert(glTexture.TextureId != 0);
+
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, glTexture.TextureId, 0);
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            renderer.UnbindTexture();
 
             if (renderBufferFormats != null)
             {
