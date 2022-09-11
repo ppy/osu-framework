@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (textureId <= 0)
                 return false;
 
-            if (Renderer.BindTexture(textureId, unit, wrapModeS, wrapModeT))
+            if (Renderer.BindTexture(this, unit, wrapModeS, wrapModeT))
                 BindCount++;
 
             return true;
@@ -270,7 +270,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     textureId = textures[0];
 
-                    Renderer.BindTexture(textureId);
+                    Renderer.BindTexture(this);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, IRenderer.MAX_MIPMAP_LEVELS);
@@ -287,7 +287,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
                 }
                 else
-                    Renderer.BindTexture(textureId);
+                    Renderer.BindTexture(this);
 
                 if ((Width == upload.Bounds.Width && Height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
@@ -305,7 +305,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // Just update content of the current texture
             else if (dataPointer != IntPtr.Zero)
             {
-                Renderer.BindTexture(textureId);
+                Renderer.BindTexture(this);
 
                 if (!manualMipmaps && upload.Level > 0)
                 {

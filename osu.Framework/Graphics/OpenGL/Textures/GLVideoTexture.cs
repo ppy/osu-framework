@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal unsafe class GLVideoTexture : GLTexture
     {
-        private int[] textureIds;
+        public int[] TextureIds { get; private set; }
 
         public GLVideoTexture(GLRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override int TextureId => textureIds?[0] ?? 0;
+        public override int TextureId => TextureIds?[0] ?? 0;
 
         private int textureSize;
 
@@ -36,15 +36,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             Upload();
 
-            if (textureIds == null)
+            if (TextureIds == null)
                 return false;
 
-            bool anyBound = false;
-
-            for (int i = 0; i < textureIds.Length; i++)
-                anyBound |= Renderer.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
-
-            if (anyBound)
+            if (Renderer.BindTexture(this, unit, wrapModeS, wrapModeT))
                 BindCount++;
 
             return true;
@@ -56,17 +51,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 return;
 
             // Do we need to generate a new texture?
-            if (textureIds == null)
+            if (TextureIds == null)
             {
                 Debug.Assert(memoryLease == null);
                 memoryLease = NativeMemoryTracker.AddMemory(this, Width * Height * 3 / 2);
 
-                textureIds = new int[3];
-                GL.GenTextures(textureIds.Length, textureIds);
+                TextureIds = new int[3];
+                GL.GenTextures(TextureIds.Length, TextureIds);
 
-                for (uint i = 0; i < textureIds.Length; i++)
+                for (uint i = 0; i < TextureIds.Length; i++)
                 {
-                    Renderer.BindTexture(textureIds[i]);
+                    GL.BindTexture(TextureTarget.Texture2D, TextureIds[i]);
 
                     int width = videoUpload.GetPlaneWidth(i);
                     int height = videoUpload.GetPlaneHeight(i);
@@ -84,9 +79,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            for (uint i = 0; i < textureIds.Length; i++)
+            for (uint i = 0; i < TextureIds.Length; i++)
             {
-                Renderer.BindTexture(textureIds[i]);
+                GL.BindTexture(TextureTarget.Texture2D, TextureIds[i]);
 
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[i]);
 
@@ -107,7 +102,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             Renderer.ScheduleDisposal(v =>
             {
-                int[] ids = v.textureIds;
+                int[] ids = v.TextureIds;
 
                 if (ids == null)
                     return;

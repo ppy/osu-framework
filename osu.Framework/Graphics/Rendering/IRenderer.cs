@@ -150,12 +150,6 @@ namespace osu.Framework.Graphics.Rendering
         bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
 
         /// <summary>
-        /// Binds a shader.
-        /// </summary>
-        /// <param name="shader">The shader to bind.</param>
-        void UseProgram(IShader? shader);
-
-        /// <summary>
         /// Clears the currently bound frame buffer.
         /// </summary>
         /// <param name="clearInfo">The clearing parameters.</param>

@@ -8,19 +8,15 @@ using System.Buffers;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Development;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using SixLabors.ImageSharp.Memory;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal abstract class GLVertexBuffer<T> : IGLVertexBuffer, IDisposable
+    internal abstract class GLVertexBuffer<T> : IVertexBuffer, IDisposable
         where T : unmanaged, IEquatable<T>, IVertex
     {
-        /// <summary>
-        /// The maximum number of vertices supported by this buffer.
-        /// </summary>
-        public const int MAX_VERTICES = ushort.MaxValue;
-
         protected static readonly int STRIDE = GLVertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
         protected readonly GLRenderer Renderer;
@@ -97,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (IsDisposed)
                 return;
 
-            ((IGLVertexBuffer)this).Free();
+            ((IVertexBuffer)this).Free();
 
             IsDisposed = true;
         }
@@ -177,7 +173,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public bool InUse => LastUseResetId > 0;
 
-        void IGLVertexBuffer.Free()
+        void IVertexBuffer.Free()
         {
             if (vboId != -1)
             {
