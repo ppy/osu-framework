@@ -325,7 +325,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new OpenGLRenderer();
+        protected virtual IRenderer CreateRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -479,7 +479,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                 if (!bypassFrontToBackPass.Value)

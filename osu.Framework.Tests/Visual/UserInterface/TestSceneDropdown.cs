@@ -10,8 +10,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -92,7 +90,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestExternalBindableChangeKeepsSelection()
         {
             toggleDropdownViaClick(testDropdown, "dropdown1");
-            AddStep("click item 4", () => testDropdown.SelectItem(testDropdown.Menu.Items[4]));
+            AddStep("click item 4", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[4]);
+                InputManager.Click(MouseButton.Left);
+            });
 
             AddAssert("item 4 is selected", () => testDropdown.Current.Value.Identifier == "test 4");
 
@@ -125,7 +127,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => testDropdown.Menu.MaxHeight = float.PositiveInfinity);
             AddAssert("dropdown1 height is calculated automatically", () => testDropdown.Menu.Height == calculatedHeight);
 
-            AddStep("click item 13", () => testDropdown.SelectItem(testDropdown.Menu.Items[13]));
+            AddStep("click item 13", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[13]);
+                InputManager.Click(MouseButton.Left);
+            });
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
             AddAssert("item 13 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(13)));
@@ -161,12 +167,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("remove three", () => bindableList.Remove("three"));
             AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
-        }
 
-        private void performKeypress(Drawable drawable, Key key)
-        {
-            drawable.TriggerEvent(new KeyDownEvent(new InputState(), key));
-            drawable.TriggerEvent(new KeyUpEvent(new InputState(), key));
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
         private void performPlatformAction(PlatformAction action, PlatformActionContainer platformActionContainer, Drawable drawable)
@@ -188,20 +190,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase(true)]
         public void TestKeyboardSelection(bool cleanSelection)
         {
+            AddStep("Hover dropdown 1", () => InputManager.MoveMouseTo(testDropdown.Header));
+
             if (cleanSelection)
                 AddStep("Clean selection", () => testDropdown.Current.Value = null);
 
             AddStep("Select next item", () =>
             {
                 previousIndex = testDropdown.SelectedIndex;
-                performKeypress(testDropdown.Header, Key.Down);
+                InputManager.Key(Key.Down);
             });
             AddAssert("Next item is selected", () => testDropdown.SelectedIndex == previousIndex + 1);
 
             AddStep("Select previous item", () =>
             {
                 previousIndex = testDropdown.SelectedIndex;
-                performKeypress(testDropdown.Header, Key.Up);
+                InputManager.Key(Key.Up);
             });
             AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == Math.Max(0, previousIndex - 1));
 
@@ -213,10 +217,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => performPlatformAction(PlatformAction.MoveToListStart, platformActionContainerKeyboardSelection, testDropdown.Header));
             AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
 
-            AddStep("Select next item when empty", () => performKeypress(emptyDropdown.Header, Key.Up));
-            AddStep("Select previous item when empty", () => performKeypress(emptyDropdown.Header, Key.Down));
-            AddStep("Select last item when empty", () => performKeypress(emptyDropdown.Header, Key.PageUp));
-            AddStep("Select first item when empty", () => performKeypress(emptyDropdown.Header, Key.PageDown));
+            AddStep("Select next item when empty", () => InputManager.Key(Key.Up));
+            AddStep("Select previous item when empty", () => InputManager.Key(Key.Down));
+            AddStep("Select last item when empty", () => InputManager.Key(Key.PageUp));
+            AddStep("Select first item when empty", () => InputManager.Key(Key.PageDown));
         }
 
         [TestCase(false)]
@@ -232,21 +236,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Preselect next item", () =>
             {
                 previousIndex = testDropdownMenu.PreselectedIndex;
-                performKeypress(testDropdownMenu.Menu, Key.Down);
+                InputManager.Key(Key.Down);
             });
             AddAssert("Next item is preselected", () => testDropdownMenu.PreselectedIndex == previousIndex + 1);
 
             AddStep("Preselect previous item", () =>
             {
                 previousIndex = testDropdownMenu.PreselectedIndex;
-                performKeypress(testDropdownMenu.Menu, Key.Up);
+                InputManager.Key(Key.Up);
             });
             AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex == Math.Max(0, previousIndex - 1));
 
             AddStep("Preselect last visible item", () =>
             {
                 lastVisibleIndexOnTheCurrentPage = testDropdownMenu.Menu.DrawableMenuItems.ToList().IndexOf(testDropdownMenu.Menu.VisibleMenuItems.Last());
-                performKeypress(testDropdownMenu.Menu, Key.PageDown);
+                InputManager.Key(Key.PageDown);
             });
             AddAssert("Last visible item preselected", () => testDropdownMenu.PreselectedIndex == lastVisibleIndexOnTheCurrentPage);
 
@@ -255,14 +259,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 lastVisibleIndexOnTheNextPage =
                     Math.Clamp(lastVisibleIndexOnTheCurrentPage + testDropdownMenu.Menu.VisibleMenuItems.Count(), 0, testDropdownMenu.Menu.Items.Count - 1);
 
-                performKeypress(testDropdownMenu.Menu, Key.PageDown);
+                InputManager.Key(Key.PageDown);
             });
             AddAssert("Last visible item on the next page preselected", () => testDropdownMenu.PreselectedIndex == lastVisibleIndexOnTheNextPage);
 
             AddStep("Preselect first visible item", () =>
             {
                 firstVisibleIndexOnTheCurrentPage = testDropdownMenu.Menu.DrawableMenuItems.ToList().IndexOf(testDropdownMenu.Menu.VisibleMenuItems.First());
-                performKeypress(testDropdownMenu.Menu, Key.PageUp);
+                InputManager.Key(Key.PageUp);
             });
             AddAssert("First visible item preselected", () => testDropdownMenu.PreselectedIndex == firstVisibleIndexOnTheCurrentPage);
 
@@ -270,7 +274,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 firstVisibleIndexOnThePreviousPage = Math.Clamp(firstVisibleIndexOnTheCurrentPage - testDropdownMenu.Menu.VisibleMenuItems.Count(), 0,
                     testDropdownMenu.Menu.Items.Count - 1);
-                performKeypress(testDropdownMenu.Menu, Key.PageUp);
+                InputManager.Key(Key.PageUp);
             });
             AddAssert("First visible item on the previous page selected", () => testDropdownMenu.PreselectedIndex == firstVisibleIndexOnThePreviousPage);
             AddAssert("First item is preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
@@ -279,7 +283,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => performPlatformAction(PlatformAction.MoveToListEnd, platformActionContainerKeyboardPreselection, testDropdownMenu));
             AddAssert("Last item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.Last().Item);
 
-            AddStep("Finalize selection", () => performKeypress(testDropdownMenu.Menu, Key.Enter));
+            AddStep("Finalize selection", () => InputManager.Key(Key.Enter));
             assertLastItemSelected();
             assertDropdownIsClosed(testDropdownMenu);
 
@@ -290,15 +294,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => performPlatformAction(PlatformAction.MoveToListStart, platformActionContainerKeyboardPreselection, testDropdownMenu));
             AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
 
-            AddStep("Discard preselection", () => performKeypress(testDropdownMenu.Menu, Key.Escape));
+            AddStep("Discard preselection", () => InputManager.Key(Key.Escape));
             assertDropdownIsClosed(testDropdownMenu);
             assertLastItemSelected();
 
             toggleDropdownViaClick(emptyDropdown, "empty dropdown");
-            AddStep("Preselect next item when empty", () => performKeypress(emptyDropdown.Menu, Key.Down));
-            AddStep("Preselect previous item when empty", () => performKeypress(emptyDropdown.Menu, Key.Up));
-            AddStep("Preselect first visible item when empty", () => performKeypress(emptyDropdown.Menu, Key.PageUp));
-            AddStep("Preselect last visible item when empty", () => performKeypress(emptyDropdown.Menu, Key.PageDown));
+            AddStep("Preselect next item when empty", () => InputManager.Key(Key.Down));
+            AddStep("Preselect previous item when empty", () => InputManager.Key(Key.Up));
+            AddStep("Preselect first visible item when empty", () => InputManager.Key(Key.PageUp));
+            AddStep("Preselect last visible item when empty", () => InputManager.Key(Key.PageDown));
             AddStep("Preselect first item when empty",
                 () => performPlatformAction(PlatformAction.MoveToListStart, platformActionContainerEmptyDropdown, emptyDropdown));
             AddStep("Preselect last item when empty",
@@ -326,10 +330,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             toggleDropdownViaClick(disabledDropdown);
             assertDropdownIsClosed(disabledDropdown);
 
-            AddStep("attempt to select next", () => performKeypress(disabledDropdown, Key.Down));
+            AddStep("attempt to select next", () => InputManager.Key(Key.Down));
             valueIsUnchanged();
 
-            AddStep("attempt to select previous", () => performKeypress(disabledDropdown, Key.Up));
+            AddStep("attempt to select previous", () => InputManager.Key(Key.Up));
             valueIsUnchanged();
 
             AddStep("attempt to select first", () => InputManager.Keys(PlatformAction.MoveToListStart));
@@ -382,20 +386,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestDropdown : BasicDropdown<TestModel>
         {
-            public new DropdownMenu Menu => base.Menu;
-
-            protected override DropdownMenu CreateMenu() => new TestDropdownMenu();
-
-            protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
-
-            public void SelectItem(MenuItem item) => ((TestDropdownMenu)Menu).SelectItem(item);
-
-            private class TestDropdownMenu : BasicDropdownMenu
-            {
-                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
-                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
-            }
-
             internal new DropdownMenuItem<TestModel> SelectedItem => base.SelectedItem;
 
             public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);

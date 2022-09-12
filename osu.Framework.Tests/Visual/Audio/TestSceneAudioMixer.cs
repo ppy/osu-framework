@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 if (targetContainer == currentContainer)
                     return;
 
-                currentContainer.Remove(this);
+                currentContainer.Remove(this, false);
                 targetContainer.Add(this);
 
                 Position = Parent.ToLocalSpace(centre);

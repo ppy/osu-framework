@@ -27,6 +27,8 @@ namespace osu.Framework.Graphics.Audio
         {
             this.sample = sample;
 
+            Name = sample.Name;
+
             PlaybackConcurrency.BindTo(sample.PlaybackConcurrency);
         }
 
@@ -46,6 +48,8 @@ namespace osu.Framework.Graphics.Audio
 
             return channel;
         }
+
+        string ISample.Name => sample.Name;
 
         public double Length => sample.Length;
 

@@ -15,15 +15,17 @@ using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
 {
-    internal class OpenGLShader : IShader
+    internal class GLShader : IShader
     {
         private readonly IRenderer renderer;
         private readonly string name;
-        private readonly OpenGLShaderPart[] parts;
+        private readonly GLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
 
         internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
+
+        IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
         /// <summary>
         /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
@@ -36,7 +38,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
-        internal OpenGLShader(IRenderer renderer, string name, OpenGLShaderPart[] parts)
+        internal GLShader(IRenderer renderer, string name, GLShaderPart[] parts)
         {
             this.renderer = renderer;
             this.name = name;
@@ -105,13 +107,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             IsBound = false;
         }
 
-        /// <summary>
-        /// Returns a uniform from the shader.
-        /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
@@ -123,7 +120,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private protected virtual bool CompileInternal()
         {
-            foreach (OpenGLShaderPart p in parts)
+            foreach (GLShaderPart p in parts)
             {
                 if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
@@ -200,7 +197,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             }
 
             IUniform createUniform<T>(string name)
-                where T : struct, IEquatable<T>
+                where T : unmanaged, IEquatable<T>
             {
                 int location = GL.GetUniformLocation(this, name);
 
@@ -218,13 +215,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public override string ToString() => $@"{name} Shader (Compiled: {programID != -1})";
 
-        public static implicit operator int(OpenGLShader shader) => shader.programID;
+        public static implicit operator int(GLShader shader) => shader.programID;
 
         #region IDisposable Support
 
         protected internal bool IsDisposed { get; private set; }
 
-        ~OpenGLShader()
+        ~GLShader()
         {
             renderer.ScheduleDisposal(s => s.Dispose(false), this);
         }
@@ -255,7 +252,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         public class PartCompilationFailedException : Exception
         {
             public PartCompilationFailedException(string partName, string log)
-                : base($"A {typeof(OpenGLShaderPart)} failed to compile: {partName}:\n{log.Trim()}")
+                : base($"A {typeof(GLShaderPart)} failed to compile: {partName}:\n{log.Trim()}")
             {
             }
         }
@@ -263,7 +260,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         public class ProgramLinkingFailedException : Exception
         {
             public ProgramLinkingFailedException(string programName, string log)
-                : base($"A {typeof(OpenGLShader)} failed to link: {programName}:\n{log.Trim()}")
+                : base($"A {typeof(GLShader)} failed to link: {programName}:\n{log.Trim()}")
             {
             }
         }

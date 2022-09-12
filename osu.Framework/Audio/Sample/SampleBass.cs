@@ -15,6 +15,7 @@ namespace osu.Framework.Audio.Sample
         private readonly BassAudioMixer mixer;
 
         internal SampleBass(SampleBassFactory factory, BassAudioMixer mixer)
+            : base(factory.Name)
         {
             this.factory = factory;
             this.mixer = mixer;

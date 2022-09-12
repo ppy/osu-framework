@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // Populate the stencil buffer with 255 in places defined by the draw node.
                 renderer.PushStencilInfo(new StencilInfo(
                     stencilTest: true,
-                    testFunction: DepthStencilFunction.Always,
+                    testFunction: BufferTestFunction.Always,
                     255,
                     passed: StencilOperation.Replace));
 
@@ -129,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // Only pass the stencil test where the stencil buffer value is 255.
                 renderer.PushStencilInfo(new StencilInfo(
                     stencilTest: true,
-                    testFunction: DepthStencilFunction.Equal,
+                    testFunction: BufferTestFunction.Equal,
                     mask: 255,
                     testValue: 255,
                     stencilFailed: StencilOperation.Keep,

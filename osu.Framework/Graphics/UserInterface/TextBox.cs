@@ -233,6 +233,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (e.Action.IsCommonTextEditingAction() && ImeCompositionActive)
                 return true;
 
+            var lastSelectionBounds = getTextSelectionBounds();
+
             switch (e.Action)
             {
                 // Clipboard
@@ -263,6 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 // Cursor Manipulation
@@ -318,26 +321,34 @@ namespace osu.Framework.Graphics.UserInterface
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
                     ExpandSelectionBy(-1);
+                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardChar:
                     ExpandSelectionBy(1);
+                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectBackwardWord:
                     ExpandSelectionBy(GetBackwardWordAmount());
+                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardWord:
                     ExpandSelectionBy(GetForwardWordAmount());
+                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectBackwardLine:
                     ExpandSelectionBy(GetBackwardLineAmount());
+                    // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardLine:
                     ExpandSelectionBy(GetForwardLineAmount());
+                    // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
             }
 
@@ -388,9 +399,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected void MoveCursorBy(int amount)
         {
+            var lastSelectionBounds = getTextSelectionBounds();
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
             moveSelection(amount, false);
+            onTextDeselected(lastSelectionBounds);
         }
 
         /// <summary>
@@ -679,7 +692,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
-                TextFlow.Remove(d);
+                TextFlow.Remove(d, false);
 
                 TextContainer.Add(d);
 
@@ -720,7 +733,7 @@ namespace osu.Framework.Graphics.UserInterface
             List<Drawable> charsRight = new List<Drawable>();
             foreach (Drawable d in TextFlow.Children.Skip(selectionLeft))
                 charsRight.Add(d);
-            TextFlow.RemoveRange(charsRight);
+            TextFlow.RemoveRange(charsRight, false);
 
             // Update their depth to make room for the to-be inserted character.
             int i = selectionLeft;
@@ -831,6 +844,43 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual void OnCaretMoved(bool selecting)
         {
         }
+
+        /// <summary>
+        /// Invoked whenever text selection changes. For deselection, see <seealso cref="OnTextDeselected"/>.
+        /// </summary>
+        /// <param name="selectionType">The type of selection change that occured.</param>
+        protected virtual void OnTextSelectionChanged(TextSelectionType selectionType)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever selected text is deselected. For selection, see <seealso cref="OnTextSelectionChanged"/>.
+        /// </summary>
+        protected virtual void OnTextDeselected()
+        {
+        }
+
+        private void onTextSelectionChanged(TextSelectionType selectionType, (int start, int end) lastSelectionBounds)
+        {
+            if (lastSelectionBounds.start == selectionStart && lastSelectionBounds.end == selectionEnd)
+                return;
+
+            if (selectionLength > 0)
+                OnTextSelectionChanged(selectionType);
+            else
+                onTextDeselected(lastSelectionBounds);
+        }
+
+        private void onTextDeselected((int start, int end) lastSelectionBounds)
+        {
+            if (lastSelectionBounds.start == selectionStart && lastSelectionBounds.end == selectionEnd)
+                return;
+
+            if (lastSelectionBounds.start != lastSelectionBounds.end)
+                OnTextDeselected();
+        }
+
+        private (int start, int end) getTextSelectionBounds() => (selectionStart, selectionEnd);
 
         /// <summary>
         /// Invoked whenever the IME composition has changed.
@@ -1078,6 +1128,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
+            var lastSelectionBounds = getTextSelectionBounds();
+
             if (doubleClickWord != null)
             {
                 //select words at a time
@@ -1099,8 +1151,6 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = doubleClickWord[0];
                     selectionEnd = doubleClickWord[1];
                 }
-
-                cursorAndLayout.Invalidate();
             }
             else
             {
@@ -1109,9 +1159,11 @@ namespace osu.Framework.Graphics.UserInterface
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
                     GetContainingInputManager().ChangeFocus(this);
-
-                cursorAndLayout.Invalidate();
             }
+
+            cursorAndLayout.Invalidate();
+
+            onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -1126,6 +1178,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
             FinalizeImeComposition(true);
+
+            var lastSelectionBounds = getTextSelectionBounds();
 
             if (text.Length == 0) return true;
 
@@ -1149,6 +1203,9 @@ namespace osu.Framework.Graphics.UserInterface
             doubleClickWord = new[] { selectionStart, selectionEnd };
 
             cursorAndLayout.Invalidate();
+
+            onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
+
             return true;
         }
 
@@ -1172,9 +1229,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
+            var lastSelectionBounds = getTextSelectionBounds();
+
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
             cursorAndLayout.Invalidate();
+
+            onTextDeselected(lastSelectionBounds);
 
             return false;
         }
@@ -1595,5 +1656,23 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
+
+        public enum TextSelectionType
+        {
+            /// <summary>
+            /// A character was added or removed from the selection.
+            /// </summary>
+            Character,
+
+            /// <summary>
+            /// A word was added or removed from the selection.
+            /// </summary>
+            Word,
+
+            /// <summary>
+            /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
+            /// </summary>
+            All
+        }
     }
 }

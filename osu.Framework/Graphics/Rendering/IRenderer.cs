@@ -300,11 +300,11 @@ namespace osu.Framework.Graphics.Rendering
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
-        internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : struct, IEquatable<T>;
+        internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
 
         /// <summary>
         /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
+        /// The draw depth is written to every vertex added to <see cref="IGLVertexBuffer"/>s.
         /// </summary>
         /// <param name="drawDepth">The draw depth.</param>
         internal void SetDrawDepth(float drawDepth);

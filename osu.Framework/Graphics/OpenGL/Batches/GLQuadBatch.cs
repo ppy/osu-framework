@@ -10,14 +10,14 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Batches
 {
-    internal class QuadBatch<T> : VertexBatch<T>
-        where T : struct, IEquatable<T>, IVertex
+    internal class GLQuadBatch<T> : GLVertexBatch<T>
+        where T : unmanaged, IEquatable<T>, IVertex
     {
-        public QuadBatch(OpenGLRenderer renderer, int size, int maxBuffers)
+        public GLQuadBatch(GLRenderer renderer, int size, int maxBuffers)
             : base(renderer, size, maxBuffers)
         {
         }
 
-        protected override VertexBuffer<T> CreateVertexBuffer(OpenGLRenderer renderer) => new QuadVertexBuffer<T>(renderer, Size, BufferUsageHint.DynamicDraw);
+        protected override GLVertexBuffer<T> CreateVertexBuffer(GLRenderer renderer) => new GLQuadBuffer<T>(renderer, Size, BufferUsageHint.DynamicDraw);
     }
 }

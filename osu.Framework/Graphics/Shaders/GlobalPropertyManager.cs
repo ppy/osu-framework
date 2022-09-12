@@ -6,14 +6,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Graphics.OpenGL.Shaders;
 using osuTK;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
-        private static readonly HashSet<OpenGLShader> all_shaders = new HashSet<OpenGLShader>();
+        private static readonly HashSet<IShader> all_shaders = new HashSet<IShader>();
         private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
@@ -49,12 +48,12 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
         public static void Set<T>(GlobalProperty property, T value)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
         }
 
-        public static void Register(OpenGLShader shader)
+        public static void Register(IShader shader)
         {
             if (!all_shaders.Add(shader)) return;
 
@@ -68,7 +67,7 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        public static void Unregister(OpenGLShader shader)
+        public static void Unregister(IShader shader)
         {
             if (!all_shaders.Remove(shader)) return;
 

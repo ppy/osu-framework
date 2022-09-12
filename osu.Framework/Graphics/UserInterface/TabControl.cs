@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (removeFromDropdown)
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
-            TabContainer.Remove(tab);
+            TabContainer.Remove(tab, true);
         }
 
         /// <summary>
@@ -538,10 +538,10 @@ namespace osu.Framework.Graphics.UserInterface
                 base.Clear(disposeChildren);
             }
 
-            public override bool Remove(TabItem<T> drawable)
+            public override bool Remove(TabItem<T> drawable, bool disposeImmediately)
             {
                 tabVisibility.Remove(drawable);
-                return base.Remove(drawable);
+                return base.Remove(drawable, disposeImmediately);
             }
         }
     }

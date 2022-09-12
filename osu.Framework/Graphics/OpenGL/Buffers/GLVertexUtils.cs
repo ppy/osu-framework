@@ -16,10 +16,10 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     /// <summary>
-    /// Helper method that provides functionality to enable and bind vertex attributes.
+    /// Helper method that provides functionality to enable and bind GL vertex attributes.
     /// </summary>
-    internal static class VertexUtils<T>
-        where T : struct, IVertex
+    internal static class GLVertexUtils<T>
+        where T : unmanaged, IVertex
     {
         /// <summary>
         /// The stride of the vertex of type <typeparamref name="T"/>.
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
         private static int amountEnabledAttributes;
 
-        static VertexUtils()
+        static GLVertexUtils()
         {
             addAttributesRecursive(typeof(T), 0);
         }

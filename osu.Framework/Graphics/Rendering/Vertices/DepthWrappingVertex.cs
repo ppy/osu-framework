@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Rendering.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>
-        where TVertex : struct, IVertex, IEquatable<TVertex>
+        where TVertex : unmanaged, IVertex, IEquatable<TVertex>
     {
         public TVertex Vertex;
 

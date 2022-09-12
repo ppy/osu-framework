@@ -10,9 +10,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal static class LinearIndexData
+    internal static class GLLinearIndexData
     {
-        static LinearIndexData()
+        static GLLinearIndexData()
         {
             GL.GenBuffers(1, out EBO_ID);
         }
@@ -24,12 +24,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// <summary>
     /// This type of vertex buffer lets the ith vertex be referenced by the ith index.
     /// </summary>
-    internal class LinearVertexBuffer<T> : VertexBuffer<T>
-        where T : struct, IEquatable<T>, IVertex
+    internal class GLLinearBuffer<T> : GLVertexBuffer<T>
+        where T : unmanaged, IEquatable<T>, IVertex
     {
         private readonly int amountVertices;
 
-        public LinearVertexBuffer(OpenGLRenderer renderer, int amountVertices, PrimitiveType type, BufferUsageHint usage)
+        public GLLinearBuffer(GLRenderer renderer, int amountVertices, PrimitiveType type, BufferUsageHint usage)
             : base(renderer, amountVertices, usage)
         {
             this.amountVertices = amountVertices;
@@ -42,17 +42,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             base.Initialise();
 
-            if (amountVertices > LinearIndexData.MaxAmountIndices)
+            if (amountVertices > GLLinearIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountVertices];
 
                 for (int i = 0; i < amountVertices; i++)
                     indices[i] = (ushort)i;
 
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
-                LinearIndexData.MaxAmountIndices = amountVertices;
+                GLLinearIndexData.MaxAmountIndices = amountVertices;
             }
         }
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
+                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
         }
 
         protected override PrimitiveType Type { get; }
