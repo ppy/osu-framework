@@ -139,6 +139,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(count);
         }
 
+        [TestCase("sUbSeCtIoN 1", 6)]
+        [TestCase("èê", 1)]
+        [TestCase("ouaeeeaaa", 0)]
+        public void TestMatchingNonSpace(string term, int count)
+        {
+            AddStep("set matching non-space characters on", () => search.NonSpaceCharactersMatching = true);
+            setTerm(term);
+            checkCount(count);
+        }
+
+        [TestCase("sUbSeCtIoN 1", 6)]
+        [TestCase("èê", 1)]
+        [TestCase("ouaeeeaaa", 1)]
+        public void TestIgnoreNonSpace(string term, int count)
+        {
+            AddStep("set matching non-space characters off", () => search.NonSpaceCharactersMatching = false);
+            setTerm(term);
+            checkCount(count);
+        }
+
         [TestCase("tst", 2)]
         [TestCase("ssn 1", 6)]
         [TestCase("sns 1", 0)]
