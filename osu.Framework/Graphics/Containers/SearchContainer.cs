@@ -52,6 +52,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Whether the matching algorithm should consider non-space characters like Diacritics.
+        /// If <c>false</c>, searching for "Adios" will match "Adiós".
+        /// </summary>
         public bool NonSpaceCharactersMatching
         {
             get => nonSpaceCharactersMatching;
