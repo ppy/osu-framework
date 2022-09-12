@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.Containers
 
         private bool allowNonContiguousMatching;
 
+        private bool nonSpaceCharactersMatching;
+
         /// <summary>
         /// Whether the matching algorithm should consider cases where other characters exist between consecutive characters in the search term.
         /// If <c>true</c>, searching for "BSI" will match "BeatmapSetInfo".
@@ -46,6 +48,19 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 allowNonContiguousMatching = value;
+                filterValid.Invalidate();
+            }
+        }
+
+        public bool NonSpaceCharactersMatching
+        {
+            get => nonSpaceCharactersMatching;
+            set
+            {
+                if (value == nonSpaceCharactersMatching)
+                    return;
+
+                nonSpaceCharactersMatching = value;
                 filterValid.Invalidate();
             }
         }
@@ -94,10 +109,10 @@ namespace osu.Framework.Graphics.Containers
         private void performFilter()
         {
             string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching));
+            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching, nonSpaceCharactersMatching));
         }
 
-        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
+        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching, bool nonSpaceCharacterMatching)
         {
             IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localisedStr =>
                 new[] { localisedStr.ToString(), localisation.GetLocalisedString(localisedStr) });
@@ -105,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
             //Words matched by parent is not needed to match children
             string[] childTerms = searchTerms.Where(term =>
                 !filterTerms.Any(filterTerm =>
-                    checkTerm(filterTerm, term, nonContiguousMatching))).ToArray();
+                    checkTerm(filterTerm, term, nonContiguousMatching, nonSpaceCharacterMatching))).ToArray();
 
             bool matching = childTerms.Length == 0;
 
@@ -113,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
             if (filterable is IHasFilterableChildren hasFilterableChildren)
             {
                 foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
-                    matching |= match(child, childTerms, searchActive, nonContiguousMatching);
+                    matching |= match(child, childTerms, searchActive, nonContiguousMatching, nonSpaceCharacterMatching);
             }
 
             filterable.FilteringActive = searchActive;
@@ -123,21 +138,37 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Check whether a search term exists in a forward direction, allowing for potentially non-matching characters to exist between matches.
         /// </summary>
-        private static bool checkTerm(string haystack, string needle, bool nonContiguous)
+        private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool nonSpaceCharacterMatching)
         {
-            if (!nonContiguous)
+            if (!nonContiguous && !nonSpaceCharacterMatching)
                 return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) >= 0;
+                
+            if (!nonContiguous)
+                return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
 
             int index = 0;
-
-            for (int i = 0; i < needle.Length; i++)
+            if(!nonSpaceCharacterMatching)
             {
-                // string.IndexOf doesn't have an overload which takes both a `startIndex` and `StringComparison` mode.
-                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
-                if (found < 0)
-                    return false;
+                for (int i = 0; i < needle.Length; i++)
+                {
+                    int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
+                    if (found < 0)
+                        return false;
 
-                index = found + 1;
+                    index = found + 1;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < needle.Length; i++)
+                {
+                    // string.IndexOf doesn't have an overload which takes both a `startIndex` and `StringComparison` mode.
+                    int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.OrdinalIgnoreCase);
+                    if (found < 0)
+                        return false;
+
+                    index = found + 1;
+                }
             }
 
             return true;
