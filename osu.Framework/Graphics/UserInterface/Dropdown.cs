@@ -381,7 +381,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsSelected = c.Item == item;
+                    c.IsSelected = c.Item is DropdownMenuItem<T> cItem && EqualityComparer<T>.Default.Equals(cItem.Value, item.Value);
                     if (c.IsSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
