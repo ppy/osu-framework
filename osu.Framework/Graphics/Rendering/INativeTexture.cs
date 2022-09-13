@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Visualisation;
 
 namespace osu.Framework.Graphics.Rendering
 {
-    internal interface INativeTexture : IDisposable
+    public interface INativeTexture : IDisposable
     {
         /// <summary>
         /// The renderer that created this texture.

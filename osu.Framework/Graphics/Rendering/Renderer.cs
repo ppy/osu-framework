@@ -973,8 +973,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
         /// <returns>The <see cref="INativeTexture"/>.</returns>
-        private protected abstract INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                                      Rgba32 initialisationColour = default);
+        protected abstract INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Rgba32 initialisationColour = default);
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/> for video sprites.
@@ -982,7 +982,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="width">The width of the texture.</param>
         /// <param name="height">The height of the texture.</param>
         /// <returns>The video <see cref="INativeTexture"/>.</returns>
-        private protected abstract INativeTexture CreateNativeVideoTexture(int width, int height);
+        protected abstract INativeTexture CreateNativeVideoTexture(int width, int height);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Rgba32 initialisationColour)
             => CreateTexture(CreateNativeTexture(width, height, manualMipmaps, filteringMode, initialisationColour), wrapModeS, wrapModeT);

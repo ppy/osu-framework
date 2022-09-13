@@ -328,7 +328,7 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        private protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Rgba32 initialisationColour = default)
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Rgba32 initialisationColour = default)
         {
             All glFilteringMode;
 
@@ -349,7 +349,7 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLTexture(this, width, height, manualMipmaps, glFilteringMode, initialisationColour);
         }
 
-        private protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new GLVideoTexture(this, width, height);
+        protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new GLVideoTexture(this, width, height);
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
