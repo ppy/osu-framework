@@ -104,6 +104,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("item 4 is selected", () => testDropdown.Current.Value.Identifier == "test 4");
+            AddAssert("item 4 is selected item", () => testDropdown.SelectedItem.Value.Identifier == "test 4");
+            AddAssert("item 4 is visually selected", () => (testDropdown.ChildrenOfType<Dropdown<TestModel>.DropdownMenu.DrawableDropdownMenuItem>()
+                                                                        .SingleOrDefault(i => i.IsSelected)?
+                                                                        .Item as DropdownMenuItem<TestModel>)?.Value.Identifier == "test 4");
         }
 
         [Test]
