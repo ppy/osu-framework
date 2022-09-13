@@ -944,7 +944,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Informs the graphics device to update the value of the given uniform.
         /// </summary>
         /// <param name="uniform">The uniform to update.</param>
-        private protected abstract void SetUniformInternal<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
+        protected abstract void SetUniformInternal<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
 
         #endregion
 

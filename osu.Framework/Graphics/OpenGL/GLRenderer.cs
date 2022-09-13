@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override void SetShaderInternal(IShader shader) => GL.UseProgram((GLShader)shader);
 
-        private protected override void SetUniformInternal<T>(IUniformWithValue<T> uniform)
+        protected override void SetUniformInternal<T>(IUniformWithValue<T> uniform)
         {
             switch (uniform)
             {
