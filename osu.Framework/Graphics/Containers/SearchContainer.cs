@@ -144,17 +144,15 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool ignoreNonSpaceCharacters)
         {
-
             var compareOptions = ignoreNonSpaceCharacters
                                 ? CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase
                                 : CompareOptions.OrdinalIgnoreCase;
-
 
             if (!nonContiguous)
                 return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
 
             int index = 0;
-
+            
             for (int i = 0; i < needle.Length; i++)
             {
                 int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
