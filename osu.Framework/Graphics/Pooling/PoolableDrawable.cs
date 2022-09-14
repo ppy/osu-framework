@@ -1,13 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -25,14 +22,12 @@ namespace osu.Framework.Graphics.Pooling
         /// </summary>
         public bool IsInPool => pool != null;
 
-        private IDrawablePool pool;
+        private IDrawablePool? pool;
 
         /// <summary>
         /// A flag to keep the drawable present to guarantee the prepare call can be performed as a scheduled call.
         /// </summary>
         private bool waitingForPrepare;
-
-        private ScheduledDelegate scheduledPrepare;
 
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
@@ -106,18 +101,20 @@ namespace osu.Framework.Graphics.Pooling
 
             IsInUse = true;
 
-            waitingForPrepare = true;
-
             // prepare call is scheduled as it may contain user code dependent on the clock being updated.
             // must use Scheduler.Add, not Schedule as we may have the wrong clock at this point in load.
-            scheduledPrepare?.Cancel();
-            scheduledPrepare = Scheduler.Add(prepare, this);
+            waitingForPrepare = true;
+        }
 
-            void prepare(PoolableDrawable drawable)
+        protected override void Update()
+        {
+            if (waitingForPrepare)
             {
-                drawable.PrepareForUse();
-                drawable.waitingForPrepare = false;
+                PrepareForUse();
+                waitingForPrepare = false;
             }
+
+            base.Update();
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
