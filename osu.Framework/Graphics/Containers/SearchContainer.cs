@@ -33,8 +33,6 @@ namespace osu.Framework.Graphics.Containers
 
         private bool allowNonContiguousMatching;
 
-        private bool nonSpaceCharactersMatching;
-
         /// <summary>
         /// Whether the matching algorithm should consider cases where other characters exist between consecutive characters in the search term.
         /// If <c>true</c>, searching for "BSI" will match "BeatmapSetInfo".
@@ -52,19 +50,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private bool ignoreNonSpace = true;
+
         /// <summary>
-        /// Whether the matching algorithm should consider non-space characters like Diacritics.
-        /// If <c>false</c>, searching for "Adios" will match "Adiós".
+        /// Whether the matching algorithm should use <see cref="CompareOptions.IgnoreNonSpace"/> to ignore non-space characters like diacritics.
+        /// If <c>true</c>, searching for "Adios" will match "Adiós".
         /// </summary>
-        public bool NonSpaceCharactersMatching
+        public bool IgnoreNonSpace
         {
-            get => nonSpaceCharactersMatching;
+            get => ignoreNonSpace;
             set
             {
-                if (value == nonSpaceCharactersMatching)
+                if (value == ignoreNonSpace)
                     return;
 
-                nonSpaceCharactersMatching = value;
+                ignoreNonSpace = value;
                 filterValid.Invalidate();
             }
         }
@@ -113,10 +113,10 @@ namespace osu.Framework.Graphics.Containers
         private void performFilter()
         {
             string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching, nonSpaceCharactersMatching));
+            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching, ignoreNonSpace));
         }
 
-        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching, bool nonSpaceCharacterMatching)
+        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching, bool ignoreNonSpaceCharacters)
         {
             IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localisedStr =>
                 new[] { localisedStr.ToString(), localisation.GetLocalisedString(localisedStr) });
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
             //Words matched by parent is not needed to match children
             string[] childTerms = searchTerms.Where(term =>
                 !filterTerms.Any(filterTerm =>
-                    checkTerm(filterTerm, term, nonContiguousMatching, nonSpaceCharacterMatching))).ToArray();
+                    checkTerm(filterTerm, term, nonContiguousMatching, ignoreNonSpaceCharacters))).ToArray();
 
             bool matching = childTerms.Length == 0;
 
@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
             if (filterable is IHasFilterableChildren hasFilterableChildren)
             {
                 foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
-                    matching |= match(child, childTerms, searchActive, nonContiguousMatching, nonSpaceCharacterMatching);
+                    matching |= match(child, childTerms, searchActive, nonContiguousMatching, ignoreNonSpaceCharacters);
             }
 
             filterable.FilteringActive = searchActive;
@@ -142,16 +142,16 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Check whether a search term exists in a forward direction, allowing for potentially non-matching characters to exist between matches.
         /// </summary>
-        private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool nonSpaceCharacterMatching)
+        private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool ignoreNonSpaceCharacters)
         {
-            if (!nonContiguous && !nonSpaceCharacterMatching)
+            if (!nonContiguous && ignoreNonSpaceCharacters)
                 return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) >= 0;
                 
             if (!nonContiguous)
                 return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
 
             int index = 0;
-            if(!nonSpaceCharacterMatching)
+            if(ignoreNonSpaceCharacters)
             {
                 for (int i = 0; i < needle.Length; i++)
                 {
