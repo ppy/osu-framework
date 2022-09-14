@@ -62,6 +62,12 @@ namespace osu.Framework.Graphics.Textures
 
         private int exceedCount;
 
+        /// <summary>
+        /// Creates a new empty texture.
+        /// </summary>
+        /// <remarks>
+        /// Existing textures created via <see cref="Add"/> are not cleared and remain accessible by usages.
+        /// </remarks>
         public void Reset()
         {
             subTextureBounds.Clear();
