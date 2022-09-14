@@ -148,11 +148,13 @@ namespace osu.Framework.Graphics.Containers
                                 ? CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase
                                 : CompareOptions.OrdinalIgnoreCase;
 
-            if (!nonContiguous)
+            if (!nonContiguous && ignoreNonSpaceCharacters)
                 return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
+            if(!nonContiguous)
+                return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
 
             int index = 0;
-            
+
             for (int i = 0; i < needle.Length; i++)
             {
                 int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
