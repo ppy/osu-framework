@@ -62,9 +62,15 @@ namespace osu.Framework.Graphics
         [Resolved(CanBeNull = true)]
         private IRenderer renderer { get; set; }
 
-        protected Drawable()
+        /// <summary>
+        /// Constructs a new drawable.
+        /// </summary>
+        /// <param name="layoutMemberCountHint">An optional hint at how many times <see cref="AddLayout"/> will be called. Setting this correctly helps avoid unnecessary allocations due to list growth.</param>
+        protected Drawable(int layoutMemberCountHint = 0)
         {
             total_count.Value++;
+
+            layoutMembers = new List<LayoutMember>(5 + layoutMemberCountHint);
 
             AddLayout(drawInfoBacking);
             AddLayout(drawSizeBacking);
@@ -1691,7 +1697,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         private InvalidationList invalidationList = new InvalidationList(Invalidation.All);
 
-        private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
+        private readonly List<LayoutMember> layoutMembers;
 
         /// <summary>
         /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.Invalidation"/> is invalidated.

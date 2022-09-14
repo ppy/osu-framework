@@ -50,6 +50,7 @@ namespace osu.Framework.Graphics.Containers
         /// Constructs a <see cref="CompositeDrawable"/> that stores children.
         /// </summary>
         protected CompositeDrawable()
+            : base(1)
         {
             var childComparer = new ChildComparer(this);
 

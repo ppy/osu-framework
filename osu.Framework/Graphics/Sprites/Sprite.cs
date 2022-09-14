@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Sprites
     public class Sprite : Drawable, ITexturedShaderDrawable
     {
         public Sprite()
+            : base(2)
         {
             AddLayout(conservativeScreenSpaceDrawQuadBacking);
             AddLayout(inflationAmountBacking);
