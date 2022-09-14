@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
         /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
-        internal Texture? Add(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        public Texture? Add(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (!canFitEmptyTextureAtlas(width, height))
                 return null;
