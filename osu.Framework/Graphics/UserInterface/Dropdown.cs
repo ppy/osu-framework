@@ -381,7 +381,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsSelected = c.Item == item;
+                    c.IsSelected = compareItemEquality(item, c.Item);
                     if (c.IsSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
@@ -391,13 +391,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// Shows an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to show.</param>
-            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Hide();
+            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Hide();
 
             /// <summary>
             /// Hides an item from this <see cref="DropdownMenu"/>
             /// </summary>
             /// <param name="item"></param>
-            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Show();
+            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Show();
 
             /// <summary>
             /// Whether any items part of this <see cref="DropdownMenu"/> are present.
@@ -414,7 +414,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsPreSelected = c.Item == item;
+                    c.IsPreSelected = compareItemEquality(item, c.Item);
                     if (c.IsPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
@@ -423,6 +423,14 @@ namespace osu.Framework.Graphics.UserInterface
             protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
 
             protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
+
+            private static bool compareItemEquality(MenuItem a, MenuItem b)
+            {
+                if (a is not DropdownMenuItem<T> aTyped || b is not DropdownMenuItem<T> bTyped)
+                    return false;
+
+                return EqualityComparer<T>.Default.Equals(aTyped.Value, bTyped.Value);
+            }
 
             #region DrawableDropdownMenuItem
 
