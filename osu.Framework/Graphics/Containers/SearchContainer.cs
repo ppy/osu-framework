@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Containers
                                 : CompareOptions.OrdinalIgnoreCase;
 
             if (!nonContiguous && ignoreNonSpaceCharacters)
-                return CultureInfo.CurrentCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
+                return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
             if(!nonContiguous)
                 return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
 
@@ -157,7 +157,7 @@ namespace osu.Framework.Graphics.Containers
 
             for (int i = 0; i < needle.Length; i++)
             {
-                int found = CultureInfo.CurrentCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
+                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
                 if (found < 0)
                     return false;
 
