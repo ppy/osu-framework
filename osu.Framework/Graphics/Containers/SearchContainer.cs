@@ -144,35 +144,24 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool ignoreNonSpaceCharacters)
         {
-            if (!nonContiguous && ignoreNonSpaceCharacters)
-                return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) >= 0;
-                
+
+            var compareOptions = ignoreNonSpaceCharacters
+                                ? CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase
+                                : CompareOptions.OrdinalIgnoreCase;
+
+
             if (!nonContiguous)
-                return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
+                return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
 
             int index = 0;
-            if(ignoreNonSpaceCharacters)
-            {
-                for (int i = 0; i < needle.Length; i++)
-                {
-                    int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
-                    if (found < 0)
-                        return false;
 
-                    index = found + 1;
-                }
-            }
-            else
+            for (int i = 0; i < needle.Length; i++)
             {
-                for (int i = 0; i < needle.Length; i++)
-                {
-                    // string.IndexOf doesn't have an overload which takes both a `startIndex` and `StringComparison` mode.
-                    int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.OrdinalIgnoreCase);
-                    if (found < 0)
-                        return false;
+                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
+                if (found < 0)
+                    return false;
 
-                    index = found + 1;
-                }
+                index = found + 1;
             }
 
             return true;
