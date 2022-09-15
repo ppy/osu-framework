@@ -159,9 +159,11 @@ namespace osu.Framework.Audio.Track
                         // We know that each data point required sampleDataPerPoint amount of data
                         for (; currentPoint < points.Count && currentPoint * bytesPerPoint < currentByte; currentPoint++)
                         {
-                            points[currentPoint].LowIntensity = lowIntensity;
-                            points[currentPoint].MidIntensity = midIntensity;
-                            points[currentPoint].HighIntensity = highIntensity;
+                            var point = points[currentPoint];
+                            point.LowIntensity = lowIntensity;
+                            point.MidIntensity = midIntensity;
+                            point.HighIntensity = highIntensity;
+                            points[currentPoint] = point;
                         }
                     }
 
@@ -341,7 +343,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Represents a singular point of data in a <see cref="Waveform"/>.
         /// </summary>
-        public class Point
+        public struct Point
         {
             /// <summary>
             /// An array of amplitudes, one for each channel.
@@ -370,6 +372,10 @@ namespace osu.Framework.Audio.Track
             public Point(int channels)
             {
                 Amplitude = new float[channels];
+
+                LowIntensity = 0;
+                MidIntensity = 0;
+                HighIntensity = 0;
             }
         }
     }
