@@ -140,7 +140,7 @@ namespace osu.Framework.Audio.Track
                             {
                                 // Find the maximum amplitude for each channel in the point
                                 point.AmplitudeLeft = Math.Max(point.AmplitudeLeft, Math.Abs(sampleBuffer[j]));
-                                point.AmplitudeRight = Math.Max(point.AmplitudeLeft, Math.Abs(sampleBuffer[j + secondChannelIndex]));
+                                point.AmplitudeRight = Math.Max(point.AmplitudeRight, Math.Abs(sampleBuffer[j + secondChannelIndex]));
                             }
 
                             // BASS may provide unclipped samples, so clip them ourselves
