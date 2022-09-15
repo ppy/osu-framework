@@ -285,7 +285,7 @@ namespace osu.Framework.Graphics.Rendering
             PushDepthInfo(new DepthInfo(writeDepth: true));
             PushScissorState(false);
 
-            ClearInternal(clearInfo);
+            ClearImplementation(clearInfo);
 
             CurrentClearInfo = clearInfo;
 
@@ -297,7 +297,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Informs the graphics device to clear the color and depth targets of the currently bound framebuffer.
         /// </summary>
         /// <param name="clearInfo">The clear parameters.</param>
-        protected abstract void ClearInternal(ClearInfo clearInfo);
+        protected abstract void ClearImplementation(ClearInfo clearInfo);
 
         #endregion
 
@@ -309,7 +309,7 @@ namespace osu.Framework.Graphics.Rendering
                 return;
 
             FlushCurrentBatch();
-            SetBlendInternal(blendingParameters);
+            SetBlendImplementation(blendingParameters);
 
             CurrentBlendingParameters = blendingParameters;
         }
@@ -318,7 +318,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Updates the graphics device with the new blending parameters.
         /// </summary>
         /// <param name="blendingParameters">The blending parameters.</param>
-        protected abstract void SetBlendInternal(BlendingParameters blendingParameters);
+        protected abstract void SetBlendImplementation(BlendingParameters blendingParameters);
 
         #endregion
 
@@ -361,7 +361,7 @@ namespace osu.Framework.Graphics.Rendering
             if (Viewport == viewport)
                 return;
 
-            SetViewportInternal(viewport);
+            SetViewportImplementation(viewport);
             Viewport = viewport;
         }
 
@@ -369,7 +369,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Updates the graphics device with a new viewport rectangle.
         /// </summary>
         /// <param name="viewport">The viewport to use.</param>
-        protected abstract void SetViewportInternal(RectangleI viewport);
+        protected abstract void SetViewportImplementation(RectangleI viewport);
 
         #endregion
 
@@ -454,7 +454,7 @@ namespace osu.Framework.Graphics.Rendering
                 scissor.Height = -scissor.Height;
             }
 
-            SetScissorInternal(scissor);
+            SetScissorImplementation(scissor);
         }
 
         private void setScissorState(bool enabled)
@@ -462,7 +462,7 @@ namespace osu.Framework.Graphics.Rendering
             if (enabled == ScissorState)
                 return;
 
-            SetScissorStateInternal(enabled);
+            SetScissorStateImplementation(enabled);
             ScissorState = enabled;
         }
 
@@ -470,13 +470,13 @@ namespace osu.Framework.Graphics.Rendering
         /// Updates the graphics device with a new scissor rectangle.
         /// </summary>
         /// <param name="scissor">The scissor rectangle to use.</param>
-        protected abstract void SetScissorInternal(RectangleI scissor);
+        protected abstract void SetScissorImplementation(RectangleI scissor);
 
         /// <summary>
         /// Updates the graphics device with the new scissor state.
         /// </summary>
         /// <param name="enabled">Whether scissor should be enabled.</param>
-        protected abstract void SetScissorStateInternal(bool enabled);
+        protected abstract void SetScissorStateImplementation(bool enabled);
 
         #endregion
 
@@ -669,26 +669,26 @@ namespace osu.Framework.Graphics.Rendering
         private void setDepthInfo(DepthInfo depthInfo)
         {
             FlushCurrentBatch();
-            SetDepthInfoInternal(depthInfo);
+            SetDepthInfoImplementation(depthInfo);
         }
 
         private void setStencilInfo(StencilInfo stencilInfo)
         {
             FlushCurrentBatch();
-            SetStencilInfoInternal(stencilInfo);
+            SetStencilInfoImplementation(stencilInfo);
         }
 
         /// <summary>
         /// Updates the graphics device with new depth parameters.
         /// </summary>
         /// <param name="depthInfo">The depth parameters to use.</param>
-        protected abstract void SetDepthInfoInternal(DepthInfo depthInfo);
+        protected abstract void SetDepthInfoImplementation(DepthInfo depthInfo);
 
         /// <summary>
         /// Updates the graphics device with new stencil parameters.
         /// </summary>
         /// <param name="stencilInfo">The stencil parameters to use.</param>
-        protected abstract void SetStencilInfoInternal(StencilInfo stencilInfo);
+        protected abstract void SetStencilInfoImplementation(StencilInfo stencilInfo);
 
         #endregion
 
@@ -786,7 +786,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch();
 
-            if (!SetTextureInternal(texture, unit))
+            if (!SetTextureImplementation(texture, unit))
                 return false;
 
             if (wrapModeS != CurrentWrapModeS)
@@ -821,7 +821,7 @@ namespace osu.Framework.Graphics.Rendering
         {
             FlushCurrentBatch();
 
-            SetTextureInternal(null, unit);
+            SetTextureImplementation(null, unit);
 
             lastBoundTexture[unit] = null;
             lastBoundTextureIsAtlas[unit] = false;
@@ -844,8 +844,8 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="texture">The texture, or null to use default texture.</param>
         /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
-        /// <returns>Whether the texture was successfully bound.</returns>
-        protected abstract bool SetTextureInternal(INativeTexture? texture, int unit);
+        /// <returns>Whether the texture was set successfully.</returns>
+        protected abstract bool SetTextureImplementation(INativeTexture? texture, int unit);
 
         #endregion
 
@@ -874,7 +874,7 @@ namespace osu.Framework.Graphics.Rendering
         {
             FlushCurrentBatch();
 
-            SetFrameBufferInternal(frameBuffer);
+            SetFrameBufferImplementation(frameBuffer);
             FrameBuffer = frameBuffer;
 
             GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
@@ -885,7 +885,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Informs the graphics device to use the given framebuffer for drawing.
         /// </summary>
         /// <param name="frameBuffer">The framebuffer to use, or null to use the backbuffer (i.e. main framebuffer).</param>
-        protected abstract void SetFrameBufferInternal(IFrameBuffer? frameBuffer);
+        protected abstract void SetFrameBufferImplementation(IFrameBuffer? frameBuffer);
 
         #endregion
 
@@ -919,7 +919,7 @@ namespace osu.Framework.Graphics.Rendering
                 FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
 
                 FlushCurrentBatch();
-                SetShaderInternal(shader);
+                SetShaderImplementation(shader);
             }
 
             Shader = shader;
@@ -931,20 +931,20 @@ namespace osu.Framework.Graphics.Rendering
             if (uniform.Owner == Shader)
                 FlushCurrentBatch();
 
-            SetUniformInternal(uniform);
+            SetUniformImplementation(uniform);
         }
 
         /// <summary>
         /// Informs the graphics device to use the given shader for drawing.
         /// </summary>
         /// <param name="shader">The shader to use.</param>
-        protected abstract void SetShaderInternal(IShader shader);
+        protected abstract void SetShaderImplementation(IShader shader);
 
         /// <summary>
         /// Informs the graphics device to update the value of the given uniform.
         /// </summary>
         /// <param name="uniform">The uniform to update.</param>
-        protected abstract void SetUniformInternal<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
+        protected abstract void SetUniformImplementation<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
 
         #endregion
 

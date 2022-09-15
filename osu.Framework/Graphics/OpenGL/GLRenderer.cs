@@ -71,9 +71,9 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetShaderInternal(IShader shader) => GL.UseProgram((GLShader)shader);
+        protected override void SetShaderImplementation(IShader shader) => GL.UseProgram((GLShader)shader);
 
-        protected override void SetUniformInternal<T>(IUniformWithValue<T> uniform)
+        protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
             switch (uniform)
             {
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        protected override bool SetTextureInternal(INativeTexture? texture, int unit)
+        protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
         {
             if (texture == null)
             {
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetFrameBufferInternal(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.OpenGL
             ScheduleDisposal(GL.DeleteFramebuffer, ((GLFrameBuffer)frameBuffer).FrameBuffer);
         }
 
-        protected override void ClearInternal(ClearInfo clearInfo)
+        protected override void ClearImplementation(ClearInfo clearInfo)
         {
             if (clearInfo.Colour != CurrentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
-        protected override void SetScissorStateInternal(bool enabled)
+        protected override void SetScissorStateImplementation(bool enabled)
         {
             if (enabled)
                 GL.Enable(EnableCap.ScissorTest);
@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.Disable(EnableCap.ScissorTest);
         }
 
-        protected override void SetBlendInternal(BlendingParameters blendingParameters)
+        protected override void SetBlendImplementation(BlendingParameters blendingParameters)
         {
             if (blendingParameters.IsDisabled)
             {
@@ -221,11 +221,11 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        protected override void SetViewportInternal(RectangleI viewport) => GL.Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height);
+        protected override void SetViewportImplementation(RectangleI viewport) => GL.Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height);
 
-        protected override void SetScissorInternal(RectangleI scissor) => GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
+        protected override void SetScissorImplementation(RectangleI scissor) => GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
 
-        protected override void SetDepthInfoInternal(DepthInfo depthInfo)
+        protected override void SetDepthInfoImplementation(DepthInfo depthInfo)
         {
             if (depthInfo.DepthTest)
             {
@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.DepthMask(depthInfo.WriteDepth);
         }
 
-        protected override void SetStencilInfoInternal(StencilInfo stencilInfo)
+        protected override void SetStencilInfoImplementation(StencilInfo stencilInfo)
         {
             if (stencilInfo.StencilTest)
             {
