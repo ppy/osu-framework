@@ -45,22 +45,22 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Minimum frequency for low-range (bass) frequencies. Based on lower range of bass drum fallout.
         /// </summary>
-        private const double low_min = 20;
+        private const float low_min = 20;
 
         /// <summary>
         /// Minimum frequency for mid-range frequencies. Based on higher range of bass drum fallout.
         /// </summary>
-        private const double mid_min = 100;
+        private const float mid_min = 100;
 
         /// <summary>
         /// Minimum frequency for high-range (treble) frequencies.
         /// </summary>
-        private const double high_min = 2000;
+        private const float high_min = 2000;
 
         /// <summary>
         /// Maximum frequency for high-range (treble) frequencies. A sane value.
         /// </summary>
-        private const double high_max = 12000;
+        private const float high_max = 12000;
 
         private int channels;
         private List<Point> points = new List<Point>();
@@ -150,9 +150,9 @@ namespace osu.Framework.Audio.Track
                         length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
                         currentByte += length;
 
-                        double lowIntensity = computeIntensity(info, bins, low_min, mid_min);
-                        double midIntensity = computeIntensity(info, bins, mid_min, high_min);
-                        double highIntensity = computeIntensity(info, bins, high_min, high_max);
+                        float lowIntensity = computeIntensity(info, bins, low_min, mid_min);
+                        float midIntensity = computeIntensity(info, bins, mid_min, high_min);
+                        float highIntensity = computeIntensity(info, bins, high_min, high_max);
 
                         // In general, the FFT function will read more data than the amount of data we have in one point
                         // so we'll be setting intensities for all points whose data fits into the amount read by the FFT
@@ -174,7 +174,7 @@ namespace osu.Framework.Audio.Track
             }, cancelSource.Token);
         }
 
-        private double computeIntensity(ChannelInfo info, float[] bins, double startFrequency, double endFrequency)
+        private float computeIntensity(ChannelInfo info, float[] bins, float startFrequency, float endFrequency)
         {
             int startBin = (int)(fft_bins * 2 * startFrequency / info.Frequency);
             int endBin = (int)(fft_bins * 2 * endFrequency / info.Frequency);
@@ -182,7 +182,7 @@ namespace osu.Framework.Audio.Track
             startBin = Math.Clamp(startBin, 0, bins.Length);
             endBin = Math.Clamp(endBin, 0, bins.Length);
 
-            double value = 0;
+            float value = 0;
             for (int i = startBin; i < endBin; i++)
                 value += bins[i];
             return value;
@@ -351,17 +351,17 @@ namespace osu.Framework.Audio.Track
             /// <summary>
             /// Unnormalised total intensity of the low-range (bass) frequencies.
             /// </summary>
-            public double LowIntensity;
+            public float LowIntensity;
 
             /// <summary>
             /// Unnormalised total intensity of the mid-range frequencies.
             /// </summary>
-            public double MidIntensity;
+            public float MidIntensity;
 
             /// <summary>
             /// Unnormalised total intensity of the high-range (treble) frequencies.
             /// </summary>
-            public double HighIntensity;
+            public float HighIntensity;
 
             /// <summary>
             /// Constructs a <see cref="Point"/>.
