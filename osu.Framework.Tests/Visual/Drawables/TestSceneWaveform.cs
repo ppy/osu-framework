@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("wait for load", () => graph.Regenerated);
 
-            AddUntilStep("wait for sampling", () => graph.Waveform.GetPoints().Count > 0);
+            AddUntilStep("wait for sampling", () => graph.Waveform.GetPoints().Length > 0);
         }
 
         private void startStop()
