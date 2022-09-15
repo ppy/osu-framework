@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,7 +62,7 @@ namespace osu.Framework.Audio.Track
         private const float high_max = 12000;
 
         private int channels;
-        private List<Point> points = new List<Point>();
+        private Point[] points = Array.Empty<Point>();
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
         private readonly Task readTask;
@@ -103,11 +102,15 @@ namespace osu.Framework.Audio.Track
 
                     int bytesPerPoint = samplesPerPoint * TrackBass.BYTES_PER_SAMPLE;
 
-                    points.Capacity = (int)(length / bytesPerPoint);
+                    int pointCount = (int)(length / bytesPerPoint);
+
+                    points = new Point[pointCount];
 
                     // Each iteration pulls in several samples
                     int bytesPerIteration = bytesPerPoint * points_per_iteration;
                     float[] sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
+
+                    int pointIndex = 0;
 
                     // Read sample data
                     while (length > 0)
@@ -116,7 +119,7 @@ namespace osu.Framework.Audio.Track
                         int samplesRead = (int)(length / TrackBass.BYTES_PER_SAMPLE);
 
                         // Each point is composed of multiple samples
-                        for (int i = 0; i < samplesRead; i += samplesPerPoint)
+                        for (int i = 0; i < samplesRead && pointIndex < pointCount; i += samplesPerPoint)
                         {
                             // Channels are interleaved in the sample data (data[0] -> channel0, data[1] -> channel1, data[2] -> channel0, etc)
                             // samplesPerPoint assumes this interleaving behaviour
@@ -133,7 +136,7 @@ namespace osu.Framework.Audio.Track
                             for (int c = 0; c < info.Channels; c++)
                                 point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
 
-                            points.Add(point);
+                            points[pointIndex++] = point;
                         }
                     }
 
@@ -157,7 +160,7 @@ namespace osu.Framework.Audio.Track
                         // In general, the FFT function will read more data than the amount of data we have in one point
                         // so we'll be setting intensities for all points whose data fits into the amount read by the FFT
                         // We know that each data point required sampleDataPerPoint amount of data
-                        for (; currentPoint < points.Count && currentPoint * bytesPerPoint < currentByte; currentPoint++)
+                        for (; currentPoint < points.Length && currentPoint * bytesPerPoint < currentByte; currentPoint++)
                         {
                             var point = points[currentPoint];
                             point.LowIntensity = lowIntensity;
@@ -208,8 +211,9 @@ namespace osu.Framework.Audio.Track
 
             return await Task.Run(() =>
             {
-                var generatedPoints = new List<Point>();
-                float pointsPerGeneratedPoint = (float)points.Count / pointCount;
+                var generatedPoints = new Point[pointCount];
+
+                float pointsPerGeneratedPoint = (float)points.Length / pointCount;
 
                 // Determines at which width (relative to the resolution) our smoothing filter is truncated.
                 // Should not effect overall appearance much, except when the value is too small.
@@ -236,7 +240,7 @@ namespace osu.Framework.Audio.Track
                 float originalPointIndex = 0;
                 int generatedPointIndex = 0;
 
-                while (originalPointIndex < points.Count)
+                while (generatedPointIndex < pointCount)
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return new Waveform(null);
@@ -249,7 +253,7 @@ namespace osu.Framework.Audio.Track
 
                     for (int j = startIndex; j < endIndex; j++)
                     {
-                        if (j < 0 || j >= points.Count) continue;
+                        if (j < 0 || j >= points.Length) continue;
 
                         float weight = filter[Math.Abs(j - startIndex - kernelWidth)];
                         totalWeight += weight;
@@ -271,7 +275,7 @@ namespace osu.Framework.Audio.Track
                         point.HighIntensity /= totalWeight;
                     }
 
-                    generatedPoints.Add(point);
+                    generatedPoints[generatedPointIndex] = point;
 
                     generatedPointIndex += 1;
                     originalPointIndex = generatedPointIndex * pointsPerGeneratedPoint;
@@ -288,12 +292,12 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.
         /// </summary>
-        public List<Point> GetPoints() => GetPointsAsync().GetResultSafely();
+        public Point[] GetPoints() => GetPointsAsync().GetResultSafely();
 
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.
         /// </summary>
-        public async Task<List<Point>> GetPointsAsync()
+        public async Task<Point[]> GetPointsAsync()
         {
             await readTask.ConfigureAwait(false);
             return points;

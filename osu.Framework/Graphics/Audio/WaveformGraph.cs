@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
         private long resampledVersion;
-        private List<Waveform.Point> resampledPoints;
+        private Waveform.Point[] resampledPoints;
         private int? resampledPointCount;
         private int resampledChannels;
         private double resampledMaxHighIntensity;
@@ -208,16 +208,16 @@ namespace osu.Framework.Graphics.Audio
             {
                 var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
-                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Length;
 
                 Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
 
                 var points = await resampled.GetPointsAsync().ConfigureAwait(false);
                 int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
 
-                double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                double maxHighIntensity = points.Length > 0 ? points.Max(p => p.HighIntensity) : 0;
+                double maxMidIntensity = points.Length > 0 ? points.Max(p => p.MidIntensity) : 0;
+                double maxLowIntensity = points.Length > 0 ? points.Max(p => p.LowIntensity) : 0;
 
                 Schedule(() =>
                 {
