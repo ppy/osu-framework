@@ -132,40 +132,36 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
-        private void cacheUnbindActions()
+        private static void cacheUnbindAction(Type ourType)
         {
-            foreach (var type in GetType().EnumerateBaseTypes())
+            List<Action<object>> actions = new List<Action<object>>();
+
+            foreach (var type in ourType.EnumerateBaseTypes())
             {
-                if (unbind_action_cache.TryGetValue(type, out _))
-                    return;
-
-                // List containing all the delegates to perform the unbinds
-                var actions = new List<Action<object>>();
-
                 // Generate delegates to unbind fields
                 actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                                      .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
                                      .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
-
-                // Delegates to unbind properties are intentionally not generated.
-                // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
-                // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
-
-                unbind_action_cache[type] = target =>
-                {
-                    foreach (var a in actions)
-                    {
-                        try
-                        {
-                            a(target);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
-                        }
-                    }
-                };
             }
+
+            // Delegates to unbind properties are intentionally not generated.
+            // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
+            // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
+
+            unbind_action_cache[ourType] = target =>
+            {
+                foreach (var a in actions)
+                {
+                    try
+                    {
+                        a(target);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error(e, $"Failed to unbind a local bindable in {ourType.ReadableName()}");
+                    }
+                }
+            };
         }
 
         private bool unbindComplete;
@@ -180,11 +176,8 @@ namespace osu.Framework.Graphics
 
             unbindComplete = true;
 
-            foreach (var type in GetType().EnumerateBaseTypes())
-            {
-                if (unbind_action_cache.TryGetValue(type, out var existing))
-                    existing?.Invoke(this);
-            }
+            if (unbind_action_cache.TryGetValue(GetType(), out var existing))
+                existing?.Invoke(this);
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -280,7 +273,10 @@ namespace osu.Framework.Graphics
 
             InjectDependencies(dependencies);
 
-            cacheUnbindActions();
+            var type = GetType();
+
+            if (!unbind_action_cache.ContainsKey(type))
+                cacheUnbindAction(type);
 
             LoadAsyncComplete();
 
