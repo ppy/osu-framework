@@ -5,6 +5,7 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,20 +126,26 @@ namespace osu.Framework.Audio.Track
                         // Each point is composed of multiple samples
                         for (int i = 0; i < samplesRead && pointIndex < pointCount; i += samplesPerPoint)
                         {
+                            // We assume one or more channels.
+                            // For non-stereo tracks, we'll use the single track for both amplitudes.
+                            // For anything above two tracks we'll use the first and second track.
+                            Debug.Assert(info.Channels >= 1);
+                            int secondChannelIndex = info.Channels > 1 ? 1 : 0;
+
                             // Channels are interleaved in the sample data (data[0] -> channel0, data[1] -> channel1, data[2] -> channel0, etc)
                             // samplesPerPoint assumes this interleaving behaviour
-                            var point = new Point(info.Channels);
+                            var point = new Point();
 
                             for (int j = i; j < i + samplesPerPoint; j += info.Channels)
                             {
                                 // Find the maximum amplitude for each channel in the point
-                                for (int c = 0; c < info.Channels; c++)
-                                    point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(sampleBuffer[j + c]));
+                                point.AmplitudeLeft = Math.Max(point.AmplitudeLeft, Math.Abs(sampleBuffer[j]));
+                                point.AmplitudeRight = Math.Max(point.AmplitudeLeft, Math.Abs(sampleBuffer[j + secondChannelIndex]));
                             }
 
                             // BASS may provide unclipped samples, so clip them ourselves
-                            for (int c = 0; c < info.Channels; c++)
-                                point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
+                            point.AmplitudeLeft = Math.Min(1, point.AmplitudeLeft);
+                            point.AmplitudeRight = Math.Min(1, point.AmplitudeRight);
 
                             points[pointIndex++] = point;
                         }
@@ -253,7 +260,7 @@ namespace osu.Framework.Audio.Track
                     int startIndex = (int)originalPointIndex - kernelWidth;
                     int endIndex = (int)originalPointIndex + kernelWidth;
 
-                    var point = new Point(channels);
+                    var point = new Point();
                     float totalWeight = 0;
 
                     for (int j = startIndex; j < endIndex; j++)
@@ -263,8 +270,8 @@ namespace osu.Framework.Audio.Track
                         float weight = filter[Math.Abs(j - startIndex - kernelWidth)];
                         totalWeight += weight;
 
-                        for (int c = 0; c < channels; c++)
-                            point.Amplitude[c] += weight * points[j].Amplitude[c];
+                        point.AmplitudeLeft += weight * points[j].AmplitudeLeft;
+                        point.AmplitudeRight += weight * points[j].AmplitudeRight;
                         point.LowIntensity += weight * points[j].LowIntensity;
                         point.MidIntensity += weight * points[j].MidIntensity;
                         point.HighIntensity += weight * points[j].HighIntensity;
@@ -273,8 +280,8 @@ namespace osu.Framework.Audio.Track
                     if (totalWeight > 0)
                     {
                         // Means
-                        for (int c = 0; c < channels; c++)
-                            point.Amplitude[c] /= totalWeight;
+                        point.AmplitudeLeft /= totalWeight;
+                        point.AmplitudeRight /= totalWeight;
                         point.LowIntensity /= totalWeight;
                         point.MidIntensity /= totalWeight;
                         point.HighIntensity /= totalWeight;
@@ -355,9 +362,14 @@ namespace osu.Framework.Audio.Track
         public struct Point
         {
             /// <summary>
-            /// An array of amplitudes, one for each channel.
+            /// The amplitude of the left channel.
             /// </summary>
-            public readonly float[] Amplitude;
+            public float AmplitudeLeft;
+
+            /// <summary>
+            /// The amplitude of the right channel.
+            /// </summary>
+            public float AmplitudeRight;
 
             /// <summary>
             /// Unnormalised total intensity of the low-range (bass) frequencies.
@@ -373,19 +385,6 @@ namespace osu.Framework.Audio.Track
             /// Unnormalised total intensity of the high-range (treble) frequencies.
             /// </summary>
             public float HighIntensity;
-
-            /// <summary>
-            /// Constructs a <see cref="Point"/>.
-            /// </summary>
-            /// <param name="channels">The number of channels that contain data.</param>
-            public Point(int channels)
-            {
-                Amplitude = new float[channels];
-
-                LowIntensity = 0;
-                MidIntensity = 0;
-                HighIntensity = 0;
-            }
         }
     }
 }
