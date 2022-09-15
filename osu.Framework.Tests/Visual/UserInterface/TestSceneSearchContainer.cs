@@ -51,7 +51,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 [goodbye] = "Do widzenia",
                 [general] = "Ogólne",
             }));
-
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
