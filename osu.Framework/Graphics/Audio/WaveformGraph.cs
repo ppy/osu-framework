@@ -265,7 +265,7 @@ namespace osu.Framework.Graphics.Audio
             private IShader shader;
             private Texture texture;
 
-            private readonly List<Waveform.Point> points = new List<Waveform.Point>();
+            private List<Waveform.Point> points;
 
             private Vector2 drawSize;
             private int channels;
@@ -304,10 +304,16 @@ namespace osu.Framework.Graphics.Audio
 
                 if (Source.resampledVersion != version)
                 {
-                    points.Clear();
+                    // Late initialise list to use a sane initial capacity.
+                    if (points == null)
+                        points = new List<Waveform.Point>(Source.resampledPoints ?? Enumerable.Empty<Waveform.Point>());
+                    else
+                    {
+                        points.Clear();
 
-                    if (Source.resampledPoints != null)
-                        points.AddRange(Source.resampledPoints);
+                        if (Source.resampledPoints != null)
+                            points.AddRange(Source.resampledPoints);
+                    }
 
                     channels = Source.resampledChannels;
 
