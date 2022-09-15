@@ -46,7 +46,6 @@ namespace osu.Framework.Graphics.Sprites
         public IShader RoundedTextureShader { get; private set; }
 
         public SpriteText()
-            : base(5)
         {
             current.BindValueChanged(text =>
             {

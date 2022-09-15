@@ -62,15 +62,9 @@ namespace osu.Framework.Graphics
         [Resolved(CanBeNull = true)]
         private IRenderer renderer { get; set; }
 
-        /// <summary>
-        /// Constructs a new drawable.
-        /// </summary>
-        /// <param name="layoutMemberCountHint">An optional hint at how many times <see cref="AddLayout"/> will be called. Setting this correctly helps avoid unnecessary allocations due to list growth.</param>
-        protected Drawable(int layoutMemberCountHint = 0)
+        protected Drawable()
         {
             total_count.Value++;
-
-            layoutMembers = new List<LayoutMember>(5 + layoutMemberCountHint);
 
             AddLayout(drawInfoBacking);
             AddLayout(drawSizeBacking);
@@ -1697,7 +1691,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         private InvalidationList invalidationList = new InvalidationList(Invalidation.All);
 
-        private readonly List<LayoutMember> layoutMembers;
+        /// <summary>
+        /// Represents the most-recently added <see cref="LayoutMember"/> (via <see cref="AddLayout"/>).
+        /// It is also used as a linked-list during invalidation by traversing through <see cref="LayoutMember.Next"/>.
+        /// </summary>
+        private LayoutMember layoutList;
 
         /// <summary>
         /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.Invalidation"/> is invalidated.
@@ -1708,7 +1706,14 @@ namespace osu.Framework.Graphics
             if (LoadState > LoadState.NotLoaded)
                 throw new InvalidOperationException($"{nameof(LayoutMember)}s cannot be added after {nameof(Drawable)}s have started loading. Consider adding in the constructor.");
 
-            layoutMembers.Add(member);
+            if (layoutList == null)
+                layoutList = member;
+            else
+            {
+                member.Next = layoutList;
+                layoutList = member;
+            }
+
             member.Parent = this;
         }
 
@@ -1773,21 +1778,24 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            for (int i = 0; i < layoutMembers.Count; i++)
-            {
-                var member = layoutMembers[i];
+            LayoutMember nextLayout = layoutList;
 
+            while (nextLayout != null)
+            {
                 // Only invalidate layout members that accept the given source.
-                if ((member.Source & source) == 0)
-                    continue;
+                if ((nextLayout.Source & source) == 0)
+                    goto NextLayoutIteration;
 
                 // Remove invalidation flags that don't refer to the layout member.
-                Invalidation memberInvalidation = invalidation & member.Invalidation;
+                Invalidation memberInvalidation = invalidation & nextLayout.Invalidation;
                 if (memberInvalidation == 0)
-                    continue;
+                    goto NextLayoutIteration;
 
-                if (member.Conditions?.Invoke(this, memberInvalidation) != false)
-                    anyInvalidated |= member.Invalidate();
+                if (nextLayout.Conditions?.Invoke(this, memberInvalidation) != false)
+                    anyInvalidated |= nextLayout.Invalidate();
+
+                NextLayoutIteration:
+                nextLayout = nextLayout.Next;
             }
 
             // Allow any custom invalidation to take place.
