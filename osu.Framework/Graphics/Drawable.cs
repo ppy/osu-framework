@@ -132,40 +132,36 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
-        private void cacheUnbindActions()
+        private static void cacheUnbindAction(Type ourType)
         {
-            foreach (var type in GetType().EnumerateBaseTypes())
+            List<Action<object>> actions = new List<Action<object>>();
+
+            foreach (var type in ourType.EnumerateBaseTypes())
             {
-                if (unbind_action_cache.TryGetValue(type, out _))
-                    return;
-
-                // List containing all the delegates to perform the unbinds
-                var actions = new List<Action<object>>();
-
                 // Generate delegates to unbind fields
                 actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                                      .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
                                      .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
-
-                // Delegates to unbind properties are intentionally not generated.
-                // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
-                // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
-
-                unbind_action_cache[type] = target =>
-                {
-                    foreach (var a in actions)
-                    {
-                        try
-                        {
-                            a(target);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
-                        }
-                    }
-                };
             }
+
+            // Delegates to unbind properties are intentionally not generated.
+            // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
+            // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
+
+            unbind_action_cache[ourType] = target =>
+            {
+                foreach (var a in actions)
+                {
+                    try
+                    {
+                        a(target);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error(e, $"Failed to unbind a local bindable in {ourType.ReadableName()}");
+                    }
+                }
+            };
         }
 
         private bool unbindComplete;
@@ -180,11 +176,8 @@ namespace osu.Framework.Graphics
 
             unbindComplete = true;
 
-            foreach (var type in GetType().EnumerateBaseTypes())
-            {
-                if (unbind_action_cache.TryGetValue(type, out var existing))
-                    existing?.Invoke(this);
-            }
+            if (unbind_action_cache.TryGetValue(GetType(), out var existing))
+                existing?.Invoke(this);
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -280,7 +273,10 @@ namespace osu.Framework.Graphics
 
             InjectDependencies(dependencies);
 
-            cacheUnbindActions();
+            var type = GetType();
+
+            if (!unbind_action_cache.ContainsKey(type))
+                cacheUnbindAction(type);
 
             LoadAsyncComplete();
 
@@ -1691,7 +1687,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         private InvalidationList invalidationList = new InvalidationList(Invalidation.All);
 
-        private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
+        /// <summary>
+        /// Represents the most-recently added <see cref="LayoutMember"/> (via <see cref="AddLayout"/>).
+        /// It is also used as a linked-list during invalidation by traversing through <see cref="LayoutMember.Next"/>.
+        /// </summary>
+        private LayoutMember layoutList;
 
         /// <summary>
         /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.Invalidation"/> is invalidated.
@@ -1702,7 +1702,14 @@ namespace osu.Framework.Graphics
             if (LoadState > LoadState.NotLoaded)
                 throw new InvalidOperationException($"{nameof(LayoutMember)}s cannot be added after {nameof(Drawable)}s have started loading. Consider adding in the constructor.");
 
-            layoutMembers.Add(member);
+            if (layoutList == null)
+                layoutList = member;
+            else
+            {
+                member.Next = layoutList;
+                layoutList = member;
+            }
+
             member.Parent = this;
         }
 
@@ -1767,21 +1774,24 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            for (int i = 0; i < layoutMembers.Count; i++)
-            {
-                var member = layoutMembers[i];
+            LayoutMember nextLayout = layoutList;
 
+            while (nextLayout != null)
+            {
                 // Only invalidate layout members that accept the given source.
-                if ((member.Source & source) == 0)
-                    continue;
+                if ((nextLayout.Source & source) == 0)
+                    goto NextLayoutIteration;
 
                 // Remove invalidation flags that don't refer to the layout member.
-                Invalidation memberInvalidation = invalidation & member.Invalidation;
+                Invalidation memberInvalidation = invalidation & nextLayout.Invalidation;
                 if (memberInvalidation == 0)
-                    continue;
+                    goto NextLayoutIteration;
 
-                if (member.Conditions?.Invoke(this, memberInvalidation) != false)
-                    anyInvalidated |= member.Invalidate();
+                if (nextLayout.Conditions?.Invoke(this, memberInvalidation) != false)
+                    anyInvalidated |= nextLayout.Invalidate();
+
+                NextLayoutIteration:
+                nextLayout = nextLayout.Next;
             }
 
             // Allow any custom invalidation to take place.
