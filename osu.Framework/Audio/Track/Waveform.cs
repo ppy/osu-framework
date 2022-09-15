@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,6 +92,8 @@ namespace osu.Framework.Audio.Track
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
+                float[] sampleBuffer = null;
+
                 try
                 {
                     Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
@@ -108,7 +111,8 @@ namespace osu.Framework.Audio.Track
 
                     // Each iteration pulls in several samples
                     int bytesPerIteration = bytesPerPoint * points_per_iteration;
-                    float[] sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
+
+                    sampleBuffer = ArrayPool<float>.Shared.Rent(bytesPerIteration / TrackBass.BYTES_PER_SAMPLE);
 
                     int pointIndex = 0;
 
@@ -175,6 +179,7 @@ namespace osu.Framework.Audio.Track
                 finally
                 {
                     Bass.StreamFree(decodeStream);
+                    ArrayPool<float>.Shared.Return(sampleBuffer);
                 }
             }, cancelSource.Token);
         }
