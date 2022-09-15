@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace osu.Framework.Graphics.Rendering
 {
     /// <summary>
-    /// Helper class used to manage Veldrid disposals in a thread-safe manner.
+    /// Helper class used to manage disposal of renderer components in a thread-safe manner.
     /// </summary>
     internal class RendererDisposalQueue
     {
