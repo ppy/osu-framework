@@ -13,7 +13,7 @@ A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 
 ## Developing a game using osu!framework
 
-If you are interested in **creating a project** using the framework, please start from the [getting started](https://github.com/ppy/osu-framework/wiki/Setting-up-your-first-project) wiki resources (or jump straight over to the [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and  a testing setup are included!
+If you are interested in **creating a project** using the framework, please start from the [getting started](https://github.com/ppy/osu-framework/wiki/Setting-up-your-first-project) wiki resources (or jump straight over to the [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates)). You can either start off from an empty project or take a peek at a working sample game. Either way, full project structure, cross-platform support, and  a testing setup are included!
 
 The rest of the information on this page is related to working *on* the framework, not *using* it!
 
@@ -48,7 +48,7 @@ Contributions can be made via pull requests to this repository.
 
 If you're unsure of what you can help with, check out the [list of open issues](https://github.com/ppy/osu-framework/issues) (especially those with the ["good first issue"](https://github.com/ppy/osu-framework/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22) label).
 
-Before starting, please make sure you are familiar with the [development and testing](https://github.com/ppy/osu-framework/wiki/Development-and-Testing) procedure we have set up. New component development, and where possible, bug fixing and debugging existing components **should always be done under VisualTests**.
+Before starting, please make sure you are familiar with the [development and testing](https://github.com/ppy/osu-framework/wiki/Development-and-Testing) procedure we have set up. New component development and where possible, bug fixing and debugging existing components **should always be done under VisualTests**.
 
 Note that while we already have certain standards in place, nothing is set in stone. If you have an issue with the way code is structured; with any libraries we are using; with any processes involved with contributing, *please* bring it up. We welcome all feedback so we can make contributing to this project as pain-free as possible.
 
