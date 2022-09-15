@@ -59,9 +59,6 @@ namespace osu.Framework.Graphics.Containers
             AddLayout(childrenSizeDependencies);
         }
 
-        [Resolved]
-        private Game game { get; set; }
-
         /// <summary>
         /// Create a local dependency container which will be used by our nested children.
         /// If not overridden, the load-time parent's dependency tree will be used.
@@ -142,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
                                                                Scheduler scheduler = null)
             where TLoadable : Drawable
         {
-            if (game == null)
+            if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
@@ -221,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="components">The children or grand-children to be loaded.</param>
         protected void LoadComponents<TLoadable>(IEnumerable<TLoadable> components) where TLoadable : Drawable
         {
-            if (game == null)
+            if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             if (IsDisposed)

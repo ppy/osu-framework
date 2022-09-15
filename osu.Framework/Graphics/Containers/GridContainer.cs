@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
@@ -164,6 +165,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 for (int c = 0; c < cellColumns; c++)
                 {
+                    // Content should not be null since the number of rows/columns is non-zero.
+                    Debug.Assert(Content != null);
+
                     // Add cell
                     cells[r, c] = new CellContainer();
 
