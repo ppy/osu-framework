@@ -271,12 +271,12 @@ namespace osu.Framework.Graphics
             RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
             RequestsPositionalInputSubTree = RequestsPositionalInput;
 
-            InjectDependencies(dependencies);
-
             var type = GetType();
 
             if (!unbind_action_cache.ContainsKey(type))
                 cacheUnbindAction(type);
+
+            InjectDependencies(dependencies);
 
             LoadAsyncComplete();
 
