@@ -22,6 +22,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public sealed class TabletDriver : Driver
     {
+        private static readonly Logger tablet_logger = Logger.GetLogger(ITabletHandler.LOGGER_NAME);
+
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
         private CancellationTokenSource cancellationSource;
@@ -31,7 +33,11 @@ namespace osu.Framework.Input.Handlers.Tablet
         public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
         {
-            Log.Output += (_, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
+            Log.Output += (_, logMessage) =>
+            {
+                LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
+                tablet_logger.Add($"{logMessage.Group}: {logMessage.Message}", level: level);
+            };
 
             deviceHub.DevicesChanged += (_, args) =>
             {

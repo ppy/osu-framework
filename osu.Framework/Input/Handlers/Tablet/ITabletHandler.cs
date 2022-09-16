@@ -14,6 +14,8 @@ namespace osu.Framework.Input.Handlers.Tablet
     /// </summary>
     public interface ITabletHandler
     {
+        const string LOGGER_NAME = "Tablet";
+
         /// <summary>
         /// The offset of the area which should be mapped to the game window.
         /// </summary>
