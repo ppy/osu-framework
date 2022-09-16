@@ -628,7 +628,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (triggeringItem?.Item.Items?.Contains(source) ?? triggeringItem == null)
             {
                 Close();
-                parentMenu?.closeFromChild(triggeringItem.Item);
+                parentMenu?.closeFromChild(triggeringItem?.Item);
             }
         }
 
