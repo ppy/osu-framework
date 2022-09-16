@@ -132,8 +132,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
-        private static void cacheUnbindAction(Type ourType)
+        private Action<object> getUnbindAction()
         {
+            var ourType = GetType();
+
+            if (unbind_action_cache.TryGetValue(ourType, out var action)) return action;
+
             List<Action<object>> actions = new List<Action<object>>();
 
             foreach (var type in ourType.EnumerateBaseTypes())
@@ -148,7 +152,7 @@ namespace osu.Framework.Graphics
             // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
             // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
 
-            unbind_action_cache[ourType] = target =>
+            unbind_action_cache[ourType] = action = target =>
             {
                 foreach (var a in actions)
                 {
@@ -162,6 +166,8 @@ namespace osu.Framework.Graphics
                     }
                 }
             };
+
+            return action;
         }
 
         private bool unbindComplete;
@@ -176,8 +182,7 @@ namespace osu.Framework.Graphics
 
             unbindComplete = true;
 
-            if (unbind_action_cache.TryGetValue(GetType(), out var existing))
-                existing?.Invoke(this);
+            getUnbindAction().Invoke(this);
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -248,6 +253,9 @@ namespace osu.Framework.Graphics
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
 
+                    if (!unbind_action_cache.ContainsKey(GetType()))
+                        getUnbindAction();
+
                     loadState = LoadState.Loading;
 
                     load(clock, dependencies);
@@ -270,11 +278,6 @@ namespace osu.Framework.Graphics
 
             RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
             RequestsPositionalInputSubTree = RequestsPositionalInput;
-
-            var type = GetType();
-
-            if (!unbind_action_cache.ContainsKey(type))
-                cacheUnbindAction(type);
 
             InjectDependencies(dependencies);
 
