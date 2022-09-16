@@ -253,9 +253,6 @@ namespace osu.Framework.Graphics
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
 
-                    if (!unbind_action_cache.ContainsKey(GetType()))
-                        getUnbindAction();
-
                     loadState = LoadState.Loading;
 
                     load(clock, dependencies);
@@ -268,6 +265,9 @@ namespace osu.Framework.Graphics
         private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             LoadThread = Thread.CurrentThread;
+
+            // Cache eagerly during load to hopefully defer the reflection overhead to an async pathway.
+            getUnbindAction();
 
             UpdateClock(clock);
 
