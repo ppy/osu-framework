@@ -144,7 +144,7 @@ namespace osu.Framework.Android.Input
                 if (axis.TryGetJoystickAxisSource(out _))
                     return true;
 
-                Logger.Log($"Unknown joystick axis: {axis}");
+                Log($"Unknown joystick axis: {axis}");
                 return false;
             }
         }

@@ -227,7 +227,7 @@ namespace osu.Framework.Android.Input
 
         private void logUnhandledEvent(string methodName, InputEvent inputEvent)
         {
-            Logger.Log($"Unknown {GetType().ReadableName()}.{methodName} event: {inputEvent}");
+            Log($"Unknown {GetType().ReadableName()}.{methodName} event: {inputEvent}");
         }
     }
 }
