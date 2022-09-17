@@ -74,6 +74,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                                 updateOutputArea(host.Window);
                             }
                         };
+                        tabletDriver.PostLog = Log;
                         tabletDriver.DeviceReported += handleDeviceReported;
                         tabletDriver.Detect();
                     });

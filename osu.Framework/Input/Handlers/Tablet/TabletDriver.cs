@@ -15,20 +15,19 @@ using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Components;
 using OpenTabletDriver.Plugin.Tablet;
-using osu.Framework.Logging;
 using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
     public sealed class TabletDriver : Driver
     {
-        private static readonly Logger tablet_logger = Logger.GetLogger(ITabletHandler.LOGGER_NAME);
-
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
         private CancellationTokenSource cancellationSource;
 
         public event EventHandler<IDeviceReport> DeviceReported;
+
+        public Action<string, LogLevel, Exception> PostLog;
 
         public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
@@ -36,7 +35,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             Log.Output += (_, logMessage) =>
             {
                 LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
-                tablet_logger.Add($"{logMessage.Group}: {logMessage.Message}", level: level);
+                PostLog?.Invoke($"{logMessage.Group}: {logMessage.Message}", level, null);
             };
 
             deviceHub.DevicesChanged += (_, args) =>
@@ -61,7 +60,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             if (foundVendor > 0)
             {
-                Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+                PostLog?.Invoke($"Tablet detected (vid{foundVendor}), searching for usable configuration...", LogLevel.Verbose, null);
 
                 Detect();
 
