@@ -173,6 +173,12 @@ namespace osu.Framework.Graphics.Rendering
         void SetBlend(BlendingParameters blendingParameters);
 
         /// <summary>
+        /// Sets a mask deciding which colour components are affected during blending.
+        /// </summary>
+        /// <param name="blendingMask">The blending mask.</param>
+        void SetBlendMask(BlendingMask blendingMask);
+
+        /// <summary>
         /// Applies a new viewport rectangle.
         /// </summary>
         /// <param name="viewport">The viewport rectangle.</param>
