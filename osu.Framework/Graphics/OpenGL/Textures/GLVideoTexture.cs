@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Textures;
@@ -14,41 +12,20 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal unsafe class GLVideoTexture : GLTexture
     {
-        private int[] textureIds;
+        public int[]? TextureIds { get; private set; }
 
         public GLVideoTexture(GLRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
         {
         }
 
-        private NativeMemoryTracker.NativeMemoryLease memoryLease;
+        private NativeMemoryTracker.NativeMemoryLease? memoryLease;
 
-        public override int TextureId => textureIds?[0] ?? 0;
+        public override int TextureId => TextureIds?[0] ?? 0;
 
         private int textureSize;
 
         public override int GetByteSize() => textureSize;
-
-        public override bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
-
-            Upload();
-
-            if (textureIds == null)
-                return false;
-
-            bool anyBound = false;
-
-            for (int i = 0; i < textureIds.Length; i++)
-                anyBound |= Renderer.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
-
-            if (anyBound)
-                BindCount++;
-
-            return true;
-        }
 
         protected override void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
@@ -56,22 +33,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 return;
 
             // Do we need to generate a new texture?
-            if (textureIds == null)
+            if (TextureIds == null)
             {
                 Debug.Assert(memoryLease == null);
                 memoryLease = NativeMemoryTracker.AddMemory(this, Width * Height * 3 / 2);
 
-                textureIds = new int[3];
-                GL.GenTextures(textureIds.Length, textureIds);
+                TextureIds = new int[3];
+                GL.GenTextures(TextureIds.Length, TextureIds);
 
-                for (uint i = 0; i < textureIds.Length; i++)
+                Renderer.BindTexture(this);
+
+                for (uint i = 0; i < TextureIds.Length; i++)
                 {
-                    Renderer.BindTexture(textureIds[i]);
-
                     int width = videoUpload.GetPlaneWidth(i);
                     int height = videoUpload.GetPlaneHeight(i);
 
                     textureSize += width * height;
+
+                    GL.ActiveTexture(TextureUnit.Texture0 + (int)i);
 
                     GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height,
                         0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
@@ -84,17 +63,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            for (uint i = 0; i < textureIds.Length; i++)
+            Renderer.BindTexture(this);
+
+            for (uint i = 0; i < TextureIds.Length; i++)
             {
-                Renderer.BindTexture(textureIds[i]);
+                GL.ActiveTexture(TextureUnit.Texture0 + (int)i);
 
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[i]);
 
                 GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, videoUpload.GetPlaneWidth(i), videoUpload.GetPlaneHeight(i),
                     PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[i]);
-            }
 
-            GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
+                GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
+            }
         }
 
         #region Disposal
@@ -107,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             Renderer.ScheduleDisposal(v =>
             {
-                int[] ids = v.textureIds;
+                int[]? ids = v.TextureIds;
 
                 if (ids == null)
                     return;

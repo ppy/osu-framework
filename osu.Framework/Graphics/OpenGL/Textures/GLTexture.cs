@@ -50,8 +50,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
         private readonly Rgba32 initialisationColour;
 
-        public ulong BindCount { get; protected set; }
-
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
         /// </summary>
@@ -154,9 +152,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 if (!Available)
                     throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
 
-                if (textureId == 0)
-                    throw new InvalidOperationException("Can not obtain ID of a texture before uploading it.");
-
                 return textureId;
             }
         }
@@ -177,22 +172,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 if (requireUpload && !BypassTextureUploadQueueing)
                     Renderer.EnqueueTextureUpload(this);
             }
-        }
-
-        public virtual bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
-
-            Upload();
-
-            if (textureId <= 0)
-                return false;
-
-            if (Renderer.BindTexture(textureId, unit, wrapModeS, wrapModeT))
-                BindCount++;
-
-            return true;
         }
 
         public unsafe bool Upload()
@@ -270,7 +249,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     textureId = textures[0];
 
-                    Renderer.BindTexture(textureId);
+                    Renderer.BindTexture(this);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, IRenderer.MAX_MIPMAP_LEVELS);
@@ -287,7 +266,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
                 }
                 else
-                    Renderer.BindTexture(textureId);
+                    Renderer.BindTexture(this);
 
                 if ((Width == upload.Bounds.Width && Height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
@@ -305,7 +284,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // Just update content of the current texture
             else if (dataPointer != IntPtr.Zero)
             {
-                Renderer.BindTexture(textureId);
+                Renderer.BindTexture(this);
 
                 if (!manualMipmaps && upload.Level > 0)
                 {

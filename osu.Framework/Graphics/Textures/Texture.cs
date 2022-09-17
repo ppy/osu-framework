@@ -312,11 +312,6 @@ namespace osu.Framework.Graphics.Textures
         internal bool IsAtlasTexture { get; set; }
 
         /// <summary>
-        /// The total amount of times this <see cref="Texture"/> has ever been bound.
-        /// </summary>
-        internal ulong BindCount => NativeTexture.BindCount;
-
-        /// <summary>
         /// The size of this texture in bytes.
         /// </summary>
         internal int GetByteSize() => NativeTexture.GetByteSize();

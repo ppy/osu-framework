@@ -190,5 +190,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         Texture[] IRenderer.GetAllTextures() => Array.Empty<Texture>();
+
+        ulong IRenderer.GetTextureBindCount(Texture texture) => 0;
     }
 }
