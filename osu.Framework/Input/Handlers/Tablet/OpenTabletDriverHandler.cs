@@ -30,6 +30,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private AbsoluteOutputMode outputMode;
 
+        public override string Description => "Tablet";
+
         public override bool IsActive => tabletDriver != null;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
