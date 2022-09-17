@@ -3,25 +3,25 @@
 
 #nullable disable
 
-namespace osu.Framework.Graphics.OpenGL.Buffers
+namespace osu.Framework.Graphics.Rendering
 {
     /// <summary>
-    /// Internal interface for all <see cref="GLVertexBuffer{T}"/>s.
+    /// Internal interface for all vertex buffers for use in <see cref="Renderer"/>.
     /// </summary>
-    internal interface IGLVertexBuffer
+    internal interface IVertexBuffer
     {
         /// <summary>
-        /// The <see cref="GLRenderer.ResetId"/> when this <see cref="IGLVertexBuffer"/> was last used.
+        /// The <see cref="Renderer.ResetId"/> when this <see cref="IVertexBuffer"/> was last used.
         /// </summary>
         ulong LastUseResetId { get; }
 
         /// <summary>
-        /// Whether this <see cref="IGLVertexBuffer"/> is currently in use.
+        /// Whether this <see cref="IVertexBuffer"/> is currently in use.
         /// </summary>
         bool InUse { get; }
 
         /// <summary>
-        /// Frees all resources allocated by this <see cref="IGLVertexBuffer"/>.
+        /// Frees all resources allocated by this <see cref="IVertexBuffer"/>.
         /// </summary>
         void Free();
     }
