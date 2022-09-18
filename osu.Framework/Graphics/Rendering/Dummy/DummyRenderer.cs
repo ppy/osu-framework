@@ -79,6 +79,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
+        public void SetBlendMask(BlendingMask blendingMask)
+        {
+        }
+
         public void PushViewport(RectangleI viewport)
         {
         }

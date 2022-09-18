@@ -59,6 +59,7 @@ namespace osu.Framework.Graphics.Rendering
 
         protected ClearInfo CurrentClearInfo { get; private set; }
         protected BlendingParameters CurrentBlendingParameters { get; private set; }
+        protected BlendingMask CurrentBlendingMask { get; private set; }
 
         /// <summary>
         /// Whether scissor is currently enabled.
@@ -314,11 +315,28 @@ namespace osu.Framework.Graphics.Rendering
             CurrentBlendingParameters = blendingParameters;
         }
 
+        public void SetBlendMask(BlendingMask blendingMask)
+        {
+            if (CurrentBlendingMask == blendingMask)
+                return;
+
+            FlushCurrentBatch();
+            SetBlendMaskImplementation(blendingMask);
+
+            CurrentBlendingMask = blendingMask;
+        }
+
         /// <summary>
         /// Updates the graphics device with the new blending parameters.
         /// </summary>
         /// <param name="blendingParameters">The blending parameters.</param>
         protected abstract void SetBlendImplementation(BlendingParameters blendingParameters);
+
+        /// <summary>
+        /// Updates the graphics device with the new blending mask.
+        /// </summary>
+        /// <param name="blendingMask">The blending mask.</param>
+        protected abstract void SetBlendMaskImplementation(BlendingMask blendingMask);
 
         #endregion
 
