@@ -35,6 +35,8 @@ namespace osu.Framework.Graphics.Veldrid
 
         public override string ShaderFilenameSuffix => @"-veldrid";
 
+        public override bool TextureOriginAtBottomLeft => Device.IsClipSpaceYInverted;
+
         public GraphicsDevice Device { get; private set; } = null!;
 
         public ResourceFactory Factory => Device.ResourceFactory;
