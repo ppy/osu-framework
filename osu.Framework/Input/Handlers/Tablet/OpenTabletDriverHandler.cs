@@ -4,6 +4,7 @@
 #nullable disable
 
 #if NET6_0_OR_GREATER
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -30,6 +31,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private AbsoluteOutputMode outputMode;
 
+        private GameHost host;
+
         public override bool IsActive => tabletDriver != null;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
@@ -46,6 +49,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public override bool Initialize(GameHost host)
         {
+            this.host = host;
+
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
@@ -61,19 +66,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     lastInitTask = Task.Run(() =>
                     {
                         tabletDriver = TabletDriver.Create();
-                        tabletDriver.TabletsChanged += (_, e) =>
-                        {
-                            device = e.Any() ? tabletDriver.InputDevices.First() : null;
-
-                            if (device != null)
-                            {
-                                device.OutputMode = outputMode;
-                                outputMode.Tablet = device.CreateReference();
-
-                                updateInputArea(device);
-                                updateOutputArea(host.Window);
-                            }
-                        };
+                        tabletDriver.TabletsChanged += handleTabletsChanged;
                         tabletDriver.DeviceReported += handleDeviceReported;
                         tabletDriver.Detect();
                     });
@@ -81,6 +74,9 @@ namespace osu.Framework.Input.Handlers.Tablet
                 else
                 {
                     lastInitTask?.WaitSafely();
+
+                    tabletDriver.DeviceReported -= handleDeviceReported;
+                    tabletDriver.TabletsChanged -= handleTabletsChanged;
                     tabletDriver?.Dispose();
                     tabletDriver = null;
                 }
@@ -94,6 +90,20 @@ namespace osu.Framework.Input.Handlers.Tablet
         void IRelativePointer.SetPosition(System.Numerics.Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X, delta.Y) });
 
         void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
+
+        private void handleTabletsChanged(object _, IEnumerable<TabletReference> tablets)
+        {
+            device = tablets.Any() ? tabletDriver.InputDevices.First() : null;
+
+            if (device != null)
+            {
+                device.OutputMode = outputMode;
+                outputMode.Tablet = device.CreateReference();
+
+                updateInputArea(device);
+                updateOutputArea(host.Window);
+            }
+        }
 
         private void handleDeviceReported(object sender, IDeviceReport report)
         {
