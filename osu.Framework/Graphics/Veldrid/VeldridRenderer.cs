@@ -39,6 +39,9 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         public override string ShaderFilenameSuffix => @"-veldrid";
+
+        public override bool DepthStartsFromNegativeOne => !Device.IsDepthRangeZeroToOne;
+
         private IGraphicsSurface graphicsSurface = null!;
 
         public GraphicsDevice Device { get; private set; } = null!;

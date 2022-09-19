@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.Rendering
 
         public virtual string ShaderFilenameSuffix => string.Empty;
 
+        public abstract bool DepthStartsFromNegativeOne { get; }
+
         /// <summary>
         /// The current reset index.
         /// </summary>

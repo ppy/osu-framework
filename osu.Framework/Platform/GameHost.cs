@@ -458,7 +458,7 @@ namespace osu.Framework.Platform
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
-        private readonly DepthValue depthValue = new DepthValue();
+        private DepthValue depthValue;
 
         protected virtual void DrawFrame()
         {
@@ -467,6 +467,8 @@ namespace osu.Framework.Platform
 
             if (ExecutionState != ExecutionState.Running)
                 return;
+
+            depthValue ??= new DepthValue(Renderer);
 
             ObjectUsage<DrawNode> buffer;
 

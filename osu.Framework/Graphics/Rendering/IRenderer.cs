@@ -71,6 +71,11 @@ namespace osu.Framework.Graphics.Rendering
         string ShaderFilenameSuffix { get; }
 
         /// <summary>
+        /// Whether depth value should start from -1 rather than 0. This is usually true for OpenGL backends.
+        /// </summary>
+        bool DepthStartsFromNegativeOne { get; }
+
+        /// <summary>
         /// The current masking parameters.
         /// </summary>
         ref readonly MaskingInfo CurrentMaskingInfo { get; }
