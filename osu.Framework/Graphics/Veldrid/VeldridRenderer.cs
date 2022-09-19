@@ -41,6 +41,7 @@ namespace osu.Framework.Graphics.Veldrid
         public override string ShaderFilenameSuffix => @"-veldrid";
 
         public override bool DepthStartsFromNegativeOne => !Device.IsDepthRangeZeroToOne;
+        public override bool TextureOriginAtBottomLeft => Device.IsClipSpaceYInverted;
 
         private IGraphicsSurface graphicsSurface = null!;
 

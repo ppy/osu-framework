@@ -44,6 +44,8 @@ namespace osu.Framework.Graphics.Rendering
 
         public abstract bool DepthStartsFromNegativeOne { get; }
 
+        public abstract bool TextureOriginAtBottomLeft { get; }
+
         /// <summary>
         /// The current reset index.
         /// </summary>

@@ -43,6 +43,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public override bool DepthStartsFromNegativeOne => true;
 
+        public override bool TextureOriginAtBottomLeft => true;
+
         protected virtual int BackbufferFramebuffer => 0;
 
         private readonly int[] lastBoundBuffers = new int[2];
