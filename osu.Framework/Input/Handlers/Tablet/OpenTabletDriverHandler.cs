@@ -75,10 +75,13 @@ namespace osu.Framework.Input.Handlers.Tablet
                 {
                     lastInitTask?.WaitSafely();
 
-                    tabletDriver.DeviceReported -= handleDeviceReported;
-                    tabletDriver.TabletsChanged -= handleTabletsChanged;
-                    tabletDriver?.Dispose();
-                    tabletDriver = null;
+                    if (tabletDriver != null)
+                    {
+                        tabletDriver.DeviceReported -= handleDeviceReported;
+                        tabletDriver.TabletsChanged -= handleTabletsChanged;
+                        tabletDriver.Dispose();
+                        tabletDriver = null;
+                    }
                 }
             }, true);
 
