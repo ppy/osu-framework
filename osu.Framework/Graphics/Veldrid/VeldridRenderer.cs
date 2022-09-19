@@ -18,7 +18,6 @@ using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
-using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using Veldrid.OpenGL;
@@ -231,7 +230,8 @@ namespace osu.Framework.Graphics.Veldrid
         {
             Commands.ClearColorTarget(0, clearInfo.Colour.ToRgbaFloat());
 
-            if (Device.SwapchainFramebuffer.DepthTarget != null)
+            var framebuffer = ((VeldridFrameBuffer?)FrameBuffer)?.Framebuffer ?? Device.SwapchainFramebuffer;
+            if (framebuffer.DepthTarget != null)
                 Commands.ClearDepthStencil((float)clearInfo.Depth, (byte)clearInfo.Stencil);
         }
 
@@ -239,7 +239,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
         {
-            var veldridTexture = texture as VeldridTexture; // texture may be DummyNativeTexture coming from a DummyFramebuffer, since framebuffers are not supported yet.
+            var veldridTexture = (VeldridTexture?)texture;
             if (veldridTexture != null && veldridTexture.Resource == null)
                 return false;
 
@@ -356,8 +356,11 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
         {
-            Commands.SetFramebuffer(Device.SwapchainFramebuffer);
-            pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
+            VeldridFrameBuffer? veldridFrameBuffer = (VeldridFrameBuffer?)frameBuffer;
+            Framebuffer framebuffer = veldridFrameBuffer?.Framebuffer ?? Device.SwapchainFramebuffer;
+
+            Commands.SetFramebuffer(framebuffer);
+            pipeline.Outputs = framebuffer.OutputDescription;
         }
 
         public void BindVertexBuffer(DeviceBuffer buffer, VertexLayoutDescription layout)
@@ -387,6 +390,18 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
 
+        /// <summary>
+        /// Deletes a frame buffer.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer to delete.</param>
+        public void DeleteFrameBuffer(VeldridFrameBuffer frameBuffer)
+        {
+            while (FrameBuffer == frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
+
+            frameBuffer.Framebuffer.Dispose();
+        }
+
         private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();
 
         private Pipeline getPipelineInstance()
@@ -407,7 +422,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray());
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
-            => new DummyFrameBuffer(this);
+            => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
             => new VeldridLinearBatch<TVertex>(this, size, maxBuffers, primitiveType.ToPrimitiveTopology());
