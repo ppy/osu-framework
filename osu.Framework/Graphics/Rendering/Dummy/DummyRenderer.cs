@@ -79,6 +79,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
+        public void SetBlendMask(BlendingMask blendingMask)
+        {
+        }
+
         public void PushViewport(RectangleI viewport)
         {
         }
@@ -190,5 +194,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         Texture[] IRenderer.GetAllTextures() => Array.Empty<Texture>();
+
+        ulong IRenderer.GetTextureBindCount(Texture texture) => 0;
     }
 }

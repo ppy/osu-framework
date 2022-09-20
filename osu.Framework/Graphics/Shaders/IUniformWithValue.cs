@@ -7,10 +7,17 @@ using System;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal interface IUniformWithValue<T> : IUniform
+    public interface IUniformWithValue<T> : IUniform
         where T : unmanaged, IEquatable<T>
     {
+        /// <summary>
+        /// Returns a reference to the current value of this uniform.
+        /// </summary>
         ref T GetValueByRef();
+
+        /// <summary>
+        /// Returns the current value of this uniform.
+        /// </summary>
         T GetValue();
     }
 }

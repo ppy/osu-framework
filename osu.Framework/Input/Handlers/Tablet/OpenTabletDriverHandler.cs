@@ -1,12 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 #if NET6_0_OR_GREATER
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
@@ -23,12 +21,13 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IRelativePointer, IPressureHandler, ITabletHandler
     {
-        private TabletDriver tabletDriver;
+        private TabletDriver? tabletDriver;
 
-        [CanBeNull]
-        private InputDeviceTree device;
+        private InputDeviceTree? device;
 
-        private AbsoluteOutputMode outputMode;
+        private AbsoluteOutputMode outputMode = null!;
+
+        private GameHost host = null!;
 
         public override string Description => "Tablet";
 
@@ -44,10 +43,12 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
-        private Task lastInitTask;
+        private Task? lastInitTask;
 
         public override bool Initialize(GameHost host)
         {
+            this.host = host;
+
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
@@ -63,20 +64,8 @@ namespace osu.Framework.Input.Handlers.Tablet
                     lastInitTask = Task.Run(() =>
                     {
                         tabletDriver = TabletDriver.Create();
-                        tabletDriver.TabletsChanged += (_, e) =>
-                        {
-                            device = e.Any() ? tabletDriver.InputDevices.First() : null;
-
-                            if (device != null)
-                            {
-                                device.OutputMode = outputMode;
-                                outputMode.Tablet = device.CreateReference();
-
-                                updateInputArea(device);
-                                updateOutputArea(host.Window);
-                            }
-                        };
                         tabletDriver.PostLog = Log;
+                        tabletDriver.TabletsChanged += handleTabletsChanged;
                         tabletDriver.DeviceReported += handleDeviceReported;
                         tabletDriver.Detect();
                     });
@@ -84,8 +73,14 @@ namespace osu.Framework.Input.Handlers.Tablet
                 else
                 {
                     lastInitTask?.WaitSafely();
-                    tabletDriver?.Dispose();
-                    tabletDriver = null;
+
+                    if (tabletDriver != null)
+                    {
+                        tabletDriver.DeviceReported -= handleDeviceReported;
+                        tabletDriver.TabletsChanged -= handleTabletsChanged;
+                        tabletDriver.Dispose();
+                        tabletDriver = null;
+                    }
                 }
             }, true);
 
@@ -98,7 +93,21 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
-        private void handleDeviceReported(object sender, IDeviceReport report)
+        private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
+        {
+            device = tablets.Any() ? tabletDriver?.InputDevices.First() : null;
+
+            if (device != null)
+            {
+                device.OutputMode = outputMode;
+                outputMode.Tablet = device.CreateReference();
+
+                updateInputArea(device);
+                updateOutputArea(host.Window);
+            }
+        }
+
+        private void handleDeviceReported(object? sender, IDeviceReport report)
         {
             switch (report)
             {
@@ -135,7 +144,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             }
         }
 
-        private void updateInputArea([CanBeNull] InputDeviceTree inputDevice)
+        private void updateInputArea(InputDeviceTree? inputDevice)
         {
             if (inputDevice == null)
                 return;

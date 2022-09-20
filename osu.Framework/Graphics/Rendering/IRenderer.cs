@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
@@ -26,9 +25,21 @@ namespace osu.Framework.Graphics.Rendering
 
         public const int MAX_MIPMAP_LEVELS = 3;
 
+        public const int VERTICES_PER_TRIANGLE = 4;
+
         public const int VERTICES_PER_QUAD = 4;
 
-        public const int VERTICES_PER_TRIANGLE = 4;
+        public const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
+
+        /// <summary>
+        /// Maximum number of vertices in a linear vertex buffer.
+        /// </summary>
+        public const int MAX_VERTICES = ushort.MaxValue;
+
+        /// <summary>
+        /// Maximum number of quads in a quad vertex buffer.
+        /// </summary>
+        public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
         /// The maximum allowed texture size.
@@ -135,14 +146,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
         /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
         /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
-        /// <returns>Whether <paramref name="texture"/> was newly-bound.</returns>
+        /// <returns>Whether the texture was successfully bound.</returns>
         bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
-
-        /// <summary>
-        /// Binds a shader.
-        /// </summary>
-        /// <param name="shader">The shader to bind.</param>
-        void UseProgram(IShader? shader);
 
         /// <summary>
         /// Clears the currently bound frame buffer.
@@ -166,6 +171,12 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="blendingParameters">The blending parameters.</param>
         void SetBlend(BlendingParameters blendingParameters);
+
+        /// <summary>
+        /// Sets a mask deciding which colour components are affected during blending.
+        /// </summary>
+        /// <param name="blendingMask">The blending mask.</param>
+        void SetBlendMask(BlendingMask blendingMask);
 
         /// <summary>
         /// Applies a new viewport rectangle.
@@ -258,9 +269,23 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="target">The target to be disposed.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
-        internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+        /// <summary>
+        /// Creates a new <see cref="IShaderPart"/>.
+        /// </summary>
+        /// <param name="manager">The shader manager to load headers with.</param>
+        /// <param name="name">The name of the shader part.</param>
+        /// <param name="rawData">The content of the shader part.</param>
+        /// <param name="partType">The type of the shader part.</param>
+        /// <returns>The <see cref="IShaderPart"/>.</returns>
+        protected internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
 
-        internal IShader CreateShader(string name, params IShaderPart[] parts);
+        /// <summary>
+        /// Creates a new <see cref="IShader"/>.
+        /// </summary>
+        /// <param name="name">The name of the shader.</param>
+        /// <param name="parts">The <see cref="IShaderPart"/>s associated with this shader.</param>
+        /// <returns>The <see cref="IShader"/>.</returns>
+        protected internal IShader CreateShader(string name, params IShaderPart[] parts);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
@@ -304,7 +329,7 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <summary>
         /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IGLVertexBuffer"/>s.
+        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
         /// </summary>
         /// <param name="drawDepth">The draw depth.</param>
         internal void SetDrawDepth(float drawDepth);
@@ -326,6 +351,11 @@ namespace osu.Framework.Graphics.Rendering
         /// Retrieves all <see cref="Texture"/>s that have been created.
         /// </summary>
         internal Texture[] GetAllTextures();
+
+        /// <summary>
+        /// Returns the total amount of times the texture has ever been bound.
+        /// </summary>
+        internal ulong GetTextureBindCount(Texture texture);
 
         #endregion
     }

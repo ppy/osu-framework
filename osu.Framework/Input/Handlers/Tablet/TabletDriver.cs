@@ -1,15 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 #if NET6_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -23,13 +20,13 @@ namespace osu.Framework.Input.Handlers.Tablet
     {
         private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
-        private CancellationTokenSource cancellationSource;
+        private CancellationTokenSource? cancellationSource;
 
-        public event EventHandler<IDeviceReport> DeviceReported;
+        public event EventHandler<IDeviceReport>? DeviceReported;
 
-        public Action<string, LogLevel, Exception> PostLog;
+        public Action<string, LogLevel, Exception?>? PostLog;
 
-        public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
+        public TabletDriver(ICompositeDeviceHub deviceHub, IReportParserProvider reportParserProvider, IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
         {
             Log.Output += (_, logMessage) =>
