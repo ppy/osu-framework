@@ -2,92 +2,84 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Globalization;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkSearchContainer : BenchmarkTest
+    public class BenchmarkSearchContainer : GameBenchmark
     {
-        private static Random random = new Random();
-        private string[] searchTerms = null!;
-        private string searchableTexts = null!;
-        private const int test_numbers = 1000;
-        private const string chars = "ABCDEFGHIJKL MNOPQRSTUVWXYZ 0123456789 ĄĆĘŁŃÓŚŹŻ abcdefghijkl mnopqrstuvwxyz ąćęłńóśźż ";
+        [Params(true, false)]
+        public bool AllowNonContiguous { get; set; }
 
-        public override void SetUp()
+        [Params(true, false)]
+        public bool IgnoreNonSpace { get; set; }
+
+        private TestGame game = null!;
+
+        [Benchmark]
+        public void SearchRandomStrings()
         {
-            base.SetUp();
+            game.Search.AllowNonContiguousMatching = AllowNonContiguous;
+            game.Search.IgnoreNonSpace = IgnoreNonSpace;
+            foreach (string searchTerm in game.SearchTerms)
+            {
+                game.Search.SearchTerm = searchTerm;
+                RunSingleFrame();
+            }
+        }
 
-            searchTerms = Enumerable.Range(0, test_numbers)
-                                        .Select(_ => RandomString(20))
+        protected override Game CreateGame() => game = new TestGame();
+
+        private class TestGame : Game
+        {
+            public SearchContainer Search = null!;
+            public string[] SearchTerms = null!;
+            private const string chars = "ABCDEFGHIJKL MNOPQRSTUVWXYZ 0123456789 ĄĆĘŁŃÓŚŹŻ abcdefghijkl mnopqrstuvwxyz ąćęłńóśźż ";
+            private static Random random = new Random();
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                var searchableTexts = Enumerable.Range(0, 1000)
+                                                .Select(_ => new SearchableText { Text = RandomString(50) })
+                                                .ToArray();
+
+                SearchTerms = Enumerable.Range(0, 1000)
+                                        .Select(_ => RandomString(10))
                                         .ToArray();
 
-            searchableTexts = RandomString(1000);
-        }
-
-        [Benchmark]
-        public void SearchIgnoreNonSpace()
-        {
-            foreach (var searchTerm in searchTerms)
-                checkTerm(searchableTexts, searchTerm, false, true);
-        }
-
-        [Benchmark]
-        public void SearchWithNonSpace()
-        {
-            foreach (var searchTerm in searchTerms)
-                checkTerm(searchableTexts, searchTerm, false, false);
-        }
-
-        [Benchmark]
-        public void SearchNonContiguousIgnoreNonSpace()
-        {
-            foreach (var searchTerm in searchTerms)
-                checkTerm(searchableTexts, searchTerm, true, true);
-        }
-
-        [Benchmark]
-        public void SearchNonContiguousWithNonSpace()
-        {
-            foreach (var searchTerm in searchTerms)
-                checkTerm(searchableTexts, searchTerm, true, false);
-        }
-
-        private static string RandomString(int length)
-        {
-            return new string(Enumerable.Repeat(chars, length)
-                            .Select(s => s[random.Next(s.Length)])
-                            .ToArray());
-        }
-        private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool ignoreNonSpaceCharacters)
-        {
-            var compareOptions = ignoreNonSpaceCharacters
-                ? CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase
-                : CompareOptions.OrdinalIgnoreCase;
-
-            if (!nonContiguous)
-            {
-                if (ignoreNonSpaceCharacters)
-                    return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
-
-                return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
+                Add(Search = new SearchContainer
+                {
+                    Children = searchableTexts,
+                });
             }
 
-            int index = 0;
+            private static string RandomString(int length) => new string(Enumerable.Repeat(chars, length)
+                                                                        .Select(s => s[random.Next(s.Length)])
+                                                                        .ToArray());
 
-            for (int i = 0; i < needle.Length; i++)
+            private class SearchableText : SpriteText, IFilterable
             {
-                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
-                if (found < 0)
-                    return false;
+                public bool MatchingFilter
+                {
+                    set
+                    {
+                        if (value)
+                            Show();
+                        else
+                            Hide();
+                    }
+                }
 
-                index = found + 1;
+                public bool FilteringActive
+                {
+                    set { }
+                }
             }
-
-            return true;
         }
     }
 }
