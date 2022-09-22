@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -29,9 +30,20 @@ namespace osu.Framework.Platform.Windows
 
             WindowsWindow window = (WindowsWindow)host.Window;
 
-            window.IsActive.BindValueChanged(_ => detectFullscreenCapability(window));
-            window.WindowStateChanged += _ => detectFullscreenCapability(window);
-            detectFullscreenCapability(window);
+            bool isIntel = GL.GetString(StringName.Vendor).Trim() == "Intel";
+
+            if (isIntel)
+            {
+                // Exclusive fullscreen is always supported on Intel.
+                fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
+            }
+            else
+            {
+                // For all other vendors, support depends on the system setup - e.g. NVIDIA Optimus doesn't support exclusive fullscreen with OpenGL.
+                window.IsActive.BindValueChanged(_ => detectFullscreenCapability(window));
+                window.WindowStateChanged += _ => detectFullscreenCapability(window);
+                detectFullscreenCapability(window);
+            }
         }
 
         private CancellationTokenSource? fullscreenCapabilityDetectionCancellationSource;
