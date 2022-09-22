@@ -29,6 +29,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private GameHost host = null!;
 
+        public override string Description => "Tablet";
+
         public override bool IsActive => tabletDriver != null;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
@@ -62,6 +64,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     lastInitTask = Task.Run(() =>
                     {
                         tabletDriver = TabletDriver.Create();
+                        tabletDriver.PostLog = Log;
                         tabletDriver.TabletsChanged += handleTabletsChanged;
                         tabletDriver.DeviceReported += handleDeviceReported;
                         tabletDriver.Detect();

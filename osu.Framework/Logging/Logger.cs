@@ -568,6 +568,11 @@ namespace osu.Framework.Logging
         /// <summary>
         /// Logging target for database-related events.
         /// </summary>
-        Database
+        Database,
+
+        /// <summary>
+        /// Logging target for input-related information.
+        /// </summary>
+        Input
     }
 }
