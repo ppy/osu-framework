@@ -58,6 +58,7 @@ namespace osu.Framework.Platform.Windows
                 return;
 
             var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
+            var cancellationToken = cancellationSource.Token;
 
             // 50 attempts, 100ms apart = run the detection for a total of 5 seconds before yielding an incapable state.
             const int max_attempts = 50;
@@ -66,9 +67,9 @@ namespace osu.Framework.Platform.Windows
 
             queueNextAttempt();
 
-            void queueNextAttempt() => Task.Delay(time_per_attempt, cancellationSource.Token).ContinueWith(_ =>
+            void queueNextAttempt() => Task.Delay(time_per_attempt, cancellationToken).ContinueWith(_ =>
             {
-                if (cancellationSource.IsCancellationRequested || window.WindowState != WindowState.Fullscreen || !window.IsActive.Value)
+                if (cancellationToken.IsCancellationRequested || window.WindowState != WindowState.Fullscreen || !window.IsActive.Value)
                     return;
 
                 attempts++;
@@ -95,7 +96,7 @@ namespace osu.Framework.Platform.Windows
                     Logger.Error(ex, "Failed to detect fullscreen capabilities.");
                     fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
                 }
-            }, cancellationSource.Token);
+            }, cancellationToken);
         }
 
         [DllImport("shell32.dll")]
