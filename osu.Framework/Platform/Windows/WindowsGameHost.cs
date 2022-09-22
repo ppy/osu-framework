@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -66,6 +67,8 @@ namespace osu.Framework.Platform.Windows
                        .Where(t => !(t is MouseHandler))
                        .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
+
+        protected override IRenderer CreateRenderer() => new WindowsGLRenderer(this);
 
         protected override void SetupForRun()
         {
