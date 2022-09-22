@@ -180,7 +180,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     RelativeSizeAxes = Axes.Both,
                 });
 
-                Remove(focusTopLeft);
+                Remove(focusTopLeft, false);
                 container.Add(focusTopLeft);
             });
             AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));

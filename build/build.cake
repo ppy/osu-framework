@@ -230,7 +230,7 @@ Task("Publish")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
     .Does(() => {
         foreach (var artifact in GetFiles(artifactsDirectory.CombineWithFilePath("*").FullPath))
-            AppVeyor.UploadArtifact(artifact);
+            AppVeyor.UploadArtifact(artifact, settings => settings.SetArtifactType(AppVeyorUploadArtifactType.NuGetPackage));
     });
 
 Task("Build")

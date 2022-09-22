@@ -281,7 +281,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("press page down and remove scroll container", () => InputManager.PressKey(Key.PageDown));
             AddStep("remove scroll container", () =>
             {
-                Remove(scrollContainer);
+                Remove(scrollContainer, false);
                 ((RepeatCountingScrollContainer)scrollContainer).RepeatCount = 0;
             });
 
@@ -540,7 +540,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("Nest vertical scroll inside of horizontal", () =>
             {
-                Remove(scrollContainer);
+                Remove(scrollContainer, false);
 
                 Add(horizontalScrollContainer = new BasicScrollContainer(Direction.Horizontal)
                 {

@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
 
@@ -25,7 +26,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// This type of vertex buffer lets the ith vertex be referenced by the ith index.
     /// </summary>
     internal class GLLinearBuffer<T> : GLVertexBuffer<T>
-        where T : struct, IEquatable<T>, IVertex
+        where T : unmanaged, IEquatable<T>, IVertex
     {
         private readonly int amountVertices;
 
@@ -35,7 +36,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.amountVertices = amountVertices;
             Type = type;
 
-            Debug.Assert(amountVertices <= MAX_VERTICES);
+            Debug.Assert(amountVertices <= IRenderer.MAX_VERTICES);
         }
 
         protected override void Initialise()

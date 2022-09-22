@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
@@ -17,13 +16,15 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShader : IShader
     {
-        private readonly IRenderer renderer;
+        private readonly GLRenderer renderer;
         private readonly string name;
         private readonly GLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
 
         internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
+
+        IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
         /// <summary>
         /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
@@ -36,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
-        internal GLShader(IRenderer renderer, string name, GLShaderPart[] parts)
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
         {
             this.renderer = renderer;
             this.name = name;
@@ -87,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             EnsureShaderCompiled();
 
-            renderer.UseProgram(this);
+            renderer.BindShader(this);
 
             foreach (var uniform in uniformsValues)
                 uniform?.Update();
@@ -100,18 +101,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             if (!IsBound)
                 return;
 
-            renderer.UseProgram(null);
+            renderer.UnbindShader(this);
 
             IsBound = false;
         }
 
-        /// <summary>
-        /// Returns a uniform from the shader.
-        /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
@@ -200,7 +196,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             }
 
             IUniform createUniform<T>(string name)
-                where T : struct, IEquatable<T>
+                where T : unmanaged, IEquatable<T>
             {
                 int location = GL.GetUniformLocation(this, name);
 

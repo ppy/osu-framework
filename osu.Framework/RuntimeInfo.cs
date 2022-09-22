@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -40,9 +41,9 @@ namespace osu.Framework
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 OS = Platform.Windows;
-            if (osuTK.Configuration.RunningOnIOS)
+            if (detectIOS())
                 OS = OS == 0 ? Platform.iOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.iOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
-            if (osuTK.Configuration.RunningOnAndroid)
+            if (detectAndroid())
                 OS = OS == 0 ? Platform.Android : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Android)}, but is already {Enum.GetName(typeof(Platform), OS)}");
             if (OS != Platform.iOS && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 OS = OS == 0 ? Platform.macOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.macOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
@@ -52,6 +53,9 @@ namespace osu.Framework
             if (OS == 0)
                 throw new PlatformNotSupportedException("Operating system could not be detected correctly.");
         }
+
+        private static bool detectAndroid() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Mono.Android"));
+        private static bool detectIOS() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Xamarin.iOS"));
 
         public enum Platform
         {

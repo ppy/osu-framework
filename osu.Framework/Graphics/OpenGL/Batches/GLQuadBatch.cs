@@ -11,7 +11,7 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.Graphics.OpenGL.Batches
 {
     internal class GLQuadBatch<T> : GLVertexBatch<T>
-        where T : struct, IEquatable<T>, IVertex
+        where T : unmanaged, IEquatable<T>, IVertex
     {
         public GLQuadBatch(GLRenderer renderer, int size, int maxBuffers)
             : base(renderer, size, maxBuffers)

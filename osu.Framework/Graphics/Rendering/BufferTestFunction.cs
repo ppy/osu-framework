@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Rendering
 {
-    public enum DepthStencilFunction
+    public enum BufferTestFunction
     {
         /// <summary>
         /// The test always fails.

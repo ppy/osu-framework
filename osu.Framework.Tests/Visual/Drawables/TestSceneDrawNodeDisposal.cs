@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("clear + remove parent container", () =>
             {
                 parentContainer.Clear();
-                Remove(parentContainer);
+                Remove(parentContainer, false);
 
                 // Lose last hard-reference to the child
                 child = null;

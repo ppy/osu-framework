@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
         private long resampledVersion;
-        private List<Waveform.Point> resampledPoints;
+        private Waveform.Point[] resampledPoints;
         private int? resampledPointCount;
         private int resampledChannels;
         private double resampledMaxHighIntensity;
@@ -208,16 +208,16 @@ namespace osu.Framework.Graphics.Audio
             {
                 var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
-                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Length;
 
                 Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
 
                 var points = await resampled.GetPointsAsync().ConfigureAwait(false);
                 int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
 
-                double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                double maxHighIntensity = points.Length > 0 ? points.Max(p => p.HighIntensity) : 0;
+                double maxMidIntensity = points.Length > 0 ? points.Max(p => p.MidIntensity) : 0;
+                double maxLowIntensity = points.Length > 0 ? points.Max(p => p.LowIntensity) : 0;
 
                 Schedule(() =>
                 {
@@ -265,7 +265,7 @@ namespace osu.Framework.Graphics.Audio
             private IShader shader;
             private Texture texture;
 
-            private readonly List<Waveform.Point> points = new List<Waveform.Point>();
+            private List<Waveform.Point> points;
 
             private Vector2 drawSize;
             private int channels;
@@ -304,10 +304,16 @@ namespace osu.Framework.Graphics.Audio
 
                 if (Source.resampledVersion != version)
                 {
-                    points.Clear();
+                    // Late initialise list to use a sane initial capacity.
+                    if (points == null)
+                        points = new List<Waveform.Point>(Source.resampledPoints ?? Enumerable.Empty<Waveform.Point>());
+                    else
+                    {
+                        points.Clear();
 
-                    if (Source.resampledPoints != null)
-                        points.AddRange(Source.resampledPoints);
+                        if (Source.resampledPoints != null)
+                            points.AddRange(Source.resampledPoints);
+                    }
 
                     channels = Source.resampledChannels;
 
@@ -374,10 +380,10 @@ namespace osu.Framework.Graphics.Audio
                         {
                             float height = drawSize.Y / 2;
                             quadToDraw = new Quad(
-                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
-                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
-                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
-                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
+                                new Vector2(leftX, height - points[i].AmplitudeLeft * height),
+                                new Vector2(rightX, height - points[i + 1].AmplitudeLeft * height),
+                                new Vector2(leftX, height + points[i].AmplitudeRight * height),
+                                new Vector2(rightX, height + points[i + 1].AmplitudeRight * height)
                             );
                             break;
                         }
@@ -385,8 +391,8 @@ namespace osu.Framework.Graphics.Audio
                         case 1:
                         {
                             quadToDraw = new Quad(
-                                new Vector2(leftX, drawSize.Y - points[i].Amplitude[0] * drawSize.Y),
-                                new Vector2(rightX, drawSize.Y - points[i + 1].Amplitude[0] * drawSize.Y),
+                                new Vector2(leftX, drawSize.Y - points[i].AmplitudeLeft * drawSize.Y),
+                                new Vector2(rightX, drawSize.Y - points[i + 1].AmplitudeLeft * drawSize.Y),
                                 new Vector2(leftX, drawSize.Y),
                                 new Vector2(rightX, drawSize.Y)
                             );

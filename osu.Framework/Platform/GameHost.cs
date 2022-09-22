@@ -479,22 +479,23 @@ namespace osu.Framework.Platform
 
             try
             {
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                 if (!bypassFrontToBackPass.Value)
                 {
                     depthValue.Reset();
 
-                    GL.ColorMask(false, false, false, false);
                     Renderer.SetBlend(BlendingParameters.None);
+
+                    Renderer.SetBlendMask(BlendingMask.None);
                     Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
                     buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
                     Renderer.PopDepthInfo();
-                    GL.ColorMask(true, true, true, true);
+                    Renderer.SetBlendMask(BlendingMask.All);
 
                     // The back pass doesn't write depth, but needs to depth test properly
                     Renderer.PushDepthInfo(new DepthInfo(true, false));

@@ -6,19 +6,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using osu.Framework.Graphics.Rendering;
 
-namespace osu.Framework.Graphics.OpenGL
+namespace osu.Framework.Graphics.Rendering
 {
     /// <summary>
-    /// Helper class used to manage GL disposals in a thread-safe manner.
+    /// Helper class used to manage disposal of renderer components in a thread-safe manner.
     /// </summary>
-    internal class GLDisposalQueue
+    internal class RendererDisposalQueue
     {
         private readonly List<IPendingDisposal> newDisposals;
         private readonly List<IPendingDisposal> pendingDisposals;
 
-        public GLDisposalQueue()
+        public RendererDisposalQueue()
         {
             newDisposals = new List<IPendingDisposal>();
             pendingDisposals = new List<IPendingDisposal>();

@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public bool Upload() => true;
 
-        public bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT) => true;
+        public bool Bind(int unit) => true;
 
         public int GetByteSize() => 0;
 

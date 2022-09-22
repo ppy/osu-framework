@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Visual.Containers
     {
         public TestSceneBufferedContainer()
         {
-            Remove(TestContainer);
+            Remove(TestContainer, false);
 
             BufferedContainer buffer;
             Add(buffer = new BufferedContainer

@@ -66,13 +66,13 @@ namespace osu.Framework.Tests.Shaders
             }
 
             internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
-                => new TestGLShader(renderer, name, parts.Cast<GLShaderPart>().ToArray());
+                => new TestGLShader((GLRenderer)renderer, name, parts.Cast<GLShaderPart>().ToArray());
 
             private class TestGLShader : GLShader
             {
-                private readonly IRenderer renderer;
+                private readonly GLRenderer renderer;
 
-                internal TestGLShader(IRenderer renderer, string name, GLShaderPart[] parts)
+                internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
                     : base(renderer, name, parts)
                 {
                     this.renderer = renderer;

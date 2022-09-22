@@ -11,6 +11,11 @@ namespace osu.Framework.Audio.Sample
     public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
+        /// A name identifying this sample internally.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Starts or resumes playback. Has no effect if this <see cref="ISampleChannel"/> is already playing.
         /// </summary>
         void Play();
