@@ -1,15 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using ManagedBass;
 using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
@@ -67,15 +64,16 @@ namespace osu.Framework.Audio.Track
         private Point[] points = Array.Empty<Point>();
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
+
         private readonly Task readTask;
 
-        private FileCallbacks fileCallbacks;
+        private FileCallbacks? fileCallbacks;
 
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public Waveform([CanBeNull] Stream data)
+        public Waveform(Stream? data)
         {
             readTask = Task.Run(() =>
             {
@@ -93,7 +91,7 @@ namespace osu.Framework.Audio.Track
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
-                float[] sampleBuffer = null;
+                float[]? sampleBuffer = null;
 
                 try
                 {
@@ -186,7 +184,8 @@ namespace osu.Framework.Audio.Track
                 finally
                 {
                     Bass.StreamFree(decodeStream);
-                    ArrayPool<float>.Shared.Return(sampleBuffer);
+                    if (sampleBuffer != null)
+                        ArrayPool<float>.Shared.Return(sampleBuffer);
                 }
             }, cancelSource.Token);
         }
@@ -211,12 +210,11 @@ namespace osu.Framework.Audio.Track
         /// <param name="pointCount">The number of points the resulting <see cref="Waveform"/> should contain.</param>
         /// <param name="cancellationToken">The token to cancel the task.</param>
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
-        [ItemNotNull]
         public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default)
         {
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 
-            if (pointCount == 0 || readTask == null)
+            if (pointCount == 0)
                 return new Waveform(null);
 
             await readTask.ConfigureAwait(false);
@@ -346,9 +344,9 @@ namespace osu.Framework.Audio.Track
 
             isDisposed = true;
 
-            cancelSource?.Cancel();
-            cancelSource?.Dispose();
-            points = null;
+            cancelSource.Cancel();
+            cancelSource.Dispose();
+            points = Array.Empty<Point>();
 
             fileCallbacks?.Dispose();
             fileCallbacks = null;
