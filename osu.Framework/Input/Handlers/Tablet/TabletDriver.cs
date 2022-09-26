@@ -12,7 +12,6 @@ using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Components;
 using OpenTabletDriver.Plugin.Tablet;
-using osu.Framework.Logging;
 using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Input.Handlers.Tablet
@@ -25,10 +24,16 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public event EventHandler<IDeviceReport>? DeviceReported;
 
+        public Action<string, LogLevel, Exception?>? PostLog;
+
         public TabletDriver(ICompositeDeviceHub deviceHub, IReportParserProvider reportParserProvider, IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
         {
-            Log.Output += (_, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
+            Log.Output += (_, logMessage) =>
+            {
+                LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
+                PostLog?.Invoke($"{logMessage.Group}: {logMessage.Message}", level, null);
+            };
 
             deviceHub.DevicesChanged += (_, args) =>
             {
@@ -52,7 +57,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             if (foundVendor > 0)
             {
-                Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+                PostLog?.Invoke($"Tablet detected (vid{foundVendor}), searching for usable configuration...", LogLevel.Verbose, null);
 
                 Detect();
 
