@@ -932,15 +932,18 @@ namespace osu.Framework.Graphics.Rendering
         {
             ThreadSafety.EnsureDrawThread();
 
+            if (shader == Shader)
+                return;
+
             if (shader != null)
             {
                 FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
 
                 FlushCurrentBatch();
                 SetShaderImplementation(shader);
-            }
 
-            Shader = shader;
+                Shader = shader;
+            }
         }
 
         internal void SetUniform<T>(IUniformWithValue<T> uniform)
