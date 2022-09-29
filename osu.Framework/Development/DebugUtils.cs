@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -38,7 +36,8 @@ namespace osu.Framework.Development
             {
                 Debug.Assert(IsNUnitRunning);
 
-                string testName = TestContext.CurrentContext.Test.ClassName;
+                string? testName = TestContext.CurrentContext.Test.ClassName;
+                Debug.Assert(testName != null);
                 return AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(testName) != null);
             }
         );
@@ -56,7 +55,7 @@ namespace osu.Framework.Development
         public static bool LogPerformanceIssues { get; internal set; }
 
         // https://stackoverflow.com/a/2186634
-        private static bool isDebugAssembly(Assembly assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
+        private static bool isDebugAssembly(Assembly assembly) => assembly.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled);
 
         /// <summary>
         /// Gets the entry assembly, or calling assembly otherwise.
