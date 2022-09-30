@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -350,13 +348,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual Display PrimaryDisplay => Displays.First();
 
-        private Display currentDisplay;
+        private Display currentDisplay = null!;
         private int displayIndex = -1;
 
         /// <summary>
         /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
-        public Display CurrentDisplay { get; private set; }
+        public Display CurrentDisplay { get; private set; } = null!;
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
@@ -445,7 +443,7 @@ namespace osu.Framework.Platform
         private SDL.SDL_LogOutputFunction logOutputDelegate;
 
         [UsedImplicitly]
-        private SDL.SDL_EventFilter eventFilterDelegate;
+        private SDL.SDL_EventFilter? eventFilterDelegate;
 
         public SDL2DesktopWindow()
         {
@@ -458,7 +456,7 @@ namespace osu.Framework.Platform
             SDL.SDL_LogSetOutputFunction(logOutputDelegate = (_, categoryInt, priority, messagePtr) =>
             {
                 var category = (SDL.SDL_LogCategory)categoryInt;
-                string message = Marshal.PtrToStringUTF8(messagePtr);
+                string? message = Marshal.PtrToStringUTF8(messagePtr);
 
                 Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
             }, IntPtr.Zero);
@@ -1588,42 +1586,42 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked once every window event loop.
         /// </summary>
-        public event Action Update;
+        public event Action? Update;
 
         /// <summary>
         /// Invoked after the window has resized.
         /// </summary>
-        public event Action Resized;
+        public event Action? Resized;
 
         /// <summary>
         /// Invoked after the window's state has changed.
         /// </summary>
-        public event Action<WindowState> WindowStateChanged;
+        public event Action<WindowState>? WindowStateChanged;
 
         /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        public event Action ExitRequested;
+        public event Action? ExitRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
         /// </summary>
-        public event Action Exited;
+        public event Action? Exited;
 
         /// <summary>
         /// Invoked when the mouse cursor enters the window.
         /// </summary>
-        public event Action MouseEntered;
+        public event Action? MouseEntered;
 
         /// <summary>
         /// Invoked when the mouse cursor leaves the window.
         /// </summary>
-        public event Action MouseLeft;
+        public event Action? MouseLeft;
 
         /// <summary>
         /// Invoked when the window moves.
         /// </summary>
-        public event Action<Point> Moved;
+        public event Action<Point>? Moved;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
@@ -1631,91 +1629,91 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// Delta is positive when mouse wheel scrolled to the up or left, in non-"natural" scroll mode (ie. the classic way).
         /// </remarks>
-        public event Action<Vector2, bool> MouseWheel;
+        public event Action<Vector2, bool>? MouseWheel;
 
         protected void TriggerMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        public event Action<Vector2> MouseMove;
+        public event Action<Vector2>? MouseMove;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window (via relative / raw input).
         /// </summary>
-        public event Action<Vector2> MouseMoveRelative;
+        public event Action<Vector2>? MouseMoveRelative;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        public event Action<MouseButton> MouseDown;
+        public event Action<MouseButton>? MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        public event Action<MouseButton> MouseUp;
+        public event Action<MouseButton>? MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        public event Action<Key> KeyDown;
+        public event Action<Key>? KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        public event Action<Key> KeyUp;
+        public event Action<Key>? KeyUp;
 
         /// <summary>
         /// Invoked when the user enters text.
         /// </summary>
-        public event Action<string> TextInput;
+        public event Action<string>? TextInput;
 
         protected void TriggerTextInput(string text) => TextInput?.Invoke(text);
 
         /// <summary>
         /// Invoked when an IME text editing event occurs.
         /// </summary>
-        public event TextEditingDelegate TextEditing;
+        public event TextEditingDelegate? TextEditing;
 
         protected void TriggerTextEditing(string text, int start, int length) => TextEditing?.Invoke(text, start, length);
 
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
-        public event Action KeymapChanged;
+        public event Action? KeymapChanged;
 
         /// <summary>
         /// Invoked when a joystick axis changes.
         /// </summary>
-        public event Action<JoystickAxisSource, float> JoystickAxisChanged;
+        public event Action<JoystickAxisSource, float>? JoystickAxisChanged;
 
         /// <summary>
         /// Invoked when the user presses a button on a joystick.
         /// </summary>
-        public event Action<JoystickButton> JoystickButtonDown;
+        public event Action<JoystickButton>? JoystickButtonDown;
 
         /// <summary>
         /// Invoked when the user releases a button on a joystick.
         /// </summary>
-        public event Action<JoystickButton> JoystickButtonUp;
+        public event Action<JoystickButton>? JoystickButtonUp;
 
         /// <summary>
         /// Invoked when a finger moves or touches a touchscreen.
         /// </summary>
-        public event Action<Touch> TouchDown;
+        public event Action<Touch>? TouchDown;
 
         /// <summary>
         /// Invoked when a finger leaves the touchscreen.
         /// </summary>
-        public event Action<Touch> TouchUp;
+        public event Action<Touch>? TouchUp;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        public event Action<string> DragDrop;
+        public event Action<string>? DragDrop;
 
         /// <summary>
         /// Invoked on every SDL event before it's posted to the event queue.
         /// </summary>
-        protected event Action<SDL.SDL_Event> OnSDLEvent;
+        protected event Action<SDL.SDL_Event>? OnSDLEvent;
 
         #endregion
 
