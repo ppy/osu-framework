@@ -19,9 +19,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
 using Point = System.Drawing.Point;
 
-// ReSharper disable UnusedParameter.Local
-// (Class regularly handles native events where we don't consume all parameters)
-
 namespace osu.Framework.Platform
 {
     /// <summary>
@@ -461,6 +458,7 @@ namespace osu.Framework.Platform
             }
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => ExitRequested?.Invoke();
 
         #endregion

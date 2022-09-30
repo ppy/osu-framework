@@ -18,9 +18,6 @@ using osuTK.Input;
 using SDL2;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
-// ReSharper disable UnusedParameter.Local
-// (Class regularly handles native events where we don't consume all parameters)
-
 namespace osu.Framework.Platform
 {
     public partial class SDL2DesktopWindow
@@ -360,10 +357,12 @@ namespace osu.Framework.Platform
             }
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private void handleJoyHatEvent(SDL.SDL_JoyHatEvent evtJhat)
         {
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private void handleJoyBallEvent(SDL.SDL_JoyBallEvent evtJball)
         {
         }
