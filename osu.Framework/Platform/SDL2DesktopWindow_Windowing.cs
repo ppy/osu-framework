@@ -16,6 +16,64 @@ namespace osu.Framework.Platform
 {
     public partial class SDL2DesktopWindow
     {
+        private void setupWindowing(FrameworkConfigManager config)
+        {
+            CurrentDisplayBindable.Default = PrimaryDisplay;
+            CurrentDisplayBindable.ValueChanged += evt =>
+            {
+                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
+            };
+
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
+            windowDisplayIndexBindable.BindValueChanged(evt =>
+            {
+                CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
+                pendingWindowState = windowState;
+            }, true);
+
+            sizeFullscreen.ValueChanged += _ =>
+            {
+                if (storingSizeToConfig) return;
+                if (windowState != WindowState.Fullscreen) return;
+
+                pendingWindowState = windowState;
+            };
+
+            sizeWindowed.ValueChanged += _ =>
+            {
+                if (storingSizeToConfig) return;
+                if (windowState != WindowState.Normal) return;
+
+                pendingWindowState = windowState;
+            };
+
+            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
+            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
+
+            config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
+            config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
+
+            config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+
+            WindowMode.BindValueChanged(evt =>
+            {
+                switch (evt.NewValue)
+                {
+                    case Configuration.WindowMode.Fullscreen:
+                        WindowState = WindowState.Fullscreen;
+                        break;
+
+                    case Configuration.WindowMode.Borderless:
+                        WindowState = WindowState.FullscreenBorderless;
+                        break;
+
+                    case Configuration.WindowMode.Windowed:
+                        WindowState = windowMaximised ? WindowState.Maximised : WindowState.Normal;
+                        break;
+                }
+            });
+        }
+
         private bool focused;
 
         /// <summary>

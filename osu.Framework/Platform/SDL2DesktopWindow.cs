@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
@@ -14,7 +13,6 @@ using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
-using osuTK;
 using SDL2;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -49,7 +47,6 @@ namespace osu.Framework.Platform
         /// Returns false if the window has not yet been created, or has been closed.
         /// </summary>
         public bool Exists { get; private set; }
-
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
@@ -139,7 +136,6 @@ namespace osu.Framework.Platform
             SDL.SDL_GetWindowWMInfo(SDLWindowHandle, ref wmInfo);
             return wmInfo;
         }
-
 
         public bool CapsLockPressed => SDL.SDL_GetModState().HasFlagFast(SDL.SDL_Keymod.KMOD_CAPS);
 
@@ -473,65 +469,8 @@ namespace osu.Framework.Platform
 
         public void SetupWindow(FrameworkConfigManager config)
         {
-            CurrentDisplayBindable.Default = PrimaryDisplay;
-            CurrentDisplayBindable.ValueChanged += evt =>
-            {
-                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
-            };
-
-            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
-            windowDisplayIndexBindable.BindValueChanged(evt =>
-            {
-                CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
-                pendingWindowState = windowState;
-            }, true);
-
-            sizeFullscreen.ValueChanged += evt =>
-            {
-                if (storingSizeToConfig) return;
-                if (windowState != WindowState.Fullscreen) return;
-
-                pendingWindowState = windowState;
-            };
-
-            sizeWindowed.ValueChanged += evt =>
-            {
-                if (storingSizeToConfig) return;
-                if (windowState != WindowState.Normal) return;
-
-                pendingWindowState = windowState;
-            };
-
-            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
-            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
-
-            config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
-            config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
-
-            config.BindWith(FrameworkSetting.WindowMode, WindowMode);
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-
-            WindowMode.BindValueChanged(evt =>
-            {
-                switch (evt.NewValue)
-                {
-                    case Configuration.WindowMode.Fullscreen:
-                        WindowState = WindowState.Fullscreen;
-                        break;
-
-                    case Configuration.WindowMode.Borderless:
-                        WindowState = WindowState.FullscreenBorderless;
-                        break;
-
-                    case Configuration.WindowMode.Windowed:
-                        WindowState = windowMaximised ? WindowState.Maximised : WindowState.Normal;
-                        break;
-                }
-
-                updateConfineMode();
-            });
-
-            ConfineMouseMode.BindValueChanged(_ => updateConfineMode());
+            setupWindowing(config);
+            setupInput(config);
         }
 
         public void SetIconFromStream(Stream stream)
@@ -561,7 +500,6 @@ namespace osu.Framework.Platform
         }
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
-
 
         #region Events
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
@@ -24,6 +25,14 @@ namespace osu.Framework.Platform
 {
     public partial class SDL2DesktopWindow
     {
+        private void setupInput(FrameworkConfigManager config)
+        {
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+
+            WindowMode.BindValueChanged(_ => updateConfineMode());
+            ConfineMouseMode.BindValueChanged(_ => updateConfineMode());
+        }
+
         private bool relativeMouseMode;
 
         /// <summary>
