@@ -175,6 +175,12 @@ namespace osu.Framework.Platform
             populateJoysticks();
         }
 
+        public void SetupWindow(FrameworkConfigManager config)
+        {
+            setupWindowing(config);
+            setupInput(config);
+        }
+
         /// <summary>
         /// Creates the window and initialises the graphics backend.
         /// </summary>
@@ -464,12 +470,6 @@ namespace osu.Framework.Platform
         #endregion
 
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
-
-        public void SetupWindow(FrameworkConfigManager config)
-        {
-            setupWindowing(config);
-            setupInput(config);
-        }
 
         public void SetIconFromStream(Stream stream)
         {
