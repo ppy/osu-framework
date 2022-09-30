@@ -74,6 +74,38 @@ namespace osu.Framework.Platform
             });
         }
 
+        private void initialiseWindowingAfterCreation()
+        {
+            updateWindowSpecifics();
+            updateWindowSize();
+
+            sizeWindowed.MinValueChanged += min =>
+            {
+                if (min.Width < 0 || min.Height < 0)
+                    throw new InvalidOperationException($"Expected zero or positive size, got {min}");
+
+                if (min.Width > sizeWindowed.MaxValue.Width || min.Height > sizeWindowed.MaxValue.Height)
+                    throw new InvalidOperationException($"Expected a size less than max window size ({sizeWindowed.MaxValue}), got {min}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, min.Width, min.Height));
+            };
+
+            sizeWindowed.MaxValueChanged += max =>
+            {
+                if (max.Width <= 0 || max.Height <= 0)
+                    throw new InvalidOperationException($"Expected positive size, got {max}");
+
+                if (max.Width < sizeWindowed.MinValue.Width || max.Height < sizeWindowed.MinValue.Height)
+                    throw new InvalidOperationException($"Expected a size greater than min window size ({sizeWindowed.MinValue}), got {max}");
+
+                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
+            };
+
+            sizeWindowed.TriggerChange();
+
+            WindowMode.TriggerChange();
+        }
+
         private bool focused;
 
         /// <summary>
