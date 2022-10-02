@@ -395,13 +395,7 @@ namespace osu.Framework.Graphics.Rendering
 
         public void PushScissor(RectangleI scissor)
         {
-            FlushCurrentBatch();
-
             scissorRectStack.Push(scissor);
-            if (Scissor == scissor)
-                return;
-
-            Scissor = scissor;
             setScissor(scissor);
         }
 
@@ -413,29 +407,16 @@ namespace osu.Framework.Graphics.Rendering
 
         public void PushScissorOffset(Vector2I offset)
         {
-            FlushCurrentBatch();
-
             scissorOffsetStack.Push(offset);
-            if (ScissorOffset == offset)
-                return;
-
-            ScissorOffset = offset;
+            setScissorOffset(offset);
         }
 
         public void PopScissor()
         {
             Trace.Assert(scissorRectStack.Count > 1);
 
-            FlushCurrentBatch();
-
             scissorRectStack.Pop();
-            RectangleI scissor = scissorRectStack.Peek();
-
-            if (Scissor == scissor)
-                return;
-
-            Scissor = scissor;
-            setScissor(scissor);
+            setScissor(scissorRectStack.Peek());
         }
 
         public void PopScissorState()
@@ -443,7 +424,6 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(scissorStateStack.Count > 1);
 
             scissorStateStack.Pop();
-
             setScissorState(scissorStateStack.Peek());
         }
 
@@ -451,11 +431,8 @@ namespace osu.Framework.Graphics.Rendering
         {
             Trace.Assert(scissorOffsetStack.Count > 1);
 
-            FlushCurrentBatch();
-
             scissorOffsetStack.Pop();
-            Vector2I offset = scissorOffsetStack.Peek();
-            ScissorOffset = offset;
+            setScissorOffset(scissorOffsetStack.Peek());
         }
 
         private void setScissor(RectangleI scissor)
@@ -472,7 +449,12 @@ namespace osu.Framework.Graphics.Rendering
                 scissor.Height = -scissor.Height;
             }
 
+            if (Scissor == scissor)
+                return;
+
+            FlushCurrentBatch();
             SetScissorImplementation(scissor);
+            Scissor = scissor;
         }
 
         private void setScissorState(bool enabled)
@@ -482,6 +464,15 @@ namespace osu.Framework.Graphics.Rendering
 
             SetScissorStateImplementation(enabled);
             ScissorState = enabled;
+        }
+
+        private void setScissorOffset(Vector2I offset)
+        {
+            if (ScissorOffset == offset)
+                return;
+
+            FlushCurrentBatch();
+            ScissorOffset = offset;
         }
 
         /// <summary>
@@ -502,32 +493,27 @@ namespace osu.Framework.Graphics.Rendering
 
         public void PushProjectionMatrix(Matrix4 matrix)
         {
-            FlushCurrentBatch();
-
             projectionMatrixStack.Push(matrix);
-            if (ProjectionMatrix == matrix)
-                return;
-
-            ProjectionMatrix = matrix;
-
-            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
+            setProjectionMatrix(matrix);
         }
 
         public void PopProjectionMatrix()
         {
             Trace.Assert(projectionMatrixStack.Count > 1);
 
-            FlushCurrentBatch();
-
             projectionMatrixStack.Pop();
-            Matrix4 matrix = projectionMatrixStack.Peek();
+            setProjectionMatrix(projectionMatrixStack.Peek());
+        }
 
+        private void setProjectionMatrix(Matrix4 matrix)
+        {
             if (ProjectionMatrix == matrix)
                 return;
 
-            ProjectionMatrix = matrix;
+            FlushCurrentBatch();
 
-            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
+            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, matrix);
+            ProjectionMatrix = matrix;
         }
 
         #endregion
@@ -537,11 +523,7 @@ namespace osu.Framework.Graphics.Rendering
         public void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             maskingStack.Push(maskingInfo);
-            if (CurrentMaskingInfo == maskingInfo)
-                return;
-
-            currentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo, true, overwritePreviousScissor);
+            setMaskingInfo(maskingInfo, true, overwritePreviousScissor);
         }
 
         public void PopMaskingInfo()
@@ -549,17 +531,14 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(maskingStack.Count > 1);
 
             maskingStack.Pop();
-            MaskingInfo maskingInfo = maskingStack.Peek();
-
-            if (CurrentMaskingInfo == maskingInfo)
-                return;
-
-            currentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo, false, true);
+            setMaskingInfo(maskingStack.Peek(), false, true);
         }
 
         private void setMaskingInfo(MaskingInfo maskingInfo, bool isPushing, bool overwritePreviousScissor)
         {
+            if (CurrentMaskingInfo == maskingInfo)
+                return;
+
             FlushCurrentBatch();
 
             GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
@@ -628,6 +607,8 @@ namespace osu.Framework.Graphics.Rendering
             }
             else
                 PopScissor();
+
+            currentMaskingInfo = maskingInfo;
         }
 
         #endregion
@@ -637,22 +618,12 @@ namespace osu.Framework.Graphics.Rendering
         public void PushDepthInfo(DepthInfo depthInfo)
         {
             depthStack.Push(depthInfo);
-
-            if (CurrentDepthInfo.Equals(depthInfo))
-                return;
-
-            CurrentDepthInfo = depthInfo;
-            setDepthInfo(CurrentDepthInfo);
+            setDepthInfo(depthInfo);
         }
 
         public void PushStencilInfo(StencilInfo stencilInfo)
         {
             stencilStack.Push(stencilInfo);
-
-            if (CurrentStencilInfo.Equals(stencilInfo))
-                return;
-
-            CurrentStencilInfo = stencilInfo;
             setStencilInfo(stencilInfo);
         }
 
@@ -661,13 +632,7 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(depthStack.Count > 1);
 
             depthStack.Pop();
-            DepthInfo depthInfo = depthStack.Peek();
-
-            if (CurrentDepthInfo.Equals(depthInfo))
-                return;
-
-            CurrentDepthInfo = depthInfo;
-            setDepthInfo(CurrentDepthInfo);
+            setDepthInfo(depthStack.Peek());
         }
 
         public void PopStencilInfo()
@@ -675,25 +640,29 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(stencilStack.Count > 1);
 
             stencilStack.Pop();
-            StencilInfo stencilInfo = stencilStack.Peek();
-
-            if (CurrentStencilInfo.Equals(stencilInfo))
-                return;
-
-            CurrentStencilInfo = stencilInfo;
-            setStencilInfo(CurrentStencilInfo);
+            setStencilInfo(stencilStack.Peek());
         }
 
         private void setDepthInfo(DepthInfo depthInfo)
         {
+            if (CurrentDepthInfo.Equals(depthInfo))
+                return;
+
             FlushCurrentBatch();
             SetDepthInfoImplementation(depthInfo);
+
+            CurrentDepthInfo = depthInfo;
         }
 
         private void setStencilInfo(StencilInfo stencilInfo)
         {
+            if (CurrentStencilInfo.Equals(stencilInfo))
+                return;
+
             FlushCurrentBatch();
             SetStencilInfoImplementation(stencilInfo);
+
+            CurrentStencilInfo = stencilInfo;
         }
 
         /// <summary>
@@ -837,8 +806,10 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="unit">The sampling unit in which the texture is to be unbound.</param>
         public void UnbindTexture(int unit = 0)
         {
-            FlushCurrentBatch();
+            if (lastBoundTexture[unit] == null)
+                return;
 
+            FlushCurrentBatch();
             SetTextureImplementation(null, unit);
 
             lastBoundTexture[unit] = null;
@@ -871,12 +842,8 @@ namespace osu.Framework.Graphics.Rendering
 
         public void BindFrameBuffer(IFrameBuffer frameBuffer)
         {
-            bool alreadyBound = FrameBuffer == frameBuffer;
-
             frameBufferStack.Push(frameBuffer);
-
-            if (!alreadyBound)
-                setFrameBuffer(frameBuffer);
+            setFrameBuffer(frameBuffer);
         }
 
         public void UnbindFrameBuffer(IFrameBuffer frameBuffer)
@@ -890,13 +857,16 @@ namespace osu.Framework.Graphics.Rendering
 
         private void setFrameBuffer(IFrameBuffer? frameBuffer)
         {
+            if (frameBuffer == FrameBuffer)
+                return;
+
             FlushCurrentBatch();
 
             SetFrameBufferImplementation(frameBuffer);
-            FrameBuffer = frameBuffer;
-
             GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+
+            FrameBuffer = frameBuffer;
         }
 
         /// <summary>
