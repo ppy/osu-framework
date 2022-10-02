@@ -167,9 +167,6 @@ namespace osu.Framework.Graphics.Rendering
                 b.ResetCounters();
             batchResetList.Clear();
 
-            FrameBuffer?.Unbind();
-            FrameBuffer = null;
-
             Shader?.Unbind();
             Shader = null;
 
@@ -187,7 +184,7 @@ namespace osu.Framework.Graphics.Rendering
             quadBatches.Clear();
             quadBatches.Push(defaultQuadBatch);
 
-            setFrameBuffer(null);
+            setFrameBuffer(null, true);
 
             Scissor = RectangleI.Empty;
             ScissorOffset = Vector2I.Zero;
@@ -462,6 +459,7 @@ namespace osu.Framework.Graphics.Rendering
             if (enabled == ScissorState)
                 return;
 
+            FlushCurrentBatch();
             SetScissorStateImplementation(enabled);
             ScissorState = enabled;
         }
@@ -855,9 +853,9 @@ namespace osu.Framework.Graphics.Rendering
             setFrameBuffer(frameBufferStack.TryPeek(out var lastFramebuffer) ? lastFramebuffer : null);
         }
 
-        private void setFrameBuffer(IFrameBuffer? frameBuffer)
+        private void setFrameBuffer(IFrameBuffer? frameBuffer, bool force = false)
         {
-            if (frameBuffer == FrameBuffer)
+            if (frameBuffer == FrameBuffer && !force)
                 return;
 
             FlushCurrentBatch();
