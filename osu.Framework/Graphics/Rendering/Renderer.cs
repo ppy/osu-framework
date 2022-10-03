@@ -909,9 +909,9 @@ namespace osu.Framework.Graphics.Rendering
 
                 FlushCurrentBatch();
                 SetShaderImplementation(shader);
-
-                Shader = shader;
             }
+
+            Shader = shader;
         }
 
         internal void SetUniform<T>(IUniformWithValue<T> uniform)
