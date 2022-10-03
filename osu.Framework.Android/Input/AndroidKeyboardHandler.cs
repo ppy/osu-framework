@@ -44,30 +44,30 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
             {
                 enqueueInput(new KeyboardKeyInput(key, true));
-                return true;
+                return ReturnCode.Handled;
             }
 
-            return false;
+            return ReturnCode.Unhandled;
         }
 
-        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
             {
                 enqueueInput(new KeyboardKeyInput(key, false));
-                return true;
+                return ReturnCode.Handled;
             }
 
-            return false;
+            return ReturnCode.Unhandled;
         }
 
         /// <summary>

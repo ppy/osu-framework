@@ -64,28 +64,32 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             if (e.TryGetJoystickButton(out var button))
             {
                 enqueueButtonDown(button);
-                return true;
+                return ReturnCode.Handled;
             }
 
             // keyboard only events are handled in AndroidKeyboardHandler
-            return e.Source == InputSourceType.Keyboard;
+            return e.Source == InputSourceType.Keyboard
+                ? ReturnCode.UnhandledSuppressLogging
+                : ReturnCode.Unhandled;
         }
 
-        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (e.TryGetJoystickButton(out var button))
             {
                 enqueueButtonUp(button);
-                return true;
+                return ReturnCode.Handled;
             }
 
             // keyboard only events are handled in AndroidKeyboardHandler
-            return e.Source == InputSourceType.Keyboard;
+            return e.Source == InputSourceType.Keyboard
+                ? ReturnCode.UnhandledSuppressLogging
+                : ReturnCode.Unhandled;
         }
 
         /// <summary>
