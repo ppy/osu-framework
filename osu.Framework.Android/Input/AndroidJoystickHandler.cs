@@ -64,6 +64,14 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
+        private ReturnCode returnCodeForSource(InputSourceType source)
+        {
+            // keyboard only events are handled in AndroidKeyboardHandler
+            return source.IsKeyboard()
+                ? ReturnCode.UnhandledSuppressLogging
+                : ReturnCode.Unhandled;
+        }
+
         protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             if (e.TryGetJoystickButton(out var button))
@@ -72,10 +80,7 @@ namespace osu.Framework.Android.Input
                 return ReturnCode.Handled;
             }
 
-            // keyboard only events are handled in AndroidKeyboardHandler
-            return e.Source == InputSourceType.Keyboard
-                ? ReturnCode.UnhandledSuppressLogging
-                : ReturnCode.Unhandled;
+            return returnCodeForSource(e.Source);
         }
 
         protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
@@ -86,10 +91,7 @@ namespace osu.Framework.Android.Input
                 return ReturnCode.Handled;
             }
 
-            // keyboard only events are handled in AndroidKeyboardHandler
-            return e.Source == InputSourceType.Keyboard
-                ? ReturnCode.UnhandledSuppressLogging
-                : ReturnCode.Unhandled;
+            return returnCodeForSource(e.Source);
         }
 
         /// <summary>
