@@ -12,7 +12,6 @@ using CoreAnimation;
 using Foundation;
 using ObjCRuntime;
 using OpenGLES;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 using osuTK.iOS;
 using UIKit;
