@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
@@ -289,6 +290,21 @@ namespace osu.Framework.Platform
             DisplaysChanged?.Invoke(Displays);
         }
 
+        /// <summary>
+        /// Asserts that the current <see cref="Displays"/> match the actual displays as reported by SDL.
+        /// </summary>
+        /// <remarks>
+        /// This assert is not fatal, as the <see cref="Displays"/> will get updated sooner or later
+        /// in <see cref="handleDisplayEvent"/> or <see cref="handleWindowEvent"/>.
+        /// </remarks>
+        [Conditional("DEBUG")]
+        private void assertDisplaysMatchSDL()
+        {
+            var actualDisplays = getSDLDisplays();
+            Debug.Assert(actualDisplays.SequenceEqual(Displays), $"Stored {nameof(Displays)} don't match actual displays",
+                $"Stored displays:\n  {string.Join("\n  ", Displays)}\n\nActual displays:\n  {string.Join("\n  ", actualDisplays)}");
+        }
+
         private IEnumerable<Display> getSDLDisplays()
         {
             return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
@@ -424,6 +440,8 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                     break;
             }
+
+            assertDisplaysMatchSDL();
         }
 
         /// <summary>
