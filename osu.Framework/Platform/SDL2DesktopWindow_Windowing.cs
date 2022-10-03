@@ -288,6 +288,20 @@ namespace osu.Framework.Platform
         private IEnumerable<Display> getSDLDisplays()
         {
             return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
+
+            static Display displayFromSDL(int displayIndex)
+            {
+                var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
+                                             .Select(modeIndex =>
+                                             {
+                                                 SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
+                                                 return mode.ToDisplayMode(displayIndex);
+                                             })
+                                             .ToArray();
+
+                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
+                return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+            }
         }
 
         #endregion
@@ -665,20 +679,6 @@ namespace osu.Framework.Platform
                 return mode;
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
-        }
-
-        private static Display displayFromSDL(int displayIndex)
-        {
-            var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
-                                         .Select(modeIndex =>
-                                         {
-                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return mode.ToDisplayMode(displayIndex);
-                                         })
-                                         .ToArray();
-
-            SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
-            return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
         }
 
         #endregion
