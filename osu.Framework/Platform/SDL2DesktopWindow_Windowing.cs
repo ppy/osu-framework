@@ -20,6 +20,7 @@ namespace osu.Framework.Platform
         {
             updateDisplays();
 
+            DisplaysChanged += _ => CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.ValueChanged += evt =>
             {
@@ -268,6 +269,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public IEnumerable<Display> Displays { get; private set; } = null!;
 
+        public event Action<IEnumerable<Display>>? DisplaysChanged;
+
         // ReSharper disable once UnusedParameter.Local
         private void handleDisplayEvent(SDL.SDL_DisplayEvent evtDisplay) => updateDisplays();
 
@@ -283,6 +286,7 @@ namespace osu.Framework.Platform
         private void updateDisplays()
         {
             Displays = getSDLDisplays();
+            DisplaysChanged?.Invoke(Displays);
         }
 
         private IEnumerable<Display> getSDLDisplays()
