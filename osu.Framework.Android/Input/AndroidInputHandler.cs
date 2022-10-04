@@ -8,7 +8,6 @@ using Android.Views;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Android.Input
