@@ -121,6 +121,12 @@ namespace osu.Framework.Platform
         IEnumerable<Display> Displays { get; }
 
         /// <summary>
+        /// Invoked when <see cref="Displays"/> has changed.
+        /// </summary>
+        [CanBeNull]
+        event Action<IEnumerable<Display>> DisplaysChanged;
+
+        /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
         /// </summary>
         Display PrimaryDisplay { get; }

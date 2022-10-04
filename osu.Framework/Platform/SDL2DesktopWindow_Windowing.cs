@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
@@ -18,6 +19,9 @@ namespace osu.Framework.Platform
     {
         private void setupWindowing(FrameworkConfigManager config)
         {
+            updateDisplays();
+
+            DisplaysChanged += _ => CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.ValueChanged += evt =>
             {
@@ -259,10 +263,68 @@ namespace osu.Framework.Platform
 
         public float Scale = 1;
 
+        #region Displays (mostly self-contained)
+
         /// <summary>
         /// Queries the physical displays and their supported resolutions.
         /// </summary>
-        public IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
+        public IEnumerable<Display> Displays { get; private set; } = null!;
+
+        public event Action<IEnumerable<Display>>? DisplaysChanged;
+
+        // ReSharper disable once UnusedParameter.Local
+        private void handleDisplayEvent(SDL.SDL_DisplayEvent evtDisplay) => updateDisplays();
+
+        /// <summary>
+        /// Updates <see cref="Displays"/> with the latest display information reported by SDL.
+        /// </summary>
+        /// <remarks>
+        /// Has no effect on values of
+        /// <see cref="currentDisplay"/> /
+        /// <see cref="CurrentDisplay"/> /
+        /// <see cref="CurrentDisplayBindable"/>.
+        /// </remarks>
+        private void updateDisplays()
+        {
+            Displays = getSDLDisplays();
+            DisplaysChanged?.Invoke(Displays);
+        }
+
+        /// <summary>
+        /// Asserts that the current <see cref="Displays"/> match the actual displays as reported by SDL.
+        /// </summary>
+        /// <remarks>
+        /// This assert is not fatal, as the <see cref="Displays"/> will get updated sooner or later
+        /// in <see cref="handleDisplayEvent"/> or <see cref="handleWindowEvent"/>.
+        /// </remarks>
+        [Conditional("DEBUG")]
+        private void assertDisplaysMatchSDL()
+        {
+            var actualDisplays = getSDLDisplays();
+            Debug.Assert(actualDisplays.SequenceEqual(Displays), $"Stored {nameof(Displays)} don't match actual displays",
+                $"Stored displays:\n  {string.Join("\n  ", Displays)}\n\nActual displays:\n  {string.Join("\n  ", actualDisplays)}");
+        }
+
+        private IEnumerable<Display> getSDLDisplays()
+        {
+            return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
+
+            static Display displayFromSDL(int displayIndex)
+            {
+                var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
+                                             .Select(modeIndex =>
+                                             {
+                                                 SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
+                                                 return mode.ToDisplayMode(displayIndex);
+                                             })
+                                             .ToArray();
+
+                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
+                return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
@@ -343,6 +405,8 @@ namespace osu.Framework.Platform
                             storeWindowPositionToConfig();
                     }
 
+                    // we may get a SDL_WINDOWEVENT_MOVED when the resolution of a display changes.
+                    updateDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -362,6 +426,10 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
                     Focused = true;
+                    // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
+                    // force update displays when gaining keyboard focus to always have up-to-date information.
+                    // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
+                    updateDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
@@ -372,6 +440,8 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                     break;
             }
+
+            assertDisplaysMatchSDL();
         }
 
         /// <summary>
@@ -631,20 +701,6 @@ namespace osu.Framework.Platform
                 return mode;
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
-        }
-
-        private static Display displayFromSDL(int displayIndex)
-        {
-            var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
-                                         .Select(modeIndex =>
-                                         {
-                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return mode.ToDisplayMode(displayIndex);
-                                         })
-                                         .ToArray();
-
-            SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
-            return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
         }
 
         #endregion
