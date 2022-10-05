@@ -812,7 +812,7 @@ namespace osu.Framework.Graphics.Video
             {
                 int version = AGffmpeg.LibraryVersionMap[name];
 
-                string libraryName = null;
+                string libraryName;
 
                 // "lib" prefix and extensions are resolved by .net core
                 switch (RuntimeInfo.OS)
@@ -828,6 +828,9 @@ namespace osu.Framework.Graphics.Video
                     case RuntimeInfo.Platform.Linux:
                         libraryName = name;
                         break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null);
                 }
 
                 return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
