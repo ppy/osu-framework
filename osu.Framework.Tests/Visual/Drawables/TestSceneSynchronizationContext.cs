@@ -239,6 +239,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Origin = Anchor.Centre;
             }
 
+            // ReSharper disable once AsyncVoidMethod
             protected override async void LoadComplete()
             {
                 base.LoadComplete();
