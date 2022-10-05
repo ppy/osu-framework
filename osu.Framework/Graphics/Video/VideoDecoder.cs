@@ -19,6 +19,9 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
+#if NET6_0_OR_GREATER
+using osu.Framework.Extensions.ObjectExtensions;
+#endif
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -827,7 +830,7 @@ namespace osu.Framework.Graphics.Video
                         break;
                 }
 
-                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
 #endif
 

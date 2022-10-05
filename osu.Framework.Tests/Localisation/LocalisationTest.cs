@@ -220,7 +220,7 @@ namespace osu.Framework.Tests.Localisation
             string expectedResult = string.Format(new CultureInfo("fr"), FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_FR, value);
             Assert.AreEqual("number 1,23 FR", expectedResult); // FR uses comma for decimal point.
 
-            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null, value));
+            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null!, value));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
