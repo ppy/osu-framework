@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Pooling
         /// </summary>
         /// <param name="pool">The target pool, or null to disassociate from all pools (and cause the drawable to be disposed as if it was not pooled). </param>
         /// <exception cref="InvalidOperationException">Thrown if this drawable is still in use, or is already in another pool.</exception>
-        internal void SetPool(IDrawablePool pool)
+        internal void SetPool(IDrawablePool? pool)
         {
             if (IsInUse)
                 throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is still in use");

@@ -165,7 +165,7 @@ namespace osu.Framework.Android.Graphics.Video
         {
             if (targetHwDecoders.HasFlagFast(HardwareVideoDecoder.MediaCodec))
             {
-                string formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
+                string? formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
 
                 switch (formatName)
                 {
