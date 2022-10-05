@@ -82,6 +82,10 @@ namespace osu.Framework.Platform
 
         public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
 
+#pragma warning disable CS0067
+        public event Action<IEnumerable<Display>> DisplaysChanged;
+#pragma warning restore CS0067
+
         public virtual Display PrimaryDisplay => Displays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
 
         public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
@@ -176,7 +180,8 @@ namespace osu.Framework.Platform
         /// <para>Note that this will use the default <see cref="GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected OsuTKWindow(int width, int height)
-            : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+            : this(new GameWindow(width, height,
+                new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 

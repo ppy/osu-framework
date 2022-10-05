@@ -351,6 +351,10 @@ namespace osu.Framework.Platform
                     handleQuitEvent(e.quit);
                     break;
 
+                case SDL.SDL_EventType.SDL_DISPLAYEVENT:
+                    handleDisplayEvent(e.display);
+                    break;
+
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                     handleWindowEvent(e.window);
                     break;
