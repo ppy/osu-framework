@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -42,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
 
-        private SDL2DesktopWindow window;
+        private SDL2DesktopWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public TestSceneBorderless()
@@ -109,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Platform
             windowMode.TriggerChange();
         }
 
-        private Container createScreen(Display display, string name) =>
+        private Container createScreen(Display display) =>
             new Container
             {
                 X = display.Bounds.X,
@@ -131,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     new SpriteText
                     {
                         Padding = new MarginPadding(50),
-                        Text = name,
+                        Text = display.Name ?? "unknown",
                         Font = new FontUsage(size: 200),
                         Colour = Color4.Black
                     }
@@ -195,7 +193,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             foreach (var display in displays)
             {
-                screenContainer.Add(createScreen(display, display.Name));
+                screenContainer.Add(createScreen(display));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
