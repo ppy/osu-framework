@@ -119,6 +119,8 @@ namespace osu.Framework.Tests.Visual.Platform
 
     public class WindowDisplaysPreview : Container
     {
+        public const float FONT_SIZE = 120f;
+
         private readonly TextFlowContainer windowCaption;
         private readonly Container paddedContainer;
         private readonly Container screenContainer;
@@ -164,7 +166,7 @@ namespace osu.Framework.Tests.Visual.Platform
                                 },
                                 windowCaption = new TextFlowContainer(sprite =>
                                 {
-                                    sprite.Font = sprite.Font.With(size: 150);
+                                    sprite.Font = sprite.Font.With(size: FONT_SIZE);
                                     sprite.Colour = Color4.White;
                                 })
                                 {
@@ -241,15 +243,22 @@ namespace osu.Framework.Tests.Visual.Platform
                         RelativeSizeAxes = Axes.Both,
                         Colour = display.Index == 0 ? active_fill : screen_fill
                     },
-                    new SpriteText
+                    new TextFlowContainer(sprite =>
                     {
+                        sprite.Font = new FontUsage(size: FONT_SIZE);
+                        sprite.Colour = Color4.Black;
+                    })
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Text = $"{display.Name}\n"
+                               + $"{display.Bounds.Width}x{display.Bounds.Height}\n"
+                               + $"Mode: {modeName(display.DisplayModes.First())}",
                         Padding = new MarginPadding(50),
-                        Text = display.Name ?? "unknown",
-                        Font = new FontUsage(size: 200),
-                        Colour = Color4.Black
                     }
                 }
             };
+
+        private string modeName(DisplayMode mode) => $"{mode.Size.Width}x{mode.Size.Height}@{mode.RefreshRate}";
 
         private void updateWindowContainer()
         {
