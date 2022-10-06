@@ -9,6 +9,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -210,7 +211,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             foreach (var display in displays)
             {
-                screenContainer.Add(createScreen(display));
+                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplay.Index));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
@@ -224,15 +225,18 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Size = bounds.Size;
         }
 
-        private Container createScreen(Display display) =>
-            new Container
+        private Container createScreen(Display display, int activeDisplayIndex)
+        {
+            bool isActive = display.Index == activeDisplayIndex;
+
+            return new Container
             {
                 X = display.Bounds.X,
                 Y = display.Bounds.Y,
                 Width = display.Bounds.Width,
                 Height = display.Bounds.Height,
 
-                BorderColour = display.Index == 0 ? active_stroke : screen_stroke,
+                BorderColour = isActive ? active_stroke : screen_stroke,
                 BorderThickness = 20,
                 Masking = true,
 
@@ -241,7 +245,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = display.Index == 0 ? active_fill : screen_fill
+                        Colour = isActive ? active_fill : screen_fill
                     },
                     new TextFlowContainer(sprite =>
                     {
@@ -257,6 +261,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
+        }
 
         private string modeName(DisplayMode mode) => $"{mode.Size.Width}x{mode.Size.Height}@{mode.RefreshRate}";
 
