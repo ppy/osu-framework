@@ -154,6 +154,7 @@ namespace osu.Framework.Tests.Visual.Platform
                             BorderThickness = 20,
                             Masking = true,
                             Depth = -10,
+                            Alpha = 0.7f,
                             Children = new Drawable[]
                             {
                                 new Box
@@ -167,7 +168,10 @@ namespace osu.Framework.Tests.Visual.Platform
                                     sprite.Colour = Color4.White;
                                 })
                                 {
-                                    RelativeSizeAxes = Axes.Both,
+                                    Anchor = Anchor.BottomLeft,
+                                    Origin = Anchor.BottomLeft,
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
                                     Padding = new MarginPadding(50),
                                     Colour = Color4.White
                                 }
