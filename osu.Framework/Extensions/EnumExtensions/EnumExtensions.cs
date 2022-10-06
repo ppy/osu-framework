@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Extensions.EnumExtensions
@@ -43,7 +44,7 @@ namespace osu.Framework.Extensions.EnumExtensions
 
             return items.OrderBy(i =>
             {
-                var fieldInfo = type.GetField(i.ToString());
+                var fieldInfo = type.GetField(i.ToString().AsNonNull());
 
                 if (fieldInfo?.GetCustomAttributes(typeof(OrderAttribute), false).FirstOrDefault() is OrderAttribute attr)
                     return attr.Order;

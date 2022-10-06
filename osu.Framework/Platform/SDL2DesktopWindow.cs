@@ -467,7 +467,7 @@ namespace osu.Framework.Platform
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
             // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
-            byte[] bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
+            byte[]? bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
             if (bytes == null)
                 return;
 

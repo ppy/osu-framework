@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
@@ -254,7 +255,7 @@ namespace osu.Framework.Bindables
 
                 default:
                     if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                        Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
                         Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
 
