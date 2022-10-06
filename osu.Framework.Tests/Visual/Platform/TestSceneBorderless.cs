@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -13,13 +14,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
+    [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public class TestSceneBorderless : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
@@ -39,6 +40,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 {
                     new WindowDisplaysPreview
                     {
+                        Padding = new MarginPadding { Top = 100 },
                         RelativeSizeAxes = Axes.Both,
                     },
                     new FillFlowContainer
@@ -54,9 +56,6 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
-
-            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode}";
-            windowMode.TriggerChange();
         }
 
         [BackgroundDependencyLoader]
@@ -65,15 +64,18 @@ namespace osu.Framework.Tests.Visual.Platform
             window = host.Window as SDL2DesktopWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
+            windowMode.BindValueChanged(mode => currentWindowMode.Text = $"Window Mode: {mode.NewValue}", true);
+
             if (window == null)
             {
-                Logger.Log("No suitable window found");
                 return;
             }
 
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
             Point originalWindowPosition = Point.Empty;
+
+            AddStep("nothing", () => { });
 
             foreach (var display in window.Displays)
             {
@@ -138,7 +140,7 @@ namespace osu.Framework.Tests.Visual.Platform
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Padding = new MarginPadding(100),
+                Padding = new MarginPadding(70),
                 Child = paddedContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -151,7 +153,7 @@ namespace osu.Framework.Tests.Visual.Platform
                             BorderColour = window_stroke,
                             BorderThickness = 20,
                             Masking = true,
-
+                            Depth = -10,
                             Children = new Drawable[]
                             {
                                 new Box
@@ -182,14 +184,11 @@ namespace osu.Framework.Tests.Visual.Platform
             window = host.Window as SDL2DesktopWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
-            if (window == null)
+            if (window != null)
             {
-                Logger.Log("No suitable window found");
-                return;
+                window.DisplaysChanged += onDisplaysChanged;
+                refreshScreens(window.Displays);
             }
-
-            window.DisplaysChanged += onDisplaysChanged;
-            refreshScreens(window.Displays);
         }
 
         private void onDisplaysChanged(IEnumerable<Display> displays)
@@ -199,8 +198,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void refreshScreens(IEnumerable<Display> displays)
         {
-            screenContainer.Remove(windowContainer, false);
-            screenContainer.Clear();
+            screenContainer.RemoveAll(d => d != windowContainer, false);
 
             var bounds = new RectangleI();
 
@@ -210,7 +208,6 @@ namespace osu.Framework.Tests.Visual.Platform
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
-            screenContainer.Add(windowContainer);
             screenContainerOffset = bounds.Location;
 
             foreach (var box in screenContainer.Children)
@@ -270,9 +267,7 @@ namespace osu.Framework.Tests.Visual.Platform
             base.Update();
 
             if (window == null)
-            {
                 return;
-            }
 
             updateWindowContainer();
             var scale = Vector2.Divide(paddedContainer.DrawSize, screenContainer.Size);
