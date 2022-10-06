@@ -27,19 +27,6 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText currentDisplay = new SpriteText();
 
-        private readonly TextFlowContainer windowCaption;
-        private readonly Container paddedContainer;
-        private readonly Container screenContainer;
-        private readonly Container windowContainer;
-        private Vector2 screenContainerOffset;
-
-        private static readonly Color4 active_fill = new Color4(255, 138, 104, 255);
-        private static readonly Color4 active_stroke = new Color4(244, 74, 25, 255);
-        private static readonly Color4 screen_fill = new Color4(255, 181, 104, 255);
-        private static readonly Color4 screen_stroke = new Color4(244, 137, 25, 255);
-        private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
-        private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
-
         private SDL2DesktopWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
@@ -50,44 +37,9 @@ namespace osu.Framework.Tests.Visual.Platform
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new Container
+                    new WindowDisplaysPreview
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Padding = new MarginPadding(100),
-                        Child = paddedContainer = new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Child = screenContainer = new Container
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Child = windowContainer = new Container
-                                {
-                                    BorderColour = window_stroke,
-                                    BorderThickness = 20,
-                                    Masking = true,
-
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = window_fill
-                                        },
-                                        windowCaption = new TextFlowContainer(sprite =>
-                                        {
-                                            sprite.Font = sprite.Font.With(size: 150);
-                                            sprite.Colour = Color4.White;
-                                        })
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Padding = new MarginPadding(50),
-                                            Colour = Color4.White
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     },
                     new FillFlowContainer
                     {
@@ -107,35 +59,6 @@ namespace osu.Framework.Tests.Visual.Platform
             windowMode.TriggerChange();
         }
 
-        private Container createScreen(Display display) =>
-            new Container
-            {
-                X = display.Bounds.X,
-                Y = display.Bounds.Y,
-                Width = display.Bounds.Width,
-                Height = display.Bounds.Height,
-
-                BorderColour = display.Index == 0 ? active_stroke : screen_stroke,
-                BorderThickness = 20,
-                Masking = true,
-
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = display.Index == 0 ? active_fill : screen_fill
-                    },
-                    new SpriteText
-                    {
-                        Padding = new MarginPadding(50),
-                        Text = display.Name ?? "unknown",
-                        Font = new FontUsage(size: 200),
-                        Colour = Color4.Black
-                    }
-                }
-            };
-
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
@@ -147,9 +70,6 @@ namespace osu.Framework.Tests.Visual.Platform
                 Logger.Log("No suitable window found");
                 return;
             }
-
-            window.DisplaysChanged += onDisplaysChanged;
-            refreshScreens(window.Displays);
 
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
@@ -177,6 +97,99 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddAssert("check window position", () => originalWindowPosition == window.Position);
                 AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
             }
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (window == null)
+            {
+                currentDisplay.Text = "No suitable window found";
+                return;
+            }
+
+            currentActualSize.Text = $"Window size: {window?.Size}";
+            currentClientSize.Text = $"Client size: {window?.ClientSize}";
+            currentDisplay.Text = $"Current Display: {window?.CurrentDisplayBindable.Value.Name}";
+        }
+    }
+
+    public class WindowDisplaysPreview : Container
+    {
+        private readonly TextFlowContainer windowCaption;
+        private readonly Container paddedContainer;
+        private readonly Container screenContainer;
+        private readonly Container windowContainer;
+        private Vector2 screenContainerOffset;
+
+        private static readonly Color4 active_fill = new Color4(255, 138, 104, 255);
+        private static readonly Color4 active_stroke = new Color4(244, 74, 25, 255);
+        private static readonly Color4 screen_fill = new Color4(255, 181, 104, 255);
+        private static readonly Color4 screen_stroke = new Color4(244, 137, 25, 255);
+        private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
+        private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
+
+        private SDL2DesktopWindow? window;
+        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+
+        public WindowDisplaysPreview()
+        {
+            Child = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+                Padding = new MarginPadding(100),
+                Child = paddedContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = screenContainer = new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Child = windowContainer = new Container
+                        {
+                            BorderColour = window_stroke,
+                            BorderThickness = 20,
+                            Masking = true,
+
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = window_fill
+                                },
+                                windowCaption = new TextFlowContainer(sprite =>
+                                {
+                                    sprite.Font = sprite.Font.With(size: 150);
+                                    sprite.Colour = Color4.White;
+                                })
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Padding = new MarginPadding(50),
+                                    Colour = Color4.White
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(FrameworkConfigManager config, GameHost host)
+        {
+            window = host.Window as SDL2DesktopWindow;
+            config.BindWith(FrameworkSetting.WindowMode, windowMode);
+
+            if (window == null)
+            {
+                Logger.Log("No suitable window found");
+                return;
+            }
+
+            window.DisplaysChanged += onDisplaysChanged;
+            refreshScreens(window.Displays);
         }
 
         private void onDisplaysChanged(IEnumerable<Display> displays)
@@ -208,6 +221,35 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Size = bounds.Size;
         }
 
+        private Container createScreen(Display display) =>
+            new Container
+            {
+                X = display.Bounds.X,
+                Y = display.Bounds.Y,
+                Width = display.Bounds.Width,
+                Height = display.Bounds.Height,
+
+                BorderColour = display.Index == 0 ? active_stroke : screen_stroke,
+                BorderThickness = 20,
+                Masking = true,
+
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = display.Index == 0 ? active_fill : screen_fill
+                    },
+                    new SpriteText
+                    {
+                        Padding = new MarginPadding(50),
+                        Text = display.Name ?? "unknown",
+                        Font = new FontUsage(size: 200),
+                        Colour = Color4.Black
+                    }
+                }
+            };
+
         private void updateWindowContainer()
         {
             if (window == null) return;
@@ -229,17 +271,12 @@ namespace osu.Framework.Tests.Visual.Platform
 
             if (window == null)
             {
-                currentDisplay.Text = "No suitable window found";
                 return;
             }
 
             updateWindowContainer();
             var scale = Vector2.Divide(paddedContainer.DrawSize, screenContainer.Size);
             screenContainer.Scale = new Vector2(Math.Min(scale.X, scale.Y));
-
-            currentActualSize.Text = $"Window size: {window?.Size}";
-            currentClientSize.Text = $"Client size: {window?.ClientSize}";
-            currentDisplay.Text = $"Current Display: {window?.CurrentDisplayBindable.Value.Name}";
         }
 
         protected override void Dispose(bool isDisposing)
