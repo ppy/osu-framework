@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,6 +13,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -51,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("wait for texture load", () => avatar1.Texture != null && avatar2.Texture != null);
             AddAssert("both textures are RefCount", () => avatar1.Texture is TextureWithRefCount && avatar2.Texture is TextureWithRefCount);
 
-            AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
+            AddAssert("textures share gl texture", () => avatar1.Texture.HasSameNativeTexture(avatar2.Texture));
             AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
 
             AddStep("dispose children", () =>
@@ -221,10 +224,13 @@ namespace osu.Framework.Tests.Visual.Sprites
                 TotalInitiatedLookups++;
 
                 if (blocking && name == blockingName)
-                    resetEvent.Wait();
+                {
+                    if (!resetEvent.Wait(10000))
+                        throw new TimeoutException("Load was not allowed in a timely fashion.");
+                }
 
                 TotalCompletedLookups++;
-                return getFunc("sample-texture");
+                return getFunc("sample-texture.png");
             }
 
             public void Reset()
@@ -255,10 +261,11 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 var game = parent.Get<Game>();
                 var host = parent.Get<GameHost>();
+                var renderer = parent.Get<IRenderer>();
 
                 BlockingOnlineStore = new BlockingResourceStore(new NamespacedResourceStore<byte[]>(game.Resources, "Textures"));
-                NormalStore = new TextureStore(host.CreateTextureLoaderStore(BlockingOnlineStore));
-                LargeStore = new LargeTextureStore(host.CreateTextureLoaderStore(BlockingOnlineStore));
+                NormalStore = new TextureStore(renderer, host.CreateTextureLoaderStore(BlockingOnlineStore));
+                LargeStore = new LargeTextureStore(renderer, host.CreateTextureLoaderStore(BlockingOnlineStore));
 
                 return base.CreateChildDependencies(parent);
             }

@@ -1,8 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
@@ -162,6 +165,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 for (int c = 0; c < cellColumns; c++)
                 {
+                    // Content should not be null since the number of rows/columns is non-zero.
+                    Debug.Assert(Content != null);
+
                     // Add cell
                     cells[r, c] = new CellContainer();
 
@@ -428,7 +434,7 @@ namespace osu.Framework.Graphics.Containers
     {
         /// <summary>
         /// Any remaining area of the <see cref="GridContainer"/> will be divided amongst this and all
-        /// other elements which use <see cref="GridSizeMode.Distributed"/>.
+        /// other elements which use <see cref="Distributed"/>.
         /// </summary>
         Distributed,
 

@@ -1,9 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -13,6 +16,9 @@ namespace osu.Framework.Graphics.Lines
 {
     public class SmoothPath : Path
     {
+        [Resolved]
+        private IRenderer renderer { get; set; }
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -61,7 +67,7 @@ namespace osu.Framework.Graphics.Lines
                 raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
             }
 
-            var texture = new DisposableTexture(textureWidth, 1, true);
+            var texture = new DisposableTexture(renderer.CreateTexture(textureWidth, 1, true));
             texture.SetData(new TextureUpload(raw));
             Texture = texture;
 

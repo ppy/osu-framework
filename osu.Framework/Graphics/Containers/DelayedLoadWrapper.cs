@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using osu.Framework.Allocation;
@@ -189,7 +191,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
-        internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => FindClosestParent<IOnScreenOptimisingContainer>();
+        internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => this.FindClosestParent<IOnScreenOptimisingContainer>();
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {

@@ -27,7 +27,7 @@ namespace osu.Framework.Android
             set { }
         }
 
-        public event Action CursorStateChanged;
+        public event Action? CursorStateChanged;
 
         public override CursorState CursorState
         {

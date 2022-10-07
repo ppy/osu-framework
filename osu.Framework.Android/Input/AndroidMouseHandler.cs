@@ -43,7 +43,7 @@ namespace osu.Framework.Android.Input
 
         protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.MouseRelative, InputSourceType.Touchpad };
 
-        private AndroidGameWindow window;
+        private AndroidGameWindow window = null!;
 
         /// <summary>
         /// Whether a non-relative mouse event has ever been received.
@@ -70,7 +70,7 @@ namespace osu.Framework.Android.Input
 
             // it's possible that Android forcefully released capture if we were unfocused.
             // so we update here when we get focus again.
-            View.FocusChange += (sender, args) =>
+            View.FocusChange += (_, args) =>
             {
                 if (args.HasFocus)
                     updatePointerCapture();
@@ -136,113 +136,164 @@ namespace osu.Framework.Android.Input
             View.PointerCapture = shouldCapture;
         }
 
-        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
             // some implementations might send Mouse1 and Mouse2 as keyboard keycodes, so we handle those here.
             if (keycode.TryGetMouseButton(out var button))
-                handleMouseDown(button);
+            {
+                handleMouseButton(button, true);
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetMouseButton(out var button))
-                handleMouseUp(button);
+            {
+                handleMouseButton(button, false);
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnHover(MotionEvent hoverEvent)
+        protected override bool OnHover(MotionEvent hoverEvent)
         {
             switch (hoverEvent.Action)
             {
                 case MotionEventActions.HoverMove:
                     handleMouseMoveEvent(hoverEvent);
-                    break;
+                    return true;
+
+                // related to the mouse entering/exiting the view,
+                // and the mouse "losing" hover state as the screen is touched (the mouse pointer disappears)
+                // no need to log, and no need to handle them in any way here.
+                case MotionEventActions.HoverEnter:
+                case MotionEventActions.HoverExit:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        protected override void OnTouch(MotionEvent touchEvent)
+        protected override bool OnTouch(MotionEvent touchEvent)
         {
             switch (touchEvent.Action)
             {
                 case MotionEventActions.Move:
                     handleMouseMoveEvent(touchEvent);
-                    break;
+                    return true;
+
+                // fired when buttons are pressed, but these don't have reliable ActionButton information
+                case MotionEventActions.Up:
+                case MotionEventActions.Down:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
+        protected override bool OnGenericMotion(MotionEvent genericMotionEvent)
         {
             switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.ButtonPress:
-                    handleMouseDown(genericMotionEvent.ActionButton.ToMouseButton());
-                    break;
-
                 case MotionEventActions.ButtonRelease:
-                    handleMouseUp(genericMotionEvent.ActionButton.ToMouseButton());
-                    break;
+                    handleButtonEvent(genericMotionEvent);
+                    return true;
 
                 case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(genericMotionEvent));
-                    break;
+                    handleScrollEvent(genericMotionEvent);
+                    return true;
+
+                // fired when buttons are pressed, but these don't have reliable ActionButton information
+                case MotionEventActions.Up:
+                case MotionEventActions.Down:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        protected override void OnCapturedPointer(MotionEvent capturedPointerEvent)
+        protected override bool OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
             switch (capturedPointerEvent.Action)
             {
                 case MotionEventActions.Move:
                     handleMouseMoveRelativeEvent(capturedPointerEvent);
-                    break;
+                    return true;
 
                 case MotionEventActions.Scroll:
-                    handleMouseWheel(getEventScroll(capturedPointerEvent));
-                    break;
+                    handleScrollEvent(capturedPointerEvent);
+                    return true;
 
                 case MotionEventActions.ButtonPress:
-                    handleMouseDown(capturedPointerEvent.ActionButton.ToMouseButton());
-                    break;
-
                 case MotionEventActions.ButtonRelease:
-                    handleMouseUp(capturedPointerEvent.ActionButton.ToMouseButton());
-                    break;
+                    handleButtonEvent(capturedPointerEvent);
+                    return true;
+
+                // fired when buttons are pressed, but these don't have reliable ActionButton information
+                case MotionEventActions.Up:
+                case MotionEventActions.Down:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
-        private Vector2 getEventScroll(MotionEvent e) => new Vector2(e.GetAxisValue(Axis.Hscroll), e.GetAxisValue(Axis.Vscroll));
-
-        private void handleMouseMoveEvent(MotionEvent evt)
+        private void handleButtonEvent(MotionEvent buttonEvent)
         {
-            // https://developer.android.com/reference/android/View/MotionEvent#batching
-            for (int i = 0; i < evt.HistorySize; i++)
-                handleMouseMove(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
+            bool pressed = buttonEvent.Action == MotionEventActions.ButtonPress;
 
-            handleMouseMove(new Vector2(evt.GetX(), evt.GetY()));
+            foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
+                handleMouseButton(button, pressed);
+        }
+
+        private void handleScrollEvent(MotionEvent scrollEvent)
+        {
+            if (scrollEvent.TryGet(Axis.Hscroll, out float h)
+                && scrollEvent.TryGet(Axis.Vscroll, out float v))
+            {
+                // Android reports horizontal scroll opposite of what framework expects.
+                enqueueInput(new MouseScrollRelativeInput { Delta = new Vector2(-h, v) });
+            }
+        }
+
+        private void handleMouseMoveEvent(MotionEvent mouseMoveEvent)
+        {
+            mouseMoveEvent.HandleHistorically(apply);
 
             absolutePositionReceived = true;
 
             // we may lose pointer capture if we lose focus / the app goes to the background,
             // so we use this opportunity to update capture if the user has requested it.
             updatePointerCapture();
+
+            void apply(MotionEvent e, int historyPosition)
+            {
+                if (e.TryGetPosition(out var position, historyPosition))
+                    enqueueInput(new MousePositionAbsoluteInput { Position = position });
+            }
         }
 
-        private void handleMouseMoveRelativeEvent(MotionEvent evt)
+        private void handleMouseMoveRelativeEvent(MotionEvent capturedPointerEvent)
         {
-            for (int i = 0; i < evt.HistorySize; i++)
-                handleMouseMoveRelative(new Vector2(evt.GetHistoricalX(i), evt.GetHistoricalY(i)));
+            capturedPointerEvent.HandleHistorically(apply);
 
-            handleMouseMoveRelative(new Vector2(evt.GetX(), evt.GetY()));
+            void apply(MotionEvent e, int historyPosition)
+            {
+                if (e.TryGetPosition(out var delta, historyPosition))
+                    enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
+            }
         }
 
-        private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
-
-        private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
-
-        private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
-
-        private void handleMouseUp(MouseButton button) => enqueueInput(new MouseButtonInput(button, false));
-
-        private void handleMouseWheel(Vector2 delta) => enqueueInput(new MouseScrollRelativeInput { Delta = delta });
+        private void handleMouseButton(MouseButton button, bool pressed) => enqueueInput(new MouseButtonInput(button, pressed));
 
         private void enqueueInput(IInput input)
         {

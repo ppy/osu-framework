@@ -1,6 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using NUnit.Framework;
@@ -70,11 +73,20 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window == null)
                 return;
 
-            displaysDropdown.Items = window.Displays;
+            window.DisplaysChanged += onDisplaysChanged;
+            updateDisplays(window.Displays);
+
             displaysDropdown.Current.BindTo(window.CurrentDisplayBindable);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
         }
+
+        private void onDisplaysChanged(IEnumerable<Display> displays)
+        {
+            Scheduler.AddOnce(updateDisplays, displays);
+        }
+
+        private void updateDisplays(IEnumerable<Display> displays) => displaysDropdown.Items = displays;
 
         [Test]
         public void TestScreenModeSwitch()
@@ -153,6 +165,14 @@ namespace osu.Framework.Tests.Visual.Platform
         private void testResolution(int w, int h)
         {
             AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (window != null)
+                window.DisplaysChanged -= onDisplaysChanged;
+
+            base.Dispose(isDisposing);
         }
     }
 }

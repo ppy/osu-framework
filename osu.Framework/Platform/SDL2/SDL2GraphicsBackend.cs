@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using SDL2;
 
@@ -39,7 +41,26 @@ namespace osu.Framework.Platform.SDL2
 
         public override void SwapBuffers() => SDL.SDL_GL_SwapWindow(sdlWindowHandle);
 
-        protected override IntPtr GetProcAddress(string symbol) => SDL.SDL_GL_GetProcAddress(symbol);
+        protected override IntPtr GetProcAddress(string symbol)
+        {
+            const int error_category = (int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR;
+            SDL.SDL_LogPriority oldPriority = SDL.SDL_LogGetPriority(error_category);
+
+            // Prevent logging calls to SDL_GL_GetProcAddress() that fail on systems which don't have the requested symbol (typically macOS).
+            SDL.SDL_LogSetPriority(error_category, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_INFO);
+
+            IntPtr ret = SDL.SDL_GL_GetProcAddress(symbol);
+
+            // Reset the logging behaviour.
+            SDL.SDL_LogSetPriority(error_category, oldPriority);
+
+            return ret;
+        }
+
+        public override void InitialiseBeforeWindowCreation()
+        {
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
+        }
 
         public override void Initialise(IWindow window)
         {

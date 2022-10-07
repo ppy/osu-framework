@@ -1,18 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Batches;
 using osuTK;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             private MaskingInfo? maskingInfo;
 
             /// <summary>
-            /// The screen-space version of <see cref="OpenGL.MaskingInfo.MaskingRect"/>.
+            /// The screen-space version of <see cref="MaskingInfo.MaskingRect"/>.
             /// Used as cache of screen-space masking quads computed in previous frames.
             /// Assign null to reset.
             /// </summary>
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// The vertex batch used for child quads during the back-to-front pass.
             /// </summary>
-            private QuadBatch<TexturedVertex2D> quadBatch;
+            private IVertexBatch<TexturedVertex2D> quadBatch;
 
             private int sourceChildrenCount;
 
@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
                 shrunkDrawRectangle = shrunkDrawRectangle.Shrink(new Vector2(Math.Min(shrunkDrawRectangle.Width / 2, shrinkage), Math.Min(shrunkDrawRectangle.Height / 2, shrinkage)));
 
                 maskingInfo = !Source.Masking
-                    ? (MaskingInfo?)null
+                    ? null
                     : new MaskingInfo
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
-            private void drawEdgeEffect()
+            private void drawEdgeEffect(IRenderer renderer)
             {
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
@@ -138,9 +138,9 @@ namespace osu.Framework.Graphics.Containers
                 edgeEffectMaskingInfo.Hollow = edgeEffect.Hollow;
                 edgeEffectMaskingInfo.HollowCornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius;
 
-                GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
+                renderer.PushMaskingInfo(edgeEffectMaskingInfo);
 
-                GLWrapper.SetBlend(edgeEffect.Type == EdgeEffectType.Glow ? BlendingParameters.Additive : BlendingParameters.Mixture);
+                renderer.SetBlend(edgeEffect.Type == EdgeEffectType.Glow ? BlendingParameters.Additive : BlendingParameters.Mixture);
 
                 Shader.Bind();
 
@@ -150,8 +150,8 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                DrawQuad(
-                    Texture.WhitePixel,
+                renderer.DrawQuad(
+                    renderer.WhitePixel,
                     screenSpaceMaskingQuad.Value,
                     colour, null, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
@@ -161,33 +161,33 @@ namespace osu.Framework.Graphics.Containers
 
                 Shader.Unbind();
 
-                GLWrapper.PopMaskingInfo();
+                renderer.PopMaskingInfo();
             }
 
             private const int min_amount_children_to_warrant_batch = 8;
 
             private bool mayHaveOwnVertexBatch(int amountChildren) => forceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
-            private void updateQuadBatch()
+            private void updateQuadBatch(IRenderer renderer)
             {
                 if (Children == null)
                     return;
 
                 if (quadBatch == null && mayHaveOwnVertexBatch(sourceChildrenCount))
-                    quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
+                    quadBatch = renderer.CreateQuadBatch<TexturedVertex2D>(100, 1000);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                updateQuadBatch();
+                updateQuadBatch(renderer);
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
                 if (quadBatch != null)
-                    vertexAction = quadBatch.AddAction;
+                    renderer.PushQuadBatch(quadBatch);
 
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
-                drawEdgeEffect();
+                drawEdgeEffect(renderer);
 
                 if (maskingInfo != null)
                 {
@@ -195,60 +195,66 @@ namespace osu.Framework.Graphics.Containers
                     if (info.BorderThickness > 0)
                         info.BorderColour = ColourInfo.Multiply(info.BorderColour, DrawColourInfo.Colour);
 
-                    GLWrapper.PushMaskingInfo(info);
+                    renderer.PushMaskingInfo(info);
                 }
 
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(vertexAction);
+                        Children[i].Draw(renderer);
                 }
 
                 if (maskingInfo != null)
-                    GLWrapper.PopMaskingInfo();
+                    renderer.PopMaskingInfo();
+
+                if (quadBatch != null)
+                    renderer.PopQuadBatch();
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
             {
-                DrawChildrenOpaqueInteriors(depthValue, vertexAction);
-                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                DrawChildrenOpaqueInteriors(renderer, depthValue);
+                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
             }
 
             /// <summary>
             /// Performs <see cref="DrawOpaqueInteriorSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
             /// </summary>
+            /// <param name="renderer">The renderer to draw with.</param>
             /// <param name="depthValue">The previous depth value.</param>
-            /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            protected virtual void DrawChildrenOpaqueInteriors(IRenderer renderer, DepthValue depthValue)
             {
                 bool canIncrement = depthValue.CanIncrement;
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
                 {
-                    updateQuadBatch();
+                    updateQuadBatch(renderer);
 
                     // Prefer to use own vertex batch instead of the parent-owned one.
                     if (quadBatch != null)
-                        vertexAction = quadBatch.AddAction;
+                        renderer.PushQuadBatch(quadBatch);
 
                     if (maskingInfo != null)
-                        GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                        renderer.PushMaskingInfo(maskingInfo.Value);
                 }
 
                 // We still need to invoke this method recursively for all children so their depth value is updated
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                        Children[i].DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                        Children[i].DrawOpaqueInteriorSubTree(renderer, depthValue);
                 }
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
                 {
                     if (maskingInfo != null)
-                        GLWrapper.PopMaskingInfo();
+                        renderer.PopMaskingInfo();
+
+                    if (quadBatch != null)
+                        renderer.PopQuadBatch();
                 }
             }
 

@@ -1,9 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -179,18 +182,36 @@ namespace osu.Framework.Extensions
         ///   </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// If the passed value is already of type <see cref="LocalisableString"/>, it will be returned.
+        /// </remarks>
         /// <exception cref="InvalidOperationException">
         /// When the <see cref="LocalisableDescriptionAttribute.Name"/> specified in the <see cref="LocalisableDescriptionAttribute"/>
         /// does not match any of the existing members in <see cref="LocalisableDescriptionAttribute.DeclaringType"/>.
         /// </exception>
         public static LocalisableString GetLocalisableDescription<T>(this T value)
         {
+            if (value is LocalisableString localisable)
+                return localisable;
+
+            if (value is string description)
+                return description;
+
             MemberInfo type;
 
             if (value is Enum)
-                type = value.GetType().GetField(value.ToString());
+            {
+                string stringValue = value.ToString();
+                Debug.Assert(stringValue != null, "Enum.ToString() should not return null.");
+
+                type = value.GetType().GetField(stringValue);
+
+                // The enumeration may not contain the value, in which case just return the value as a string.
+                if (type == null)
+                    return stringValue;
+            }
             else
-                type = value.GetType();
+                type = value as Type ?? value.GetType();
 
             var attribute = type.GetCustomAttribute<LocalisableDescriptionAttribute>();
             if (attribute == null)
@@ -222,11 +243,17 @@ namespace osu.Framework.Extensions
         ///   </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// If the passed value is already of type <see cref="string"/>, it will be returned.
+        /// </remarks>
         public static string GetDescription(this object value)
-            => value.GetType()
-                    .GetField(value.ToString())?
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description
-               ?? value.ToString();
+        {
+            if (value is string description)
+                return description;
+
+            Type type = value as Type ?? value.GetType();
+            return type.GetField(value.ToString() ?? string.Empty)?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+        }
 
         private static string toLowercaseHex(this byte[] bytes)
         {
@@ -265,8 +292,12 @@ namespace osu.Framework.Extensions
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this string str)
         {
+#if NET6_0_OR_GREATER
+            return SHA256.HashData(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
+#else
             using (var alg = SHA256.Create())
                 return alg.ComputeHash(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
+#endif
         }
 
         public static string ComputeMD5Hash(this Stream stream)
@@ -283,8 +314,12 @@ namespace osu.Framework.Extensions
 
         public static string ComputeMD5Hash(this string input)
         {
+#if NET6_0_OR_GREATER
+            return MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
+#else
             using (var md5 = MD5.Create())
                 return md5.ComputeHash(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
+#endif
         }
 
         public static DisplayIndex GetIndex(this DisplayDevice display)
@@ -346,6 +381,6 @@ namespace osu.Framework.Extensions
         /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
         /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
         internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0, 0);
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0);
     }
 }

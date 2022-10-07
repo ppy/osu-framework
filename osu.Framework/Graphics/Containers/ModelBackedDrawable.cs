@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
@@ -44,8 +46,7 @@ namespace osu.Framework.Graphics.Containers
 
                 model = value;
 
-                if (IsLoaded)
-                    updateDrawable();
+                Scheduler.AddOnce(updateDrawable);
             }
         }
 
@@ -88,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updateDrawable();
+            Scheduler.AddOnce(updateDrawable);
         }
 
         private void updateDrawable()
@@ -107,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
             // Remove the previous wrapper if the inner drawable hasn't finished loading.
             if (currentWrapper?.DelayedLoadCompleted == false)
             {
-                RemoveInternal(currentWrapper);
+                RemoveInternal(currentWrapper, false);
                 DisposeChildAsync(currentWrapper);
             }
 

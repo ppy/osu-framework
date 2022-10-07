@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Specialized;
 using System.Linq;
@@ -100,7 +102,7 @@ namespace osu.Framework.Statistics
             Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
         }
 
-        internal static IGlobalStatistic[] GetStatistics()
+        public static IGlobalStatistic[] GetStatistics()
         {
             lock (statistics)
                 return statistics.ToArray();

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,7 +154,7 @@ namespace osu.Framework.Graphics.Cursor
                     CurrentTooltip.SetContent(getTargetContent(target));
                 else
                 {
-                    RemoveInternal((Drawable)CurrentTooltip);
+                    RemoveInternal((Drawable)CurrentTooltip, false);
                     CurrentTooltip = proposedTooltip;
                     AddInternal((Drawable)proposedTooltip);
                 }
@@ -300,7 +302,7 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || (!tooltipTarget.IsHovered && !tooltipTarget.IsDragged);
 
         private ITooltip getTooltip(ITooltipContentProvider target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 

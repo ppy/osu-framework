@@ -2,61 +2,33 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
-using osuTK;
-using osuTK.Input;
 using SDL2;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
 using Point = System.Drawing.Point;
-using Rectangle = System.Drawing.Rectangle;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using Size = System.Drawing.Size;
-
-// ReSharper disable UnusedParameter.Local
-// (Class regularly handles native events where we don't consume all parameters)
 
 namespace osu.Framework.Platform
 {
     /// <summary>
     /// Default implementation of a desktop window, using SDL for windowing and graphics support.
     /// </summary>
-    public class SDL2DesktopWindow : IWindow
+    public partial class SDL2DesktopWindow : IWindow
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
         private readonly IGraphicsBackend graphicsBackend;
-
-        private bool focused;
-
-        /// <summary>
-        /// Whether the window currently has focus.
-        /// </summary>
-        public bool Focused
-        {
-            get => focused;
-            private set
-            {
-                if (value == focused)
-                    return;
-
-                isActive.Value = focused = value;
-            }
-        }
 
         /// <summary>
         /// Enables or disables vertical sync.
@@ -73,111 +45,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool Exists { get; private set; }
 
-        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
-
-        /// <summary>
-        /// Returns the window modes that the platform should support by default.
-        /// </summary>
-        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>();
-
-        private Point position;
-
-        /// <summary>
-        /// Returns or sets the window's position in screen space. Only valid when in <see cref="osu.Framework.Configuration.WindowMode.Windowed"/>
-        /// </summary>
-        public Point Position
-        {
-            get => position;
-            set
-            {
-                position = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowPosition(SDLWindowHandle, value.X, value.Y));
-            }
-        }
-
-        private bool resizable = true;
-
-        /// <summary>
-        /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
-        /// </summary>
-        public bool Resizable
-        {
-            get => resizable;
-            set
-            {
-                if (resizable == value)
-                    return;
-
-                resizable = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowResizable(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
-            }
-        }
-
-        private bool relativeMouseMode;
-
-        /// <summary>
-        /// Set the state of SDL2's RelativeMouseMode (https://wiki.libsdl.org/SDL_SetRelativeMouseMode).
-        /// On all platforms, this will lock the mouse to the window (although escaping by setting <see cref="ConfineMouseMode"/> is still possible via a local implementation).
-        /// On windows, this will use raw input if available.
-        /// </summary>
-        public bool RelativeMouseMode
-        {
-            get => relativeMouseMode;
-            set
-            {
-                if (relativeMouseMode == value)
-                    return;
-
-                if (value && !CursorState.HasFlagFast(CursorState.Hidden))
-                    throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
-
-                relativeMouseMode = value;
-                ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
-            }
-        }
-
-        private Size size = new Size(default_width, default_height);
-
-        /// <summary>
-        /// Returns or sets the window's internal size, before scaling.
-        /// </summary>
-        public Size Size
-        {
-            get => size;
-            private set
-            {
-                if (value.Equals(size)) return;
-
-                size = value;
-                Resized?.Invoke();
-            }
-        }
-
-        /// <summary>
-        /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
-        /// </summary>
-        public Bindable<CursorState> CursorStateBindable { get; } = new Bindable<CursorState>();
-
-        public CursorState CursorState
-        {
-            get => CursorStateBindable.Value;
-            set => CursorStateBindable.Value = value;
-        }
-
-        public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
-
-        public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
-
-        private readonly BindableBool isActive = new BindableBool();
-
-        public IBindable<bool> IsActive => isActive;
-
-        private readonly BindableBool cursorInWindow = new BindableBool();
-
-        public IBindable<bool> CursorInWindow => cursorInWindow;
-
-        public IBindableList<WindowMode> SupportedWindowModes { get; }
-
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         public virtual Point PointToClient(Point point) => point;
@@ -189,10 +56,15 @@ namespace osu.Framework.Platform
 
         private const int default_icon_size = 256;
 
+        /// <summary>
+        /// Scheduler for actions to run before the next event loop.
+        /// </summary>
         private readonly Scheduler commandScheduler = new Scheduler();
-        private readonly Scheduler eventScheduler = new Scheduler();
 
-        private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
+        /// <summary>
+        /// Scheduler for actions to run at the end of the current event loop.
+        /// </summary>
+        protected readonly Scheduler EventScheduler = new Scheduler();
 
         private string title = string.Empty;
 
@@ -208,92 +80,6 @@ namespace osu.Framework.Platform
                 ScheduleCommand(() => SDL.SDL_SetWindowTitle(SDLWindowHandle, title));
             }
         }
-
-        private bool visible;
-
-        /// <summary>
-        /// Enables or disables the window visibility.
-        /// </summary>
-        public bool Visible
-        {
-            get => visible;
-            set
-            {
-                visible = value;
-                ScheduleCommand(() =>
-                {
-                    if (value)
-                        SDL.SDL_ShowWindow(SDLWindowHandle);
-                    else
-                        SDL.SDL_HideWindow(SDLWindowHandle);
-                });
-            }
-        }
-
-        private void updateCursorVisibility(bool visible) =>
-            ScheduleCommand(() => SDL.SDL_ShowCursor(visible ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
-
-        private void updateCursorConfined(bool confined) =>
-            ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, confined ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
-
-        private WindowState windowState = WindowState.Normal;
-
-        private WindowState? pendingWindowState;
-
-        /// <summary>
-        /// Returns or sets the window's current <see cref="WindowState"/>.
-        /// </summary>
-        public WindowState WindowState
-        {
-            get => windowState;
-            set
-            {
-                if (pendingWindowState == null && windowState == value)
-                    return;
-
-                pendingWindowState = value;
-            }
-        }
-
-        /// <summary>
-        /// Stores whether the window used to be in maximised state or not.
-        /// Used to properly decide what window state to pick when switching to windowed mode (see <see cref="WindowMode"/> change event)
-        /// </summary>
-        private bool windowMaximised;
-
-        /// <summary>
-        /// Returns the drawable area, after scaling.
-        /// </summary>
-        public Size ClientSize => new Size(Size.Width, Size.Height);
-
-        public float Scale = 1;
-
-        /// <summary>
-        /// Queries the physical displays and their supported resolutions.
-        /// </summary>
-        public IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
-
-        /// <summary>
-        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
-        /// </summary>
-        public virtual Display PrimaryDisplay => Displays.First();
-
-        private Display currentDisplay;
-        private int displayIndex = -1;
-
-        /// <summary>
-        /// Gets or sets the <see cref="Display"/> that this window is currently on.
-        /// </summary>
-        public Display CurrentDisplay { get; private set; }
-
-        public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
-
-        private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
-
-        /// <summary>
-        /// The <see cref="DisplayMode"/> for the display that this window is currently on.
-        /// </summary>
-        public IBindable<DisplayMode> CurrentDisplayMode => currentDisplayMode;
 
         /// <summary>
         /// Gets the native window handle as provided by the operating system.
@@ -348,28 +134,33 @@ namespace osu.Framework.Platform
             return wmInfo;
         }
 
-        private Rectangle windowDisplayBounds
-        {
-            get
-            {
-                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
-                return new Rectangle(rect.x, rect.y, rect.w, rect.h);
-            }
-        }
-
         public bool CapsLockPressed => SDL.SDL_GetModState().HasFlagFast(SDL.SDL_Keymod.KMOD_CAPS);
 
         private bool firstDraw = true;
 
-        private readonly BindableSize sizeFullscreen = new BindableSize();
-        private readonly BindableSize sizeWindowed = new BindableSize();
-        private readonly BindableDouble windowPositionX = new BindableDouble();
-        private readonly BindableDouble windowPositionY = new BindableDouble();
-        private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
+        // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
+
+        [UsedImplicitly]
+        private SDL.SDL_LogOutputFunction logOutputDelegate;
+
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter? eventFilterDelegate;
 
         public SDL2DesktopWindow()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
+            {
+                throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
+            }
+
+            SDL.SDL_LogSetPriority((int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
+            SDL.SDL_LogSetOutputFunction(logOutputDelegate = (_, categoryInt, priority, messagePtr) =>
+            {
+                var category = (SDL.SDL_LogCategory)categoryInt;
+                string? message = Marshal.PtrToStringUTF8(messagePtr);
+
+                Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
+            }, IntPtr.Zero);
 
             graphicsBackend = CreateGraphicsBackend();
 
@@ -378,10 +169,16 @@ namespace osu.Framework.Platform
             CursorStateBindable.ValueChanged += evt =>
             {
                 updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
-                updateCursorConfined(evt.NewValue.HasFlagFast(CursorState.Confined));
+                updateCursorConfinement();
             };
 
             populateJoysticks();
+        }
+
+        public void SetupWindow(FrameworkConfigManager config)
+        {
+            setupWindowing(config);
+            setupInput(config);
         }
 
         /// <summary>
@@ -398,26 +195,23 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
+            SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
+            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
             // so we deactivate it on startup.
             SDL.SDL_StopTextInput();
 
+            graphicsBackend.InitialiseBeforeWindowCreation();
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
 
             graphicsBackend.Initialise(this);
 
-            updateWindowSpecifics();
-            updateWindowSize();
-            WindowMode.TriggerChange();
+            initialiseWindowingAfterCreation();
         }
-
-        // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
-        [UsedImplicitly]
-        private SDL.SDL_EventFilter eventFilterDelegate;
 
         /// <summary>
         /// Starts the window's run loop.
@@ -456,7 +250,7 @@ namespace osu.Framework.Platform
                 if (!cursorInWindow.Value)
                     pollMouse();
 
-                eventScheduler.Update();
+                EventScheduler.Update();
 
                 Update?.Invoke();
             }
@@ -470,35 +264,9 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Updates the client size and the scale according to the window.
-        /// </summary>
-        /// <returns>Whether the window size has been changed after updating.</returns>
-        private void updateWindowSize()
-        {
-            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
-            SDL.SDL_GetWindowSize(SDLWindowHandle, out int actualW, out int _);
-
-            Scale = (float)w / actualW;
-            Size = new Size(w, h);
-
-            // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
-            // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
-            eventScheduler.AddOnce(storeWindowSizeToConfig);
-        }
-
-        /// <summary>
         /// Forcefully closes the window.
         /// </summary>
         public void Close() => ScheduleCommand(() => Exists = false);
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        public void RequestClose() => ScheduleEvent(() =>
-        {
-            if (ExitRequested?.Invoke() != true)
-                Close();
-        });
 
         public void SwapBuffers()
         {
@@ -522,21 +290,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public void ClearCurrent() => graphicsBackend.ClearCurrent();
 
-        private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
-        {
-            // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
-            float clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            JoystickAxisChanged?.Invoke(new JoystickAxis(axisSource, clamped));
-        }
-
-        private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
-        {
-            if (isPressed)
-                JoystickButtonDown?.Invoke(button);
-            else
-                JoystickButtonUp?.Invoke(button);
-        }
-
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
         /// </summary>
@@ -559,50 +312,13 @@ namespace osu.Framework.Platform
             });
         }
 
-        private Point previousPolledPoint = Point.Empty;
-
-        private void pollMouse()
-        {
-            SDL.SDL_GetGlobalMouseState(out int x, out int y);
-            if (previousPolledPoint.X == x && previousPolledPoint.Y == y)
-                return;
-
-            previousPolledPoint = new Point(x, y);
-
-            var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
-            int rx = x - pos.X;
-            int ry = y - pos.Y;
-
-            MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
-        }
-
-        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL.SDL_StartTextInput);
-
-        public void StopTextInput() => ScheduleCommand(SDL.SDL_StopTextInput);
-
-        /// <summary>
-        /// Resets internal state of the platform-native IME.
-        /// This will clear its composition text and prepare it for new input.
-        /// </summary>
-        public virtual void ResetIme() => ScheduleCommand(() =>
-        {
-            SDL.SDL_StopTextInput();
-            SDL.SDL_StartTextInput();
-        });
-
-        public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
-        {
-            var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
-            SDL.SDL_SetTextInputRect(ref sdlRect);
-        });
-
         #region SDL Event Handling
 
         /// <summary>
         /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
         /// </summary>
         /// <param name="action">The <see cref="Action"/> to execute.</param>
-        protected void ScheduleEvent(Action action) => eventScheduler.Add(action, false);
+        protected void ScheduleEvent(Action action) => EventScheduler.Add(action, false);
 
         protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 
@@ -633,6 +349,10 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_QUIT:
                 case SDL.SDL_EventType.SDL_APP_TERMINATING:
                     handleQuitEvent(e.quit);
+                    break;
+
+                case SDL.SDL_EventType.SDL_DISPLAYEVENT:
+                    handleDisplayEvent(e.display);
                     break;
 
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
@@ -721,545 +441,12 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => RequestClose();
-
-        private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
-        {
-            switch (evtDrop.type)
-            {
-                case SDL.SDL_EventType.SDL_DROPFILE:
-                    string str = SDL.UTF8_ToManaged(evtDrop.file, true);
-                    if (str != null)
-                        DragDrop?.Invoke(str);
-
-                    break;
-            }
-        }
-
-        private void handleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
-        {
-        }
-
-        private void handleControllerDeviceEvent(SDL.SDL_ControllerDeviceEvent evtCdevice)
-        {
-            switch (evtCdevice.type)
-            {
-                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    addJoystick(evtCdevice.which);
-                    break;
-
-                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                    SDL.SDL_GameControllerClose(controllers[evtCdevice.which].ControllerHandle);
-                    controllers.Remove(evtCdevice.which);
-                    break;
-
-                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
-                    if (controllers.TryGetValue(evtCdevice.which, out var state))
-                        state.PopulateBindings();
-
-                    break;
-            }
-        }
-
-        private void handleControllerButtonEvent(SDL.SDL_ControllerButtonEvent evtCbutton)
-        {
-            var button = ((SDL.SDL_GameControllerButton)evtCbutton.button).ToJoystickButton();
-
-            switch (evtCbutton.type)
-            {
-                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
-                    enqueueJoystickButtonInput(button, true);
-                    break;
-
-                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
-                    enqueueJoystickButtonInput(button, false);
-                    break;
-            }
-        }
-
-        private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
-
-        private void addJoystick(int which)
-        {
-            int instanceID = SDL.SDL_JoystickGetDeviceInstanceID(which);
-
-            // if the joystick is already opened, ignore it
-            if (controllers.ContainsKey(instanceID))
-                return;
-
-            var joystick = SDL.SDL_JoystickOpen(which);
-
-            var controller = IntPtr.Zero;
-            if (SDL.SDL_IsGameController(which) == SDL.SDL_bool.SDL_TRUE)
-                controller = SDL.SDL_GameControllerOpen(which);
-
-            controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
-        }
-
-        /// <summary>
-        /// Populates <see cref="controllers"/> with joysticks that are already connected.
-        /// </summary>
-        private void populateJoysticks()
-        {
-            for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
-            {
-                addJoystick(i);
-            }
-        }
-
-        private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
-        {
-            switch (evtJdevice.type)
-            {
-                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    addJoystick(evtJdevice.which);
-                    break;
-
-                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
-                    // if the joystick is already closed, ignore it
-                    if (!controllers.ContainsKey(evtJdevice.which))
-                        break;
-
-                    SDL.SDL_JoystickClose(controllers[evtJdevice.which].JoystickHandle);
-                    controllers.Remove(evtJdevice.which);
-                    break;
-            }
-        }
-
-        private void handleJoyButtonEvent(SDL.SDL_JoyButtonEvent evtJbutton)
-        {
-            // if this button exists in the controller bindings, skip it
-            if (controllers.TryGetValue(evtJbutton.which, out var state) && state.GetButtonForIndex(evtJbutton.button) != SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID)
-                return;
-
-            var button = JoystickButton.FirstButton + evtJbutton.button;
-
-            switch (evtJbutton.type)
-            {
-                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
-                    enqueueJoystickButtonInput(button, true);
-                    break;
-
-                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
-                    enqueueJoystickButtonInput(button, false);
-                    break;
-            }
-        }
-
-        private void handleJoyHatEvent(SDL.SDL_JoyHatEvent evtJhat)
-        {
-        }
-
-        private void handleJoyBallEvent(SDL.SDL_JoyBallEvent evtJball)
-        {
-        }
-
-        private void handleJoyAxisEvent(SDL.SDL_JoyAxisEvent evtJaxis)
-        {
-            // if this axis exists in the controller bindings, skip it
-            if (controllers.TryGetValue(evtJaxis.which, out var state) && state.GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
-                return;
-
-            enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
-        }
-
-        private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            TriggerMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false);
-
-        private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
-        {
-            MouseButton button = mouseButtonFromEvent(evtButton.button);
-
-            switch (evtButton.type)
-            {
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    MouseDown?.Invoke(button);
-                    break;
-
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    MouseUp?.Invoke(button);
-                    break;
-            }
-        }
-
-        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
-        {
-            if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
-                MouseMove?.Invoke(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale));
-            else
-                MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
-        }
-
-        protected virtual unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
-        {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
-                return;
-
-            TriggerTextInput(text);
-        }
-
-        protected virtual unsafe void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
-        {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtEdit.text, out string text))
-                return;
-
-            TriggerTextEditing(text, evtEdit.start, evtEdit.length);
-        }
-
-        private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
-        {
-            Key key = evtKey.keysym.ToKey();
-
-            if (key == Key.Unknown)
-                return;
-
-            switch (evtKey.type)
-            {
-                case SDL.SDL_EventType.SDL_KEYDOWN:
-                    KeyDown?.Invoke(key);
-                    break;
-
-                case SDL.SDL_EventType.SDL_KEYUP:
-                    KeyUp?.Invoke(key);
-                    break;
-            }
-        }
-
-        private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
-
-        private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
-        {
-            updateWindowSpecifics();
-
-            switch (evtWindow.windowEvent)
-            {
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                    // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
-                    SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
-                    var newPosition = new Point(x, y);
-
-                    if (!newPosition.Equals(Position))
-                    {
-                        position = newPosition;
-                        Moved?.Invoke(newPosition);
-
-                        if (WindowMode.Value == Configuration.WindowMode.Windowed)
-                            storeWindowPositionToConfig();
-                    }
-
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    updateWindowSize();
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                    cursorInWindow.Value = true;
-                    MouseEntered?.Invoke();
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                    cursorInWindow.Value = false;
-                    MouseLeft?.Invoke();
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                    Focused = true;
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                    Focused = false;
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Should be run on a regular basis to check for external window state changes.
-        /// </summary>
-        private void updateWindowSpecifics()
-        {
-            // don't attempt to run before the window is initialised, as Create() will do so anyway.
-            if (SDLWindowHandle == IntPtr.Zero)
-                return;
-
-            var stateBefore = windowState;
-
-            // check for a pending user state change and give precedence.
-            if (pendingWindowState != null)
-            {
-                windowState = pendingWindowState.Value;
-                pendingWindowState = null;
-
-                updateWindowStateAndSize();
-            }
-            else
-            {
-                windowState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
-            }
-
-            if (windowState != stateBefore)
-            {
-                WindowStateChanged?.Invoke(windowState);
-                updateMaximisedState();
-            }
-
-            int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
-
-            if (displayIndex != newDisplayIndex)
-            {
-                displayIndex = newDisplayIndex;
-                currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
-                CurrentDisplayBindable.Value = currentDisplay;
-            }
-        }
-
-        /// <summary>
-        /// Should be run after a local window state change, to propagate the correct SDL actions.
-        /// </summary>
-        private void updateWindowStateAndSize()
-        {
-            // this reset is required even on changing from one fullscreen resolution to another.
-            // if it is not included, the GL context will not get the correct size.
-            // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
-            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-
-            switch (windowState)
-            {
-                case WindowState.Normal:
-                    Size = (sizeWindowed.Value * Scale).ToSize();
-
-                    SDL.SDL_RestoreWindow(SDLWindowHandle);
-                    SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
-                    SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
-
-                    readWindowPositionFromConfig();
-                    break;
-
-                case WindowState.Fullscreen:
-                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.Value.RefreshRate, currentDisplay.Index);
-
-                    Size = new Size(closestMode.w, closestMode.h);
-
-                    SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-                    break;
-
-                case WindowState.FullscreenBorderless:
-                    Size = SetBorderless();
-                    break;
-
-                case WindowState.Maximised:
-                    SDL.SDL_RestoreWindow(SDLWindowHandle);
-                    SDL.SDL_MaximizeWindow(SDLWindowHandle);
-
-                    SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
-                    Size = new Size(w, h);
-                    break;
-
-                case WindowState.Minimised:
-                    SDL.SDL_MinimizeWindow(SDLWindowHandle);
-                    break;
-            }
-
-            updateMaximisedState();
-
-            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
-                currentDisplayMode.Value = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
-        }
-
-        private void updateMaximisedState()
-        {
-            if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
-                windowMaximised = windowState == WindowState.Maximised;
-        }
-
-        private void readWindowPositionFromConfig()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
-
-            var displayBounds = CurrentDisplay.Bounds;
-            var windowSize = sizeWindowed.Value;
-            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
-
-            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
-        }
-
-        private void storeWindowPositionToConfig()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            var displayBounds = CurrentDisplay.Bounds;
-
-            int windowX = Position.X - displayBounds.X;
-            int windowY = Position.Y - displayBounds.Y;
-
-            var windowSize = sizeWindowed.Value;
-
-            windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
-            windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
-        }
-
-        /// <summary>
-        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
-        /// </summary>
-        private bool storingSizeToConfig;
-
-        private void storeWindowSizeToConfig()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            storingSizeToConfig = true;
-            sizeWindowed.Value = (Size / Scale).ToSize();
-            storingSizeToConfig = false;
-        }
-
-        /// <summary>
-        /// Prepare display of a borderless window.
-        /// </summary>
-        /// <returns>
-        /// The size of the borderless window's draw area.
-        /// </returns>
-        protected virtual Size SetBorderless()
-        {
-            // this is a generally sane method of handling borderless, and works well on macOS and linux.
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-
-            return currentDisplay.Bounds.Size;
-        }
-
-        private MouseButton mouseButtonFromEvent(byte button)
-        {
-            switch ((uint)button)
-            {
-                default:
-                case SDL.SDL_BUTTON_LEFT:
-                    return MouseButton.Left;
-
-                case SDL.SDL_BUTTON_RIGHT:
-                    return MouseButton.Right;
-
-                case SDL.SDL_BUTTON_MIDDLE:
-                    return MouseButton.Middle;
-
-                case SDL.SDL_BUTTON_X1:
-                    return MouseButton.Button1;
-
-                case SDL.SDL_BUTTON_X2:
-                    return MouseButton.Button2;
-            }
-        }
+        // ReSharper disable once UnusedParameter.Local
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => ExitRequested?.Invoke();
 
         #endregion
 
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
-
-        public void SetupWindow(FrameworkConfigManager config)
-        {
-            CurrentDisplayBindable.Default = PrimaryDisplay;
-            CurrentDisplayBindable.ValueChanged += evt =>
-            {
-                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
-            };
-
-            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
-            windowDisplayIndexBindable.BindValueChanged(evt =>
-            {
-                CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
-                pendingWindowState = windowState;
-            }, true);
-
-            sizeFullscreen.ValueChanged += evt =>
-            {
-                if (storingSizeToConfig) return;
-                if (windowState != WindowState.Fullscreen) return;
-
-                pendingWindowState = windowState;
-            };
-
-            sizeWindowed.ValueChanged += evt =>
-            {
-                if (storingSizeToConfig) return;
-                if (windowState != WindowState.Normal) return;
-
-                pendingWindowState = windowState;
-            };
-
-            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
-            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
-
-            config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
-            config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
-
-            config.BindWith(FrameworkSetting.WindowMode, WindowMode);
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-
-            WindowMode.BindValueChanged(evt =>
-            {
-                switch (evt.NewValue)
-                {
-                    case Configuration.WindowMode.Fullscreen:
-                        WindowState = WindowState.Fullscreen;
-                        break;
-
-                    case Configuration.WindowMode.Borderless:
-                        WindowState = WindowState.FullscreenBorderless;
-                        break;
-
-                    case Configuration.WindowMode.Windowed:
-                        WindowState = windowMaximised ? WindowState.Maximised : WindowState.Normal;
-                        break;
-                }
-
-                updateConfineMode();
-            });
-
-            ConfineMouseMode.BindValueChanged(_ => updateConfineMode());
-        }
-
-        public void CycleMode()
-        {
-            var currentValue = WindowMode.Value;
-
-            do
-            {
-                switch (currentValue)
-                {
-                    case Configuration.WindowMode.Windowed:
-                        currentValue = Configuration.WindowMode.Borderless;
-                        break;
-
-                    case Configuration.WindowMode.Borderless:
-                        currentValue = Configuration.WindowMode.Fullscreen;
-                        break;
-
-                    case Configuration.WindowMode.Fullscreen:
-                        currentValue = Configuration.WindowMode.Windowed;
-                        break;
-                }
-            } while (!SupportedWindowModes.Contains(currentValue) && currentValue != WindowMode.Value);
-
-            WindowMode.Value = currentValue;
-        }
-
-        /// <summary>
-        /// Update the host window manager's cursor position based on a location relative to window coordinates.
-        /// </summary>
-        /// <param name="position">A position inside the window.</param>
-        public void UpdateMousePosition(Vector2 position) => ScheduleCommand(() =>
-            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(position.X / Scale), (int)(position.Y / Scale)));
 
         public void SetIconFromStream(Stream stream)
         {
@@ -1280,7 +467,7 @@ namespace osu.Framework.Platform
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
             // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
-            byte[] bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
+            byte[]? bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
             if (bytes == null)
                 return;
 
@@ -1289,207 +476,37 @@ namespace osu.Framework.Platform
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
 
-        private void updateConfineMode()
-        {
-            bool confine = false;
-
-            switch (ConfineMouseMode.Value)
-            {
-                case Input.ConfineMouseMode.Fullscreen:
-                    confine = WindowMode.Value != Configuration.WindowMode.Windowed;
-                    break;
-
-                case Input.ConfineMouseMode.Always:
-                    confine = true;
-                    break;
-            }
-
-            if (confine)
-                CursorStateBindable.Value |= CursorState.Confined;
-            else
-                CursorStateBindable.Value &= ~CursorState.Confined;
-        }
-
-        #region Helper functions
-
-        private SDL.SDL_DisplayMode getClosestDisplayMode(Size size, int refreshRate, int displayIndex)
-        {
-            var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = refreshRate };
-
-            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out var mode) != IntPtr.Zero)
-                return mode;
-
-            // fallback to current display's native bounds
-            targetMode.w = currentDisplay.Bounds.Width;
-            targetMode.h = currentDisplay.Bounds.Height;
-            targetMode.refresh_rate = 0;
-
-            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out mode) != IntPtr.Zero)
-                return mode;
-
-            // finally return the current mode if everything else fails.
-            // not sure this is required.
-            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out mode) >= 0)
-                return mode;
-
-            throw new InvalidOperationException("couldn't retrieve valid display mode");
-        }
-
-        private static Display displayFromSDL(int displayIndex)
-        {
-            var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
-                                         .Select(modeIndex =>
-                                         {
-                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return displayModeFromSDL(mode, displayIndex, modeIndex);
-                                         })
-                                         .ToArray();
-
-            SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
-            return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
-        }
-
-        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
-        {
-            SDL.SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
-        }
-
-        #endregion
-
         #region Events
 
         /// <summary>
         /// Invoked once every window event loop.
         /// </summary>
-        public event Action Update;
+        public event Action? Update;
 
         /// <summary>
-        /// Invoked after the window has resized.
+        /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        public event Action Resized;
-
-        /// <summary>
-        /// Invoked after the window's state has changed.
-        /// </summary>
-        public event Action<WindowState> WindowStateChanged;
-
-        /// <summary>
-        /// Invoked when the user attempts to close the window. Return value of true will cancel exit.
-        /// </summary>
-        public event Func<bool> ExitRequested;
+        public event Action? ExitRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
         /// </summary>
-        public event Action Exited;
-
-        /// <summary>
-        /// Invoked when the mouse cursor enters the window.
-        /// </summary>
-        public event Action MouseEntered;
-
-        /// <summary>
-        /// Invoked when the mouse cursor leaves the window.
-        /// </summary>
-        public event Action MouseLeft;
-
-        /// <summary>
-        /// Invoked when the window moves.
-        /// </summary>
-        public event Action<Point> Moved;
-
-        /// <summary>
-        /// Invoked when the user scrolls the mouse wheel over the window.
-        /// </summary>
-        public event Action<Vector2, bool> MouseWheel;
-
-        protected void TriggerMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
-
-        /// <summary>
-        /// Invoked when the user moves the mouse cursor within the window.
-        /// </summary>
-        public event Action<Vector2> MouseMove;
-
-        /// <summary>
-        /// Invoked when the user moves the mouse cursor within the window (via relative / raw input).
-        /// </summary>
-        public event Action<Vector2> MouseMoveRelative;
-
-        /// <summary>
-        /// Invoked when the user presses a mouse button.
-        /// </summary>
-        public event Action<MouseButton> MouseDown;
-
-        /// <summary>
-        /// Invoked when the user releases a mouse button.
-        /// </summary>
-        public event Action<MouseButton> MouseUp;
-
-        /// <summary>
-        /// Invoked when the user presses a key.
-        /// </summary>
-        public event Action<Key> KeyDown;
-
-        /// <summary>
-        /// Invoked when the user releases a key.
-        /// </summary>
-        public event Action<Key> KeyUp;
-
-        /// <summary>
-        /// Invoked when the user enters text.
-        /// </summary>
-        public event Action<string> TextInput;
-
-        protected void TriggerTextInput(string text) => TextInput?.Invoke(text);
-
-        /// <summary>
-        /// Invoked when an IME text editing event occurs.
-        /// </summary>
-        public event TextEditingDelegate TextEditing;
-
-        protected void TriggerTextEditing(string text, int start, int length) => TextEditing?.Invoke(text, start, length);
-
-        /// <inheritdoc cref="IWindow.KeymapChanged"/>
-        public event Action KeymapChanged;
-
-        /// <summary>
-        /// Invoked when a joystick axis changes.
-        /// </summary>
-        public event Action<JoystickAxis> JoystickAxisChanged;
-
-        /// <summary>
-        /// Invoked when the user presses a button on a joystick.
-        /// </summary>
-        public event Action<JoystickButton> JoystickButtonDown;
-
-        /// <summary>
-        /// Invoked when the user releases a button on a joystick.
-        /// </summary>
-        public event Action<JoystickButton> JoystickButtonUp;
+        public event Action? Exited;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        public event Action<string> DragDrop;
+        public event Action<string>? DragDrop;
 
         /// <summary>
         /// Invoked on every SDL event before it's posted to the event queue.
         /// </summary>
-        protected event Action<SDL.SDL_Event> OnSDLEvent;
+        protected event Action<SDL.SDL_Event>? OnSDLEvent;
 
         #endregion
 
         public void Dispose()
         {
         }
-
-        /// <summary>
-        /// Fired when text is edited, usually via IME composition.
-        /// </summary>
-        /// <param name="text">The composition text.</param>
-        /// <param name="start">The index of the selection start.</param>
-        /// <param name="length">The length of the selection.</param>
-        public delegate void TextEditingDelegate(string text, int start, int length);
     }
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace osu.Framework.Audio.Callbacks
 {
@@ -12,13 +11,11 @@ namespace osu.Framework.Audio.Callbacks
     /// </summary>
     public class DataStreamFileProcedures : IFileProcedures
     {
-        private byte[] readBuffer = new byte[32768];
-
         private readonly Stream dataStream;
 
         public DataStreamFileProcedures(Stream data)
         {
-            dataStream = data;
+            dataStream = data ?? throw new ArgumentNullException(nameof(data));
         }
 
         public void Close(IntPtr user)
@@ -27,7 +24,7 @@ namespace osu.Framework.Audio.Callbacks
 
         public long Length(IntPtr user)
         {
-            if (dataStream == null) return 0;
+            if (!dataStream.CanSeek) return 0;
 
             try
             {
@@ -35,37 +32,27 @@ namespace osu.Framework.Audio.Callbacks
             }
             catch
             {
+                return 0;
             }
-
-            return 0;
         }
 
-        public int Read(IntPtr buffer, int length, IntPtr user)
+        public unsafe int Read(IntPtr buffer, int length, IntPtr user)
         {
-            if (dataStream == null) return 0;
+            if (!dataStream.CanRead) return 0;
 
             try
             {
-                if (length > readBuffer.Length)
-                    readBuffer = new byte[length];
-
-                if (!dataStream.CanRead)
-                    return 0;
-
-                int readBytes = dataStream.Read(readBuffer, 0, length);
-                Marshal.Copy(readBuffer, 0, buffer, readBytes);
-                return readBytes;
+                return dataStream.Read(new Span<byte>((void*)buffer, length));
             }
             catch
             {
+                return 0;
             }
-
-            return 0;
         }
 
         public bool Seek(long offset, IntPtr user)
         {
-            if (dataStream == null) return false;
+            if (!dataStream.CanSeek) return false;
 
             try
             {
@@ -73,9 +60,8 @@ namespace osu.Framework.Audio.Callbacks
             }
             catch
             {
+                return false;
             }
-
-            return false;
         }
     }
 }

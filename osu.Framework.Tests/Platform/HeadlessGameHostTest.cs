@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -96,21 +98,22 @@ namespace osu.Framework.Tests.Platform
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
 
-                async void waitAction()
+                async Task waitAction()
                 {
-                    using (var received = new ManualResetEventSlim(false))
+                    using (var received = new SemaphoreSlim(0))
                     {
                         serverChannel.MessageReceived += message =>
                         {
                             Assert.AreEqual("example", message.Bar);
                             // ReSharper disable once AccessToDisposedClosure
-                            received.Set();
+                            received.Release();
                             return null;
                         };
 
                         await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
 
-                        received.Wait();
+                        if (!await received.WaitAsync(10000).ConfigureAwait(false))
+                            throw new TimeoutException("Message was not received in a timely fashion");
                     }
                 }
 

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
@@ -8,7 +10,6 @@ using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using osu.Framework.Layout;
-using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -226,7 +227,7 @@ namespace osu.Framework.Graphics.Sprites
             // ======================================================================================================================
 
             // RectangleF texRect = RelativeDrawTextureRectangle;
-            // Vector2 shrinkageAmount = Vector2.Divide(texRect.Size * (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) / 2, Texture.Size);
+            // Vector2 shrinkageAmount = Vector2.Divide(texRect.Size * (1 << IRenderer.MAX_MIPMAP_LEVELS) / 2, Texture.Size);
             // shrinkageAmount = Vector2.ComponentMin(shrinkageAmount, texRect.Size / 2);
             // texRect = texRect.Inflate(-shrinkageAmount);
             //

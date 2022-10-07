@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,19 +58,19 @@ namespace osu.Framework.Graphics.Containers
                 unmanagedDrawablesToProcess.Add(drawable);
         }
 
-        protected internal override bool RemoveInternal(Drawable drawable)
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
             unmanagedDrawablesToProcess.Remove(drawable);
 
             if (!drawableMap.TryGetValue(drawable, out var entry))
-                return base.RemoveInternal(drawable);
+                return base.RemoveInternal(drawable, disposeImmediately);
 
             manager.RemoveEntry(entry);
             drawableMap.Remove(drawable);
 
             entry.Dispose();
 
-            return base.RemoveInternal(drawable);
+            return base.RemoveInternal(drawable, disposeImmediately);
         }
 
         protected internal override void ClearInternal(bool disposeChildren = true)

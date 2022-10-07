@@ -1,12 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -27,7 +30,7 @@ namespace osu.Framework.Platform.Windows
             // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
 
-#if NET6_0
+#if NET6_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
@@ -37,7 +40,7 @@ namespace osu.Framework.Platform.Windows
         {
         }
 
-        public override void OpenFileExternally(string filename)
+        public override bool OpenFileExternally(string filename)
         {
             if (Directory.Exists(filename))
             {
@@ -45,13 +48,17 @@ namespace osu.Framework.Platform.Windows
                 string folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
 
                 Explorer.OpenFolderAndSelectItem(folder);
-                return;
+                return true;
             }
 
-            base.OpenFileExternally(filename);
+            return base.OpenFileExternally(filename);
         }
 
-        public override void PresentFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
+        public override bool PresentFileExternally(string filename)
+        {
+            Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
+            return true;
+        }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
@@ -60,6 +67,8 @@ namespace osu.Framework.Platform.Windows
                        .Where(t => !(t is MouseHandler))
                        .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
+
+        protected override IRenderer CreateRenderer() => new WindowsGLRenderer(this);
 
         protected override void SetupForRun()
         {

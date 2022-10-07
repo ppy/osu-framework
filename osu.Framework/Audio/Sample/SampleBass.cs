@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using osu.Framework.Audio.Mixing.Bass;
 
 namespace osu.Framework.Audio.Sample
@@ -17,6 +15,7 @@ namespace osu.Framework.Audio.Sample
         private readonly BassAudioMixer mixer;
 
         internal SampleBass(SampleBassFactory factory, BassAudioMixer mixer)
+            : base(factory.Name)
         {
             this.factory = factory;
             this.mixer = mixer;

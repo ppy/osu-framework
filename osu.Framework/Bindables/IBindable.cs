@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Utils;
@@ -13,7 +15,7 @@ namespace osu.Framework.Bindables
     public interface IBindable : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
-        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
+        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind with.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         void BindTo(IBindable them);

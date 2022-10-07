@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,6 +20,8 @@ namespace osu.Framework.Tests.Localisation
     [TestFixture]
     public class LocalisationTest
     {
+        private const string default_locale = "";
+
         private FrameworkConfigManager config;
         private LocalisationManager manager;
 
@@ -29,10 +33,18 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("en", new FakeStorage("en"));
         }
 
+        [TearDown]
+        public void Teardown()
+        {
+            manager?.Dispose();
+            config?.Dispose();
+        }
+
         [Test]
         public void TestNoLanguagesAdded()
         {
             // reinitialise without the default language
+            manager.Dispose();
             manager = new LocalisationManager(config);
 
             var localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
@@ -53,6 +65,32 @@ namespace osu.Framework.Tests.Localisation
 
             // ensure that if the user's selection is added in a further AddLanguage call, the manager correctly translates strings.
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA_JP, localisedText.Value);
+        }
+
+        [Test]
+        public void TestConfigSettingRetainedWhenAddingLocaleMappings()
+        {
+            config.SetValue(FrameworkSetting.Locale, "ja-JP");
+
+            // ensure that adding a new language which doesn't match the user's choice doesn't cause the configuration value to get reset.
+            manager.AddLocaleMappings(new[]
+            {
+                new LocaleMapping("po", new FakeStorage("po-OP")),
+                new LocaleMapping("wa", new FakeStorage("wa-NG"))
+            });
+
+            Assert.AreEqual("ja-JP", config.Get<string>(FrameworkSetting.Locale));
+
+            var localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
+
+            // ensure that if the user's selection is added in a further AddLanguage call, the manager correctly translates strings.
+            manager.AddLocaleMappings(new[]
+            {
+                new LocaleMapping("ja-JP", new FakeStorage("ja-JP"))
+            });
+
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA_JP, localisedText.Value);
         }
 
@@ -120,7 +158,8 @@ namespace osu.Framework.Tests.Localisation
 
             string expectedResult = string.Format(FakeStorage.LOCALISABLE_FORMAT_STRING_JA, arg_0);
 
-            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, interpolation: $"The {arg_0} fallback should only matches argument count"));
+            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN,
+                interpolation: $"The {arg_0} fallback should only matches argument count"));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
@@ -141,6 +180,36 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestFormattedAndLocalisedUsingInterpolate()
+        {
+            var formattable = LocalisableString.Format("{0:0.00%}", 0.1234);
+            var translatable1 = new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN);
+            var translatable2 = new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, formattable);
+
+            manager.AddLanguage("ja", new FakeStorage("ja"));
+            config.SetValue(FrameworkSetting.Locale, "ja");
+
+            var formattedText = manager.GetLocalisedBindableString(LocalisableString.Interpolate($"{translatable1} -> {translatable2}"));
+
+            Assert.AreEqual("localised JA -> 12.34% localised JA", formattedText.Value);
+        }
+
+        [Test]
+        public void TestFormattedAndLocalisedUsingFormat()
+        {
+            var formattable = LocalisableString.Format("{0:0.00%}", 0.1234);
+            var translatable1 = new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN);
+            var translatable2 = new TranslatableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, formattable);
+
+            manager.AddLanguage("ja", new FakeStorage("ja"));
+            config.SetValue(FrameworkSetting.Locale, "ja");
+
+            var formattedText = manager.GetLocalisedBindableString(LocalisableString.Format("{0} -> {1}", translatable1, translatable2));
+
+            Assert.AreEqual("localised JA -> 12.34% localised JA", formattedText.Value);
+        }
+
+        [Test]
         public void TestNumberCultureAware()
         {
             const double value = 1.23;
@@ -151,7 +220,7 @@ namespace osu.Framework.Tests.Localisation
             string expectedResult = string.Format(new CultureInfo("fr"), FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_FR, value);
             Assert.AreEqual("number 1,23 FR", expectedResult); // FR uses comma for decimal point.
 
-            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null, value));
+            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null!, value));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
@@ -254,8 +323,8 @@ namespace osu.Framework.Tests.Localisation
             var uppercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var titleText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
 
-            Assert.AreEqual(uppercasedText.Value, "LOCALISED EN");
-            Assert.AreEqual(titleText.Value, localisable_string_en_title_case);
+            Assert.AreEqual("LOCALISED EN", uppercasedText.Value);
+            Assert.AreEqual(localisable_string_en_title_case, titleText.Value);
         }
 
         [Test]
@@ -265,16 +334,22 @@ namespace osu.Framework.Tests.Localisation
 
             var uppercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var lowercasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToLower());
+            var titleCasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
+            var sentenceCasedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToSentence());
 
             config.SetValue(FrameworkSetting.Locale, "en");
 
-            Assert.AreEqual(uppercasedText.Value, "LOCALISED EN");
-            Assert.AreEqual(lowercasedText.Value, "localised en");
+            Assert.AreEqual("LOCALISED EN", uppercasedText.Value);
+            Assert.AreEqual("localised en", lowercasedText.Value);
+            Assert.AreEqual("Localised EN", titleCasedText.Value);
+            Assert.AreEqual("Localised EN", sentenceCasedText.Value);
 
             config.SetValue(FrameworkSetting.Locale, "tr");
 
-            Assert.AreEqual(uppercasedText.Value, "LOCALİSED TR (İ/I)");
-            Assert.AreEqual(lowercasedText.Value, "localised tr (i/ı)");
+            Assert.AreEqual("LOCALİSED TR (İ/I)", uppercasedText.Value);
+            Assert.AreEqual("localised tr (i/ı)", lowercasedText.Value);
+            Assert.AreEqual("Localised TR (İ/I)", titleCasedText.Value);
+            Assert.AreEqual("Localised TR (i/I)", sentenceCasedText.Value);
         }
 
         [Test]
@@ -284,7 +359,8 @@ namespace osu.Framework.Tests.Localisation
 
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
-            var text = manager.GetLocalisedBindableString(new TranslatableString(key, key, new LocalisableFormattableString(0.1234, "0.00%")));
+            var arg = LocalisableString.Format("{0:0.00%}", 0.1234);
+            var text = manager.GetLocalisedBindableString(new TranslatableString(key, key, arg));
 
             Assert.AreEqual("number 12.34% EN", text.Value);
 
@@ -333,8 +409,8 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
             var text = manager.GetLocalisedBindableString(new TranslatableString(key, key,
-                new LocalisableFormattableString(12.34, "0.00"),
-                new TranslatableString(nested_key, nested_key, new LocalisableFormattableString(0.9876, "0.00%")),
+                LocalisableString.Interpolate($"{12.34:0.00}"),
+                new TranslatableString(nested_key, nested_key, LocalisableString.Interpolate($"{0.9876:0.00%}")),
                 new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
 
             Assert.AreEqual("number 12.34 with number 98.76% EN and number unicode EN EN", text.Value);
@@ -353,15 +429,15 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestTranslatableComplexStringUsesFallbackFormatWithTranslatedParts()
+        public void TestFormatComplexStringUsesFallbackFormatWithTranslatedParts()
         {
             const string nested_key = FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN;
 
             manager.AddLanguage("fr", new FakeStorage("fr"));
 
-            var text = manager.GetLocalisedBindableString(new TranslatableString("_", "{0} / {1} / {2}",
-                new LocalisableFormattableString(12.34, "0.00"),
-                new TranslatableString(nested_key, nested_key, new LocalisableFormattableString(0.9876, "0.00%")),
+            var text = manager.GetLocalisedBindableString(LocalisableString.Format("{0} / {1} / {2}",
+                LocalisableString.Interpolate($"{12.34:0.00}"),
+                new TranslatableString(nested_key, nested_key, LocalisableString.Interpolate($"{0.9876:0.00%}")),
                 new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
 
             Assert.AreEqual("12.34 / number 98.76% EN / number unicode EN", text.Value);
@@ -379,6 +455,48 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual("12.34 / number 98.76% EN / number romanised EN", text.Value);
         }
 
+        [Test]
+        public void TestInvalidLocaleWhileRunning()
+        {
+            string localeBefore = config.Get<string>(FrameworkSetting.Locale);
+            config.SetValue(FrameworkSetting.Locale, "invalid locale");
+            string localeAfter = config.Get<string>(FrameworkSetting.Locale);
+
+            Assert.That(localeAfter, Is.EqualTo(localeBefore));
+        }
+
+        [Test]
+        public void TestInvalidLocaleDuringStartup()
+        {
+            // dispose the old manager so it doesn't change the config value.
+            manager.Dispose();
+            // simulate an invalid locale being set on startup.
+            config.SetValue(FrameworkSetting.Locale, "invalid locale");
+            manager = new LocalisationManager(config);
+            // add a language to trigger a locale update
+            manager.AddLanguage("en", new FakeStorage("en"));
+            // the manager should reset the locale to the default value if it can't parse the locale.
+            Assert.That(config.Get<string>(FrameworkSetting.Locale), Is.EqualTo(default_locale));
+        }
+
+        /// <summary>
+        /// Tests a possible edge case where both the old and new locales could be invalid in the 'revert to previous value' logic in <see cref="LocalisationManager.updateLocale"/>.
+        /// </summary>
+        [Test]
+        public void TestInvalidLocaleToInvalid()
+        {
+            // dispose the old manager so it doesn't change the config value.
+            manager.Dispose();
+            // simulate an invalid locale being set on startup.
+            config.SetValue(FrameworkSetting.Locale, "invalid locale");
+            manager = new LocalisationManager(config);
+            // set another invalid locale to generate a ValueChanged event with both locales invalid. (possible infinite back-and-forth between the two locales)
+            config.SetValue(FrameworkSetting.Locale, "another invalid locale");
+            // add a language to make sure everything still works.
+            manager.AddLanguage("en", new FakeStorage("en"));
+            Assert.That(config.Get<string>(FrameworkSetting.Locale), Is.EqualTo(default_locale));
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
@@ -390,7 +508,7 @@ namespace osu.Framework.Tests.Localisation
 
             protected override void InitialiseDefaults()
             {
-                SetDefault(FrameworkSetting.Locale, "");
+                SetDefault(FrameworkSetting.Locale, default_locale);
                 SetDefault(FrameworkSetting.ShowUnicode, true);
             }
         }

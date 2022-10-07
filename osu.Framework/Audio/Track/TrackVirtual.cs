@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Threading.Tasks;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
@@ -12,7 +15,8 @@ namespace osu.Framework.Audio.Track
 
         private double seekOffset;
 
-        public TrackVirtual(double length)
+        public TrackVirtual(double length, string name = "virtual")
+            : base(name)
         {
             Length = length;
         }
@@ -30,6 +34,23 @@ namespace osu.Framework.Audio.Track
             }
 
             return seekOffset == seek;
+        }
+
+        public override Task<bool> SeekAsync(double seek)
+        {
+            return Task.FromResult(Seek(seek));
+        }
+
+        public override Task StartAsync()
+        {
+            Start();
+            return Task.CompletedTask;
+        }
+
+        public override Task StopAsync()
+        {
+            Stop();
+            return Task.CompletedTask;
         }
 
         public override void Start()

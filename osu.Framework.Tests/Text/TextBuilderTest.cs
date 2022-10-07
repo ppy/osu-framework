@@ -1,10 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Text;
@@ -33,6 +36,9 @@ namespace osu.Framework.Tests.Text
         private const float b_height = 13;
         private const float b_kerning = -14;
 
+#pragma warning disable IDE1006 // Naming style
+        // m_ recognized as prefix instead of part of the name
+
         private const float m_x_offset = 15;
         private const float m_y_offset = 16;
         private const float m_x_advance = 17;
@@ -40,6 +46,8 @@ namespace osu.Framework.Tests.Text
         private const float m_baseline = 19;
         private const float m_height = 20;
         private const float m_kerning = -21;
+
+#pragma warning restore IDE1006
 
         private static readonly Vector2 spacing = new Vector2(22, 23);
 
@@ -616,7 +624,7 @@ namespace osu.Framework.Tests.Text
 
         private readonly struct TestGlyph : ITexturedCharacterGlyph
         {
-            public Texture Texture => new Texture(1, 1);
+            public Texture Texture => new DummyRenderer().CreateTexture(1, 1);
             public float XOffset { get; }
             public float YOffset { get; }
             public float XAdvance { get; }

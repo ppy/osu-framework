@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.IO;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
@@ -44,6 +46,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BreadcrumbDisplayDirectory(DirectoryInfo directory, string displayName = null)
                 : base(directory, displayName)
+            {
+            }
+
+            // this method is suppressed to ensure the breadcrumbs of hidden directories are presented the same way as non-hidden directories
+            protected sealed override void ApplyHiddenState()
             {
             }
 

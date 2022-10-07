@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +28,8 @@ namespace osu.Framework.Platform.MacOS
         {
             get
             {
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Application Support");
+
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!string.IsNullOrEmpty(xdg))
@@ -64,7 +68,12 @@ namespace osu.Framework.Platform.MacOS
             return handlers;
         }
 
-        public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
+        public override IEnumerable<KeyBinding> PlatformKeyBindings => KeyBindings;
+
+        /// <summary>
+        /// <see cref="PlatformKeyBindings"/> for macOS and iOS.
+        /// </summary>
+        internal static IEnumerable<KeyBinding> KeyBindings => new[]
         {
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.X), PlatformAction.Cut),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.C), PlatformAction.Copy),

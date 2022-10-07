@@ -1,12 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -35,6 +36,8 @@ namespace osu.Framework.Platform
 
         public abstract void SwapBuffers();
 
+        public abstract void InitialiseBeforeWindowCreation();
+
         public virtual void Initialise(IWindow window)
         {
             Context = CreateContext();
@@ -50,7 +53,6 @@ namespace osu.Framework.Platform
 
             // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
             IsEmbedded = version.Contains("OpenGL ES");
-            GLWrapper.IsEmbedded = IsEmbedded;
 
             version = GL.GetString(StringName.ShadingLanguageVersion);
 

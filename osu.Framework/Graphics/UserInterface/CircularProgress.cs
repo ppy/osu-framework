@@ -1,13 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -22,10 +23,25 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
-        public CircularProgress()
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders, IRenderer renderer)
         {
-            Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
-            Texture = Texture.WhitePixel;
+            Texture ??= renderer.WhitePixel;
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            Current.BindValueChanged(c =>
+            {
+                if (!double.IsFinite(c.NewValue))
+                    throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
+
+                Invalidate(Invalidation.DrawNode);
+            }, true);
         }
 
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
@@ -36,13 +52,6 @@ namespace osu.Framework.Graphics.UserInterface
         public TransformSequence<CircularProgress> FillTo<TEasing>(double newValue, double duration, in TEasing easing)
             where TEasing : IEasingFunction
             => this.TransformBindableTo(Current, newValue, duration, easing);
-
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
-        {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
-        }
 
         private float innerRadius = 1;
 
@@ -56,6 +65,9 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
+                if (!float.IsFinite(value))
+                    throw new ArgumentException($"{nameof(InnerRadius)} must be finite, but is {value}.");
+
                 innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
@@ -81,12 +93,14 @@ namespace osu.Framework.Graphics.UserInterface
                 progress = Math.Abs((float)Source.current.Value);
             }
 
-            protected override void Blit(Action<TexturedVertex2D> vertexAction)
+            protected override void Blit(IRenderer renderer)
             {
-                Shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
-                Shader.GetUniform<float>("progress").UpdateValue(ref progress);
+                var shader = GetAppropriateShader(renderer);
 
-                base.Blit(vertexAction);
+                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
+                shader.GetUniform<float>("progress").UpdateValue(ref progress);
+
+                base.Blit(renderer);
             }
         }
     }

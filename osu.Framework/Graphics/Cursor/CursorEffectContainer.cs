@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -89,7 +91,7 @@ namespace osu.Framework.Graphics.Cursor
                 // are still our own responsibility to handle.
                 nestedTtcChildDrawables.UnionWith(
                     ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
-                                                               .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
+                                                               .SkipWhile(d => d.Parent == this || (!(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent))));
 
                 // Ignore drawables whose effects are managed by a nested effect container.
                 if (nestedTtcChildDrawables.Contains(candidate))

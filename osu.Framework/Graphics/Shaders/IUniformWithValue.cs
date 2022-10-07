@@ -1,14 +1,23 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal interface IUniformWithValue<T> : IUniform
-        where T : struct, IEquatable<T>
+    public interface IUniformWithValue<T> : IUniform
+        where T : unmanaged, IEquatable<T>
     {
+        /// <summary>
+        /// Returns a reference to the current value of this uniform.
+        /// </summary>
         ref T GetValueByRef();
+
+        /// <summary>
+        /// Returns the current value of this uniform.
+        /// </summary>
         T GetValue();
     }
 }

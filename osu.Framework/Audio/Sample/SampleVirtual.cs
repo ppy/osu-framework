@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
@@ -9,6 +11,11 @@ namespace osu.Framework.Audio.Sample
     /// </summary>
     public sealed class SampleVirtual : Sample
     {
-        protected override SampleChannel CreateChannel() => new SampleChannelVirtual();
+        protected override SampleChannel CreateChannel() => new SampleChannelVirtual(Name);
+
+        public SampleVirtual(string name = "virtual")
+            : base(name)
+        {
+        }
     }
 }

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
@@ -71,7 +73,7 @@ namespace osu.Framework.Tests.Localisation
             });
 
             AddUntilStep("wait for query", () => cultures.Count == 3);
-            AddAssert($"culture is {name}", () => cultures.All(c => c.Name == name));
+            AddAssert($"culture is {name}", () => cultures.Select(c => c.Name), () => Is.All.EqualTo(name));
         }
 
         private void assertThreadCulture(string name)

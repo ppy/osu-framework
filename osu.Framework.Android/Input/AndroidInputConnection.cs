@@ -9,40 +9,43 @@ namespace osu.Framework.Android.Input
 {
     internal class AndroidInputConnection : BaseInputConnection
     {
-        public AndroidGameView TargetView { get; set; }
+        private readonly AndroidGameView targetView;
 
         public AndroidInputConnection(AndroidGameView targetView, bool fullEditor)
             : base(targetView, fullEditor)
         {
-            TargetView = targetView;
+            this.targetView = targetView;
         }
 
-        public override bool CommitText(ICharSequence text, int newCursorPosition)
+        public override bool CommitText(ICharSequence? text, int newCursorPosition)
         {
-            if (text.Length() != 0)
+            if (text?.Length() > 0)
             {
-                TargetView.OnCommitText(text.ToString());
+                targetView.OnCommitText(text.ToString());
                 return true;
             }
 
             return base.CommitText(text, newCursorPosition);
         }
 
-        public override bool SendKeyEvent(KeyEvent e)
+        public override bool SendKeyEvent(KeyEvent? e)
         {
+            if (e == null)
+                return base.SendKeyEvent(e);
+
             switch (e.Action)
             {
                 case KeyEventActions.Down:
-                    TargetView?.OnKeyDown(e.KeyCode, e);
+                    targetView.OnKeyDown(e.KeyCode, e);
                     return true;
 
                 case KeyEventActions.Up:
-                    TargetView?.OnKeyUp(e.KeyCode, e);
+                    targetView.OnKeyUp(e.KeyCode, e);
                     return true;
 
                 case KeyEventActions.Multiple:
-                    TargetView?.OnKeyDown(e.KeyCode, e);
-                    TargetView?.OnKeyUp(e.KeyCode, e);
+                    targetView.OnKeyDown(e.KeyCode, e);
+                    targetView.OnKeyUp(e.KeyCode, e);
                     return true;
             }
 

@@ -1,16 +1,18 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Text.RegularExpressions;
 using NUnit.Framework;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.OpenGL.Shaders;
 
 namespace osu.Framework.Tests.Graphics
 {
     [TestFixture]
     public class ShaderRegexTest
     {
-        private readonly Regex shaderAttributeRegex = new Regex(ShaderPart.SHADER_ATTRIBUTE_PATTERN);
+        private readonly Regex shaderAttributeRegex = new Regex(GLShaderPart.SHADER_ATTRIBUTE_PATTERN);
 
         [Test]
         public void TestComment()

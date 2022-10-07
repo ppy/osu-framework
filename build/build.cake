@@ -1,4 +1,6 @@
 using System.Threading;
+using System.Text.RegularExpressions;
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.1"
 #addin "nuget:?package=CodeFileSanity&version=0.0.36"
 #tool "nuget:?package=Python&version=3.7.2"
 var pythonPath = GetFiles("./tools/python.*/tools/python.exe").First();
@@ -17,7 +19,6 @@ var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var sln = rootDirectory.CombineWithFilePath("osu-framework.sln");
-var desktopBuilds = rootDirectory.CombineWithFilePath("build/Desktop.proj");
 var desktopSlnf = rootDirectory.CombineWithFilePath("osu-framework.Desktop.slnf");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
@@ -82,7 +83,7 @@ Task("RunHttpBin")
 
 Task("Compile")
     .Does(() => {
-        DotNetCoreBuild(desktopBuilds.FullPath, new DotNetCoreBuildSettings {
+        DotNetCoreBuild(desktopSlnf.FullPath, new DotNetCoreBuildSettings {
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Minimal,
         });
@@ -123,11 +124,6 @@ Task("CodeFileSanity")
         });
     });
 
-// Temporarily disabled until the tool is upgraded to 5.0.
-// The version specified in .config/dotnet-tools.json (3.1.37601) won't run on .NET hosts >=5.0.7.
-// Task("DotnetFormat")
-//    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
-
 Task("PackFramework")
     .Does(() => {
         DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
@@ -137,6 +133,9 @@ Task("PackFramework")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append("/p:IncludeSymbols=true");
+                args.Append("/p:SymbolPackageFormat=snupkg");
+                args.Append("/p:PublishRepositoryUrl=true");
 
                 return args;
             }
@@ -198,7 +197,21 @@ Task("PackNativeLibs")
     });
 
 Task("PackTemplate")
-    .Does(() => {
+    .Does(ctx => {
+        ctx.ReplaceRegexInFiles(
+            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
+            "^.*osu.Framework.csproj.*$",
+            $"    <PackageReference Include=\"ppy.osu.Framework\" Version=\"{version}\" />",
+            RegexOptions.Multiline
+        );
+
+        ctx.ReplaceRegexInFiles(
+            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
+            "^.*osu.Framework.iOS.csproj.*$",
+            $"    <PackageReference Include=\"ppy.osu.Framework.iOS\" Version=\"{version}\" />",
+            RegexOptions.Multiline
+        );
+
         DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
@@ -217,14 +230,13 @@ Task("Publish")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
     .Does(() => {
         foreach (var artifact in GetFiles(artifactsDirectory.CombineWithFilePath("*").FullPath))
-            AppVeyor.UploadArtifact(artifact);
+            AppVeyor.UploadArtifact(artifact, settings => settings.SetArtifactType(AppVeyorUploadArtifactType.NuGetPackage));
     });
 
 Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
-    //.IsDependentOn("DotnetFormat") <- To be uncommented after fixing the task.
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")
@@ -239,6 +251,11 @@ Task("DeployFrameworkDesktop")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
+    .IsDependentOn("Publish");
+
+Task("DeployFrameworkTemplates")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -1247,7 +1249,7 @@ namespace osu.Framework.Tests.Bindables
             Assert.Multiple(() =>
             {
                 Assert.IsNotNull(isDisabled);
-                Assert.IsTrue(isDisabled.Value);
+                Assert.IsTrue(isDisabled);
             });
         }
 
@@ -1266,18 +1268,18 @@ namespace osu.Framework.Tests.Bindables
             Assert.Multiple(() =>
             {
                 Assert.IsNotNull(isDisabledA);
-                Assert.IsTrue(isDisabledA.Value);
+                Assert.IsTrue(isDisabledA);
                 Assert.IsNotNull(isDisabledB);
-                Assert.IsTrue(isDisabledB.Value);
+                Assert.IsTrue(isDisabledB);
                 Assert.IsNotNull(isDisabledC);
-                Assert.IsTrue(isDisabledC.Value);
+                Assert.IsTrue(isDisabledC);
             });
         }
 
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscriber()
         {
-            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
 
             bindableStringList.Disabled = bindableStringList.Disabled;
         }
@@ -1285,9 +1287,9 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscribers()
         {
-            bindableStringList.DisabledChanged += b => Assert.Fail();
-            bindableStringList.DisabledChanged += b => Assert.Fail();
-            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
+            bindableStringList.DisabledChanged += _ => Assert.Fail();
 
             bindableStringList.Disabled = bindableStringList.Disabled;
         }

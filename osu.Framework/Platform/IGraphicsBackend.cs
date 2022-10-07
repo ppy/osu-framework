@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 namespace osu.Framework.Platform
 {
     /// <summary>
@@ -12,6 +14,11 @@ namespace osu.Framework.Platform
         /// Whether buffer swapping should be synced to the monitor's refresh rate.
         /// </summary>
         bool VerticalSync { get; set; }
+
+        /// <summary>
+        /// Initialises everything needed to create a window such as backbuffer parameters.
+        /// </summary>
+        void InitialiseBeforeWindowCreation();
 
         /// <summary>
         /// Initialises the graphics backend, given the current window backend.

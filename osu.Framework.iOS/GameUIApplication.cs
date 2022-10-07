@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using Foundation;
@@ -21,12 +23,9 @@ namespace osu.Framework.iOS
         private const int gsevent_type_keyup = 11;
         private const int gsevent_type_modifier = 12;
 
-        public delegate void KeyHandler(int keyCode, bool isDown);
+        public delegate void GsKeyEventHandler(int keyCode, bool isDown);
 
-        /// <summary>
-        /// Occurs when key event.
-        /// </summary>
-        public event KeyHandler KeyEvent;
+        public event GsKeyEventHandler HandleGsKeyEvent;
 
         // https://github.com/xamarin/xamarin-macios/blob/master/src/ObjCRuntime/Messaging.iOS.cs
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSendSuper")]
@@ -34,9 +33,9 @@ namespace osu.Framework.iOS
 
         private int lastEventFlags;
 
-        private unsafe bool decodeKeyEvent(NSObject eventMem)
+        private unsafe void decodeKeyEvent(NSObject eventMem)
         {
-            if (eventMem == null) return false;
+            if (eventMem == null) return;
 
             var eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
@@ -45,29 +44,18 @@ namespace osu.Framework.iOS
             int eventScanCode = (int)eventPtr[gsevent_keycode];
             int eventLastModifier = lastEventFlags;
 
-            static bool isBlockKey(int keyCode)
-                => keyCode == 79 || // Right
-                   keyCode == 80 || // Left
-                   keyCode == 81 || // Down
-                   keyCode == 82; // Up
-
             switch (eventType)
             {
                 case gsevent_type_keydown:
                 case gsevent_type_keyup:
-                    KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
-                    if (isBlockKey(eventScanCode))
-                        return true;
-
+                    HandleGsKeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
                     break;
 
                 case gsevent_type_modifier:
-                    KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
+                    HandleGsKeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
                     lastEventFlags = eventModifier;
                     break;
             }
-
-            return false;
         }
 
         private readonly Selector gsSelector = new Selector("_gsEvent");
@@ -76,10 +64,11 @@ namespace osu.Framework.iOS
         [Export("handleKeyUIEvent:")]
         private void handleKeyUIEvent(UIEvent evt)
         {
-            if (evt.RespondsToSelector(gsSelector) && decodeKeyEvent(evt.PerformSelector(gsSelector)))
-                return;
-
             send_super(SuperHandle, handleSelector.Handle, evt.Handle);
+
+            // On later iOS versions, hardware keyboard events are handled from UIPressesEvents instead.
+            if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && evt.RespondsToSelector(gsSelector))
+                decodeKeyEvent(evt.PerformSelector(gsSelector));
         }
     }
 }

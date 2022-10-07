@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using osuTK;
@@ -51,9 +53,12 @@ namespace osu.Framework.Graphics
 
             if (scale != Vector2.One)
             {
-                Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
+                // Zero scale leads to unexpected input and autosize calculations, so it's clamped to a sane value.
+                if (scale.X == 0) scale.X = Precision.FLOAT_EPSILON;
+                if (scale.Y == 0) scale.Y = Precision.FLOAT_EPSILON;
+
                 MatrixExtensions.ScaleFromLeft(ref Matrix, scale);
-                MatrixExtensions.ScaleFromRight(ref MatrixInverse, inverseScale);
+                MatrixExtensions.ScaleFromRight(ref MatrixInverse, Vector2.Divide(Vector2.One, scale));
             }
 
             if (origin != Vector2.Zero)

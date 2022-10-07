@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -22,7 +20,7 @@ namespace osu.Framework.Extensions.ImageExtensions
         {
             this.image = image;
 
-            if (image.TryGetSinglePixelSpan(out _))
+            if (image.DangerousTryGetSinglePixelMemory(out _))
             {
                 owner = null;
                 memory = null;
@@ -46,8 +44,8 @@ namespace osu.Framework.Extensions.ImageExtensions
                     return Span<TPixel>.Empty;
 
                 // If the image can be returned without extra contiguous memory allocation.
-                if (image.TryGetSinglePixelSpan(out var pixelSpan))
-                    return pixelSpan;
+                if (image.DangerousTryGetSinglePixelMemory(out var pixelMemory))
+                    return pixelMemory.Span;
 
                 Debug.Assert(memory != null);
                 return memory.Value.Span;

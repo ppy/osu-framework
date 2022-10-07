@@ -9,12 +9,12 @@ using Android.Runtime;
 using Android.Views;
 using ManagedBass;
 using osu.Framework.Bindables;
-using Debug = System.Diagnostics.Debug;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Android
 {
     // since `ActivityAttribute` can't be inherited, the below is only provided as an illustrative example of how to setup an activity for best compatibility.
-    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public abstract class AndroidGameActivity : Activity
     {
         protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard
@@ -41,22 +41,17 @@ namespace osu.Framework.Android
         /// </summary>
         public SystemUiFlags UIVisibilityFlags
         {
-            get
-            {
-                Debug.Assert(Window != null);
-                return (SystemUiFlags)Window.DecorView.SystemUiVisibility;
-            }
+            get => (SystemUiFlags)Window.AsNonNull().DecorView.SystemUiVisibility;
             set
             {
-                Debug.Assert(Window != null);
                 systemUiFlags = value;
-                Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+                Window.AsNonNull().DecorView.SystemUiVisibility = (StatusBarVisibility)value;
             }
         }
 
         private SystemUiFlags systemUiFlags;
 
-        private AndroidGameView gameView;
+        private AndroidGameView gameView = null!;
 
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
         {
@@ -64,7 +59,7 @@ namespace osu.Framework.Android
             gameView.Host?.Collect();
         }
 
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
             // The default current directory on android is '/'.
             // On some devices '/' maps to the app data directory. On others it maps to the root of the internal storage.
@@ -77,11 +72,9 @@ namespace osu.Framework.Android
 
             UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
 
-            Debug.Assert(Window != null);
-
             // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
-            Window.DecorView.SystemUiVisibilityChange += (_, e) =>
+            Window.AsNonNull().DecorView.SystemUiVisibilityChange += (_, e) =>
             {
                 if ((SystemUiFlags)e.Visibility != systemUiFlags)
                 {
@@ -91,8 +84,7 @@ namespace osu.Framework.Android
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
             {
-                Debug.Assert(Window.Attributes != null);
-                Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+                Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
             }
 
             gameView.HostStarted += host =>
@@ -102,9 +94,9 @@ namespace osu.Framework.Android
                     RunOnUiThread(() =>
                     {
                         if (!allow.NewValue)
-                            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                            Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
                         else
-                            Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                            Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
                     });
                 }, true);
             };
@@ -139,17 +131,17 @@ namespace osu.Framework.Android
         // On some devices and keyboard combinations the OnKeyDown event does not propagate the key event to the view.
         // Here it is done manually to ensure that the keys actually land in the view.
 
-        public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
             return gameView.OnKeyDown(keyCode, e);
         }
 
-        public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
             return gameView.OnKeyUp(keyCode, e);
         }
 
-        public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
             return gameView.OnKeyLongPress(keyCode, e);
         }

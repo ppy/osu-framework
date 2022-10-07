@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,9 +43,46 @@ namespace osu.Framework.Input.StateChanges
                 if (oldValue == a.Value || (a.Value != 0 && Precision.AlmostEquals(oldValue, a.Value)))
                     continue;
 
+                applyButtonInputsIfNeeded(state, handler, a);
+
                 state.Joystick.AxesValues[(int)a.Source] = a.Value;
                 handler.HandleInputStateChange(new JoystickAxisChangeEvent(state, this, a, oldValue));
             }
+        }
+
+        /// <summary>
+        /// Applies <see cref="JoystickButtonInput"/> events depending on whether the axis has changed direction.
+        /// </summary>
+        private void applyButtonInputsIfNeeded(InputState state, IInputStateChangeHandler handler, JoystickAxis axis)
+        {
+            int index = (int)axis.Source;
+            var currentButton = state.Joystick.AxisDirectionButtons[index];
+            var expectedButton = getAxisButtonForInput(index, axis.Value);
+
+            // if a directional button is pressed and does not match that for the new axis direction, release it
+            if (currentButton != 0 && expectedButton != currentButton)
+            {
+                new JoystickButtonInput(currentButton, false).Apply(state, handler);
+                state.Joystick.AxisDirectionButtons[index] = currentButton = 0;
+            }
+
+            // if we expect a directional button to be pressed, and it is not, press it
+            if (expectedButton != 0 && expectedButton != currentButton)
+            {
+                new JoystickButtonInput(expectedButton, true).Apply(state, handler);
+                state.Joystick.AxisDirectionButtons[index] = expectedButton;
+            }
+        }
+
+        private static JoystickButton getAxisButtonForInput(int axisIndex, float axisValue)
+        {
+            if (axisValue > 0)
+                return JoystickButton.FirstAxisPositive + axisIndex;
+
+            if (axisValue < 0)
+                return JoystickButton.FirstAxisNegative + axisIndex;
+
+            return 0;
         }
     }
 }

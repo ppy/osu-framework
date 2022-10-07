@@ -1,15 +1,17 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0
+#if NET6_0_OR_GREATER
+using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
+using System.Threading.Tasks;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -19,12 +21,15 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IRelativePointer, IPressureHandler, ITabletHandler
     {
-        private TabletDriver tabletDriver;
+        private TabletDriver? tabletDriver;
 
-        [CanBeNull]
-        private InputDeviceTree device;
+        private InputDeviceTree? device;
 
-        private AbsoluteOutputMode outputMode;
+        private AbsoluteOutputMode outputMode = null!;
+
+        private GameHost host = null!;
+
+        public override string Description => "Tablet";
 
         public override bool IsActive => tabletDriver != null;
 
@@ -38,8 +43,12 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
+        private Task? lastInitTask;
+
         public override bool Initialize(GameHost host)
         {
+            this.host = host;
+
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
@@ -48,31 +57,30 @@ namespace osu.Framework.Input.Handlers.Tablet
             AreaSize.BindValueChanged(_ => updateInputArea(device), true);
             Rotation.BindValueChanged(_ => updateInputArea(device), true);
 
-            Enabled.BindValueChanged(d =>
+            Enabled.BindValueChanged(enabled =>
             {
-                if (d.NewValue && tabletDriver == null)
+                if (enabled.NewValue)
                 {
-                    tabletDriver = TabletDriver.Create();
-                    tabletDriver.TabletsChanged += (s, e) =>
+                    lastInitTask = Task.Run(() =>
                     {
-                        device = e.Any() ? tabletDriver.InputDevices.First() : null;
-
-                        if (device != null)
-                        {
-                            device.OutputMode = outputMode;
-                            outputMode.Tablet = device.CreateReference();
-
-                            updateInputArea(device);
-                            updateOutputArea(host.Window);
-                        }
-                    };
-                    tabletDriver.DeviceReported += handleDeviceReported;
-                    tabletDriver.Detect();
+                        tabletDriver = TabletDriver.Create();
+                        tabletDriver.PostLog = Log;
+                        tabletDriver.TabletsChanged += handleTabletsChanged;
+                        tabletDriver.DeviceReported += handleDeviceReported;
+                        tabletDriver.Detect();
+                    });
                 }
-                else if (!d.NewValue && tabletDriver != null)
+                else
                 {
-                    tabletDriver.Dispose();
-                    tabletDriver = null;
+                    lastInitTask?.WaitSafely();
+
+                    if (tabletDriver != null)
+                    {
+                        tabletDriver.DeviceReported -= handleDeviceReported;
+                        tabletDriver.TabletsChanged -= handleTabletsChanged;
+                        tabletDriver.Dispose();
+                        tabletDriver = null;
+                    }
                 }
             }, true);
 
@@ -85,7 +93,21 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
-        private void handleDeviceReported(object sender, IDeviceReport report)
+        private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
+        {
+            device = tablets.Any() ? tabletDriver?.InputDevices.First() : null;
+
+            if (device != null)
+            {
+                device.OutputMode = outputMode;
+                outputMode.Tablet = device.CreateReference();
+
+                updateInputArea(device);
+                updateOutputArea(host.Window);
+            }
+        }
+
+        private void handleDeviceReported(object? sender, IDeviceReport report)
         {
             switch (report)
             {
@@ -122,7 +144,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             }
         }
 
-        private void updateInputArea([CanBeNull] InputDeviceTree inputDevice)
+        private void updateInputArea(InputDeviceTree? inputDevice)
         {
             if (inputDevice == null)
                 return;

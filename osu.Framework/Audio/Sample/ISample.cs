@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Sample
@@ -10,6 +12,11 @@ namespace osu.Framework.Audio.Sample
     /// </summary>
     public interface ISample : IAdjustableAudioComponent
     {
+        /// <summary>
+        /// A name identifying this sample internally.
+        /// </summary>
+        string Name { get; }
+
         /// <summary>
         /// The length in milliseconds of this <see cref="ISample"/>.
         /// </summary>

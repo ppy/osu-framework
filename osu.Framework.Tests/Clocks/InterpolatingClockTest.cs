@@ -12,8 +12,8 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class InterpolatingClockTest
     {
-        private TestClock source;
-        private InterpolatingFramedClock interpolating;
+        private TestClock source = null!;
+        private InterpolatingFramedClock interpolating = null!;
 
         [SetUp]
         public void SetUp()

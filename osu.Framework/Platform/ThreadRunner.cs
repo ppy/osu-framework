@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -139,23 +141,27 @@ namespace osu.Framework.Platform
         {
             const int thread_join_timeout = 30000;
 
-            Threads.ForEach(t => t.Exit());
-            Threads.Where(t => t.Running).ForEach(t =>
+            // exit in reverse order so AudioThread is exited last (UpdateThread depends on AudioThread)
+            Threads.Reverse().ForEach(t =>
             {
+                // save the native thread to a local variable as Thread gets set to null when exiting.
+                // WaitForState(Exited) appears to be unsafe in multithreaded.
                 var thread = t.Thread;
 
-                if (thread == null)
+                t.Exit();
+
+                if (thread != null)
                 {
-                    // has already been cleaned up (or never started)
-                    return;
+                    if (!thread.Join(thread_join_timeout))
+                        throw new TimeoutException($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).");
+                }
+                else
+                {
+                    t.WaitForState(GameThreadState.Exited);
                 }
 
-                if (!thread.Join(thread_join_timeout))
-                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+                Debug.Assert(t.Exited);
             });
-
-            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            mainThread.WaitForState(GameThreadState.Exited);
 
             ThreadSafety.ResetAllForCurrentThread();
         }

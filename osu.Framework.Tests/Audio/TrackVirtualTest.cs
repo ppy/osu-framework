@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -21,7 +23,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            track = new TrackVirtual(60000);
+            track = new TrackVirtual(60000, "virtual");
             updateTrack();
         }
 
@@ -43,7 +45,7 @@ namespace osu.Framework.Tests.Audio
         public void TestStartZeroLength()
         {
             // override default with custom length
-            track = new TrackVirtual(0);
+            track = new TrackVirtual(0, "virtual");
 
             track.Start();
             updateTrack();

@@ -13,7 +13,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkTransform : BenchmarkTest
     {
-        private Drawable target;
+        private Drawable target = null!;
 
         public override void SetUp()
         {

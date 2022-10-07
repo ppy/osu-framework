@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -130,7 +132,7 @@ namespace osu.Framework.Statistics
         // ReSharper disable once UnusedParameter.Local
         private static unsafe Type getTypeFromHandle(IntPtr handle)
         {
-#if NET6_0
+#if NET6_0_OR_GREATER
             // This is super unsafe code which is dependent upon internal CLR structures.
             TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
             return __reftype(*(TypedReference*)&tr);
@@ -139,7 +141,7 @@ namespace osu.Framework.Statistics
 #endif
         }
 
-#if NET6_0
+#if NET6_0_OR_GREATER
         /// <summary>
         /// Matches the internal layout of <see cref="TypedReference"/>.
         /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs

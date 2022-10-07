@@ -1,12 +1,54 @@
 clone_depth: 1
 version: '{build}'
-image: Visual Studio 2022
 test: off
 skip_non_tags: true
-build_script:
-  - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFrameworkDesktop
+
+environment:
+  matrix:
+    - job_name: framework-desktop
+      job_group: framework-base
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+    - job_name: framework-xamarin
+      job_group: framework-base
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    - job_name: templates
+      job_depends_on: framework-base
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+
+nuget:
+  project_feed: true
+
+for:
+  -
+    matrix:
+      only:
+        - job_name: framework-desktop
+    build_script:
+      - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFrameworkDesktop
+  -
+    matrix:
+      only:
+        - job_name: framework-xamarin
+    build_script:
+      - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFrameworkXamarin
+  -
+    matrix:
+      only:
+        - job_name: templates
+    build_script:
+      - cmd: dotnet remove osu.Framework.Templates\templates\template-empty\TemplateGame.Game\TemplateGame.Game.csproj reference osu.Framework\osu.Framework.csproj
+      - cmd: dotnet add osu.Framework.Templates\templates\template-empty\TemplateGame.Game\TemplateGame.Game.csproj package ppy.osu.Framework -v %APPVEYOR_REPO_TAG_NAME%
+      - cmd: dotnet remove osu.Framework.Templates\templates\template-flappy\FlappyDon.Game\FlappyDon.Game.csproj reference osu.Framework\osu.Framework.csproj
+      - cmd: dotnet add osu.Framework.Templates\templates\template-flappy\FlappyDon.Game\FlappyDon.Game.csproj package ppy.osu.Framework -v %APPVEYOR_REPO_TAG_NAME%
+
+      # Can't use `dotnet add` for legacy Xamarin projects. String-replacement happens inside build.cake instead.
+
+      - cmd: PowerShell -Version 2.0 .\build.ps1 -Target DeployFrameworkTemplates
+
 deploy:
   - provider: Environment
     name: nuget
+    skip_symbols: false
+    artifact: /.*(\.|\.s)nupkg/
   - provider: Environment
     name: github

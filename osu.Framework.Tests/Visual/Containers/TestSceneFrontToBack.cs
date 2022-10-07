@@ -1,13 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
@@ -17,7 +16,7 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
@@ -39,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkDebugConfigManager debugConfig, TextureStore store)
+        private void load(FrameworkDebugConfigManager debugConfig, TextureStore store, IRenderer renderer)
         {
             var texture = store.Get(@"sample-texture");
             var repeatedTexture = store.Get(@"sample-texture", WrapMode.Repeat, WrapMode.Repeat);
@@ -51,7 +50,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("add sprites with repeat", () => addMoreDrawables(repeatedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
             AddStep("add sprites with edge clamp", () => addMoreDrawables(edgeClampedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
             AddStep("add sprites with border clamp", () => addMoreDrawables(borderClampedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
-            AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel, new RectangleF(0, 0, 1, 1)));
+            AddStep("add boxes", () => addMoreDrawables(renderer.WhitePixel, new RectangleF(0, 0, 1, 1)));
             AddToggleStep("disable front to back", val =>
             {
                 debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val);
@@ -134,10 +133,10 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
             {
                 startQuery();
-                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
                 DrawOpaqueInteriorSubTreeSamples = endQuery();
             }
 
@@ -148,10 +147,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
                 startQuery();
-                base.Draw(vertexAction);
+                base.Draw(renderer);
                 DrawSamples = endQuery();
             }
 

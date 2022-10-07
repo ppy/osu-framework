@@ -1,9 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
@@ -22,8 +26,13 @@ namespace osu.Framework.Tests.Visual.Input
         public TestSceneInputResampler()
             : base(3, 3)
         {
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(IRenderer renderer)
+        {
             const int width = 2;
-            Texture gradientTexture = new Texture(width, 1, true);
+            Texture gradientTexture = renderer.CreateTexture(width, 1, true);
             var image = new Image<Rgba32>(width, 1);
 
             for (int i = 0; i < width; ++i)

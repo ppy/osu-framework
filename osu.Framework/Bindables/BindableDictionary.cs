@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -138,8 +136,7 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-#nullable disable // Todo: Remove after upgrading Resharper version on CI.
-            bool hasPreviousValue = TryGetValue(key, out TValue lastValue);
+            bool hasPreviousValue = TryGetValue(key, out TValue? lastValue);
 
             collection[key] = value;
 
@@ -153,7 +150,6 @@ namespace osu.Framework.Bindables
                         b.setKey(key, value, this);
                 }
             }
-#nullable enable
 
             notifyDictionaryChanged(hasPreviousValue
                 ? new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!))
@@ -236,13 +232,11 @@ namespace osu.Framework.Bindables
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-#nullable disable // Todo: Remove after upgrading Resharper version on CI.
-            if (TryGetValue(item.Key, out TValue value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
+            if (TryGetValue(item.Key, out TValue? value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
             {
                 Remove(item.Key);
                 return true;
             }
-#nullable enable
 
             return false;
         }

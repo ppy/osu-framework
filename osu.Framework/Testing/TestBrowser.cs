@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,7 +34,6 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Input;
 using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
@@ -64,7 +65,7 @@ namespace osu.Framework.Testing
             assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
             {
                 Debug.Assert(n.FullName != null);
-                return n.FullName.StartsWith("osu", StringComparison.Ordinal) || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace, StringComparison.Ordinal);
+                return n.FullName.StartsWith("osu", StringComparison.Ordinal) || (assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace, StringComparison.Ordinal));
             }).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
@@ -119,8 +120,6 @@ namespace osu.Framework.Testing
 
         private const float test_list_width = 200;
 
-        private Action exit;
-
         private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
@@ -128,11 +127,6 @@ namespace osu.Framework.Testing
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
-
-            if (host.CanExit)
-                exit = host.Exit;
-            else if (host.CanSuspendToBackground)
-                exit = () => host.SuspendToBackground();
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 
@@ -254,7 +248,7 @@ namespace osu.Framework.Testing
                 toolbar.AddAssembly(asm.GetName().Name, asm);
 
             Assembly.BindValueChanged(updateList);
-            RunAllSteps.BindValueChanged(v => runTests(null));
+            RunAllSteps.BindValueChanged(_ => runTests(null));
             PlaybackRate.BindValueChanged(e =>
             {
                 rateAdjustClock.Rate = e.NewValue;
@@ -316,21 +310,6 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            if (!e.Repeat)
-            {
-                switch (e.Key)
-                {
-                    case Key.Escape:
-                        exit?.Invoke();
-                        return true;
-                }
-            }
-
-            return base.OnKeyDown(e);
-        }
-
         public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestBrowserAction.Search),
@@ -374,8 +353,7 @@ namespace osu.Framework.Testing
         {
             if (CurrentTest?.Parent != null)
             {
-                testContentContainer.Remove(CurrentTest.Parent);
-                CurrentTest.Dispose();
+                testContentContainer.Remove(CurrentTest.Parent, true);
             }
 
             CurrentTest = null;
@@ -417,8 +395,12 @@ namespace osu.Framework.Testing
         {
             if (CurrentTest != newTest)
             {
-                // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                testContentContainer.Remove(newTest.Parent);
+                if (newTest.Parent != null)
+                {
+                    // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                    testContentContainer.Remove(newTest.Parent, true);
+                }
+
                 return;
             }
 
@@ -569,6 +551,8 @@ namespace osu.Framework.Testing
             if (tcs.SourceType != null && tcs.SourceName == null)
                 return (IEnumerable)Activator.CreateInstance(tcs.SourceType);
 
+            Debug.Assert(tcs.SourceName != null);
+
             var sourceMembers = sourceDeclaringType.AsNonNull().GetMember(tcs.SourceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (sourceMembers.Length == 0)
                 throw new InvalidOperationException($"No static member with the name of {tcs.SourceName} exists in {sourceDeclaringType} or its base types.");
@@ -654,7 +638,7 @@ namespace osu.Framework.Testing
                     hasCaught = true;
 
                     OnCaughtError?.Invoke(e);
-                    RemoveInternal(Content);
+                    RemoveInternal(Content, true);
                 }
 
                 return false;

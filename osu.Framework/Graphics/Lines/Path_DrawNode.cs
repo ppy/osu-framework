@@ -1,17 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
@@ -31,11 +31,8 @@ namespace osu.Framework.Graphics.Lines
             private float radius;
             private IShader pathShader;
 
-            // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-            // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-            // grouping of vertices into primitives.
-            private readonly LinearBatch<TexturedVertex3D> halfCircleBatch = new LinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveType.Triangles);
-            private readonly QuadBatch<TexturedVertex3D> quadBatch = new QuadBatch<TexturedVertex3D>(200, 10);
+            private IVertexBatch<TexturedVertex3D> halfCircleBatch;
+            private IVertexBatch<TexturedVertex3D> quadBatch;
 
             public PathDrawNode(Path source)
                 : base(source)
@@ -77,9 +74,6 @@ namespace osu.Framework.Graphics.Lines
 
                 Vector2 current = origin + pointOnCircle(theta) * radius;
                 Color4 currentColour = colourAt(current);
-                current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
-
-                Vector2 screenOrigin = Vector2Extensions.Transform(origin, DrawInfo.Matrix);
                 Color4 originColour = colourAt(origin);
 
                 for (int i = 1; i <= amountPoints; i++)
@@ -87,7 +81,7 @@ namespace osu.Framework.Graphics.Lines
                     // Center point
                     halfCircleBatch.Add(new TexturedVertex3D
                     {
-                        Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
+                        Position = new Vector3(origin.X, origin.Y, 1),
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                         Colour = originColour
                     });
@@ -103,7 +97,6 @@ namespace osu.Framework.Graphics.Lines
                     float angularOffset = Math.Min(i * step, thetaDiff);
                     current = origin + pointOnCircle(theta + dir * angularOffset) * radius;
                     currentColour = colourAt(current);
-                    current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                     // Second outer point
                     halfCircleBatch.Add(new TexturedVertex3D
@@ -121,19 +114,15 @@ namespace osu.Framework.Graphics.Lines
                 Line lineLeft = new Line(line.StartPoint + ortho * radius, line.EndPoint + ortho * radius);
                 Line lineRight = new Line(line.StartPoint - ortho * radius, line.EndPoint - ortho * radius);
 
-                Line screenLineLeft = new Line(Vector2Extensions.Transform(lineLeft.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineLeft.EndPoint, DrawInfo.Matrix));
-                Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
-                Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
-
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
+                    Position = new Vector3(lineRight.EndPoint.X, lineRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineRight.EndPoint)
                 });
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
+                    Position = new Vector3(lineRight.StartPoint.X, lineRight.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineRight.StartPoint)
                 });
@@ -141,8 +130,8 @@ namespace osu.Framework.Graphics.Lines
                 // Each "quad" of the slider is actually rendered as 2 quads, being split in half along the approximating line.
                 // On this line the depth is 1 instead of 0, which is done properly handle self-overlap using the depth buffer.
                 // Thus the middle vertices need to be added twice (once for each quad).
-                Vector3 firstMiddlePoint = new Vector3(screenLine.StartPoint.X, screenLine.StartPoint.Y, 1);
-                Vector3 secondMiddlePoint = new Vector3(screenLine.EndPoint.X, screenLine.EndPoint.Y, 1);
+                Vector3 firstMiddlePoint = new Vector3(line.StartPoint.X, line.StartPoint.Y, 1);
+                Vector3 secondMiddlePoint = new Vector3(line.EndPoint.X, line.EndPoint.Y, 1);
                 Color4 firstMiddleColour = colourAt(line.StartPoint);
                 Color4 secondMiddleColour = colourAt(line.EndPoint);
 
@@ -164,13 +153,13 @@ namespace osu.Framework.Graphics.Lines
 
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
+                    Position = new Vector3(lineLeft.EndPoint.X, lineLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineLeft.EndPoint)
                 });
                 quadBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
+                    Position = new Vector3(lineLeft.StartPoint.X, lineLeft.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = colourAt(lineLeft.StartPoint)
                 });
@@ -201,35 +190,43 @@ namespace osu.Framework.Graphics.Lines
                     addLineQuads(segment, texRect);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || segments.Count == 0)
                     return;
 
-                GLWrapper.PushDepthInfo(DepthInfo.Default);
+                // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
+                // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+                // grouping of vertices into primitives.
+                halfCircleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveTopology.Triangles);
+                quadBatch ??= renderer.CreateQuadBatch<TexturedVertex3D>(200, 10);
+
+                renderer.PushLocalMatrix(DrawInfo.Matrix);
+                renderer.PushDepthInfo(DepthInfo.Default);
 
                 // Blending is removed to allow for correct blending between the wedges of the path.
-                GLWrapper.SetBlend(BlendingParameters.None);
+                renderer.SetBlend(BlendingParameters.None);
 
                 pathShader.Bind();
 
-                texture.TextureGL.Bind();
+                texture.Bind();
 
                 updateVertexBuffer();
 
                 pathShader.Unbind();
 
-                GLWrapper.PopDepthInfo();
+                renderer.PopDepthInfo();
+                renderer.PopLocalMatrix();
             }
 
             protected override void Dispose(bool isDisposing)
             {
                 base.Dispose(isDisposing);
 
-                halfCircleBatch.Dispose();
-                quadBatch.Dispose();
+                halfCircleBatch?.Dispose();
+                quadBatch?.Dispose();
             }
         }
     }

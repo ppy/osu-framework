@@ -14,7 +14,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkDrawableLoad : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         private const int nesting_level = 100;
 

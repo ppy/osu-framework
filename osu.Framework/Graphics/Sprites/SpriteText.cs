@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -555,7 +557,7 @@ namespace osu.Framework.Graphics.Sprites
             parentScreenSpaceCache.Invalidate();
             localScreenSpaceCache.Invalidate();
 
-            Invalidate(Invalidation.DrawNode);
+            Invalidate(Invalidation.RequiredParentSizeToFit);
         }
 
         #endregion
@@ -636,6 +638,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms => displayedText.Yield();
+        public IEnumerable<LocalisableString> FilterTerms => Text.Yield();
     }
 }

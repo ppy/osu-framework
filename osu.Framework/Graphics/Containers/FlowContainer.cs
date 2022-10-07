@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -82,13 +84,14 @@ namespace osu.Framework.Graphics.Containers
             base.AddInternal(drawable);
         }
 
-        protected internal override bool RemoveInternal(Drawable drawable)
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
             layoutChildren.Remove(drawable);
             // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
             // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
             InvalidateLayout();
-            return base.RemoveInternal(drawable);
+
+            return base.RemoveInternal(drawable, disposeImmediately);
         }
 
         protected internal override void ClearInternal(bool disposeChildren = true)

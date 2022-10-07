@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
@@ -28,7 +30,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -56,6 +58,9 @@ namespace osu.Framework.Graphics
     public abstract partial class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
+
+        [Resolved(CanBeNull = true)]
+        private IRenderer renderer { get; set; }
 
         protected Drawable()
         {
@@ -105,8 +110,11 @@ namespace osu.Framework.Graphics
             OnDispose?.Invoke();
             OnDispose = null;
 
-            for (int i = 0; i < drawNodes.Length; i++)
-                drawNodes[i]?.Dispose();
+            renderer?.ScheduleDisposal(d =>
+            {
+                for (int i = 0; i < d.drawNodes.Length; i++)
+                    d.drawNodes[i]?.Dispose();
+            }, this);
 
             IsDisposed = true;
         }
@@ -124,26 +132,29 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
-        private void cacheUnbindActions()
+        private Action<object> getUnbindAction()
         {
-            foreach (var type in GetType().EnumerateBaseTypes())
+            Type ourType = GetType();
+            return unbind_action_cache.TryGetValue(ourType, out var action) ? action : cacheUnbindAction(ourType);
+
+            // Extracted to a separate method to prevent .NET from pre-allocating some objects (saves ~150B per call to this method, even if already cached).
+            static Action<object> cacheUnbindAction(Type ourType)
             {
-                if (unbind_action_cache.TryGetValue(type, out _))
-                    return;
+                List<Action<object>> actions = new List<Action<object>>();
 
-                // List containing all the delegates to perform the unbinds
-                var actions = new List<Action<object>>();
-
-                // Generate delegates to unbind fields
-                actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                     .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
-                                     .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+                foreach (var type in ourType.EnumerateBaseTypes())
+                {
+                    // Generate delegates to unbind fields
+                    actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                         .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                         .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+                }
 
                 // Delegates to unbind properties are intentionally not generated.
                 // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
                 // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
 
-                unbind_action_cache[type] = target =>
+                return unbind_action_cache[ourType] = target =>
                 {
                     foreach (var a in actions)
                     {
@@ -153,7 +164,7 @@ namespace osu.Framework.Graphics
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
+                            Logger.Error(e, $"Failed to unbind a local bindable in {ourType.ReadableName()}");
                         }
                     }
                 };
@@ -172,11 +183,7 @@ namespace osu.Framework.Graphics
 
             unbindComplete = true;
 
-            foreach (var type in GetType().EnumerateBaseTypes())
-            {
-                if (unbind_action_cache.TryGetValue(type, out var existing))
-                    existing?.Invoke(this);
-            }
+            getUnbindAction().Invoke(this);
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -260,6 +267,9 @@ namespace osu.Framework.Graphics
         {
             LoadThread = Thread.CurrentThread;
 
+            // Cache eagerly during load to hopefully defer the reflection overhead to an async pathway.
+            getUnbindAction();
+
             UpdateClock(clock);
 
             double timeBefore = DebugUtils.LogPerformanceIssues ? perf_clock.CurrentTime : 0;
@@ -271,8 +281,6 @@ namespace osu.Framework.Graphics
             RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
-
-            cacheUnbindActions();
 
             LoadAsyncComplete();
 
@@ -962,11 +970,6 @@ namespace osu.Framework.Graphics
             get => scale;
             set
             {
-                if (Math.Abs(value.X) < Precision.FLOAT_EPSILON)
-                    value.X = Precision.FLOAT_EPSILON;
-                if (Math.Abs(value.Y) < Precision.FLOAT_EPSILON)
-                    value.Y = Precision.FLOAT_EPSILON;
-
                 if (scale == value)
                     return;
 
@@ -1082,7 +1085,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The origin of this <see cref="Drawable"/>.
         /// </summary>
-        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="osu.Framework.Graphics.Anchor"/> enumeration.</exception>
+        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="Graphics.Anchor"/> enumeration.</exception>
         public virtual Anchor Origin
         {
             get => origin;
@@ -1313,7 +1316,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON;
+        public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && DrawScale.X != 0 && DrawScale.Y != 0);
 
         private bool alwaysPresent;
 
@@ -1466,7 +1469,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
+        protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
@@ -1500,27 +1503,6 @@ namespace osu.Framework.Graphics
                     UpdateClock(parent.Clock);
                 }
             }
-        }
-
-        /// <summary>
-        /// Find the closest parent of a specified type.
-        /// </summary>
-        /// <remarks>
-        /// This can be a potentially expensive operation and should be used with discretion.
-        /// </remarks>
-        /// <typeparam name="T">The type to match.</typeparam>
-        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : class, IDrawable
-        {
-            Drawable cursor = this;
-
-            while ((cursor = cursor.Parent) != null)
-            {
-                if (cursor is T match)
-                    return match;
-            }
-
-            return default;
         }
 
         /// <summary>
@@ -1709,7 +1691,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         private InvalidationList invalidationList = new InvalidationList(Invalidation.All);
 
-        private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
+        /// <summary>
+        /// Represents the most-recently added <see cref="LayoutMember"/> (via <see cref="AddLayout"/>).
+        /// It is also used as a linked-list during invalidation by traversing through <see cref="LayoutMember.Next"/>.
+        /// </summary>
+        private LayoutMember layoutList;
 
         /// <summary>
         /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.Invalidation"/> is invalidated.
@@ -1720,7 +1706,14 @@ namespace osu.Framework.Graphics
             if (LoadState > LoadState.NotLoaded)
                 throw new InvalidOperationException($"{nameof(LayoutMember)}s cannot be added after {nameof(Drawable)}s have started loading. Consider adding in the constructor.");
 
-            layoutMembers.Add(member);
+            if (layoutList == null)
+                layoutList = member;
+            else
+            {
+                member.Next = layoutList;
+                layoutList = member;
+            }
+
             member.Parent = this;
         }
 
@@ -1785,21 +1778,24 @@ namespace osu.Framework.Graphics
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members
-            for (int i = 0; i < layoutMembers.Count; i++)
-            {
-                var member = layoutMembers[i];
+            LayoutMember nextLayout = layoutList;
 
+            while (nextLayout != null)
+            {
                 // Only invalidate layout members that accept the given source.
-                if ((member.Source & source) == 0)
-                    continue;
+                if ((nextLayout.Source & source) == 0)
+                    goto NextLayoutIteration;
 
                 // Remove invalidation flags that don't refer to the layout member.
-                Invalidation memberInvalidation = invalidation & member.Invalidation;
+                Invalidation memberInvalidation = invalidation & nextLayout.Invalidation;
                 if (memberInvalidation == 0)
-                    continue;
+                    goto NextLayoutIteration;
 
-                if (member.Conditions?.Invoke(this, memberInvalidation) != false)
-                    anyInvalidated |= member.Invalidate();
+                if (nextLayout.Conditions?.Invoke(this, memberInvalidation) != false)
+                    anyInvalidated |= nextLayout.Invalidate();
+
+                NextLayoutIteration:
+                nextLayout = nextLayout.Next;
             }
 
             // Allow any custom invalidation to take place.
@@ -1859,7 +1855,7 @@ namespace osu.Framework.Graphics
 
         #region DrawNode
 
-        private readonly DrawNode[] drawNodes = new DrawNode[GLWrapper.MAX_DRAW_NODES];
+        private readonly DrawNode[] drawNodes = new DrawNode[IRenderer.MAX_DRAW_NODES];
 
         /// <summary>
         /// Generates the <see cref="DrawNode"/> for ourselves.
@@ -2364,7 +2360,7 @@ namespace osu.Framework.Graphics
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {

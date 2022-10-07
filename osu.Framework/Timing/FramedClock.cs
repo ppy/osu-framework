@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using osu.Framework.Extensions.TypeExtensions;
 using System;
 
@@ -53,8 +51,10 @@ namespace osu.Framework.Timing
 
         private const int fps_calculation_interval = 250;
 
-        public void ChangeSource(IClock source)
+        public void ChangeSource(IClock? source)
         {
+            if (source == null) return;
+
             CurrentTime = LastFrameTime = source.CurrentTime;
             Source = source;
         }

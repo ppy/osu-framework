@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -231,6 +233,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].TriggerClick());
             AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
+        }
+
+        [Test]
+        public void TestSelectNotPresentItem()
+        {
+            AddStep("remove item 6", () => simpleTabcontrol.RemoveItem(TestEnum.Test6));
+            AddStep("select item 6", () => simpleTabcontrol.Current.Value = TestEnum.Test6);
+
+            AddAssert("current is 6", () => simpleTabcontrol.Current.Value == TestEnum.Test6);
+            AddAssert("no tab selected", () => simpleTabcontrol.SelectedTab == null);
         }
 
         [TestCase(true)]

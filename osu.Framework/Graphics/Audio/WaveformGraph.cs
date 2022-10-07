@@ -1,26 +1,26 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osuTK;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Layout;
+using osu.Framework.Logging;
 using osu.Framework.Utils;
-using osu.Framework.Threading;
+using osuTK;
 using osuTK.Graphics;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -30,17 +30,13 @@ namespace osu.Framework.Graphics.Audio
     public class WaveformGraph : Drawable
     {
         private IShader shader;
-        private readonly Texture texture;
-
-        public WaveformGraph()
-        {
-            texture = Texture.WhitePixel;
-        }
+        private Texture texture;
 
         [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, IRenderer renderer)
         {
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            texture = renderer.WhitePixel;
         }
 
         private float resolution = 1;
@@ -60,7 +56,8 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 resolution = value;
-                generate();
+                resampledPointCount = null;
+                queueRegeneration();
             }
         }
 
@@ -78,7 +75,8 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 waveform = value;
-                generate();
+                resampledPointCount = null;
+                queueRegeneration();
             }
         }
 
@@ -168,60 +166,76 @@ namespace osu.Framework.Graphics.Audio
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
             {
-                generate();
-                result = true;
+                // We should regenerate when `Scale` changed, but not `Position`.
+                // Unfortunately both of these are grouped together in `MiscGeometry`.
+                queueRegeneration();
             }
 
             return result;
         }
 
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
-        private ScheduledDelegate scheduledGenerate;
 
-        private List<Waveform.Point> resampledPoints;
+        private long resampledVersion;
+        private Waveform.Point[] resampledPoints;
+        private int? resampledPointCount;
         private int resampledChannels;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
         private double resampledMaxLowIntensity;
 
-        private void generate()
+        private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
-            scheduledGenerate?.Cancel();
-            cancelGeneration();
-
-            if (Waveform == null)
+            int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
+            if (requiredPointCount == resampledPointCount && !cancelSource.IsCancellationRequested)
                 return;
 
-            scheduledGenerate = Schedule(() =>
+            cancelGeneration();
+
+            var originalWaveform = Waveform;
+
+            if (originalWaveform == null)
+                return;
+
+            // This should be set before the operation is run.
+            // It will stop unnecessary task churn if invalidation is occuring often.
+            resampledPointCount = requiredPointCount;
+
+            cancelSource = new CancellationTokenSource();
+            var token = cancelSource.Token;
+
+            Task.Run(async () =>
             {
-                cancelSource = new CancellationTokenSource();
-                var token = cancelSource.Token;
+                var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
-                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(task =>
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Length;
+
+                Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
+
+                var points = await resampled.GetPointsAsync().ConfigureAwait(false);
+                int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
+
+                double maxHighIntensity = points.Length > 0 ? points.Max(p => p.HighIntensity) : 0;
+                double maxMidIntensity = points.Length > 0 ? points.Max(p => p.MidIntensity) : 0;
+                double maxLowIntensity = points.Length > 0 ? points.Max(p => p.LowIntensity) : 0;
+
+                Schedule(() =>
                 {
-                    var resampled = task.GetResultSafely();
+                    if (token.IsCancellationRequested)
+                        return;
 
-                    var points = resampled.GetPoints();
-                    int channels = resampled.GetChannels();
-                    double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                    double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                    double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                    resampledPoints = points;
+                    resampledChannels = channels;
+                    resampledMaxHighIntensity = maxHighIntensity;
+                    resampledMaxMidIntensity = maxMidIntensity;
+                    resampledMaxLowIntensity = maxLowIntensity;
+                    resampledVersion = InvalidationID;
 
-                    Schedule(() =>
-                    {
-                        resampledPoints = points;
-                        resampledChannels = channels;
-                        resampledMaxHighIntensity = maxHighIntensity;
-                        resampledMaxMidIntensity = maxMidIntensity;
-                        resampledMaxLowIntensity = maxLowIntensity;
-
-                        OnWaveformRegenerated(resampled);
-
-                        Invalidate(Invalidation.DrawNode);
-                    });
-                }, token);
-            });
-        }
+                    OnWaveformRegenerated(resampled);
+                    Invalidate(Invalidation.DrawNode);
+                });
+            }, token);
+        });
 
         private void cancelGeneration()
         {
@@ -251,10 +265,12 @@ namespace osu.Framework.Graphics.Audio
             private IShader shader;
             private Texture texture;
 
-            private readonly List<Waveform.Point> points = new List<Waveform.Point>();
+            private List<Waveform.Point> points;
 
             private Vector2 drawSize;
             private int channels;
+
+            private long version;
 
             private Color4 baseColour;
             private Color4 lowColour;
@@ -280,40 +296,55 @@ namespace osu.Framework.Graphics.Audio
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
 
-                points.Clear();
-
-                if (Source.resampledPoints != null)
-                    points.AddRange(Source.resampledPoints);
-
-                channels = Source.resampledChannels;
-                highMax = Source.resampledMaxHighIntensity;
-                midMax = Source.resampledMaxMidIntensity;
-                lowMax = Source.resampledMaxLowIntensity;
-
                 baseColour = Source.baseColour;
+
                 lowColour = Source.lowColour ?? baseColour;
                 midColour = Source.midColour ?? baseColour;
                 highColour = Source.highColour ?? baseColour;
+
+                if (Source.resampledVersion != version)
+                {
+                    // Late initialise list to use a sane initial capacity.
+                    if (points == null)
+                        points = new List<Waveform.Point>(Source.resampledPoints ?? Enumerable.Empty<Waveform.Point>());
+                    else
+                    {
+                        points.Clear();
+
+                        if (Source.resampledPoints != null)
+                            points.AddRange(Source.resampledPoints);
+                    }
+
+                    channels = Source.resampledChannels;
+
+                    highMax = Source.resampledMaxHighIntensity;
+                    midMax = Source.resampledMaxMidIntensity;
+                    lowMax = Source.resampledMaxLowIntensity;
+
+                    version = Source.resampledVersion;
+                }
             }
 
-            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
+                vertexBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(1000, 10);
+
                 shader.Bind();
-                texture.TextureGL.Bind();
+                texture.Bind();
 
                 Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
 
                 // We're dealing with a _large_ number of points, so we need to optimise the quadToDraw * drawInfo.Matrix multiplications below
                 // for points that are going to be masked out anyway. This allows for higher resolution graphs at larger scales with virtually no performance loss.
                 // Since the points are generated in the local coordinate space, we need to convert the screen space masking quad coordinates into the local coordinate space
-                RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
+                RectangleF localMaskingRectangle = (Quad.FromRectangle(renderer.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
 
                 float separation = drawSize.X / (points.Count - 1);
 
@@ -349,10 +380,10 @@ namespace osu.Framework.Graphics.Audio
                         {
                             float height = drawSize.Y / 2;
                             quadToDraw = new Quad(
-                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
-                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
-                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
-                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
+                                new Vector2(leftX, height - points[i].AmplitudeLeft * height),
+                                new Vector2(rightX, height - points[i + 1].AmplitudeLeft * height),
+                                new Vector2(leftX, height + points[i].AmplitudeRight * height),
+                                new Vector2(rightX, height + points[i + 1].AmplitudeRight * height)
                             );
                             break;
                         }
@@ -360,8 +391,8 @@ namespace osu.Framework.Graphics.Audio
                         case 1:
                         {
                             quadToDraw = new Quad(
-                                new Vector2(leftX, drawSize.Y - points[i].Amplitude[0] * drawSize.Y),
-                                new Vector2(rightX, drawSize.Y - points[i + 1].Amplitude[0] * drawSize.Y),
+                                new Vector2(leftX, drawSize.Y - points[i].AmplitudeLeft * drawSize.Y),
+                                new Vector2(rightX, drawSize.Y - points[i + 1].AmplitudeLeft * drawSize.Y),
                                 new Vector2(leftX, drawSize.Y),
                                 new Vector2(rightX, drawSize.Y)
                             );
@@ -370,7 +401,9 @@ namespace osu.Framework.Graphics.Audio
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+
+                    if (quadToDraw.Size.X != 0 && quadToDraw.Size.Y != 0)
+                        renderer.DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 shader.Unbind();
@@ -380,7 +413,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 base.Dispose(isDisposing);
 
-                vertexBatch.Dispose();
+                vertexBatch?.Dispose();
             }
         }
     }

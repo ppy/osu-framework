@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -35,29 +35,12 @@ namespace osu.Framework.Testing
         {
             private const double time_between_tests = 200;
 
-            private Bindable<double> volume;
-            private double volumeAtStartup;
-
             [Resolved]
             private GameHost host { get; set; }
 
             public TestRunner()
             {
                 RelativeSizeAxes = Axes.Both;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(FrameworkConfigManager config)
-            {
-                volume = config.GetBindable<double>(FrameworkSetting.VolumeUniversal);
-                volumeAtStartup = volume.Value;
-                volume.Value = 0;
-            }
-
-            internal override void UnbindAllBindables()
-            {
-                base.UnbindAllBindables();
-                if (volume != null) volume.Value = volumeAtStartup;
             }
 
             /// <summary>
@@ -76,7 +59,7 @@ namespace osu.Framework.Testing
                     // We want to remove the TestScene from the hierarchy on completion as under nUnit, it may have operations run on it from a different thread.
                     // This is because nUnit will reuse the same class multiple times, running a different [Test] method each time, while the GameHost
                     // is run from its own asynchronous thread.
-                    RemoveInternal(test);
+                    RemoveInternal(test, false);
                     completed = true;
                 }
 

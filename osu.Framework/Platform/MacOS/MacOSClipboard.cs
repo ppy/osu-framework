@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
@@ -11,36 +13,35 @@ namespace osu.Framework.Platform.MacOS
     {
         private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
-        public override string GetText()
-        {
-            NSArray classArray = NSArray.ArrayWithObject(Class.Get("NSString"));
+        public override string GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
 
-            if (!generalPasteboard.CanReadObjectForClasses(classArray, null)) return string.Empty;
+        public override Image<TPixel> GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
+
+        public override void SetText(string selectedText) => setToPasteboard(Cocoa.ToNSString(selectedText));
+
+        public override bool SetImage(Image image) => setToPasteboard(Cocoa.ToNSImage(image));
+
+        private IntPtr getFromPasteboard(IntPtr @class)
+        {
+            NSArray classArray = NSArray.ArrayWithObject(@class);
+
+            if (!generalPasteboard.CanReadObjectForClasses(classArray, null))
+                return IntPtr.Zero;
 
             var result = generalPasteboard.ReadObjectsForClasses(classArray, null);
-
             var objects = result?.ToArray();
 
-            if (objects?.Length > 0 && objects[0] != IntPtr.Zero)
-                return Cocoa.FromNSString(objects[0]);
-
-            return string.Empty;
+            return objects?.Length > 0 ? objects[0] : IntPtr.Zero;
         }
 
-        public override void SetText(string selectedText)
+        private bool setToPasteboard(IntPtr handle)
         {
+            if (handle == IntPtr.Zero)
+                return false;
+
             generalPasteboard.ClearContents();
-            generalPasteboard.WriteObjects(NSArray.ArrayWithObject(Cocoa.ToNSString(selectedText)));
-        }
-
-        public override Image<TPixel> GetImage<TPixel>()
-        {
-            return null;
-        }
-
-        public override bool SetImage(Image image)
-        {
-            return false;
+            generalPasteboard.WriteObjects(NSArray.ArrayWithObject(handle));
+            return true;
         }
     }
 }

@@ -1,11 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
@@ -66,16 +67,16 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
 
             [BackgroundDependencyLoader]
-            private void load()
+            private void load(IRenderer renderer)
             {
                 // 0 -> White, 1 -> Red, 2 -> Green, 3 -> Blue
-                Texture = createTexture(new Rgba32(255, 255, 255, 255));
-                redTex = createTexture(new Rgba32(255, 0, 0, 255));
-                greenTex = createTexture(new Rgba32(0, 255, 0, 255));
-                blueTex = createTexture(new Rgba32(0, 0, 255, 255));
+                Texture = createTexture(renderer, new Rgba32(255, 255, 255, 255));
+                redTex = createTexture(renderer, new Rgba32(255, 0, 0, 255));
+                greenTex = createTexture(renderer, new Rgba32(0, 255, 0, 255));
+                blueTex = createTexture(renderer, new Rgba32(0, 0, 255, 255));
             }
 
-            private Texture createTexture(Rgba32 pixel)
+            private Texture createTexture(IRenderer renderer, Rgba32 pixel)
             {
                 var texData = new Image<Rgba32>(32, 32);
 
@@ -85,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         texData[x, y] = pixel;
                 }
 
-                var tex = new Texture(texData.Width, texData.Height, true);
+                var tex = renderer.CreateTexture(texData.Width, texData.Height, true);
                 tex.SetData(new TextureUpload(texData));
 
                 return tex;
@@ -118,19 +119,21 @@ namespace osu.Framework.Tests.Visual.Sprites
                     blueTex = Source.blueTex;
                 }
 
-                public override void Draw(Action<TexturedVertex2D> vertexAction)
+                public override void Draw(IRenderer renderer)
                 {
-                    redTex.TextureGL.Bind(TextureUnit.Texture1);
-                    greenTex.TextureGL.Bind(TextureUnit.Texture2);
-                    blueTex.TextureGL.Bind(TextureUnit.Texture3);
+                    var shader = GetAppropriateShader(renderer);
+
+                    redTex.Bind(1);
+                    greenTex.Bind(2);
+                    blueTex.Bind(3);
 
                     int unitId = unit - TextureUnit.Texture0;
-                    Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
+                    shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
 
-                    base.Draw(vertexAction);
+                    base.Draw(renderer);
 
                     unitId = 0;
-                    Shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
+                    shader.GetUniform<int>("m_Sampler").UpdateValue(ref unitId);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

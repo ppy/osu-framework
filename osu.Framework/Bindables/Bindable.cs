@@ -1,12 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
@@ -243,7 +246,7 @@ namespace osu.Framework.Bindables
                     Value = t;
                     break;
 
-                case IBindable _:
+                case IBindable:
                     if (!(input is IBindable<T> bindable))
                         throw new ArgumentException($"Expected bindable of type {nameof(IBindable)}<{typeof(T)}>, got {input.GetType()}", nameof(input));
 
@@ -252,7 +255,7 @@ namespace osu.Framework.Bindables
 
                 default:
                     if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                        Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
                         Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
 

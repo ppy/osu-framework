@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Exceptions
                     broken.Add(candidate);
                     broken.Add(candidate2);
 
-                    broken.Remove(candidate);
+                    broken.Remove(candidate, true);
                 }
             });
         }

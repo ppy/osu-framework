@@ -5,7 +5,6 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Development;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -31,8 +30,8 @@ namespace osu.Framework.Threading
             {
                 window.MakeCurrent();
 
-                GLWrapper.Initialize(host);
-                GLWrapper.Reset(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+                host.Renderer.Initialise();
+                host.Renderer.BeginFrame(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
             }
         }
 

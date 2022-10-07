@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
@@ -56,9 +58,6 @@ namespace osu.Framework.Graphics.Containers
 
             AddLayout(childrenSizeDependencies);
         }
-
-        [Resolved]
-        private Game game { get; set; }
 
         /// <summary>
         /// Create a local dependency container which will be used by our nested children.
@@ -140,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
                                                                Scheduler scheduler = null)
             where TLoadable : Drawable
         {
-            if (game == null)
+            if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
@@ -219,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="components">The children or grand-children to be loaded.</param>
         protected void LoadComponents<TLoadable>(IEnumerable<TLoadable> components) where TLoadable : Drawable
         {
-            if (game == null)
+            if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             if (IsDisposed)
@@ -358,7 +357,10 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 if (InternalChildren.Count != 1)
-                    throw new InvalidOperationException($"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(InternalChildren)} (currently {InternalChildren.Count})!");
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(InternalChildren)} (currently {InternalChildren.Count})!");
+                }
 
                 return InternalChildren[0];
             }
@@ -482,36 +484,45 @@ namespace osu.Framework.Graphics.Containers
         /// Removes a given child from this <see cref="InternalChildren"/>.
         /// </summary>
         /// <param name="drawable">The <see cref="Drawable"/> to be removed.</param>
+        /// <param name="disposeImmediately">Whether removed item should be immediately disposed.</param>
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
-        protected internal virtual bool RemoveInternal(Drawable drawable)
+        protected internal virtual bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
-            EnsureChildMutationAllowed();
-
-            if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable));
-
-            int index = IndexOfInternal(drawable);
-            if (index < 0)
-                return false;
-
-            internalChildren.RemoveAt(index);
-
-            if (drawable.IsAlive)
+            try
             {
-                aliveInternalChildren.Remove(drawable);
-                ChildDied?.Invoke(drawable);
+                EnsureChildMutationAllowed();
+
+                if (drawable == null)
+                    throw new ArgumentNullException(nameof(drawable));
+
+                int index = IndexOfInternal(drawable);
+                if (index < 0)
+                    return false;
+
+                internalChildren.RemoveAt(index);
+
+                if (drawable.IsAlive)
+                {
+                    aliveInternalChildren.Remove(drawable);
+                    ChildDied?.Invoke(drawable);
+                }
+
+                if (drawable.LoadState >= LoadState.Ready && drawable.Parent != this)
+                    throw new InvalidOperationException($@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+
+                drawable.Parent = null;
+                drawable.IsAlive = false;
+
+                if (AutoSizeAxes != Axes.None)
+                    Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
+
+                return true;
             }
-
-            if (drawable.LoadState >= LoadState.Ready && drawable.Parent != this)
-                throw new InvalidOperationException($@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
-
-            drawable.Parent = null;
-            drawable.IsAlive = false;
-
-            if (AutoSizeAxes != Axes.None)
-                Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
-
-            return true;
+            finally
+            {
+                if (disposeImmediately)
+                    drawable?.Dispose();
+            }
         }
 
         /// <summary>
@@ -836,7 +847,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (child.RemoveWhenNotAlive)
             {
-                RemoveInternal(child);
+                RemoveInternal(child, false);
 
                 if (child.DisposeOnDeathRemoval)
                     DisposeChildAsync(child);
@@ -1119,12 +1130,14 @@ namespace osu.Framework.Graphics.Containers
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
         protected virtual bool CanBeFlattened =>
-            // Masking composite DrawNodes define the masking area for their children.
+            // Masking composite draw nodes define the masking area for their children.
             !Masking
             // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph.
             && !HasProxy
             // Custom draw nodes may provide custom drawing procedures.
-            && !hasCustomDrawNode;
+            && !hasCustomDrawNode
+            // Composites with local vertex batches require their own draw node.
+            && !ForceLocalVertexBatch;
 
         private const int amount_children_required_for_masking_check = 2;
 
@@ -1252,6 +1265,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
+            if (AutoSizeAxes != Axes.None && AutoSizeDuration > 0)
+                childrenSizeDependencies.Invalidate();
+
             if (!propagateChildren)
                 return;
 
@@ -1326,8 +1342,11 @@ namespace osu.Framework.Graphics.Containers
 
             if (propagateChildren)
             {
-                foreach (var c in internalChildren)
-                    c.FinishTransforms(true, targetMember);
+                // Use for over foreach as collection may grow due to abort / completion events.
+                // Note that this may mean that in the addition of elements being removed,
+                // `FinishTransforms` may not be called on all items.
+                for (int i = 0; i < internalChildren.Count; i++)
+                    internalChildren[i].FinishTransforms(true, targetMember);
             }
         }
 
@@ -1710,8 +1729,13 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        {
+            if (newSize.X == 0 || newSize.Y == 0)
+                throw new ArgumentException($@"{nameof(newSize)} must be non-zero, but is {newSize}.", nameof(newSize));
+
+            return this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
+        }
 
         /// <summary>
         /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="CompositeDrawable"/>.

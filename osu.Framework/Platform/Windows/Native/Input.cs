@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -41,6 +43,32 @@ namespace osu.Framework.Platform.Windows.Native
         public const int SM_YVIRTUALSCREEN = 77;
         public const int SM_CXVIRTUALSCREEN = 78;
         public const int SM_CYVIRTUALSCREEN = 79;
+
+        public const long MI_WP_SIGNATURE = 0xFF515700;
+        public const long MI_WP_SIGNATURE_MASK = 0xFFFFFF00;
+
+        /// <summary>
+        /// Flag distinguishing touch input from mouse input in <see cref="WM_INPUT"/> events.
+        /// </summary>
+        /// <remarks>
+        /// https://docs.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
+        /// <para>Additionally, the eighth bit, masked by 0x80, is used to differentiate touch input from pen input (0 = pen, 1 = touch).</para>
+        /// </remarks>
+        private const long touch_flag = 0x80;
+
+        /// <summary>
+        /// https://docs.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
+        /// </summary>
+        /// <param name="dw"><see cref="GetMessageExtraInfo"/> for the current <see cref="WM_INPUT"/> event.</param>
+        /// <returns><c>true</c> if this <see cref="WM_INPUT"/> event is from a finger touch, <c>false</c> if it's from mouse or pen input.</returns>
+        public static bool IsTouchEvent(long dw) => (dw & MI_WP_SIGNATURE_MASK) == MI_WP_SIGNATURE && HasTouchFlag(dw);
+
+        /// <param name="extraInformation"><see cref="RawMouse.ExtraInformation"/> or <see cref="GetMessageExtraInfo"/></param>
+        /// <returns>Whether <paramref name="extraInformation"/> has the <see cref="touch_flag"/> set.</returns>
+        public static bool HasTouchFlag(long extraInformation) => (extraInformation & touch_flag) == touch_flag;
+
+        [DllImport("user32.dll", SetLastError = false)]
+        public static extern long GetMessageExtraInfo();
     }
 
     /// <summary>
@@ -201,6 +229,8 @@ namespace osu.Framework.Platform.Windows.Native
         HID = 2
     }
 
+#pragma warning disable IDE1006 // Naming style
+
     /// <summary>
     /// Value type for a raw input header.
     /// </summary>
@@ -235,6 +265,8 @@ namespace osu.Framework.Platform.Windows.Native
         /// <summary>Handle to the target device. If NULL, it follows the keyboard focus.</summary>
         public IntPtr WindowHandle;
     }
+
+#pragma warning restore IDE1006
 
     /// <summary>Enumeration containing flags for a raw input device.</summary>
     public enum RawInputDeviceFlags

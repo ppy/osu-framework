@@ -1,11 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
@@ -16,8 +20,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public class TestSceneTextBoxEvents : ManualInputManagerTestScene
     {
         private EventQueuesTextBox textBox;
-
         private ManualTextInput textInput;
+        private ManualTextInputContainer textInputContainer;
 
         private const string default_text = "some default text";
         private const string composition_text = "test";
@@ -25,27 +29,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [SetUpSteps]
         public void SetUpSteps()
         {
-            ManualTextInputContainer textInputContainer = null;
-
             AddStep("add manual text input container", () =>
             {
                 Child = textInputContainer = new ManualTextInputContainer();
                 textInput = textInputContainer.TextInput;
             });
 
-            AddStep("add textbox", () => textInputContainer.Child = textBox = new EventQueuesTextBox
+            AddStep("add textbox", () => textInputContainer.Add(textBox = new EventQueuesTextBox
             {
                 CommitOnFocusLost = true,
                 ReleaseFocusOnCommit = false,
                 Size = new Vector2(200, 40),
                 Text = default_text,
-            });
+            }));
 
             AddStep("focus textbox", () =>
             {
                 InputManager.MoveMouseTo(textBox);
                 InputManager.Click(MouseButton.Left);
             });
+            AddStep("dequeue text input activated event", () => textInput.ActivationQueue.Dequeue());
 
             AddStep("move caret to end", () => InputManager.Keys(PlatformAction.MoveForwardLine));
             AddStep("dequeue caret event", () => textBox.CaretMovedQueue.Dequeue());
@@ -54,7 +57,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestCommitIsNewTextSecondTime()
         {
-            AddStep("add handler to reset on commit", () => textBox.OnCommit += (sender, isNew) =>
+            AddStep("add handler to reset on commit", () => textBox.OnCommit += (_, isNew) =>
             {
                 if (!isNew)
                     return;
@@ -125,20 +128,120 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text committed event raised", () =>
                 // Ensure dequeued text commit event has textChanged = false.
                 textBox.CommittedTextQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
+
+            AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
         }
 
         [Test]
         public void TestMovingOrExpandingSelectionInvokesEvent()
         {
+            // Selecting Forward
             AddStep("invoke move action to move caret", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
             AddAssert("caret moved event", () =>
                 // Ensure dequeued caret move event has selecting = false.
                 textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
 
             AddStep("invoke select action to expand selection", () => InputManager.Keys(PlatformAction.SelectForwardChar));
+            AddAssert("text selection event (character)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Character);
             AddAssert("caret moved event", () =>
                 // Ensure dequeued caret move event has selecting = true.
                 textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+
+            AddStep("invoke move action to move caret", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddAssert("text deselect event", () => textBox.TextDeselectionQueue.Dequeue());
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = false.
+                textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
+
+            AddStep("invoke select action to expand selection", () => InputManager.Keys(PlatformAction.SelectForwardWord));
+            AddAssert("text selection event (word)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Word);
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = true.
+                textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+
+            // Selecting Backward
+            AddStep("invoke move action to move caret", () => InputManager.Keys(PlatformAction.MoveForwardLine));
+            AddAssert("text deselect event", () => textBox.TextDeselectionQueue.Dequeue());
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = false.
+                textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
+
+            AddStep("invoke select action to expand selection", () => InputManager.Keys(PlatformAction.SelectBackwardChar));
+            AddAssert("text selection event (character)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Character);
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = true.
+                textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+
+            AddStep("invoke move action to move caret", () => InputManager.Keys(PlatformAction.MoveForwardLine));
+            AddAssert("text deselect event", () => textBox.TextDeselectionQueue.Dequeue());
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = false.
+                textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
+
+            AddStep("invoke select action to expand selection", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
+            AddAssert("text selection event (word)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Word);
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = true.
+                textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+
+            // Selecting All
+            AddStep("invoke select action to expand selection", () => InputManager.Keys(PlatformAction.SelectAll));
+            AddAssert("text selection event (all)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.All);
+
+            AddStep("invoke move action to move caret", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddAssert("text deselect event", () => textBox.TextDeselectionQueue.Dequeue());
+            AddAssert("caret moved event", () =>
+                // Ensure dequeued caret move event has selecting = false.
+                textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
+
+            // Selecting via Mouse
+            AddStep("double-click selection", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("text selection event (word)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Word);
+
+            AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
+            AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
+            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() && textInput.EnsureActivatedQueue.Count == 0);
+
+            AddStep("click deselection", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("text deselect event", () => textBox.TextDeselectionQueue.Dequeue());
+
+            AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
+            AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
+            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() && textInput.EnsureActivatedQueue.Count == 0);
+
+            AddStep("click-drag selection", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(textInputContainer.ToScreenSpace(textBox.DrawRectangle.Centre + new Vector2(50, 0)));
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            AddAssert("text selection event (character)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.Character);
+        }
+
+        [Test]
+        public void TestSelectAfterOutOfBandSelectionChange()
+        {
+            AddStep("select all text", () => InputManager.Keys(PlatformAction.SelectAll));
+            AddAssert("text selection event (all)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.All);
+
+            AddStep("delete all text", () => InputManager.Keys(PlatformAction.Delete));
+            AddAssert("user text removed event raised", () => textBox.UserRemovedTextQueue.Dequeue() == default_text);
+
+            AddAssert("no text is selected", () => textBox.SelectedText, () => Is.Empty);
+            AddStep("invoke caret select action", () => InputManager.Keys(PlatformAction.SelectForwardChar));
+            AddAssert("no text is selected", () => textBox.SelectedText, () => Is.Empty);
+
+            AddAssert("no text selection event", () => textBox.TextSelectionQueue, () => Has.Exactly(0).Items);
         }
 
         [Test]
@@ -278,6 +381,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("press escape again to kill focus", () => InputManager.Key(Key.Escape));
             AddAssert("text box not focused", () => textBox.HasFocus == false);
             AddAssert("text committed event raised", () => textBox.CommittedTextQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+            AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
         }
 
         [Test]
@@ -359,6 +463,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("set read only", () => textBox.ReadOnly = true);
 
             AddAssert("text committed event raised", () => textBox.CommittedTextQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
+            AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
             assertCompositionNotActive();
 
             AddStep("trigger composition", () => textInput.TriggerImeComposition(composition_text, composition_text.Length, 0));
@@ -375,10 +480,46 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestStartingCompositionRemovesSelection()
         {
             AddStep("select all text", () => InputManager.Keys(PlatformAction.SelectAll));
+            AddAssert("text selection event (all)", () => textBox.TextSelectionQueue.Dequeue() == TextBox.TextSelectionType.All);
 
             startComposition();
             AddAssert("user text removed event not raised", () => textBox.UserRemovedTextQueue.Count == 0);
             AddAssert("text matches expected", () => textBox.Text == composition_text);
+        }
+
+        /// <summary>
+        /// Tests that changing focus directly between two <see cref="TextBox"/>es doesn't deactivate and reactivate text input,
+        /// as that creates bad UX with mobile virtual keyboards.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestChangingFocusDoesNotReactivate(bool allowIme)
+        {
+            EventQueuesTextBox secondTextBox = null;
+
+            AddStep("add second textbox", () => textInputContainer.Add(secondTextBox = new EventQueuesTextBox
+            {
+                ImeAllowed = allowIme,
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+                CommitOnFocusLost = true,
+                Size = new Vector2(200, 40),
+                Text = default_text,
+            }));
+
+            AddStep("focus second textbox", () =>
+            {
+                InputManager.MoveMouseTo(secondTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("dequeue commit event", () => textBox.CommittedTextQueue.Dequeue());
+
+            AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
+            AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
+            AddAssert($"text input ensure activated {(allowIme ? "with" : "without")} IME", () => textInput.EnsureActivatedQueue.Dequeue() == allowIme && textInput.EnsureActivatedQueue.Count == 0);
+
+            AddStep("commit text", () => InputManager.Key(Key.Enter));
+            AddAssert("text input deactivated", () => textInput.DeactivationQueue.Dequeue());
         }
 
         [TearDownSteps]
@@ -390,7 +531,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                         textBox.CommittedTextQueue.Count == 0 &&
                                                         textBox.CaretMovedQueue.Count == 0 &&
                                                         textBox.ImeCompositionQueue.Count == 0 &&
-                                                        textBox.ImeResultQueue.Count == 0);
+                                                        textBox.ImeResultQueue.Count == 0 &&
+                                                        textBox.TextSelectionQueue.Count == 0 &&
+                                                        textBox.TextDeselectionQueue.Count == 0 &&
+                                                        textInput.ActivationQueue.Count == 0 &&
+                                                        textInput.DeactivationQueue.Count == 0 &&
+                                                        textInput.EnsureActivatedQueue.Count == 0);
         }
 
         private void assertCompositionNotActive()
@@ -427,6 +573,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
         {
+            public bool ImeAllowed { get; set; } = true;
+
+            protected override bool AllowIme => ImeAllowed;
+
             public readonly Queue<bool> InputErrorQueue = new Queue<bool>();
             public readonly Queue<string> UserConsumedTextQueue = new Queue<string>();
             public readonly Queue<string> UserRemovedTextQueue = new Queue<string>();
@@ -434,6 +584,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public readonly Queue<bool> CaretMovedQueue = new Queue<bool>();
             public readonly Queue<ImeCompositionEvent> ImeCompositionQueue = new Queue<ImeCompositionEvent>();
             public readonly Queue<ImeResultEvent> ImeResultQueue = new Queue<ImeResultEvent>();
+            public readonly Queue<TextSelectionType> TextSelectionQueue = new Queue<TextSelectionType>();
+            public readonly Queue<bool> TextDeselectionQueue = new Queue<bool>();
 
             protected override void NotifyInputError() => InputErrorQueue.Enqueue(true);
             protected override void OnUserTextAdded(string consumed) => UserConsumedTextQueue.Enqueue(consumed);
@@ -457,6 +609,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Successful = successful
                 });
 
+            protected override void OnTextSelectionChanged(TextSelectionType selectionType) => TextSelectionQueue.Enqueue(selectionType);
+            protected override void OnTextDeselected() => TextDeselectionQueue.Enqueue(true);
+
             public new bool ImeCompositionActive => base.ImeCompositionActive;
         }
 
@@ -467,6 +622,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public ManualTextInputContainer()
             {
+                RelativeSizeAxes = Axes.Both;
                 TextInput = new ManualTextInput();
             }
         }
@@ -491,6 +647,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 // this call will be somewhat delayed in a real world scenario, but let's run it immediately for simplicity.
                 base.TriggerImeComposition(string.Empty, 0, 0);
+            }
+
+            public readonly Queue<bool> ActivationQueue = new Queue<bool>();
+            public readonly Queue<bool> EnsureActivatedQueue = new Queue<bool>();
+            public readonly Queue<bool> DeactivationQueue = new Queue<bool>();
+
+            protected override void ActivateTextInput(bool allowIme)
+            {
+                base.ActivateTextInput(allowIme);
+                ActivationQueue.Enqueue(allowIme);
+            }
+
+            protected override void EnsureTextInputActivated(bool allowIme)
+            {
+                base.EnsureTextInputActivated(allowIme);
+                EnsureActivatedQueue.Enqueue(allowIme);
+            }
+
+            protected override void DeactivateTextInput()
+            {
+                base.DeactivateTextInput();
+                DeactivationQueue.Enqueue(true);
             }
         }
 

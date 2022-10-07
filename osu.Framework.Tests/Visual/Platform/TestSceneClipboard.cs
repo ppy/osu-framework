@@ -1,9 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -13,22 +19,22 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
     public class TestSceneClipboard : FrameworkTestScene
     {
-        private GameHost host;
+        [Resolved]
+        private IRenderer renderer { get; set; }
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         private Image<Rgba32> originalImage;
         private Image<Rgba32> clipboardImage;
 
         private Clipboard clipboard => host.GetClipboard();
 
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
-        {
-            this.host = host;
-        }
-
         [Test]
-        public void TestImageCopy()
+        public void TestImage()
         {
+            AddStep("clear previous screenshots", Clear);
+
             AddStep("screenshot screen", () =>
             {
                 host.TakeScreenshotAsync().ContinueWith(t =>
@@ -48,7 +54,20 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("retrieve image from clipboard", () =>
             {
-                clipboardImage = clipboard.GetImage<Rgba32>();
+                var image = clipboard.GetImage<Rgba32>();
+                clipboardImage = image.Clone();
+
+                var texture = renderer.CreateTexture(image.Width, image.Height);
+                texture.SetData(new TextureUpload(image));
+
+                Child = new Sprite
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                    FillMode = FillMode.Fit,
+                    Texture = texture
+                };
             });
 
             AddAssert("image retrieved", () => clipboardImage != null);

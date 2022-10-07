@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using ManagedBass;
 using osu.Framework.Audio;
@@ -25,15 +26,17 @@ namespace osu.Framework.Tests.Audio
         internal readonly TrackStore TrackStore;
         internal readonly SampleStore SampleStore;
 
-        private readonly List<AudioComponent> components = new List<AudioComponent>();
+        private readonly AudioCollectionManager<AudioComponent> allComponents = new AudioCollectionManager<AudioComponent>();
+        private readonly AudioCollectionManager<AudioComponent> mixerComponents = new AudioCollectionManager<AudioComponent>();
 
         public BassTestComponents(bool init = true)
         {
             if (init)
                 Init();
 
-            Mixer = CreateMixer();
+            allComponents.AddItem(mixerComponents);
 
+            Mixer = CreateMixer();
             Resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
             TrackStore = new TrackStore(Resources, Mixer);
             SampleStore = new SampleStore(Resources, Mixer);
@@ -50,24 +53,22 @@ namespace osu.Framework.Tests.Audio
             Bass.Init(0);
         }
 
-        public void Add(params AudioComponent[] component) => components.AddRange(component);
+        public void Add(params AudioComponent[] component)
+        {
+            foreach (var c in component)
+                allComponents.AddItem(c);
+        }
 
         internal BassAudioMixer CreateMixer()
         {
             var mixer = new BassAudioMixer(Mixer, "Test mixer");
-            components.Insert(0, mixer);
+            mixerComponents.AddItem(mixer);
             return mixer;
         }
 
         public void Update()
         {
-            RunOnAudioThread(() =>
-            {
-                Mixer.Update();
-
-                foreach (var c in components)
-                    c.Update();
-            });
+            RunOnAudioThread(() => allComponents.Update());
         }
 
         public void RunOnAudioThread(Action action)
@@ -93,9 +94,9 @@ namespace osu.Framework.Tests.Audio
 
         public void Dispose()
         {
-            // See AudioThread.FreeDevice().
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
-                Bass.Free();
+            allComponents.Dispose();
+            allComponents.Update(); // Actually runs the disposal.
+            Bass.Free();
         }
     }
 }

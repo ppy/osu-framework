@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace osu.Framework.Allocation
@@ -15,80 +15,94 @@ namespace osu.Framework.Allocation
     {
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
-        private int read;
-        private int write;
-        private int lastWrite = -1;
+        private int? lastCompletedWriteIndex;
 
-        private long currentFrame;
+        private int? activeReadIndex;
 
-        private readonly Action<ObjectUsage<T>, UsageType> finishDelegate;
+        private readonly ManualResetEventSlim writeCompletedEvent = new ManualResetEventSlim();
+
+        private const int buffer_count = 3;
 
         public TripleBuffer()
         {
-            //caching the delegate means we only have to allocate it once, rather than once per created buffer.
-            finishDelegate = finish;
+            for (int i = 0; i < buffer_count; i++)
+                buffers[i] = new ObjectUsage<T>(i, finishUsage);
         }
 
-        public ObjectUsage<T> Get(UsageType usage)
+        public ObjectUsage<T> GetForWrite()
         {
-            switch (usage)
+            ObjectUsage<T> buffer;
+
+            lock (buffers)
             {
-                case UsageType.Write:
-                    lock (buffers)
-                    {
-                        while (buffers[write]?.Usage == UsageType.Read || write == lastWrite)
-                            write = (write + 1) % 3;
-                    }
+                buffer = getNextWriteBuffer();
 
-                    if (buffers[write] == null)
-                    {
-                        buffers[write] = new ObjectUsage<T>
-                        {
-                            Finish = finishDelegate,
-                            Usage = UsageType.Write,
-                            Index = write,
-                        };
-                    }
-                    else
-                    {
-                        buffers[write].Usage = UsageType.Write;
-                    }
-
-                    buffers[write].FrameId = Interlocked.Increment(ref currentFrame);
-                    return buffers[write];
-
-                case UsageType.Read:
-                    if (lastWrite < 0) return null;
-
-                    lock (buffers)
-                    {
-                        read = lastWrite;
-                        buffers[read].Usage = UsageType.Read;
-                    }
-
-                    return buffers[read];
+                Debug.Assert(buffer.Usage == UsageType.None);
+                buffer.Usage = UsageType.Write;
             }
 
-            return null;
+            return buffer;
         }
 
-        private void finish(ObjectUsage<T> obj, UsageType type)
+        public ObjectUsage<T>? GetForRead()
         {
-            switch (type)
+            writeCompletedEvent.Reset();
+
+            lock (buffers)
             {
-                case UsageType.Read:
-                    lock (buffers)
-                        buffers[read].Usage = UsageType.None;
-                    break;
+                if (lastCompletedWriteIndex != null)
+                {
+                    var buffer = buffers[lastCompletedWriteIndex.Value];
+                    lastCompletedWriteIndex = null;
+                    buffer.Usage = UsageType.Read;
 
-                case UsageType.Write:
-                    lock (buffers)
-                    {
-                        buffers[write].Usage = UsageType.None;
-                        lastWrite = write;
-                    }
+                    Debug.Assert(activeReadIndex == null);
+                    activeReadIndex = buffer.Index;
+                    return buffer;
+                }
+            }
 
-                    break;
+            // A completed write wasn't available, so wait for the next to complete.
+            if (!writeCompletedEvent.Wait(100))
+                // Generally shouldn't happen, but this avoids spinning forever.
+                return null;
+
+            return GetForRead();
+        }
+
+        private ObjectUsage<T> getNextWriteBuffer()
+        {
+            for (int i = 0; i < buffer_count - 1; i++)
+            {
+                if (i == activeReadIndex) continue;
+                if (i == lastCompletedWriteIndex) continue;
+
+                return buffers[i];
+            }
+
+            return buffers[buffer_count - 1];
+        }
+
+        private void finishUsage(ObjectUsage<T> obj)
+        {
+            lock (buffers)
+            {
+                switch (obj.Usage)
+                {
+                    case UsageType.Read:
+                        Debug.Assert(activeReadIndex != null);
+                        activeReadIndex = null;
+                        break;
+
+                    case UsageType.Write:
+                        Debug.Assert(lastCompletedWriteIndex != obj.Index);
+                        lastCompletedWriteIndex = obj.Index;
+
+                        writeCompletedEvent.Set();
+                        break;
+                }
+
+                obj.Usage = UsageType.None;
             }
         }
     }

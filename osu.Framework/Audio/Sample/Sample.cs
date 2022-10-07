@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Bindables;
 
@@ -10,8 +12,14 @@ namespace osu.Framework.Audio.Sample
     {
         public const int DEFAULT_CONCURRENCY = 2;
 
-        public double Length { get; protected set; }
+        public string Name { get; }
 
+        protected Sample(string name)
+        {
+            Name = name;
+        }
+
+        public double Length { get; protected set; }
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
 
         internal Action<Sample> OnPlay;

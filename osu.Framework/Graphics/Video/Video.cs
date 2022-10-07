@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
 using System;
 using System.Collections.Generic;
@@ -166,7 +168,7 @@ namespace osu.Framework.Graphics.Video
                 var tex = lastFrame.Texture;
 
                 // Check if the new frame has been uploaded so we don't display an old frame
-                if ((tex?.TextureGL as VideoTexture)?.UploadComplete ?? false)
+                if (tex?.UploadComplete ?? false)
                 {
                     Sprite.Texture = tex;
                     UpdateSizing();

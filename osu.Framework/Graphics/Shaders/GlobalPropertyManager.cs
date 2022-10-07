@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
-        private static readonly HashSet<Shader> all_shaders = new HashSet<Shader>();
+        private static readonly HashSet<IShader> all_shaders = new HashSet<IShader>();
         private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
@@ -46,12 +48,12 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
         public static void Set<T>(GlobalProperty property, T value)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
         }
 
-        public static void Register(Shader shader)
+        public static void Register(IShader shader)
         {
             if (!all_shaders.Add(shader)) return;
 
@@ -65,7 +67,7 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        public static void Unregister(Shader shader)
+        public static void Unregister(IShader shader)
         {
             if (!all_shaders.Remove(shader)) return;
 

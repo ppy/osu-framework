@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Android.App;
@@ -10,6 +9,7 @@ using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
@@ -40,8 +40,6 @@ namespace osu.Framework.Android
 
         protected override IWindow CreateWindow() => new AndroidGameWindow(gameView);
 
-        protected override bool LimitedMemoryEnvironment => true;
-
         public override bool CanExit => false;
 
         public override bool CanSuspendToBackground => true;
@@ -56,6 +54,7 @@ namespace osu.Framework.Android
                 new AndroidMouseHandler(gameView),
                 new AndroidKeyboardHandler(gameView),
                 new AndroidTouchHandler(gameView),
+                new AndroidJoystickHandler(gameView),
                 new MidiHandler()
             };
 
@@ -66,14 +65,12 @@ namespace osu.Framework.Android
         public override IEnumerable<string> UserStoragePaths => new[]
         {
             // not null as internal "external storage" is always available.
-            Application.Context.GetExternalFilesDir(string.Empty)!.ToString(),
+            Application.Context.GetExternalFilesDir(string.Empty).AsNonNull().ToString(),
         };
 
-        public override void OpenFileExternally(string filename)
-            => throw new NotImplementedException();
+        public override bool OpenFileExternally(string filename) => false;
 
-        public override void PresentFileExternally(string filename)
-            => throw new NotImplementedException();
+        public override bool PresentFileExternally(string filename) => false;
 
         public override void OpenUrlExternally(string url)
         {
@@ -90,7 +87,7 @@ namespace osu.Framework.Android
             => new AndroidTextureLoaderStore(underlyingStore);
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
-            => new AndroidVideoDecoder(stream);
+            => new AndroidVideoDecoder(Renderer, stream);
 
         public override bool SuspendToBackground()
         {

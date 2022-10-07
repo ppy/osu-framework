@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using Newtonsoft.Json;
 
 namespace osu.Framework.IO.Network
@@ -20,8 +22,12 @@ namespace osu.Framework.IO.Network
 
         protected override void ProcessResponse()
         {
-            if (ResponseStream != null)
-                ResponseObject = JsonConvert.DeserializeObject<T>(GetResponseString());
+            if (ResponseStream == null)
+                return;
+
+            string response = GetResponseString();
+            if (response != null)
+                ResponseObject = JsonConvert.DeserializeObject<T>(response);
         }
 
         public T ResponseObject { get; private set; }

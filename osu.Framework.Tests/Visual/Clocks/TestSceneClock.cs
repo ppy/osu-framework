@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             });
         }
 
-        private IClock lastClock;
+        private IClock? lastClock;
 
         protected IClock AddClock(IClock clock)
         {

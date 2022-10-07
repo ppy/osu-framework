@@ -1,13 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
@@ -18,7 +20,7 @@ namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
-    /// Should be manually disposed if not queued for upload via <see cref="Texture.SetData"/>.
+    /// Should be manually disposed if not queued for upload via <see cref="Texture.SetData(ITextureUpload)"/>.
     /// </summary>
     public class TextureUpload : ITextureUpload
     {
@@ -57,10 +59,6 @@ namespace osu.Framework.Graphics.Textures
         public TextureUpload(Image<Rgba32> image)
         {
             this.image = image;
-
-            if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
-                throw new TextureTooLargeForGLException();
-
             pixelMemory = image.CreateReadOnlyPixelMemory();
         }
 
@@ -86,10 +84,11 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                using (var m = new MemoryStream())
+                using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>((int)stream.Length))
                 {
-                    stream.CopyTo(m);
-                    using (var stbiImage = Stbi.LoadFromMemory(m, 4))
+                    stream.ReadToFill(buffer.Memory.Span);
+
+                    using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
                         return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
                 }
             }
@@ -105,7 +104,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
-        /// Create an empty upload. Used by <see cref="FrameBuffer"/> for initialisation.
+        /// Create an empty upload. Used by <see cref="IFrameBuffer"/> for initialisation.
         /// </summary>
         internal TextureUpload()
         {

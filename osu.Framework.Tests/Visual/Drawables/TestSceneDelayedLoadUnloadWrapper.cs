@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -407,7 +409,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
-            AddStep("remove parent", () => Remove(parent));
+            AddStep("remove parent", () => Remove(parent, false));
             AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
         }
 

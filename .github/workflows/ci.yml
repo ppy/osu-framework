@@ -2,11 +2,65 @@ on: [push, pull_request]
 name: Continuous Integration
 
 jobs:
+  inspect-code:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS side by side.
+      # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
+      - name: Install .NET 3.1.x LTS
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "3.1.x"
+
+      - name: Install .NET 6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "6.0.x"
+
+      - name: Restore Tools
+        run: dotnet tool restore
+
+      - name: Restore Packages
+        run: dotnet restore
+
+      - name: Restore inspectcode cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/inspectcode
+          key: inspectcode-${{ hashFiles('.config/dotnet-tools.json', '.github/workflows/ci.yml', 'osu-framework.sln*', 'osu-framework*.slnf', '.editorconfig', '.globalconfig', 'CodeAnalysis/*', '**/*.csproj', '**/*.props') }}
+
+      - name: Dotnet code style
+        run: dotnet build -c Debug -warnaserror osu-framework.Desktop.slnf -p:EnforceCodeStyleInBuild=true
+
+      - name: CodeFileSanity
+        run: |
+          # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
+          # FIXME: Suppress warnings from templates project
+          exit_code=0
+          while read -r line; do
+            if [[ ! -z "$line" && "$line" != *"/osu.Framework.Templates/"* ]]; then
+              echo "::error::$line"
+              exit_code=1
+            fi
+          done <<< $(dotnet codefilesanity)
+          exit $exit_code
+
+      - name: InspectCode
+        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --no-build --output="inspectcodereport.xml" --caches-home="inspectcode" --verbosity=WARN
+
+      - name: NVika
+        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors
+
   test:
     name: Test
     runs-on: ${{matrix.os.fullname}}
     env:
       OSU_EXECUTION_MODE: ${{matrix.threadingMode}}
+      OSU_TESTS_LOCAL_HTTPBIN: 1
     strategy:
        fail-fast: false
        matrix:
@@ -16,6 +70,7 @@ jobs:
             - { prettyname: Linux, fullname: ubuntu-latest }
           threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 60
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -25,20 +80,21 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
-      # FIXME: libavformat is not included in Ubuntu. Let's fix that.
-      # https://github.com/ppy/osu-framework/issues/4349
-      # Remove this once https://github.com/actions/virtual-environments/issues/3306 has been resolved.
-      - name: Install libavformat-dev
-        if: ${{matrix.os.fullname == 'ubuntu-latest'}}
-        run: |
-         sudo apt-get update && \
-         sudo apt-get -y install libavformat-dev
+      - name: Setup Go
+        uses: actions/setup-go@v3
+
+      - name: Install httpbin
+        run: go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@latest
+
+      - name: Run httpbin
+        run: $HOME/go/bin/go-httpbin &
+        shell: bash
 
       - name: Compile
-        run: dotnet build -c Debug -warnaserror build/Desktop.proj
+        run: dotnet build -c Debug -warnaserror osu-framework.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+        run: dotnet test $pwd/**/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
         shell: pwsh
 
       # Attempt to upload results even if test fails.
@@ -87,51 +143,3 @@ jobs:
       # Build just the iOS framework project for now.
       - name: Build
         run: msbuild osu.Framework.iOS/osu.Framework.iOS.csproj /restore /p:Configuration=Debug
-
-  inspect-code:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS side by side.
-      # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
-      - name: Install .NET 3.1.x LTS
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "3.1.x"
-
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "6.0.x"
-
-      - name: Restore Tools
-        run: dotnet tool restore
-
-      - name: Restore Packages
-        run: dotnet restore
-
-      - name: CodeFileSanity
-        run: |
-          # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
-          # FIXME: Suppress warnings from templates project
-          exit_code=0
-          while read -r line; do
-            if [[ ! -z "$line" && "$line" != *"/osu.Framework.Templates/"* ]]; then
-              echo "::error::$line"
-              exit_code=1
-            fi
-          done <<< $(dotnet codefilesanity)
-          exit $exit_code
-
-      # Temporarily disabled due to test failures, but it won't work anyway until the tool is upgraded.
-      # - name: .NET Format (Dry Run)
-      #   run: dotnet format --dry-run --check
-
-      - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
-
-      - name: NVika
-        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors

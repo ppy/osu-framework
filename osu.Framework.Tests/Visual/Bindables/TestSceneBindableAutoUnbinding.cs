@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -106,7 +108,9 @@ namespace osu.Framework.Tests.Visual.Bindables
         public class BindableExposingFillFlowContainer : FillFlowContainer
         {
             [Cached]
+#pragma warning disable IDE0052 // Unread private member
             private Bindable<int> bindable = new Bindable<int>();
+#pragma warning restore IDE0052 //
         }
 
         public class TestResolvedBindableDrawable : TestExposedBindableDrawable

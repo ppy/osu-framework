@@ -1,17 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Utils;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -61,43 +61,43 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void PopulateContents()
+            protected override void PopulateContents(IRenderer renderer)
             {
-                base.PopulateContents();
+                base.PopulateContents(renderer);
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
-                    GLWrapper.PushScissorState(false);
+                    renderer.PushScissorState(false);
 
-                    if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation);
-                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90);
+                    if (blurRadius.X > 0) drawBlurredFrameBuffer(renderer, blurRadius.X, blurSigma.X, blurRotation);
+                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(renderer, blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
-                    GLWrapper.PopScissorState();
+                    renderer.PopScissorState();
                 }
             }
 
-            protected override void DrawContents()
+            protected override void DrawContents(IRenderer renderer)
             {
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                    base.DrawContents();
+                    base.DrawContents(renderer);
 
-                GLWrapper.SetBlend(effectBlending);
+                renderer.SetBlend(effectBlending);
 
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
+                renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                    base.DrawContents();
+                    base.DrawContents(renderer);
             }
 
-            private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
+            private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
             {
-                FrameBuffer current = SharedData.CurrentEffectBuffer;
-                FrameBuffer target = SharedData.GetNextEffectBuffer();
+                IFrameBuffer current = SharedData.CurrentEffectBuffer;
+                IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
-                GLWrapper.SetBlend(BlendingParameters.None);
+                renderer.SetBlend(BlendingParameters.None);
 
                 using (BindFrameBuffer(target))
                 {
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
-                    DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
                     blurShader.Unbind();
                 }
             }
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
 
         private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
         {
-            public BufferedContainerDrawNodeSharedData(RenderbufferInternalFormat[] formats, bool pixelSnapping, bool clipToRootNode)
+            public BufferedContainerDrawNodeSharedData(RenderBufferFormat[] formats, bool pixelSnapping, bool clipToRootNode)
                 : base(2, formats, pixelSnapping, clipToRootNode)
             {
             }

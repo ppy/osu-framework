@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
@@ -29,6 +27,8 @@ namespace osu.Framework.Graphics.Audio
         {
             this.sample = sample;
 
+            Name = sample.Name;
+
             PlaybackConcurrency.BindTo(sample.PlaybackConcurrency);
         }
 
@@ -48,6 +48,8 @@ namespace osu.Framework.Graphics.Audio
 
             return channel;
         }
+
+        string ISample.Name => sample.Name;
 
         public double Length => sample.Length;
 

@@ -21,6 +21,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.JoystickEvents,
             StatisticsCounterType.MidiEvents,
             StatisticsCounterType.TabletEvents,
+            StatisticsCounterType.TouchEvents,
         };
 
         protected override void PrepareForWork()

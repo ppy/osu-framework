@@ -1,8 +1,9 @@
 ﻿<!-- Contains required properties for osu!framework projects. -->
 <Project>
   <PropertyGroup Label="C#">
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup Label="License">
     <None Include="$(MSBuildThisFileDirectory)osu-framework.licenseheader">
@@ -35,9 +36,5 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
-  </PropertyGroup>
-  <PropertyGroup Label="Sourcelink3">
-    <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
-    <EnableSourceControlManagerQueries>$(EnableSourceLink)</EnableSourceControlManagerQueries>
   </PropertyGroup>
 </Project>

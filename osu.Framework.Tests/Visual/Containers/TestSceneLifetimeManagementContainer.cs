@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("add child", () => container.AddInternal(child = new TestChild(0, 2)));
             skipTo(1);
-            AddStep("remove child", () => container.RemoveInternal(child));
+            AddStep("remove child", () => container.RemoveInternal(child, false));
             AddStep("add same child", () => container.AddInternal(child));
             validate(1);
         }
@@ -198,7 +200,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestLifetimeMutatingChildren()
         {
-            AddStep("detach container", () => Remove(container));
+            AddStep("detach container", () => Remove(container, false));
 
             TestLifetimeMutatingChild first = null, second = null;
             AddStep("add children", () =>
@@ -248,7 +250,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
                 Logger.Log($"removeChild: {child.ChildID}");
-                container.RemoveInternal(child);
+                container.RemoveInternal(child, true);
             }
 
             void changeLifetime()

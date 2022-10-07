@@ -1,9 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
@@ -85,19 +84,26 @@ namespace osu.Framework.Timing
             // process the decoupled clock to update the current proposed time.
             decoupledClock.ProcessFrame();
 
-            // if the source clock is started as a result of becoming capable of handling the decoupled time, the proposed time may change to reflect the interpolated source time.
-            // however the interpolated source time that was calculated inside base.ProcessFrame() (above) did not consider the current (post-seek) time of the source.
-            // in all other cases the proposed time will match before and after clocks are started/stopped.
-            double proposedTime = ProposedCurrentTime;
-            double elapsedTime = ProposedElapsedTime;
-
             if (IsRunning)
             {
                 if (IsCoupled)
                 {
                     // when coupled, we want to stop when our source clock stops.
                     if (!sourceRunning)
+                    {
                         Stop();
+
+                        // if the source stops, ensure that we are immediately in sync with its time value.
+                        //
+                        // note that this *won't* apply when a Stop() call is made. in such a case, the interpolated value will
+                        // remain as current (as this is more expected behaviour – if we did a transfer there would be a jump, potentially
+                        // backwards.
+                        if (adjustableSource != null)
+                        {
+                            decoupledStopwatch.Seek(adjustableSource.CurrentTime);
+                            decoupledClock.ProcessFrame();
+                        }
+                    }
                 }
                 else
                 {
@@ -111,6 +117,12 @@ namespace osu.Framework.Timing
                 // when coupled and not running, we want to start when the source clock starts.
                 Start();
             }
+
+            // if the source clock is started as a result of becoming capable of handling the decoupled time, the proposed time may change to reflect the interpolated source time.
+            // however the interpolated source time that was calculated inside base.ProcessFrame() (above) did not consider the current (post-seek) time of the source.
+            // in all other cases the proposed time will match before and after clocks are started/stopped.
+            double proposedTime = ProposedCurrentTime;
+            double elapsedTime = ProposedElapsedTime;
 
             elapsedFrameTime = elapsedTime;
 
@@ -160,16 +172,41 @@ namespace osu.Framework.Timing
         {
             try
             {
-                bool success = adjustableSource?.Seek(position) != false;
+                // To simplify seek processing, handle the case of a null source up-front.
+                if (adjustableSource == null)
+                {
+                    decoupledStopwatch.Seek(position);
+                    return true;
+                }
+
+                Debug.Assert(adjustableSource != null);
 
                 if (IsCoupled)
+                {
+                    // Begin by performing a seek on the source clock.
+                    bool success = adjustableSource.Seek(position);
+
+                    // If coupled, regardless of the success of the seek on the source, use the updated
+                    // source's current position. This is done because in the case of a seek failure, the
+                    // source may update the value
+                    decoupledStopwatch.Seek(adjustableSource.CurrentTime);
+
                     return success;
+                }
+                else
+                {
+                    // If decoupled, a seek operation should cause the decoupled clock to seek regardless
+                    // of whether the source clock could handle the target location.
 
-                if (!success)
-                    //if we failed to seek then stop the source and use decoupled mode.
-                    adjustableSource?.Stop();
+                    // In the case the source is running, attempt a seek and stop it if that seek fails.
+                    // Note that we don't need to perform a seek if the source is not running.
+                    // This is important to improve performance in the decoupled case if the source clock's Seek call is not immediate.
+                    if (adjustableSource.IsRunning && !adjustableSource.Seek(position))
+                        adjustableSource?.Stop();
 
-                return decoupledStopwatch.Seek(position);
+                    // ..then perform the requested seek precisely on the decoupled clock.
+                    return decoupledStopwatch.Seek(position);
+                }
             }
             finally
             {

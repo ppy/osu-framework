@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Threading
 {
@@ -41,7 +42,7 @@ namespace osu.Framework.Threading
             this.name = name;
             tasks = new BlockingCollection<Task>();
 
-            threads = Enumerable.Range(0, numberOfThreads).Select(i =>
+            threads = Enumerable.Range(0, numberOfThreads).Select(_ =>
             {
                 var thread = new Thread(processTasks)
                 {
@@ -80,7 +81,19 @@ namespace osu.Framework.Threading
         /// Queues a Task to be executed by this scheduler.
         /// </summary>
         /// <param name="task">The task to be executed.</param>
-        protected override void QueueTask(Task task) => tasks.Add(task);
+        protected override void QueueTask(Task task)
+        {
+            try
+            {
+                tasks.Add(task);
+            }
+            catch (ObjectDisposedException)
+            {
+                // tasks may have been disposed. there's no easy way to check on this other than catch for it.
+                Logger.Log($"Task was queued for execution on a {nameof(ThreadedTaskScheduler)} ({name}) after it was disposed. The task will be executed inline.");
+                TryExecuteTask(task);
+            }
+        }
 
         /// <summary>
         /// Provides a list of the scheduled tasks for the debugger to consume.

@@ -12,7 +12,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkFillFlowContainerAllocations : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Benchmark]
         public void MultipleComputeLayoutPositions()

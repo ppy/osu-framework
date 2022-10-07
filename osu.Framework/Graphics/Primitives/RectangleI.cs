@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +19,7 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>Represents an instance of the <see cref="RectangleI"/> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
-        public static readonly RectangleI Empty;
+        public static RectangleI Empty { get; } = new RectangleI();
 
         public int X;
         public int Y;
@@ -39,13 +41,13 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="RectangleI"/> structure.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the upper-left corner of this <see cref="RectangleI"/> structure.</returns>
+        /// <returns>A <see cref="Vector2"/> that represents the upper-left corner of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2I Location => new Vector2I(X, Y);
 
         /// <summary>Gets or sets the size of this <see cref="RectangleI"/>.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the width and height of this <see cref="RectangleI"/> structure.</returns>
+        /// <returns>A <see cref="Vector2"/> that represents the width and height of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2I Size => new Vector2I(Width, Height);

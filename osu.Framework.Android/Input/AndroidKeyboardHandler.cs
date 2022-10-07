@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
@@ -43,20 +44,30 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
-                PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
+            {
+                enqueueInput(new KeyboardKeyInput(key, true));
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
-                PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
+            {
+                enqueueInput(new KeyboardKeyInput(key, false));
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -66,37 +77,35 @@ namespace osu.Framework.Android.Input
         /// <returns>The <see cref="Key"/> that was converted from <see cref="Keycode"/>.</returns>
         public static Key GetKeyCodeAsKey(Keycode keyCode)
         {
-            int code = (int)keyCode;
-
             // number keys
-            const int first_num_key = (int)Keycode.Num0;
-            const int last_num_key = (int)Keycode.Num9;
-            if (code >= first_num_key && code <= last_num_key)
-                return Key.Number0 + code - first_num_key;
+            const Keycode first_num_key = Keycode.Num0;
+            const Keycode last_num_key = Keycode.Num9;
+            if (keyCode >= first_num_key && keyCode <= last_num_key)
+                return Key.Number0 + (keyCode - first_num_key);
 
             // letters
-            const int first_letter_key = (int)Keycode.A;
-            const int last_letter_key = (int)Keycode.Z;
-            if (code >= first_letter_key && code <= last_letter_key)
-                return Key.A + code - first_letter_key;
+            const Keycode first_letter_key = Keycode.A;
+            const Keycode last_letter_key = Keycode.Z;
+            if (keyCode >= first_letter_key && keyCode <= last_letter_key)
+                return Key.A + (keyCode - first_letter_key);
 
             // function keys
-            const int first_function_key = (int)Keycode.F1;
-            const int last_function_key = (int)Keycode.F12;
-            if (code >= first_function_key && code <= last_function_key)
-                return Key.F1 + code - first_function_key;
+            const Keycode first_function_key = Keycode.F1;
+            const Keycode last_function_key = Keycode.F12;
+            if (keyCode >= first_function_key && keyCode <= last_function_key)
+                return Key.F1 + (keyCode - first_function_key);
 
             // keypad keys
-            const int first_keypad_key = (int)Keycode.Numpad0;
-            const int last_key_pad_key = (int)Keycode.NumpadDot;
-            if (code >= first_keypad_key && code <= last_key_pad_key)
-                return Key.Keypad0 + code - first_keypad_key;
+            const Keycode first_keypad_key = Keycode.Numpad0;
+            const Keycode last_key_pad_key = Keycode.NumpadDot;
+            if (keyCode >= first_keypad_key && keyCode <= last_key_pad_key)
+                return Key.Keypad0 + (keyCode - first_keypad_key);
 
             // direction keys
-            const int first_direction_key = (int)Keycode.DpadUp;
-            const int last_direction_key = (int)Keycode.DpadRight;
-            if (code >= first_direction_key && code <= last_direction_key)
-                return Key.Up + code - first_direction_key;
+            const Keycode first_direction_key = Keycode.DpadUp;
+            const Keycode last_direction_key = Keycode.DpadRight;
+            if (keyCode >= first_direction_key && keyCode <= last_direction_key)
+                return Key.Up + (keyCode - first_direction_key);
 
             // one to one mappings
             switch (keyCode)
@@ -116,6 +125,7 @@ namespace osu.Framework.Android.Input
                 case Keycode.Star:
                     return Key.KeypadMultiply;
 
+                case Keycode.Backslash:
                 case Keycode.Pound:
                     return Key.BackSlash; // english keyboard layout
 
@@ -127,6 +137,9 @@ namespace osu.Framework.Android.Input
 
                 case Keycode.Power:
                     return Key.Sleep;
+
+                case Keycode.MoveHome:
+                    return Key.Home;
 
                 case Keycode.MoveEnd:
                     return Key.End;
@@ -167,6 +180,9 @@ namespace osu.Framework.Android.Input
                 case Keycode.At:
                 case Keycode.Apostrophe:
                     return Key.Quote;
+
+                case Keycode.NumpadEnter:
+                    return Key.KeypadEnter;
             }
 
             if (Enum.TryParse(keyCode.ToString(), out Key key))
@@ -174,6 +190,12 @@ namespace osu.Framework.Android.Input
 
             // this is the worst case scenario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
+        }
+
+        private void enqueueInput(IInput input)
+        {
+            PendingInputs.Enqueue(input);
+            FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
     }
 }

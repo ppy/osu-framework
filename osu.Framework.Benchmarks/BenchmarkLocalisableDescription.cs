@@ -9,7 +9,7 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkLocalisableDescription
     {
-        private LocalisableString[] descriptions;
+        private LocalisableString[] descriptions = null!;
 
         [Params(1, 10, 100, 1000)]
         public int Times { get; set; }

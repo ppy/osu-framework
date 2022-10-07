@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
@@ -8,6 +10,11 @@ namespace osu.Framework.Audio.Sample
     /// </summary>
     public interface ISampleChannel : IHasAmplitudes
     {
+        /// <summary>
+        /// A name identifying this sample internally.
+        /// </summary>
+        string Name { get; }
+
         /// <summary>
         /// Starts or resumes playback. Has no effect if this <see cref="ISampleChannel"/> is already playing.
         /// </summary>

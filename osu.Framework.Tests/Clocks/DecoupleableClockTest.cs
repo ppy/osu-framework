@@ -11,8 +11,8 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class DecoupleableClockTest
     {
-        private TestClockWithRange source;
-        private TestDecoupleableClock decoupleable;
+        private TestClockWithRange source = null!;
+        private TestDecoupleableClock decoupleable = null!;
 
         [SetUp]
         public void SetUp()
@@ -102,6 +102,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
 
             Assert.IsFalse(decoupleable.IsRunning, "Coupled should not be running.");
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(source.CurrentTime));
         }
 
         /// <summary>
@@ -277,7 +278,7 @@ namespace osu.Framework.Tests.Clocks
         {
             decoupleable.Seek(1000);
 
-            Assert.AreEqual(source.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Source time should match coupled time.");
         }
 
         /// <summary>
@@ -303,7 +304,9 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.IsCoupled = false;
             decoupleable.Seek(1000);
 
-            Assert.AreEqual(decoupleable.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
+            Assert.AreEqual(decoupleable.CurrentTime, 1000, "Decoupled time should match seek target.");
+            // Seek on the source is not performed as the clock is stopped.
+            Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Source time should not match coupled time.");
         }
 
         /// <summary>

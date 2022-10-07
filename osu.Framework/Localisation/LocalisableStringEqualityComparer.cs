@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -11,8 +13,7 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class LocalisableStringEqualityComparer : IEqualityComparer<LocalisableString>
     {
-        // ReSharper disable once InconsistentNaming (follows EqualityComparer<T>.Default)
-        public static readonly LocalisableStringEqualityComparer Default = new LocalisableStringEqualityComparer();
+        public static LocalisableStringEqualityComparer Default { get; } = new LocalisableStringEqualityComparer();
 
         public bool Equals(LocalisableString x, LocalisableString y)
         {

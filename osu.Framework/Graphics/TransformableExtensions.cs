@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -141,6 +143,9 @@ namespace osu.Framework.Graphics
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
         {
+            if (!isFinite(newValue))
+                throw new ArgumentException($"{nameof(newValue)} must be finite, but is {newValue}.", nameof(newValue));
+
             if (duration < 0)
                 throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be positive.");
 
@@ -157,6 +162,20 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             return transform;
+
+            static bool isFinite(TValue value)
+            {
+                if (typeof(TValue) == typeof(float))
+                    return float.IsFinite((float)(object)value);
+                if (typeof(TValue) == typeof(double))
+                    return double.IsFinite((double)(object)value);
+                if (typeof(TValue) == typeof(Vector2))
+                    return Validation.IsFinite((Vector2)(object)value);
+                if (typeof(TValue) == typeof(MarginPadding))
+                    return Validation.IsFinite((MarginPadding)(object)value);
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -676,7 +695,12 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformRelativeChildSizeTo<T, TEasing>(this T container, Vector2 newSize, double duration, in TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
-            => container.TransformTo(nameof(container.RelativeChildSize), newSize, duration, easing);
+        {
+            if (newSize.X == 0 || newSize.Y == 0)
+                throw new ArgumentException($@"{nameof(newSize)} must be non-zero, but is {newSize}.", nameof(newSize));
+
+            return container.TransformTo(nameof(container.RelativeChildSize), newSize, duration, easing);
+        }
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildOffset"/> over time.

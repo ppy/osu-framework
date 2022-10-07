@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,6 +15,7 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Touch;
 
 namespace osu.Framework.Platform
 {
@@ -76,13 +79,20 @@ namespace osu.Framework.Platform
 
         public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
 
-        public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
+        public override bool OpenFileExternally(string filename)
+        {
+            openUsingShellExecute(filename);
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
 
-        public override void PresentFileExternally(string filename)
+        public override bool PresentFileExternally(string filename)
+        {
             // should be overriden to highlight/select the file in the folder if such native API exists.
-            => OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+            return true;
+        }
 
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
@@ -102,11 +112,12 @@ namespace osu.Framework.Platform
             new InputHandler[]
             {
                 new KeyboardHandler(),
-#if NET6_0
+#if NET6_0_OR_GREATER
                 // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
                 new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif
                 new MouseHandler(),
+                new TouchHandler(),
                 new JoystickHandler(),
                 new MidiHandler(),
             };

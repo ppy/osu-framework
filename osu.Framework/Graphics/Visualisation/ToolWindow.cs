@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -20,16 +22,20 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer ToolbarContent;
 
-        protected readonly ScrollContainer<Drawable> ScrollContent;
-
         protected readonly FillFlowContainer MainHorizontalContent;
 
-        protected ToolWindow(string title, string keyHelpText)
+        protected ScrollContainer<Drawable> ScrollContent;
+
+        protected readonly SearchContainer SearchContainer;
+
+        protected ToolWindow(string title, string keyHelpText, bool supportsSearch = false)
         {
             AutoSizeAxes = Axes.X;
             Height = HEIGHT;
 
             Masking = true; // for cursor masking
+
+            BasicTextBox queryTextBox;
 
             AddRangeInternal(new Drawable[]
             {
@@ -39,57 +45,109 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                new FillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical,
-                    Children = new Drawable[]
-                    {
-                        new TitleBar(title, keyHelpText, this),
-                        new Container //toolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    Colour = FrameworkColour.BlueGreenDark,
-                                    RelativeSizeAxes = Axes.Both,
-                                },
-                                ToolbarContent = new FillFlowContainer
-                                {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Spacing = new Vector2(5),
-                                    Padding = new MarginPadding(5),
-                                },
-                            },
-                        }
-                    }
-                },
-                new TooltipContainer
+                new GridContainer
                 {
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
-                    Child = MainHorizontalContent = new FillFlowContainer
+                    RowDimensions = new[]
                     {
-                        RelativeSizeAxes = Axes.Y,
-                        AutoSizeAxes = Axes.X,
-                        Direction = FillDirection.Horizontal,
-                        Children = new Drawable[]
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.Distributed),
+                    },
+                    ColumnDimensions = new[]
+                    {
+                        new Dimension(GridSizeMode.AutoSize),
+                    },
+                    Content = new[]
+                    {
+                        new Drawable[]
                         {
-                            ScrollContent = new BasicScrollContainer<Drawable>
+                            new FillFlowContainer
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Direction = FillDirection.Vertical,
+                                Children = new Drawable[]
+                                {
+                                    new TitleBar(title, keyHelpText, this),
+                                    new Container //toolbar
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Children = new Drawable[]
+                                        {
+                                            new Box
+                                            {
+                                                Colour = FrameworkColour.BlueGreenDark,
+                                                RelativeSizeAxes = Axes.Both,
+                                            },
+                                            ToolbarContent = new FillFlowContainer
+                                            {
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Spacing = new Vector2(5),
+                                                Padding = new MarginPadding(5),
+                                            },
+                                        },
+                                    }
+                                }
+                            },
+                        },
+                        new Drawable[]
+                        {
+                            new TooltipContainer
                             {
                                 RelativeSizeAxes = Axes.Y,
-                                Width = WIDTH
-                            }
+                                AutoSizeAxes = Axes.X,
+                                Child = MainHorizontalContent = new FillFlowContainer
+                                {
+                                    RelativeSizeAxes = Axes.Y,
+                                    AutoSizeAxes = Axes.X,
+                                    Direction = FillDirection.Horizontal,
+                                    Child = new GridContainer
+                                    {
+                                        RelativeSizeAxes = Axes.Y,
+                                        Width = WIDTH,
+                                        RowDimensions = new[]
+                                        {
+                                            new Dimension(GridSizeMode.AutoSize),
+                                            new Dimension(GridSizeMode.Distributed)
+                                        },
+                                        Content = new[]
+                                        {
+                                            new Drawable[]
+                                            {
+                                                queryTextBox = new BasicTextBox
+                                                {
+                                                    Width = WIDTH,
+                                                    Height = 30,
+                                                    PlaceholderText = "Search...",
+                                                    Alpha = supportsSearch ? 1 : 0,
+                                                }
+                                            },
+                                            new Drawable[]
+                                            {
+                                                ScrollContent = new BasicScrollContainer<Drawable>
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Child = SearchContainer = new SearchContainer
+                                                    {
+                                                        AutoSizeAxes = Axes.Y,
+                                                        RelativeSizeAxes = Axes.X,
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                         }
-                    }
+                    },
                 },
                 new CursorContainer()
             });
+
+            queryTextBox.Current.BindValueChanged(term => SearchContainer.SearchTerm = term.NewValue, true);
         }
 
         protected void AddButton(string text, Action action)
@@ -100,14 +158,6 @@ namespace osu.Framework.Graphics.Visualisation
                 Text = text,
                 Action = action
             });
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            // Used instead of GridContainer due to grid container's autosize failing to reduce size after increase.
-            MainHorizontalContent.Padding = new MarginPadding { Top = TitleBar.HEIGHT + ToolbarContent.DrawHeight };
         }
 
         protected override void PopIn() => this.FadeIn(100);

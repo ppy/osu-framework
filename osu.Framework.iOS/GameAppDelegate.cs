@@ -1,9 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using AVFoundation;
 using Foundation;
 using SixLabors.ImageSharp.Formats.Png;
@@ -54,7 +57,7 @@ namespace osu.Framework.iOS
 
             try
             {
-                new PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
+                new PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null, CancellationToken.None);
             }
             catch
             {

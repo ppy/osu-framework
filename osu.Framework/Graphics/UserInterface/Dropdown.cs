@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -223,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
+            ItemSource.CollectionChanged += (_, _) => setItems(ItemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)
@@ -279,7 +281,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {
-                if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
+                if (args.NewValue == null || !itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
                     selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
                 }
@@ -379,7 +381,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsSelected = c.Item == item;
+                    c.IsSelected = compareItemEquality(item, c.Item);
                     if (c.IsSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
@@ -389,13 +391,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// Shows an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to show.</param>
-            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Hide();
+            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Hide();
 
             /// <summary>
             /// Hides an item from this <see cref="DropdownMenu"/>
             /// </summary>
             /// <param name="item"></param>
-            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Show();
+            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Show();
 
             /// <summary>
             /// Whether any items part of this <see cref="DropdownMenu"/> are present.
@@ -412,7 +414,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsPreSelected = c.Item == item;
+                    c.IsPreSelected = compareItemEquality(item, c.Item);
                     if (c.IsPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
@@ -421,6 +423,14 @@ namespace osu.Framework.Graphics.UserInterface
             protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
 
             protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
+
+            private static bool compareItemEquality(MenuItem a, MenuItem b)
+            {
+                if (a is not DropdownMenuItem<T> aTyped || b is not DropdownMenuItem<T> bTyped)
+                    return false;
+
+                return EqualityComparer<T>.Default.Equals(aTyped.Value, bTyped.Value);
+            }
 
             #region DrawableDropdownMenuItem
 
@@ -477,7 +487,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         backgroundColourSelected = value;
-                        UpdateBackgroundColour();
+                        Scheduler.AddOnce(UpdateBackgroundColour);
                     }
                 }
 
@@ -489,17 +499,14 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         foregroundColourSelected = value;
-                        UpdateForegroundColour();
+                        Scheduler.AddOnce(UpdateForegroundColour);
                     }
                 }
 
                 protected virtual void OnSelectChange()
                 {
-                    if (!IsLoaded)
-                        return;
-
-                    UpdateBackgroundColour();
-                    UpdateForegroundColour();
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
                 }
 
                 protected override void UpdateBackgroundColour()
@@ -510,13 +517,6 @@ namespace osu.Framework.Graphics.UserInterface
                 protected override void UpdateForegroundColour()
                 {
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
-                }
-
-                protected override void LoadComplete()
-                {
-                    base.LoadComplete();
-                    Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
-                    Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
                 protected override bool OnHover(HoverEvent e)

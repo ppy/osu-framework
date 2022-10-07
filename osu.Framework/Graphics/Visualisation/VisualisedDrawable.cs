@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +16,11 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IContainVisualisedDrawables
+    internal class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
     {
         private const int line_height = 12;
 
@@ -37,6 +40,33 @@ namespace osu.Framework.Graphics.Visualisation
                     Expand();
             }
         }
+
+        public IEnumerable<LocalisableString> FilterTerms => new LocalisableString[]
+        {
+            Target.ToString()
+        };
+
+        public IEnumerable<IFilterable> FilterableChildren => flow.Children;
+
+        public bool FilteringActive { get; set; }
+
+        private bool matchingFilter = true;
+
+        public bool MatchingFilter
+        {
+            get => matchingFilter;
+            set
+            {
+                bool wasPresent = IsPresent;
+
+                matchingFilter = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
+            }
+        }
+
+        public override bool IsPresent => base.IsPresent && MatchingFilter;
 
         public Action<Drawable> RequestTarget;
         public Action<VisualisedDrawable> HighlightTarget;
@@ -132,7 +162,7 @@ namespace osu.Framework.Graphics.Visualisation
                             : new Sprite
                             {
                                 // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
-                                Texture = new Texture(spriteTarget.Texture.TextureGL),
+                                Texture = new Texture(spriteTarget.Texture),
                                 Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
@@ -268,7 +298,7 @@ namespace osu.Framework.Graphics.Visualisation
             flow.Add(visualiser);
         }
 
-        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser) => flow.Remove(visualiser);
+        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser) => flow.Remove(visualiser, false);
 
         public VisualisedDrawable FindVisualisedDrawable(Drawable drawable)
         {

@@ -1,11 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
@@ -20,9 +24,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private const int texture_width = 20;
 
-        private readonly Texture gradientTexture = new Texture(texture_width, 1, true);
+        private Texture gradientTexture;
 
-        public TestSceneDrawablePath()
+        [BackgroundDependencyLoader]
+        private void load(IRenderer renderer)
         {
             var image = new Image<Rgba32>(texture_width, 1);
 
@@ -32,6 +37,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 image[i, 0] = new Rgba32(255, 255, 255, brightnessByte);
             }
 
+            gradientTexture = renderer.CreateTexture(texture_width, 1, true);
             gradientTexture.SetData(new TextureUpload(image));
         }
 

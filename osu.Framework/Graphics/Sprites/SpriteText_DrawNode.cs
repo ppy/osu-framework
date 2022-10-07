@@ -1,11 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics;
@@ -44,11 +46,13 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
-                Shader.Bind();
+                var shader = GetAppropriateShader(renderer);
+
+                shader.Bind();
 
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
                 float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
@@ -64,19 +68,19 @@ namespace osu.Framework.Graphics.Sprites
                     {
                         var shadowQuad = parts[i].DrawQuad;
 
-                        DrawQuad(parts[i].Texture,
+                        renderer.DrawQuad(parts[i].Texture,
                             new Quad(
                                 shadowQuad.TopLeft + shadowOffset,
                                 shadowQuad.TopRight + shadowOffset,
                                 shadowQuad.BottomLeft + shadowOffset,
                                 shadowQuad.BottomRight + shadowOffset),
-                            finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                            finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
+                    renderer.DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
                 }
 
-                Shader.Unbind();
+                shader.Unbind();
             }
         }
 

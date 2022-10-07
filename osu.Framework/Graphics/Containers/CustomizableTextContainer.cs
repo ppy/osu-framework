@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Localisation;
@@ -97,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
             // placeholders via AddPlaceholder() are similar to manual text parts
             // in that they were added/registered externally and cannot be recreated.
             // remove them before proceeding with part recreation to avoid accidentally disposing them in the process.
-            RemoveRange(Placeholders);
+            RemoveRange(Placeholders, false);
 
             base.RecreateAllParts();
         }

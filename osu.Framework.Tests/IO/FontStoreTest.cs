@@ -1,8 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using osu.Framework.Text;
@@ -25,8 +28,8 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNestedScaleAdjust()
         {
-            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "Roboto-Regular") { CacheStorage = storage }, scaleAdjust: 100))
-            using (var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "Roboto-Bold") { CacheStorage = storage }, 10))
+            using (var fontStore = new FontStore(new DummyRenderer(), new RawCachingGlyphStore(fontResourceStore, "Roboto-Regular") { CacheStorage = storage }, scaleAdjust: 100))
+            using (var nestedFontStore = new FontStore(new DummyRenderer(), new RawCachingGlyphStore(fontResourceStore, "Roboto-Bold") { CacheStorage = storage }, 10))
             {
                 fontStore.AddStore(nestedFontStore);
 
@@ -45,7 +48,7 @@ namespace osu.Framework.Tests.IO
         public void TestNoCrashOnMissingResources()
         {
             using (var glyphStore = new RawCachingGlyphStore(fontResourceStore, "DoesntExist") { CacheStorage = storage })
-            using (var fontStore = new FontStore(glyphStore, 100))
+            using (var fontStore = new FontStore(new DummyRenderer(), glyphStore, 100))
             {
                 Assert.That(glyphStore.Get('a'), Is.Null);
 

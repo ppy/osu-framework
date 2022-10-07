@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Drawing;
 using osu.Framework.Extensions.EnumExtensions;
@@ -23,13 +25,13 @@ namespace osu.Framework.Platform.Windows
         private const int raw_input_coordinate_space = 65535;
 
         private SDL.SDL_WindowsMessageHook callback;
-        private SDL2DesktopWindow window;
+        private WindowsWindow window;
 
         public override bool IsActive => Enabled.Value;
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is SDL2DesktopWindow desktopWindow))
+            if (!(host.Window is WindowsWindow desktopWindow))
                 return false;
 
             window = desktopWindow;
@@ -41,6 +43,12 @@ namespace osu.Framework.Platform.Windows
             }, true);
 
             return base.Initialize(host);
+        }
+
+        public override void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        {
+            window.LastMousePosition = position;
+            base.FeedbackMousePositionChange(position, isSelfFeedback);
         }
 
         protected override void HandleMouseMoveRelative(Vector2 delta)
@@ -56,6 +64,11 @@ namespace osu.Framework.Platform.Windows
             if (message != Native.Input.WM_INPUT)
                 return IntPtr.Zero;
 
+            if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
+                // sometimes GetMessageExtraInfo returns 0, so additionally, mouse.ExtraInformation is checked below.
+                // touch events are handled by TouchHandler
+                return IntPtr.Zero;
+
             int payloadSize = sizeof(RawInputData);
 
             Native.Input.GetRawInputData((IntPtr)lParam, RawInputCommand.Input, out var data, ref payloadSize, sizeof(RawInputHeader));
@@ -64,6 +77,10 @@ namespace osu.Framework.Platform.Windows
                 return IntPtr.Zero;
 
             var mouse = data.Mouse;
+
+            // `ExtraInformation` doens't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
+            if (Native.Input.HasTouchFlag(mouse.ExtraInformation))
+                return IntPtr.Zero;
 
             //TODO: this isn't correct.
             if (mouse.ExtraInformation > 0)

@@ -7,7 +7,7 @@ namespace osu.Framework.Tests.Visual.Clocks
 {
     public class LaggyFramedClock : FramedClock
     {
-        public LaggyFramedClock(IClock source = null)
+        public LaggyFramedClock(IClock? source = null)
             : base(source)
         {
         }
