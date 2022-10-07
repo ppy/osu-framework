@@ -43,9 +43,9 @@ namespace osu.Framework.Graphics.Cursor
             base.LoadComplete();
 
             inputManager = GetContainingInputManager();
-            inputManager.TouchLongPressBegan += duration =>
+            inputManager.TouchLongPressBegan += (position, duration) =>
             {
-                longPressFeedback.Position = Parent.ToLocalSpace(inputManager.CurrentState.Mouse.Position);
+                longPressFeedback.Position = Parent.ToLocalSpace(position);
                 longPressFeedback.BeginAnimation(duration);
             };
             inputManager.TouchLongPressCancelled += longPressFeedback.CancelAnimation;

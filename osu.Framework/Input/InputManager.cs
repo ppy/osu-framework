@@ -11,6 +11,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -727,6 +728,7 @@ namespace osu.Framework.Input
         private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
 
         private const double touch_right_click_delay = 750;
+        private const double touch_right_click_distance = 100;
 
         [CanBeNull]
         private ScheduledDelegate touchRightClickDelegate;
@@ -734,7 +736,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Invoked when a touch long-press gesture has scheduled for triggering after the specified delay.
         /// </summary>
-        public event Action<double> TouchLongPressBegan;
+        public event Action<Vector2, double> TouchLongPressBegan;
 
         /// <summary>
         /// Invoked when an ongoing touch long-press gesture has been cancelled.
@@ -805,20 +807,28 @@ namespace osu.Framework.Input
 
         private void updateTouchMouseRight(TouchStateChangeEvent e)
         {
+            var touchDownPosition = GetButtonEventManagerFor(e.Touch.Source).TouchDownPosition;
+
             if (touchRightClickDelegate != null && touchRightClickDelegate.State != ScheduledDelegate.RunState.Complete)
             {
+                if (isSingleTouch && Vector2Extensions.Distance(touchDownPosition.AsNonNull().Value, e.Touch.Position) <= touch_right_click_distance)
+                    return;
+
                 touchRightClickDelegate.Cancel();
                 TouchLongPressCancelled?.Invoke();
             }
 
             touchRightClickDelegate = null;
 
-            if (!AllowRightClickFromLongTouch || !isSingleTouch || DraggedDrawable != null)
+            if (!AllowRightClickFromLongTouch || !isSingleTouch || Vector2Extensions.Distance(touchDownPosition.AsNonNull().Value, e.Touch.Position) > touch_right_click_distance)
                 return;
 
-            TouchLongPressBegan?.Invoke(touch_right_click_delay);
+            Debug.Assert(touchDownPosition != null);
+
+            TouchLongPressBegan?.Invoke(touchDownPosition.Value, touch_right_click_delay);
             touchRightClickDelegate = Scheduler.AddDelayed(() =>
             {
+                new MousePositionAbsoluteInputFromTouch(e) { Position = touchDownPosition.Value }.Apply(CurrentState, this);
                 new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
                 new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
                 cancelLeftFromTouchOnRelease = true;
