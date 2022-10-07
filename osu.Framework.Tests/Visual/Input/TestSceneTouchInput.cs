@@ -481,6 +481,30 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestHoldTouchAndNudgeBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("nudge touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1) + new Vector2(70))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("right click received at original position", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right && down.ScreenSpaceMousePosition == getTouchDownPos(TouchSource.Touch1);
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+        }
+
+        [Test]
         public void TestHoldTouchAndDragBeforeRightClick()
         {
             InputReceptor primaryReceptor = null;
@@ -489,7 +513,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("setup handlers to receive mouse-from-touch", () =>
             {
                 primaryReceptor.HandleTouch = _ => false;
-                primaryReceptor.HandleMouse = e => (e is MouseButtonEvent button && button.Button == MouseButton.Right) || e is DragStartEvent;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
