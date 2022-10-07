@@ -82,6 +82,10 @@ namespace osu.Framework.Platform
 
         public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
 
+#pragma warning disable CS0067
+        public event Action<IEnumerable<Display>> DisplaysChanged;
+#pragma warning restore CS0067
+
         public virtual Display PrimaryDisplay => Displays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
 
         public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
@@ -113,28 +117,28 @@ namespace osu.Framework.Platform
 
             // Moving or resizing the window needs to check to see if we've moved to a different display.
             // This will update the CurrentDisplay bindable.
-            Move += (sender, e) => checkCurrentDisplay();
-            Resize += (sender, e) =>
+            Move += (_, _) => checkCurrentDisplay();
+            Resize += (_, _) =>
             {
                 checkCurrentDisplay();
                 Resized?.Invoke();
             };
 
-            Closing += (sender, e) =>
+            Closing += (_, e) =>
             {
                 // always block a graceful exit as it's treated as a regular window event.
                 // the host will force-close the window if the game decides not to block the exit.
                 ExitRequested?.Invoke();
                 e.Cancel = true;
             };
-            Closed += (sender, e) => Exited?.Invoke();
+            Closed += (_, _) => Exited?.Invoke();
 
-            MouseEnter += (sender, args) => cursorInWindow.Value = true;
-            MouseLeave += (sender, args) => cursorInWindow.Value = false;
+            MouseEnter += (_, _) => cursorInWindow.Value = true;
+            MouseLeave += (_, _) => cursorInWindow.Value = false;
 
             supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
-            UpdateFrame += (o, e) => UpdateFrameScheduler.Update();
+            UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
             MakeCurrent();
 
@@ -176,7 +180,8 @@ namespace osu.Framework.Platform
         /// <para>Note that this will use the default <see cref="GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected OsuTKWindow(int width, int height)
-            : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+            : this(new GameWindow(width, height,
+                new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 

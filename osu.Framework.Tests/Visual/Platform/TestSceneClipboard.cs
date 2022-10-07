@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
@@ -18,18 +19,16 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
     public class TestSceneClipboard : FrameworkTestScene
     {
-        private GameHost host;
+        [Resolved]
+        private IRenderer renderer { get; set; }
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         private Image<Rgba32> originalImage;
         private Image<Rgba32> clipboardImage;
 
         private Clipboard clipboard => host.GetClipboard();
-
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
-        {
-            this.host = host;
-        }
 
         [Test]
         public void TestImage()
@@ -58,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 var image = clipboard.GetImage<Rgba32>();
                 clipboardImage = image.Clone();
 
-                var texture = new Texture(image.Width, image.Height);
+                var texture = renderer.CreateTexture(image.Width, image.Height);
                 texture.SetData(new TextureUpload(image));
 
                 Child = new Sprite

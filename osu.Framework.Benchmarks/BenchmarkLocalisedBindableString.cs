@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Configuration;
@@ -14,8 +12,8 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkLocalisedBindableString
     {
-        private LocalisationManager manager;
-        private TemporaryNativeStorage storage;
+        private LocalisationManager manager = null!;
+        private TemporaryNativeStorage storage = null!;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -27,6 +25,7 @@ namespace osu.Framework.Benchmarks
         [GlobalCleanup]
         public void GlobalCleanup()
         {
+            manager.Dispose();
             storage.Dispose();
         }
 

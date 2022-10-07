@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
@@ -129,7 +127,7 @@ namespace osu.Framework.Threading
 
             int selectedDevice = Bass.CurrentDevice;
 
-            if (canFreeDevice(deviceId) && canSelectDevice(deviceId))
+            if (canSelectDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
@@ -154,11 +152,5 @@ namespace osu.Framework.Threading
                 Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
-
-        /// <summary>
-        /// Whether a device can be freed.
-        /// On Linux, freeing device 0 is disallowed as it can cause deadlocks which don't surface immediately.
-        /// </summary>
-        private static bool canFreeDevice(int deviceId) => deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux;
     }
 }

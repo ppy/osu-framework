@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                     if (fillFlow.Count > 100)
                     {
-                        fillFlow.Remove(fillFlow.First());
+                        fillFlow.Remove(fillFlow.First(), true);
                     }
                 }
             }, 100000);

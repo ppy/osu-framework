@@ -83,7 +83,7 @@ namespace osu.Framework.Input.Handlers.Midi
                             closeDevice(device);
                             openedDevices.Remove(key);
 
-                            Logger.Log($"Disconnected MIDI device: {device.Details.Name}");
+                            Log($"Disconnected MIDI device: {device.Details.Name}");
                         }
                     }
 
@@ -96,7 +96,7 @@ namespace osu.Framework.Input.Handlers.Midi
                             newInput.MessageReceived += onMidiMessageReceived;
                             openedDevices[input.Id] = newInput;
 
-                            Logger.Log($"Connected MIDI device: {newInput.Details.Name}");
+                            Log($"Connected MIDI device: {newInput.Details.Name}");
                         }
                     }
                 }
@@ -109,7 +109,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     ? "Is libasound2-dev installed?"
                     : "There may be another application already using MIDI.";
 
-                Logger.Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
+                Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
 
                 // stop attempting to refresh devices until next startup.
                 inGoodState = false;
@@ -143,7 +143,7 @@ namespace osu.Framework.Input.Handlers.Midi
             catch (Exception exception)
             {
                 string dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
-                Logger.Error(exception, $"An exception occurred while reading MIDI data from sender {senderId}: {dataString}");
+                Log($"An exception occurred while reading MIDI data from sender {senderId}: {dataString}", LogLevel.Error, exception);
             }
         }
 
@@ -216,8 +216,6 @@ namespace osu.Framework.Input.Handlers.Midi
 
         private void dispatchEvent(byte eventType, byte key, byte velocity)
         {
-            Logger.Log($"Handling MIDI event {eventType:X2}:{key:X2}:{velocity:X2}");
-
             // Low nibble only contains channel data in note on/off messages
             // Ignore to receive messages from all channels
             switch (eventType & 0xF0)
@@ -234,17 +232,15 @@ namespace osu.Framework.Input.Handlers.Midi
                     break;
             }
 
-            void noteOff()
+            void noteOn()
             {
-                Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
-                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
 
-            void noteOn()
+            void noteOff()
             {
-                Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
-                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
             }
         }

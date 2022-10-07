@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using osu.Framework.Bindables;
@@ -8,7 +9,7 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationManager
+    public partial class LocalisationManager : IDisposable
     {
         public IBindable<LocalisationParameters> CurrentParameters => currentParameters;
 
@@ -28,6 +29,23 @@ namespace osu.Framework.Localisation
             configPreferUnicode.BindValueChanged(_ => UpdateLocalisationParameters(), true);
         }
 
+        /// <summary>
+        /// Add multiple locale mappings. Should be used to add all available languages at initialisation.
+        /// </summary>
+        /// <param name="mappings">All available locale mappings.</param>
+        public void AddLocaleMappings(IEnumerable<LocaleMapping> mappings)
+        {
+            locales.AddRange(mappings);
+            configLocale.TriggerChange();
+        }
+
+        /// <summary>
+        /// Add a single language to this manager.
+        /// </summary>
+        /// <remarks>
+        /// Use <see cref="AddLocaleMappings"/> as a more efficient way of bootstrapping all available locales.</remarks>
+        /// <param name="language">The culture name to be added. Generally should match <see cref="CultureInfo.Name"/>.</param>
+        /// <param name="storage">A storage providing localisations for the specified language.</param>
         public void AddLanguage(string language, ILocalisationStore storage)
         {
             locales.Add(new LocaleMapping(language, storage));
@@ -74,7 +92,23 @@ namespace osu.Framework.Localisation
 
             if (currentLocale == null)
             {
-                var culture = string.IsNullOrEmpty(locale.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(locale.NewValue);
+                CultureInfo culture;
+
+                if (string.IsNullOrEmpty(locale.NewValue))
+                {
+                    culture = CultureInfo.CurrentCulture;
+                }
+                else if (!CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out culture))
+                {
+                    if (locale.OldValue == locale.NewValue)
+                        // equal values mean invalid locale on startup, no real way to recover other than to set to default.
+                        configLocale.SetDefault();
+                    else
+                        // revert to the old locale if the new one is invalid.
+                        configLocale.Value = locale.OldValue;
+
+                    return;
+                }
 
                 for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
                 {
@@ -103,16 +137,17 @@ namespace osu.Framework.Localisation
         /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
         protected virtual LocalisationParameters CreateLocalisationParameters() => new LocalisationParameters(currentLocale?.Storage, configPreferUnicode.Value);
 
-        private class LocaleMapping
+        protected virtual void Dispose(bool disposing)
         {
-            public readonly string Name;
-            public readonly ILocalisationStore Storage;
+            currentParameters.UnbindAll();
+            configLocale.UnbindAll();
+            configPreferUnicode.UnbindAll();
+        }
 
-            public LocaleMapping(string name, ILocalisationStore storage)
-            {
-                Name = name;
-                Storage = storage;
-            }
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

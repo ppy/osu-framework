@@ -6,6 +6,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
@@ -24,7 +25,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         public CircularProgress()
         {
-            Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
+            Current.ValueChanged += c =>
+            {
+                if (!double.IsFinite(c.NewValue))
+                    throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
+
+                Invalidate(Invalidation.DrawNode);
+            };
         }
 
         public IShader RoundedTextureShader { get; private set; }
@@ -52,13 +59,14 @@ namespace osu.Framework.Graphics.UserInterface
             => this.TransformBindableTo(Current, newValue, duration, easing);
 
         [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, IRenderer renderer)
         {
+            texture ??= renderer.WhitePixel;
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
-        private Texture texture = Texture.WhitePixel;
+        private Texture texture;
 
         public Texture Texture
         {
@@ -87,6 +95,9 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
+                if (!float.IsFinite(value))
+                    throw new ArgumentException($"{nameof(InnerRadius)} must be finite, but is {value}.");
+
                 innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }

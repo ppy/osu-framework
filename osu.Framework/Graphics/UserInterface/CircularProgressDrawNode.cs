@@ -4,14 +4,13 @@
 #nullable disable
 
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 using osuTK;
 using System;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -23,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected new CircularProgress Source => (CircularProgress)base.Source;
 
-        private LinearBatch<TexturedVertex2D> halfCircleBatch;
+        private IVertexBatch<TexturedVertex2D> halfCircleBatch;
 
         private float angle;
         private float innerRadius = 1;
@@ -56,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
 
-        private void updateVertexBuffer()
+        private void updateVertexBuffer(IRenderer renderer)
         {
             const float start_angle = 0;
 
@@ -73,17 +72,16 @@ namespace osu.Framework.Graphics.UserInterface
                 halfCircleBatch?.Dispose();
 
                 // Amount of points is multiplied by 2 to account for each part requiring two vertices.
-                halfCircleBatch = new LinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveType.TriangleStrip);
+                halfCircleBatch = renderer.CreateLinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveTopology.TriangleStrip);
             }
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, drawSize);
+            renderer.PushLocalMatrix(transformationMatrix);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
             Color4 currentColour = colourAt(current);
-            current = Vector2Extensions.Transform(current, transformationMatrix);
 
-            Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
 
             // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
@@ -94,7 +92,7 @@ namespace osu.Framework.Graphics.UserInterface
             // First center point
             halfCircleBatch.Add(new TexturedVertex2D
             {
-                Position = Vector2.Lerp(current, screenOrigin, innerRadius),
+                Position = Vector2.Lerp(current, origin, innerRadius),
                 TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
                 Colour = originColour
             });
@@ -122,12 +120,11 @@ namespace osu.Framework.Graphics.UserInterface
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
                 currentColour = colourAt(current);
-                current = Vector2Extensions.Transform(current, transformationMatrix);
 
                 // current center point
                 halfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = Vector2.Lerp(current, screenOrigin, innerRadius),
+                    Position = Vector2.Lerp(current, origin, innerRadius),
                     TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
                     Colour = originColour
                 });
@@ -142,22 +139,26 @@ namespace osu.Framework.Graphics.UserInterface
 
                 prevOffset = normalisedOffset;
             }
+
+            renderer.PopLocalMatrix();
         }
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(IRenderer renderer)
         {
-            base.Draw(vertexAction);
+            base.Draw(renderer);
 
             if (texture?.Available != true)
                 return;
 
-            Shader.Bind();
+            var shader = GetAppropriateShader(renderer);
 
-            texture.TextureGL.Bind();
+            shader.Bind();
 
-            updateVertexBuffer();
+            texture.Bind();
 
-            Shader.Unbind();
+            updateVertexBuffer(renderer);
+
+            shader.Unbind();
         }
 
         protected override void Dispose(bool isDisposing)

@@ -15,6 +15,7 @@ namespace osu.Framework.Tests.Localisation
     {
         [TestCase(EnumA.Item1, "Item1")]
         [TestCase(EnumA.Item2, "B")]
+        [TestCase((EnumA)3, "3")]
         public void TestNonLocalisableDescriptionReturnsDescriptionOrToString(EnumA value, string expected)
         {
             Assert.That(value.GetLocalisableDescription().ToString(), Is.EqualTo(expected));
@@ -51,6 +52,13 @@ namespace osu.Framework.Tests.Localisation
             Assert.Throws<InvalidOperationException>(() => EnumD.Item1.GetLocalisableDescription());
         }
 
+        [Test]
+        public void TestLocalisableStringDescription()
+        {
+            object description = TestStrings.Romanisable;
+            Assert.AreEqual(description, description.GetLocalisableDescription());
+        }
+
         public enum EnumA
         {
             Item1,
@@ -65,7 +73,7 @@ namespace osu.Framework.Tests.Localisation
             Item1,
 
             [LocalisableDescription(typeof(TestStrings), nameof(TestStrings.B))]
-            Item2
+            Item2,
         }
 
         public enum EnumC
@@ -90,6 +98,8 @@ namespace osu.Framework.Tests.Localisation
             public static LocalisableString A => "Localised A";
 
             public static readonly LocalisableString B = "Localised B";
+
+            public static LocalisableString Romanisable => new RomanisableString("Original", "Romanised");
 
             public LocalisableString Instance => string.Empty;
         }

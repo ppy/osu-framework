@@ -16,6 +16,11 @@ namespace osu.Framework.Platform
         bool VerticalSync { get; set; }
 
         /// <summary>
+        /// Initialises everything needed to create a window such as backbuffer parameters.
+        /// </summary>
+        void InitialiseBeforeWindowCreation();
+
+        /// <summary>
         /// Initialises the graphics backend, given the current window backend.
         /// It is assumed that the window backend has been initialised.
         /// </summary>

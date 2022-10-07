@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
@@ -24,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Tooltip text that shows when hovering the drawable.
         /// </summary>
-        object TooltipContent { get; }
+        object? TooltipContent { get; }
     }
 
     /// <inheritdoc />
@@ -35,9 +33,9 @@ namespace osu.Framework.Graphics.Cursor
         /// <inheritdoc cref="IHasCustomTooltip.GetCustomTooltip"/>
         new ITooltip<TContent> GetCustomTooltip();
 
-        object IHasCustomTooltip.TooltipContent => TooltipContent;
+        object? IHasCustomTooltip.TooltipContent => TooltipContent;
 
         /// <inheritdoc cref="IHasCustomTooltip.TooltipContent"/>
-        new TContent TooltipContent { get; }
+        new TContent? TooltipContent { get; }
     }
 }

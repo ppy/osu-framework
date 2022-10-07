@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Transforms
                 Child = container = new Container();
 
                 completedFired = 0;
-                container.FadeIn(500).Then().FadeOut().OnComplete(a => { completedFired++; });
+                container.FadeIn(500).Then().FadeOut().OnComplete(_ => { completedFired++; });
             });
 
             AddAssert("not immediately fired", () => completedFired == 0);

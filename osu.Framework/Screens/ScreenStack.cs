@@ -383,7 +383,7 @@ namespace osu.Framework.Screens
             {
                 foreach (var s in exited)
                 {
-                    RemoveInternal(s);
+                    RemoveInternal(s, false);
                     DisposeChildAsync(s);
                 }
 

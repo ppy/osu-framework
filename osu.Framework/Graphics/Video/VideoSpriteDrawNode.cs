@@ -3,10 +3,9 @@
 
 #nullable disable
 
-using System;
 using osuTK;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -22,16 +21,18 @@ namespace osu.Framework.Graphics.Video
 
         private int yLoc, uLoc = 1, vLoc = 2;
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(IRenderer renderer)
         {
-            Shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
-            Shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
-            Shader.GetUniform<int>("m_SamplerV").UpdateValue(ref vLoc);
+            var shader = GetAppropriateShader(renderer);
+
+            shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
+            shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
+            shader.GetUniform<int>("m_SamplerV").UpdateValue(ref vLoc);
 
             var yuvCoeff = video.ConversionMatrix;
-            Shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
+            shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
 
-            base.Draw(vertexAction);
+            base.Draw(renderer);
         }
     }
 }

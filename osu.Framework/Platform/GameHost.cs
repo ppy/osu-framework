@@ -29,6 +29,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -43,6 +44,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using Size = System.Drawing.Size;
@@ -52,6 +54,8 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        public IRenderer Renderer { get; private set; }
 
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
@@ -223,7 +227,9 @@ namespace osu.Framework.Platform
 
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+
+            if (thread.Monitor != null)
+                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -318,6 +324,8 @@ namespace osu.Framework.Platform
                 Converters = new List<JsonConverter> { new Vector2Converter() }
             };
         }
+
+        protected virtual IRenderer CreateRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -447,11 +455,9 @@ namespace osu.Framework.Platform
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
-            using (var buffer = DrawRoots.Get(UsageType.Write))
+            using (var buffer = DrawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
-
-        private long lastDrawFrameId;
 
         private readonly DepthValue depthValue = new DepthValue();
 
@@ -460,64 +466,61 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (ExecutionState == ExecutionState.Running)
+            if (ExecutionState != ExecutionState.Running)
+                return;
+
+            ObjectUsage<DrawNode> buffer;
+
+            using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                buffer = DrawRoots.GetForRead();
+
+            if (buffer == null)
+                return;
+
+            try
             {
-                using (var buffer = DrawRoots.Get(UsageType.Read))
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
+                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+
+                if (!bypassFrontToBackPass.Value)
                 {
-                    if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
-                    {
-                        // if a buffer is not available in single threaded mode there's no point in looping.
-                        // in the general case this should never happen, but may occur during exception handling.
-                        if (executionMode.Value == ExecutionMode.SingleThread)
-                            break;
+                    depthValue.Reset();
 
-                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                            Thread.Sleep(1);
+                    Renderer.SetBlend(BlendingParameters.None);
 
-                        continue;
-                    }
+                    Renderer.SetBlendMask(BlendingMask.None);
+                    Renderer.PushDepthInfo(DepthInfo.Default);
 
-                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    // Front pass
+                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
-                    if (!bypassFrontToBackPass.Value)
-                    {
-                        depthValue.Reset();
+                    Renderer.PopDepthInfo();
+                    Renderer.SetBlendMask(BlendingMask.All);
 
-                        GL.ColorMask(false, false, false, false);
-                        GLWrapper.SetBlend(BlendingParameters.None);
-                        GLWrapper.PushDepthInfo(DepthInfo.Default);
+                    // The back pass doesn't write depth, but needs to depth test properly
+                    Renderer.PushDepthInfo(new DepthInfo(true, false));
+                }
+                else
+                {
+                    // Disable depth testing
+                    Renderer.PushDepthInfo(new DepthInfo());
+                }
 
-                        // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                // Back pass
+                buffer.Object.Draw(Renderer);
 
-                        GLWrapper.PopDepthInfo();
-                        GL.ColorMask(true, true, true, true);
+                Renderer.PopDepthInfo();
 
-                        // The back pass doesn't write depth, but needs to depth test properly
-                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
-                    }
-                    else
-                    {
-                        // Disable depth testing
-                        GLWrapper.PushDepthInfo(new DepthInfo());
-                    }
+                Renderer.FinishFrame();
 
-                    // Back pass
-                    buffer.Object.Draw(null);
-
-                    GLWrapper.PopDepthInfo();
-
-                    lastDrawFrameId = buffer.FrameId;
-                    break;
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                {
+                    Swap();
                 }
             }
-
-            GLWrapper.FlushCurrentBatch();
-
-            using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            finally
             {
-                Swap();
+                buffer.Dispose();
             }
         }
 
@@ -562,7 +565,9 @@ namespace osu.Framework.Platform
                 });
 
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-                await Task.Run(completionEvent.Wait).ConfigureAwait(false);
+                // ReSharper disable once AccessToDisposedClosure
+                if (!await Task.Run(() => completionEvent.Wait(5000)).ConfigureAwait(false))
+                    throw new TimeoutException("Screenshot data did not arrive in a timely fashion");
 
                 var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
@@ -659,6 +664,8 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
+            Renderer = CreateRenderer();
+
             try
             {
                 if (!host_running_mutex.Wait(10000))
@@ -689,8 +696,8 @@ namespace osu.Framework.Platform
                 Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
-
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
+                Dependencies.CacheAs(Renderer);
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
@@ -748,7 +755,7 @@ namespace osu.Framework.Platform
                                 break;
 
                             case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
+                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
                                 break;
                         }
 
@@ -995,7 +1002,11 @@ namespace osu.Framework.Platform
 
             PerformanceLogging.BindValueChanged(logging =>
             {
-                Threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                Threads.ForEach(t =>
+                {
+                    if (t.Monitor != null)
+                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
@@ -1005,7 +1016,8 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
+                // return value of TryGet ignored as the failure case gives expected results (CultureInfo.InvariantCulture)
+                CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture);
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -1122,7 +1134,9 @@ namespace osu.Framework.Platform
                 case ExecutionState.Stopping:
                 case ExecutionState.Stopped:
                     // Delay disposal until the game has exited
-                    stoppedEvent.Wait();
+                    if (!stoppedEvent.Wait(60000))
+                        throw new InvalidOperationException("Game stuck in runnning state.");
+
                     break;
             }
 
@@ -1217,7 +1231,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(Renderer, stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

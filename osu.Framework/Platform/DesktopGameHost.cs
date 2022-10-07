@@ -15,6 +15,7 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Touch;
 
 namespace osu.Framework.Platform
 {
@@ -116,6 +117,7 @@ namespace osu.Framework.Platform
                 new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif
                 new MouseHandler(),
+                new TouchHandler(),
                 new JoystickHandler(),
                 new MidiHandler(),
             };

@@ -169,12 +169,14 @@ namespace osu.Framework.Tests.Containers
             [BackgroundDependencyLoader]
             private void load()
             {
-                LoadingEvent.Wait();
+                if (!LoadingEvent.Wait(10000))
+                    throw new TimeoutException("Load took too long");
 
                 OnLoading?.Invoke();
                 OnLoading = null;
 
-                ReadyEvent.Wait();
+                if (!ReadyEvent.Wait(10000))
+                    throw new TimeoutException("Ready took too long");
             }
 
             public override bool UpdateSubTree()

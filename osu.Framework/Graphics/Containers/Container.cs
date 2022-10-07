@@ -3,15 +3,15 @@
 
 #nullable disable
 
-using osu.Framework.Lists;
-using System.Collections.Generic;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
-using osuTK;
-using System.Collections;
-using System.Diagnostics;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Lists;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -37,6 +37,13 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         /// <summary>
+        /// This is checked when enumerating through this <see cref="Container"/> to throw when
+        /// <see cref="Children"/> was mutated while enumerating (in <see cref="Enumerator"/>).
+        /// This is incremented whenever <see cref="Children"/> is mutated (e.g. with <see cref="Add(T)"/>).
+        /// </summary>
+        private int enumeratorVersion;
+
+        /// <summary>
         /// Constructs a <see cref="Container"/> that stores children.
         /// </summary>
         public Container()
@@ -54,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The content of this container. <see cref="Children"/> and all methods that mutate
-        /// <see cref="Children"/> (e.g. <see cref="Add(T)"/> and <see cref="Remove(T)"/>) are
+        /// <see cref="Children"/> (e.g. <see cref="Add(T)"/> and <see cref="Remove(T, bool)"/>) are
         /// forwarded to the content. By default a container's content is itself, in which case
         /// <see cref="Children"/> refers to <see cref="CompositeDrawable.InternalChildren"/>.
         /// This property is useful for containers that require internal children that should
@@ -124,6 +131,8 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in Children)
                 array[arrayIndex++] = c;
         }
+
+        bool ICollection<T>.Remove(T item) => Remove(item, true);
 
         public Enumerator GetEnumerator() => new Enumerator(this);
 
@@ -205,6 +214,12 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == Content)
                 throw new InvalidOperationException("Content may not be added to itself.");
 
+            if (drawable == null)
+                throw new ArgumentNullException(nameof(drawable));
+
+            if (drawable.IsDisposed)
+                throw new ObjectDisposedException(nameof(drawable));
+
             if (Content == this)
                 AddInternal(drawable);
             else
@@ -230,7 +245,12 @@ namespace osu.Framework.Graphics.Containers
         protected internal override void AddInternal(Drawable drawable)
         {
             if (Content == this && drawable != null && !(drawable is T))
-                throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
+            {
+                throw new InvalidOperationException(
+                    $"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
+            }
+
+            enumeratorVersion++;
 
             base.AddInternal(drawable);
         }
@@ -238,18 +258,24 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        public virtual bool Remove(T drawable) => Content != this ? Content.Remove(drawable) : RemoveInternal(drawable);
+        public virtual bool Remove(T drawable, bool disposeImmediately)
+        {
+            if (Content != this)
+                return Content.Remove(drawable, disposeImmediately);
+
+            return RemoveInternal(drawable, disposeImmediately);
+        }
 
         /// <summary>
         /// Removes all children which match the given predicate.
-        /// This is equivalent to calling <see cref="Remove(T)"/> for each child that
+        /// This is equivalent to calling <see cref="Remove(T, bool)"/> for each child that
         /// matches the given predicate.
         /// </summary>
         /// <returns>The amount of removed children.</returns>
-        public int RemoveAll(Predicate<T> pred)
+        public int RemoveAll(Predicate<T> pred, bool disposeImmediately)
         {
             if (Content != this)
-                return Content.RemoveAll(pred);
+                return Content.RemoveAll(pred, disposeImmediately);
 
             int removedCount = 0;
 
@@ -259,7 +285,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if (pred.Invoke(tChild))
                 {
-                    RemoveInternal(tChild);
+                    RemoveInternal(tChild, disposeImmediately);
                     removedCount++;
                     i--;
                 }
@@ -269,16 +295,23 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Removes a range of children. This is equivalent to calling <see cref="Remove(T)"/> on
+        /// Removes a range of children. This is equivalent to calling <see cref="Remove(T, bool)"/> on
         /// each element of the range in order.
         /// </summary>
-        public void RemoveRange(IEnumerable<T> range)
+        public void RemoveRange(IEnumerable<T> range, bool disposeImmediately)
         {
             if (range == null)
                 return;
 
             foreach (T p in range)
-                Remove(p);
+                Remove(p, disposeImmediately);
+        }
+
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
+        {
+            enumeratorVersion++;
+
+            return base.RemoveInternal(drawable, disposeImmediately);
         }
 
         /// <summary>
@@ -299,6 +332,13 @@ namespace osu.Framework.Graphics.Containers
                 Content.Clear(disposeChildren);
             else
                 ClearInternal(disposeChildren);
+        }
+
+        protected internal override void ClearInternal(bool disposeChildren = true)
+        {
+            enumeratorVersion++;
+
+            base.ClearInternal(disposeChildren);
         }
 
         /// <summary>
@@ -473,14 +513,22 @@ namespace osu.Framework.Graphics.Containers
         {
             private Container<T> container;
             private int currentIndex;
+            private readonly int version;
 
             internal Enumerator(Container<T> container)
             {
                 this.container = container;
                 currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+                version = container.enumeratorVersion;
             }
 
-            public bool MoveNext() => ++currentIndex < container.Count;
+            public bool MoveNext()
+            {
+                if (version != container.enumeratorVersion)
+                    throw new InvalidOperationException($"May not add or remove {nameof(Children)} from this {nameof(Container)} during enumeration.");
+
+                return ++currentIndex < container.Count;
+            }
 
             public void Reset() => currentIndex = -1;
 

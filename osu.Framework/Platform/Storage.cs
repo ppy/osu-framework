@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Platform
 {
@@ -119,7 +120,7 @@ namespace osu.Framework.Platform
         [Pure]
         public Stream CreateFileSafely(string path)
         {
-            string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
+            string temporaryPath = Path.Combine(Path.GetDirectoryName(path).AsNonNull(), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
 
             return new SafeWriteStream(temporaryPath, path, this);
         }
@@ -160,7 +161,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Uses a temporary file to ensure a file is written to completion before existing at its specified location.
         /// </summary>
-        private class SafeWriteStream : FlushingStream
+        private class SafeWriteStream : FileStream
         {
             private readonly string temporaryPath;
             private readonly string finalPath;
@@ -178,6 +179,27 @@ namespace osu.Framework.Platform
 
             protected override void Dispose(bool disposing)
             {
+                if (!isDisposed)
+                {
+                    // this was added to work around some hardware writing zeroes to a file
+                    // before writing actual content, causing corrupt files to exist on disk.
+                    // as of .NET 6, flushing is very expensive on macOS so this is limited to only Windows,
+                    // but it may also be entirely unnecessary due to the temporary file copying performed on this class.
+                    // see: https://github.com/ppy/osu-framework/issues/5231
+                    if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                    {
+                        try
+                        {
+                            Flush(true);
+                        }
+                        catch
+                        {
+                            // this may fail due to a lower level file access issue.
+                            // we don't want to throw in disposal though.
+                        }
+                    }
+                }
+
                 base.Dispose(disposing);
 
                 if (!isDisposed)

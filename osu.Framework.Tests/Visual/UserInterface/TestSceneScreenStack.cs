@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RelativeSizeAxes = Axes.Both
             });
 
-            stack.ScreenPushed += (last, current) =>
+            stack.ScreenPushed += (_, current) =>
             {
                 if (current is TestScreenSlow slow)
                     slowLoaders.Add(slow);
@@ -703,8 +703,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 for (int i = 0; i < exit_count; i++)
                     stack.Exit();
 
-                Remove(stack);
-                stack.Dispose();
+                Remove(stack, true);
             });
 
             AddUntilStep("All screens unbound in correct order", () => screens.Count == 0);

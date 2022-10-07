@@ -817,7 +817,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscriber()
         {
-            bindableStringByteDictionary.DisabledChanged += b => Assert.Fail();
+            bindableStringByteDictionary.DisabledChanged += _ => Assert.Fail();
 
             bindableStringByteDictionary.Disabled = bindableStringByteDictionary.Disabled;
         }
@@ -825,9 +825,9 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscribers()
         {
-            bindableStringByteDictionary.DisabledChanged += b => Assert.Fail();
-            bindableStringByteDictionary.DisabledChanged += b => Assert.Fail();
-            bindableStringByteDictionary.DisabledChanged += b => Assert.Fail();
+            bindableStringByteDictionary.DisabledChanged += _ => Assert.Fail();
+            bindableStringByteDictionary.DisabledChanged += _ => Assert.Fail();
+            bindableStringByteDictionary.DisabledChanged += _ => Assert.Fail();
 
             bindableStringByteDictionary.Disabled = bindableStringByteDictionary.Disabled;
         }

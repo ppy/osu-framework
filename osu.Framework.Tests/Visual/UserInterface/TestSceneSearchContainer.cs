@@ -56,6 +56,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             return dependencies;
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            manager?.Dispose();
+            base.Dispose(isDisposing);
+        }
+
         private const string goodbye = "goodbye";
 
         [SetUp]

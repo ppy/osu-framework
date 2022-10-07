@@ -8,9 +8,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
-    /// Should be manually disposed if not queued for upload via <see cref="Texture.SetData"/>.
+    /// Should be manually disposed if not queued for upload via <see cref="Texture.SetData(ITextureUpload)"/>.
     /// </summary>
     public class TextureUpload : ITextureUpload
     {
@@ -60,10 +59,6 @@ namespace osu.Framework.Graphics.Textures
         public TextureUpload(Image<Rgba32> image)
         {
             this.image = image;
-
-            if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
-                throw new TextureTooLargeForGLException();
-
             pixelMemory = image.CreateReadOnlyPixelMemory();
         }
 
@@ -109,7 +104,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
-        /// Create an empty upload. Used by <see cref="FrameBuffer"/> for initialisation.
+        /// Create an empty upload. Used by <see cref="IFrameBuffer"/> for initialisation.
         /// </summary>
         internal TextureUpload()
         {

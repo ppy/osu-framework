@@ -16,6 +16,11 @@ namespace osu.Framework.Audio.Sample
     /// </summary>
     internal class SampleBassFactory : AudioCollectionManager<AdjustableAudioComponent>
     {
+        /// <summary>
+        /// A name identifying the sample to be created by this factory.
+        /// </summary>
+        public string Name { get; }
+
         public int SampleId { get; private set; }
 
         public override bool IsLoaded => SampleId != 0;
@@ -32,10 +37,12 @@ namespace osu.Framework.Audio.Sample
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
         private byte[]? data;
 
-        public SampleBassFactory(byte[] data, BassAudioMixer mixer)
+        public SampleBassFactory(byte[] data, string name, BassAudioMixer mixer)
         {
             this.data = data;
             this.mixer = mixer;
+
+            Name = name;
 
             EnqueueAction(loadSample);
 

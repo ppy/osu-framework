@@ -51,8 +51,10 @@ namespace osu.Framework.Timing
 
         private const int fps_calculation_interval = 250;
 
-        public void ChangeSource(IClock source)
+        public void ChangeSource(IClock? source)
         {
+            if (source == null) return;
+
             CurrentTime = LastFrameTime = source.CurrentTime;
             Source = source;
         }

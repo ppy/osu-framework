@@ -283,7 +283,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat(new Action(() => { }), actionCount).ToArray());
+        // ReSharper disable once RedundantTypeArgumentsOfMethod (can be removed with c# language version 10).
+        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat<Action>(() => { }, actionCount).ToArray());
 
         private void addBoxStep(Action<Drawable> boxFunc, params Action[] actions)
         {

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -149,9 +150,8 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
             }
 
-            refreshScreens();
-
-            AddStep("set up screens", refreshScreens);
+            window.DisplaysChanged += onDisplaysChanged;
+            refreshScreens(window.Displays);
 
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
@@ -181,13 +181,19 @@ namespace osu.Framework.Tests.Visual.Platform
             }
         }
 
-        private void refreshScreens()
+        private void onDisplaysChanged(IEnumerable<Display> displays)
         {
-            screenContainer.Remove(windowContainer);
+            Scheduler.AddOnce(refreshScreens, displays);
+        }
+
+        private void refreshScreens(IEnumerable<Display> displays)
+        {
+            screenContainer.Remove(windowContainer, false);
             screenContainer.Clear();
+
             var bounds = new RectangleI();
 
-            foreach (var display in window.Displays)
+            foreach (var display in displays)
             {
                 screenContainer.Add(createScreen(display, display.Name));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
@@ -236,6 +242,14 @@ namespace osu.Framework.Tests.Visual.Platform
             currentActualSize.Text = $"Window size: {window?.Size}";
             currentClientSize.Text = $"Client size: {window?.ClientSize}";
             currentDisplay.Text = $"Current Display: {window?.CurrentDisplayBindable.Value.Name}";
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (window != null)
+                window.DisplaysChanged -= onDisplaysChanged;
+
+            base.Dispose(isDisposing);
         }
     }
 }

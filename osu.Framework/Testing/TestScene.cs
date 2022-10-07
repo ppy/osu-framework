@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
@@ -91,7 +92,7 @@ namespace osu.Framework.Testing
         protected internal override void ClearInternal(bool disposeChildren = true) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
 
-        protected internal override bool RemoveInternal(Drawable drawable) =>
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         /// <summary>
@@ -301,6 +302,29 @@ namespace osu.Framework.Testing
             });
         });
 
+        protected void AddUntilStep<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint) => schedule(() =>
+        {
+            ConstraintResult lastResult = null;
+
+            StepsContainer.Add(
+                new UntilStepButton(
+                    () =>
+                    {
+                        lastResult = constraint().Resolve().ApplyTo(actualValue());
+                        return lastResult.IsSuccess;
+                    },
+                    addStepsAsSetupSteps,
+                    () =>
+                    {
+                        var writer = new TextMessageWriter(string.Empty);
+                        lastResult.WriteMessageTo(writer);
+                        return writer.ToString().TrimStart();
+                    })
+                {
+                    Text = description ?? @"Until",
+                });
+        });
+
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
@@ -325,6 +349,31 @@ namespace osu.Framework.Testing
                 ExtendedDescription = extendedDescription,
                 CallStack = new StackTrace(1),
                 Assertion = assert,
+            });
+        });
+
+        protected void AddAssert<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint, string extendedDescription = null) => schedule(() =>
+        {
+            ConstraintResult lastResult = null;
+
+            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps, () =>
+            {
+                if (lastResult == null)
+                    return string.Empty;
+
+                var writer = new TextMessageWriter(string.Empty);
+                lastResult.WriteMessageTo(writer);
+                return writer.ToString().TrimStart();
+            })
+            {
+                Text = description,
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1),
+                Assertion = () =>
+                {
+                    lastResult = constraint().Resolve().ApplyTo(actualValue());
+                    return lastResult.IsSuccess;
+                }
             });
         });
 
@@ -357,12 +406,9 @@ namespace osu.Framework.Testing
 
         private void exitNestedGame()
         {
-            if (nestedGame?.Parent == null) return;
-
             // important that we do a synchronous disposal.
             // using Expire() will cause a deadlock in AsyncDisposalQueue.
-            nestedGame.Parent.RemoveInternal(nestedGame);
-            nestedGame.Dispose();
+            nestedGame?.Parent?.RemoveInternal(nestedGame, true);
         }
 
         #region NUnit execution setup
@@ -424,9 +470,12 @@ namespace osu.Framework.Testing
             runner.RunTestBlocking(this);
             checkForErrors();
 
-            // Force any unobserved exceptions to fire against the current test run.
-            // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
-            collectAndFireUnobserved();
+            if (Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1")
+            {
+                // Force any unobserved exceptions to fire against the current test run.
+                // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
+                collectAndFireUnobserved();
+            }
         }
 
         [OneTimeTearDown]

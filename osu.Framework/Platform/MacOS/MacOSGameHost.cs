@@ -28,6 +28,8 @@ namespace osu.Framework.Platform.MacOS
         {
             get
             {
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Application Support");
+
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!string.IsNullOrEmpty(xdg))

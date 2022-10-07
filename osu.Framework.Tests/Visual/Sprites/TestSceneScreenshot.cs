@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -20,6 +21,9 @@ namespace osu.Framework.Tests.Visual.Sprites
     {
         [Resolved]
         private GameHost host { get; set; }
+
+        [Resolved]
+        private IRenderer renderer { get; set; }
 
         private Drawable background;
         private Sprite display;
@@ -60,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 var image = t.GetResultSafely();
 
-                var tex = new Texture(image.Width, image.Height);
+                var tex = renderer.CreateTexture(image.Width, image.Height);
                 tex.SetData(new TextureUpload(image));
 
                 display.Texture = tex;

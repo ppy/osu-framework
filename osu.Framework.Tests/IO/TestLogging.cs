@@ -100,7 +100,7 @@ namespace osu.Framework.Tests.IO
         {
             using (var host = new TestRunHeadlessGameHost())
             {
-                host.ExceptionThrown += ex => ignoreCount-- > 0;
+                host.ExceptionThrown += _ => ignoreCount-- > 0;
 
                 var game = new TestGame();
 

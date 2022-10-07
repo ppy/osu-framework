@@ -47,7 +47,7 @@ namespace osu.Framework.Allocation
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_, __) => { };
+                    return (_, _) => { };
 
                 case 1:
                     var method = loaderMethods[0];
@@ -75,7 +75,7 @@ namespace osu.Framework.Allocation
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {
-                            ExceptionDispatchInfo.Capture(exc.InnerException).Throw();
+                            ExceptionDispatchInfo.Capture(exc.InnerException ?? exc).Throw();
                         }
                     };
 

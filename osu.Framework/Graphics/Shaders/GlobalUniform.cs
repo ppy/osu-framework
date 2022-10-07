@@ -3,15 +3,15 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.OpenGL;
 using System;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal class GlobalUniform<T> : IUniformWithValue<T>
-        where T : struct, IEquatable<T>
+        where T : unmanaged, IEquatable<T>
     {
-        public Shader Owner { get; }
+        public IShader Owner { get; }
         public int Location { get; }
         public string Name { get; }
 
@@ -20,8 +20,11 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         public UniformMapping<T> PendingChange;
 
-        public GlobalUniform(Shader owner, string name, int uniformLocation)
+        private readonly IRenderer renderer;
+
+        public GlobalUniform(IRenderer renderer, IShader owner, string name, int uniformLocation)
         {
+            this.renderer = renderer;
             Owner = owner;
             Name = name;
             Location = uniformLocation;
@@ -39,7 +42,7 @@ namespace osu.Framework.Graphics.Shaders
             if (PendingChange == null)
                 return;
 
-            GLWrapper.SetUniform(this);
+            renderer.SetUniform(this);
             PendingChange = null;
         }
 

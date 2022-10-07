@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics;
 using osu.Framework.Statistics;
 
@@ -22,7 +20,7 @@ namespace osu.Framework.Layout
         /// <summary>
         /// Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.
         /// </summary>
-        public readonly InvalidationConditionDelegate Conditions;
+        public readonly InvalidationConditionDelegate? Conditions;
 
         /// <summary>
         /// The source of <see cref="Invalidation"/> this <see cref="LayoutMember"/> responds to.
@@ -32,7 +30,13 @@ namespace osu.Framework.Layout
         /// <summary>
         /// The <see cref="Drawable"/> containing this <see cref="LayoutMember"/>.
         /// </summary>
-        internal Drawable Parent;
+        internal Drawable? Parent;
+
+        /// <summary>
+        /// The next <see cref="LayoutMember"/> in the list for <see cref="Parent"/>.
+        /// This is iterated over during invalidation.
+        /// </summary>
+        internal LayoutMember? Next;
 
         /// <summary>
         /// Creates a new <see cref="LayoutMember"/>.
@@ -40,7 +44,7 @@ namespace osu.Framework.Layout
         /// <param name="invalidation">The <see cref="Graphics.Invalidation"/> flags that will invalidate this <see cref="LayoutMember"/>.</param>
         /// <param name="source">The source of the invalidation.</param>
         /// <param name="conditions">Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.</param>
-        protected LayoutMember(Invalidation invalidation, InvalidationSource source = InvalidationSource.Default, InvalidationConditionDelegate conditions = null)
+        protected LayoutMember(Invalidation invalidation, InvalidationSource source = InvalidationSource.Default, InvalidationConditionDelegate? conditions = null)
         {
             Invalidation = invalidation;
             Conditions = conditions;
