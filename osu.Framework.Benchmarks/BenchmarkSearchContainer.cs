@@ -45,11 +45,11 @@ namespace osu.Framework.Benchmarks
                 base.LoadComplete();
 
                 var searchableTexts = Enumerable.Range(0, 1000)
-                                                .Select(_ => new SearchableText { Text = RandomString(50) })
+                                                .Select(_ => new SearchableText { Text = randomString(50) })
                                                 .ToArray();
 
                 SearchTerms = Enumerable.Range(0, 1000)
-                                        .Select(_ => RandomString(10))
+                                        .Select(_ => randomString(10))
                                         .ToArray();
 
                 Add(Search = new SearchContainer
@@ -58,7 +58,7 @@ namespace osu.Framework.Benchmarks
                 });
             }
 
-            private static string RandomString(int length) => new string(Enumerable.Repeat(chars, length)
+            private static string randomString(int length) => new string(Enumerable.Repeat(chars, length)
                                                                         .Select(s => s[random.Next(s.Length)])
                                                                         .ToArray());
 
