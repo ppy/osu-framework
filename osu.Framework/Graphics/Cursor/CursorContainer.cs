@@ -108,8 +108,6 @@ namespace osu.Framework.Graphics.Cursor
 
         private class CircularLongPressFeedback : TouchLongPressFeedback
         {
-            private const Easing fade_easing = Easing.OutQuint;
-
             private readonly CircularProgress progress;
 
             public CircularLongPressFeedback()
@@ -119,21 +117,23 @@ namespace osu.Framework.Graphics.Cursor
 
                 InternalChild = progress = new CircularProgress
                 {
-                    Size = new Vector2(100),
+                    Size = new Vector2(180),
                     InnerRadius = 0.1f,
-                    Colour = Color4.LightGray,
                 };
             }
 
             public override void BeginAnimation(double duration)
-                => this.Delay(duration / 3).FadeIn()
+                => this.Delay(duration / 3)
+                       .FadeIn()
+                       .FadeColour(Color4.OrangeRed)
                        .TransformBindableTo(progress.Current, 0)
                        .TransformBindableTo(progress.Current, 1, duration * 2 / 3, Easing.InOutSine).Then()
-                       .FadeOut(200, Easing.InOutSine);
+                       .FadeColour(Color4.White, 50)
+                       .FadeOut(200);
 
             public override void CancelAnimation()
-                => this.TransformBindableTo(progress.Current, 0, 200, Easing.InOutSine)
-                       .FadeOut(200, Easing.InOutSine);
+                => this.TransformBindableTo(progress.Current, 0, 50, Easing.OutQuint)
+                       .FadeOut(50, Easing.OutQuint);
         }
     }
 }
