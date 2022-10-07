@@ -8,6 +8,7 @@ varying mediump vec2 v_TexCoord;
 uniform lowp sampler2D m_Sampler;
 uniform mediump float progress;
 uniform mediump float innerRadius;
+uniform bool roundedCaps;
 
 void main(void)
 {
@@ -20,7 +21,7 @@ void main(void)
     mediump vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     
-    if (!insideProgress(pixelPos, progress, innerRadius))
+    if (!insideProgress(pixelPos, progress, innerRadius, roundedCaps))
     {
         gl_FragColor = vec4(0.0);
         return;

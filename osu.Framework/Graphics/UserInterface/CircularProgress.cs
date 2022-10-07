@@ -73,6 +73,21 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        private bool roundedCaps;
+
+        public bool RoundedCaps
+        {
+            get => roundedCaps;
+            set
+            {
+                if (roundedCaps == value)
+                    return;
+
+                roundedCaps = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         private class CircularProgressDrawNode : SpriteDrawNode
         {
             public new CircularProgress Source => (CircularProgress)base.Source;
@@ -84,6 +99,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private float innerRadius;
             private float progress;
+            private bool roundedCaps;
 
             public override void ApplyState()
             {
@@ -91,6 +107,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 innerRadius = Source.innerRadius;
                 progress = Math.Abs((float)Source.current.Value);
+                roundedCaps = Source.roundedCaps;
             }
 
             protected override void Blit(IRenderer renderer)
@@ -99,6 +116,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
+                shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
 
                 base.Blit(renderer);
             }
