@@ -198,6 +198,9 @@ namespace osu.Framework.Platform
 
         public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
 
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.WindowMode"/>.
+        /// </summary>
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
         private readonly BindableBool isActive = new BindableBool();
@@ -355,10 +358,29 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.SizeFullscreen"/>.
+        /// </summary>
         private readonly BindableSize sizeFullscreen = new BindableSize();
+
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.WindowedSize"/>.
+        /// </summary>
         private readonly BindableSize sizeWindowed = new BindableSize();
+
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.WindowedPositionX"/>.
+        /// </summary>
         private readonly BindableDouble windowPositionX = new BindableDouble();
+
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.WindowedPositionY"/>.
+        /// </summary>
         private readonly BindableDouble windowPositionY = new BindableDouble();
+
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.LastDisplayDevice"/>.
+        /// </summary>
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
         /// <summary>
