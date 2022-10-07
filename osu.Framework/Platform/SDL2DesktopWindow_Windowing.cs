@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
@@ -310,21 +311,42 @@ namespace osu.Framework.Platform
 
         private IEnumerable<Display> getSDLDisplays()
         {
-            return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
-
-            static Display displayFromSDL(int displayIndex)
+            return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(i =>
             {
-                var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
-                                             .Select(modeIndex =>
-                                             {
-                                                 SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                                 return mode.ToDisplayMode(displayIndex);
-                                             })
-                                             .ToArray();
+                Debug.Assert(tryGetDisplayFromSDL(i, out var display));
+                return display;
+            }).ToArray();
+        }
 
-                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
-                return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+        private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
+        {
+            if (displayIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(displayIndex), displayIndex, $"{nameof(displayIndex)} must be non-negative.");
+
+            if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
+            {
+                display = null;
+                return false;
             }
+
+            int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
+
+            if (numModes <= 0)
+            {
+                display = null;
+                return false;
+            }
+
+            var displayModes = Enumerable.Range(0, numModes)
+                                         .Select(modeIndex =>
+                                         {
+                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
+                                             return mode.ToDisplayMode(displayIndex);
+                                         })
+                                         .ToArray();
+
+            display = new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+            return true;
         }
 
         #endregion
