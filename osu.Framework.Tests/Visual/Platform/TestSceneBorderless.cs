@@ -69,6 +69,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             Point originalWindowPosition = Point.Empty;
 
+            // so the test doesn't switch to windowed on startup.
             AddStep("nothing", () => { });
 
             foreach (var display in window.Displays)
