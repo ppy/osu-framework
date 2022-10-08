@@ -556,6 +556,8 @@ namespace osu.Framework.Platform
 
                     Size = new Size(closestMode.w, closestMode.h);
 
+                    centreWindowOnDisplay(display);
+
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
@@ -565,7 +567,13 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
+                    // restore twice in case we are coming from a minimized state
+                    // (the second restore is required to un-maximize the window then)
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
+
+                    centreWindowOnDisplay(display);
+
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
@@ -626,10 +634,28 @@ namespace osu.Framework.Platform
 
             var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
+            moveWindowTo(display, configPosition);
+        }
+
+        /// <summary>
+        /// Centres the window on the provided <see cref="Display"/>.
+        /// </summary>
+        /// <param name="display">The <see cref="Display"/> to center the window on.</param>
+        private void centreWindowOnDisplay(Display display) => moveWindowTo(display, new Vector2(0.5f));
+
+        /// <summary>
+        /// Moves the window to be centred around the normalised <paramref name="position"/> on a <paramref name="display"/>.
+        /// </summary>
+        /// <param name="display">The <see cref="Display"/> to move the window to.</param>
+        /// <param name="position">Relative position on the display, normalised to <c>[-0.5, 1.5]</c>.</param>
+        private void moveWindowTo(Display display, Vector2 position)
+        {
+            Debug.Assert(position == Vector2.Clamp(position, new Vector2(-0.5f), new Vector2(1.5f)));
+
             var displayBounds = display.Bounds;
             var windowSize = sizeWindowed.Value;
-            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
+            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * position.X);
+            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * position.Y);
 
             Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
@@ -674,6 +700,8 @@ namespace osu.Framework.Platform
         /// </returns>
         protected virtual Size SetBorderless(Display display)
         {
+            centreWindowOnDisplay(display);
+
             // this is a generally sane method of handling borderless, and works well on macOS and linux.
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
 
