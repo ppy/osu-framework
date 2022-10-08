@@ -548,7 +548,7 @@ namespace osu.Framework.Platform
                     SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
                     SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
-                    readWindowPositionFromConfig();
+                    readWindowPositionFromConfig(display);
                     break;
 
                 case WindowState.Fullscreen:
@@ -619,14 +619,14 @@ namespace osu.Framework.Platform
                 windowMaximised = this.windowState == WindowState.Maximised;
         }
 
-        private void readWindowPositionFromConfig()
+        private void readWindowPositionFromConfig(Display display)
         {
             if (WindowState != WindowState.Normal)
                 return;
 
             var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
-            var displayBounds = CurrentDisplay.Bounds;
+            var displayBounds = display.Bounds;
             var windowSize = sizeWindowed.Value;
             int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
             int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
