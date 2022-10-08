@@ -592,29 +592,24 @@ namespace osu.Framework.Platform
             if (localIndex != displayIndex)
                 Logger.Log($"Stored display index ({displayIndex}) doesn't match current index ({localIndex})");
 
+            bool success;
+            SDL.SDL_DisplayMode mode;
+
             if (windowState == WindowState.Fullscreen)
+                success = SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out mode) >= 0;
+            else
+                success = SDL.SDL_GetCurrentDisplayMode(localIndex, out mode) >= 0;
+
+            string type = windowState == WindowState.Fullscreen ? "fullscreen" : "desktop";
+
+            if (success)
             {
-                if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
-                {
-                    currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
-                    Logger.Log($"Updated display mode to fullscreen resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
-                }
-                else
-                {
-                    Logger.Log($"Failed to get fullscreen display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
-                }
+                currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
+                Logger.Log($"Updated display mode to {type} resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
             }
             else
             {
-                if (SDL.SDL_GetCurrentDisplayMode(localIndex, out var mode) >= 0)
-                {
-                    currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
-                    Logger.Log($"Updated display mode to desktop resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
-                }
-                else
-                {
-                    Logger.Log($"Failed to get desktop display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
-                }
+                Logger.Log($"Failed to get {type} display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
             }
         }
 
