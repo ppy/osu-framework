@@ -616,7 +616,7 @@ namespace osu.Framework.Platform
         private void fetchMaximisedState(WindowState windowState)
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
-                windowMaximised = this.windowState == WindowState.Maximised;
+                windowMaximised = windowState == WindowState.Maximised;
         }
 
         private void readWindowPositionFromConfig(WindowState windowState, Display display)
