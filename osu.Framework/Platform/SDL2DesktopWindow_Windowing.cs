@@ -538,6 +538,7 @@ namespace osu.Framework.Platform
             // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+            SDL.SDL_RestoreWindow(SDLWindowHandle);
 
             switch (windowState)
             {
@@ -567,9 +568,6 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
-                    // restore twice in case we are coming from a minimized state
-                    // (the second restore is required to un-maximize the window then)
-                    SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
 
                     centreWindowOnDisplay(display);
