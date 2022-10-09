@@ -47,6 +47,14 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         public IEnumerable<T> PressedActions => pressedActions;
 
+        /// <summary>
+        /// Actions which are blocked from activating via keybindings.
+        /// </summary>
+        /// <remarks>
+        /// Triggering actions via <see cref="TriggerPressed"/> bypasses this list.
+        /// </remarks>
+        protected virtual IEnumerable<T> BlockedActions => Enumerable.Empty<T>();
+
         private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
         private List<Drawable> keyRepeatInputQueue;
@@ -198,7 +206,7 @@ namespace osu.Framework.Input.Bindings
             bool handled = false;
             var bindings = KeyBindings?.Except(pressedBindings) ?? Enumerable.Empty<IKeyBinding>();
             var newlyPressed = bindings.Where(m =>
-                m.KeyCombination.IsPressed(pressedCombination, matchingMode));
+                m.KeyCombination.IsPressed(pressedCombination, matchingMode) && !BlockedActions.Contains(m.GetAction<T>()));
 
             if (KeyCombination.IsModifierKey(newKey))
             {
@@ -326,9 +334,11 @@ namespace osu.Framework.Input.Bindings
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
             var pressedCombination = new KeyCombination(pressedInputKeys);
 
-            var newlyReleased = pressedInputKeys.Count == 0
+            IEnumerable<IKeyBinding> newlyReleased = pressedInputKeys.Count == 0
                 ? pressedBindings.ToList()
                 : pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
+
+            newlyReleased = newlyReleased.Where(b => !BlockedActions.Contains(b.GetAction<T>()));
 
             foreach (var binding in newlyReleased)
             {
