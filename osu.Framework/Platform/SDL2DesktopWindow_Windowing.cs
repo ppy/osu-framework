@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osuTK;
@@ -313,8 +314,9 @@ namespace osu.Framework.Platform
         {
             return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(i =>
             {
-                Debug.Assert(tryGetDisplayFromSDL(i, out var display));
-                return display;
+                bool success = tryGetDisplayFromSDL(i, out var display);
+                Debug.Assert(success);
+                return display.AsNonNull();
             }).ToArray();
         }
 
