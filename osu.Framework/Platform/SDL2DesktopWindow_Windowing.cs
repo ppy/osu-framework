@@ -20,7 +20,7 @@ namespace osu.Framework.Platform
     {
         private void setupWindowing(FrameworkConfigManager config)
         {
-            updateDisplays();
+            fetchDisplays();
 
             DisplaysChanged += _ => CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.Default = PrimaryDisplay;
@@ -103,8 +103,8 @@ namespace osu.Framework.Platform
 
         private void initialiseWindowingAfterCreation()
         {
-            updateWindowSpecifics();
-            updateWindowSize();
+            updateAndFetchWindowSpecifics();
+            fetchWindowSize();
 
             sizeWindowed.TriggerChange();
 
@@ -277,7 +277,7 @@ namespace osu.Framework.Platform
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
         // ReSharper disable once UnusedParameter.Local
-        private void handleDisplayEvent(SDL.SDL_DisplayEvent evtDisplay) => updateDisplays();
+        private void handleDisplayEvent(SDL.SDL_DisplayEvent evtDisplay) => fetchDisplays();
 
         /// <summary>
         /// Updates <see cref="Displays"/> with the latest display information reported by SDL.
@@ -288,7 +288,7 @@ namespace osu.Framework.Platform
         /// <see cref="CurrentDisplay"/> /
         /// <see cref="CurrentDisplayBindable"/>.
         /// </remarks>
-        private void updateDisplays()
+        private void fetchDisplays()
         {
             Displays = getSDLDisplays();
             DisplaysChanged?.Invoke(Displays);
@@ -406,10 +406,10 @@ namespace osu.Framework.Platform
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
         /// <summary>
-        /// Updates the client size and the scale according to the window.
+        /// Updates <see cref="Size"/> and <see cref="Scale"/> according to SDL state.
         /// </summary>
         /// <returns>Whether the window size has been changed after updating.</returns>
-        private void updateWindowSize()
+        private void fetchWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
             SDL.SDL_GetWindowSize(SDLWindowHandle, out int actualW, out int _);
@@ -431,7 +431,7 @@ namespace osu.Framework.Platform
 
         private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
         {
-            updateWindowSpecifics();
+            updateAndFetchWindowSpecifics();
 
             switch (evtWindow.windowEvent)
             {
@@ -450,11 +450,11 @@ namespace osu.Framework.Platform
                     }
 
                     // we may get a SDL_WINDOWEVENT_MOVED when the resolution of a display changes.
-                    updateDisplays();
+                    fetchDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    updateWindowSize();
+                    fetchWindowSize();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -473,7 +473,7 @@ namespace osu.Framework.Platform
                     // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
                     // force update displays when gaining keyboard focus to always have up-to-date information.
                     // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
-                    updateDisplays();
+                    fetchDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
@@ -491,7 +491,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run on a regular basis to check for external window state changes.
         /// </summary>
-        private void updateWindowSpecifics()
+        private void updateAndFetchWindowSpecifics()
         {
             // don't attempt to run before the window is initialised, as Create() will do so anyway.
             if (SDLWindowHandle == IntPtr.Zero)
@@ -515,7 +515,7 @@ namespace osu.Framework.Platform
             if (windowState != stateBefore)
             {
                 WindowStateChanged?.Invoke(windowState);
-                updateMaximisedState();
+                fetchMaximisedState();
             }
 
             int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
@@ -577,7 +577,7 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            updateMaximisedState();
+            fetchMaximisedState();
 
             switch (windowState)
             {
@@ -629,7 +629,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void updateMaximisedState()
+        private void fetchMaximisedState()
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
                 windowMaximised = windowState == WindowState.Maximised;
