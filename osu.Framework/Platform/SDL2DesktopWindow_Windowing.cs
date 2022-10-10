@@ -319,8 +319,8 @@ namespace osu.Framework.Platform
                 {
                     if (tryGetDisplayFromSDL(i, out Display? display))
                         yield return display;
-
-                    Debug.Fail($"Failed to retrieve display at index ({i})");
+                    else
+                        Debug.Fail($"Failed to retrieve display at index ({i})");
                 }
             }
         }
