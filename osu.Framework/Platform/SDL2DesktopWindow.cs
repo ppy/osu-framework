@@ -231,7 +231,7 @@ namespace osu.Framework.Platform
             {
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    updateWindowSize();
+                    fetchWindowSize();
                 }
             };
 
@@ -243,7 +243,7 @@ namespace osu.Framework.Platform
                     break;
 
                 if (pendingWindowState != null)
-                    updateWindowSpecifics();
+                    updateAndFetchWindowSpecifics();
 
                 pollSDLEvents();
 
