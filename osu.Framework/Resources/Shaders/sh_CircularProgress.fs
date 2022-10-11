@@ -3,8 +3,8 @@
 #include "sh_CircularProgressUtils.h"
 
 varying lowp vec4 v_Colour;
-varying mediump vec2 v_TexCoord;
-varying mediump vec4 v_TexRect;
+varying highp vec2 v_TexCoord;
+varying highp vec4 v_TexRect;
 
 uniform lowp sampler2D m_Sampler;
 uniform mediump float progress;
@@ -19,7 +19,7 @@ void main(void)
         return;
     }
 
-    mediump vec2 resolution = v_TexRect.zw - v_TexRect.xy;
+    highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     
     gl_FragColor = insideProgress(pixelPos, progress, innerRadius, roundedCaps) ? toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9)) : vec4(0.0);

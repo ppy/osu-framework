@@ -1,9 +1,11 @@
-﻿#include "sh_Utils.h"
+﻿#define HIGH_PRECISION_VERTEX
+
+#include "sh_Utils.h"
 #include "sh_Masking.h"
 #include "sh_TextureWrapping.h"
 #include "sh_CircularProgressUtils.h"
 
-varying mediump vec2 v_TexCoord;
+varying highp vec2 v_TexCoord;
 
 uniform lowp sampler2D m_Sampler;
 uniform mediump float progress;
@@ -18,7 +20,7 @@ void main(void)
         return;
     }
 
-    mediump vec2 resolution = v_TexRect.zw - v_TexRect.xy;
+    highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     
     if (!insideProgress(pixelPos, progress, innerRadius, roundedCaps))
