@@ -574,7 +574,7 @@ namespace osu.Framework.Platform
                 case WindowState.Maximised:
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
-                    updateWindowSize();
+                    fetchWindowSize();
                     break;
 
                 case WindowState.Minimised:
