@@ -311,11 +311,18 @@ namespace osu.Framework.Platform
 
         private IEnumerable<Display> getSDLDisplays()
         {
-            return Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(i =>
+            return get().ToArray();
+
+            IEnumerable<Display> get()
             {
-                Debug.Assert(tryGetDisplayFromSDL(i, out var display));
-                return display;
-            }).ToArray();
+                for (int i = 0; i < SDL.SDL_GetNumVideoDisplays(); i++)
+                {
+                    if (tryGetDisplayFromSDL(i, out Display? display))
+                        yield return display;
+                    else
+                        Debug.Fail($"Failed to retrieve display at index ({i})");
+                }
+            }
         }
 
         private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)

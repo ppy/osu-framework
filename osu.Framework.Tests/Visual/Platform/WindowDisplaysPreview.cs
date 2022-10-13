@@ -38,6 +38,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private SDL2DesktopWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+        private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
 
         public WindowDisplaysPreview()
         {
@@ -95,6 +96,9 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window != null)
             {
                 window.DisplaysChanged += onDisplaysChanged;
+                currentDisplay.BindTo(window.CurrentDisplayBindable);
+                currentDisplay.BindValueChanged(_ => Scheduler.AddOnce(() => refreshScreens(window.Displays)));
+
                 refreshScreens(window.Displays);
             }
         }
@@ -112,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             foreach (var display in displays)
             {
-                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplay.Index));
+                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value.Index));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
