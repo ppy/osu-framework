@@ -125,6 +125,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddToggleStep("Toggle masking", m => maskingContainer.Masking = m);
             AddToggleStep("Toggle rounded caps", r => clock.RoundedCaps = r);
             AddToggleStep("Toggle aspect ratio", r => clock.Size = r ? new Vector2(600, 400) : new Vector2(400));
+            AddSliderStep("Scale", 0f, 2f, 1f, s => clock.Scale = new Vector2(s));
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
         }
 
