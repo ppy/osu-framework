@@ -39,13 +39,18 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
                 if (!Tablets.Any() && args.Additions.Any())
-                {
-                    cancellationSource?.Cancel();
-                    cancellationSource = new CancellationTokenSource();
-
-                    Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
-                }
+                    detectAsync();
             };
+
+            detectAsync();
+        }
+
+        private void detectAsync()
+        {
+            cancellationSource?.Cancel();
+            cancellationSource = new CancellationTokenSource();
+
+            Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
         }
 
         private async Task detectAsync(CancellationToken cancellationToken)
