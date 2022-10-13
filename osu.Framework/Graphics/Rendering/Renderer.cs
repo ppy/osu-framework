@@ -909,9 +909,11 @@ namespace osu.Framework.Graphics.Rendering
 
                 FlushCurrentBatch();
                 SetShaderImplementation(shader);
-            }
 
-            Shader = shader;
+                // importantly, when a shader is unbound, it remains bound in the implementation.
+                // to save VBO flushing overhead, keep reference of the last shader.
+                Shader = shader;
+            }
         }
 
         internal void SetUniform<T>(IUniformWithValue<T> uniform)
