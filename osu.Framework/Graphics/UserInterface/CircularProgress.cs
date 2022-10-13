@@ -41,8 +41,20 @@ namespace osu.Framework.Graphics.UserInterface
                     throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
 
                 Invalidate(Invalidation.DrawNode);
-            }, true);
+            });
+
+            texelSize.BindValueChanged(_ => Invalidate(Invalidation.DrawNode), true);
         }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // smoothstep looks too sharp with 1px, let's give it a bit more
+            texelSize.Value = 1.5f / ScreenSpaceDrawQuad.Size.X;
+        }
+
+        private readonly BindableFloat texelSize = new BindableFloat();
 
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
@@ -99,6 +111,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private float innerRadius;
             private float progress;
+            private float texelSize;
             private bool roundedCaps;
 
             public override void ApplyState()
@@ -108,6 +121,7 @@ namespace osu.Framework.Graphics.UserInterface
                 innerRadius = Source.innerRadius;
                 progress = Math.Abs((float)Source.current.Value);
                 roundedCaps = Source.roundedCaps;
+                texelSize = Source.texelSize.Value;
             }
 
             protected override void Blit(IRenderer renderer)
@@ -116,6 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
+                shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
 
                 base.Blit(renderer);
