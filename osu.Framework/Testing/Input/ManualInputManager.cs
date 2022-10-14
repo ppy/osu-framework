@@ -140,10 +140,21 @@ namespace osu.Framework.Testing.Input
         }
 
         /// <summary>
+        /// Clicks the drawable with the specified button.
+        /// </summary>
+        /// <param name="drawable">Drawable to click.</param>
+        /// <param name="button">Mouse button to use.</param>
+        public void Click(Drawable drawable, MouseButton button = MouseButton.Left)
+        {
+            MoveMouseTo(drawable);
+            Click(button);
+        }
+
+        /// <summary>
         /// Press a mouse button down. Release with <see cref="ReleaseButton"/>.
         /// </summary>
         /// <remarks>
-        /// To press and release a mouse button immediately, use <see cref="Click"/>.
+        /// To press and release a mouse button immediately, use <see cref="Click(osuTK.Input.MouseButton)"/>.
         /// </remarks>
         /// <param name="button">The button to press.</param>
         public void PressButton(MouseButton button) => Input(new MouseButtonInput(button, true));
