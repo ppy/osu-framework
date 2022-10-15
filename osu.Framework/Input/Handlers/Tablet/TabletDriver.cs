@@ -18,7 +18,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public sealed class TabletDriver : Driver
     {
-        private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
+        private readonly IEnumerable<int> known_vendors;
 
         private CancellationTokenSource? cancellationSource;
 
@@ -29,6 +29,12 @@ namespace osu.Framework.Input.Handlers.Tablet
         public TabletDriver(ICompositeDeviceHub deviceHub, IReportParserProvider reportParserProvider, IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
         {
+            var vendors = from config in configurationProvider.TabletConfigurations
+                          from id in config.DigitizerIdentifiers
+                          select id.VendorID;
+
+            known_vendors = vendors.Distinct();
+
             Log.Output += (_, logMessage) =>
             {
                 LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
