@@ -3,7 +3,6 @@
 
 #if NET6_0_OR_GREATER
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public sealed class TabletDriver : Driver
     {
-        private readonly IEnumerable<int> known_vendors;
+        private readonly int[] knownVendors;
 
         private CancellationTokenSource? cancellationSource;
 
@@ -33,7 +32,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                           from id in config.DigitizerIdentifiers
                           select id.VendorID;
 
-            known_vendors = vendors.Distinct();
+            knownVendors = vendors.Distinct().ToArray();
 
             Log.Output += (_, logMessage) =>
             {
@@ -64,7 +63,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             // wait a small delay as multiple devices may appear over a very short interval.
             await Task.Delay(50, cancellationToken).ConfigureAwait(false);
 
-            int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+            int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(knownVendors).FirstOrDefault();
 
             if (foundVendor > 0)
             {
