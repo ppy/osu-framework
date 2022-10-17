@@ -120,6 +120,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 base.Blit(renderer);
             }
+
+            protected internal override bool CanDrawOpaqueInterior => false;
         }
     }
 
