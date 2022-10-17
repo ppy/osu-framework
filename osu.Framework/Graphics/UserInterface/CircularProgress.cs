@@ -41,20 +41,8 @@ namespace osu.Framework.Graphics.UserInterface
                     throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
 
                 Invalidate(Invalidation.DrawNode);
-            });
-
-            texelSize.BindValueChanged(_ => Invalidate(Invalidation.DrawNode), true);
+            }, true);
         }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            // smoothstep looks too sharp with 1px, let's give it a bit more
-            texelSize.Value = 1.5f / ScreenSpaceDrawQuad.Size.X;
-        }
-
-        private readonly BindableFloat texelSize = new BindableFloat();
 
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
@@ -121,7 +109,9 @@ namespace osu.Framework.Graphics.UserInterface
                 innerRadius = Source.innerRadius;
                 progress = Math.Abs((float)Source.current.Value);
                 roundedCaps = Source.roundedCaps;
-                texelSize = Source.texelSize.Value;
+
+                // smoothstep looks too sharp with 1px, let's give it a bit more
+                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
             protected override void Blit(IRenderer renderer)
