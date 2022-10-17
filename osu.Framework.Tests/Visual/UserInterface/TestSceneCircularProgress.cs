@@ -8,6 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK;
@@ -81,10 +82,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             gradientTextureBoth.SetData(new TextureUpload(image));
 
+            Box background;
             Container maskingContainer;
 
             Children = new Drawable[]
             {
+                background = new Box
+                {
+                    Colour = FrameworkColour.GreenDark,
+                    RelativeSizeAxes = Axes.Both,
+                    Alpha = 0f,
+                },
                 maskingContainer = new Container
                 {
                     Anchor = Anchor.Centre,
@@ -125,6 +133,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddToggleStep("Toggle masking", m => maskingContainer.Masking = m);
             AddToggleStep("Toggle rounded caps", r => clock.RoundedCaps = r);
             AddToggleStep("Toggle aspect ratio", r => clock.Size = r ? new Vector2(600, 400) : new Vector2(400));
+            AddToggleStep("Toggle background", b => background.Alpha = b ? 1 : 0);
             AddSliderStep("Scale", 0f, 2f, 1f, s => clock.Scale = new Vector2(s));
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
         }
