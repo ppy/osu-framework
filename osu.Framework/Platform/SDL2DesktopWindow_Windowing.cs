@@ -719,6 +719,10 @@ namespace osu.Framework.Platform
         {
             SDL.SDL_ClearError(); // clear any stale error.
 
+            // default size means to use the display's native size.
+            if (size == sizeFullscreen.Default)
+                size = currentDisplay.Bounds.Size;
+
             var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = refreshRate };
 
             if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out var mode) != IntPtr.Zero)
