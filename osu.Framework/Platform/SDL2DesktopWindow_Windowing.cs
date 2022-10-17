@@ -564,7 +564,7 @@ namespace osu.Framework.Platform
 
                     Size = new Size(closestMode.w, closestMode.h);
 
-                    centreWindowOnDisplay(display);
+                    ensureWindowOnDisplay(display);
 
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
@@ -577,7 +577,7 @@ namespace osu.Framework.Platform
                 case WindowState.Maximised:
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
 
-                    centreWindowOnDisplay(display);
+                    ensureWindowOnDisplay(display);
 
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
@@ -586,6 +586,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Minimised:
+                    ensureWindowOnDisplay(display);
                     SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
@@ -643,10 +644,16 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Centres the window on the provided <see cref="Display"/>.
+        /// Ensures that the window is located on the provided <see cref="Display"/>.
         /// </summary>
         /// <param name="display">The <see cref="Display"/> to center the window on.</param>
-        private void centreWindowOnDisplay(Display display) => moveWindowTo(display, new Vector2(0.5f));
+        private void ensureWindowOnDisplay(Display display)
+        {
+            if (display.Index == SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle))
+                return;
+
+            moveWindowTo(display, new Vector2(0.5f));
+        }
 
         /// <summary>
         /// Moves the window to be centred around the normalised <paramref name="position"/> on a <paramref name="display"/>.
@@ -705,7 +712,7 @@ namespace osu.Framework.Platform
         /// </returns>
         protected virtual Size SetBorderless(Display display)
         {
-            centreWindowOnDisplay(display);
+            ensureWindowOnDisplay(display);
 
             // this is a generally sane method of handling borderless, and works well on macOS and linux.
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
