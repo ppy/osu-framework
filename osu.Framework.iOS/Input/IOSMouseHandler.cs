@@ -23,7 +23,8 @@ namespace osu.Framework.iOS.Input
     {
         private readonly IOSGameView view;
         private UIPointerInteraction pointerInteraction;
-        private UIPanGestureRecognizer panGestureRecognizer;
+        private UIPanGestureRecognizer trackpadScrollRecognizer;
+        private UIPanGestureRecognizer mouseScrollRecognizer;
         private CGPoint lastScrollTranslation;
 
         [UsedImplicitly]
@@ -45,10 +46,15 @@ namespace osu.Framework.iOS.Input
             view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
             mouseDelegate.LocationUpdated += locationUpdated;
 
-            view.AddGestureRecognizer(panGestureRecognizer = new UIPanGestureRecognizer(panOffsetUpdated)
+            view.AddGestureRecognizer(trackpadScrollRecognizer = new UIPanGestureRecognizer(() => panGestureRecognized(trackpadScrollRecognizer, true))
             {
                 AllowedScrollTypesMask = UIScrollTypeMask.Continuous,
                 MaximumNumberOfTouches = 0 // Only handle drags when no "touches" are active (ie. no buttons are in a pressed state)
+            });
+
+            view.AddGestureRecognizer(mouseScrollRecognizer = new UIPanGestureRecognizer(() => panGestureRecognized(mouseScrollRecognizer, false))
+            {
+                AllowedScrollTypesMask = UIScrollTypeMask.Discrete,
             });
 
             return true;
@@ -64,13 +70,12 @@ namespace osu.Framework.iOS.Input
 
         private const float scroll_rate_adjust = 0.1f;
 
-        private void panOffsetUpdated()
+        private void panGestureRecognized(UIPanGestureRecognizer recognizer, bool precise)
         {
-            CGPoint translation = panGestureRecognizer.TranslationInView(view);
-
+            CGPoint translation = recognizer.TranslationInView(view);
             Vector2 delta;
 
-            switch (panGestureRecognizer.State)
+            switch (recognizer.State)
             {
                 case UIGestureRecognizerState.Began:
                     // consume initial value.
@@ -88,7 +93,7 @@ namespace osu.Framework.iOS.Input
             PendingInputs.Enqueue(new MouseScrollRelativeInput
             {
                 IsPrecise = true,
-                Delta = delta * scroll_rate_adjust
+                Delta = delta * (precise ? scroll_rate_adjust : 1)
             });
         }
 
@@ -99,8 +104,11 @@ namespace osu.Framework.iOS.Input
             if (pointerInteraction != null)
                 view.RemoveInteraction(pointerInteraction);
 
-            if (panGestureRecognizer != null)
-                view.RemoveGestureRecognizer(panGestureRecognizer);
+            if (trackpadScrollRecognizer != null)
+                view.RemoveGestureRecognizer(trackpadScrollRecognizer);
+
+            if (mouseScrollRecognizer != null)
+                view.RemoveGestureRecognizer(mouseScrollRecognizer);
         }
     }
 
