@@ -240,7 +240,7 @@ namespace osu.Framework.Android.Input
             /// Denotes an event that this handler did not handle.
             /// </summary>
             /// <remarks>
-            /// Since all events are first put trough the <see cref="AndroidInputHandler.HandledEventSources"/> filter, an unhandled event is considered a bug and is logged.
+            /// Since all events are first put through the <see cref="AndroidInputHandler.HandledEventSources"/> filter, an unhandled event is considered a bug and is logged.
             /// </remarks>
             Unhandled,
 
