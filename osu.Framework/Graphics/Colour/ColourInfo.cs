@@ -71,13 +71,8 @@ namespace osu.Framework.Graphics.Colour
         {
             readonly get
             {
-                if (!HasSingleColour)
-                    throwConversionFromMultiColourToSingleColourException();
-
+                Debug.Assert(HasSingleColour);
                 return TopLeft;
-
-                [DoesNotReturn]
-                static void throwConversionFromMultiColourToSingleColourException() => throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
             }
             set
             {
@@ -93,7 +88,7 @@ namespace osu.Framework.Graphics.Colour
         /// <returns>Whether the extracted colour is the single colour represented by this <see cref="ColourInfo"/>.</returns>
         public readonly bool TryExtractSingleColour(out SRGBColour colour)
         {
-            colour = TopLeft;
+            colour = singleColour;
             return HasSingleColour;
         }
 
@@ -241,7 +236,17 @@ namespace osu.Framework.Graphics.Colour
         public override readonly string ToString() => HasSingleColour ? $@"{TopLeft} (Single)" : $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
 
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
-        public static implicit operator SRGBColour(ColourInfo colour) => colour.singleColour;
+
+        public static implicit operator SRGBColour(ColourInfo colour)
+        {
+            if (!colour.HasSingleColour)
+                throwConversionFromMultiColourToSingleColourException();
+
+            return colour.singleColour;
+
+            [DoesNotReturn]
+            static void throwConversionFromMultiColourToSingleColourException() => throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
+        }
 
         public static implicit operator ColourInfo(Color4 colour) => (SRGBColour)colour;
         public static implicit operator Color4(ColourInfo colour) => (SRGBColour)colour;
