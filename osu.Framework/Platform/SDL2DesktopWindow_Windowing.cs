@@ -545,6 +545,7 @@ namespace osu.Framework.Platform
             // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+            SDL.SDL_RestoreWindow(SDLWindowHandle);
 
             switch (windowState)
             {
@@ -563,6 +564,8 @@ namespace osu.Framework.Platform
 
                     Size = new Size(closestMode.w, closestMode.h);
 
+                    ensureWindowOnDisplay(display);
+
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
@@ -573,6 +576,9 @@ namespace osu.Framework.Platform
 
                 case WindowState.Maximised:
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
+
+                    ensureWindowOnDisplay(display);
+
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
@@ -580,6 +586,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Minimised:
+                    ensureWindowOnDisplay(display);
                     SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
@@ -633,10 +640,34 @@ namespace osu.Framework.Platform
 
             var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
+            moveWindowTo(display, configPosition);
+        }
+
+        /// <summary>
+        /// Ensures that the window is located on the provided <see cref="Display"/>.
+        /// </summary>
+        /// <param name="display">The <see cref="Display"/> to center the window on.</param>
+        private void ensureWindowOnDisplay(Display display)
+        {
+            if (display.Index == SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle))
+                return;
+
+            moveWindowTo(display, new Vector2(0.5f));
+        }
+
+        /// <summary>
+        /// Moves the window to be centred around the normalised <paramref name="position"/> on a <paramref name="display"/>.
+        /// </summary>
+        /// <param name="display">The <see cref="Display"/> to move the window to.</param>
+        /// <param name="position">Relative position on the display, normalised to <c>[-0.5, 1.5]</c>.</param>
+        private void moveWindowTo(Display display, Vector2 position)
+        {
+            Debug.Assert(position == Vector2.Clamp(position, new Vector2(-0.5f), new Vector2(1.5f)));
+
             var displayBounds = display.Bounds;
             var windowSize = sizeWindowed.Value;
-            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
+            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * position.X);
+            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * position.Y);
 
             Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
@@ -681,6 +712,8 @@ namespace osu.Framework.Platform
         /// </returns>
         protected virtual Size SetBorderless(Display display)
         {
+            ensureWindowOnDisplay(display);
+
             // this is a generally sane method of handling borderless, and works well on macOS and linux.
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
 
