@@ -39,20 +39,31 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             var currentBindableSize = new SpriteText();
 
-            Child = new FillFlowContainer
+            Children = new Drawable[]
             {
-                Padding = new MarginPadding(10),
-                Spacing = new Vector2(10),
-                Children = new Drawable[]
+                new FillFlowContainer
                 {
-                    currentBindableSize,
-                    currentActualSize,
-                    currentDisplayMode,
-                    currentWindowMode,
-                    currentWindowState,
-                    supportedWindowModes,
-                    displaysDropdown = new BasicDropdown<Display> { Width = 600 }
+                    Padding = new MarginPadding(10),
+                    Spacing = new Vector2(10),
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical,
+                    Children = new Drawable[]
+                    {
+                        currentBindableSize,
+                        currentActualSize,
+                        currentDisplayMode,
+                        currentWindowMode,
+                        currentWindowState,
+                        supportedWindowModes,
+                        displaysDropdown = new BasicDropdown<Display> { Width = 800 }
+                    }
                 },
+                new WindowDisplaysPreview
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 230 }
+                }
             };
 
             sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize.NewValue}";
@@ -117,7 +128,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
-                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position == new Point(0, 0));
+                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);

@@ -19,6 +19,9 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
+#if NET6_0_OR_GREATER
+using osu.Framework.Extensions.ObjectExtensions;
+#endif
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -809,7 +812,7 @@ namespace osu.Framework.Graphics.Video
             {
                 int version = AGffmpeg.LibraryVersionMap[name];
 
-                string libraryName = null;
+                string libraryName;
 
                 // "lib" prefix and extensions are resolved by .net core
                 switch (RuntimeInfo.OS)
@@ -825,9 +828,12 @@ namespace osu.Framework.Graphics.Video
                     case RuntimeInfo.Platform.Linux:
                         libraryName = name;
                         break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null);
                 }
 
-                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
 #endif
 

@@ -120,6 +120,9 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Bound to <see cref="FrameworkSetting.ConfineMouseMode"/>.
+        /// </summary>
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
         private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)

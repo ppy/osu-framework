@@ -231,7 +231,7 @@ namespace osu.Framework.Platform
             {
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    updateWindowSize();
+                    fetchWindowSize();
                 }
             };
 
@@ -243,7 +243,7 @@ namespace osu.Framework.Platform
                     break;
 
                 if (pendingWindowState != null)
-                    updateWindowSpecifics();
+                    updateAndFetchWindowSpecifics();
 
                 pollSDLEvents();
 
@@ -467,7 +467,7 @@ namespace osu.Framework.Platform
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
             // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
-            byte[] bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
+            byte[]? bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
             if (bytes == null)
                 return;
 

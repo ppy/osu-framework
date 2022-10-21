@@ -252,7 +252,7 @@ namespace osu.Framework.Extensions
                 return description;
 
             Type type = value as Type ?? value.GetType();
-            return type.GetField(value.ToString())?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+            return type.GetField(value.ToString() ?? string.Empty)?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
         }
 
         private static string toLowercaseHex(this byte[] bytes)

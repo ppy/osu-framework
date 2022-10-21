@@ -6,9 +6,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
+using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -79,16 +82,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             gradientTextureBoth.SetData(new TextureUpload(image));
 
+            Box background;
+            Container maskingContainer;
+
             Children = new Drawable[]
             {
-                clock = new CircularProgress
+                background = new Box
                 {
-                    Width = 0.8f,
-                    Height = 0.8f,
+                    Colour = FrameworkColour.GreenDark,
                     RelativeSizeAxes = Axes.Both,
+                    Alpha = 0f,
+                },
+                maskingContainer = new Container
+                {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                },
+                    Size = new Vector2(250),
+                    CornerRadius = 20,
+                    Child = clock = new CircularProgress
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(400)
+                    }
+                }
             };
 
             AddStep("Forward", delegate { setRotationMode(1); });
@@ -113,7 +130,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Fwd/Bwd Transform", delegate { transform(2); });
             AddStep("Easing Transform", delegate { transform(3); });
 
-            AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
+            AddToggleStep("Toggle masking", m => maskingContainer.Masking = m);
+            AddToggleStep("Toggle rounded caps", r => clock.RoundedCaps = r);
+            AddToggleStep("Toggle aspect ratio", r => clock.Size = r ? new Vector2(600, 400) : new Vector2(400));
+            AddToggleStep("Toggle background", b => background.Alpha = b ? 1 : 0);
+            AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
         }
 
         protected override void Update()
