@@ -152,17 +152,17 @@ namespace osu.Framework.Graphics.Colour
             if (alpha == 1.0)
                 return this;
 
+            if (TryExtractSingleColour(out SRGBColour single))
+            {
+                single.MultiplyAlpha(alpha);
+                return single;
+            }
+
             ColourInfo result = this;
             result.TopLeft.MultiplyAlpha(alpha);
-
-            if (HasSingleColour)
-                result.BottomLeft = result.TopRight = result.BottomRight = result.TopLeft;
-            else
-            {
-                result.BottomLeft.MultiplyAlpha(alpha);
-                result.TopRight.MultiplyAlpha(alpha);
-                result.BottomRight.MultiplyAlpha(alpha);
-            }
+            result.BottomLeft.MultiplyAlpha(alpha);
+            result.TopRight.MultiplyAlpha(alpha);
+            result.BottomRight.MultiplyAlpha(alpha);
 
             return result;
         }
@@ -181,10 +181,10 @@ namespace osu.Framework.Graphics.Colour
                     BottomRight.Equals(other.BottomRight);
             }
 
-            return other.HasSingleColour && TopLeft.Equals(other.TopLeft);
+            return other.HasSingleColour && singleColour.Equals(other.singleColour);
         }
 
-        public readonly bool Equals(SRGBColour other) => HasSingleColour && TopLeft.Equals(other);
+        public readonly bool Equals(SRGBColour other) => HasSingleColour && singleColour.Equals(other);
 
         /// <summary>
         /// The average colour of all corners.
@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.Colour
             get
             {
                 if (HasSingleColour)
-                    return TopLeft;
+                    return singleColour;
 
                 return SRGBColour.FromVector(
                     (TopLeft.ToVector() + TopRight.ToVector() + BottomLeft.ToVector() + BottomRight.ToVector()) / 4);
