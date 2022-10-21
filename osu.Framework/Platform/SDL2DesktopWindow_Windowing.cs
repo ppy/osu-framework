@@ -263,7 +263,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
-        public Size ClientSize => new Size(Size.Width, Size.Height);
+        public Size ClientSize => new Size((int)(Size.Width * Scale), (int)(Size.Height * Scale));
 
         public float Scale = 1;
 
@@ -418,15 +418,15 @@ namespace osu.Framework.Platform
         /// <returns>Whether the window size has been changed after updating.</returns>
         private void fetchWindowSize()
         {
-            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
-            SDL.SDL_GetWindowSize(SDLWindowHandle, out int actualW, out int _);
+            SDL.SDL_GetWindowSize(SDLWindowHandle, out int w, out int h);
+            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int drawableW, out int _);
 
             // When minimised on windows, values may be zero.
             // If we receive zeroes for either of these, it seems safe to completely ignore them.
-            if (actualW <= 0 || w <= 0)
+            if (w <= 0 || drawableW <= 0)
                 return;
 
-            Scale = (float)w / actualW;
+            Scale = (float)drawableW / w;
             Size = new Size(w, h);
 
             // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
@@ -550,10 +550,10 @@ namespace osu.Framework.Platform
             switch (windowState)
             {
                 case WindowState.Normal:
-                    Size = (sizeWindowed.Value * Scale).ToSize();
+                    Size = sizeWindowed.Value;
 
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
-                    SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
+                    SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
                     SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
                     readWindowPositionFromConfig(windowState, display);
@@ -580,9 +580,7 @@ namespace osu.Framework.Platform
                     ensureWindowOnDisplay(display);
 
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
-
-                    SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
-                    Size = new Size(w, h);
+                    fetchWindowSize();
                     break;
 
                 case WindowState.Minimised:
@@ -699,7 +697,7 @@ namespace osu.Framework.Platform
                 return;
 
             storingSizeToConfig = true;
-            sizeWindowed.Value = (Size / Scale).ToSize();
+            sizeWindowed.Value = Size;
             storingSizeToConfig = false;
         }
 
