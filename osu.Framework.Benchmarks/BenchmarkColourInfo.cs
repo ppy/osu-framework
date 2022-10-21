@@ -23,5 +23,12 @@ namespace osu.Framework.Benchmarks
 
         [Benchmark]
         public Color4 ConvertToColor4() => ((SRGBColour)colourInfo).Linear;
+
+        [Benchmark]
+        public Color4 ExtractAndConvertToColor4()
+        {
+            colourInfo.TryExtractSingleColour(out SRGBColour colour);
+            return colour.Linear;
+        }
     }
 }

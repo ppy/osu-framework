@@ -86,6 +86,17 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
+        /// <summary>
+        /// Attempts to extract the single colour represented by this <see cref="ColourInfo"/>.
+        /// </summary>
+        /// <param name="colour">The extracted colour. If <c>false</c> is returned, this represents the top-left colour.</param>
+        /// <returns>Whether the extracted colour is the single colour represented by this <see cref="ColourInfo"/>.</returns>
+        public readonly bool TryExtractSingleColour(out SRGBColour colour)
+        {
+            colour = TopLeft;
+            return HasSingleColour;
+        }
+
         public readonly SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
