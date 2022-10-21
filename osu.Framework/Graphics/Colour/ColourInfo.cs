@@ -7,6 +7,7 @@ using System;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Colour
@@ -71,11 +72,13 @@ namespace osu.Framework.Graphics.Colour
             readonly get
             {
                 if (!HasSingleColour)
-                    throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
+                    throwConversionFromMultiColourToSingleColourException();
 
                 return TopLeft;
-            }
 
+                [DoesNotReturn]
+                static void throwConversionFromMultiColourToSingleColourException() => throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
+            }
             set
             {
                 TopLeft = BottomLeft = TopRight = BottomRight = value;
