@@ -365,6 +365,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
+        [Test]
+        public void TestReplaceItemsInItemSource()
+        {
+            AddStep("clear bindable list", () => bindableList.Clear());
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
+            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("select three", () => bindableDropdown.Current.Value = "three");
+
+            AddStep("remove and then add items to bindable", () =>
+            {
+                bindableList.Clear();
+                bindableList.AddRange(new[] { "four", "three" }.Select(s => new TestModel(s)));
+            });
+
+            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier, () => Is.EqualTo("three"));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
