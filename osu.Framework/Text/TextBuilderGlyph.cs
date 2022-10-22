@@ -16,12 +16,32 @@ namespace osu.Framework.Text
     {
         public readonly Texture Texture => Glyph.Texture;
         public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
-        public readonly float YOffset => Glyph.YOffset * textSize;
         public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
-        public readonly float Baseline => Glyph.Baseline * textSize;
         public readonly float Width => Glyph.Width * textSize;
         public readonly float Height => Glyph.Height * textSize;
         public readonly char Character => Glyph.Character;
+
+        public readonly float YOffset
+        {
+            get
+            {
+                if (!useFontSizeAsHeight)
+                    return 0;
+
+                return Glyph.YOffset * textSize;
+            }
+        }
+
+        public readonly float Baseline
+        {
+            get
+            {
+                if (!useFontSizeAsHeight)
+                    return (Glyph.Baseline - Glyph.YOffset) * textSize;
+
+                return Glyph.Baseline * textSize;
+            }
+        }
 
         public readonly ITexturedCharacterGlyph Glyph;
 
@@ -37,12 +57,14 @@ namespace osu.Framework.Text
 
         private readonly float textSize;
         private readonly float? fixedWidth;
+        private readonly bool useFontSizeAsHeight;
 
-        internal TextBuilderGlyph(ITexturedCharacterGlyph glyph, float textSize, float? fixedWidth = null)
+        internal TextBuilderGlyph(ITexturedCharacterGlyph glyph, float textSize, float? fixedWidth = null, bool useFontSizeAsHeight = true)
         {
             this = default;
             this.textSize = textSize;
             this.fixedWidth = fixedWidth;
+            this.useFontSizeAsHeight = useFontSizeAsHeight;
 
             Glyph = glyph;
         }
