@@ -8,7 +8,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
@@ -65,28 +64,34 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
+        private ReturnCode returnCodeForSource(InputSourceType source)
+        {
+            // keyboard only events are handled in AndroidKeyboardHandler
+            return source.IsKeyboard()
+                ? ReturnCode.UnhandledSuppressLogging
+                : ReturnCode.Unhandled;
+        }
+
+        protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             if (e.TryGetJoystickButton(out var button))
             {
                 enqueueButtonDown(button);
-                return true;
+                return ReturnCode.Handled;
             }
 
-            // keyboard only events are handled in AndroidKeyboardHandler
-            return e.Source == InputSourceType.Keyboard;
+            return returnCodeForSource(e.Source);
         }
 
-        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (e.TryGetJoystickButton(out var button))
             {
                 enqueueButtonUp(button);
-                return true;
+                return ReturnCode.Handled;
             }
 
-            // keyboard only events are handled in AndroidKeyboardHandler
-            return e.Source == InputSourceType.Keyboard;
+            return returnCodeForSource(e.Source);
         }
 
         /// <summary>

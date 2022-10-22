@@ -81,7 +81,7 @@ namespace osu.Framework.Input.Handlers
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
-        protected void Log(string message, LogLevel level = LogLevel.Verbose, Exception exception = null) => logger.Add($"[{Description}] {message}", level);
+        protected void Log(string message, LogLevel level = LogLevel.Verbose, Exception exception = null) => logger.Add($"[{Description}] {message}", level, exception);
 
         public override string ToString() => GetType().Name;
 

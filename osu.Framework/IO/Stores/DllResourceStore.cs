@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -21,7 +22,7 @@ namespace osu.Framework.IO.Stores
 
         public DllResourceStore(string dllName)
         {
-            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName);
+            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location).AsNonNull(), dllName);
 
             // prefer the local file if it exists, else load from assembly cache.
             assembly = File.Exists(filePath) ? Assembly.LoadFrom(filePath) : Assembly.Load(Path.GetFileNameWithoutExtension(dllName));

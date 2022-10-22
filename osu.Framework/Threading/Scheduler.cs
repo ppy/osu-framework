@@ -59,7 +59,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The base thread is assumed to be the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Func<bool>? isCurrentThread, IClock clock)
+        public Scheduler(Func<bool>? isCurrentThread, IClock? clock)
         {
             this.isCurrentThread = isCurrentThread;
             this.clock = clock;

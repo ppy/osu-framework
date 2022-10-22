@@ -75,7 +75,7 @@ namespace osu.Framework.Allocation
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {
-                            ExceptionDispatchInfo.Capture(exc.InnerException).Throw();
+                            ExceptionDispatchInfo.Capture(exc.InnerException ?? exc).Throw();
                         }
                     };
 

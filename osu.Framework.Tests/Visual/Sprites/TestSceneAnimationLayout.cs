@@ -5,6 +5,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
@@ -137,7 +138,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             private void load()
             {
                 for (int i = 0; i <= 9; i++)
-                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0])?.Texture) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
+                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0]).AsNonNull().Texture) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
             }
         }
     }

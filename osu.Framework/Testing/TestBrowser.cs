@@ -551,6 +551,8 @@ namespace osu.Framework.Testing
             if (tcs.SourceType != null && tcs.SourceName == null)
                 return (IEnumerable)Activator.CreateInstance(tcs.SourceType);
 
+            Debug.Assert(tcs.SourceName != null);
+
             var sourceMembers = sourceDeclaringType.AsNonNull().GetMember(tcs.SourceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (sourceMembers.Length == 0)
                 throw new InvalidOperationException($"No static member with the name of {tcs.SourceName} exists in {sourceDeclaringType} or its base types.");

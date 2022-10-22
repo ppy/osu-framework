@@ -148,6 +148,9 @@ namespace osu.Framework.Audio
 
             AudioDevice.ValueChanged += onDeviceChanged;
 
+            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
+            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
+
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
                 var store = new TrackStore(trackStore, TrackMixer);
@@ -163,9 +166,6 @@ namespace osu.Framework.Audio
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
             });
-
-            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
-            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
 
             CancellationToken token = cancelSource.Token;
 

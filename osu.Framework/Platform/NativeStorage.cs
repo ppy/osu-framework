@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Platform
@@ -74,7 +75,7 @@ namespace osu.Framework.Platform
 
             if (!resolvedPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
 
-            if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath));
+            if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath).AsNonNull());
             return resolvedPath;
         }
 
