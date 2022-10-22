@@ -5,7 +5,9 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -44,6 +46,50 @@ namespace osu.Framework.Tests.Visual.Sprites
             flow.Add(new SpriteText
             {
                 Text = @"0123456789!@#$%^&*()_-+-[]{}.,<>;'\"
+            });
+
+            flow.Add(new Container
+            {
+                Margin = new MarginPadding { Vertical = 5 },
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Color4.Black,
+                        UseFullGlyphHeight = true,
+                        Text = "UseFullGlyphHeight = true",
+                    },
+                }
+            });
+
+            flow.Add(new Container
+            {
+                Margin = new MarginPadding { Vertical = 5 },
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        // Margin = new MarginPadding(0),
+                        // Margin = new MarginPadding(5),
+                        Colour = Color4.Black,
+                        UseFullGlyphHeight = false,
+                        Text = "UseFullGlyphHeight = false",
+                    },
+                }
             });
 
             for (int i = 1; i <= 200; i++)
