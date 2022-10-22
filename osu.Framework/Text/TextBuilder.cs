@@ -261,12 +261,12 @@ namespace osu.Framework.Text
                 float glyphHeightOffset = 0;
                 float previousCharactersHeightOffset = 0;
 
-                if (character.Baseline > currentLineBase)
+                if (currentLineBase == null)
+                    previousCharactersHeightOffset = useFontSizeAsHeight ? 0 : character.Baseline;
+                else if (character.Baseline > currentLineBase)
                     previousCharactersHeightOffset = useFontSizeAsHeight ? 0 : character.Baseline - currentLineBase.Value;
                 else if (character.Baseline < currentLineBase)
                     glyphHeightOffset = useFontSizeAsHeight ? 0 : currentLineBase.Value - character.Baseline;
-                else if (currentLineBase == null)
-                    glyphHeightOffset = useFontSizeAsHeight ? 0 : character.Baseline;
 
                 currentLineBase = currentLineBase == null ? character.Baseline : Math.Max(currentLineBase.Value, character.Baseline);
                 currentLineHeight = Math.Max(currentLineHeight + previousCharactersHeightOffset, getGlyphHeight(ref character) + glyphHeightOffset);
