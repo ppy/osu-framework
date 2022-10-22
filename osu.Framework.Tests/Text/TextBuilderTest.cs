@@ -22,48 +22,37 @@ namespace osu.Framework.Tests.Text
 
         private const float x_offset = 1;
         private const float y_offset = 2;
-        private const float x_advance = 3;
+        private const float x_advance = 5;
         private const float width = 4;
         private const float baseline = 5;
         private const float height = 6;
-        private const float kerning = -7;
+        private const float kerning = 2;
 
-        private const float b_x_offset = 8;
-        private const float b_y_offset = 9;
-        private const float b_x_advance = 10;
-        private const float b_width = 11;
-        private const float b_baseline = 12;
-        private const float b_height = 13;
-        private const float b_kerning = -14;
+        private const float b_x_offset = 2;
+        private const float b_y_offset = 3;
+        private const float b_x_advance = 8;
+        private const float b_width = 6;
+        private const float b_baseline = 8;
+        private const float b_height = 10;
+        private const float b_kerning = 3;
 
 #pragma warning disable IDE1006 // Naming style
         // m_ recognized as prefix instead of part of the name
 
-        private const float m_x_offset = 15;
-        private const float m_y_offset = 16;
-        private const float m_x_advance = 17;
-        private const float m_width = 18;
-        private const float m_baseline = 19;
-        private const float m_height = 20;
-        private const float m_kerning = -21;
+        private const float m_x_offset = 1;
+        private const float m_y_offset = 1;
+        private const float m_x_advance = 15;
+        private const float m_width = 13;
+        private const float m_baseline = 10;
+        private const float m_height = 12;
+        private const float m_kerning = 4;
+
+        // baseline values when builder has UseFontSizeAsHeight turned off.
+        private const float trimmed_baseline = baseline - y_offset;
+        private const float b_trimmed_baseline = b_baseline - b_y_offset;
+        private const float m_trimmed_baseline = m_baseline - m_y_offset;
 
 #pragma warning restore IDE1006
-
-        private const float p_x_offset = 1;
-        private const float p_y_offset = 2;
-        private const float p_x_advance = 3;
-        private const float p_width = 4;
-        private const float p_baseline = 6;
-        private const float p_height = 7;
-        private const float p_kerning = -7;
-
-        private const float q_x_offset = 1;
-        private const float q_y_offset = 2;
-        private const float q_x_advance = 3;
-        private const float q_width = 4;
-        private const float q_baseline = 7;
-        private const float q_height = 8;
-        private const float q_kerning = -7;
 
         private static readonly Vector2 spacing = new Vector2(22, 23);
 
@@ -78,8 +67,6 @@ namespace osu.Framework.Tests.Text
                 new GlyphEntry(normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
                 new GlyphEntry(normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
                 new GlyphEntry(normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('p', p_x_offset, p_y_offset, p_x_advance, p_width, p_baseline, p_height, p_kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('q', q_x_offset, q_y_offset, q_x_advance, q_width, q_baseline, q_height, q_kerning)),
                 new GlyphEntry(fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
                 new GlyphEntry(fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
                 new GlyphEntry(fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning))
@@ -239,7 +226,7 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that the bounds are set correctly when useFontSizeAsHeight is false
+        /// Tests that the bounds are set correctly on a builder which has <see cref="TextBuilder.useFontSizeAsHeight"/> disabled.
         /// </summary>
         [Test]
         public void TestBoundsWhenNotUsingFontHeightAsSize()
@@ -250,15 +237,7 @@ namespace osu.Framework.Tests.Text
             builder.AddNewLine();
             builder.AddText("ab");
 
-            // b and m are the larger glyph in their line
-            Assert.That(builder.Bounds,
-                Is.EqualTo(new Vector2(
-                    MathF.Max(
-                        x_advance + MathF.Max(m_x_advance + m_kerning, 0),
-                        x_advance + MathF.Max(b_x_advance + b_kerning, 0)),
-                    m_height + b_height)
-                )
-            );
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + m_kerning + m_x_advance, m_height + b_height)));
         }
 
         /// <summary>
@@ -362,7 +341,7 @@ namespace osu.Framework.Tests.Text
 
             assertOtherCharactersNotAffected();
             Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + y_offset + (m_baseline - baseline)));
-            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + b_y_offset + (b_baseline - baseline)));
+            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + b_y_offset + (m_baseline - b_baseline)));
             Assert.That(builder.Characters[5].DrawRectangle.Top, Is.EqualTo(font_size * 2 + m_y_offset));
 
             void assertOtherCharactersNotAffected()
@@ -374,7 +353,8 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that baseline alignment adjustments are done correctly and only affect the line the new character was placed on.
+        /// Tests that baseline alignment adjustments are done correctly on a builder which has <see cref="TextBuilder.useFontSizeAsHeight"/> disabled,
+        /// and only affect the line the new character was placed on.
         /// </summary>
         [Test]
         public void TestBaselineAdjustmentWhenNotUsingFontSizeAsHeight()
@@ -383,15 +363,15 @@ namespace osu.Framework.Tests.Text
 
             // test baseline adjustment on the first line
             builder.AddText("a");
-            builder.AddText("p");
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(p_baseline - baseline));
+            builder.AddText("b");
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(b_trimmed_baseline - trimmed_baseline));
 
             // test baseline adjustment affects relevant line only
             builder.AddNewLine();
             builder.AddText("a");
-            builder.AddText("q");
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(p_baseline - baseline));
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(p_height + (q_baseline - baseline)));
+            builder.AddText("m");
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(b_trimmed_baseline - trimmed_baseline));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(b_height + (m_trimmed_baseline - trimmed_baseline)));
         }
 
         /// <summary>
@@ -505,51 +485,31 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that removing a character behaves correctly.
+        /// Tests that removing a character behaves correctly on a builder which has <see cref="TextBuilder.useFontSizeAsHeight"/> disabled.
         /// </summary>
         [Test]
         public void TestRemoveCharacterWhenNotUsingFontSizeAsHeight()
         {
             var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
 
-            builder.AddText("ap");
+            builder.AddText("ab");
             builder.AddNewLine();
-            builder.AddText("aq");
+            builder.AddText("am");
 
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(p_height + (q_baseline - baseline)));
-            Assert.That(builder.Bounds,
-                Is.EqualTo(
-                    new Vector2(
-                        MathF.Max(
-                            x_advance + MathF.Max(p_x_advance + p_kerning, 0),
-                            x_advance + MathF.Max(q_x_advance + q_kerning, 0)),
-                        p_height + q_height)
-                )
-            );
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(b_height + m_trimmed_baseline - trimmed_baseline));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + m_kerning + m_x_advance, b_height + m_height)));
 
             // tests that removing a character resets bounds, and the baseline of the relevant line correctly
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(p_height));
-            Assert.That(builder.Bounds,
-                Is.EqualTo(
-                    new Vector2(
-                        x_advance + MathF.Max(p_x_advance + p_kerning, 0),
-                        p_height + height)
-                )
-            );
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(b_height));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + b_kerning + b_x_advance, b_height + height)));
 
             // tests that removing a character on a new line resets the current line to the previous line correctly (tests baseline and bounds after adding a new character)
             builder.RemoveLastCharacter();
             builder.AddText("a");
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(p_baseline - baseline));
-            Assert.That(builder.Bounds,
-                Is.EqualTo(
-                    new Vector2(
-                        x_advance + MathF.Max(p_x_advance + p_kerning, 0) + MathF.Max(x_advance + kerning, 0),
-                        p_height)
-                )
-            );
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(b_trimmed_baseline - trimmed_baseline));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + b_kerning + b_x_advance + kerning + x_advance, b_height)));
         }
 
         /// <summary>
