@@ -258,18 +258,15 @@ namespace osu.Framework.Text
             {
                 var character = Characters[i];
 
-                // this is used only when useFontSizeAsHeight is false.
-                float glyphBaseLine = (Characters[i].Baseline - Characters[i].YOffset);
-
                 float glyphHeightOffset = 0;
                 float previousCharactersHeightOffset = 0;
 
-                if ((currentLineBase ?? 0f) > glyphBaseLine)
-                    glyphHeightOffset = (useFontSizeAsHeight) ? 0 : (currentLineBase ?? 0f) - glyphBaseLine;
-                else if ((currentLineBase ?? 0f) < glyphBaseLine)
-                    previousCharactersHeightOffset = (useFontSizeAsHeight) ? 0 : glyphBaseLine - (currentLineBase ?? 0f);
-
-                float characterBaseLine = (useFontSizeAsHeight ? character.Baseline : character.Baseline - character.YOffset);
+                if (character.Baseline > currentLineBase)
+                    previousCharactersHeightOffset = useFontSizeAsHeight ? 0 : character.Baseline - currentLineBase.Value;
+                else if (character.Baseline < currentLineBase)
+                    glyphHeightOffset = useFontSizeAsHeight ? 0 : currentLineBase.Value - character.Baseline;
+                else if (currentLineBase == null)
+                    glyphHeightOffset = useFontSizeAsHeight ? 0 : character.Baseline;
 
                 currentLineBase = currentLineBase == null ? character.Baseline : Math.Max(currentLineBase.Value, character.Baseline);
                 currentLineHeight = Math.Max(currentLineHeight + previousCharactersHeightOffset, getGlyphHeight(ref character) + glyphHeightOffset);
