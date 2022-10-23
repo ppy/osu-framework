@@ -88,7 +88,8 @@ namespace osu.Framework.Graphics.Colour
         /// <returns>Whether the extracted colour is the single colour represented by this <see cref="ColourInfo"/>.</returns>
         public readonly bool TryExtractSingleColour(out SRGBColour colour)
         {
-            colour = singleColour;
+            // To make this code branchless, we have to work around the assertion in singleColour.
+            colour = TopLeft;
             return HasSingleColour;
         }
 
