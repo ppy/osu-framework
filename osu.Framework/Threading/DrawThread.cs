@@ -28,10 +28,10 @@ namespace osu.Framework.Threading
 
             if (window != null)
             {
-                host.Renderer.Initialise(window.Graphics);
-
                 host.Renderer.MakeCurrent();
+
                 host.Renderer.BeginFrame(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+                host.Renderer.FinishFrame();
             }
         }
 
