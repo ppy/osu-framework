@@ -91,11 +91,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            while (tryGetNextUpload(out var upload))
-                upload.Dispose();
-
             Renderer.ScheduleDisposal(texture =>
             {
+                while (texture.tryGetNextUpload(out var upload))
+                    upload.Dispose();
+
                 int disposableId = texture.textureId;
 
                 if (disposableId <= 0)
