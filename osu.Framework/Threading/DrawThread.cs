@@ -41,6 +41,10 @@ namespace osu.Framework.Threading
 
             ThreadSafety.IsDrawThread = true;
 
+            // MakeCurrent may be called before renderer is initialised (at least once directly called before OnInitialize).
+            if (!host.Renderer.IsInitialised)
+                return;
+
             // Seems to be required on some drivers as the context is lost from the draw thread.
             host.Renderer.MakeCurrent();
         }
