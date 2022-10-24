@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -71,12 +72,23 @@ namespace osu.Framework.Platform
             if (GLSLVersion == null)
                 GLSLVersion = new Version();
 
+            GL.GetInteger(GetPName.NumExtensions, out int extensionCount);
+
+            var extStringBuilder = new StringBuilder();
+
+            for (int i = 0; i < extensionCount; i++)
+            {
+                if (i > 0)
+                    extStringBuilder.Append(", ");
+                extStringBuilder.Append(GL.GetString(StringNameIndexed.Extensions, i));
+            }
+
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
+                        GL Extensions:              {extStringBuilder}");
 
             // We need to release the context in this thread, since Windows locks it and prevents
             // the draw thread from taking it. macOS seems to gracefully ignore this.
