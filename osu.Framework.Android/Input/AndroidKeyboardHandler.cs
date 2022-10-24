@@ -13,7 +13,12 @@ namespace osu.Framework.Android.Input
 {
     public class AndroidKeyboardHandler : AndroidInputHandler
     {
-        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Keyboard };
+        protected override IEnumerable<InputSourceType> HandledEventSources => new[]
+        {
+            InputSourceType.Keyboard,
+            // Some physical keyboards report as (Keyboard | Dpad)
+            InputSourceType.Dpad,
+        };
 
         public AndroidKeyboardHandler(AndroidGameView view)
             : base(view)
@@ -44,30 +49,38 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
+        private ReturnCode returnCodeForKeycode(Keycode keycode)
+        {
+            // gamepad buttons are handled in AndroidJoystickHandler
+            return KeyEvent.IsGamepadButton(keycode)
+                ? ReturnCode.UnhandledSuppressLogging
+                : ReturnCode.Unhandled;
+        }
+
+        protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
             {
                 enqueueInput(new KeyboardKeyInput(key, true));
-                return true;
+                return ReturnCode.Handled;
             }
 
-            return false;
+            return returnCodeForKeycode(keycode);
         }
 
-        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             var key = GetKeyCodeAsKey(keycode);
 
             if (key != Key.Unknown)
             {
                 enqueueInput(new KeyboardKeyInput(key, false));
-                return true;
+                return ReturnCode.Handled;
             }
 
-            return false;
+            return returnCodeForKeycode(keycode);
         }
 
         /// <summary>

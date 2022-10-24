@@ -136,27 +136,27 @@ namespace osu.Framework.Android.Input
             View.PointerCapture = shouldCapture;
         }
 
-        protected override bool OnKeyDown(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             // some implementations might send Mouse1 and Mouse2 as keyboard keycodes, so we handle those here.
             if (keycode.TryGetMouseButton(out var button))
             {
                 handleMouseButton(button, true);
-                return true;
+                return ReturnCode.Handled;
             }
 
-            return false;
+            return ReturnCode.Unhandled;
         }
 
-        protected override bool OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             if (keycode.TryGetMouseButton(out var button))
             {
                 handleMouseButton(button, false);
-                return true;
+                return ReturnCode.Handled;
             }
 
-            return false;
+            return ReturnCode.Unhandled;
         }
 
         protected override bool OnHover(MotionEvent hoverEvent)

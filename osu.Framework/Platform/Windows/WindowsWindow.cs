@@ -203,7 +203,7 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         private const int windows_borderless_width_hack = 1;
 
-        protected override Size SetBorderless()
+        protected override Size SetBorderless(Display display)
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
@@ -211,10 +211,10 @@ namespace osu.Framework.Platform.Windows
             // we also trick the game into thinking the window has normal size: see Size setter override
 
             var sizeOffset = new Size(windows_borderless_width_hack, 0);
-            var newSize = CurrentDisplay.Bounds.Size + sizeOffset;
+            var newSize = display.Bounds.Size + sizeOffset;
 
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            Position = CurrentDisplay.Bounds.Location;
+            Position = display.Bounds.Location;
 
             return newSize;
         }
