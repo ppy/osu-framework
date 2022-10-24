@@ -714,8 +714,6 @@ namespace osu.Framework.Platform
                     Window.Create();
                     Window.Title = $@"osu!framework (running ""{Name}"")";
 
-                    Renderer.Initialise(Window.Graphics);
-
                     currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
                     currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
 
