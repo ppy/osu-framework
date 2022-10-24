@@ -20,6 +20,7 @@ namespace osu.Framework.Platform.SDL2
         private IntPtr context;
 
         public IntPtr WindowHandle => window.WindowHandle;
+        public IntPtr DisplayHandle => window.DisplayHandle;
 
         public GraphicsBackend BackendType { get; }
 

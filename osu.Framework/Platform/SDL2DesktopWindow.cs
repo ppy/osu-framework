@@ -117,6 +117,29 @@ namespace osu.Framework.Platform
             }
         }
 
+        public IntPtr DisplayHandle
+        {
+            get
+            {
+                if (SDLWindowHandle == IntPtr.Zero)
+                    return IntPtr.Zero;
+
+                var wmInfo = getWindowWMInfo();
+
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+                        return wmInfo.info.x11.display;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
+                        return wmInfo.info.wl.display;
+
+                    default:
+                        return IntPtr.Zero;
+                }
+            }
+        }
+
         private SDL.SDL_SysWMinfo getWindowWMInfo()
         {
             if (SDLWindowHandle == IntPtr.Zero)
