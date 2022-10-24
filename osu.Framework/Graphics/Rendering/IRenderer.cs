@@ -135,6 +135,11 @@ namespace osu.Framework.Graphics.Rendering
         Texture WhitePixel { get; }
 
         /// <summary>
+        /// Whether this <see cref="IRenderer"/> has been initialised using <see cref="Initialise"/>.
+        /// </summary>
+        bool IsInitialised { get; }
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="IRenderer"/>.
         /// </summary>
         protected internal void Initialise(IWindowGraphics graphics);

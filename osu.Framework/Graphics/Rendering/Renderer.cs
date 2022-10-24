@@ -62,6 +62,8 @@ namespace osu.Framework.Graphics.Rendering
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
 
+        public bool IsInitialised { get; private set; }
+
         protected ClearInfo CurrentClearInfo { get; private set; }
         protected BlendingParameters CurrentBlendingParameters { get; private set; }
         protected BlendingMask CurrentBlendingMask { get; private set; }
@@ -118,7 +120,6 @@ namespace osu.Framework.Graphics.Rendering
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
-        private bool isInitialised;
         private int lastActiveTextureUnit;
 
         protected Renderer()
@@ -139,7 +140,7 @@ namespace osu.Framework.Graphics.Rendering
             defaultQuadBatch = CreateQuadBatch<TexturedVertex2D>(100, 1000);
             resetScheduler.AddDelayed(disposalQueue.CheckPendingDisposals, 0, true);
 
-            isInitialised = true;
+            IsInitialised = true;
         }
 
         /// <summary>
@@ -257,13 +258,13 @@ namespace osu.Framework.Graphics.Rendering
 
         public void ScheduleExpensiveOperation(ScheduledDelegate operation)
         {
-            if (isInitialised)
+            if (IsInitialised)
                 expensiveOperationQueue.Enqueue(operation);
         }
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
-            if (isInitialised)
+            if (IsInitialised)
                 disposalQueue.ScheduleDisposal(disposalAction, target);
             else
                 disposalAction.Invoke(target);
@@ -850,7 +851,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="texture">The texture to be uploaded.</param>
         internal void EnqueueTextureUpload(INativeTexture texture)
         {
-            if (!isInitialised || textureUploadQueue.Contains(texture))
+            if (!IsInitialised || textureUploadQueue.Contains(texture))
                 return;
 
             textureUploadQueue.Enqueue(texture);

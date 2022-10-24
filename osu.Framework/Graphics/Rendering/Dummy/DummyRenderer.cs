@@ -41,6 +41,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
 
+        public bool IsInitialised { get; private set; }
+
         public DummyRenderer()
         {
             maskingInfo = default;
@@ -49,6 +51,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         void IRenderer.Initialise(IWindowGraphics graphics)
         {
+            IsInitialised = true;
         }
 
         void IRenderer.BeginFrame(Vector2 windowSize)
