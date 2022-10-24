@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             Renderer.ScheduleDisposal(texture =>
             {
-                while (tryGetNextUpload(out var upload))
+                while (texture.tryGetNextUpload(out var upload))
                     upload.Dispose();
 
                 int disposableId = texture.textureId;
