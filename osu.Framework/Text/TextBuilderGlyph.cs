@@ -25,10 +25,10 @@ namespace osu.Framework.Text
         {
             get
             {
-                if (!useFontSizeAsHeight)
-                    return 0;
+                if (useFontSizeAsHeight)
+                    return Glyph.YOffset * textSize;
 
-                return Glyph.YOffset * textSize;
+                return 0;
             }
         }
 
@@ -36,10 +36,10 @@ namespace osu.Framework.Text
         {
             get
             {
-                if (!useFontSizeAsHeight)
-                    return (Glyph.Baseline - Glyph.YOffset) * textSize;
+                if (useFontSizeAsHeight)
+                    return Glyph.Baseline * textSize;
 
-                return Glyph.Baseline * textSize;
+                return (Glyph.Baseline - Glyph.YOffset) * textSize;
             }
         }
 
