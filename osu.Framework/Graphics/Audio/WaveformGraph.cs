@@ -371,34 +371,14 @@ namespace osu.Framework.Graphics.Audio
                     ColourInfo finalColour = DrawColourInfo.Colour;
                     finalColour.ApplyChild(frequencyColour);
 
-                    Quad quadToDraw;
+                    float height = drawSize.Y / 2;
 
-                    switch (channels)
-                    {
-                        default:
-                        case 2:
-                        {
-                            float height = drawSize.Y / 2;
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, height - points[i].AmplitudeLeft * height),
-                                new Vector2(rightX, height - points[i + 1].AmplitudeLeft * height),
-                                new Vector2(leftX, height + points[i].AmplitudeRight * height),
-                                new Vector2(rightX, height + points[i + 1].AmplitudeRight * height)
-                            );
-                            break;
-                        }
-
-                        case 1:
-                        {
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, drawSize.Y - points[i].AmplitudeLeft * drawSize.Y),
-                                new Vector2(rightX, drawSize.Y - points[i + 1].AmplitudeLeft * drawSize.Y),
-                                new Vector2(leftX, drawSize.Y),
-                                new Vector2(rightX, drawSize.Y)
-                            );
-                            break;
-                        }
-                    }
+                    Quad quadToDraw = new Quad(
+                        new Vector2(leftX, height - points[i].AmplitudeLeft * height),
+                        new Vector2(rightX, height - points[i + 1].AmplitudeLeft * height),
+                        new Vector2(leftX, height + points[i].AmplitudeRight * height),
+                        new Vector2(rightX, height + points[i + 1].AmplitudeRight * height)
+                    );
 
                     quadToDraw *= DrawInfo.Matrix;
 
