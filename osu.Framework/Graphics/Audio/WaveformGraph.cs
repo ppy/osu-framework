@@ -179,7 +179,6 @@ namespace osu.Framework.Graphics.Audio
         private long resampledVersion;
         private Waveform.Point[] resampledPoints;
         private int? resampledPointCount;
-        private int resampledChannels;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
         private double resampledMaxLowIntensity;
@@ -213,7 +212,6 @@ namespace osu.Framework.Graphics.Audio
                 Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
 
                 var points = await resampled.GetPointsAsync().ConfigureAwait(false);
-                int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
 
                 double maxHighIntensity = points.Length > 0 ? points.Max(p => p.HighIntensity) : 0;
                 double maxMidIntensity = points.Length > 0 ? points.Max(p => p.MidIntensity) : 0;
@@ -225,7 +223,6 @@ namespace osu.Framework.Graphics.Audio
                         return;
 
                     resampledPoints = points;
-                    resampledChannels = channels;
                     resampledMaxHighIntensity = maxHighIntensity;
                     resampledMaxMidIntensity = maxMidIntensity;
                     resampledMaxLowIntensity = maxLowIntensity;
@@ -268,7 +265,6 @@ namespace osu.Framework.Graphics.Audio
             private List<Waveform.Point> points;
 
             private Vector2 drawSize;
-            private int channels;
 
             private long version;
 
@@ -314,8 +310,6 @@ namespace osu.Framework.Graphics.Audio
                         if (Source.resampledPoints != null)
                             points.AddRange(Source.resampledPoints);
                     }
-
-                    channels = Source.resampledChannels;
 
                     highMax = Source.resampledMaxHighIntensity;
                     midMax = Source.resampledMaxMidIntensity;
