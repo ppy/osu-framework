@@ -164,8 +164,8 @@ namespace osu.Framework.Text
             // The kerning is only added after it is guaranteed that the character will be added, to not leave the current position in a bad state
             currentPos.X += kerning;
 
-            float glyphHeightOffset = 0;
-            float previousCharactersHeightOffset = 0;
+            float glyphBaselineOffset = 0;
+            float previousCharactersBaselineOffset = 0;
 
             glyph.DrawRectangle = new RectangleF(new Vector2(currentPos.X + glyph.XOffset, currentPos.Y + glyph.YOffset), new Vector2(glyph.Width, glyph.Height));
             glyph.OnNewLine = currentNewLine;
@@ -182,13 +182,13 @@ namespace osu.Framework.Text
                         break;
                 }
 
-                previousCharactersHeightOffset = (glyph.OnNewLine || useFontSizeAsHeight || char.IsWhiteSpace(character))
+                previousCharactersBaselineOffset = (glyph.OnNewLine || useFontSizeAsHeight || char.IsWhiteSpace(character))
                     ? 0
                     : glyph.Baseline - currentLineBase.Value;
             }
             else if (glyph.Baseline < currentLineBase)
             {
-                glyphHeightOffset = (useFontSizeAsHeight || char.IsWhiteSpace(character))
+                glyphBaselineOffset = (useFontSizeAsHeight || char.IsWhiteSpace(character))
                     ? 0
                     : currentLineBase.Value - glyph.Baseline;
 
@@ -198,7 +198,7 @@ namespace osu.Framework.Text
             Characters.Add(glyph);
 
             currentPos.X += glyph.XAdvance;
-            currentLineHeight = Math.Max(currentLineHeight + previousCharactersHeightOffset, getGlyphHeight(ref glyph) + glyphHeightOffset);
+            currentLineHeight = Math.Max(currentLineHeight + previousCharactersBaselineOffset, getGlyphHeight(ref glyph) + glyphBaselineOffset);
             currentLineBase = currentLineBase == null ? glyph.Baseline : Math.Max(currentLineBase.Value, glyph.Baseline);
             currentNewLine = false;
 
