@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -21,13 +19,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public class TestSceneCircularBlob : FrameworkTestScene
     {
         [Resolved]
-        private IRenderer renderer { get; set; }
+        private IRenderer renderer { get; set; } = null!;
 
-        private CircularBlob blob;
+        private CircularBlob blob = null!;
 
-        private Texture gradientTextureHorizontal;
-        private Texture gradientTextureVertical;
-        private Texture gradientTextureBoth;
+        private Texture gradientTextureHorizontal = null!;
+        private Texture gradientTextureVertical = null!;
+        private Texture gradientTextureBoth = null!;
 
         [BackgroundDependencyLoader]
         private void load()
