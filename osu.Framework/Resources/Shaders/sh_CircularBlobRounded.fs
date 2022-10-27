@@ -3,7 +3,7 @@
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 #include "sh_TextureWrapping.h"
-#include "sh_BlobUtils.h"
+#include "sh_CircularBlobUtils.h"
 
 varying highp vec2 v_TexCoord;
 

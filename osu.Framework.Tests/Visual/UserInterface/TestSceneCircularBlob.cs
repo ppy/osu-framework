@@ -18,12 +18,12 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneBlob : FrameworkTestScene
+    public class TestSceneCircularBlob : FrameworkTestScene
     {
         [Resolved]
         private IRenderer renderer { get; set; }
 
-        private Blob blob;
+        private CircularBlob blob;
 
         private Texture gradientTextureHorizontal;
         private Texture gradientTextureVertical;
@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Origin = Anchor.Centre,
                     Size = new Vector2(250),
                     CornerRadius = 20,
-                    Child = blob = new Blob
+                    Child = blob = new CircularBlob
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,

@@ -9,22 +9,22 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class Blob : Sprite
+    public class CircularBlob : Sprite
     {
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)
         {
             Texture ??= renderer.WhitePixel;
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "Blob");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "BlobRounded");
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlob");
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlobRounded");
         }
 
-        protected override DrawNode CreateDrawNode() => new BlobDrawNode(this);
+        protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);
 
         private float innerRadius = 0.2f;
 
         /// <summary>
-        /// The inner fill radius, relative to the <see cref="Drawable.DrawSize"/> of the <see cref="Blob"/>.
+        /// The inner fill radius, relative to the <see cref="Drawable.DrawSize"/> of the <see cref="CircularBlob"/>.
         /// The value range is 0 to 1 where 0 is invisible and 1 is completely filled.
         /// The entire texture still fills the disk without cropping it.
         /// </summary>
@@ -83,11 +83,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class BlobDrawNode : SpriteDrawNode
+        private class CircularBlobDrawNode : SpriteDrawNode
         {
-            public new Blob Source => (Blob)base.Source;
+            public new CircularBlob Source => (CircularBlob)base.Source;
 
-            public BlobDrawNode(Blob source)
+            public CircularBlobDrawNode(CircularBlob source)
                 : base(source)
             {
             }
