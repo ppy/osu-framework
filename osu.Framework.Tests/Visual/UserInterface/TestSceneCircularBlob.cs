@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => blob.InnerRadius = f);
             AddSliderStep("Amplitude", 0f, 1f, 0.3f, ns => blob.Amplitude = ns);
             AddSliderStep("Frequency", 0f, 5f, 1.5f, ns => blob.Frequency = ns);
-            AddSliderStep("Seed", 0, 1000, 0, s => blob.Seed = s);
+            AddSliderStep("Seed", 0, 999999999, 0, s => blob.Seed = s);
         }
 
         private void setTexture(int textureMode)

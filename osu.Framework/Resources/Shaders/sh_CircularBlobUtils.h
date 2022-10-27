@@ -38,6 +38,9 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp flo
 
     mediump float startAngle = pixelAngle - HALF_PI * 0.5 - HALF_PI;
 
+    // Looks to be random enough but still consistent
+    highp vec2 noisePosition = vec2(random(vec2(float(seed * 0.0001))) * 100000.0, random(vec2(float(seed * 0.0001))) * 100000.0);
+
     // Distance approximation
     // Plot points within a search range (90 degrees seems enough) and check which one is closest
     for (int i = 0; i < pointCount; i++)
@@ -45,7 +48,7 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp flo
         mediump float angle = startAngle + HALF_PI * float(i) / float(pointCount);
         highp vec2 cs = vec2(cos(angle), sin(angle));
 
-        highp float noiseValue = noise(vec2(0.5 * float(seed)) + cs * vec2(frequency));
+        highp float noiseValue = noise(noisePosition + cs * vec2(frequency));
         highp vec2 pos = vec2(0.5) + cs * vec2(0.5 - pathRadius - texelSize - noiseValue * 0.5 * amplitude);
 
         shortestDistance = min(shortestDistance, distance(pixelPos, pos));
