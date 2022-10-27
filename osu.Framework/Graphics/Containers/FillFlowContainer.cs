@@ -45,14 +45,14 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
-        private FillDirection direction = FillDirection.Full;
+        private FillDirection direction = FillDirection.FullHorizontal;
 
         /// <summary>
-        /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Horizontal"/>,
+        /// If <see cref="FillDirection.FullHorizontal"/>, <see cref="FillDirection.FullVertical"/> or <see cref="FillDirection.Horizontal"/>,
         /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
         /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
         /// They are arranged from right-to-left otherwise.
-        /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Vertical"/>,
+        /// If <see cref="FillDirection.FullHorizontal"/>, <see cref="FillDirection.FullVertical"/> or <see cref="FillDirection.Vertical"/>,
         /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
         /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
         /// They are arranged from bottom-to-top otherwise.
@@ -88,28 +88,47 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Vector2 spacingFactor(Drawable c)
+        private FlowVector calculateSpacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
             if (c.Anchor.HasFlagFast(Anchor.x2))
                 result.X = 1 - result.X;
             if (c.Anchor.HasFlagFast(Anchor.y2))
                 result.Y = 1 - result.Y;
-            return result;
+            return ToFlowVector(result);
+        }
+
+        // a thing to note here is that it is currently impossible to have a reversed and centered flow at the same time
+        private (bool reverse, bool center) calculateFlowAnchor(Drawable c)
+        {
+            if (Direction.FlowAxis() == Axes.X)
+                return (c.Anchor.HasFlagFast(Anchor.x2), c.Anchor.HasFlagFast(Anchor.x1));
+            else
+                return (c.Anchor.HasFlagFast(Anchor.y2), c.Anchor.HasFlagFast(Anchor.y1));
+        }
+
+        private (bool reverse, bool center) calculateLineAnchor(Drawable c)
+        {
+            if (Direction.FlowAxis() == Axes.Y)
+                return (c.Anchor.HasFlagFast(Anchor.x2), c.Anchor.HasFlagFast(Anchor.x1));
+            else
+                return (c.Anchor.HasFlagFast(Anchor.y2), c.Anchor.HasFlagFast(Anchor.y1));
         }
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
-            var max = MaximumSize;
+            var max = ToFlowVector(MaximumSize);
 
-            if (max == Vector2.Zero)
+            if (MaximumSize == Vector2.Zero)
             {
                 var s = ChildSize;
 
                 // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                 // If we are inheriting then we need to use the parent size (our ActualSize).
-                max.X = AutoSizeAxes.HasFlagFast(Axes.X) ? float.MaxValue : s.X;
-                max.Y = AutoSizeAxes.HasFlagFast(Axes.Y) ? float.MaxValue : s.Y;
+                max = ToFlowVector(new Vector2(
+                    AutoSizeAxes.HasFlagFast(Axes.X) ? float.MaxValue : s.X,
+                    AutoSizeAxes.HasFlagFast(Axes.Y) ? float.MaxValue : s.Y
+                ));
             }
 
             var children = FlowingChildren.ToArray();
@@ -117,182 +136,156 @@ namespace osu.Framework.Graphics.Containers
                 yield break;
 
             // The positions for each child we will return later on.
-            var layoutPositions = ArrayPool<Vector2>.Shared.Rent(children.Length);
-
-            // We need to keep track of row widths such that we can compute correct
-            // positions for horizontal centre anchor children.
-            // We also store for each child to which row it belongs.
-            int[] rowIndices = ArrayPool<int>.Shared.Rent(children.Length);
-
-            var rowOffsetsToMiddle = new List<float> { 0 };
+            var layoutPositions = ArrayPool<FlowVector>.Shared.Rent(children.Length);
 
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
-            float rowHeight = 0;
-            float rowBeginOffset = 0;
-            var current = Vector2.Zero;
+            var current = FlowVector.Zero;
+            var size = ToFlowVector(children[0].BoundingBox.Size);
+            var spacingFactor = calculateSpacingFactor(children[0]);
+            var ourRelativeAnchor = children[0].RelativeAnchorPosition;
+            var (reverseFlow, centerFlow) = calculateFlowAnchor(children[0]);
 
-            // First pass, computing initial flow positions
-            Vector2 size = Vector2.Zero;
+            float lineCrossSize = 0;
+            int lineChildCount = 0;
 
-            // defer the return of the rented lists
+            // Defer the return of the rented list
             try
             {
                 for (int i = 0; i < children.Length; ++i)
                 {
                     Drawable c = children[i];
+                    validateChild(c, ourRelativeAnchor);
 
-                    static Axes toAxes(FillDirection direction)
+                    // We've exceeded our allowed main size, move to a new line
+                    if ((Direction.AffectedAxes() == Axes.Both && lineChildCount > 0 && Precision.DefinitelyBigger(current.Flow + size.Flow, max.Flow)) || ForceNewLine(c))
                     {
-                        switch (direction)
-                        {
-                            case FillDirection.Full:
-                                return Axes.Both;
+                        finalizeLineFlow(i - lineChildCount, i);
 
-                            case FillDirection.Horizontal:
-                                return Axes.X;
+                        current.Flow = 0;
+                        current.Line += lineCrossSize + ToFlowVector(Spacing).Line;
 
-                            case FillDirection.Vertical:
-                                return Axes.Y;
-
-                            default:
-                                throw new ArgumentException($"{direction.ToString()} is not defined");
-                        }
+                        lineCrossSize = 0;
+                        lineChildCount = 0;
                     }
 
-                    // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
-                    // in our fill direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
-                    // Consider the following use case: A fill flow container has a fixed width but an automatic height, and fills
-                    // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
-                    // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
-                    // in an autosize-related feedback loop, and we can thus simply allow it.
-                    if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0
-                        && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X
-                            || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
-                    {
-                        throw new InvalidOperationException(
-                            "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
-                            $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
-                    }
+                    lineChildCount++;
+                    layoutPositions[i] = current;
 
-                    // Populate running variables with sane initial values.
-                    if (i == 0)
-                    {
-                        size = c.BoundingBox.Size;
-                        rowBeginOffset = spacingFactor(c).X * size.X;
-                    }
-
-                    float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
-
-                    //We've exceeded our allowed width, move to a new row
-                    if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
-                    {
-                        current.X = 0;
-                        current.Y += rowHeight;
-
-                        layoutPositions[i] = current;
-
-                        rowOffsetsToMiddle.Add(0);
-                        rowBeginOffset = spacingFactor(c).X * size.X;
-
-                        rowHeight = 0;
-                    }
-                    else
-                    {
-                        layoutPositions[i] = current;
-
-                        // Compute offset to the middle of the row, to be applied in case of centre anchor
-                        // in a second pass.
-                        rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
-                    }
-
-                    rowIndices[i] = rowOffsetsToMiddle.Count - 1;
-                    Vector2 stride = Vector2.Zero;
+                    var stride = size;
 
                     if (i < children.Length - 1)
                     {
                         // Compute stride. Note, that the stride depends on the origins of the drawables
                         // on both sides of the step to be taken.
-                        stride = (Vector2.One - spacingFactor(c)) * size;
+                        stride = (FlowVector.One - spacingFactor) * size;
 
                         c = children[i + 1];
-                        size = c.BoundingBox.Size;
+                        size = ToFlowVector(c.BoundingBox.Size);
+                        spacingFactor = calculateSpacingFactor(c);
 
-                        stride += spacingFactor(c) * size;
+                        stride += spacingFactor * size;
                     }
 
-                    stride += Spacing;
-
-                    if (stride.Y > rowHeight)
-                        rowHeight = stride.Y;
-                    current.X += stride.X;
+                    if (stride.Line > lineCrossSize)
+                        lineCrossSize = stride.Line;
+                    current.Flow += stride.Flow + ToFlowVector(Spacing).Flow;
                 }
 
-                float height = layoutPositions[children.Length - 1].Y;
+                finalizeLineFlow(children.Length - lineChildCount, children.Length);
 
-                Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
+                void finalizeLineFlow(int from, int to)
+                {
+                    // we are centering with the help of the centre anchor, which sets the first child
+                    // to our middle and the next ones after it, so we have to align their edge to our center
+                    // and then move them towards the center by half of the lines main size.
+                    // this calculates the offset needed to align the edge
+                    float centreOffset = ToFlowVector(children[from].BoundingBox.Size).Flow * calculateSpacingFactor(children[from]).Flow;
 
-                // Second pass, adjusting the positions for anchors of children.
-                // Uses rowWidths and height for centre-anchors.
+                    for (int i = from; i < to; i++)
+                    {
+                        if (reverseFlow)
+                            layoutPositions[i].Flow = -layoutPositions[i].Flow;
+                        else if (centerFlow)
+                            layoutPositions[i].Flow -= current.Flow / 2 - centreOffset;
+                    }
+                }
+
+                // this does not take into account the last lines cross size,
+                // but it does not matter because of how the children are anchored.
+                // this is also why we can just put a minus in front of the positions
+                // when reversing the flow
+                float totalCrossSize = layoutPositions[children.Length - 1].Line;
+
+                // Second pass, adjusting the positioning on the line axis
+                // after the total cross size has been calculated
                 for (int i = 0; i < children.Length; i++)
                 {
-                    var c = children[i];
-
-                    switch (Direction)
-                    {
-                        case FillDirection.Vertical:
-                            if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
-                            {
-                                throw new InvalidOperationException(
-                                    $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
-                                    + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                            }
-
-                            break;
-
-                        case FillDirection.Horizontal:
-                            if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
-                            {
-                                throw new InvalidOperationException(
-                                    $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
-                                    + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                            }
-
-                            break;
-
-                        default:
-                            if (c.RelativeAnchorPosition != ourRelativeAnchor)
-                            {
-                                throw new InvalidOperationException(
-                                    $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
-                                    + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                            }
-
-                            break;
-                    }
-
                     var layoutPosition = layoutPositions[i];
-                    if (c.Anchor.HasFlagFast(Anchor.x1))
-                        // Begin flow at centre of row
-                        layoutPosition.X += rowOffsetsToMiddle[rowIndices[i]];
-                    else if (c.Anchor.HasFlagFast(Anchor.x2))
-                        // Flow right-to-left
-                        layoutPosition.X = -layoutPosition.X;
+                    var (reverseLine, centerLine) = calculateLineAnchor(children[i]);
 
-                    if (c.Anchor.HasFlagFast(Anchor.y1))
-                        // Begin flow at centre of total height
-                        layoutPosition.Y -= height / 2;
-                    else if (c.Anchor.HasFlagFast(Anchor.y2))
-                        // Flow bottom-to-top
-                        layoutPosition.Y = -layoutPosition.Y;
+                    if (reverseLine)
+                        layoutPosition.Line = -layoutPosition.Line;
+                    else if (centerLine)
+                        layoutPosition.Line -= totalCrossSize / 2;
 
-                    yield return layoutPosition;
+                    yield return ToVector(layoutPosition);
                 }
             }
             finally
             {
-                ArrayPool<Vector2>.Shared.Return(layoutPositions);
-                ArrayPool<int>.Shared.Return(rowIndices);
+                ArrayPool<FlowVector>.Shared.Return(layoutPositions);
+            }
+        }
+
+        private void validateChild(Drawable c, Vector2 ourRelativeAnchor)
+        {
+            // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
+            // in our fill direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
+            // Consider the following use case: A fill flow container has a fixed width but an automatic height, and fills
+            // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
+            // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
+            // in an autosize-related feedback loop, and we can thus simply allow it.
+            if ((c.RelativeSizeAxes & AutoSizeAxes & Direction.AffectedAxes()) != 0
+                && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X
+                    || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+            {
+                throw new InvalidOperationException(
+                    "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
+                    $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
+            }
+
+            switch (Direction)
+            {
+                case FillDirection.Vertical:
+                    if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
+                    {
+                        throw new InvalidOperationException(
+                            $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
+                            + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                    }
+
+                    break;
+
+                case FillDirection.Horizontal:
+                    if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
+                    {
+                        throw new InvalidOperationException(
+                            $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
+                            + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                    }
+
+                    break;
+
+                default:
+                    if (c.RelativeAnchorPosition != ourRelativeAnchor)
+                    {
+                        throw new InvalidOperationException(
+                            $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
+                            + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                    }
+
+                    break;
             }
         }
 
@@ -301,7 +294,64 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
+        [Obsolete("Use ForceNewLine instead")] // Can be removed 20220520
         protected virtual bool ForceNewRow(Drawable child) => false;
+
+        /// <summary>
+        /// Returns true if the given child should be placed on a new line, false otherwise. This will be called automatically for each child in this FillFlowContainers FlowingChildren-List.
+        /// A line can refer to either row or column, depending on <see cref="Direction"/>.
+        /// </summary>
+        /// <param name="child">The child to check.</param>
+        /// <returns>True if the given child should be placed on a new line, false otherwise.</returns>
+#pragma warning disable CS0618 // Type or member is obsolete
+        protected virtual bool ForceNewLine(Drawable child) => ForceNewRow(child);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        /// <summary>
+        /// Converts a <see cref="Vector2"/> to a <see cref="FlowVector"/> with the current <see cref="FillDirection"/>.
+        /// </summary>
+        protected FlowVector ToFlowVector(Vector2 vector)
+        {
+            if (Direction.FlowAxis() == Axes.X)
+            {
+                return new FlowVector
+                {
+                    Flow = vector.X,
+                    Line = vector.Y
+                };
+            }
+            else
+            {
+                return new FlowVector
+                {
+                    Flow = vector.Y,
+                    Line = vector.X
+                };
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="FlowVector"/> to a <see cref="Vector2"/> assuming its orientation is the current <see cref="FillDirection"/>.
+        /// </summary>
+        protected Vector2 ToVector(FlowVector vector)
+        {
+            if (Direction.FlowAxis() == Axes.X)
+            {
+                return new Vector2
+                {
+                    X = vector.Flow,
+                    Y = vector.Line
+                };
+            }
+            else
+            {
+                return new Vector2
+                {
+                    X = vector.Line,
+                    Y = vector.Flow
+                };
+            }
+        }
     }
 
     /// <summary>
@@ -312,7 +362,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Fill horizontally first, then fill vertically via multiple rows.
         /// </summary>
-        Full,
+        FullHorizontal,
+
+        /// <summary>
+        /// Fill vertically first, then fill horizontally via multiple columns.
+        /// </summary>
+        FullVertical,
 
         /// <summary>
         /// Fill only horizontally.
@@ -322,6 +377,43 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Fill only vertically.
         /// </summary>
-        Vertical
+        Vertical,
+
+        /// <summary>
+        /// Fill horizontally first, then fill vertically via multiple rows.
+        /// </summary>
+        [Obsolete("Use FullHorizontal instead")] // Can be removed 20220520
+        Full = FullHorizontal
+    }
+
+    public static class FillDirectionExtensions
+    {
+        /// <summary>
+        /// The used axes - if it's a "Full" direction, <see cref="Axes.Both"/>, otherwise, the flow axis.
+        /// </summary>
+        public static Axes AffectedAxes(this FillDirection direction)
+        {
+            if (direction == FillDirection.FullHorizontal || direction == FillDirection.FullVertical)
+                return Axes.Both;
+            else
+                return direction.FlowAxis();
+        }
+
+        /// <summary>
+        /// The primary axis.
+        /// </summary>
+        public static Axes FlowAxis(this FillDirection direction)
+        {
+            if (direction == FillDirection.FullHorizontal || direction == FillDirection.Horizontal)
+                return Axes.X;
+            else
+                return Axes.Y;
+        }
+
+        /// <summary>
+        /// The secondary axis, orthogonal to the flow axis.
+        /// </summary>
+        public static Axes LineAxis(this FillDirection direction)
+            => direction.FlowAxis() == Axes.X ? Axes.Y : Axes.X;
     }
 }

@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             Add(fillFlow = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Full
+                Direction = FillDirection.FullHorizontal
             });
         });
 

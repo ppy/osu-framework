@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             Add(tabControlContainer = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Full,
+                Direction = FillDirection.FullHorizontal,
                 Spacing = new Vector2(50),
                 Children = new Drawable[]
                 {

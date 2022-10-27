@@ -106,8 +106,8 @@ namespace osu.Framework.Tests.Visual.Layout
 
             selectionDropdown.Current.ValueChanged += e => changeTest(e.NewValue);
             buildTest();
-            selectionDropdown.Current.Value = FlowTestType.Full;
-            changeTest(FlowTestType.Full);
+            selectionDropdown.Current.Value = FlowTestType.FullHorizontal;
+            changeTest(FlowTestType.FullHorizontal);
         }
 
         protected override void Update()
@@ -356,10 +356,10 @@ namespace osu.Framework.Tests.Visual.Layout
             );
         }
 
-        [FlowTestCase(FlowTestType.Full)]
+        [FlowTestCase(FlowTestType.FullHorizontal)]
         private void test1()
         {
-            fillContainer.Direction = FillDirection.Full;
+            fillContainer.Direction = FillDirection.FullHorizontal;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
@@ -374,6 +374,13 @@ namespace osu.Framework.Tests.Visual.Layout
         private void test3()
         {
             fillContainer.Direction = FillDirection.Vertical;
+            fillContainer.Spacing = new Vector2(5, 5);
+        }
+
+        [FlowTestCase(FlowTestType.FullVertical)]
+        private void test4()
+        {
+            fillContainer.Direction = FillDirection.FullVertical;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
@@ -422,7 +429,8 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private enum FlowTestType
         {
-            Full,
+            FullHorizontal,
+            FullVertical,
             Horizontal,
             Vertical,
         }

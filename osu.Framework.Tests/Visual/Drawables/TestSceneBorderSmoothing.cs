@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Direction = FillDirection.Full,
+                    Direction = FillDirection.FullHorizontal,
                     Spacing = new Vector2(0, 10),
                     Children = new Drawable[]
                     {
