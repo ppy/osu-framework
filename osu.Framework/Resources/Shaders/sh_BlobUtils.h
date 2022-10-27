@@ -30,7 +30,7 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp flo
     if (pixelAngle < 0.0)
         pixelAngle += TWO_PI;
 
-    int pointCount = 50;
+    const int pointCount = 50;
 
     mediump float pathRadius = innerRadius * 0.25;
 
