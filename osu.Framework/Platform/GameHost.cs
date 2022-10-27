@@ -48,6 +48,7 @@ using osu.Framework.Localisation;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using Size = System.Drawing.Size;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Platform
 {
@@ -194,6 +195,8 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
         public abstract Storage GetStorage(string path);
+
+        public abstract KeyboardUtils GetKeyboardUtils();
 
         /// <summary>
         /// All valid user storage paths in order of usage priority.

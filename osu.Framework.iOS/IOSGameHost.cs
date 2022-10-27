@@ -21,6 +21,7 @@ using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS;
+using osu.Framework.Utils;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -76,6 +77,8 @@ namespace osu.Framework.iOS
             };
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
+
+        public override KeyboardUtils GetKeyboardUtils() => new IOSKeyboardUtils();
 
         public override bool OpenFileExternally(string filename) => false;
 

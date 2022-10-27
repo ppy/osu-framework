@@ -16,6 +16,7 @@ using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Touch;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Platform
 {
@@ -42,6 +43,7 @@ namespace osu.Framework.Platform
         }
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
+        public sealed override KeyboardUtils GetKeyboardUtils() => new DesktopKeyboardUtils();
 
         public override bool IsPrimaryInstance
         {
@@ -133,6 +135,16 @@ namespace osu.Framework.Platform
         {
             ipcProvider?.Dispose();
             base.Dispose(isDisposing);
+        }
+
+        private class DesktopKeyboardUtils : KeyboardUtils
+        {
+            public DesktopKeyboardUtils()
+            {
+                TrueHeight = 0;
+                Height = 0;
+                Visible = false;
+            }
         }
     }
 }
