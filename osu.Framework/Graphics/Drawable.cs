@@ -2084,9 +2084,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        [Obsolete("Use TriggerClick instead.")] // Can be removed 20220203
-        public bool Click() => TriggerClick();
-
         /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
