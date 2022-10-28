@@ -223,7 +223,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     consumeDrawable();
             });
 
-            AddAssert("pool saturated", () => pool.CountAvailable == 0);
+            AddAssert("pool saturated", () => pool.CountAvailable, () => Is.EqualTo(0));
 
             AddUntilStep("pool size returned to correct maximum", () => pool.CountAvailable == maxPoolSize);
             AddUntilStep("count in pool is correct", () => consumed.Count(d => d.IsInPool) == maxPoolSize);
@@ -281,7 +281,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             base.Update();
             if (count != null)
-                count.Text = $"available: {pool.CountAvailable} consumed: {consumed.Count} disposed: {consumed.Count(d => d.IsDisposed)}";
+                count.Text = $"available: {pool.CountAvailable} poolSize: {pool.CurrentPoolSize} inUse: {pool.CountInUse} consumed: {consumed.Count} excessConstructed: {pool.CountExcessConstructed} disposed: {consumed.Count(d => d.IsDisposed)}";
         }
 
         private static int displayCount;
