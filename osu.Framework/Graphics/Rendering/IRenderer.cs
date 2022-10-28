@@ -352,11 +352,6 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         internal Texture[] GetAllTextures();
 
-        /// <summary>
-        /// Returns the total amount of times the texture has ever been bound.
-        /// </summary>
-        internal ulong GetTextureBindCount(Texture texture);
-
         #endregion
     }
 }

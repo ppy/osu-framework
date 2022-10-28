@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!texture.Available)
                         return;
 
-                    ulong delta = renderer.GetTextureBindCount(texture) - Source.lastBindCount;
+                    ulong delta = texture.NativeTexture.TotalBindCount - Source.lastBindCount;
 
                     Source.AverageUsagesPerFrame = Source.AverageUsagesPerFrame * 0.9f + delta * 0.1f;
 
@@ -228,7 +228,7 @@ namespace osu.Framework.Graphics.Visualisation
                     base.Draw(renderer);
 
                     // intentionally after draw to avoid counting our own bind.
-                    Source.lastBindCount = renderer.GetTextureBindCount(texture);
+                    Source.lastBindCount = texture.NativeTexture.TotalBindCount;
                 }
 
                 protected override void Blit(IRenderer renderer)

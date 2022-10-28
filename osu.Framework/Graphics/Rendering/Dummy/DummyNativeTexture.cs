@@ -21,6 +21,12 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool UploadComplete => true;
         public bool IsQueuedForUpload { get; set; }
 
+        ulong INativeTexture.TotalBindCount
+        {
+            get => 0;
+            set => throw new System.NotImplementedException();
+        }
+
         public DummyNativeTexture(IRenderer renderer)
         {
             Renderer = renderer;
