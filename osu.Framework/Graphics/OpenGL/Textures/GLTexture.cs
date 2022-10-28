@@ -41,6 +41,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public virtual int Height { get; set; }
         public virtual int GetByteSize() => Width * Height * 4;
         public bool Available { get; private set; } = true;
+
+        ulong INativeTexture.TotalBindCount { get; set; }
+
         public bool BypassTextureUploadQueueing { get; set; }
 
         private int internalWidth;
