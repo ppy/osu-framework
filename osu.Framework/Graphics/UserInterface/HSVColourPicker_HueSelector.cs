@@ -3,11 +3,8 @@
 
 #nullable disable
 
-using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
 
@@ -41,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Height = 30,
                         RelativeSizeAxes = Axes.X,
-                        Child = new HueSelectorBackground
+                        Child = new DrawableShader("HueSelectorBackground")
                         {
                             RelativeSizeAxes = Axes.Both
                         }
@@ -92,19 +89,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 var localSpacePosition = ToLocalSpace(mousePosition);
                 Hue.Value = localSpacePosition.X / DrawWidth;
-            }
-
-            private class HueSelectorBackground : Box, ITexturedShaderDrawable
-            {
-                public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
-
-                [BackgroundDependencyLoader]
-                private void load(ShaderManager shaders)
-                {
-                    TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackgroundRounded");
-                }
             }
         }
     }

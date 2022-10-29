@@ -207,11 +207,8 @@ namespace osu.Framework.Graphics.UserInterface
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private class SaturationBox : Box, ITexturedShaderDrawable
+            private class SaturationBox : DrawableShader
             {
-                public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
-
                 private float hue;
 
                 public float Hue
@@ -227,20 +224,14 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 public SaturationBox()
+                    : base("SaturationSelectorBackground")
                 {
                     RelativeSizeAxes = Axes.Both;
                 }
 
-                [BackgroundDependencyLoader]
-                private void load(ShaderManager shaders)
-                {
-                    TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
-                }
-
                 protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
 
-                private class SaturationBoxDrawNode : SpriteDrawNode
+                private class SaturationBoxDrawNode : ShaderDrawNode
                 {
                     public new SaturationBox Source => (SaturationBox)base.Source;
 
@@ -257,10 +248,9 @@ namespace osu.Framework.Graphics.UserInterface
                         hue = Source.hue;
                     }
 
-                    protected override void Blit(IRenderer renderer)
+                    protected override void UpdateUniforms(IShader shader)
                     {
-                        GetAppropriateShader(renderer).GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(renderer);
+                        shader.GetUniform<float>("hue").UpdateValue(ref hue);
                     }
                 }
             }

@@ -2,21 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularBlob : Sprite
+    public class CircularBlob : DrawableShader
     {
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders, IRenderer renderer)
+        public CircularBlob()
+            : base("CircularBlob")
         {
-            Texture ??= renderer.WhitePixel;
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlob");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlobRounded");
         }
 
         protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);
@@ -83,7 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class CircularBlobDrawNode : SpriteDrawNode
+        private class CircularBlobDrawNode : ShaderDrawNode
         {
             public new CircularBlob Source => (CircularBlob)base.Source;
 
@@ -111,17 +105,13 @@ namespace osu.Framework.Graphics.UserInterface
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
-            protected override void Blit(IRenderer renderer)
+            protected override void UpdateUniforms(IShader shader)
             {
-                var shader = GetAppropriateShader(renderer);
-
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<float>("frequency").UpdateValue(ref frequency);
                 shader.GetUniform<float>("amplitude").UpdateValue(ref amplitude);
                 shader.GetUniform<int>("seed").UpdateValue(ref seed);
-
-                base.Blit(renderer);
             }
 
             protected internal override bool CanDrawOpaqueInterior => false;

@@ -4,16 +4,13 @@
 #nullable disable
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Sprite, IHasCurrentValue<double>
+    public class CircularProgress : DrawableShader, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
@@ -23,12 +20,9 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders, IRenderer renderer)
+        public CircularProgress()
+            : base("CircularProgress")
         {
-            Texture ??= renderer.WhitePixel;
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
         }
 
         protected override void LoadComplete()
@@ -88,7 +82,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class CircularProgressDrawNode : SpriteDrawNode
+        private class CircularProgressDrawNode : ShaderDrawNode
         {
             public new CircularProgress Source => (CircularProgress)base.Source;
 
@@ -110,15 +104,11 @@ namespace osu.Framework.Graphics.UserInterface
                 roundedCaps = Source.roundedCaps;
             }
 
-            protected override void Blit(IRenderer renderer)
+            protected override void UpdateUniforms(IShader shader)
             {
-                var shader = GetAppropriateShader(renderer);
-
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
                 shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
-
-                base.Blit(renderer);
             }
 
             protected internal override bool CanDrawOpaqueInterior => false;
