@@ -43,7 +43,11 @@ namespace osu.Framework.Platform
         }
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
-        public sealed override KeyboardUtils GetKeyboardUtils() => new DesktopKeyboardUtils();
+        public sealed override KeyboardUtils GetKeyboardUtils() => new DeskopKeyboardUtils();
+
+        private class DeskopKeyboardUtils : KeyboardUtils
+        {
+        }
 
         public override bool IsPrimaryInstance
         {
@@ -135,16 +139,6 @@ namespace osu.Framework.Platform
         {
             ipcProvider?.Dispose();
             base.Dispose(isDisposing);
-        }
-
-        private class DesktopKeyboardUtils : KeyboardUtils
-        {
-            public DesktopKeyboardUtils()
-            {
-                TrueHeight = 0;
-                Height = 0;
-                Visible = false;
-            }
         }
     }
 }

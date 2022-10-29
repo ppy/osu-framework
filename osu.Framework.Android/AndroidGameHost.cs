@@ -65,7 +65,7 @@ namespace osu.Framework.Android
 
         public override KeyboardUtils GetKeyboardUtils() => new AndroidKeyboardUtils();
 
-    public override IEnumerable<string> UserStoragePaths => new[]
+        public override IEnumerable<string> UserStoragePaths => new[]
         {
             // not null as internal "external storage" is always available.
             Application.Context.GetExternalFilesDir(string.Empty).AsNonNull().ToString(),

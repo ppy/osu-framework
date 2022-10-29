@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 
 namespace osu.Framework.Utils
 {
-    public abstract class KeyboardUtils
+    public class KeyboardUtilsData
     {
         /// <summary>
         /// The true target height of the keyboard (even when undocked on iOS)
@@ -38,5 +38,15 @@ namespace osu.Framework.Utils
         /// The type of transition. (Linear, EaseInOut, etc.)
         /// </summary>
         public Easing AnimationType = Easing.InOutSine;
+    }
+
+    public abstract class KeyboardUtils
+    {
+        public readonly Bindable<KeyboardUtilsData> State = new Bindable<KeyboardUtilsData>(new KeyboardUtilsData());
+
+        protected void Update(KeyboardUtilsData update)
+        {
+            State.SetValue(State.Value, update);
+        }
     }
 }
