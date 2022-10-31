@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -96,7 +97,8 @@ namespace osu.Framework.Graphics.UserInterface
             private float texelSize;
             private float frequency;
             private float amplitude;
-            private int seed;
+            private Vector2 noisePosition;
+            private int seed = -1;
 
             public override void ApplyState()
             {
@@ -105,7 +107,15 @@ namespace osu.Framework.Graphics.UserInterface
                 innerRadius = Source.innerRadius;
                 frequency = Source.frequency;
                 amplitude = Source.amplitude;
-                seed = Source.seed;
+
+                int newSeed = Source.seed;
+
+                if (seed != newSeed)
+                {
+                    Random rand = new Random(newSeed);
+                    noisePosition = new Vector2((float)(rand.NextDouble() * 100000), (float)(rand.NextDouble() * 100000));
+                    seed = newSeed;
+                }
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
@@ -119,7 +129,7 @@ namespace osu.Framework.Graphics.UserInterface
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<float>("frequency").UpdateValue(ref frequency);
                 shader.GetUniform<float>("amplitude").UpdateValue(ref amplitude);
-                shader.GetUniform<int>("seed").UpdateValue(ref seed);
+                shader.GetUniform<Vector2>("noisePosition").UpdateValue(ref noisePosition);
 
                 base.Blit(renderer);
             }
