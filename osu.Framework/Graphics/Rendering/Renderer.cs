@@ -104,8 +104,6 @@ namespace osu.Framework.Graphics.Rendering
         private readonly INativeTexture?[] lastBoundTexture = new INativeTexture?[16];
         private readonly bool[] lastBoundTextureIsAtlas = new bool[16];
 
-        private readonly Dictionary<INativeTexture, ulong> textureBindCount = new Dictionary<INativeTexture, ulong>();
-
         // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
         private readonly Lazy<TextureWhitePixel> whitePixel;
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
@@ -793,7 +791,7 @@ namespace osu.Framework.Graphics.Rendering
             lastActiveTextureUnit = unit;
 
             FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
-            textureBindCount[texture] = textureBindCount.GetValueOrDefault(texture) + 1;
+            texture.TotalBindCount++;
 
             return true;
         }
@@ -1055,8 +1053,6 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
-
-        ulong IRenderer.GetTextureBindCount(Texture texture) => textureBindCount.GetValueOrDefault(texture.NativeTexture);
 
         #endregion
     }

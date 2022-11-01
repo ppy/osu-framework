@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool BypassTextureUploadQueueing { get; set; }
         public bool UploadComplete => true;
         public bool IsQueuedForUpload { get; set; }
+        ulong INativeTexture.TotalBindCount { get; set; }
 
         public DummyNativeTexture(IRenderer renderer)
         {
