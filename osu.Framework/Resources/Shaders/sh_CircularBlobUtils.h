@@ -23,7 +23,7 @@ highp float noise(highp vec2 st)
     return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
-lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp float texelSize, mediump float frequency, mediump float amplitude, int seed)
+lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp float texelSize, mediump float frequency, mediump float amplitude, highp vec2 noisePosition)
 {
     // Compute angle of the current pixel in the (0, 2*PI) range
     mediump float pixelAngle = atan(0.5 - pixelPos.y, 0.5 - pixelPos.x) - HALF_PI;
@@ -40,9 +40,6 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp flo
     highp float shortestDistance = 1.0;
 
     mediump float startAngle = pixelAngle - searchRange * 0.5;
-
-    // Looks to be random enough but still consistent
-    highp vec2 noisePosition = vec2(random(vec2(float(seed) * 0.0001)) * 100000.0, random(vec2(float(seed) * 0.0001)) * 100000.0);
 
     // Path approximation
     // Plot points within a search range and check which one is closest
