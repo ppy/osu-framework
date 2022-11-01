@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (seed != newSeed)
                 {
                     Random rand = new Random(newSeed);
-                    noisePosition = new Vector2((float)(rand.NextDouble() * 100000), (float)(rand.NextDouble() * 100000));
+                    noisePosition = new Vector2((float)(rand.NextDouble() * 1000), (float)(rand.NextDouble() * 1000));
                     seed = newSeed;
                 }
 
