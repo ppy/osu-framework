@@ -11,7 +11,7 @@ uniform lowp sampler2D m_Sampler;
 uniform mediump float innerRadius;
 uniform mediump float frequency;
 uniform mediump float amplitude;
-uniform int seed;
+uniform highp vec2 noisePosition;
 uniform highp float texelSize;
 
 void main(void)
@@ -28,5 +28,5 @@ void main(void)
     highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
     lowp vec4 textureColour = getRoundedColor(toSRGB(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9)), wrappedCoord);
 
-    gl_FragColor = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, innerRadius, texelSize, frequency, amplitude, seed));
+    gl_FragColor = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, innerRadius, texelSize, frequency, amplitude, noisePosition));
 }
