@@ -106,6 +106,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void UpdateUniforms(IShader shader)
             {
+                base.UpdateUniforms(shader);
+
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
                 shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);

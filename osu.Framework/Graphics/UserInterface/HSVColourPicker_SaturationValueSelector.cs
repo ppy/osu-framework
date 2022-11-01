@@ -246,6 +246,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                     protected override void UpdateUniforms(IShader shader)
                     {
+                        base.UpdateUniforms(shader);
+
                         shader.GetUniform<float>("hue").UpdateValue(ref hue);
                     }
                 }

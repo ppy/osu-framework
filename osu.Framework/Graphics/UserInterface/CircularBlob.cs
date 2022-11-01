@@ -117,6 +117,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void UpdateUniforms(IShader shader)
             {
+                base.UpdateUniforms(shader);
+
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<float>("frequency").UpdateValue(ref frequency);
