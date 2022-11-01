@@ -165,6 +165,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
             => new DummyVertexBatch<TVertex>();
 
+        public IRendererQuery CreateQuery(QueryType type, Action<int> onQueryFinished)
+            => new DummyRendererQuery();
+
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {
         }

@@ -321,6 +321,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="maxBuffers">Maximum number of vertex buffers.</param>
         IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
+        IRendererQuery CreateQuery(QueryType type, Action<int> onQueryFinished);
+
         /// <summary>
         /// Sets the value of a uniform.
         /// </summary>

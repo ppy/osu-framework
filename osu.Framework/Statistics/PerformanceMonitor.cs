@@ -116,6 +116,13 @@ namespace osu.Framework.Statistics
             return endCollectionDelegates[(int)type];
         }
 
+        public void Push(PerformanceCollectionType type, double elapsed)
+        {
+            if (!currentFrame.CollectedTimes.ContainsKey(type))
+                currentFrame.CollectedTimes[type] = 0;
+            currentFrame.CollectedTimes[type] += elapsed;
+        }
+
         /// <summary>
         /// End collecting a type of passing time (that was previously started).
         /// </summary>

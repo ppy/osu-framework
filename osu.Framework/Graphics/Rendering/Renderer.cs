@@ -914,6 +914,24 @@ namespace osu.Framework.Graphics.Rendering
             }
         }
 
+        IRendererQuery IRenderer.CreateQuery(QueryType type, Action<int> onQueryFinished)
+        {
+            IRendererQuery query = CreateQuery(type);
+
+            resetScheduler.AddDelayed(() =>
+            {
+                if (query.TryGetResult(out int? result))
+                {
+                    onQueryFinished(result.Value);
+                    query.Reset();
+                }
+            }, 0, true);
+
+            return query;
+        }
+
+        protected abstract IRendererQuery CreateQuery(QueryType type);
+
         internal void SetUniform<T>(IUniformWithValue<T> uniform)
             where T : unmanaged, IEquatable<T>
         {

@@ -441,6 +441,9 @@ namespace osu.Framework.Graphics.Performance
 
                 case PerformanceCollectionType.DrawReset:
                     return Color4.Cyan;
+
+                case PerformanceCollectionType.GPUWork:
+                    return Color4.Purple;
             }
         }
 

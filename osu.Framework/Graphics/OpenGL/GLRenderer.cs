@@ -151,7 +151,8 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -337,7 +338,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Rgba32 initialisationColour = default)
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Rgba32 initialisationColour = default)
         {
             All glFilteringMode;
 
@@ -364,5 +366,8 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
+
+        protected override IRendererQuery CreateQuery(QueryType type)
+            => new GLRendererQuery(type);
     }
 }
