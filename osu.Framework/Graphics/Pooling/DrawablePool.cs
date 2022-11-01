@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Pooling
             {
                 drawable = create();
 
-                if (currentPoolSize < maximumSize)
+                if (maximumSize == null || currentPoolSize < maximumSize)
                 {
                     CurrentPoolSize++;
                     Debug.Assert(maximumSize == null || CurrentPoolSize <= maximumSize);
