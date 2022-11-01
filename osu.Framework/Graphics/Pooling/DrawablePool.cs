@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.Pooling
         private int countExcessConstructed;
 
         /// <summary>
-        /// The total number of drawables constructed.
+        /// The total number of drawables constructed that were not pooled.
         /// </summary>
         public int CountExcessConstructed
         {
