@@ -81,6 +81,7 @@ namespace osu.Framework.Android.Input
 
             Enabled.BindValueChanged(enabled =>
             {
+#nullable disable // Events misses nullable mark in .NET Android SDK (6.0.402)
                 if (enabled.NewValue)
                 {
                     View.GenericMotion += HandleGenericMotion;
@@ -105,6 +106,7 @@ namespace osu.Framework.Android.Input
                     if (OperatingSystem.IsAndroidVersionAtLeast(26))
                         View.CapturedPointer -= HandleCapturedPointer;
                 }
+#nullable restore
 
                 updatePointerCapture();
             }, true);
@@ -252,8 +254,14 @@ namespace osu.Framework.Android.Input
         {
             bool pressed = buttonEvent.Action == MotionEventActions.ButtonPress;
 
-            foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
-                handleMouseButton(button, pressed);
+            // ActionButton is not available before API 23
+            // https://developer.android.com/reference/android/view/MotionEvent#getActionButton()
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(23))
+            {
+                foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
+                    handleMouseButton(button, pressed);
+            }
         }
 
         private void handleScrollEvent(MotionEvent scrollEvent)
