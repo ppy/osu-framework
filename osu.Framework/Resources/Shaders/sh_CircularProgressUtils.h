@@ -6,7 +6,7 @@ highp float dstToLine(highp vec2 start, highp vec2 end, highp vec2 pixelPos)
 {
     highp float lineLength = distance(end, start);
 
-    if (lineLength == 0.0)
+    if (lineLength < 0.001)
         return distance(pixelPos, start);
 
     highp vec2 a = (end - start) / lineLength;
@@ -23,37 +23,26 @@ highp float distanceToProgress(highp vec2 pixelPos, mediump float progress, medi
         pixelAngle += TWO_PI;
 
     mediump float progressAngle = TWO_PI * progress;
+    mediump float pathRadius = 0.25 * innerRadius;
+    highp float halfTexel = texelSize * 0.5;
 
     if (progress >= 1.0 || pixelAngle < progressAngle) // Pixel inside the sector
-    {
-        highp float dstFromCentre = distance(pixelPos, vec2(0.5));
+        return abs(distance(pixelPos, vec2(0.5)) - (0.5 - pathRadius - halfTexel)) - pathRadius + halfTexel;
 
-        if (dstFromCentre > 0.5 - texelSize) // on the outer side of the ring
-            return dstFromCentre - (0.5 - texelSize);
-
-        highp float innerBorder = 0.5 * (1.0 - innerRadius);
-
-        return innerBorder - dstFromCentre;
-    }
-
-    progressAngle = progressAngle - HALF_PI;
-    highp vec2 cs = vec2(cos(progressAngle), sin(progressAngle));
+    highp vec2 cs = vec2(cos(progressAngle - HALF_PI), sin(progressAngle - HALF_PI));
 
     if (roundedCaps) // Pixel outside the sector with rounded caps enabled
     {
-        mediump float pathRadius = 0.25 * innerRadius;
-        highp float halfTexel = texelSize * 0.5;
-
         highp vec2 arcStart = vec2(0.5, pathRadius + halfTexel);
         highp vec2 arcEnd = vec2(0.5) + cs * vec2(0.5 - pathRadius - halfTexel);
 
         return min(distance(pixelPos, arcStart), distance(pixelPos, arcEnd)) + halfTexel - pathRadius;
     }
 
-    highp float dstToIdleEdge = dstToLine(vec2(0.5, texelSize), vec2(0.5, 0.5 * innerRadius), pixelPos);
+    highp float dstToIdleEdge = dstToLine(vec2(0.5, texelSize), vec2(0.5, 2.0 * pathRadius), pixelPos);
 
     highp vec2 rotatingEdgeTop = vec2(0.5) + cs * vec2(0.5 - texelSize);
-    highp vec2 rotatingEdgeBottom = vec2(0.5) + cs * vec2(0.5 - 0.5 * innerRadius);
+    highp vec2 rotatingEdgeBottom = vec2(0.5) + cs * vec2(0.5 - 2.0 * pathRadius);
     highp float dstToRotatingEdge = dstToLine(rotatingEdgeTop, rotatingEdgeBottom, pixelPos);
 
     return min(dstToIdleEdge, dstToRotatingEdge);
@@ -63,12 +52,8 @@ lowp float progressAlphaAt(highp vec2 pixelPos, mediump float progress, mediump 
 {
     // This is a bit of a hack to make progress appear smooth if it's radius < texelSize by making it more transparent while leaving thickness the same
     lowp float subAAMultiplier = 1.0;
-
-    if (innerRadius < texelSize * 2.0)
-    {
-        subAAMultiplier = max(innerRadius / (texelSize * 2.0), 0.1);
-        innerRadius = texelSize * 2.0;
-    }
+    subAAMultiplier = clamp(innerRadius / (texelSize * 2.0), 0.1, 1.0);
+    innerRadius = max(innerRadius, texelSize * 2.0);
     
     return smoothstep(texelSize, 0.0, distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize)) * subAAMultiplier;
 }
