@@ -409,7 +409,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
-            AddStep("remove parent", () => Remove(parent));
+            AddStep("remove parent", () => Remove(parent, false));
             AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
         }
 

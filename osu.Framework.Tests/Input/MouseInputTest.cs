@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Input
             AddStep("move mouse to receptors", () => InputManager.MoveMouseTo(receptors[0]));
             AddStep("press button", () => InputManager.PressButton(MouseButton.Left));
 
-            AddStep("remove receptor 0", () => Remove(receptors[0]));
+            AddStep("remove receptor 0", () => Remove(receptors[0], true));
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
             AddAssert("receptor 0 did not receive click", () => !receptors[0].ClickReceived);
@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Input
             AddStep("move mouse to receptors", () => InputManager.MoveMouseTo(receptors[0]));
             AddStep("press button", () => InputManager.PressButton(MouseButton.Left));
 
-            AddStep("remove receptor 0", () => Remove(receptors[0]));
+            AddStep("remove receptor 0", () => Remove(receptors[0], false));
             AddStep("add back receptor 0", () => Add(receptors[0]));
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
@@ -92,7 +92,7 @@ namespace osu.Framework.Tests.Input
 
             AddStep("remove receptor and double click", () =>
             {
-                Remove(receptor); // Test correctness can be asserted by removing this line and ensuring the test fails
+                Remove(receptor, true); // Test correctness can be asserted by removing this line and ensuring the test fails
                 InputManager.Click(MouseButton.Left); // Done immediately after due to double clicks being frame-dependent (timing)
             });
 
@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Input
             public bool ClickReceived { get; set; }
             public bool DoubleClickReceived { get; set; }
 
-            public new Func<bool> Click;
+            public Func<bool> Click;
 
             protected override bool OnClick(ClickEvent e)
             {

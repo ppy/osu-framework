@@ -353,8 +353,7 @@ namespace osu.Framework.Testing
         {
             if (CurrentTest?.Parent != null)
             {
-                testContentContainer.Remove(CurrentTest.Parent);
-                CurrentTest.Dispose();
+                testContentContainer.Remove(CurrentTest.Parent, true);
             }
 
             CurrentTest = null;
@@ -396,8 +395,12 @@ namespace osu.Framework.Testing
         {
             if (CurrentTest != newTest)
             {
-                // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                testContentContainer.Remove(newTest.Parent);
+                if (newTest.Parent != null)
+                {
+                    // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                    testContentContainer.Remove(newTest.Parent, true);
+                }
+
                 return;
             }
 
@@ -548,6 +551,8 @@ namespace osu.Framework.Testing
             if (tcs.SourceType != null && tcs.SourceName == null)
                 return (IEnumerable)Activator.CreateInstance(tcs.SourceType);
 
+            Debug.Assert(tcs.SourceName != null);
+
             var sourceMembers = sourceDeclaringType.AsNonNull().GetMember(tcs.SourceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (sourceMembers.Length == 0)
                 throw new InvalidOperationException($"No static member with the name of {tcs.SourceName} exists in {sourceDeclaringType} or its base types.");
@@ -633,7 +638,7 @@ namespace osu.Framework.Testing
                     hasCaught = true;
 
                     OnCaughtError?.Invoke(e);
-                    RemoveInternal(Content);
+                    RemoveInternal(Content, true);
                 }
 
                 return false;

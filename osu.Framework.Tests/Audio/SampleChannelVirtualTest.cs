@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            sample = new SampleVirtual();
+            sample = new SampleVirtual("virtual");
             updateSample();
         }
 

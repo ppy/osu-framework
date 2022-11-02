@@ -306,7 +306,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
         public bool Remove(MenuItem item)
         {
-            bool result = ItemsContainer.RemoveAll(d => d.Item == item) > 0;
+            bool result = ItemsContainer.RemoveAll(d => d.Item == item, true) > 0;
             itemsFlow.SizeCache.Invalidate();
 
             return result;
@@ -628,7 +628,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (triggeringItem?.Item.Items?.Contains(source) ?? triggeringItem == null)
             {
                 Close();
-                parentMenu?.closeFromChild(triggeringItem.Item);
+                parentMenu?.closeFromChild(triggeringItem?.Item);
             }
         }
 

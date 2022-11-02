@@ -25,6 +25,7 @@ namespace osu.Framework.Benchmarks
         [GlobalCleanup]
         public void GlobalCleanup()
         {
+            manager.Dispose();
             storage.Dispose();
         }
 

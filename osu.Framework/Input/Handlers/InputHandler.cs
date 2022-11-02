@@ -8,12 +8,15 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input.Handlers
 {
     public abstract class InputHandler : IDisposable, IHasDescription
     {
+        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Input);
+
         private bool isInitialized;
 
         /// <summary>
@@ -63,7 +66,7 @@ namespace osu.Framework.Input.Handlers
         public abstract bool IsActive { get; }
 
         /// <summary>
-        /// A user-readable description of this input handler, for display in settings.
+        /// A user-readable description of this input handler, for display in settings and logs.
         /// </summary>
         public virtual string Description => ToString().Replace("Handler", string.Empty);
 
@@ -71,6 +74,14 @@ namespace osu.Framework.Input.Handlers
         /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
         /// </summary>
         public BindableBool Enabled { get; } = new BindableBool(true);
+
+        /// <summary>
+        /// Logs an arbitrary string prefixed by the name of this input handler.
+        /// </summary>
+        /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
+        /// <param name="level">The verbosity level.</param>
+        /// <param name="exception">An optional related exception.</param>
+        protected void Log(string message, LogLevel level = LogLevel.Verbose, Exception exception = null) => logger.Add($"[{Description}] {message}", level, exception);
 
         public override string ToString() => GetType().Name;
 

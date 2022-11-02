@@ -191,7 +191,10 @@ namespace osu.Framework.Android
         [STAThread]
         public void RenderGame()
         {
-            LayoutChange += (_, __) => updateSafeArea();
+            // request focus so that joystick input can immediately work.
+            RequestFocus();
+
+            LayoutChange += (_, _) => updateSafeArea();
             updateSafeArea();
 
             Host = new AndroidGameHost(this);
@@ -300,7 +303,6 @@ namespace osu.Framework.Android
             {
                 inputMethodManager?.RestartInput(this);
                 inputMethodManager?.HideSoftInputFromWindow(WindowToken, HideSoftInputFlags.None);
-                ClearFocus();
             });
         }
 

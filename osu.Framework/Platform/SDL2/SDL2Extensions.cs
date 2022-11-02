@@ -1084,5 +1084,23 @@ namespace osu.Framework.Platform.SDL2
                     return "unknown";
             }
         }
+
+        /// <summary>
+        /// Gets the readable string for this <see cref="SDL.SDL_DisplayMode"/>.
+        /// </summary>
+        /// <returns>
+        /// <c>string</c> in the format of <c>1920x1080@60</c>.
+        /// </returns>
+        public static string ReadableString(this SDL.SDL_DisplayMode mode) => $"{mode.w}x{mode.h}@{mode.refresh_rate}";
+
+        /// <summary>
+        /// Gets the SDL error, and then clears it.
+        /// </summary>
+        public static string GetAndClearError()
+        {
+            string error = SDL.SDL_GetError();
+            SDL.SDL_ClearError();
+            return error;
+        }
     }
 }

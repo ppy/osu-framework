@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Android.Views;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
 
@@ -17,6 +18,9 @@ namespace osu.Framework.Android.Input
     /// </summary>
     public abstract class AndroidInputHandler : InputHandler
     {
+        /// <inheritdoc cref="AndroidInputExtensions.HISTORY_CURRENT"/>
+        protected const int HISTORY_CURRENT = AndroidInputExtensions.HISTORY_CURRENT;
+
         /// <summary>
         /// The <see cref="InputSourceType"/>s that this <see cref="AndroidInputHandler"/> will handle.
         /// </summary>
@@ -60,8 +64,9 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <remarks>
         /// Subscribe <see cref="HandleCapturedPointer"/> to <see cref="View"/>.<see cref="AndroidGameView.CapturedPointer"/> to receive events here.
+        /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual void OnCapturedPointer(MotionEvent capturedPointerEvent)
+        protected virtual bool OnCapturedPointer(MotionEvent capturedPointerEvent)
         {
             throw new NotSupportedException($"{nameof(HandleCapturedPointer)} subscribed to {nameof(View.CapturedPointer)} but the relevant method was not overriden.");
         }
@@ -71,8 +76,9 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <remarks>
         /// Subscribe <see cref="HandleGenericMotion"/> to <see cref="View"/>.<see cref="AndroidGameView.GenericMotion"/> to receive events here.
+        /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual void OnGenericMotion(MotionEvent genericMotionEvent)
+        protected virtual bool OnGenericMotion(MotionEvent genericMotionEvent)
         {
             throw new NotSupportedException($"{nameof(HandleGenericMotion)} subscribed to {nameof(View.GenericMotion)} but the relevant method was not overriden.");
         }
@@ -82,8 +88,9 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <remarks>
         /// Subscribe <see cref="HandleHover"/> to <see cref="View"/>.<see cref="AndroidGameView.Hover"/> to receive events here.
+        /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual void OnHover(MotionEvent hoverEvent)
+        protected virtual bool OnHover(MotionEvent hoverEvent)
         {
             throw new NotSupportedException($"{nameof(HandleHover)} subscribed to {nameof(View.Hover)} but the relevant method was not overriden.");
         }
@@ -93,8 +100,9 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <remarks>
         /// Subscribe <see cref="HandleKeyDown"/> to <see cref="View"/>.<see cref="AndroidGameView.KeyDown"/> to receive events here.
+        /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual void OnKeyDown(Keycode keycode, KeyEvent e)
+        protected virtual ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             throw new NotSupportedException($"{nameof(HandleKeyDown)} subscribed to {nameof(View.KeyDown)} but the relevant method was not overriden.");
         }
@@ -104,8 +112,9 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <remarks>
         /// Subscribe <see cref="HandleKeyUp"/> to <see cref="View"/>.<see cref="AndroidGameView.KeyUp"/> to receive events here.
+        /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected virtual ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             throw new NotSupportedException($"{nameof(HandleKeyUp)} subscribed to {nameof(View.KeyUp)} but the relevant method was not overriden.");
         }
@@ -115,8 +124,9 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <remarks>
         /// Subscribe <see cref="HandleTouch"/> to <see cref="View"/>.<see cref="AndroidGameView.Touch"/> to receive events here.
+        /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual void OnTouch(MotionEvent touchEvent)
+        protected virtual bool OnTouch(MotionEvent touchEvent)
         {
             throw new NotSupportedException($"{nameof(HandleTouch)} subscribed to {nameof(View.Touch)} but the relevant method was not overriden.");
         }
@@ -129,7 +139,7 @@ namespace osu.Framework.Android.Input
         /// <param name="inputEvent">The <see cref="InputEvent"/> to check.</param>
         /// <returns><c>true</c> if the <paramref name="inputEvent"/>'s <see cref="InputSourceType"/> matches <see cref="HandledEventSources"/>.</returns>
         /// <remarks>Should be checked before handling events.</remarks>
-        private bool shouldHandleEvent([NotNullWhen(true)] InputEvent? inputEvent)
+        protected virtual bool ShouldHandleEvent([NotNullWhen(true)] InputEvent? inputEvent)
         {
             return inputEvent != null && eventSourceBitmask.HasFlagFast(inputEvent.Source);
         }
@@ -139,10 +149,12 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleCapturedPointer(object sender, View.CapturedPointerEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
-                OnCapturedPointer(e.Event);
-                e.Handled = true;
+                if (OnCapturedPointer(e.Event))
+                    e.Handled = true;
+                else
+                    logUnhandledEvent(nameof(OnCapturedPointer), e.Event);
             }
         }
 
@@ -151,10 +163,12 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleGenericMotion(object sender, View.GenericMotionEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
-                OnGenericMotion(e.Event);
-                e.Handled = true;
+                if (OnGenericMotion(e.Event))
+                    e.Handled = true;
+                else
+                    logUnhandledEvent(nameof(OnGenericMotion), e.Event);
             }
         }
 
@@ -163,10 +177,12 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleHover(object sender, View.HoverEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
-                OnHover(e.Event);
-                e.Handled = true;
+                if (OnHover(e.Event))
+                    e.Handled = true;
+                else
+                    logUnhandledEvent(nameof(OnHover), e.Event);
             }
         }
 
@@ -175,9 +191,10 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleKeyDown(Keycode keycode, KeyEvent e)
         {
-            if (shouldHandleEvent(e))
+            if (ShouldHandleEvent(e))
             {
-                OnKeyDown(keycode, e);
+                if (OnKeyDown(keycode, e) == ReturnCode.Unhandled)
+                    logUnhandledEvent(nameof(OnKeyDown), e);
             }
         }
 
@@ -186,9 +203,10 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleKeyUp(Keycode keycode, KeyEvent e)
         {
-            if (shouldHandleEvent(e))
+            if (ShouldHandleEvent(e))
             {
-                OnKeyUp(keycode, e);
+                if (OnKeyUp(keycode, e) == ReturnCode.Unhandled)
+                    logUnhandledEvent(nameof(OnKeyUp), e);
             }
         }
 
@@ -197,13 +215,44 @@ namespace osu.Framework.Android.Input
         /// </summary>
         protected void HandleTouch(object sender, View.TouchEventArgs e)
         {
-            if (shouldHandleEvent(e.Event))
+            if (ShouldHandleEvent(e.Event))
             {
-                OnTouch(e.Event);
-                e.Handled = true;
+                if (OnTouch(e.Event))
+                    e.Handled = true;
+                else
+                    logUnhandledEvent(nameof(OnTouch), e.Event);
             }
         }
 
         #endregion
+
+        private void logUnhandledEvent(string methodName, InputEvent inputEvent)
+        {
+            Log($"Unknown {GetType().ReadableName()}.{methodName} event: {inputEvent}");
+        }
+
+        protected enum ReturnCode
+        {
+            /// <summary>
+            /// Denotes an event that was handled by this handler.
+            /// </summary>
+            Handled,
+
+            /// <summary>
+            /// Denotes an event that this handler did not handle.
+            /// </summary>
+            /// <remarks>
+            /// Since all events are first put through the <see cref="AndroidInputHandler.HandledEventSources"/> filter, an unhandled event is considered a bug and is logged.
+            /// </remarks>
+            Unhandled,
+
+            /// <summary>
+            /// Same as <see cref="Unhandled"/>, but will not be logged.
+            /// </summary>
+            /// <remarks>
+            /// Used when an event might also be handled by another handler, but that cannot be determined purely on <see cref="AndroidInputHandler.HandledEventSources"/>.
+            /// </remarks>
+            UnhandledSuppressLogging,
+        }
     }
 }

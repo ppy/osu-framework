@@ -20,6 +20,8 @@ namespace osu.Framework.Tests.Localisation
     [TestFixture]
     public class LocalisationTest
     {
+        private const string default_locale = "";
+
         private FrameworkConfigManager config;
         private LocalisationManager manager;
 
@@ -31,10 +33,18 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("en", new FakeStorage("en"));
         }
 
+        [TearDown]
+        public void Teardown()
+        {
+            manager?.Dispose();
+            config?.Dispose();
+        }
+
         [Test]
         public void TestNoLanguagesAdded()
         {
             // reinitialise without the default language
+            manager.Dispose();
             manager = new LocalisationManager(config);
 
             var localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
@@ -210,7 +220,7 @@ namespace osu.Framework.Tests.Localisation
             string expectedResult = string.Format(new CultureInfo("fr"), FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_FR, value);
             Assert.AreEqual("number 1,23 FR", expectedResult); // FR uses comma for decimal point.
 
-            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null, value));
+            var formattedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null!, value));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
@@ -445,6 +455,48 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual("12.34 / number 98.76% EN / number romanised EN", text.Value);
         }
 
+        [Test]
+        public void TestInvalidLocaleWhileRunning()
+        {
+            string localeBefore = config.Get<string>(FrameworkSetting.Locale);
+            config.SetValue(FrameworkSetting.Locale, "invalid locale");
+            string localeAfter = config.Get<string>(FrameworkSetting.Locale);
+
+            Assert.That(localeAfter, Is.EqualTo(localeBefore));
+        }
+
+        [Test]
+        public void TestInvalidLocaleDuringStartup()
+        {
+            // dispose the old manager so it doesn't change the config value.
+            manager.Dispose();
+            // simulate an invalid locale being set on startup.
+            config.SetValue(FrameworkSetting.Locale, "invalid locale");
+            manager = new LocalisationManager(config);
+            // add a language to trigger a locale update
+            manager.AddLanguage("en", new FakeStorage("en"));
+            // the manager should reset the locale to the default value if it can't parse the locale.
+            Assert.That(config.Get<string>(FrameworkSetting.Locale), Is.EqualTo(default_locale));
+        }
+
+        /// <summary>
+        /// Tests a possible edge case where both the old and new locales could be invalid in the 'revert to previous value' logic in <see cref="LocalisationManager.updateLocale"/>.
+        /// </summary>
+        [Test]
+        public void TestInvalidLocaleToInvalid()
+        {
+            // dispose the old manager so it doesn't change the config value.
+            manager.Dispose();
+            // simulate an invalid locale being set on startup.
+            config.SetValue(FrameworkSetting.Locale, "invalid locale");
+            manager = new LocalisationManager(config);
+            // set another invalid locale to generate a ValueChanged event with both locales invalid. (possible infinite back-and-forth between the two locales)
+            config.SetValue(FrameworkSetting.Locale, "another invalid locale");
+            // add a language to make sure everything still works.
+            manager.AddLanguage("en", new FakeStorage("en"));
+            Assert.That(config.Get<string>(FrameworkSetting.Locale), Is.EqualTo(default_locale));
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
@@ -456,7 +508,7 @@ namespace osu.Framework.Tests.Localisation
 
             protected override void InitialiseDefaults()
             {
-                SetDefault(FrameworkSetting.Locale, "");
+                SetDefault(FrameworkSetting.Locale, default_locale);
                 SetDefault(FrameworkSetting.ShowUnicode, true);
             }
         }

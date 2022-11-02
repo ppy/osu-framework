@@ -48,7 +48,7 @@ namespace osu.Framework.Statistics
         Sleep,
         Scheduler,
         IPC,
-        GLReset,
+        DrawReset,
     }
 
     internal enum StatisticsCounterType
@@ -88,5 +88,6 @@ namespace osu.Framework.Statistics
         JoystickEvents,
         MidiEvents,
         TabletEvents,
+        TouchEvents,
     }
 }

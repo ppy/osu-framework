@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Input
 
             AddStep("remove receptor 0 & reset repeat", () =>
             {
-                Remove(receptors[0]);
+                Remove(receptors[0], true);
                 receptors[0].RepeatReceived = false;
                 receptors[1].RepeatReceived = false;
             });
@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Input
             AddStep("press key", () => InputManager.PressKey(Key.A));
             AddStep("remove receptor 0 & reset repeat", () =>
             {
-                Remove(receptors[0]);
+                Remove(receptors[0], false);
                 receptors[0].RepeatReceived = false;
                 receptors[1].RepeatReceived = false;
             });

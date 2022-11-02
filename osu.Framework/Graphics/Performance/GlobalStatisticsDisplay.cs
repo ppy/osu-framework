@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
@@ -57,11 +58,11 @@ namespace osu.Framework.Graphics.Performance
                 switch (e.Action)
                 {
                     case NotifyCollectionChangedAction.Add:
-                        add(e.NewItems.Cast<IGlobalStatistic>());
+                        add(e.NewItems.AsNonNull().Cast<IGlobalStatistic>());
                         break;
 
                     case NotifyCollectionChangedAction.Remove:
-                        remove(e.OldItems.Cast<IGlobalStatistic>());
+                        remove(e.OldItems.AsNonNull().Cast<IGlobalStatistic>());
                         break;
                 }
             };

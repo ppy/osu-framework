@@ -12,8 +12,14 @@ namespace osu.Framework.Audio.Sample
     {
         public const int DEFAULT_CONCURRENCY = 2;
 
-        public double Length { get; protected set; }
+        public string Name { get; }
 
+        protected Sample(string name)
+        {
+            Name = name;
+        }
+
+        public double Length { get; protected set; }
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
 
         internal Action<Sample> OnPlay;

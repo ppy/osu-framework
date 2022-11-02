@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 namespace osu.Framework.Timing
 {
     /// <summary>
@@ -13,12 +11,12 @@ namespace osu.Framework.Timing
         /// <summary>
         /// The source clock.
         /// </summary>
-        IClock Source { get; }
+        IClock? Source { get; }
 
         /// <summary>
         /// Change the source clock.
         /// </summary>
         /// <param name="source">The new source clock.</param>
-        void ChangeSource(IClock source);
+        void ChangeSource(IClock? source);
     }
 }

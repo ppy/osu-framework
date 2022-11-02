@@ -11,7 +11,8 @@ namespace osu.Framework.Audio.Track
         /// Retrieve a <see cref="TrackVirtual"/> with no audio device backing.
         /// </summary>
         /// <param name="length">The length of the virtual track.</param>
+        /// <param name="name">A name to identify the virtual track internally.</param>
         /// <returns>A new virtual track.</returns>
-        Track GetVirtual(double length = double.PositiveInfinity);
+        Track GetVirtual(double length = double.PositiveInfinity, string name = "virtual");
     }
 }

@@ -3,8 +3,8 @@
 
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Text;
 
 namespace osu.Framework.Benchmarks
@@ -47,7 +47,9 @@ namespace osu.Framework.Benchmarks
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(new CharacterGlyph(character, character, character, character, character, null), Texture.WhitePixel);
+            public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(
+                new CharacterGlyph(character, character, character, character, character, null),
+                new DummyRenderer().CreateTexture(1, 1));
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
         }

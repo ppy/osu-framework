@@ -133,6 +133,9 @@ Task("PackFramework")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append("/p:IncludeSymbols=true");
+                args.Append("/p:SymbolPackageFormat=snupkg");
+                args.Append("/p:PublishRepositoryUrl=true");
 
                 return args;
             }
@@ -221,7 +224,7 @@ Task("Publish")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
     .Does(() => {
         foreach (var artifact in GetFiles(artifactsDirectory.CombineWithFilePath("*").FullPath))
-            AppVeyor.UploadArtifact(artifact);
+            AppVeyor.UploadArtifact(artifact, settings => settings.SetArtifactType(AppVeyorUploadArtifactType.NuGetPackage));
     });
 
 Task("Build")

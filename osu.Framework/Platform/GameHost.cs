@@ -29,6 +29,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -43,6 +44,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using Size = System.Drawing.Size;
@@ -52,6 +54,8 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        public IRenderer Renderer { get; private set; }
 
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
@@ -223,7 +227,9 @@ namespace osu.Framework.Platform
 
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+
+            if (thread.Monitor != null)
+                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -318,6 +324,8 @@ namespace osu.Framework.Platform
                 Converters = new List<JsonConverter> { new Vector2Converter() }
             };
         }
+
+        protected virtual IRenderer CreateRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -471,38 +479,39 @@ namespace osu.Framework.Platform
 
             try
             {
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
+                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                 if (!bypassFrontToBackPass.Value)
                 {
                     depthValue.Reset();
 
-                    GL.ColorMask(false, false, false, false);
-                    GLWrapper.SetBlend(BlendingParameters.None);
-                    GLWrapper.PushDepthInfo(DepthInfo.Default);
+                    Renderer.SetBlend(BlendingParameters.None);
+
+                    Renderer.SetBlendMask(BlendingMask.None);
+                    Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
-                    GLWrapper.PopDepthInfo();
-                    GL.ColorMask(true, true, true, true);
+                    Renderer.PopDepthInfo();
+                    Renderer.SetBlendMask(BlendingMask.All);
 
                     // The back pass doesn't write depth, but needs to depth test properly
-                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    Renderer.PushDepthInfo(new DepthInfo(true, false));
                 }
                 else
                 {
                     // Disable depth testing
-                    GLWrapper.PushDepthInfo(new DepthInfo());
+                    Renderer.PushDepthInfo(new DepthInfo());
                 }
 
                 // Back pass
-                buffer.Object.Draw(null);
+                buffer.Object.Draw(Renderer);
 
-                GLWrapper.PopDepthInfo();
+                Renderer.PopDepthInfo();
 
-                GLWrapper.FlushCurrentBatch();
+                Renderer.FinishFrame();
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                 {
@@ -659,6 +668,8 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
+            Renderer = CreateRenderer();
+
             try
             {
                 if (!host_running_mutex.Wait(10000))
@@ -689,8 +700,8 @@ namespace osu.Framework.Platform
                 Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
-
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
+                Dependencies.CacheAs(Renderer);
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
@@ -995,7 +1006,11 @@ namespace osu.Framework.Platform
 
             PerformanceLogging.BindValueChanged(logging =>
             {
-                Threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                Threads.ForEach(t =>
+                {
+                    if (t.Monitor != null)
+                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
@@ -1005,24 +1020,8 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                CultureInfo culture;
-
-                try
-                {
-                    // After dropping netstandard we can use `predefinedOnly` override.
-                    // See https://github.com/dotnet/runtime/pull/1261/files
-                    culture = CultureInfo.GetCultureInfo(locale.NewValue);
-
-                    // This is best-effort for now to catch cases where dotnet is creating cultures.
-                    // See https://github.com/dotnet/runtime/blob/5877e8b713742b6d80bd1aa9819094be029e3e1f/src/libraries/System.Private.CoreLib/src/System/Globalization/CultureData.Icu.cs#L341-L345
-                    if (culture.ThreeLetterWindowsLanguageName == "ZZZ")
-                        culture = CultureInfo.InvariantCulture;
-                }
-                catch (Exception e)
-                {
-                    Logger.Log($"Culture for {locale.NewValue} could not be found ({e})");
-                    culture = CultureInfo.InvariantCulture;
-                }
+                // return value of TryGet ignored as the failure case gives expected results (CultureInfo.InvariantCulture)
+                CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture);
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -1236,7 +1235,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(Renderer, stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

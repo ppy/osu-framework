@@ -60,6 +60,7 @@ jobs:
     runs-on: ${{matrix.os.fullname}}
     env:
       OSU_EXECUTION_MODE: ${{matrix.threadingMode}}
+      OSU_TESTS_LOCAL_HTTPBIN: 1
     strategy:
        fail-fast: false
        matrix:
@@ -69,6 +70,7 @@ jobs:
             - { prettyname: Linux, fullname: ubuntu-latest }
           threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 60
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -77,6 +79,16 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: "6.0.x"
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+
+      - name: Install httpbin
+        run: go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@latest
+
+      - name: Run httpbin
+        run: $HOME/go/bin/go-httpbin &
+        shell: bash
 
       - name: Compile
         run: dotnet build -c Debug -warnaserror osu-framework.Desktop.slnf

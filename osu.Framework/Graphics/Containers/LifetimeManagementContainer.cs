@@ -58,19 +58,19 @@ namespace osu.Framework.Graphics.Containers
                 unmanagedDrawablesToProcess.Add(drawable);
         }
 
-        protected internal override bool RemoveInternal(Drawable drawable)
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
             unmanagedDrawablesToProcess.Remove(drawable);
 
             if (!drawableMap.TryGetValue(drawable, out var entry))
-                return base.RemoveInternal(drawable);
+                return base.RemoveInternal(drawable, disposeImmediately);
 
             manager.RemoveEntry(entry);
             drawableMap.Remove(drawable);
 
             entry.Dispose();
 
-            return base.RemoveInternal(drawable);
+            return base.RemoveInternal(drawable, disposeImmediately);
         }
 
         protected internal override void ClearInternal(bool disposeChildren = true)
