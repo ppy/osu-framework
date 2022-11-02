@@ -1,15 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -33,7 +30,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="keys">The keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
-        public KeyCombination(IEnumerable<InputKey> keys)
+        public KeyCombination(IEnumerable<InputKey>? keys)
         {
             Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
         }
@@ -216,7 +213,7 @@ namespace osu.Framework.Input.Bindings
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
 
-        public override bool Equals(object obj) => obj is KeyCombination kc && Equals(kc);
+        public override bool Equals(object? obj) => obj is KeyCombination kc && Equals(kc);
 
         public override int GetHashCode()
         {
@@ -237,44 +234,6 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <returns>The string representation.</returns>
         public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
-
-        [Obsolete("Resolve ReadableKeyCombinationProvider with DI and use ReadableKeyCombinationProvider.GetReadableString(KeyCombination)")] // Can be removed 20220424
-        public string ReadableString()
-        {
-            var sortedKeys = Keys.GetValuesInOrder().ToArray();
-
-            return string.Join('-', sortedKeys.Select(key =>
-            {
-                switch (key)
-                {
-                    case InputKey.Control:
-                        if (sortedKeys.Contains(InputKey.LControl) || sortedKeys.Contains(InputKey.RControl))
-                            return null;
-
-                        break;
-
-                    case InputKey.Shift:
-                        if (sortedKeys.Contains(InputKey.LShift) || sortedKeys.Contains(InputKey.RShift))
-                            return null;
-
-                        break;
-
-                    case InputKey.Alt:
-                        if (sortedKeys.Contains(InputKey.LAlt) || sortedKeys.Contains(InputKey.RAlt))
-                            return null;
-
-                        break;
-
-                    case InputKey.Super:
-                        if (sortedKeys.Contains(InputKey.LSuper) || sortedKeys.Contains(InputKey.RSuper))
-                            return null;
-
-                        break;
-                }
-
-                return getReadableKey(key);
-            }).Where(s => !string.IsNullOrEmpty(s)));
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key)

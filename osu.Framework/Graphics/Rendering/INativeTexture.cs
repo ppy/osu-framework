@@ -40,6 +40,11 @@ namespace osu.Framework.Graphics.Rendering
         bool Available { get; }
 
         /// <summary>
+        /// The total number of times this texture has been bound, ever.
+        /// </summary>
+        ulong TotalBindCount { get; internal set; }
+
+        /// <summary>
         /// By default, texture uploads are queued for upload at the beginning of each frame, allowing loading them ahead of time.
         /// When this is true, this will be bypassed and textures will only be uploaded on use. Should be set for every-frame texture uploads
         /// to avoid overloading the global queue.

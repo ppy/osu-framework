@@ -263,7 +263,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
-        public Size ClientSize => new Size(Size.Width, Size.Height);
+        public Size ClientSize => new Size((int)(Size.Width * Scale), (int)(Size.Height * Scale));
 
         public float Scale = 1;
 
@@ -418,15 +418,15 @@ namespace osu.Framework.Platform
         /// <returns>Whether the window size has been changed after updating.</returns>
         private void fetchWindowSize()
         {
-            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
-            SDL.SDL_GetWindowSize(SDLWindowHandle, out int actualW, out int _);
+            SDL.SDL_GetWindowSize(SDLWindowHandle, out int w, out int h);
+            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int drawableW, out int _);
 
             // When minimised on windows, values may be zero.
             // If we receive zeroes for either of these, it seems safe to completely ignore them.
-            if (actualW <= 0 || w <= 0)
+            if (w <= 0 || drawableW <= 0)
                 return;
 
-            Scale = (float)w / actualW;
+            Scale = (float)drawableW / w;
             Size = new Size(w, h);
 
             // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
@@ -512,7 +512,7 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
-                updateWindowStateAndSize();
+                updateWindowStateAndSize(windowState, CurrentDisplay, currentDisplayMode.Value);
             }
             else
             {
@@ -522,7 +522,7 @@ namespace osu.Framework.Platform
             if (windowState != stateBefore)
             {
                 WindowStateChanged?.Invoke(windowState);
-                fetchMaximisedState();
+                fetchMaximisedState(windowState);
             }
 
             int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
@@ -538,66 +538,71 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run after a local window state change, to propagate the correct SDL actions.
         /// </summary>
-        private void updateWindowStateAndSize()
+        private void updateWindowStateAndSize(WindowState windowState, Display display, DisplayMode displayMode)
         {
             // this reset is required even on changing from one fullscreen resolution to another.
             // if it is not included, the GL context will not get the correct size.
             // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+            SDL.SDL_RestoreWindow(SDLWindowHandle);
 
             switch (windowState)
             {
                 case WindowState.Normal:
-                    Size = (sizeWindowed.Value * Scale).ToSize();
+                    Size = sizeWindowed.Value;
 
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
-                    SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
+                    SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
                     SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
-                    readWindowPositionFromConfig();
+                    readWindowPositionFromConfig(windowState, display);
                     break;
 
                 case WindowState.Fullscreen:
-                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.Value.RefreshRate, currentDisplay.Index);
+                    var closestMode = getClosestDisplayMode(SDLWindowHandle, sizeFullscreen.Value, display, displayMode);
 
                     Size = new Size(closestMode.w, closestMode.h);
+
+                    ensureWindowOnDisplay(display);
 
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
 
                 case WindowState.FullscreenBorderless:
-                    Size = SetBorderless();
+                    Size = SetBorderless(display);
                     break;
 
                 case WindowState.Maximised:
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
-                    SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
-                    SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
-                    Size = new Size(w, h);
+                    ensureWindowOnDisplay(display);
+
+                    SDL.SDL_MaximizeWindow(SDLWindowHandle);
+                    fetchWindowSize();
                     break;
 
                 case WindowState.Minimised:
+                    ensureWindowOnDisplay(display);
                     SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
 
-            fetchMaximisedState();
+            fetchMaximisedState(windowState);
 
-            fetchDisplayMode();
+            fetchDisplayMode(windowState, display);
         }
 
-        private void fetchDisplayMode()
+        private void fetchDisplayMode(WindowState windowState, Display display)
         {
             // TODO: displayIndex should be valid here at all times.
             // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
             // related to order of operations in `updateWindowSpecifics()`.
             int localIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
 
-            if (localIndex != displayIndex)
-                Logger.Log($"Stored display index ({displayIndex}) doesn't match current index ({localIndex})");
+            if (localIndex != display.Index)
+                Logger.Log($"Stored display index ({display.Index}) doesn't match current index ({localIndex})");
 
             bool success;
             SDL.SDL_DisplayMode mode;
@@ -620,23 +625,47 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void fetchMaximisedState()
+        private void fetchMaximisedState(WindowState windowState)
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
                 windowMaximised = windowState == WindowState.Maximised;
         }
 
-        private void readWindowPositionFromConfig()
+        private void readWindowPositionFromConfig(WindowState windowState, Display display)
         {
-            if (WindowState != WindowState.Normal)
+            if (windowState != WindowState.Normal)
                 return;
 
             var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
-            var displayBounds = CurrentDisplay.Bounds;
+            moveWindowTo(display, configPosition);
+        }
+
+        /// <summary>
+        /// Ensures that the window is located on the provided <see cref="Display"/>.
+        /// </summary>
+        /// <param name="display">The <see cref="Display"/> to center the window on.</param>
+        private void ensureWindowOnDisplay(Display display)
+        {
+            if (display.Index == SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle))
+                return;
+
+            moveWindowTo(display, new Vector2(0.5f));
+        }
+
+        /// <summary>
+        /// Moves the window to be centred around the normalised <paramref name="position"/> on a <paramref name="display"/>.
+        /// </summary>
+        /// <param name="display">The <see cref="Display"/> to move the window to.</param>
+        /// <param name="position">Relative position on the display, normalised to <c>[-0.5, 1.5]</c>.</param>
+        private void moveWindowTo(Display display, Vector2 position)
+        {
+            Debug.Assert(position == Vector2.Clamp(position, new Vector2(-0.5f), new Vector2(1.5f)));
+
+            var displayBounds = display.Bounds;
             var windowSize = sizeWindowed.Value;
-            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
+            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * position.X);
+            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * position.Y);
 
             Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
@@ -668,22 +697,25 @@ namespace osu.Framework.Platform
                 return;
 
             storingSizeToConfig = true;
-            sizeWindowed.Value = (Size / Scale).ToSize();
+            sizeWindowed.Value = Size;
             storingSizeToConfig = false;
         }
 
         /// <summary>
         /// Prepare display of a borderless window.
         /// </summary>
+        /// <param name="display">The display to make the window fullscreen borderless on.</param>
         /// <returns>
         /// The size of the borderless window's draw area.
         /// </returns>
-        protected virtual Size SetBorderless()
+        protected virtual Size SetBorderless(Display display)
         {
+            ensureWindowOnDisplay(display);
+
             // this is a generally sane method of handling borderless, and works well on macOS and linux.
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
 
-            return currentDisplay.Bounds.Size;
+            return display.Bounds.Size;
         }
 
         #endregion
@@ -715,25 +747,54 @@ namespace osu.Framework.Platform
 
         #region Helper functions
 
-        private SDL.SDL_DisplayMode getClosestDisplayMode(Size size, int refreshRate, int displayIndex)
+        private static SDL.SDL_DisplayMode getClosestDisplayMode(IntPtr windowHandle, Size size, Display display, DisplayMode requestedMode)
         {
-            var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = refreshRate };
+            SDL.SDL_ClearError(); // clear any stale error.
 
-            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out var mode) != IntPtr.Zero)
+            // default size means to use the display's native size.
+            if (size.Width == 9999 && size.Height == 9999)
+                size = display.Bounds.Size;
+
+            var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = requestedMode.RefreshRate };
+
+            if (SDL.SDL_GetClosestDisplayMode(display.Index, ref targetMode, out var mode) != IntPtr.Zero)
                 return mode;
+            else
+                Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
 
             // fallback to current display's native bounds
-            targetMode.w = currentDisplay.Bounds.Width;
-            targetMode.h = currentDisplay.Bounds.Height;
+            targetMode.w = display.Bounds.Width;
+            targetMode.h = display.Bounds.Height;
             targetMode.refresh_rate = 0;
 
-            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out mode) != IntPtr.Zero)
+            if (SDL.SDL_GetClosestDisplayMode(display.Index, ref targetMode, out mode) != IntPtr.Zero)
                 return mode;
+            else
+                Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
+
+            // try the display's native display mode.
+            if (SDL.SDL_GetDesktopDisplayMode(display.Index, out mode) == 0)
+                return mode;
+            else
+                Logger.Log($"Failed to get desktop display mode (try #1/3). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
+
+            // try the primary display mode.
+            if (SDL.SDL_GetDisplayMode(display.Index, 0, out mode) == 0)
+                return mode;
+            else
+                Logger.Log($"Failed to get desktop display mode (try #2/3). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
+
+            // try the primary display's primary display mode.
+            if (SDL.SDL_GetDisplayMode(0, 0, out mode) == 0)
+                return mode;
+            else
+                Logger.Log($"Failed to get desktop display mode (try #3/3). Target display: primary. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             // finally return the current mode if everything else fails.
-            // not sure this is required.
-            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out mode) >= 0)
+            if (SDL.SDL_GetWindowDisplayMode(windowHandle, out mode) >= 0)
                 return mode;
+            else
+                Logger.Log($"Failed to get window display mode. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
         }

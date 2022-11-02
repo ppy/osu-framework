@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Input
             public bool ClickReceived { get; set; }
             public bool DoubleClickReceived { get; set; }
 
-            public new Func<bool> Click;
+            public Func<bool> Click;
 
             protected override bool OnClick(ClickEvent e)
             {

@@ -100,7 +100,7 @@ namespace osu.Framework.Android.Input
         /// Subscribe <see cref="HandleKeyDown"/> to <see cref="View"/>.<see cref="AndroidGameView.KeyDown"/> to receive events here.
         /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual bool OnKeyDown(Keycode keycode, KeyEvent e)
+        protected virtual ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             throw new NotSupportedException($"{nameof(HandleKeyDown)} subscribed to {nameof(View.KeyDown)} but the relevant method was not overriden.");
         }
@@ -112,7 +112,7 @@ namespace osu.Framework.Android.Input
         /// Subscribe <see cref="HandleKeyUp"/> to <see cref="View"/>.<see cref="AndroidGameView.KeyUp"/> to receive events here.
         /// <returns>Whether the event was handled. Unhandled events are logged.</returns>
         /// </remarks>
-        protected virtual bool OnKeyUp(Keycode keycode, KeyEvent e)
+        protected virtual ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
         {
             throw new NotSupportedException($"{nameof(HandleKeyUp)} subscribed to {nameof(View.KeyUp)} but the relevant method was not overriden.");
         }
@@ -191,7 +191,7 @@ namespace osu.Framework.Android.Input
         {
             if (ShouldHandleEvent(e))
             {
-                if (!OnKeyDown(keycode, e))
+                if (OnKeyDown(keycode, e) == ReturnCode.Unhandled)
                     logUnhandledEvent(nameof(OnKeyDown), e);
             }
         }
@@ -203,7 +203,7 @@ namespace osu.Framework.Android.Input
         {
             if (ShouldHandleEvent(e))
             {
-                if (!OnKeyUp(keycode, e))
+                if (OnKeyUp(keycode, e) == ReturnCode.Unhandled)
                     logUnhandledEvent(nameof(OnKeyUp), e);
             }
         }
@@ -227,6 +227,30 @@ namespace osu.Framework.Android.Input
         private void logUnhandledEvent(string methodName, InputEvent inputEvent)
         {
             Log($"Unknown {GetType().ReadableName()}.{methodName} event: {inputEvent}");
+        }
+
+        protected enum ReturnCode
+        {
+            /// <summary>
+            /// Denotes an event that was handled by this handler.
+            /// </summary>
+            Handled,
+
+            /// <summary>
+            /// Denotes an event that this handler did not handle.
+            /// </summary>
+            /// <remarks>
+            /// Since all events are first put through the <see cref="AndroidInputHandler.HandledEventSources"/> filter, an unhandled event is considered a bug and is logged.
+            /// </remarks>
+            Unhandled,
+
+            /// <summary>
+            /// Same as <see cref="Unhandled"/>, but will not be logged.
+            /// </summary>
+            /// <remarks>
+            /// Used when an event might also be handled by another handler, but that cannot be determined purely on <see cref="AndroidInputHandler.HandledEventSources"/>.
+            /// </remarks>
+            UnhandledSuppressLogging,
         }
     }
 }
