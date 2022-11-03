@@ -71,6 +71,10 @@ namespace osu.Framework.Input.Handlers.Tablet
 
                 Detect();
 
+                // wait a small delay for OTD to finish detecting the testing devices
+                // and avoid collecting junk reports caused by the tests
+                await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+
                 foreach (var device in InputDevices)
                 {
                     foreach (var endpoint in device.InputDevices)
