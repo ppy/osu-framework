@@ -60,9 +60,6 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private async Task detectAsync(CancellationToken cancellationToken)
         {
-            // wait a small delay as multiple devices may appear over a very short interval.
-            await Task.Delay(50, cancellationToken).ConfigureAwait(false);
-
             int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(knownVendors).FirstOrDefault();
 
             if (foundVendor > 0)

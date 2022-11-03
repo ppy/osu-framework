@@ -67,7 +67,6 @@ namespace osu.Framework.Input.Handlers.Tablet
                         tabletDriver.PostLog = Log;
                         tabletDriver.TabletsChanged += handleTabletsChanged;
                         tabletDriver.DeviceReported += handleDeviceReported;
-                        tabletDriver.Detect();
                     });
                 }
                 else
