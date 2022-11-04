@@ -83,8 +83,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        // Margin = new MarginPadding(0),
-                        // Margin = new MarginPadding(5),
                         Colour = Color4.Black,
                         UseFullGlyphHeight = false,
                         Text = "UseFullGlyphHeight = false",
