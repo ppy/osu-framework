@@ -4,7 +4,6 @@
 #if NET6_0_OR_GREATER
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
@@ -18,8 +17,6 @@ namespace osu.Framework.Input.Handlers.Tablet
     public sealed class TabletDriver : Driver
     {
         private readonly int[] knownVendors;
-
-        private CancellationTokenSource? cancellationSource;
 
         public event EventHandler<IDeviceReport>? DeviceReported;
 
@@ -44,21 +41,13 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
                 if (!Tablets.Any() && args.Additions.Any())
-                    detectAsync();
+                    Task.Run(detectAsync);
             };
 
-            detectAsync();
+            Task.Run(detectAsync);
         }
 
-        private void detectAsync()
-        {
-            cancellationSource?.Cancel();
-            cancellationSource = new CancellationTokenSource();
-
-            Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
-        }
-
-        private async Task detectAsync(CancellationToken cancellationToken)
+        private async Task detectAsync()
         {
             int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(knownVendors).FirstOrDefault();
 
@@ -70,7 +59,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
                 // wait a small delay for OTD to finish detecting and testing devices
                 // and avoid collecting junk reports caused by the tests
-                await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(50).ConfigureAwait(false);
 
                 foreach (var device in InputDevices)
                 {
