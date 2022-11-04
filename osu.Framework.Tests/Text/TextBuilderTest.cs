@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Text
         private const float m_x_advance = 15;
         private const float m_width = 13;
         private const float m_baseline = 10;
-        private const float m_height = 12;
+        private const float m_height = 6;
         private const float m_kerning = 4;
 
         // baseline values when builder has UseFontSizeAsHeight turned off.
@@ -233,11 +233,18 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
 
-            builder.AddText("am");
-            builder.AddNewLine();
-            builder.AddText("ab");
+            builder.AddText("a");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance, height)));
 
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + m_kerning + m_x_advance, m_height + b_height)));
+            builder.AddText("m");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + m_kerning + m_x_advance, height + m_trimmed_baseline - trimmed_baseline)));
+
+            builder.Reset();
+            builder.AddText("m");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(m_x_advance, height)));
+
+            builder.AddText("a");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(m_x_advance + kerning + x_advance, height + m_trimmed_baseline - trimmed_baseline)));
         }
 
         /// <summary>
@@ -497,7 +504,7 @@ namespace osu.Framework.Tests.Text
             builder.AddText("am");
 
             Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(b_height + m_trimmed_baseline - trimmed_baseline));
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + m_kerning + m_x_advance, b_height + m_height)));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + m_kerning + m_x_advance, b_height + m_height + m_trimmed_baseline - trimmed_baseline)));
 
             // tests that removing a character resets bounds, and the baseline of the relevant line correctly
             builder.RemoveLastCharacter();
