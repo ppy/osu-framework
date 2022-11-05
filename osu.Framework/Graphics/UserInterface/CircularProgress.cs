@@ -8,12 +8,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
+    public class CircularProgress : Sprite, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
@@ -23,31 +23,26 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
-        public CircularProgress()
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders, IRenderer renderer)
         {
-            Current.ValueChanged += c =>
+            Texture ??= renderer.WhitePixel;
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            Current.BindValueChanged(c =>
             {
                 if (!double.IsFinite(c.NewValue))
                     throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
 
                 Invalidate(Invalidation.DrawNode);
-            };
+            }, true);
         }
-
-        public IShader RoundedTextureShader { get; private set; }
-        public IShader TextureShader { get; private set; }
-
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
-        {
-            texture?.Dispose();
-            texture = null;
-
-            base.Dispose(isDisposing);
-        }
-
-        #endregion
 
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
@@ -57,31 +52,6 @@ namespace osu.Framework.Graphics.UserInterface
         public TransformSequence<CircularProgress> FillTo<TEasing>(double newValue, double duration, in TEasing easing)
             where TEasing : IEasingFunction
             => this.TransformBindableTo(Current, newValue, duration, easing);
-
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders, IRenderer renderer)
-        {
-            texture ??= renderer.WhitePixel;
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-        }
-
-        private Texture texture;
-
-        public Texture Texture
-        {
-            get => texture;
-            set
-            {
-                if (value == texture)
-                    return;
-
-                texture?.Dispose();
-                texture = value;
-
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
 
         private float innerRadius = 1;
 
@@ -101,6 +71,57 @@ namespace osu.Framework.Graphics.UserInterface
                 innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
+        }
+
+        private bool roundedCaps;
+
+        public bool RoundedCaps
+        {
+            get => roundedCaps;
+            set
+            {
+                if (roundedCaps == value)
+                    return;
+
+                roundedCaps = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private class CircularProgressDrawNode : SpriteDrawNode
+        {
+            public new CircularProgress Source => (CircularProgress)base.Source;
+
+            public CircularProgressDrawNode(CircularProgress source)
+                : base(source)
+            {
+            }
+
+            private float innerRadius;
+            private float progress;
+            private bool roundedCaps;
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                innerRadius = Source.innerRadius;
+                progress = Math.Abs((float)Source.current.Value);
+                roundedCaps = Source.roundedCaps;
+            }
+
+            protected override void Blit(IRenderer renderer)
+            {
+                var shader = GetAppropriateShader(renderer);
+
+                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
+                shader.GetUniform<float>("progress").UpdateValue(ref progress);
+                shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
+
+                base.Blit(renderer);
+            }
+
+            protected internal override bool CanDrawOpaqueInterior => false;
         }
     }
 

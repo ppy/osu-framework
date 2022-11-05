@@ -172,6 +172,12 @@ namespace osu.Framework.Android.Input
             return false;
         }
 
+        public static bool IsKeyboard(this InputSourceType source)
+        {
+            // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
+            return source is InputSourceType.Keyboard or (InputSourceType.Keyboard | InputSourceType.Dpad);
+        }
+
         public static bool TryGetJoystickButton(this KeyEvent e, out JoystickButton button)
         {
             var keycode = e.KeyCode;
@@ -192,7 +198,7 @@ namespace osu.Framework.Android.Input
                 case Keycode.DpadDown:
                 case Keycode.DpadLeft:
                 case Keycode.DpadRight:
-                case Keycode.Back when e.Source == InputSourceType.Keyboard:
+                case Keycode.Back when e.Source.IsKeyboard():
                 default:
                     button = JoystickButton.FirstButton;
                     return false;

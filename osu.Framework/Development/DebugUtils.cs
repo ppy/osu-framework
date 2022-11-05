@@ -71,12 +71,5 @@ namespace osu.Framework.Development
 
             return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
-
-        /// <summary>
-        /// Gets the absolute path to the directory containing the assembly determined by <see cref="GetEntryAssembly"/>.
-        /// </summary>
-        /// <returns>The entry path (usually obtained via the entry assembly's <see cref="Assembly.Location"/> directory.</returns>
-        [Obsolete("Use AppContext.BaseDirectory instead")] // Can be removed 20220211
-        public static string GetEntryPath() => AppContext.BaseDirectory;
     }
 }
