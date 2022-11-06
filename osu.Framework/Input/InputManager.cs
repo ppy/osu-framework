@@ -11,7 +11,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -730,9 +729,6 @@ namespace osu.Framework.Input
         private const double touch_right_click_delay = 750;
         private const double touch_right_click_distance = 100;
 
-        [CanBeNull]
-        private ScheduledDelegate touchRightClickDelegate;
-
         /// <summary>
         /// Invoked when a touch long-press gesture has scheduled for triggering after the specified delay.
         /// </summary>
@@ -743,16 +739,24 @@ namespace osu.Framework.Input
         /// </summary>
         public event Action TouchLongPressCancelled;
 
+        [CanBeNull]
+        private ScheduledDelegate touchLongPressDelegate;
+
+        /// <summary>
+        /// The current position of the long-press touch, if one was begun.
+        /// </summary>
+        private Vector2? touchLongPressPosition;
+
+        /// <summary>
+        /// Whether the current touch state is eligible for performing a long-press gesture.
+        /// This is set to true once a single touch is pressed, and can be invalidated before the gesture is triggered.
+        /// </summary>
+        private bool validForLongPress;
+
         /// <summary>
         /// Whether a pressed left mouse button from touch should ignore click on release (i.e. "cancelled").
         /// </summary>
         private bool cancelLeftFromTouchOnRelease;
-
-        /// <summary>
-        /// Whether only one touch has been activated on the current gesture.
-        /// This will still be false if two touches were held then only one released.
-        /// </summary>
-        private bool isSingleTouch;
 
         /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
@@ -775,15 +779,9 @@ namespace osu.Framework.Input
             if (e.IsActive != null)
             {
                 if (e.IsActive == true)
-                {
                     mouseMappedTouchesDown.Add(e.Touch.Source);
-                    isSingleTouch = mouseMappedTouchesDown.Count == 1;
-                }
                 else
-                {
                     mouseMappedTouchesDown.Remove(e.Touch.Source);
-                    isSingleTouch = false;
-                }
 
                 updateTouchMouseLeft(e);
             }
@@ -807,33 +805,150 @@ namespace osu.Framework.Input
 
         private void updateTouchMouseRight(TouchStateChangeEvent e)
         {
-            var touchDownPosition = GetButtonEventManagerFor(e.Touch.Source).TouchDownPosition;
-
-            if (touchRightClickDelegate != null && touchRightClickDelegate.State != ScheduledDelegate.RunState.Complete)
-            {
-                if (isSingleTouch && Vector2Extensions.Distance(touchDownPosition.AsNonNull().Value, e.Touch.Position) <= touch_right_click_distance)
-                    return;
-
-                touchRightClickDelegate.Cancel();
-                TouchLongPressCancelled?.Invoke();
-            }
-
-            touchRightClickDelegate = null;
-
-            if (!AllowRightClickFromLongTouch || !isSingleTouch || Vector2Extensions.Distance(touchDownPosition.AsNonNull().Value, e.Touch.Position) > touch_right_click_distance)
+            if (!AllowRightClickFromLongTouch)
                 return;
 
-            Debug.Assert(touchDownPosition != null);
+            // if a touch was pressed/released in this event, reset gesture validity state.
+            if (e.IsActive != null)
+                validForLongPress = e.IsActive == true && mouseMappedTouchesDown.Count == 1;
 
-            TouchLongPressBegan?.Invoke(touchDownPosition.Value, touch_right_click_delay);
-            touchRightClickDelegate = Scheduler.AddDelayed(() =>
+            bool gestureActive = touchLongPressDelegate != null;
+
+            if (gestureActive)
             {
-                new MousePositionAbsoluteInputFromTouch(e) { Position = touchDownPosition.Value }.Apply(CurrentState, this);
+                Debug.Assert(touchLongPressPosition != null);
+
+                // if a gesture was active and the user moved away from actuation point, invalidate gesture.
+                if (Vector2Extensions.Distance(touchLongPressPosition.Value, e.Touch.Position) > touch_right_click_distance)
+                    validForLongPress = false;
+
+                if (!validForLongPress)
+                    cancelTouchLongPress();
+            }
+            else
+            {
+                if (validForLongPress)
+                    beginTouchLongPress(e);
+            }
+        }
+
+        private void beginTouchLongPress(TouchStateChangeEvent e)
+        {
+            touchLongPressPosition = e.Touch.Position;
+
+            TouchLongPressBegan?.Invoke(e.Touch.Position, touch_right_click_delay);
+            touchLongPressDelegate = Scheduler.AddDelayed(() =>
+            {
+                new MousePositionAbsoluteInputFromTouch(e) { Position = e.Touch.Position }.Apply(CurrentState, this);
                 new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
                 new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+
                 cancelLeftFromTouchOnRelease = true;
+
+                touchLongPressDelegate = null;
+                validForLongPress = false;
             }, touch_right_click_delay);
         }
+
+        private void cancelTouchLongPress()
+        {
+            Debug.Assert(touchLongPressDelegate != null);
+
+            touchLongPressPosition = null;
+
+            touchLongPressDelegate.Cancel();
+            touchLongPressDelegate = null;
+
+            TouchLongPressCancelled?.Invoke();
+        }
+
+        // try #2
+        // private void updateTouchMouseRight(TouchStateChangeEvent e)
+        // {
+        //     if (!AllowRightClickFromLongTouch)
+        //         return;
+        //
+        //     bool validForLongPress = isLongPressValid(e);
+        //
+        //     if (touchLongPressDelegate != null && validForLongPress)
+        //         return;
+        //
+        //     if (touchLongPressDelegate != null)
+        //     {
+        //         touchLongPressDelegate.Cancel();
+        //         touchLongPressDelegate = null;
+        //
+        //         TouchLongPressCancelled?.Invoke();
+        //     }
+        //
+        //     if (!validForLongPress)
+        //         return;
+        //
+        //     touchLongPressPosition = e.Touch.Position;
+        //
+        //     TouchLongPressBegan?.Invoke(e.Touch.Position, touch_right_click_delay);
+        //     touchLongPressDelegate = Scheduler.AddDelayed(() =>
+        //     {
+        //         new MousePositionAbsoluteInputFromTouch(e) { Position = e.Touch.Position }.Apply(CurrentState, this);
+        //         new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
+        //         new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+        //         cancelLeftFromTouchOnRelease = true;
+        //     }, touch_right_click_delay);
+        // }
+        //
+        // private bool isLongPressValid(TouchStateChangeEvent e)
+        // {
+        //     if (!isSingleTouch)
+        //     {
+        //         touchLongPressPosition = null;
+        //         return false;
+        //     }
+        //
+        //     if (Vector2Extensions.Distance(touchLongPressPosition ?? e.Touch.Position, e.Touch.Position) > touch_right_click_distance)
+        //         return false;
+        //
+        //     return true;
+        // }
+
+        // try #1
+        // private void updateTouchMouseRight(TouchStateChangeEvent e)
+        // {
+        //     if (touchLongPressDelegate != null && touchLongPressDelegate.State != ScheduledDelegate.RunState.Complete)
+        //     {
+        //         Debug.Assert(touchLongPressPosition != null);
+        //
+        //         if (isSingleTouch && Vector2Extensions.Distance(touchLongPressPosition.Value, e.Touch.Position) <= touch_right_click_distance)
+        //             return;
+        //
+        //         touchLongPressPosition = null;
+        //
+        //         touchLongPressDelegate.Cancel();
+        //         touchLongPressDelegate = null;
+        //
+        //         TouchLongPressCancelled?.Invoke();
+        //     }
+        //
+        //     if (!canPerformLongPress)
+        //         return;
+        //
+        //     if (touchLongPressPosition != null && Vector2Extensions.Distance(touchLongPressPosition.Value, e.Touch.Position) > touch_right_click_distance)
+        //     {
+        //         touchLongPressPosition = null;
+        //         return;
+        //     }
+        //
+        //     touchLongPressPosition = GetButtonEventManagerFor(e.Touch.Source).TouchDownPosition;
+        //     Debug.Assert(touchLongPressPosition != null);
+        //
+        //     TouchLongPressBegan?.Invoke(touchLongPressPosition.Value, touch_right_click_delay);
+        //     touchLongPressDelegate = Scheduler.AddDelayed(() =>
+        //     {
+        //         new MousePositionAbsoluteInputFromTouch(e) { Position = touchLongPressPosition.Value }.Apply(CurrentState, this);
+        //         new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
+        //         new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+        //         cancelLeftFromTouchOnRelease = true;
+        //     }, touch_right_click_delay);
+        // }
 
         protected virtual void HandleTabletPenButtonStateChange(ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange)
             => GetButtonEventManagerFor(tabletPenButtonStateChange.Button).HandleButtonStateChange(tabletPenButtonStateChange.State, tabletPenButtonStateChange.Kind);
@@ -940,7 +1055,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
+            PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
