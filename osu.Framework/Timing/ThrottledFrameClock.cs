@@ -104,6 +104,7 @@ namespace osu.Framework.Timing
 
             if (waitableTimer != IntPtr.Zero)
             {
+                // Not sure if we want to fall back to Thread.Sleep on failure here, needs further investigation.
                 if (Execution.SetWaitableTimerEx(waitableTimer, Execution.CreateFileTime(timeSpan), 0, null, default, IntPtr.Zero, 0))
                     Execution.WaitForSingleObject(waitableTimer, Execution.INFINITE);
             }
