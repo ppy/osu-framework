@@ -38,7 +38,6 @@ namespace osu.Framework.Timing
             try
             {
                 // Attempt to use CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, only available since Windows 10, version 1803.
-                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET | Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, Execution.TIMER_ALL_ACCESS);
 
                 if (waitableTimer == IntPtr.Zero)
