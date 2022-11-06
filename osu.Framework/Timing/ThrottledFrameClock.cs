@@ -4,13 +4,14 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Timing
 {
     /// <summary>
     /// A FrameClock which will limit the number of frames processed by adding Thread.Sleep calls on each ProcessFrame.
     /// </summary>
-    public class ThrottledFrameClock : FramedClock
+    public class ThrottledFrameClock : FramedClock, IDisposable
     {
         /// <summary>
         /// The target number of updates per second. Only used when <see cref="Throttling"/> is <c>true</c>.
@@ -29,6 +30,28 @@ namespace osu.Framework.Timing
         /// The time spent in a Thread.Sleep state during the last frame.
         /// </summary>
         public double TimeSlept { get; private set; }
+
+        private readonly IntPtr waitableTimer;
+
+        internal ThrottledFrameClock()
+        {
+            try
+            {
+                // Attempt to use CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, only available since Windows 10, version 1803.
+                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
+                waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET | Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, Execution.TIMER_ALL_ACCESS);
+
+                if (waitableTimer == IntPtr.Zero)
+                {
+                    // Fall back to a more supported version. This is still far more accurate than Thread.Sleep.
+                    waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET, Execution.TIMER_ALL_ACCESS);
+                }
+            }
+            catch
+            {
+                // Non-windows systems will not be able to use these timers.
+            }
+        }
 
         public override void ProcessFrame()
         {
@@ -63,7 +86,7 @@ namespace osu.Framework.Timing
         {
             double excessFrameTime = 1000d / MaximumUpdateHz - ElapsedFrameTime;
 
-            TimeSlept = sleepAndUpdateCurrent((int)Math.Max(0, excessFrameTime + accumulatedSleepError));
+            TimeSlept = sleepAndUpdateCurrent(Math.Max(0, excessFrameTime + accumulatedSleepError));
 
             accumulatedSleepError += excessFrameTime - TimeSlept;
 
@@ -71,13 +94,29 @@ namespace osu.Framework.Timing
             accumulatedSleepError = Math.Max(-1000 / 30.0, accumulatedSleepError);
         }
 
-        private double sleepAndUpdateCurrent(int milliseconds)
+        private double sleepAndUpdateCurrent(double milliseconds)
         {
             double before = CurrentTime;
 
-            Thread.Sleep(milliseconds);
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(milliseconds);
+
+            if (waitableTimer != IntPtr.Zero)
+            {
+                if (Execution.SetWaitableTimerEx(waitableTimer, Execution.CreateFileTime(timeSpan), 0, null, default, IntPtr.Zero, 0))
+                    Execution.WaitForSingleObject(waitableTimer, Execution.INFINITE);
+            }
+            else
+            {
+                Thread.Sleep(timeSpan);
+            }
 
             return (CurrentTime = SourceTime) - before;
+        }
+
+        public void Dispose()
+        {
+            if (waitableTimer != IntPtr.Zero)
+                Execution.CloseHandle(waitableTimer);
         }
     }
 }
