@@ -35,20 +35,23 @@ namespace osu.Framework.Timing
 
         internal ThrottledFrameClock()
         {
-            try
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
             {
-                // Attempt to use CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, only available since Windows 10, version 1803.
-                waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET | Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, Execution.TIMER_ALL_ACCESS);
-
-                if (waitableTimer == IntPtr.Zero)
+                try
                 {
-                    // Fall back to a more supported version. This is still far more accurate than Thread.Sleep.
-                    waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET, Execution.TIMER_ALL_ACCESS);
+                    // Attempt to use CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, only available since Windows 10, version 1803.
+                    waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET | Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, Execution.TIMER_ALL_ACCESS);
+
+                    if (waitableTimer == IntPtr.Zero)
+                    {
+                        // Fall back to a more supported version. This is still far more accurate than Thread.Sleep.
+                        waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET, Execution.TIMER_ALL_ACCESS);
+                    }
                 }
-            }
-            catch
-            {
-                // Non-windows systems will not be able to use these timers.
+                catch
+                {
+                    // Any kind of unexpected exception should fall back to Thread.Sleep.
+                }
             }
         }
 
