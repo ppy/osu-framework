@@ -489,7 +489,7 @@ namespace osu.Framework.Threading
                 {
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
-                        Clock?.Dispose();
+                        Clock.Dispose();
 
                         if (initializedEvent.IsNotNull())
                             initializedEvent.Dispose();
