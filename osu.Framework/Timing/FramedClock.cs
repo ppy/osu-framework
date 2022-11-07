@@ -30,7 +30,7 @@ namespace osu.Framework.Timing
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
 
-        private readonly double[] betweenFrameTimes = new double[256];
+        private readonly double[] betweenFrameTimes = new double[128];
 
         private long totalFramesProcessed;
 
