@@ -159,19 +159,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
             AddAssert("item 2 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(2)));
 
-            AddStep("clear bindable list", () => bindableList.Clear());
-            toggleDropdownViaClick(bindableDropdown, "dropdown3");
-            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
-
-            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
-            AddStep("select three", () => bindableDropdown.Current.Value = "three");
-            AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
-            AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
-            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier == "three");
-
-            AddStep("remove three", () => bindableList.Remove("three"));
-            AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
-
             AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
@@ -354,6 +341,47 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertDropdownIsClosed(disabledDropdown);
 
             void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value.Equals(originalValue));
+        }
+
+        /// <summary>
+        /// Basic test for a <see cref="Dropdown{T}"/> that has it's <see cref="Dropdown{T}.ItemSource"/> bound to a <see cref="BindableList{T}"/>.
+        /// </summary>
+        [Test]
+        public void TestItemSource()
+        {
+            AddStep("clear bindable list", () => bindableList.Clear());
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
+            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("select three", () => bindableDropdown.Current.Value = "three");
+            AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
+            AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
+            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier == "three");
+
+            AddStep("remove three", () => bindableList.Remove("three"));
+            AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
+
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+        }
+
+        [Test]
+        public void TestReplaceItemsInItemSource()
+        {
+            AddStep("clear bindable list", () => bindableList.Clear());
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
+            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("select three", () => bindableDropdown.Current.Value = "three");
+
+            AddStep("remove and then add items to bindable", () =>
+            {
+                bindableList.Clear();
+                bindableList.AddRange(new[] { "four", "three" }.Select(s => new TestModel(s)));
+            });
+
+            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier, () => Is.EqualTo("three"));
         }
 
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>

@@ -41,6 +41,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public virtual int Height { get; set; }
         public virtual int GetByteSize() => Width * Height * 4;
         public bool Available { get; private set; } = true;
+
+        ulong INativeTexture.TotalBindCount { get; set; }
+
         public bool BypassTextureUploadQueueing { get; set; }
 
         private int internalWidth;
@@ -91,11 +94,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            while (tryGetNextUpload(out var upload))
-                upload.Dispose();
-
             Renderer.ScheduleDisposal(texture =>
             {
+                while (texture.tryGetNextUpload(out var upload))
+                    upload.Dispose();
+
                 int disposableId = texture.textureId;
 
                 if (disposableId <= 0)

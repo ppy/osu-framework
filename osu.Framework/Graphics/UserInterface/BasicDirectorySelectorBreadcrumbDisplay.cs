@@ -16,19 +16,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Text = "Current Directory:",
             Font = FrameworkFont.Condensed.With(size: 20),
-            Anchor = Anchor.CentreLeft,
-            Origin = Anchor.CentreLeft
         };
 
         protected override DirectorySelectorDirectory CreateRootDirectoryItem() => new BreadcrumbDisplayComputer();
 
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BreadcrumbDisplayDirectory(directory, displayName);
-
-        public BasicDirectorySelectorBreadcrumbDisplay()
-        {
-            RelativeSizeAxes = Axes.X;
-            AutoSizeAxes = Axes.Y;
-        }
 
         protected class BreadcrumbDisplayComputer : BreadcrumbDisplayDirectory
         {
