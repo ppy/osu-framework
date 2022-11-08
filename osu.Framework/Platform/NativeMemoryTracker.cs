@@ -24,8 +24,6 @@ namespace osu.Framework.Platform
         public static NativeMemoryLease AddMemory(object source, long amount)
         {
             getStatistic(source).Value += amount;
-            GC.AddMemoryPressure(amount);
-
             return new NativeMemoryLease((source, amount), sender => removeMemory(sender.source, sender.amount));
         }
 
@@ -37,7 +35,6 @@ namespace osu.Framework.Platform
         private static void removeMemory(object source, long amount)
         {
             getStatistic(source).Value -= amount;
-            GC.RemoveMemoryPressure(amount);
         }
 
         private static GlobalStatistic<long> getStatistic(object source) => GlobalStatistics.Get<long>("Native", source.GetType().Name);
