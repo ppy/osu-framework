@@ -1,0 +1,13 @@
+partial class WithParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(WithParameters)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(WithParameters), (t, d) =>
+        {
+            ((WithParameters)t).load(osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(WithParameters), null, null, false, false));
+        }, null);
+    }
+}

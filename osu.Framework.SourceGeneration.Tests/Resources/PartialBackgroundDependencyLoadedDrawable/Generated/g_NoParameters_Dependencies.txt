@@ -1,0 +1,13 @@
+partial class NoParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(NoParameters)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(NoParameters), (t, d) =>
+        {
+            ((NoParameters)t).load();
+        }, null);
+    }
+}

@@ -1,0 +1,15 @@
+partial class WithTypeAndNameProperties : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(WithTypeAndNameProperties)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(WithTypeAndNameProperties), null, (t, d, i) =>
+        {
+            var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
+            osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(WithTypeAndNameProperties), ((WithTypeAndNameProperties)t).CachedProperty, i, typeof(object), "Custom Name", "CachedProperty");
+            return dependencies;
+        });
+    }
+}

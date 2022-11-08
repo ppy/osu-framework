@@ -1,0 +1,10 @@
+partial class EmptyPartialDrawable : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(EmptyPartialDrawable)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(EmptyPartialDrawable), null, null);
+    }
+}

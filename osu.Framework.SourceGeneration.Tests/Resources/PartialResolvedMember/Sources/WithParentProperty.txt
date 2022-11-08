@@ -1,0 +1,5 @@
+public partial class WithParentProperty : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Resolved(Parent = typeof(object))]
+    public object ResolvedProperty { get; private set; }
+}

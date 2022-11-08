@@ -1,0 +1,15 @@
+partial class WithTypeProperty : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(WithTypeProperty)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(WithTypeProperty), null, (t, d, i) =>
+        {
+            var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
+            osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(WithTypeProperty), t, i, typeof(object), null, null);
+            return dependencies;
+        });
+    }
+}

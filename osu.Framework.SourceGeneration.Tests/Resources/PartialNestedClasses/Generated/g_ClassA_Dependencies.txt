@@ -1,0 +1,13 @@
+partial class ClassA : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(ClassA)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(ClassA), (t, d) =>
+        {
+            ((ClassA)t).load();
+        }, null);
+    }
+}

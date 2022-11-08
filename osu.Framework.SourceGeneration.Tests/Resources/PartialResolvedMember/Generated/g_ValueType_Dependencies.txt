@@ -1,0 +1,13 @@
+partial class ValueType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(ValueType)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(ValueType), (t, d) =>
+        {
+            ((ValueType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken>(d, typeof(ValueType), null, null, false, true);
+        }, null);
+    }
+}

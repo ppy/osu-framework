@@ -1,0 +1,13 @@
+partial class NRTNullableValueType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(NRTNullableValueType)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(NRTNullableValueType), (t, d) =>
+        {
+            ((NRTNullableValueType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken>(d, typeof(NRTNullableValueType), null, null, true, true);
+        }, null);
+    }
+}

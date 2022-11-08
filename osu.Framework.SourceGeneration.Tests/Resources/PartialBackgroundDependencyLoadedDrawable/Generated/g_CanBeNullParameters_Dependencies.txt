@@ -1,0 +1,13 @@
+partial class CanBeNullParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(CanBeNullParameters)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(CanBeNullParameters), (t, d) =>
+        {
+            ((CanBeNullParameters)t).load(osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(CanBeNullParameters), null, null, true, false));
+        }, null);
+    }
+}

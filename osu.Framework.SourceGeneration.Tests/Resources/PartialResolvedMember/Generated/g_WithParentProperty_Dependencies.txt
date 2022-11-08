@@ -1,0 +1,13 @@
+partial class WithParentProperty : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(WithParentProperty)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(WithParentProperty), (t, d) =>
+        {
+            ((WithParentProperty)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(WithParentProperty), "ResolvedProperty", typeof(object), false, true);
+        }, null);
+    }
+}

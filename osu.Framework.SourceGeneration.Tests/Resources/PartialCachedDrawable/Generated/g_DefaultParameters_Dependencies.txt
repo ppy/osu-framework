@@ -1,0 +1,15 @@
+partial class DefaultParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(DefaultParameters)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(DefaultParameters), null, (t, d, i) =>
+        {
+            var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
+            osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(DefaultParameters), t, i, typeof(DefaultParameters), null, null);
+            return dependencies;
+        });
+    }
+}

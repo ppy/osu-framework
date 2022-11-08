@@ -1,0 +1,10 @@
+partial class SingleGeneric<T> : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+{
+    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    {
+        if (activator.IsRegistered(typeof(SingleGeneric<T>)))
+            return;
+        base.RegisterDependencyActivator(activator);
+        activator.Register(typeof(SingleGeneric<T>), null, null);
+    }
+}
