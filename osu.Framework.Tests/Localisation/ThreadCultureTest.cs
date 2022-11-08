@@ -68,12 +68,13 @@ namespace osu.Framework.Tests.Localisation
 
             AddStep("query cultures", () =>
             {
-                host.DrawThread.Scheduler.Add(() => cultures.Add(Thread.CurrentThread.CurrentCulture));
-                host.UpdateThread.Scheduler.Add(() => cultures.Add(Thread.CurrentThread.CurrentCulture));
-                host.AudioThread.Scheduler.Add(() => cultures.Add(Thread.CurrentThread.CurrentCulture));
+                host.DrawThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
+                host.UpdateThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
+                host.InputThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
+                host.AudioThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
             });
 
-            AddUntilStep("wait for query", () => cultures.Count == 3);
+            AddUntilStep("wait for query", () => cultures.Count == 4);
             AddAssert($"culture is {name}", () => cultures.Select(c => c.Name), () => Is.All.EqualTo(name));
         }
 
@@ -81,7 +82,7 @@ namespace osu.Framework.Tests.Localisation
         {
             CultureInfo culture = null;
 
-            AddStep("start new thread", () => new Thread(() => culture = Thread.CurrentThread.CurrentCulture) { IsBackground = true }.Start());
+            AddStep("start new thread", () => new Thread(() => culture = CultureInfo.CurrentCulture) { IsBackground = true }.Start());
             AddUntilStep("wait for culture", () => culture != null);
             AddAssert($"thread culture is {name}", () => culture.Name == name);
         }

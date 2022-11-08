@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
@@ -240,7 +239,8 @@ namespace osu.Framework.Platform
         public void SetCulture(CultureInfo culture)
         {
             // for single-threaded mode, switch the current (assumed to be main) thread's culture, since it's actually the one that's running the frames.
-            Thread.CurrentThread.CurrentCulture = culture;
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
 
             // for multi-threaded mode, schedule the culture change on all threads.
             // note that if the threads haven't been created yet (e.g. if the game started single-threaded), this will only store the culture in GameThread.CurrentCulture.
