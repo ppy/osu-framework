@@ -10,6 +10,7 @@ using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
@@ -26,10 +27,10 @@ namespace osu.Framework.Tests.Localisation
         private FrameworkConfigManager config { get; set; }
 
         [Test]
-        public void TestDefaultCultureIsInvariant()
+        public void TestDefaultCultureIsSystem()
         {
             setCulture("");
-            assertCulture("");
+            assertCulture(CultureInfoHelper.SystemCulture.Name);
         }
 
         [Test]
@@ -40,10 +41,10 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestInvalidCultureFallsBackToInvariant()
+        public void TestInvalidCultureFallsBackToSystem()
         {
             setCulture("ko_KR");
-            assertCulture("");
+            assertCulture(CultureInfoHelper.SystemCulture.Name);
         }
 
         [Test]
