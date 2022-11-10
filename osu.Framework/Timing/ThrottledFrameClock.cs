@@ -82,6 +82,11 @@ namespace osu.Framework.Timing
 
         private double sleepAndUpdateCurrent(double milliseconds)
         {
+            // By returning here, in cases where the game is not keeping up, we don't yield.
+            // Not 100% sure if we want to do this, but let's give it a try.
+            if (milliseconds <= 0)
+                return 0;
+
             double before = CurrentTime;
 
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(milliseconds);
