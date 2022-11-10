@@ -60,6 +60,8 @@ namespace osu.Framework.Graphics.Performance
         private double lastUpdateLocalTime;
         private double lastFrameFramesPerSecond;
 
+        private double jitter;
+
         private const int updates_per_second = 10;
 
         protected override void Update()
@@ -100,7 +102,7 @@ namespace osu.Framework.Graphics.Performance
             framesSinceLastUpdate = 0;
             elapsedSinceLastUpdate = 0;
 
-            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms)"
+            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms ±{jitter:0.00}ms)"
                            + (clock.Throttling ? $"{(clock.MaximumUpdateHz > 0 && clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞"),4}hz" : string.Empty);
         }
 
@@ -126,6 +128,7 @@ namespace osu.Framework.Graphics.Performance
 
             framesSinceLastUpdate++;
             lastFrameFramesPerSecond = frame.FramesPerSecond;
+            jitter = frame.Jitter;
         }
     }
 }
