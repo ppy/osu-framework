@@ -469,10 +469,12 @@ namespace osu.Framework.Threading
 
         private void updateCulture()
         {
-            if (Thread == null || culture == null) return;
+            if (culture == null) return;
 
-            Thread.CurrentCulture = culture;
-            Thread.CurrentUICulture = culture;
+            Debug.Assert(IsCurrent);
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
         }
 
         private void setExitState(GameThreadState exitState)

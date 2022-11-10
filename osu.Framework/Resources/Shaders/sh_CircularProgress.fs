@@ -9,6 +9,7 @@ varying highp vec4 v_TexRect;
 uniform lowp sampler2D m_Sampler;
 uniform mediump float progress;
 uniform mediump float innerRadius;
+uniform highp float texelSize;
 uniform bool roundedCaps;
 
 void main(void)
@@ -22,5 +23,6 @@ void main(void)
     highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     
-    gl_FragColor = insideProgress(pixelPos, progress, innerRadius, roundedCaps) ? toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9)) : vec4(0.0);
+    lowp vec4 textureColour = toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9));
+    gl_FragColor = vec4(textureColour.rgb, textureColour.a * progressAlphaAt(pixelPos, progress, innerRadius, roundedCaps, texelSize));
 }
