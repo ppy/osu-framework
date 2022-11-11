@@ -56,21 +56,17 @@ namespace osu.Framework.Tests.Text
 
         private static readonly Vector2 spacing = new Vector2(22, 23);
 
-        private static readonly TestFontUsage normal_font = new TestFontUsage("test");
-        private static readonly TestFontUsage fixed_width_font = new TestFontUsage("test-fixedwidth", fixedWidth: true);
+        private static readonly FontUsage normal_font = new FontUsage("Roboto", weight: "Regular", size: font_size);
+        private static readonly FontUsage fixed_width_font = new FontUsage("Roboto", weight: "Regular", size: font_size, fixedWidth: true);
 
-        private readonly TestStore fontStore;
+        private readonly FontStore fontStore;
+        private readonly ITexturedCharacterGlyph glyphA;
+        private readonly ITexturedCharacterGlyph glyphB;
+        private readonly ITexturedCharacterGlyph glyphM;
 
         public TextBuilderTest()
         {
-            fontStore = new TestStore(
-                new GlyphEntry(normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning))
-            );
+            fontStore = new FontStore(new DummyRenderer(), new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"), useAtlas: false);
         }
 
         /// <summary>
@@ -578,8 +574,8 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestSameCharacterFallsBackWithNoFontName()
         {
-            var font = new TestFontUsage("test");
-            var nullFont = new TestFontUsage(null);
+            var font = new FontUsage("test", size: font_size);
+            var nullFont = new FontUsage(null);
             var builder = new TextBuilder(new TestStore(
                 new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
                 new GlyphEntry(nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0, 0)),
@@ -598,8 +594,8 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestFallBackCharacterFallsBackWithFontName()
         {
-            var font = new TestFontUsage("test");
-            var nullFont = new TestFontUsage(null);
+            var font = new FontUsage("test", size: font_size);
+            var nullFont = new FontUsage(null);
             var builder = new TextBuilder(new TestStore(
                 new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
                 new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
@@ -619,8 +615,8 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestFallBackCharacterFallsBackWithNoFontName()
         {
-            var font = new TestFontUsage("test");
-            var nullFont = new TestFontUsage(null);
+            var font = new FontUsage("test", size: font_size);
+            var nullFont = new FontUsage(null);
             var builder = new TextBuilder(new TestStore(
                 new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
                 new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
@@ -640,7 +636,7 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestFailedCharacterLookup()
         {
-            var font = new TestFontUsage("test");
+            var font = new FontUsage("test", size: font_size);
             var builder = new TextBuilder(new TestStore(), font);
 
             builder.AddText("a");
@@ -648,24 +644,6 @@ namespace osu.Framework.Tests.Text
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
         }
 
-        private readonly struct TestFontUsage
-        {
-            private readonly string family;
-            private readonly string weight;
-            private readonly bool italics;
-            private readonly bool fixedWidth;
-
-            public TestFontUsage(string family = null, string weight = null, bool italics = false, bool fixedWidth = false)
-            {
-                this.family = family;
-                this.weight = weight;
-                this.italics = italics;
-                this.fixedWidth = fixedWidth;
-            }
-
-            public static implicit operator FontUsage(TestFontUsage tfu)
-                => new FontUsage(tfu.family, font_size, tfu.weight, tfu.italics, tfu.fixedWidth);
-        }
 
         private class TestStore : ITexturedGlyphLookupStore
         {
