@@ -162,7 +162,7 @@ namespace osu.Framework.Tests.Text
             builder.AddNewLine();
             builder.AddText("a");
 
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + glyphA.YOffset));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphA.YOffset));
         }
 
         /// <summary>
