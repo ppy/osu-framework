@@ -1,4 +1,4 @@
-﻿varying highp vec2 v_MaskingPosition;
+﻿varying highp vec2 v_Position;
 varying lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
@@ -9,21 +9,73 @@ varying lowp vec4 v_Colour;
 
 varying mediump vec2 v_BlendRange;
 
-uniform highp float g_CornerRadius;
-uniform highp float g_CornerExponent;
-uniform bool g_IsMasking;
-uniform highp vec4 g_MaskingRect;
-uniform highp float g_BorderThickness;
-uniform lowp mat4 g_BorderColour;
+highp vec2 v_MaskingPosition;
+highp float g_CornerRadius;
+highp float g_CornerExponent;
+highp vec4 g_MaskingRect;
+highp float g_BorderThickness;
+lowp mat4 g_BorderColour;
+mediump float g_MaskingBlendRange;
+lowp float g_AlphaExponent;
+highp vec2 g_EdgeOffset;
+lowp float g_DiscardInner;
+highp float g_InnerCornerRadius;
+highp mat3 g_ToMaskingSpace;
 
-uniform mediump float g_MaskingBlendRange;
+uniform highp sampler2DRect g_MaskingBlockSampler;
 
-uniform lowp float g_AlphaExponent;
+highp mat4 transpose(highp mat4 inMatrix) {
+	highp vec4 i0 = inMatrix[0];
+	highp vec4 i1 = inMatrix[1];
+	highp vec4 i2 = inMatrix[2];
+	highp vec4 i3 = inMatrix[3];
 
-uniform highp vec2 g_EdgeOffset;
+	highp mat4 outMatrix = mat4(
+				 vec4(i0.x, i1.x, i2.x, i3.x),
+				 vec4(i0.y, i1.y, i2.y, i3.y),
+				 vec4(i0.z, i1.z, i2.z, i3.z),
+				 vec4(i0.w, i1.w, i2.w, i3.w)
+				 );
 
-uniform bool g_DiscardInner;
-uniform highp float g_InnerCornerRadius;
+	return outMatrix;
+}
+
+void initMasking()
+{
+	g_MaskingRect = texture2DRect(g_MaskingBlockSampler, vec2(0.0));
+
+	g_ToMaskingSpace[0][0] = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 0.0)).r;
+	g_ToMaskingSpace[1][0] = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 0.0)).g;
+	g_ToMaskingSpace[2][0] = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 0.0)).b;
+	g_ToMaskingSpace[0][1] = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 0.0)).a;
+
+	g_ToMaskingSpace[1][1] = texture2DRect(g_MaskingBlockSampler, vec2(2.0, 0.0)).r;
+	g_ToMaskingSpace[2][1] = texture2DRect(g_MaskingBlockSampler, vec2(2.0, 0.0)).g;
+	g_ToMaskingSpace[0][2] = texture2DRect(g_MaskingBlockSampler, vec2(2.0, 0.0)).b;
+	g_ToMaskingSpace[1][2] = texture2DRect(g_MaskingBlockSampler, vec2(2.0, 0.0)).a;
+
+	g_ToMaskingSpace[2][2] = texture2DRect(g_MaskingBlockSampler, vec2(3.0, 0.0)).r;
+	g_CornerRadius = texture2DRect(g_MaskingBlockSampler, vec2(3.0, 0.0)).g;
+	g_CornerExponent = texture2DRect(g_MaskingBlockSampler, vec2(3.0, 0.0)).b;
+	g_BorderThickness = texture2DRect(g_MaskingBlockSampler, vec2(3.0, 0.0)).a;
+
+	g_BorderColour[0] = texture2DRect(g_MaskingBlockSampler, vec2(0.0, 1.0));
+	g_BorderColour[1] = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 1.0));
+	g_BorderColour[2] = texture2DRect(g_MaskingBlockSampler, vec2(2.0, 1.0));
+	g_BorderColour[3] = texture2DRect(g_MaskingBlockSampler, vec2(3.0, 1.0));
+	g_BorderColour = transpose(g_BorderColour);
+
+	g_MaskingBlendRange = texture2DRect(g_MaskingBlockSampler, vec2(0.0, 2.0)).r;
+	g_AlphaExponent = texture2DRect(g_MaskingBlockSampler, vec2(0.0, 2.0)).g;
+	g_EdgeOffset = texture2DRect(g_MaskingBlockSampler, vec2(0.0, 2.0)).ba;
+
+	g_DiscardInner = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 2.0)).r;
+	g_InnerCornerRadius = texture2DRect(g_MaskingBlockSampler, vec2(1.0, 2.0)).g;
+
+	// Transform from screen space to masking space.
+	highp vec3 maskingPos = g_ToMaskingSpace * vec3(v_Position, 1.0);
+	v_MaskingPosition = maskingPos.xy / maskingPos.z;
+}
 
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
@@ -85,7 +137,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	lowp float alphaFactor = 1.0;
 
 	// Discard inner pixels
-	if (g_DiscardInner)
+	if (g_DiscardInner != 0.0)
 	{
 		highp float innerDist = (g_EdgeOffset == vec2(0.0) && g_InnerCornerRadius == g_CornerRadius) ?
 			dist : distanceFromRoundedRect(g_EdgeOffset, g_InnerCornerRadius);

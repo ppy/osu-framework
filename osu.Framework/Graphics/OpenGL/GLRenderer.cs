@@ -151,7 +151,8 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -198,6 +199,27 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.Enable(EnableCap.ScissorTest);
             else
                 GL.Disable(EnableCap.ScissorTest);
+        }
+
+        private int maskingTexture = -1;
+
+        protected override void SetMaskingBlock(Span<float> maskingBlock)
+        {
+            GL.ActiveTexture(TextureUnit.Texture10);
+
+            if (maskingTexture == -1)
+            {
+                maskingTexture = GL.GenTexture();
+
+                GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
+            }
+
+            GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
+            GL.TexImage2D(All.TextureRectangle, 0, All.Rgba32f, 4, 4, 0, All.Rgba, All.Float, ref maskingBlock[0]);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
         }
 
         protected override void SetBlendImplementation(BlendingParameters blendingParameters)
@@ -337,7 +359,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Rgba32 initialisationColour = default)
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Rgba32 initialisationColour = default)
         {
             All glFilteringMode;
 

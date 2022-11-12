@@ -551,54 +551,62 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
-            GlobalPropertyManager.Set(GlobalProperty.IsMasking, IsMaskingActive);
+            float realBorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange;
 
-            GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
-                maskingInfo.MaskingRect.Left,
-                maskingInfo.MaskingRect.Top,
-                maskingInfo.MaskingRect.Right,
-                maskingInfo.MaskingRect.Bottom));
+            Span<float> maskingBlock = stackalloc float[64];
 
-            GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
+            maskingBlock[0] = maskingInfo.MaskingRect.Left;
+            maskingBlock[1] = maskingInfo.MaskingRect.Top;
+            maskingBlock[2] = maskingInfo.MaskingRect.Right;
+            maskingBlock[3] = maskingInfo.MaskingRect.Bottom;
 
-            GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
-            GlobalPropertyManager.Set(GlobalProperty.CornerExponent, maskingInfo.CornerExponent);
+            maskingBlock[4] = maskingInfo.ToMaskingSpace.M11;
+            maskingBlock[5] = maskingInfo.ToMaskingSpace.M12;
+            maskingBlock[6] = maskingInfo.ToMaskingSpace.M13;
+            maskingBlock[7] = maskingInfo.ToMaskingSpace.M21;
 
-            GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
+            maskingBlock[8] = maskingInfo.ToMaskingSpace.M22;
+            maskingBlock[9] = maskingInfo.ToMaskingSpace.M23;
+            maskingBlock[10] = maskingInfo.ToMaskingSpace.M31;
+            maskingBlock[11] = maskingInfo.ToMaskingSpace.M32;
+
+            maskingBlock[12] = maskingInfo.ToMaskingSpace.M33;
+            maskingBlock[13] = maskingInfo.CornerRadius;
+            maskingBlock[13] = maskingInfo.CornerExponent;
+            maskingBlock[15] = realBorderThickness;
 
             if (maskingInfo.BorderThickness > 0)
             {
-                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Matrix4(
-                    // TopLeft
-                    maskingInfo.BorderColour.TopLeft.Linear.R,
-                    maskingInfo.BorderColour.TopLeft.Linear.G,
-                    maskingInfo.BorderColour.TopLeft.Linear.B,
-                    maskingInfo.BorderColour.TopLeft.Linear.A,
-                    // BottomLeft
-                    maskingInfo.BorderColour.BottomLeft.Linear.R,
-                    maskingInfo.BorderColour.BottomLeft.Linear.G,
-                    maskingInfo.BorderColour.BottomLeft.Linear.B,
-                    maskingInfo.BorderColour.BottomLeft.Linear.A,
-                    // TopRight
-                    maskingInfo.BorderColour.TopRight.Linear.R,
-                    maskingInfo.BorderColour.TopRight.Linear.G,
-                    maskingInfo.BorderColour.TopRight.Linear.B,
-                    maskingInfo.BorderColour.TopRight.Linear.A,
-                    // BottomRight
-                    maskingInfo.BorderColour.BottomRight.Linear.R,
-                    maskingInfo.BorderColour.BottomRight.Linear.G,
-                    maskingInfo.BorderColour.BottomRight.Linear.B,
-                    maskingInfo.BorderColour.BottomRight.Linear.A));
+                maskingBlock[16] = maskingInfo.BorderColour.TopLeft.Linear.R;
+                maskingBlock[17] = maskingInfo.BorderColour.TopLeft.Linear.G;
+                maskingBlock[18] = maskingInfo.BorderColour.TopLeft.Linear.B;
+                maskingBlock[19] = maskingInfo.BorderColour.TopLeft.Linear.A;
+
+                maskingBlock[20] = maskingInfo.BorderColour.BottomLeft.Linear.R;
+                maskingBlock[21] = maskingInfo.BorderColour.BottomLeft.Linear.G;
+                maskingBlock[22] = maskingInfo.BorderColour.BottomLeft.Linear.B;
+                maskingBlock[23] = maskingInfo.BorderColour.BottomLeft.Linear.A;
+
+                maskingBlock[24] = maskingInfo.BorderColour.TopRight.Linear.R;
+                maskingBlock[25] = maskingInfo.BorderColour.TopRight.Linear.G;
+                maskingBlock[26] = maskingInfo.BorderColour.TopRight.Linear.B;
+                maskingBlock[27] = maskingInfo.BorderColour.TopRight.Linear.A;
+
+                maskingBlock[28] = maskingInfo.BorderColour.BottomRight.Linear.R;
+                maskingBlock[29] = maskingInfo.BorderColour.BottomRight.Linear.G;
+                maskingBlock[30] = maskingInfo.BorderColour.BottomRight.Linear.B;
+                maskingBlock[31] = maskingInfo.BorderColour.BottomRight.Linear.A;
             }
 
-            GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
-            GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
+            maskingBlock[32] = maskingInfo.BlendRange;
+            maskingBlock[33] = maskingInfo.AlphaExponent;
+            maskingBlock[34] = maskingInfo.EdgeOffset.X;
+            maskingBlock[35] = maskingInfo.EdgeOffset.Y;
 
-            GlobalPropertyManager.Set(GlobalProperty.EdgeOffset, maskingInfo.EdgeOffset);
+            maskingBlock[36] = maskingInfo.Hollow ? 1 : 0;
+            maskingBlock[37] = maskingInfo.HollowCornerRadius;
 
-            GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
-            if (maskingInfo.Hollow)
-                GlobalPropertyManager.Set(GlobalProperty.InnerCornerRadius, maskingInfo.HollowCornerRadius);
+            SetMaskingBlock(maskingBlock);
 
             if (isPushing)
             {
@@ -622,6 +630,8 @@ namespace osu.Framework.Graphics.Rendering
 
             currentMaskingInfo = maskingInfo;
         }
+
+        protected abstract void SetMaskingBlock(Span<float> maskingBlock);
 
         #endregion
 

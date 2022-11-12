@@ -22,24 +22,15 @@ namespace osu.Framework.Graphics.Shaders
             global_properties = new IUniformMapping[values.Length];
 
             global_properties[(int)GlobalProperty.ProjMatrix] = new UniformMapping<Matrix4>("g_ProjMatrix");
-            global_properties[(int)GlobalProperty.IsMasking] = new UniformMapping<bool>("g_IsMasking");
-            global_properties[(int)GlobalProperty.MaskingRect] = new UniformMapping<Vector4>("g_MaskingRect");
-            global_properties[(int)GlobalProperty.ToMaskingSpace] = new UniformMapping<Matrix3>("g_ToMaskingSpace");
-            global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");
-            global_properties[(int)GlobalProperty.CornerExponent] = new UniformMapping<float>("g_CornerExponent");
-            global_properties[(int)GlobalProperty.BorderThickness] = new UniformMapping<float>("g_BorderThickness");
-            global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Matrix4>("g_BorderColour");
-            global_properties[(int)GlobalProperty.MaskingBlendRange] = new UniformMapping<float>("g_MaskingBlendRange");
-            global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
-            global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
-            global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
-            global_properties[(int)GlobalProperty.InnerCornerRadius] = new UniformMapping<float>("g_InnerCornerRadius");
             global_properties[(int)GlobalProperty.GammaCorrection] = new UniformMapping<bool>("g_GammaCorrection");
             global_properties[(int)GlobalProperty.WrapModeS] = new UniformMapping<int>("g_WrapModeS");
             global_properties[(int)GlobalProperty.WrapModeT] = new UniformMapping<int>("g_WrapModeT");
+            global_properties[(int)GlobalProperty.MaskingBlockSampler] = new UniformMapping<int>("g_MaskingBlockSampler");
 
             // Backbuffer internals
             global_properties[(int)GlobalProperty.BackbufferDraw] = new UniformMapping<bool>("g_BackbufferDraw");
+
+            Set(GlobalProperty.MaskingBlockSampler, 10);
         }
 
         /// <summary>
