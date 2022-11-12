@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -30,13 +31,18 @@ namespace osu.Framework.Tests.Text
         private readonly ITexturedCharacterGlyph glyphA;
         private readonly ITexturedCharacterGlyph glyphB;
         private readonly ITexturedCharacterGlyph glyphM;
+        private readonly ITexturedCharacterGlyph glyphIcon;
 
         public TextBuilderTest()
         {
-            fontStore = new FontStore(new DummyRenderer(), new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"), useAtlas: false);
-            glyphA = fontStore.Get(normal_font.FontName, 'a');
-            glyphB = fontStore.Get(normal_font.FontName, 'b');
-            glyphM = fontStore.Get(normal_font.FontName, 'm');
+            fontStore = new FontStore(new DummyRenderer(), useAtlas: false);
+            fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"));
+            fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/FontAwesome5/FontAwesome-Solid"));
+
+            glyphA = fontStore.Get(null, 'a');
+            glyphB = fontStore.Get(null, 'b');
+            glyphM = fontStore.Get(null, 'm');
+            glyphIcon = fontStore.Get(null, FontAwesome.Solid.Smile.Icon);
         }
 
         /// <summary>
@@ -199,18 +205,21 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
 
-            builder.AddText("a");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphA.XAdvance, glyphA.Height)));
+            var glyphQ = fontStore.Get(normal_font.FontName, 'q').AsNonNull();
+            var glyphP = fontStore.Get(normal_font.FontName, 'P').AsNonNull();
 
-            builder.AddText("m");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphA.XAdvance + glyphM.GetKerning(glyphA) + glyphM.XAdvance, glyphA.Height + (getTrimmedBaseline(glyphM) - getTrimmedBaseline(glyphA)))));
+            builder.AddText("q");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphQ.XAdvance, glyphQ.Height)));
+
+            builder.AddText("P");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphQ.XAdvance + glyphP.GetKerning(glyphQ) + glyphP.XAdvance, glyphQ.Height + (getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)))));
 
             builder.Reset();
-            builder.AddText("m");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphM.XAdvance, glyphA.Height)));
+            builder.AddText("P");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphP.XAdvance, glyphP.Height)));
 
-            builder.AddText("a");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphM.XAdvance + glyphA.GetKerning(glyphM) + glyphA.XAdvance, glyphA.Height + (getTrimmedBaseline(glyphM) - getTrimmedBaseline(glyphA)))));
+            builder.AddText("q");
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphP.XAdvance + glyphQ.GetKerning(glyphP) + glyphQ.XAdvance, glyphQ.Height + (getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)))));
         }
 
         /// <summary>
@@ -255,16 +264,10 @@ namespace osu.Framework.Tests.Text
 
             Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphA.Baseline));
 
-            builder.AddText("b");
+            builder.AddText($"{glyphIcon.Character}");
 
-            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphB.Baseline));
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
-
-            builder.AddText("m");
-
-            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphM.Baseline));
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphM.Baseline - glyphA.Baseline)));
-            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(glyphB.YOffset + (glyphM.Baseline - glyphB.Baseline)));
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphIcon.Baseline));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
         }
 
         /// <summary>
@@ -275,20 +278,14 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font);
 
-            builder.AddText("m");
+            builder.AddText($"{glyphIcon.Character}");
 
-            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphM.Baseline));
-
-            builder.AddText("b");
-
-            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphM.Baseline));
-            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(glyphB.YOffset + (glyphM.Baseline - glyphB.Baseline)));
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphIcon.Baseline));
 
             builder.AddText("a");
 
-            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphM.Baseline));
-            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(glyphB.YOffset + (glyphM.Baseline - glyphB.Baseline)));
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphM.Baseline - glyphA.Baseline)));
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(glyphIcon.Baseline));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
         }
 
         /// <summary>
@@ -301,28 +298,16 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
             builder.AddNewLine();
-            builder.AddText("ab");
-            builder.AddNewLine();
 
-            builder.AddText("ab");
+            builder.AddText("a");
 
-            assertOtherCharactersNotAffected();
-            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
-            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphB.YOffset));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset));
 
-            builder.AddText("m");
+            builder.AddText($"{glyphIcon.Character}");
 
-            assertOtherCharactersNotAffected();
-            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphA.YOffset + (glyphM.Baseline - glyphA.Baseline)));
-            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphB.YOffset + (glyphM.Baseline - glyphB.Baseline)));
-            Assert.That(builder.Characters[5].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphM.YOffset));
-
-            void assertOtherCharactersNotAffected()
-            {
-                Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset));
-                Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
-                Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + glyphB.YOffset));
-            }
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + glyphIcon.YOffset));
         }
 
         /// <summary>
@@ -336,15 +321,15 @@ namespace osu.Framework.Tests.Text
 
             // test baseline adjustment on the first line
             builder.AddText("a");
-            builder.AddText("b");
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
+            builder.AddText($"{glyphIcon.Character}");
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphIcon) - getTrimmedBaseline(glyphA)));
 
             // test baseline adjustment affects relevant line only
             builder.AddNewLine();
             builder.AddText("a");
-            builder.AddText("m");
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(glyphB.Height + (getTrimmedBaseline(glyphM) - getTrimmedBaseline(glyphA))));
+            builder.AddText($"{glyphIcon.Character}");
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphIcon) - getTrimmedBaseline(glyphA)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(glyphIcon.Height + (getTrimmedBaseline(glyphIcon) - getTrimmedBaseline(glyphA))));
         }
 
         /// <summary>
@@ -434,27 +419,22 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
             builder.AddNewLine();
-            builder.AddText("ab");
+            builder.AddText($"a{glyphIcon.Character}");
             builder.AddNewLine();
-            builder.AddText("abm");
+            builder.AddText($"a{glyphIcon.Character}");
 
             builder.RemoveLastCharacter();
 
-            assertOtherCharactersNotAffected();
-            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
-            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphB.YOffset));
-
-            builder.RemoveLastCharacter();
-
-            assertOtherCharactersNotAffected();
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + glyphIcon.YOffset));
             Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + glyphA.YOffset));
 
-            void assertOtherCharactersNotAffected()
-            {
-                Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset));
-                Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
-                Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + glyphB.YOffset));
-            }
+            builder.RemoveLastCharacter();
+
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + glyphIcon.YOffset));
         }
 
         /// <summary>
@@ -493,13 +473,13 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font);
 
-            builder.AddText("abb");
+            builder.AddText($"a{glyphIcon.Character}{glyphIcon.Character}");
 
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
 
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
         }
 
         /// <summary>
@@ -510,13 +490,13 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font);
 
-            builder.AddText("ab");
+            builder.AddText($"a{glyphIcon.Character}");
             builder.AddNewLine();
-            builder.AddText("m");
+            builder.AddText($"{glyphIcon.Character}");
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphB.Baseline - glyphA.Baseline)));
-            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(glyphB.YOffset));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(glyphA.YOffset + (glyphIcon.Baseline - glyphA.Baseline)));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(glyphIcon.YOffset));
         }
 
         /// <summary>
