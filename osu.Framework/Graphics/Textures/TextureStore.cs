@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Textures
 
         protected TextureAtlas Atlas;
 
-        private const int max_atlas_size = 1024;
+        private const int max_atlas_size = 8192;
 
         /// <summary>
         /// Decides at what resolution multiple this <see cref="TextureStore"/> is providing sprites at.
