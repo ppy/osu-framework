@@ -66,6 +66,8 @@ namespace osu.Framework
 
         private readonly Container content;
 
+        private readonly Container overlayContent;
+
         private DrawVisualiser drawVisualiser;
 
         private TextureVisualiser textureVisualiser;
@@ -110,6 +112,11 @@ namespace osu.Framework
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                },
+                overlayContent = new DrawSizePreservingFillContainer
+                {
+                    TargetDrawSize = new Vector2(1280, 960),
                     RelativeSizeAxes = Axes.Both,
                 },
             });
@@ -209,7 +216,7 @@ namespace osu.Framework
                         LoadComponentAsync(logOverlay = new LogOverlay
                         {
                             Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     logOverlay.Show();
@@ -249,7 +256,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, AddInternal);
+            }, overlayContent.Add);
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
         }
@@ -298,7 +305,7 @@ namespace osu.Framework
                         {
                             ToolPosition = getCascadeLocation(0),
                             Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     drawVisualiser.ToggleVisibility();
@@ -312,7 +319,7 @@ namespace osu.Framework
                         {
                             Depth = float.MinValue / 2,
                             Position = getCascadeLocation(1),
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     globalStatistics.ToggleVisibility();
@@ -326,7 +333,7 @@ namespace osu.Framework
                         {
                             Position = getCascadeLocation(2),
                             Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     textureVisualiser.ToggleVisibility();
@@ -339,7 +346,7 @@ namespace osu.Framework
                         {
                             Position = getCascadeLocation(3),
                             Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     audioMixerVisualiser.ToggleVisibility();
