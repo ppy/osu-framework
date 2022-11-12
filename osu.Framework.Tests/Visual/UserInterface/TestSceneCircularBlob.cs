@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -18,20 +16,16 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCircularProgress : FrameworkTestScene
+    public class TestSceneCircularBlob : FrameworkTestScene
     {
         [Resolved]
-        private IRenderer renderer { get; set; }
+        private IRenderer renderer { get; set; } = null!;
 
-        private CircularProgress clock;
+        private CircularBlob blob = null!;
 
-        private int rotateMode;
-        private const double period = 4000;
-        private const double transition_period = 2000;
-
-        private Texture gradientTextureHorizontal;
-        private Texture gradientTextureVertical;
-        private Texture gradientTextureBoth;
+        private Texture gradientTextureHorizontal = null!;
+        private Texture gradientTextureVertical = null!;
+        private Texture gradientTextureBoth = null!;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -99,7 +93,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Origin = Anchor.Centre,
                     Size = new Vector2(250),
                     CornerRadius = 20,
-                    Child = clock = new CircularProgress
+                    Child = blob = new CircularBlob
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -107,12 +101,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             };
-
-            AddStep("Forward", delegate { setRotationMode(1); });
-            AddStep("Backward", delegate { setRotationMode(2); });
-            AddStep("Transition Focus", delegate { setRotationMode(3); });
-            AddStep("Transition Focus 2", delegate { setRotationMode(4); });
-            AddStep("Forward/Backward", delegate { setRotationMode(0); });
 
             AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
             AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
@@ -125,51 +113,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("2D Gradient Colour", delegate { setColour(4); });
             AddStep("White Colour", delegate { setColour(0); });
 
-            AddStep("Forward Transform", delegate { transform(0); });
-            AddStep("Backward Transform", delegate { transform(1); });
-            AddStep("Fwd/Bwd Transform", delegate { transform(2); });
-            AddStep("Easing Transform", delegate { transform(3); });
-
             AddToggleStep("Toggle masking", m => maskingContainer.Masking = m);
-            AddToggleStep("Toggle rounded caps", r => clock.RoundedCaps = r);
-            AddToggleStep("Toggle aspect ratio", r => clock.Size = r ? new Vector2(600, 400) : new Vector2(400));
+            AddToggleStep("Toggle aspect ratio", r => blob.Size = r ? new Vector2(600, 400) : new Vector2(400));
             AddToggleStep("Toggle background", b => background.Alpha = b ? 1 : 0);
-            AddSliderStep("Scale", 0f, 2f, 1f, s => clock.Scale = new Vector2(s));
-            AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            switch (rotateMode)
-            {
-                case 0:
-                    clock.Current.Value = Time.Current % (period * 2) / period - 1;
-                    break;
-
-                case 1:
-                    clock.Current.Value = Time.Current % period / period;
-                    break;
-
-                case 2:
-                    clock.Current.Value = Time.Current % period / period - 1;
-                    break;
-
-                case 3:
-                    clock.Current.Value = Time.Current % transition_period / transition_period / 5 - 0.1f;
-                    break;
-
-                case 4:
-                    clock.Current.Value = (Time.Current % transition_period / transition_period / 5 - 0.1f + 2) % 2 - 1;
-                    break;
-            }
-        }
-
-        private void setRotationMode(int mode)
-        {
-            clock.ClearTransforms();
-            rotateMode = mode;
+            AddSliderStep("Scale", 0f, 2f, 1f, s => blob.Scale = new Vector2(s));
+            AddSliderStep("Fill", 0f, 1f, 0.5f, f => blob.InnerRadius = f);
+            AddSliderStep("Amplitude", 0f, 1f, 0.3f, ns => blob.Amplitude = ns);
+            AddSliderStep("Frequency", 0f, 5f, 1.5f, ns => blob.Frequency = ns);
+            AddSliderStep("Seed", 0, 999999999, 0, s => blob.Seed = s);
         }
 
         private void setTexture(int textureMode)
@@ -177,19 +128,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (textureMode)
             {
                 case 0:
-                    clock.Texture = renderer.WhitePixel;
+                    blob.Texture = renderer.WhitePixel;
                     break;
 
                 case 1:
-                    clock.Texture = gradientTextureHorizontal;
+                    blob.Texture = gradientTextureHorizontal;
                     break;
 
                 case 2:
-                    clock.Texture = gradientTextureVertical;
+                    blob.Texture = gradientTextureVertical;
                     break;
 
                 case 3:
-                    clock.Texture = gradientTextureBoth;
+                    blob.Texture = gradientTextureBoth;
                     break;
             }
         }
@@ -199,15 +150,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (colourMode)
             {
                 case 0:
-                    clock.Colour = new Color4(255, 255, 255, 255);
+                    blob.Colour = new Color4(255, 255, 255, 255);
                     break;
 
                 case 1:
-                    clock.Colour = new Color4(255, 88, 88, 255);
+                    blob.Colour = new Color4(255, 88, 88, 255);
                     break;
 
                 case 2:
-                    clock.Colour = new ColourInfo
+                    blob.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(128, 255, 128, 255),
@@ -217,7 +168,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 3:
-                    clock.Colour = new ColourInfo
+                    blob.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(255, 128, 128, 255),
@@ -227,37 +178,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 4:
-                    clock.Colour = new ColourInfo
+                    blob.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(128, 255, 128, 255),
                         BottomLeft = new Color4(128, 128, 255, 255),
                         BottomRight = new Color4(255, 255, 255, 255),
                     };
-                    break;
-            }
-        }
-
-        private void transform(int tf)
-        {
-            setRotationMode(-1);
-
-            switch (tf)
-            {
-                case 0:
-                    clock.FillTo(0).Then().FillTo(1, 1000).Loop();
-                    break;
-
-                case 1:
-                    clock.FillTo(1).Then().FillTo(0, 1000).Loop();
-                    break;
-
-                case 2:
-                    clock.FillTo(0, 1000).Then().FillTo(1, 1000).Loop();
-                    break;
-
-                case 3:
-                    clock.FillTo(0).Then().FillTo(1, 1000, Easing.InOutQuart).Loop();
                     break;
             }
         }

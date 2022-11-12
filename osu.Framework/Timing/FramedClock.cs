@@ -3,6 +3,7 @@
 
 using osu.Framework.Extensions.TypeExtensions;
 using System;
+using System.Linq;
 
 namespace osu.Framework.Timing
 {
@@ -29,7 +30,13 @@ namespace osu.Framework.Timing
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
 
+        private readonly double[] betweenFrameTimes = new double[128];
+
+        private long totalFramesProcessed;
+
         public double FramesPerSecond { get; private set; }
+
+        public double Jitter { get; private set; }
 
         public virtual double CurrentTime { get; protected set; }
 
@@ -61,6 +68,9 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
+            betweenFrameTimes[totalFramesProcessed % betweenFrameTimes.Length] = CurrentTime - LastFrameTime;
+            totalFramesProcessed++;
+
             if (processSource && Source is IFrameBasedClock framedSource)
                 framedSource.ProcessFrame();
 
@@ -69,9 +79,20 @@ namespace osu.Framework.Timing
                 timeUntilNextCalculation += fps_calculation_interval;
 
                 if (framesSinceLastCalculation == 0)
+                {
                     FramesPerSecond = 0;
+                    Jitter = 0;
+                }
                 else
+                {
                     FramesPerSecond = (int)Math.Ceiling(framesSinceLastCalculation * 1000f / timeSinceLastCalculation);
+
+                    // simple stddev
+                    double avg = betweenFrameTimes.Average();
+                    double stddev = Math.Sqrt(betweenFrameTimes.Average(v => Math.Pow(v - avg, 2)));
+                    Jitter = stddev;
+                }
+
                 timeSinceLastCalculation = framesSinceLastCalculation = 0;
             }
 
