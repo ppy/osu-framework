@@ -17,7 +17,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlob");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlobRounded");
         }
 
         protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);

@@ -92,8 +92,6 @@ namespace osu.Framework.Graphics.Sprites
             shader.Unbind();
         }
 
-        protected override bool RequiresRoundedShader(IRenderer renderer) => base.RequiresRoundedShader(renderer) || InflationAmount != Vector2.Zero;
-
         protected override void DrawOpaqueInterior(IRenderer renderer)
         {
             base.DrawOpaqueInterior(renderer);

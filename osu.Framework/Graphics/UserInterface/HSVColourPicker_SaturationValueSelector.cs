@@ -210,7 +210,6 @@ namespace osu.Framework.Graphics.UserInterface
             private class SaturationBox : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
 
                 private float hue;
 
@@ -235,7 +234,6 @@ namespace osu.Framework.Graphics.UserInterface
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
                 }
 
                 protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);

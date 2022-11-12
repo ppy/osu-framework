@@ -28,7 +28,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
         }
 
         protected override void LoadComplete()
