@@ -26,7 +26,7 @@ void main(void)
     highp vec2 pixelPos = v_TexCoord / resolution;
     
     highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
-    lowp vec4 textureColour = getRoundedColor(toSRGB(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9)), wrappedCoord);
+    lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9), wrappedCoord);
 
     gl_FragColor = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, innerRadius, texelSize, frequency, amplitude, noisePosition));
 }
