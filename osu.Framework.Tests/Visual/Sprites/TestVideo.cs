@@ -5,7 +5,6 @@
 
 using System.IO;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Tests.Visual.Sprites
