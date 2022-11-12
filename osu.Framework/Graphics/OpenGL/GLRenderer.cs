@@ -203,21 +203,24 @@ namespace osu.Framework.Graphics.OpenGL
 
         private int maskingTexture = -1;
 
-        protected override void SetMaskingBlock(Span<float> maskingBlock)
+        protected override void UploadMaskingTexture()
         {
-            GL.ActiveTexture(TextureUnit.Texture10);
+            base.UploadMaskingTexture();
+
+            if (MaskingTextureBuffer.Length == 0)
+                return;
 
             if (maskingTexture == -1)
-            {
                 maskingTexture = GL.GenTexture();
 
-                GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
-            }
+            int totalTexels = MaskingTextureBuffer.Length / 4;
+            int texDimensionY = (totalTexels + MAX_MASKING_TEXTURE_WIDTH - 1) / MAX_MASKING_TEXTURE_WIDTH;
 
+            GL.ActiveTexture(TextureUnit.Texture10);
             GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
-            GL.TexImage2D(All.TextureRectangle, 0, All.Rgba32f, 4, 4, 0, All.Rgba, All.Float, ref maskingBlock[0]);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
+            GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MAX_MASKING_TEXTURE_WIDTH, texDimensionY, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -252,9 +255,15 @@ namespace osu.Framework.Graphics.OpenGL
                 blendingMask.HasFlagFast(BlendingMask.Alpha));
         }
 
-        protected override void SetViewportImplementation(RectangleI viewport) => GL.Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height);
+        protected override void SetViewportImplementation(RectangleI viewport)
+        {
+            GL.Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height);
+        }
 
-        protected override void SetScissorImplementation(RectangleI scissor) => GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
+        protected override void SetScissorImplementation(RectangleI scissor)
+        {
+            GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
+        }
 
         protected override void SetDepthInfoImplementation(DepthInfo depthInfo)
         {

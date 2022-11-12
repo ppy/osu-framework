@@ -16,5 +16,6 @@ namespace osu.Framework.Graphics.Shaders
         WrapModeT,
         BackbufferDraw,
         MaskingBlockSampler,
+        MaskingTextureSize
     }
 }

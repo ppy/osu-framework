@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        public void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
+        public void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
         }
 

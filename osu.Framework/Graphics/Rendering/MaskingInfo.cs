@@ -10,6 +10,8 @@ namespace osu.Framework.Graphics.Rendering
 {
     public struct MaskingInfo : IEquatable<MaskingInfo>
     {
+        public int Id;
+
         public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
 
@@ -35,6 +37,8 @@ namespace osu.Framework.Graphics.Rendering
 
         public bool Hollow;
         public float HollowCornerRadius;
+
+        public Vector2 TexCoord;
 
         public readonly bool Equals(MaskingInfo other) => this == other;
 

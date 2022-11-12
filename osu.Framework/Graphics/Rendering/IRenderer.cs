@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="maskingInfo">The masking parameters.</param>
         /// <param name="overwritePreviousScissor">Whether to use the last scissor rectangle.</param>
-        void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false);
+        void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false);
 
         /// <summary>
         /// Restores the last masking parameters.

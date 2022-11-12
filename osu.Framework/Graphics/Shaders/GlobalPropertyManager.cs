@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.WrapModeS] = new UniformMapping<int>("g_WrapModeS");
             global_properties[(int)GlobalProperty.WrapModeT] = new UniformMapping<int>("g_WrapModeT");
             global_properties[(int)GlobalProperty.MaskingBlockSampler] = new UniformMapping<int>("g_MaskingBlockSampler");
+            global_properties[(int)GlobalProperty.MaskingTextureSize] = new UniformMapping<Vector2>("g_MaskingTexSize");
 
             // Backbuffer internals
             global_properties[(int)GlobalProperty.BackbufferDraw] = new UniformMapping<bool>("g_BackbufferDraw");

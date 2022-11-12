@@ -5,6 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering.Vertices
@@ -18,8 +19,12 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         [VertexMember(1, VertexAttribPointerType.Float)]
         public float BackbufferDrawDepth;
 
+        [VertexMember(2, VertexAttribPointerType.Float)]
+        public Vector2 MaskingTexCoord;
+
         public readonly bool Equals(DepthWrappingVertex<TVertex> other)
             => Vertex.Equals(other.Vertex)
-               && BackbufferDrawDepth.Equals(other.BackbufferDrawDepth);
+               && BackbufferDrawDepth.Equals(other.BackbufferDrawDepth)
+               && MaskingTexCoord.Equals(other.MaskingTexCoord);
     }
 }
