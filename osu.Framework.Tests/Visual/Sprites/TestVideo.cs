@@ -16,14 +16,14 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
         }
 
-        private bool? useRoundedShader;
+        private bool? rounded;
 
-        public bool? UseRoundedShader
+        public bool? Rounded
         {
-            get => useRoundedShader;
+            get => rounded;
             set
             {
-                useRoundedShader = value;
+                rounded = value;
 
                 if (value == true)
                 {
@@ -35,8 +35,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                     Masking = false;
                     CornerRadius = 0f;
                 }
-
-                Invalidate(Invalidation.DrawNode);
             }
         }
 
