@@ -54,7 +54,7 @@ namespace osu.Framework.IO.Stores
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-                return input?.ReadAllBytesToArrayAsync(cancellationToken);
+                return input?.ReadAllBytesToArrayAsync(cancellationToken) ?? Task.FromResult<byte[]>(null);
         }
 
         /// <summary>
