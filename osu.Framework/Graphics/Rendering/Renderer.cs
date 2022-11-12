@@ -114,6 +114,17 @@ namespace osu.Framework.Graphics.Rendering
         private bool isInitialised;
         private int lastActiveTextureUnit;
 
+        private static readonly GlobalStatistic<int>[] flush_source_statistics;
+
+        static Renderer()
+        {
+            var sources = Enum.GetValues(typeof(FlushBatchSource));
+
+            flush_source_statistics = new GlobalStatistic<int>[sources.Length];
+            foreach (FlushBatchSource source in sources)
+                flush_source_statistics[(int)source] = GlobalStatistics.Get<int>(nameof(FlushBatchSource), source.ToString());
+        }
+
         protected Renderer()
         {
             statTextureUploadsPerformed = GlobalStatistics.Get<int>(GetType().Name, "Texture uploads performed");
@@ -714,33 +725,14 @@ namespace osu.Framework.Graphics.Rendering
             currentActiveBatch = batch;
         }
 
-        private static readonly GlobalStatistic<int>[] flush_source_statistics;
-
-        static Renderer()
-        {
-            var sources = Enum.GetValues(typeof(FlushBatchSource));
-
-            flush_source_statistics = new GlobalStatistic<int>[sources.Length];
-            foreach (FlushBatchSource source in sources)
-                flush_source_statistics[(int)source] = GlobalStatistics.Get<int>(nameof(FlushBatchSource), source.ToString());
-        }
-
         /// <summary>
         /// Flushes the currently active vertex batch.
         /// </summary>
         /// <param name="source">The source performing the flush, for profiling purposes.</param>
         protected void FlushCurrentBatch(FlushBatchSource? source)
         {
-            if (currentActiveBatch?.Draw() > 0)
-                incrementFlushStatistic(source);
-        }
-
-        private void incrementFlushStatistic(FlushBatchSource? source)
-        {
-            if (source == null)
-                return;
-
-            flush_source_statistics[(int)source].Value++;
+            if (currentActiveBatch?.Draw() > 0 && source != null)
+                flush_source_statistics[(int)source].Value++;
         }
 
         private void freeUnusedVertexBuffers()
