@@ -12,12 +12,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Localisation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -165,7 +167,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(count);
         }
 
-        [TestCase]
+        [Test]
         public void TestRefilterAfterNewChild()
         {
             setTerm("multi");
@@ -174,6 +176,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(1);
             AddStep("Add new unfiltered item", () => search.Add(new SearchableText { Text = "multi visible" }));
             checkCount(2);
+        }
+
+        [Test]
+        public void TestFilterRespectsHiddenChild()
+        {
+            HeaderContainer header = null!;
+            HideableSearchText hiddenText = null!;
+
+            AddStep("add new hidden filtered item", () => search.Add(header = new HeaderContainer("Subsection 3")
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = hiddenText = new HideableSearchText
+                {
+                    CanBeShown = { Value = false },
+                    Text = "Hidden Text"
+                }
+            }));
+            setTerm("Hidden text");
+
+            checkCount(0);
+            AddAssert("no subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
+
+            AddStep("show hidden text", () => hiddenText.CanBeShown.Value = true);
+
+            checkCount(1);
+            AddAssert("subsection displayed", () => search.ChildrenOfType<HeaderContainer>().Single(h => h.IsPresent) == header);
         }
 
         [TestCase]
@@ -330,6 +358,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public void Dispose()
             {
             }
+        }
+
+        private class HideableSearchText : SearchableText, IConditionalFilterable
+        {
+            public Bindable<bool> CanBeShown { get; } = new Bindable<bool>();
+
+            IBindable<bool> IConditionalFilterable.CanBeShown => CanBeShown;
         }
     }
 }
