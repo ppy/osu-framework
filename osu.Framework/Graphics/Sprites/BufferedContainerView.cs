@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
-                var shader = GetAppropriateShader(renderer);
+                var shader = TextureShader;
 
                 shader.Bind();
 

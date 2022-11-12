@@ -122,7 +122,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void Blit(IRenderer renderer)
             {
-                var shader = GetAppropriateShader(renderer);
+                var shader = TextureShader;
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);

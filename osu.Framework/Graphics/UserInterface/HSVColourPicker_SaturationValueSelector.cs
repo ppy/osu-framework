@@ -257,7 +257,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                     protected override void Blit(IRenderer renderer)
                     {
-                        GetAppropriateShader(renderer).GetUniform<float>("hue").UpdateValue(ref hue);
+                        TextureShader.GetUniform<float>("hue").UpdateValue(ref hue);
                         base.Blit(renderer);
                     }
                 }

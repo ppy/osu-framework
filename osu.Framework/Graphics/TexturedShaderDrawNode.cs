@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
@@ -25,12 +24,5 @@ namespace osu.Framework.Graphics
 
             TextureShader = Source.TextureShader;
         }
-
-        /// <summary>
-        /// Gets the appropriate <see cref="IShader"/> to use for the current masking state.
-        /// This will return <see cref="TextureShader"/>.
-        /// </summary>
-        /// <param name="renderer">The renderer that will be drawn with.</param>
-        protected IShader GetAppropriateShader(IRenderer renderer) => TextureShader;
     }
 }

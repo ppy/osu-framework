@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            var shader = GetAppropriateShader(renderer);
+            var shader = TextureShader;
 
             shader.Bind();
 
