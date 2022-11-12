@@ -380,6 +380,8 @@ namespace osu.Framework.Tests.Visual.Containers
             }
 
             public new void UpdateSubTree() => base.UpdateSubTree();
+
+            public new void AddInternal(Drawable child) => base.AddInternal(child);
         }
     }
 }

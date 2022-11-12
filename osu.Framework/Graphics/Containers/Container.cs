@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.Containers
                 Add(d);
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             if (Content == this && drawable != null && !(drawable is T))
             {

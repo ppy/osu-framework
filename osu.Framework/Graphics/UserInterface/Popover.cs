@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected internal sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
+        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
 
         #region Sizing delegation
 
