@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
                 renderer.PopMaskingInfo();
             }
 
-            private const int min_amount_children_to_warrant_batch = 8;
+            private const int min_amount_children_to_warrant_batch = 1024;
 
             private bool mayHaveOwnVertexBatch(int amountChildren) => forceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
