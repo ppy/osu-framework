@@ -22,6 +22,7 @@ varying highp float g_CornerExponent;
 varying highp vec4 g_MaskingRect;
 varying highp float g_BorderThickness;
 varying lowp mat4 g_BorderColour;
+varying lowp vec4 v_BorderColour;
 varying mediump float g_MaskingBlendRange;
 varying lowp float g_AlphaExponent;
 varying highp vec2 g_EdgeOffset;
@@ -37,6 +38,14 @@ uniform highp sampler2D g_MaskingBlockSampler;
 vec4 maskingTex(int texIndex)
 {
     return texture2D(g_MaskingBlockSampler, (m_MaskingTexCoord + vec2(float(texIndex), 0.0) + vec2(0.5)) / g_MaskingTexSize);
+}
+
+lowp vec4 getBorderColour()
+{
+    highp vec2 relativeTexCoord = v_MaskingPosition / (g_MaskingRect.zw - g_MaskingRect.xy);
+    lowp vec4 top = mix(g_BorderColour[0], g_BorderColour[2], relativeTexCoord.x);
+    lowp vec4 bottom = mix(g_BorderColour[1], g_BorderColour[3], relativeTexCoord.x);
+    return mix(top, bottom, relativeTexCoord.y);
 }
 
 void initMasking()
@@ -74,6 +83,8 @@ void initMasking()
     // Transform from screen space to masking space.
     highp vec3 maskingPos = g_ToMaskingSpace * vec3(m_Position, 1.0);
     v_MaskingPosition = maskingPos.xy / maskingPos.z;
+
+    v_BorderColour = getBorderColour();
 }
 
 void main(void)
