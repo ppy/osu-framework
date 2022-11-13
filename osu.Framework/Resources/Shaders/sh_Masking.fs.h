@@ -35,8 +35,7 @@ highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
         bottomRightOffset + vec2(radius),
         topLeftOffset + vec2(radius));
 
-    highp
-    float maxDist = max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
+    highp float maxDist = max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
 
     // Inside the shrunk rectangle
     if (maxDist <= 0.0)
@@ -115,10 +114,8 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
     // This ends up softening glow without negatively affecting edge smoothness much.
     alphaFactor = pow(alphaFactor, g_AlphaExponent);
 
-    highp
-    float borderStart = 1.0 + fadeStart - g_BorderThickness;
-    lowp
-    float colourWeight = min(borderStart - dist, 1.0);
+    highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
+    lowp float colourWeight = min(borderStart - dist, 1.0);
 
     if (colourWeight <= 0.0)
     {
