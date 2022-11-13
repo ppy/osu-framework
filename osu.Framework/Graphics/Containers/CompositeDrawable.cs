@@ -573,7 +573,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
-        protected internal virtual void AddInternal(Drawable drawable)
+        protected virtual void AddInternal(Drawable drawable)
         {
             EnsureChildMutationAllowed();
 

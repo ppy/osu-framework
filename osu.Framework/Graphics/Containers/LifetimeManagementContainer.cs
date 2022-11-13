@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
             manager.EntryCrossedBoundary += entryCrossedBoundary;
         }
 
-        protected internal override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
+        protected override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
 
         /// <summary>
         /// Adds a <see cref="Drawable"/> to this <see cref="LifetimeManagementContainer"/>.
