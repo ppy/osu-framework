@@ -608,6 +608,7 @@ namespace osu.Framework.Graphics.Rendering
 
                 maskingBlock[36] = maskingInfo.Hollow ? 1 : 0;
                 maskingBlock[37] = maskingInfo.HollowCornerRadius;
+                maskingBlock[38] = maskingStack.Count == 0 ? 0.0f : 1.0f;
 
                 maskingBlock.CopyTo(MaskingTextureBuffer.AsSpan().Slice(index));
 

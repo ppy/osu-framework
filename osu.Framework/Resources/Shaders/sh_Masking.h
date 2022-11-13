@@ -22,6 +22,7 @@ highp vec2 g_EdgeOffset;
 lowp float g_DiscardInner;
 highp float g_InnerCornerRadius;
 highp mat3 g_ToMaskingSpace;
+bool g_IsMasking;
 
 uniform highp vec2 g_MaskingTexSize;
 uniform highp sampler2D g_MaskingBlockSampler;
@@ -61,6 +62,7 @@ void initMasking()
 
     g_DiscardInner = maskingTex(9).r;
     g_InnerCornerRadius = maskingTex(9).g;
+    g_IsMasking = maskingTex(9).b == 1.0;
 
     // Transform from screen space to masking space.
     highp vec3 maskingPos = g_ToMaskingSpace * vec3(v_Position, 1.0);
@@ -119,13 +121,13 @@ lowp vec4 getBorderColour()
 
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
-	if (!g_IsMasking && v_BlendRange == vec2(0.0))
-	{
-		return toSRGB(v_Colour * texel);
-	}
+    if (!g_IsMasking && v_BlendRange == vec2(0.0))
+    {
+        return toSRGB(v_Colour * texel);
+    }
 
-	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
-	lowp float alphaFactor = 1.0;
+    highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
+    lowp float alphaFactor = 1.0;
 
     // Discard inner pixels
     if (g_DiscardInner != 0.0)
@@ -150,16 +152,14 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
     dist /= g_MaskingBlendRange;
 
     // This correction is needed to avoid fading of the alpha value for radii below 1px.
-    highp
-    float radiusCorrection = g_CornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - g_CornerRadius);
-    highp
-    float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
+    highp float radiusCorrection = g_CornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - g_CornerRadius);
+    highp float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
     alphaFactor *= min(fadeStart - dist, 1.0);
 
-	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
-	{
-		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(texCoord), 0.0, 1.0);
-	}
+    if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
+    {
+        alphaFactor *= clamp(1.0 - distanceFromDrawingRect(texCoord), 0.0, 1.0);
+    }
 
     if (alphaFactor <= 0.0)
     {
@@ -181,8 +181,8 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
         return toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor));
     }
 
-	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
-	lowp vec4 src = vec4(borderColour.rgb, borderColour.a * (1.0 - colourWeight));
+    lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
+    lowp vec4 src = vec4(borderColour.rgb, borderColour.a * (1.0 - colourWeight));
 
-	return blend(toSRGB(src), toSRGB(dest));
+    return blend(toSRGB(src), toSRGB(dest));
 }
