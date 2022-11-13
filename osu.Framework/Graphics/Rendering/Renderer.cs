@@ -540,12 +540,10 @@ namespace osu.Framework.Graphics.Rendering
 
         public void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
-            bool isEqual = CurrentMaskingInfo == maskingInfo;
+            bool isEqual = maskingStack.Count > 0 && CurrentMaskingInfo == maskingInfo;
 
             if (isEqual)
-            {
                 maskingInfo.TexCoord = CurrentMaskingInfo.TexCoord;
-            }
             else
             {
                 int index = rollingMaskingInfoId++ * MASKING_DATA_LENGTH;
