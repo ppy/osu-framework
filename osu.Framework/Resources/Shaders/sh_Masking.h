@@ -26,23 +26,6 @@ highp mat3 g_ToMaskingSpace;
 uniform highp vec2 g_MaskingTexSize;
 uniform highp sampler2D g_MaskingBlockSampler;
 
-highp mat4 transpose(highp mat4 inMatrix)
-{
-    highp vec4 i0 = inMatrix[0];
-    highp vec4 i1 = inMatrix[1];
-    highp vec4 i2 = inMatrix[2];
-    highp vec4 i3 = inMatrix[3];
-
-    highp mat4 outMatrix = mat4(
-        vec4(i0.x, i1.x, i2.x, i3.x),
-        vec4(i0.y, i1.y, i2.y, i3.y),
-        vec4(i0.z, i1.z, i2.z, i3.z),
-        vec4(i0.w, i1.w, i2.w, i3.w)
-    );
-
-    return outMatrix;
-}
-
 vec4 maskingTex(int texIndex)
 {
     return texture2D(g_MaskingBlockSampler, (v_MaskingTexCoord + vec2(float(texIndex), 0.0) + vec2(0.5)) / g_MaskingTexSize);
@@ -71,7 +54,6 @@ void initMasking()
     g_BorderColour[1] = maskingTex(5);
     g_BorderColour[2] = maskingTex(6);
     g_BorderColour[3] = maskingTex(7);
-    g_BorderColour = transpose(g_BorderColour);
 
     g_MaskingBlendRange = maskingTex(8).r;
     g_AlphaExponent = maskingTex(8).g;
