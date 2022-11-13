@@ -16,11 +16,11 @@ namespace osu.Framework.Graphics.Rendering.Vertices
     {
         public TVertex Vertex;
 
-        [VertexMember(1, VertexAttribPointerType.Float)]
-        public float BackbufferDrawDepth;
-
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 MaskingTexCoord;
+
+        [VertexMember(1, VertexAttribPointerType.Float)]
+        public float BackbufferDrawDepth;
 
         public readonly bool Equals(DepthWrappingVertex<TVertex> other)
             => Vertex.Equals(other.Vertex)
