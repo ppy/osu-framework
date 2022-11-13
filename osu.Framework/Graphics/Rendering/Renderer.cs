@@ -551,6 +551,8 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
+            GlobalPropertyManager.Set(GlobalProperty.IsMasking, IsMaskingActive);
+
             GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
                 maskingInfo.MaskingRect.Left,
                 maskingInfo.MaskingRect.Top,

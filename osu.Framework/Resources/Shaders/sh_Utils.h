@@ -9,7 +9,11 @@ lowp float toLinear(lowp float color)
 
 lowp vec4 toLinear(lowp vec4 colour)
 {
+#ifdef GL_ES
+    return g_GammaCorrection ? vec4(toLinear(colour.r), toLinear(colour.g), toLinear(colour.b), colour.a) : colour;
+#else
     return vec4(toLinear(colour.r), toLinear(colour.g), toLinear(colour.b), colour.a);
+#endif
 }
 
 lowp float toSRGB(lowp float color)
