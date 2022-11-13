@@ -44,6 +44,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddAssert("blended additively", () => blended.DrawColourInfo.Blending == BlendingParameters.Additive);
+            AddToggleStep("toggle additive/mixture", toggled => blended.Blending =
+                toggled ? BlendingParameters.Mixture : BlendingParameters.Additive);
         }
 
         [Test]
