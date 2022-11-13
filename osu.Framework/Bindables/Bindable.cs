@@ -380,7 +380,7 @@ namespace osu.Framework.Bindables
 
         public string Description { get; set; }
 
-        public override string ToString() => value?.ToString() ?? string.Empty;
+        public override string ToString() => FormattableString.Invariant($"{Value}");
 
         /// <summary>
         /// Create an unbound clone of this bindable.
