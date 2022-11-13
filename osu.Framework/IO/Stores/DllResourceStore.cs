@@ -57,8 +57,8 @@ namespace osu.Framework.IO.Stores
             {
                 if (input == null)
                     return null;
-                else
-                    return await input.ReadAllBytesToArrayAsync(cancellationToken).ConfigureAwait(false);
+
+                return await input.ReadAllBytesToArrayAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
