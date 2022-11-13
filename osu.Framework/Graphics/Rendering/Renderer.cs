@@ -556,54 +556,56 @@ namespace osu.Framework.Graphics.Rendering
 
                 Span<float> maskingBlock = stackalloc float[MASKING_DATA_LENGTH];
 
-                maskingBlock[0] = maskingInfo.MaskingRect.Left;
-                maskingBlock[1] = maskingInfo.MaskingRect.Top;
-                maskingBlock[2] = maskingInfo.MaskingRect.Right;
-                maskingBlock[3] = maskingInfo.MaskingRect.Bottom;
+                int i = 0;
 
-                maskingBlock[4] = maskingInfo.ToMaskingSpace.M11;
-                maskingBlock[5] = maskingInfo.ToMaskingSpace.M12;
-                maskingBlock[6] = maskingInfo.ToMaskingSpace.M13;
-                maskingBlock[7] = maskingInfo.ToMaskingSpace.M21;
+                maskingBlock[i++] = maskingStack.Count == 0 ? 0.0f : 1.0f;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M11;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M12;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M13;
 
-                maskingBlock[8] = maskingInfo.ToMaskingSpace.M22;
-                maskingBlock[9] = maskingInfo.ToMaskingSpace.M23;
-                maskingBlock[10] = maskingInfo.ToMaskingSpace.M31;
-                maskingBlock[11] = maskingInfo.ToMaskingSpace.M32;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M21;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M22;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M23;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M31;
 
-                maskingBlock[12] = maskingInfo.ToMaskingSpace.M33;
-                maskingBlock[13] = maskingInfo.CornerRadius;
-                maskingBlock[14] = maskingInfo.CornerExponent;
-                maskingBlock[15] = realBorderThickness;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M32;
+                maskingBlock[i++] = maskingInfo.ToMaskingSpace.M33;
+                maskingBlock[i++] = maskingInfo.CornerRadius;
+                maskingBlock[i++] = maskingInfo.CornerExponent;
 
-                maskingBlock[16] = maskingInfo.BorderColour.TopLeft.Linear.R;
-                maskingBlock[17] = maskingInfo.BorderColour.TopLeft.Linear.G;
-                maskingBlock[18] = maskingInfo.BorderColour.TopLeft.Linear.B;
-                maskingBlock[19] = maskingInfo.BorderColour.TopLeft.Linear.A;
+                maskingBlock[i++] = maskingInfo.MaskingRect.Left;
+                maskingBlock[i++] = maskingInfo.MaskingRect.Top;
+                maskingBlock[i++] = maskingInfo.MaskingRect.Right;
+                maskingBlock[i++] = maskingInfo.MaskingRect.Bottom;
 
-                maskingBlock[20] = maskingInfo.BorderColour.BottomLeft.Linear.R;
-                maskingBlock[21] = maskingInfo.BorderColour.BottomLeft.Linear.G;
-                maskingBlock[22] = maskingInfo.BorderColour.BottomLeft.Linear.B;
-                maskingBlock[23] = maskingInfo.BorderColour.BottomLeft.Linear.A;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopLeft.Linear.R;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopLeft.Linear.G;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopLeft.Linear.B;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopLeft.Linear.A;
 
-                maskingBlock[24] = maskingInfo.BorderColour.TopRight.Linear.R;
-                maskingBlock[25] = maskingInfo.BorderColour.TopRight.Linear.G;
-                maskingBlock[26] = maskingInfo.BorderColour.TopRight.Linear.B;
-                maskingBlock[27] = maskingInfo.BorderColour.TopRight.Linear.A;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomLeft.Linear.R;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomLeft.Linear.G;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomLeft.Linear.B;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomLeft.Linear.A;
 
-                maskingBlock[28] = maskingInfo.BorderColour.BottomRight.Linear.R;
-                maskingBlock[29] = maskingInfo.BorderColour.BottomRight.Linear.G;
-                maskingBlock[30] = maskingInfo.BorderColour.BottomRight.Linear.B;
-                maskingBlock[31] = maskingInfo.BorderColour.BottomRight.Linear.A;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopRight.Linear.R;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopRight.Linear.G;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopRight.Linear.B;
+                maskingBlock[i++] = maskingInfo.BorderColour.TopRight.Linear.A;
 
-                maskingBlock[32] = maskingInfo.BlendRange;
-                maskingBlock[33] = maskingInfo.AlphaExponent;
-                maskingBlock[34] = maskingInfo.EdgeOffset.X;
-                maskingBlock[35] = maskingInfo.EdgeOffset.Y;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomRight.Linear.R;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomRight.Linear.G;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomRight.Linear.B;
+                maskingBlock[i++] = maskingInfo.BorderColour.BottomRight.Linear.A;
 
-                maskingBlock[36] = maskingInfo.Hollow ? 1 : 0;
-                maskingBlock[37] = maskingInfo.HollowCornerRadius;
-                maskingBlock[38] = maskingStack.Count == 0 ? 0.0f : 1.0f;
+                maskingBlock[i++] = realBorderThickness;
+                maskingBlock[i++] = maskingInfo.BlendRange;
+                maskingBlock[i++] = maskingInfo.AlphaExponent;
+                maskingBlock[i++] = maskingInfo.Hollow ? 1 : 0;
+
+                maskingBlock[i++] = maskingInfo.EdgeOffset.X;
+                maskingBlock[i++] = maskingInfo.EdgeOffset.Y;
+                maskingBlock[i++] = maskingInfo.HollowCornerRadius;
 
                 maskingBlock.CopyTo(MaskingTextureBuffer.AsSpan().Slice(index));
 
