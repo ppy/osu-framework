@@ -121,6 +121,8 @@ lowp vec4 getBorderColour()
 
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
+    initMasking();
+
     if (!g_IsMasking && v_BlendRange == vec2(0.0))
     {
         return toSRGB(v_Colour * texel);
