@@ -13,13 +13,8 @@ namespace osu.Framework.Graphics
     public interface ITexturedShaderDrawable : IDrawable
     {
         /// <summary>
-        /// The <see cref="IShader"/> to be used for rendering when masking is not required.
+        /// The <see cref="IShader"/> to be used for rendering.
         /// </summary>
         IShader TextureShader { get; }
-
-        /// <summary>
-        /// The <see cref="IShader"/> to be used for rendering when masking is required.
-        /// </summary>
-        IShader RoundedTextureShader { get; }
     }
 }

@@ -28,12 +28,9 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         public IShader TextureShader { get; protected set; }
-
-        public IShader RoundedTextureShader { get; protected set; }
 
         private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);
 

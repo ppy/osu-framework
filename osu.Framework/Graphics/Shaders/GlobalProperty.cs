@@ -11,6 +11,7 @@ namespace osu.Framework.Graphics.Shaders
     internal enum GlobalProperty
     {
         ProjMatrix,
+        IsMasking,
         MaskingRect,
         ToMaskingSpace,
         CornerRadius,
