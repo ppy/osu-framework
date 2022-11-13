@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MASKING_TEXTURE_WIDTH, MaskingTextureHeight, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
             } else {
                 int previousConservative = Math.Max(previousMaskingTextureHeight, 0);
-                if (previousConservative != currentMaskingTextureHeight)
+                if (previousConservative < currentMaskingTextureHeight)
                     GL.TexSubImage2D(All.Texture2D, 0, 0, previousConservative, MASKING_TEXTURE_WIDTH, currentMaskingTextureHeight - previousConservative, All.Rgba, All.Float, ref MaskingTextureBuffer[previousConservative * MASKING_TEXTURE_WIDTH * 4]);
             }
 

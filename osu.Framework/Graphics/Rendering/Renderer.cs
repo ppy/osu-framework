@@ -535,7 +535,7 @@ namespace osu.Framework.Graphics.Rendering
         protected const int MASKING_DATA_LENGTH = 64;
         protected const int MASKING_TEXTURE_WIDTH = MASKING_DATA_LENGTH / 4; // Single masking info wide for now
 
-        protected int MaskingTextureHeight = 1;
+        protected int MaskingTextureHeight = 0;
         protected float[] MaskingTextureBuffer = new float[MASKING_TEXTURE_WIDTH * 4];
         protected int RollingMaskingInfoId;
 
