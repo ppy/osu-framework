@@ -544,14 +544,11 @@ namespace osu.Framework.Graphics.Rendering
 
             if (isEqual)
             {
-                maskingInfo.Id = CurrentMaskingInfo.Id;
                 maskingInfo.TexCoord = CurrentMaskingInfo.TexCoord;
             }
             else
             {
-                maskingInfo.Id = rollingMaskingInfoId++;
-
-                int index = maskingInfo.Id * MASKING_DATA_LENGTH;
+                int index = rollingMaskingInfoId++ * MASKING_DATA_LENGTH;
 
                 // Ensure we have enough space for this masking data by doubling the array size every time.
                 if (index >= MaskingTextureBuffer.Length)

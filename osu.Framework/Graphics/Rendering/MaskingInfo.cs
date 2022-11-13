@@ -10,8 +10,6 @@ namespace osu.Framework.Graphics.Rendering
 {
     public struct MaskingInfo : IEquatable<MaskingInfo>
     {
-        public int Id;
-
         public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
 
