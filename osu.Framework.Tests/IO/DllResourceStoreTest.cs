@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.IO
         {
             var resourceStore = new DllResourceStore(typeof(FrameworkTestScene).Assembly);
 
-            byte[]? stream = await resourceStore.GetAsync("Resources.Tracks.sample-track.mp3");
+            byte[]? stream = await resourceStore.GetAsync("Resources.Tracks.sample-track.mp3").ConfigureAwait(false);
             Assert.That(stream, Is.Not.Null);
         }
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.IO
         {
             var resourceStore = new DllResourceStore(typeof(FrameworkTestScene).Assembly);
 
-            byte[]? stream = await resourceStore.GetAsync("Resources.Tracks.sample-track.mp5");
+            byte[]? stream = await resourceStore.GetAsync("Resources.Tracks.sample-track.mp5").ConfigureAwait(false);
             Assert.That(stream, Is.Null);
         }
     }
