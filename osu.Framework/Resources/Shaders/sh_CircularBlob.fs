@@ -1,7 +1,7 @@
 ﻿#define HIGH_PRECISION_VERTEX
 
 #include "sh_Utils.h"
-#include "sh_Masking.h"
+#include "sh_Masking.fs.h"
 #include "sh_TextureWrapping.h"
 #include "sh_CircularBlobUtils.h"
 

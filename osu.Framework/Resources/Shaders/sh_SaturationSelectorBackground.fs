@@ -1,7 +1,7 @@
 #define HIGH_PRECISION_VERTEX
 
 #include "sh_Utils.h"
-#include "sh_Masking.h"
+#include "sh_Masking.fs.h"
 
 varying highp vec2 v_TexCoord;
 

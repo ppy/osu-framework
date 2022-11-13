@@ -1,5 +1,4 @@
-﻿varying highp vec2 v_Position;
-varying lowp vec4 v_Colour;
+﻿varying lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
 	varying highp vec4 v_TexRect;
