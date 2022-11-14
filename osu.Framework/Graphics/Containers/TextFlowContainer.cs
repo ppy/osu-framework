@@ -351,6 +351,7 @@ namespace osu.Framework.Graphics.Containers
         private void recreatePart(ITextPart part)
         {
             part.RecreateDrawablesFor(this);
+
             foreach (var drawable in part.Drawables)
             {
                 base.Add(drawable);
