@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneTextFlowContainer : FrameworkTestScene
     {
-        private const string default_text = "Default text\n\nnewline";
+        private const string default_text = "This Paragraph is too long to fit into one line, this line is forced to\n\nbreak";
 
         private TextFlowContainer textContainer;
 
@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Width = 300,
-                AutoSizeAxes = Axes.Y,
+                Height = 300,
                 Children = new Drawable[]
                 {
                     new Box
@@ -41,8 +41,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     },
                     textContainer = new TextFlowContainer
                     {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
+                        RelativeSizeAxes = Axes.Both,
                         Text = default_text
                     }
                 }
@@ -52,13 +51,16 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(Anchor.TopLeft)]
         [TestCase(Anchor.TopCentre)]
         [TestCase(Anchor.TopRight)]
+        [TestCase(Anchor.CentreLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.CentreRight)]
         [TestCase(Anchor.BottomLeft)]
         [TestCase(Anchor.BottomCentre)]
         [TestCase(Anchor.BottomRight)]
         public void TestChangeTextAnchor(Anchor anchor)
         {
             AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
+            AddAssert("children have correct anchors", () => textContainer.InternalChild.Anchor == anchor && textContainer.Children.All(c => c.Anchor == Anchor.TopLeft && c.Origin == Anchor.TopLeft));
             AddAssert("children are positioned correctly", () =>
             {
                 string result = string.Concat(textContainer.Children
@@ -74,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
             AddStep("add text", () => textContainer.AddText("added text"));
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
+            AddAssert("children have correct anchors", () => textContainer.InternalChild.Anchor == Anchor.TopCentre && textContainer.Children.All(c => c.Anchor == Anchor.TopLeft && c.Origin == Anchor.TopLeft));
         }
 
         [Test]
