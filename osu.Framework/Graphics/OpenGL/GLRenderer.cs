@@ -195,10 +195,6 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override void SetScissorStateImplementation(bool enabled)
         {
-            // if (enabled)
-            //     GL.Enable(EnableCap.ScissorTest);
-            // else
-            //     GL.Disable(EnableCap.ScissorTest);
             if (enabled)
                 GL.Enable(EnableCap.ScissorTest);
             else
@@ -242,7 +238,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override void SetScissorImplementation(RectangleI scissor)
         {
-            // GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
+            GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
         }
 
         protected override void SetDepthInfoImplementation(DepthInfo depthInfo)

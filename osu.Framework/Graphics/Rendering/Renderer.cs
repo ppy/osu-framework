@@ -463,7 +463,7 @@ namespace osu.Framework.Graphics.Rendering
             if (Scissor == scissor)
                 return;
 
-            // FlushCurrentBatch(FlushBatchSource.SetScissor);
+            FlushCurrentBatch(FlushBatchSource.SetScissor);
             SetScissorImplementation(scissor);
             Scissor = scissor;
         }
@@ -473,7 +473,7 @@ namespace osu.Framework.Graphics.Rendering
             if (enabled == ScissorState)
                 return;
 
-            // FlushCurrentBatch(FlushBatchSource.SetScissor);
+            FlushCurrentBatch(FlushBatchSource.SetScissor);
             SetScissorStateImplementation(enabled);
             ScissorState = enabled;
         }
@@ -483,7 +483,7 @@ namespace osu.Framework.Graphics.Rendering
             if (ScissorOffset == offset)
                 return;
 
-            // FlushCurrentBatch(FlushBatchSource.SetScissor);
+            FlushCurrentBatch(FlushBatchSource.SetScissor);
             ScissorOffset = offset;
         }
 
