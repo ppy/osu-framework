@@ -200,7 +200,7 @@ namespace osu.Framework
             dependencies.Cache(Fonts);
 
             Localisation = CreateLocalisationManager(config);
-            dependencies.Cache(Localisation);
+            dependencies.CacheAs(Localisation);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
