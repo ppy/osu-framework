@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 public override void Draw(IRenderer renderer)
                 {
-                    var shader = GetAppropriateShader(renderer);
+                    var shader = TextureShader;
 
                     redTex.Bind(1);
                     greenTex.Bind(2);

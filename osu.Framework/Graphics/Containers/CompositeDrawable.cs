@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.Containers
         {
             hasCustomDrawNode = GetType().GetMethod(nameof(CreateDrawNode))?.DeclaringType != typeof(CompositeDrawable);
 
-            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -573,7 +573,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
-        protected internal virtual void AddInternal(Drawable drawable)
+        protected virtual void AddInternal(Drawable drawable)
         {
             EnsureChildMutationAllowed();
 

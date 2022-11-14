@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected readonly Dictionary<Drawable, float> LayoutChildren = new Dictionary<Drawable, float>();
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             LayoutChildren.Add(drawable, 0f);
             // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate

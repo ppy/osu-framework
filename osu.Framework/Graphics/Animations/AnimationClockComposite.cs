@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Animations
                 manualClock.CurrentTime += elapsed;
         }
 
-        protected internal override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(CreateContent)} instead.");
+        protected override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(CreateContent)} instead.");
 
         /// <summary>
         /// Create the content container for animation display.

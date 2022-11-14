@@ -236,8 +236,6 @@ namespace osu.Framework.Graphics.Containers
 
         public IShader TextureShader { get; private set; }
 
-        public IShader RoundedTextureShader { get; private set; }
-
         private IShader blurShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
@@ -268,7 +266,6 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
