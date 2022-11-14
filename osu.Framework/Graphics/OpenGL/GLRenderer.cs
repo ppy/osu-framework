@@ -54,8 +54,6 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
 
-            previousMaskingTextureHeight = 0;
-
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
@@ -201,43 +199,10 @@ namespace osu.Framework.Graphics.OpenGL
             //     GL.Enable(EnableCap.ScissorTest);
             // else
             //     GL.Disable(EnableCap.ScissorTest);
-        }
-
-        private int maskingTexture = -1;
-        private int previousMaskingTextureHeight;
-
-        protected override void UploadMaskingTexture()
-        {
-            base.UploadMaskingTexture();
-
-            if (MaskingTextureBuffer.Length == 0)
-                return;
-
-            GL.ActiveTexture(TextureUnit.Texture10);
-
-            if (maskingTexture == -1) {
-                maskingTexture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
-            }
-
-            GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
-
-            int totalTexels = RollingMaskingInfoId * MASKING_DATA_LENGTH / 4;
-            int currentMaskingTextureHeight = (totalTexels + MASKING_TEXTURE_WIDTH - 1) / MASKING_TEXTURE_WIDTH;
-            if (MaskingTextureHeight < currentMaskingTextureHeight) {
-                MaskingTextureHeight = currentMaskingTextureHeight;
-                GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MASKING_TEXTURE_WIDTH, MaskingTextureHeight, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
-            } else {
-                int previousConservative = Math.Max(previousMaskingTextureHeight, 0);
-                if (previousConservative < currentMaskingTextureHeight)
-                    GL.TexSubImage2D(All.Texture2D, 0, 0, previousConservative, MASKING_TEXTURE_WIDTH, currentMaskingTextureHeight - previousConservative, All.Rgba, All.Float, ref MaskingTextureBuffer[previousConservative * MASKING_TEXTURE_WIDTH * 4]);
-            }
-
-            previousMaskingTextureHeight = currentMaskingTextureHeight;
-
-            GL.ActiveTexture(TextureUnit.Texture0);
+            if (enabled)
+                GL.Enable(EnableCap.ScissorTest);
+            else
+                GL.Disable(EnableCap.ScissorTest);
         }
 
         protected override void SetBlendImplementation(BlendingParameters blendingParameters)

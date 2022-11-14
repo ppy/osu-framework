@@ -532,11 +532,6 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Masking
 
-        protected const int MASKING_DATA_LENGTH = 64;
-        protected const int MASKING_TEXTURE_WIDTH = MASKING_DATA_LENGTH / 4; // Single masking info wide for now
-
-        protected int MaskingTextureHeight = 0;
-        protected float[] MaskingTextureBuffer = new float[MASKING_TEXTURE_WIDTH * 4];
         protected int RollingMaskingInfoId;
 
         public void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
@@ -544,70 +539,9 @@ namespace osu.Framework.Graphics.Rendering
             bool isEqual = maskingStack.Count > 0 && CurrentMaskingInfo == maskingInfo;
 
             if (isEqual)
-                maskingInfo.TexCoord = CurrentMaskingInfo.TexCoord;
+                maskingInfo.Id = CurrentMaskingInfo.Id;
             else
-            {
-                int index = RollingMaskingInfoId++ * MASKING_DATA_LENGTH;
-
-                // Ensure we have enough space for this masking data by doubling the array size every time.
-                if (index >= MaskingTextureBuffer.Length)
-                    Array.Resize(ref MaskingTextureBuffer, Math.Max(MASKING_DATA_LENGTH, MaskingTextureBuffer.Length * 2));
-
-                float realBorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange;
-
-                int i = index;
-                MaskingTextureBuffer[i++] = maskingStack.Count == 0 ? 0.0f : 1.0f;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M11;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M12;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M13;
-
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M21;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M22;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M23;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M31;
-
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M32;
-                MaskingTextureBuffer[i++] = maskingInfo.ToMaskingSpace.M33;
-                MaskingTextureBuffer[i++] = maskingInfo.CornerRadius;
-                MaskingTextureBuffer[i++] = maskingInfo.CornerExponent;
-
-                MaskingTextureBuffer[i++] = maskingInfo.MaskingRect.Left;
-                MaskingTextureBuffer[i++] = maskingInfo.MaskingRect.Top;
-                MaskingTextureBuffer[i++] = maskingInfo.MaskingRect.Right;
-                MaskingTextureBuffer[i++] = maskingInfo.MaskingRect.Bottom;
-
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopLeft.Linear.R;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopLeft.Linear.G;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopLeft.Linear.B;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopLeft.Linear.A;
-
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomLeft.Linear.R;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomLeft.Linear.G;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomLeft.Linear.B;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomLeft.Linear.A;
-
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopRight.Linear.R;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopRight.Linear.G;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopRight.Linear.B;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.TopRight.Linear.A;
-
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomRight.Linear.R;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomRight.Linear.G;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomRight.Linear.B;
-                MaskingTextureBuffer[i++] = maskingInfo.BorderColour.BottomRight.Linear.A;
-
-                MaskingTextureBuffer[i++] = realBorderThickness;
-                MaskingTextureBuffer[i++] = maskingInfo.BlendRange;
-                MaskingTextureBuffer[i++] = maskingInfo.AlphaExponent;
-                MaskingTextureBuffer[i++] = maskingInfo.Hollow ? 1 : 0;
-
-                MaskingTextureBuffer[i++] = maskingInfo.EdgeOffset.X;
-                MaskingTextureBuffer[i++] = maskingInfo.EdgeOffset.Y;
-                MaskingTextureBuffer[i++] = maskingInfo.HollowCornerRadius;
-
-                // ReSharper disable once PossibleLossOfFraction
-                maskingInfo.TexCoord = new Vector2((index / 4) % MASKING_TEXTURE_WIDTH, (index / 4) / MASKING_TEXTURE_WIDTH);
-            }
+                maskingInfo.Id = RollingMaskingInfoId++;
 
             maskingStack.Push(maskingInfo);
 
@@ -762,17 +696,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="source">The source performing the flush, for profiling purposes.</param>
         protected void FlushCurrentBatch(FlushBatchSource? source)
         {
-            UploadMaskingTexture();
-
-            // ReSharper disable once PossibleLossOfFraction
-            GlobalPropertyManager.Set(GlobalProperty.MaskingTextureSize, new Vector2(MASKING_TEXTURE_WIDTH, MaskingTextureHeight));
-
             if (currentActiveBatch?.Draw() > 0 && source != null)
                 flush_source_statistics[(int)source].Value++;
-        }
-
-        protected virtual void UploadMaskingTexture()
-        {
         }
 
         private void freeUnusedVertexBuffers()
