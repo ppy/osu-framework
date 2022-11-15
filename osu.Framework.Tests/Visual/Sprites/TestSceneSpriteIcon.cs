@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
@@ -22,6 +23,8 @@ namespace osu.Framework.Tests.Visual.Sprites
     [TestFixture]
     public class TestSceneSpriteIcon : FrameworkTestScene
     {
+        private ScheduledDelegate? scheduledDelegate;
+
         [Test]
         public void TestOneIconAtATime()
         {
@@ -34,6 +37,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 i = 0;
                 icons = getAllIcons().ToArray();
+                scheduledDelegate?.Cancel();
 
                 Child = new TooltipContainer
                 {
@@ -57,7 +61,16 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             });
 
-            AddRepeatStep("add icon", () => flow.Add(icons[i++]), icons.Length);
+            AddStep("start adding icons", () =>
+            {
+                scheduledDelegate = Scheduler.AddDelayed(() =>
+                {
+                    flow.Add(icons[i++]);
+
+                    if (++i > icons.Length - 1)
+                        scheduledDelegate?.Cancel();
+                }, 50, true);
+            });
         }
 
         [Test]
@@ -68,6 +81,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("prepare", () =>
             {
+                scheduledDelegate?.Cancel();
+
                 Child = new TooltipContainer
                 {
                     RelativeSizeAxes = Axes.Both,
