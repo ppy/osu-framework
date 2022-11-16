@@ -110,6 +110,19 @@ namespace osu.Framework.Graphics.Containers
         {
             bool matching = match(drawable, searchTerms, nonContiguousMatching, out var nonMatchingTerms);
 
+            if (drawable is IConditionalFilterable conditionalFilterable)
+            {
+                var canBeShownBindable = conditionalFilterable.CanBeShown.GetBoundCopy();
+                canBeShownBindables.Add(canBeShownBindable);
+                canBeShownBindable.BindValueChanged(_ => filterValid.Invalidate());
+
+                if (!conditionalFilterable.CanBeShown.Value)
+                {
+                    conditionalFilterable.FilteringActive = true;
+                    return conditionalFilterable.MatchingFilter = false;
+                }
+            }
+
             if (drawable is IContainerEnumerable<Drawable> container)
             {
                 foreach (var child in container.Children)
@@ -128,16 +141,6 @@ namespace osu.Framework.Graphics.Containers
         private bool match(Drawable drawable, IReadOnlyList<string> searchTerms, bool nonContiguousMatching, out IReadOnlyList<string> nonMatchingTerms)
         {
             nonMatchingTerms = searchTerms;
-
-            if (drawable is IConditionalFilterable conditionalFilterable)
-            {
-                var canBeShownBindable = conditionalFilterable.CanBeShown.GetBoundCopy();
-                canBeShownBindables.Add(canBeShownBindable);
-                canBeShownBindable.BindValueChanged(_ => filterValid.Invalidate());
-
-                if (!conditionalFilterable.CanBeShown.Value)
-                    return false;
-            }
 
             if (drawable is IFilterable filterable)
             {
