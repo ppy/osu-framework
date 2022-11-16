@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
-        CompositeDrawable Parent { get; }
+        CompositeDrawable? Parent { get; }
 
         /// <summary>
         /// Whether this drawable is present for any sort of user-interaction.
