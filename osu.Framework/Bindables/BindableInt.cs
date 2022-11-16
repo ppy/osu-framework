@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using System.Globalization;
-
 namespace osu.Framework.Bindables
 {
     public class BindableInt : BindableNumber<int>
@@ -13,8 +11,6 @@ namespace osu.Framework.Bindables
             : base(defaultValue)
         {
         }
-
-        public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
 
         protected override Bindable<int> CreateInstance() => new BindableInt();
     }

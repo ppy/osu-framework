@@ -297,8 +297,6 @@ namespace osu.Framework.Bindables
 
         public new BindableNumber<T> GetUnboundCopy() => (BindableNumber<T>)base.GetUnboundCopy();
 
-        public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
-
         public override bool IsDefault
         {
             get
