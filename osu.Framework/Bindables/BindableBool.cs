@@ -12,8 +12,6 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override string ToString() => Value.ToString();
-
         public override void Parse(object input)
         {
             if (input is "1")
