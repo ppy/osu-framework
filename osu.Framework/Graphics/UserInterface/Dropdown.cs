@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (boundItemSource != null)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
 
-                setItems(value);
+                Scheduler.AddOnce(setItems, value);
             }
         }
 
