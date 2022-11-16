@@ -27,13 +27,14 @@ namespace osu.Framework.Tests.Text
         private static readonly FontUsage normal_font = new FontUsage("Roboto", weight: "Regular", size: font_size);
         private static readonly FontUsage fixed_width_font = new FontUsage("Roboto", weight: "Regular", size: font_size, fixedWidth: true);
 
-        private readonly FontStore fontStore;
-        private readonly ITexturedCharacterGlyph glyphA;
-        private readonly ITexturedCharacterGlyph glyphB;
-        private readonly ITexturedCharacterGlyph glyphM;
-        private readonly ITexturedCharacterGlyph glyphIcon;
+        private FontStore fontStore;
+        private ITexturedCharacterGlyph glyphA;
+        private ITexturedCharacterGlyph glyphB;
+        private ITexturedCharacterGlyph glyphM;
+        private ITexturedCharacterGlyph glyphIcon;
 
-        public TextBuilderTest()
+        [SetUp]
+        public void SetUp()
         {
             fontStore = new FontStore(new DummyRenderer(), useAtlas: false);
             fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"));
@@ -592,6 +593,13 @@ namespace osu.Framework.Tests.Text
             builder.AddText("a");
 
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            fontStore.Dispose();
+            fontStore = null;
         }
 
         /// <summary>
