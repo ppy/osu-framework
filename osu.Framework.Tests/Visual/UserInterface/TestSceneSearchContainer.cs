@@ -19,7 +19,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -195,12 +194,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             setTerm("Hidden text");
 
             checkCount(0);
-            AddAssert("no subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
+            AddAssert("no subsection displayed", () => search.Children.OfType<HeaderContainer>().All(h => !h.IsPresent));
 
             AddStep("show hidden text", () => header.CanBeShown.Value = true);
 
             checkCount(1);
-            AddAssert("subsection displayed", () => search.ChildrenOfType<HeaderContainer>().Single(h => h.IsPresent) == header);
+            AddAssert("subsection displayed", () => search.Children.OfType<HeaderContainer>().Single(h => h.IsPresent) == header);
         }
 
         [Test]
@@ -221,12 +220,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             setTerm("Hidden text");
 
             checkCount(0);
-            AddAssert("no subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
+            AddAssert("no subsection displayed", () => search.Children.OfType<HeaderContainer>().All(h => !h.IsPresent));
 
             AddStep("show hidden text", () => hiddenText.CanBeShown.Value = true);
 
             checkCount(1);
-            AddAssert("subsection displayed", () => search.ChildrenOfType<HeaderContainer>().Single(h => h.IsPresent) == header);
+            AddAssert("subsection displayed", () => search.Children.OfType<HeaderContainer>().Single(h => h.IsPresent) == header);
         }
 
         [TestCase]
