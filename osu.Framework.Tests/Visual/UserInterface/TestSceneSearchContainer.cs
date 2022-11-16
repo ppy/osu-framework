@@ -179,7 +179,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestFilterRespectsHiddenChild()
+        public void TestFilterRespectsHiddenNonLeafNode()
+        {
+            HeaderContainer header = null!;
+
+            AddStep("add new hidden filtered item", () => search.Add(header = new HeaderContainer("Subsection 3")
+            {
+                AutoSizeAxes = Axes.Both,
+                CanBeShown = { Value = false },
+                Child = new SearchableText
+                {
+                    Text = "Hidden Text"
+                }
+            }));
+            setTerm("Hidden text");
+
+            checkCount(0);
+            AddAssert("no subsection displayed", () => search.ChildrenOfType<HeaderContainer>().All(h => !h.IsPresent));
+
+            AddStep("show hidden text", () => header.CanBeShown.Value = true);
+
+            checkCount(1);
+            AddAssert("subsection displayed", () => search.ChildrenOfType<HeaderContainer>().Single(h => h.IsPresent) == header);
+        }
+
+        [Test]
+        public void TestFilterRespectsHiddenLeafNode()
         {
             HeaderContainer header = null!;
             HideableSearchText hiddenText = null!;
@@ -233,7 +258,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
-        private class HeaderContainer : Container, IFilterable
+        private class HeaderContainer : Container, IConditionalFilterable
         {
             public IEnumerable<LocalisableString> FilterTerms => header.FilterTerms;
 
@@ -252,6 +277,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 set { }
             }
+
+            public BindableBool CanBeShown { get; } = new BindableBool(true);
+            IBindable<bool> IConditionalFilterable.CanBeShown => CanBeShown;
 
             protected override Container<Drawable> Content => flowContainer;
 
