@@ -233,7 +233,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
-        private class HeaderContainer : Container, IHasFilterableChildren
+        private class HeaderContainer : Container, IFilterable
         {
             public IEnumerable<LocalisableString> FilterTerms => header.FilterTerms;
 
@@ -252,8 +252,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 set { }
             }
-
-            public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
 
             protected override Container<Drawable> Content => flowContainer;
 
