@@ -594,15 +594,16 @@ namespace osu.Framework.Platform
             if (tryFetchMaximisedState(windowState, out bool maximized))
                 windowMaximised = maximized;
 
-            fetchDisplayMode(windowState, display);
+            if (tryFetchDisplayMode(SDLWindowHandle, windowState, display, out var newMode))
+                currentDisplayMode.Value = newMode;
         }
 
-        private void fetchDisplayMode(WindowState windowState, Display display)
+        private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
         {
             // TODO: displayIndex should be valid here at all times.
             // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
             // related to order of operations in `updateWindowSpecifics()`.
-            int localIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
+            int localIndex = SDL.SDL_GetWindowDisplayIndex(windowHandle);
 
             if (localIndex != display.Index)
                 Logger.Log($"Stored display index ({display.Index}) doesn't match current index ({localIndex})");
@@ -611,7 +612,7 @@ namespace osu.Framework.Platform
             SDL.SDL_DisplayMode mode;
 
             if (windowState == WindowState.Fullscreen)
-                success = SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out mode) >= 0;
+                success = SDL.SDL_GetWindowDisplayMode(windowHandle, out mode) >= 0;
             else
                 success = SDL.SDL_GetCurrentDisplayMode(localIndex, out mode) >= 0;
 
@@ -619,12 +620,15 @@ namespace osu.Framework.Platform
 
             if (success)
             {
-                currentDisplayMode.Value = mode.ToDisplayMode(localIndex);
-                Logger.Log($"Updated display mode to {type} resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {currentDisplayMode.Value.Format}");
+                displayMode = mode.ToDisplayMode(localIndex);
+                Logger.Log($"Updated display mode to {type} resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {displayMode.Format}");
+                return true;
             }
             else
             {
                 Logger.Log($"Failed to get {type} display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
+                displayMode = default;
+                return false;
             }
         }
 
