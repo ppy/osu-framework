@@ -399,6 +399,18 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 else
                     Renderer.BindTexture(this);
 
+                if ((Width == upload.Bounds.Width && Height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
+                {
+                    updateMemoryUsage(upload.Level, (long)Width * Height * 4);
+                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, Width, Height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                }
+                else
+                {
+                    initializeLevel(upload.Level, Width, Height, upload.Format);
+                    GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
+                        PixelType.UnsignedByte, dataPointer);
+                }
+
                 if (!manualMipmaps)
                 {
                     int width = internalWidth;
@@ -411,19 +423,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                         initializeLevel(level, width, height, upload.Format);
                     }
-                }
-
-                if ((Width == upload.Bounds.Width && Height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
-                {
-                    updateMemoryUsage(upload.Level, (long)Width * Height * 4);
-                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, Width, Height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
-                }
-                else
-                {
-                    initializeLevel(upload.Level, Width, Height, upload.Format);
-
-                    GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
-                        PixelType.UnsignedByte, dataPointer);
                 }
             }
 
