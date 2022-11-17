@@ -32,7 +32,7 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
             windowDisplayIndexBindable.BindValueChanged(evt =>
             {
-                CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
+                currentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
                 pendingWindowState = windowState;
             }, true);
 
@@ -285,7 +285,6 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// Has no effect on values of
         /// <see cref="currentDisplay"/> /
-        /// <see cref="CurrentDisplay"/> /
         /// <see cref="CurrentDisplayBindable"/>.
         /// </remarks>
         private void fetchDisplays()
@@ -365,11 +364,6 @@ namespace osu.Framework.Platform
 
         private Display currentDisplay = null!;
         private int displayIndex = -1;
-
-        /// <summary>
-        /// Gets or sets the <see cref="Display"/> that this window is currently on.
-        /// </summary>
-        public Display CurrentDisplay { get; private set; } = null!;
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
@@ -512,7 +506,7 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
-                updateWindowStateAndSize(windowState, CurrentDisplay, currentDisplayMode.Value);
+                updateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
             }
             else
             {
@@ -688,7 +682,7 @@ namespace osu.Framework.Platform
             if (WindowState != WindowState.Normal)
                 return;
 
-            var displayBounds = CurrentDisplay.Bounds;
+            var displayBounds = currentDisplay.Bounds;
 
             int windowX = Position.X - displayBounds.X;
             int windowY = Position.Y - displayBounds.Y;
