@@ -250,6 +250,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                 // Create render state for mipmap generation
                 Renderer.BindTexture(this);
+                Renderer.GetMipmapShader().Bind();
+                int texUnit = 0;
+                Renderer.GetMipmapShader().GetUniform<int>("tex").UpdateValue(ref texUnit);
 
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
 
@@ -298,20 +301,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     // Perform the actual mip level draw
                     Renderer.PushViewport(new RectangleI(0, 0, width, height));
 
-                    Renderer.GetMipmapShader().Bind();
-                    int texUnit = 0;
-                    Renderer.GetMipmapShader().GetUniform<int>("tex").UpdateValue(ref texUnit);
-
                     quadBuffer.Update();
                     quadBuffer.Draw();
-
-                    Renderer.GetMipmapShader().Unbind();
 
                     Renderer.PopViewport();
                 }
 
                 // Restore previous render state
-                GL.DeleteFramebuffer(frameBuffer);
+                Renderer.GetMipmapShader().Unbind();
 
                 Renderer.PopScissorState();
                 Renderer.PopStencilInfo();
@@ -320,6 +317,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Renderer.SetBlend(previousBlendingParameters);
 
                 Renderer.UnbindFrameBuffer(null);
+                GL.DeleteFramebuffer(frameBuffer);
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
