@@ -433,27 +433,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             else if (dataPointer != IntPtr.Zero)
             {
                 Renderer.BindTexture(this);
-
-                if (!manualMipmaps && upload.Level > 0)
-                {
-                    //allocate mipmap levels
-                    int level = 1;
-                    int d = 2;
-
-                    while (Width / d > 0)
-                    {
-                        initializeLevel(level, Width / d, Height / d, upload.Format);
-                        level++;
-                        d *= 2;
-                    }
-
-                    manualMipmaps = true;
-                }
-
-                int div = (int)Math.Pow(2, upload.Level);
-
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
-                    upload.Format, PixelType.UnsignedByte, dataPointer);
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
             }
         }
 
