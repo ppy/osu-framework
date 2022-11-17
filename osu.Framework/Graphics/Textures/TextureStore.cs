@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly TextureFilteringMode filteringMode;
         private readonly bool manualMipmaps;
 
-        internal TextureAtlas Atlas { get; set; }
+        public TextureAtlas Atlas { get; internal set; }
 
         private const int max_atlas_size = 1024;
 
