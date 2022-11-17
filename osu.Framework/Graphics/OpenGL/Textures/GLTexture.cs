@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private bool manualMipmaps;
 
         private readonly All filteringMode;
-        private readonly Rgba32 initialisationColour; // TODO: reimplement
+        private readonly Rgba32 initialisationColour;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -428,6 +428,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         PixelType.UnsignedByte, dataPointer);
                 }
             }
+
             // Just update content of the current texture
             else if (dataPointer != IntPtr.Zero)
             {
