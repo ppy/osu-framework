@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly FillFlowContainer<TexturePanel> atlasFlow;
         private readonly FillFlowContainer<TexturePanel> textureFlow;
 
-        private BindableInt visualisedMipLevel = new BindableInt(-1) { MinValue = -1, MaxValue = IRenderer.MAX_MIPMAP_LEVELS };
+        private readonly BindableInt visualisedMipLevel = new BindableInt(-1) { MinValue = -1, MaxValue = IRenderer.MAX_MIPMAP_LEVELS };
 
         [Resolved]
         private IRenderer renderer { get; set; }
@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Visualisation
             };
 
             ToolbarContent.Add(new SpriteText { Text = "Mip level" });
-            ToolbarContent.Add(new BasicSliderBar<int>()
+            ToolbarContent.Add(new BasicSliderBar<int>
             {
                 Height = 20,
                 Width = 250,
@@ -80,7 +80,8 @@ namespace osu.Framework.Graphics.Visualisation
             });
             SpriteText valueText;
             ToolbarContent.Add(valueText = new SpriteText { Text = formatMipLevel(visualisedMipLevel.Value) });
-            visualisedMipLevel.ValueChanged += val => {
+            visualisedMipLevel.ValueChanged += val =>
+            {
                 valueText.Text = formatMipLevel(val.NewValue);
                 atlasFlow.Invalidate();
                 textureFlow.Invalidate();

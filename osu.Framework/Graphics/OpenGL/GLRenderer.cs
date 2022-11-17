@@ -151,7 +151,8 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -287,11 +288,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         private IShader? mipmapShader;
 
-        public IShader GetMipmapShader() {
+        public IShader GetMipmapShader()
+        {
             if (mipmapShader != null)
                 return mipmapShader;
 
-            const string vertexShaderSource = @"
+            const string vertex_shader_source = @"
                 attribute vec2 pos;
                 varying vec2 uv;
                 void main() {
@@ -299,7 +301,7 @@ namespace osu.Framework.Graphics.OpenGL
                     gl_Position = vec4(2.0 * pos - vec2(1.0), 0.0, 1.0);
                 }";
 
-            const string fragmentShaderSource = @"
+            const string fragment_shader_source = @"
                 varying vec2 uv;
                 uniform sampler2D tex;
                 void main() {
@@ -307,9 +309,10 @@ namespace osu.Framework.Graphics.OpenGL
                     gl_FragColor = texture2D(tex, tex_coords, 0.0);
                 }";
 
-            mipmapShader = new GLShader(this, "mipmap", new[] {
-                new GLShaderPart(this, "mipmap.vs", vertexShaderSource, ShaderType.VertexShader),
-                new GLShaderPart(this, "mipmap.fs", fragmentShaderSource, ShaderType.FragmentShader),
+            mipmapShader = new GLShader(this, "mipmap", new[]
+            {
+                new GLShaderPart(this, "mipmap.vs", vertex_shader_source, ShaderType.VertexShader),
+                new GLShaderPart(this, "mipmap.fs", fragment_shader_source, ShaderType.FragmentShader),
             });
             return mipmapShader;
         }
@@ -366,7 +369,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Rgba32 initialisationColour = default)
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Rgba32 initialisationColour = default)
         {
             All glFilteringMode;
 

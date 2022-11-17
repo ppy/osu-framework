@@ -5,20 +5,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ImageExtensions;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Utils;
-using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK;
+using osuTK.Graphics.ES30;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -56,7 +53,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private bool manualMipmaps;
 
         private readonly All filteringMode;
-        private readonly Rgba32 initialisationColour;
+        private readonly Rgba32 initialisationColour; // TODO: reimplement
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -207,6 +204,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // This implementation is functionally equivalent to GL.GenerateMipmap(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
+            int frameBuffer = GL.GenFramebuffer();
+
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
                 // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
@@ -223,7 +222,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 // Create render state for mipmap generation
                 Renderer.BindTexture(this);
 
-                var frameBuffer = GL.GenFramebuffer();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
 
                 int width = internalWidth;
@@ -233,7 +231,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 var vb = new GLQuadBuffer<UncolouredVertex2D>(Renderer, uploadedRegions.Count, BufferUsageHint.StreamDraw);
 
                 // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
-                for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS+1 && (width > 1 || height > 1); ++level)
+                for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
                 {
                     width = MathUtils.DivideRoundUp(width, 2);
                     height = MathUtils.DivideRoundUp(height, 2);
@@ -253,7 +251,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                         // Normalize texture the draw rectangle into the unit square, which doubles as
                         // texture sampler coordinates.
-                        Primitives.RectangleF r = (Primitives.RectangleF)uploadedRegions[i] / new Vector2(width, height);
+                        RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
                         vb.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
                         vb.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
                         vb.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
@@ -268,7 +266,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, level);
 
                     // Perform the actual mip level draw
-                    Renderer.PushViewport(new RectangleI(0, 0, (int)width, (int)height));
+                    Renderer.PushViewport(new RectangleI(0, 0, width, height));
 
                     Renderer.GetMipmapShader().Bind();
                     int texUnit = 0;
@@ -374,7 +372,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 {
                     int width = internalWidth;
                     int height = internalHeight;
-                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS+1 && (width > 1 || height > 1); ++level)
+
+                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
                     {
                         width = MathUtils.DivideRoundUp(width, 2);
                         height = MathUtils.DivideRoundUp(height, 2);
