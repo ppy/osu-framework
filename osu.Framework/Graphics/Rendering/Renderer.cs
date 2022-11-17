@@ -729,7 +729,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Flushes the currently active vertex batch.
         /// </summary>
         /// <param name="source">The source performing the flush, for profiling purposes.</param>
-        protected void FlushCurrentBatch(FlushBatchSource? source)
+        internal void FlushCurrentBatch(FlushBatchSource? source)
         {
             if (currentActiveBatch?.Draw() > 0 && source != null)
                 flush_source_statistics[(int)source].Value++;
@@ -1020,6 +1020,7 @@ namespace osu.Framework.Graphics.Rendering
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
+        void IRenderer.FlushCurrentBatch(FlushBatchSource? source) => FlushCurrentBatch(source);
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
         void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);

@@ -56,6 +56,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
+        void IRenderer.FlushCurrentBatch(FlushBatchSource? source)
+        {
+        }
+
         public bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
             => true;
 

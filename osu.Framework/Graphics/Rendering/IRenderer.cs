@@ -140,6 +140,11 @@ namespace osu.Framework.Graphics.Rendering
         internal void FinishFrame();
 
         /// <summary>
+        /// Flushed the current batch.
+        /// </summary>
+        internal void FlushCurrentBatch(FlushBatchSource? source);
+
+        /// <summary>
         /// Binds a texture.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
