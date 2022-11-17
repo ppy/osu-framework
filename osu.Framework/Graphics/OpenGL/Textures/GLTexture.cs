@@ -5,9 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -16,8 +14,8 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -56,7 +54,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private bool manualMipmaps;
 
         private readonly All filteringMode;
-        private readonly Rgba32 initialisationColour;
+        private readonly Color4 initialisationColour;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -67,7 +65,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Rgba32 initialisationColour = default)
+        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Color4 initialisationColour = default)
         {
             Renderer = renderer;
             Width = width;
@@ -439,21 +437,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void initializeLevel(int level, int width, int height, PixelFormat format)
         {
-            using (var image = createBackingImage(width, height))
-            using (var pixels = image.CreateReadOnlyPixelSpan())
-            {
-                updateMemoryUsage(level, (long)width * height * 4);
-                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
-                    ref MemoryMarshal.GetReference(pixels.Span));
-            }
-        }
+            updateMemoryUsage(level, (long)width * height * 4);
+            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
 
-        private Image<Rgba32> createBackingImage(int width, int height)
-        {
-            // it is faster to initialise without a background specification if transparent black is all that's required.
-            return initialisationColour == default
-                ? new Image<Rgba32>(width, height)
-                : new Image<Rgba32>(width, height, initialisationColour);
+            // Bind a dummy frame buffer such that we can later restore the current framebuffer
+            // state via Renderer.UnbindFrameBuffer(null);
+            Renderer.BindFrameBuffer(null);
+
+            // Initialize texture to solid color
+            int frameBuffer = GL.GenFramebuffer();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, level);
+            Renderer.Clear(new ClearInfo(initialisationColour));
+            GL.DeleteFramebuffer(frameBuffer);
+
+            Renderer.UnbindFrameBuffer(null);
         }
     }
 }

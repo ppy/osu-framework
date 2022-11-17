@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Threading;
 using osuTK;
-using SixLabors.ImageSharp.PixelFormats;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
@@ -157,7 +157,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyFrameBuffer(this);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                                     WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
+                                     WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default)
             => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height)

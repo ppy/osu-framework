@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
-using SixLabors.ImageSharp.PixelFormats;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -370,7 +370,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Rgba32 initialisationColour = default)
+                                                              Color4 initialisationColour = default)
         {
             All glFilteringMode;
 

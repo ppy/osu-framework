@@ -4,11 +4,11 @@
 using System;
 using osu.Framework.Graphics.Textures;
 using osuTK;
-using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Threading;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -304,7 +304,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Creates a new texture.
         /// </summary>
         Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                              WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default);
+                              WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default);
 
         /// <summary>
         /// Creates a new video texture.
