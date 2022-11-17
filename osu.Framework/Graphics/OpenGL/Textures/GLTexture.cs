@@ -204,10 +204,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // This implementation is functionally equivalent to GL.GenerateMipmap(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
-            int frameBuffer = GL.GenFramebuffer();
-
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
+                int frameBuffer = GL.GenFramebuffer();
+
                 BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
 
                 // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
