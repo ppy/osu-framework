@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Stack<DepthInfo> depthStack = new Stack<DepthInfo>();
         private readonly Stack<StencilInfo> stencilStack = new Stack<StencilInfo>();
         private readonly Stack<Vector2I> scissorOffsetStack = new Stack<Vector2I>();
-        private readonly Stack<IFrameBuffer> frameBufferStack = new Stack<IFrameBuffer>();
+        private readonly Stack<IFrameBuffer?> frameBufferStack = new Stack<IFrameBuffer?>();
         private readonly Stack<IShader> shaderStack = new Stack<IShader>();
         private readonly Stack<bool> scissorStateStack = new Stack<bool>();
 
@@ -854,13 +854,13 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Framebuffers
 
-        public void BindFrameBuffer(IFrameBuffer frameBuffer)
+        public void BindFrameBuffer(IFrameBuffer? frameBuffer)
         {
             frameBufferStack.Push(frameBuffer);
             setFrameBuffer(frameBuffer);
         }
 
-        public void UnbindFrameBuffer(IFrameBuffer frameBuffer)
+        public void UnbindFrameBuffer(IFrameBuffer? frameBuffer)
         {
             if (FrameBuffer != frameBuffer)
                 return;
