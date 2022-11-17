@@ -208,9 +208,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
+                BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
+
                 // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
                 Renderer.SetBlend(BlendingParameters.None);
-
                 Renderer.PushDepthInfo(new DepthInfo(false, false));
                 Renderer.PushStencilInfo(new StencilInfo(false));
                 Renderer.PushScissorState(false);
@@ -228,7 +229,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 int height = internalHeight;
 
                 // Generate quad buffer that will holds all the updated regions
-                var vb = new GLQuadBuffer<UncolouredVertex2D>(Renderer, uploadedRegions.Count, BufferUsageHint.StreamDraw);
+                var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(Renderer, uploadedRegions.Count, BufferUsageHint.StreamDraw);
 
                 // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
                 for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
@@ -252,10 +253,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         // Normalize texture the draw rectangle into the unit square, which doubles as
                         // texture sampler coordinates.
                         RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
-                        vb.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
-                        vb.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
-                        vb.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
-                        vb.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
+
+                        quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
+                        quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
+                        quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
+                        quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
                     }
 
                     // Read the texture from 1 mip level higher...
@@ -272,8 +274,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     int texUnit = 0;
                     Renderer.GetMipmapShader().GetUniform<int>("tex").UpdateValue(ref texUnit);
 
-                    vb.Update();
-                    vb.Draw();
+                    quadBuffer.Update();
+                    quadBuffer.Draw();
 
                     Renderer.GetMipmapShader().Unbind();
 
@@ -286,6 +288,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Renderer.PopScissorState();
                 Renderer.PopStencilInfo();
                 Renderer.PopDepthInfo();
+
+                Renderer.SetBlend(previousBlendingParameters);
 
                 Renderer.UnbindFrameBuffer(null);
 

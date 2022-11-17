@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Rendering
         public Texture WhitePixel => whitePixel.Value;
 
         protected ClearInfo CurrentClearInfo { get; private set; }
-        protected BlendingParameters CurrentBlendingParameters { get; private set; }
+        public BlendingParameters CurrentBlendingParameters { get; private set; }
         protected BlendingMask CurrentBlendingMask { get; private set; }
 
         /// <summary>
