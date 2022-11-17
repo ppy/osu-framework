@@ -309,7 +309,7 @@ namespace osu.Framework.Platform
                 $"Stored displays:\n  {string.Join("\n  ", Displays)}\n\nActual displays:\n  {string.Join("\n  ", actualDisplays)}");
         }
 
-        private IEnumerable<Display> getSDLDisplays()
+        private static IEnumerable<Display> getSDLDisplays()
         {
             return get().ToArray();
 
