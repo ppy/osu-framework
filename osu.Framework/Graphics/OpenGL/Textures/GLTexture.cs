@@ -281,8 +281,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
                         uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
-                        // Normalize texture the draw rectangle into the unit square, which doubles as
-                        // texture sampler coordinates.
+                        // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
                         Primitives.RectangleF r = (Primitives.RectangleF)uploadedRegions[i] / new Vector2(width, height);
 
                         quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
