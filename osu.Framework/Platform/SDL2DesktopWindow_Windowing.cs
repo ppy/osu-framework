@@ -522,7 +522,9 @@ namespace osu.Framework.Platform
             if (windowState != stateBefore)
             {
                 WindowStateChanged?.Invoke(windowState);
-                fetchMaximisedState(windowState);
+
+                if (tryFetchMaximisedState(windowState, out bool maximized))
+                    windowMaximised = maximized;
             }
 
             int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
@@ -589,7 +591,8 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            fetchMaximisedState(windowState);
+            if (tryFetchMaximisedState(windowState, out bool maximized))
+                windowMaximised = maximized;
 
             fetchDisplayMode(windowState, display);
         }
@@ -625,10 +628,16 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void fetchMaximisedState(WindowState windowState)
+        private static bool tryFetchMaximisedState(WindowState windowState, out bool maximized)
         {
-            if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
-                windowMaximised = windowState == WindowState.Maximised;
+            if (windowState is WindowState.Normal or WindowState.Maximised)
+            {
+                maximized = windowState == WindowState.Maximised;
+                return true;
+            }
+
+            maximized = default;
+            return false;
         }
 
         private void readWindowPositionFromConfig(WindowState windowState, Display display)
