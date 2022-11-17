@@ -209,6 +209,31 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // have been updated.
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
+                // Merge overlapping upload regions to prevent redundant mipmap generation.
+                // i goes through the list left-to-right, j goes through it right-to-left
+                // until both indices meet somewhere in the middle.
+                // This algorithm needs multiple passes until no possible merges are found.
+                bool mergeFound;
+                do
+                {
+                    mergeFound = false;
+                    for (int i = 0; i < uploadedRegions.Count; ++i)
+                    {
+                        RectangleI toMerge = uploadedRegions[i];
+                        for (int j = uploadedRegions.Count-1; j > i; --j)
+                        {
+                            RectangleI mergeCandidate = uploadedRegions[j];
+                            if (!toMerge.Intersect(mergeCandidate).IsEmpty)
+                            {
+                                uploadedRegions[i] = toMerge = RectangleI.Union(toMerge, mergeCandidate);
+                                uploadedRegions.RemoveAt(j);
+                                mergeFound = true;
+                            }
+                        }
+                    }
+                } while (mergeFound);
+
+                // Mipmap generation using the merged upload regions follows
                 int frameBuffer = GL.GenFramebuffer();
 
                 BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
