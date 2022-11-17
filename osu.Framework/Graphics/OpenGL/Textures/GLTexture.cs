@@ -411,7 +411,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         width = MathUtils.DivideRoundUp(width, 2);
                         height = MathUtils.DivideRoundUp(height, 2);
 
-                        initializeLevel(level, width, height, PixelFormat.Rgba);
+                        initializeLevel(level, width, height, upload.Format);
                     }
                 }
 
