@@ -285,6 +285,35 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override IShader CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
 
+        private IShader? mipmapShader;
+
+        public IShader GetMipmapShader() {
+            if (mipmapShader != null)
+                return mipmapShader;
+
+            const string vertexShaderSource = @"
+                attribute vec2 pos;
+                varying vec2 uv;
+                void main() {
+                    uv = pos;
+                    gl_Position = vec4(2.0 * pos - vec2(1.0), 0.0, 1.0);
+                }";
+
+            const string fragmentShaderSource = @"
+                varying vec2 uv;
+                uniform sampler2D tex;
+                void main() {
+                    vec2 tex_coords = uv;
+                    gl_FragColor = texture2D(tex, tex_coords, 0.0);
+                }";
+
+            mipmapShader = new GLShader(this, "mipmap", new[] {
+                new GLShaderPart(this, "mipmap.vs", vertexShaderSource, ShaderType.VertexShader),
+                new GLShaderPart(this, "mipmap.fs", fragmentShaderSource, ShaderType.FragmentShader),
+            });
+            return mipmapShader;
+        }
+
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             All glFilteringMode;
