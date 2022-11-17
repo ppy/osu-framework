@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -15,6 +17,7 @@ using osu.Framework.Platform;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics.ES30;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -252,7 +255,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                         // Normalize texture the draw rectangle into the unit square, which doubles as
                         // texture sampler coordinates.
-                        RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
+                        Primitives.RectangleF r = (Primitives.RectangleF)uploadedRegions[i] / new Vector2(width, height);
 
                         quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
                         quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
