@@ -214,15 +214,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 // until both indices meet somewhere in the middle.
                 // This algorithm needs multiple passes until no possible merges are found.
                 bool mergeFound;
+
                 do
                 {
                     mergeFound = false;
+
                     for (int i = 0; i < uploadedRegions.Count; ++i)
                     {
                         RectangleI toMerge = uploadedRegions[i];
-                        for (int j = uploadedRegions.Count-1; j > i; --j)
+
+                        for (int j = uploadedRegions.Count - 1; j > i; --j)
                         {
                             RectangleI mergeCandidate = uploadedRegions[j];
+
                             if (!toMerge.Intersect(mergeCandidate).IsEmpty)
                             {
                                 uploadedRegions[i] = toMerge = RectangleI.Union(toMerge, mergeCandidate);
