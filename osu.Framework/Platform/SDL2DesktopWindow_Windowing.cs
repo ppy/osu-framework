@@ -540,7 +540,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run after a local window state change, to propagate the correct SDL actions.
         /// </summary>
-        private void updateWindowStateAndSize(WindowState windowState, Display display, DisplayMode displayMode)
+        private void updateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // this reset is required even on changing from one fullscreen resolution to another.
             // if it is not included, the GL context will not get the correct size.
@@ -549,7 +549,7 @@ namespace osu.Framework.Platform
             SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
             SDL.SDL_RestoreWindow(SDLWindowHandle);
 
-            switch (windowState)
+            switch (state)
             {
                 case WindowState.Normal:
                     Size = sizeWindowed.Value;
@@ -558,7 +558,7 @@ namespace osu.Framework.Platform
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
                     SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
-                    readWindowPositionFromConfig(windowState, display);
+                    readWindowPositionFromConfig(state, display);
                     break;
 
                 case WindowState.Fullscreen:
@@ -591,10 +591,10 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            if (tryFetchMaximisedState(windowState, out bool maximized))
+            if (tryFetchMaximisedState(state, out bool maximized))
                 windowMaximised = maximized;
 
-            if (tryFetchDisplayMode(SDLWindowHandle, windowState, display, out var newMode))
+            if (tryFetchDisplayMode(SDLWindowHandle, state, display, out var newMode))
                 currentDisplayMode.Value = newMode;
         }
 
@@ -644,9 +644,9 @@ namespace osu.Framework.Platform
             return false;
         }
 
-        private void readWindowPositionFromConfig(WindowState windowState, Display display)
+        private void readWindowPositionFromConfig(WindowState state, Display display)
         {
-            if (windowState != WindowState.Normal)
+            if (state != WindowState.Normal)
                 return;
 
             var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
@@ -667,18 +667,18 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Moves the window to be centred around the normalised <paramref name="position"/> on a <paramref name="display"/>.
+        /// Moves the window to be centred around the normalised <paramref name="newPosition"/> on a <paramref name="display"/>.
         /// </summary>
         /// <param name="display">The <see cref="Display"/> to move the window to.</param>
-        /// <param name="position">Relative position on the display, normalised to <c>[-0.5, 1.5]</c>.</param>
-        private void moveWindowTo(Display display, Vector2 position)
+        /// <param name="newPosition">Relative position on the display, normalised to <c>[-0.5, 1.5]</c>.</param>
+        private void moveWindowTo(Display display, Vector2 newPosition)
         {
-            Debug.Assert(position == Vector2.Clamp(position, new Vector2(-0.5f), new Vector2(1.5f)));
+            Debug.Assert(newPosition == Vector2.Clamp(newPosition, new Vector2(-0.5f), new Vector2(1.5f)));
 
             var displayBounds = display.Bounds;
             var windowSize = sizeWindowed.Value;
-            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * position.X);
-            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * position.Y);
+            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * newPosition.X);
+            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * newPosition.Y);
 
             Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
