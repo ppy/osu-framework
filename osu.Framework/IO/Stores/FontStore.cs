@@ -53,6 +53,13 @@ namespace osu.Framework.IO.Stores
         {
         }
 
+        internal FontStore(IRenderer renderer, TextureAtlas atlas, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, Storage cacheStorage = null,
+                           TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+            : base(renderer, atlas, store, scaleAdjust: scaleAdjust, filteringMode: filteringMode)
+        {
+            this.cacheStorage = cacheStorage;
+        }
+
         internal FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null,
                            TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             : base(renderer, store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
