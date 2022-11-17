@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
             windowDisplayIndexBindable.BindValueChanged(evt =>
             {
                 currentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
-                pendingWindowState = windowState;
+                invalidateWindowSpecifics();
             }, true);
 
             sizeFullscreen.ValueChanged += _ =>
@@ -41,7 +41,7 @@ namespace osu.Framework.Platform
                 if (storingSizeToConfig) return;
                 if (windowState != WindowState.Fullscreen) return;
 
-                pendingWindowState = windowState;
+                invalidateWindowSpecifics();
             };
 
             sizeWindowed.ValueChanged += _ =>
@@ -49,7 +49,7 @@ namespace osu.Framework.Platform
                 if (storingSizeToConfig) return;
                 if (windowState != WindowState.Normal) return;
 
-                pendingWindowState = windowState;
+                invalidateWindowSpecifics();
             };
 
             sizeWindowed.MinValueChanged += min =>
@@ -487,6 +487,15 @@ namespace osu.Framework.Platform
             }
 
             assertDisplaysMatchSDL();
+        }
+
+        /// <summary>
+        /// Invalidates the the state of the window.
+        /// This forces <see cref="updateAndFetchWindowSpecifics"/> to run before the next event loop.
+        /// </summary>
+        private void invalidateWindowSpecifics()
+        {
+            pendingWindowState = windowState;
         }
 
         /// <summary>
