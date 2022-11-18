@@ -51,10 +51,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private int internalWidth;
         private int internalHeight;
-        private bool manualMipmaps;
 
         private readonly All filteringMode;
         private readonly Color4 initialisationColour;
+        private readonly bool manualMipmaps;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -70,6 +70,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Renderer = renderer;
             Width = width;
             Height = height;
+
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
@@ -284,7 +285,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
                         // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
-                        Primitives.RectangleF r = (Primitives.RectangleF)uploadedRegions[i] / new Vector2(width, height);
+                        RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
 
                         quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
                         quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
@@ -430,7 +431,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             else if (dataPointer != IntPtr.Zero)
             {
                 Renderer.BindTexture(this);
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
+                    dataPointer);
             }
         }
 
