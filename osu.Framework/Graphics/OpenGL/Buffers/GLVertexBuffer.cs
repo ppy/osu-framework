@@ -149,9 +149,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private Dictionary<int, int> localMaskingInfoIndex = new Dictionary<int, int>();
 
-        private int addMaskingInfo(MaskingInfo info) {
+        private int addMaskingInfo(MaskingInfo info)
+        {
             int localId;
-            if (localMaskingInfoIndex.TryGetValue(info.Id, out localId)) {
+
+            if (localMaskingInfoIndex.TryGetValue(info.Id, out localId))
+            {
                 return localId;
             }
 
@@ -167,6 +170,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             float realBorderThickness = info.BorderThickness / info.BlendRange;
 
             int i = index;
+
             MaskingTextureBuffer[i++] = info.Id == 0 ? 0.0f : 1.0f;
             MaskingTextureBuffer[i++] = info.ToMaskingSpace.M11;
             MaskingTextureBuffer[i++] = info.ToMaskingSpace.M12;
@@ -226,7 +230,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             GL.ActiveTexture(TextureUnit.Texture10);
 
-            if (maskingTexture == -1) {
+            if (maskingTexture == -1)
+            {
                 maskingTexture = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
@@ -238,8 +243,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             int totalTexels = numMaskingInfos * MASKING_DATA_LENGTH / 4;
             int currentMaskingTextureHeight = (totalTexels + MASKING_TEXTURE_WIDTH - 1) / MASKING_TEXTURE_WIDTH;
             // if (MaskingTextureHeight < currentMaskingTextureHeight) {
-                MaskingTextureHeight = currentMaskingTextureHeight;
-                GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MASKING_TEXTURE_WIDTH, MaskingTextureHeight, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
+            MaskingTextureHeight = currentMaskingTextureHeight;
+            GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MASKING_TEXTURE_WIDTH, MaskingTextureHeight, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
             // } else if (numUploadedMaskingInfos < currentMaskingTextureHeight) {
             //     GL.TexSubImage2D(All.Texture2D, 0, 0, numUploadedMaskingInfos, MASKING_TEXTURE_WIDTH, currentMaskingTextureHeight - numUploadedMaskingInfos, All.Rgba, All.Float, ref MaskingTextureBuffer[numUploadedMaskingInfos * MASKING_TEXTURE_WIDTH * 4]);
             // }
