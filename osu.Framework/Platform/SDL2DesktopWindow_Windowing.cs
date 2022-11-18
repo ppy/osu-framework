@@ -538,6 +538,7 @@ namespace osu.Framework.Platform
                     // force update displays when gaining keyboard focus to always have up-to-date information.
                     // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
                     fetchDisplays();
+                    fetchCurrentDisplay();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
