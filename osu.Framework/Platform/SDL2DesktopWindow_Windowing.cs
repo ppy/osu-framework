@@ -553,7 +553,7 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            // assertDisplaysMatchSDL();
+            assertDisplaysMatchSDL();
         }
 
         /// <summary>
@@ -831,7 +831,7 @@ namespace osu.Framework.Platform
 
             // default size means to use the display's native size.
             if (size.Width == 9999 && size.Height == 9999)
-                size = display.Bounds.Size;
+                size = display.DisplayModes[0].Size;
 
             var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = requestedMode.RefreshRate };
 
