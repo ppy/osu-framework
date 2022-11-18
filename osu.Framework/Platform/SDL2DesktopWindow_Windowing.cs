@@ -456,8 +456,6 @@ namespace osu.Framework.Platform
                             storeWindowPositionToConfig();
                     }
 
-                    // we may get a SDL_WINDOWEVENT_MOVED when the resolution of a display changes.
-                    fetchDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -491,8 +489,6 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                     break;
             }
-
-            assertDisplaysMatchSDL();
         }
 
         /// <summary>
@@ -592,6 +588,8 @@ namespace osu.Framework.Platform
             fetchMaximisedState(windowState);
 
             fetchDisplayMode(windowState, display);
+
+            fetchDisplays();
         }
 
         private void fetchDisplayMode(WindowState windowState, Display display)
