@@ -562,7 +562,7 @@ namespace osu.Framework.Platform
         /// </summary>
         private void invalidateWindowSpecifics()
         {
-            pendingWindowState = windowState;
+            pendingWindowState ??= windowState;
         }
 
         /// <summary>
