@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -94,6 +95,8 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // No depth testing.
                 renderer.PushDepthInfo(new DepthInfo(false));
 
+                Debug.Assert(Children != null);
+
                 drawStencil(renderer, Children[1]);
                 drawBackground(renderer, Children[0]);
 
@@ -141,7 +144,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 renderer.PopStencilInfo();
             }
 
-            public List<DrawNode> Children { get; set; } = new List<DrawNode>();
+            public List<DrawNode>? Children { get; set; } = new List<DrawNode>();
 
             public bool AddChildDrawNodes => true;
         }

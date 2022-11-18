@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -80,6 +81,8 @@ namespace osu.Framework.Testing
             if (!(drawNode is ICompositeDrawNode composite))
                 return;
 
+            Debug.Assert(composite.Children != null);
+
             foreach (var child in composite.Children)
                 referenceRecursively(child);
         }
@@ -90,6 +93,8 @@ namespace osu.Framework.Testing
 
             if (!(drawNode is ICompositeDrawNode composite))
                 return;
+
+            Debug.Assert(composite.Children != null);
 
             foreach (var child in composite.Children)
                 disposeRecursively(child);
