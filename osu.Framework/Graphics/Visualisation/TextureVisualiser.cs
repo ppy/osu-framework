@@ -71,24 +71,27 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             };
 
-            ToolbarContent.Add(new SpriteText { Text = "Mip level" });
-            ToolbarContent.Add(new BasicSliderBar<int>
+            SpriteText mipLevelText;
+
+            ToolbarContent.AddRange(new Drawable[]
             {
-                Height = 20,
-                Width = 250,
-                Current = visualisedMipLevel,
+                new SpriteText { Text = "Mip level" },
+                new BasicSliderBar<int>
+                {
+                    Height = 20,
+                    Width = 250,
+                    Current = visualisedMipLevel,
+                },
+                mipLevelText = new SpriteText(),
             });
-            SpriteText valueText;
-            ToolbarContent.Add(valueText = new SpriteText { Text = formatMipLevel(visualisedMipLevel.Value) });
-            visualisedMipLevel.ValueChanged += val =>
+
+            visualisedMipLevel.BindValueChanged(val =>
             {
-                valueText.Text = formatMipLevel(val.NewValue);
+                mipLevelText.Text = val.NewValue == -1 ? "Auto" : $"{val.NewValue}";
                 atlasFlow.Invalidate();
                 textureFlow.Invalidate();
-            };
+            }, true);
         }
-
-        private string formatMipLevel(int mipLevel) => mipLevel == -1 ? "Auto" : $"{mipLevel}";
 
         protected override void PopIn()
         {
