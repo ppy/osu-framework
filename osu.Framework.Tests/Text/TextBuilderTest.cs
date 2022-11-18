@@ -229,6 +229,30 @@ namespace osu.Framework.Tests.Text
             Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[3].DrawRectangle.Bottom));
         }
 
+        [Test]
+        public void TestWhitespaceDoesNotAffectBaselineOrHeight()
+        {
+            var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
+
+            builder.AddText("a b");
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.Zero);
+            Assert.That(builder.Bounds.Y, Is.EqualTo(glyphB.Height));
+
+            // ensure both removing character doesn't break when a space is in text...
+            builder.RemoveLastCharacter();
+
+            // ...and also removing a space in a newline still correctly returns back to previous line.
+            builder.AddNewLine();
+            builder.AddText(" ");
+            builder.RemoveLastCharacter();
+            builder.AddText("b");
+
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.Zero);
+            Assert.That(builder.Bounds.Y, Is.EqualTo(glyphB.Height));
+        }
+
         /// <summary>
         /// Tests that the first added character on a new line is correctly marked as being on a new line.
         /// </summary>
