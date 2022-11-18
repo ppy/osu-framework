@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         private LocalisationManager localisation { get; set; }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             base.AddInternal(drawable);
             filterValid.Invalidate();
