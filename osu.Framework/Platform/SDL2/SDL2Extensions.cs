@@ -10,6 +10,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osuTK;
 using osuTK.Input;
 using SDL2;
 
@@ -1102,5 +1103,10 @@ namespace osu.Framework.Platform.SDL2
             SDL.SDL_ClearError();
             return error;
         }
+
+        /// <summary>
+        /// Converts <see cref="DisplayIndex"/> to the appropriate display index for use in SDL display-related functions.
+        /// </summary>
+        public static int ToSDLDisplayIndex(this DisplayIndex index) => index == DisplayIndex.Primary ? 0 : (int)index;
     }
 }
