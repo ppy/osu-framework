@@ -168,31 +168,35 @@ namespace osu.Framework.Text
             glyph.LinePosition = currentPos.Y;
             glyph.OnNewLine = currentNewLine;
 
-            if (glyph.Baseline > currentLineBase)
+            if (!glyph.IsWhiteSpace())
             {
-                for (int i = Characters.Count - 1; i >= 0; --i)
+                if (glyph.Baseline > currentLineBase)
                 {
-                    var previous = Characters[i];
-                    previous.DrawRectangle = previous.DrawRectangle.Offset(0, glyph.Baseline - currentLineBase.Value);
-                    Characters[i] = previous;
+                    for (int i = Characters.Count - 1; i >= 0; --i)
+                    {
+                        var previous = Characters[i];
+                        previous.DrawRectangle = previous.DrawRectangle.Offset(0, glyph.Baseline - currentLineBase.Value);
+                        Characters[i] = previous;
 
-                    currentLineHeight = Math.Max(currentLineHeight, previous.DrawRectangle.Bottom - previous.LinePosition);
+                        currentLineHeight = Math.Max(currentLineHeight, previous.DrawRectangle.Bottom - previous.LinePosition);
 
-                    if (previous.OnNewLine)
-                        break;
+                        if (previous.OnNewLine)
+                            break;
+                    }
                 }
-            }
-            else if (glyph.Baseline < currentLineBase)
-            {
-                glyph.DrawRectangle = glyph.DrawRectangle.Offset(0, currentLineBase.Value - glyph.Baseline);
-                currentLineHeight = Math.Max(currentLineHeight, glyph.DrawRectangle.Bottom - glyph.LinePosition);
+                else if (glyph.Baseline < currentLineBase)
+                {
+                    glyph.DrawRectangle = glyph.DrawRectangle.Offset(0, currentLineBase.Value - glyph.Baseline);
+                    currentLineHeight = Math.Max(currentLineHeight, glyph.DrawRectangle.Bottom - glyph.LinePosition);
+                }
+
+                currentLineHeight = Math.Max(currentLineHeight, useFontSizeAsHeight ? font.Size : glyph.Height);
+                currentLineBase = currentLineBase == null ? glyph.Baseline : Math.Max(currentLineBase.Value, glyph.Baseline);
             }
 
             Characters.Add(glyph);
 
             currentPos.X += glyph.XAdvance;
-            currentLineHeight = Math.Max(currentLineHeight, useFontSizeAsHeight ? font.Size : glyph.Height);
-            currentLineBase = currentLineBase == null ? glyph.Baseline : Math.Max(currentLineBase.Value, glyph.Baseline);
             currentNewLine = false;
 
             Bounds = Vector2.ComponentMax(Bounds, currentPos + new Vector2(0, currentLineHeight));
@@ -251,8 +255,11 @@ namespace osu.Framework.Text
             {
                 var character = Characters[i];
 
-                currentLineBase = currentLineBase == null ? character.Baseline : Math.Max(currentLineBase.Value, character.Baseline);
-                currentLineHeight = Math.Max(currentLineHeight, character.DrawRectangle.Bottom - character.LinePosition);
+                if (!character.IsWhiteSpace())
+                {
+                    currentLineBase = currentLineBase == null ? character.Baseline : Math.Max(currentLineBase.Value, character.Baseline);
+                    currentLineHeight = Math.Max(currentLineHeight, character.DrawRectangle.Bottom - character.LinePosition);
+                }
 
                 if (character.OnNewLine)
                     break;
@@ -261,7 +268,7 @@ namespace osu.Framework.Text
             if (removedCharacter.OnNewLine && previousCharacter != null)
             {
                 // Move up to the previous line
-                currentPos.Y -= currentLineHeight + spacing.Y;
+                currentPos.Y = previousCharacter.Value.LinePosition;
 
                 // The character's draw rectangle is the only marker that keeps a constant state for the position, but it has the glyph's XOffset added into it
                 // So the post-kerned position can be retrieved by taking the XOffset away, and the post-XAdvanced position is retrieved by adding the XAdvance back in
