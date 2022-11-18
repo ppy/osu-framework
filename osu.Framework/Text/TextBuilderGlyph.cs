@@ -48,7 +48,7 @@ namespace osu.Framework.Text
             {
                 // Space characters typically have heights that exceed the height of all other characters in the font
                 // Thus, the height is forced to 0 such that only non-whitespace character heights are considered
-                if (char.IsWhiteSpace(Character))
+                if (Glyph.IsWhiteSpace())
                     return 0;
 
                 return Glyph.Height * textSize;
