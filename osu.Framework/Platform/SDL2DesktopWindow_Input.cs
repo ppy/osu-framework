@@ -95,8 +95,8 @@ namespace osu.Framework.Platform
 
         private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
 
-        private void updateCursorVisibility(bool visible) =>
-            ScheduleCommand(() => SDL.SDL_ShowCursor(visible ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
+        private void updateCursorVisibility(bool cursorVisible) =>
+            ScheduleCommand(() => SDL.SDL_ShowCursor(cursorVisible ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
 
         /// <summary>
         /// Updates OS cursor confinement based on the current <see cref="CursorState"/>, <see cref="CursorConfineRect"/> and <see cref="RelativeMouseMode"/>.
@@ -486,9 +486,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Update the host window manager's cursor position based on a location relative to window coordinates.
         /// </summary>
-        /// <param name="position">A position inside the window.</param>
-        public void UpdateMousePosition(Vector2 position) => ScheduleCommand(() =>
-            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(position.X / Scale), (int)(position.Y / Scale)));
+        /// <param name="mousePosition">A position inside the window.</param>
+        public void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() =>
+            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(mousePosition.X / Scale), (int)(mousePosition.Y / Scale)));
 
         private void updateConfineMode()
         {
