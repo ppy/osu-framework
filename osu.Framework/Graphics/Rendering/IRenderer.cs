@@ -140,8 +140,9 @@ namespace osu.Framework.Graphics.Rendering
         internal void FinishFrame();
 
         /// <summary>
-        /// Flushed the current batch.
+        /// Flushes the currently active vertex batch.
         /// </summary>
+        /// <param name="source">The source performing the flush, for profiling purposes.</param>
         internal void FlushCurrentBatch(FlushBatchSource? source);
 
         /// <summary>
