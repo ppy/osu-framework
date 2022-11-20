@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 int width = internalWidth;
                 int height = internalHeight;
 
-                // Generate quad buffer that will holds all the updated regions
+                // Generate quad buffer that will hold all the updated regions
                 var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(Renderer, uploadedRegions.Count, BufferUsageHint.StreamDraw);
 
                 // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
