@@ -201,8 +201,7 @@ namespace osu.Framework.Graphics.Visualisation
         private partial class UsageBackground : Box, IHasTooltip
         {
             private readonly WeakReference<Texture> textureReference;
-
-            private readonly BindableInt visualisedMipLevel;
+            private readonly IBindable<int> visualisedMipLevel;
 
             private ulong lastBindCount;
 
@@ -211,7 +210,7 @@ namespace osu.Framework.Graphics.Visualisation
             public UsageBackground(WeakReference<Texture> textureReference, BindableInt visualisedMipLevel)
             {
                 this.textureReference = textureReference;
-                this.visualisedMipLevel = visualisedMipLevel;
+                this.visualisedMipLevel = visualisedMipLevel.GetBoundCopy();
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
