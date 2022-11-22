@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 Clear();
                 AddRange(value);
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 Clear();
                 Add(value);
@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
                 throw new ArgumentNullException(nameof(drawable));
 
             if (drawable.IsDisposed)
-                throw new ObjectDisposedException(nameof(drawable));
+                return;
 
             if (Content == this)
                 AddInternal(drawable);
