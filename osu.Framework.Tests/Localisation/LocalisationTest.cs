@@ -509,14 +509,14 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_COMPLEX_FORMAT_STRING_EN = "number {0} with {1} and {2} EN";
             public const string LOCALISABLE_COMPLEX_FORMAT_STRING_FR = "number {0} with {1} and {2} FR";
 
-            public CultureInfo EffectiveCulture { get; }
+            public CultureInfo UICulture { get; }
 
             private readonly string locale;
 
             public FakeStorage(string locale)
             {
                 this.locale = locale;
-                EffectiveCulture = new CultureInfo(locale);
+                UICulture = new CultureInfo(locale);
             }
 
             public async Task<string> GetAsync(string name, CancellationToken cancellationToken = default) =>

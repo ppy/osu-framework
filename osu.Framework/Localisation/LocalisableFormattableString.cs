@@ -49,7 +49,7 @@ namespace osu.Framework.Localisation
 
             try
             {
-                return string.Format(parameters.Store.EffectiveCulture, format, args.Select(argument =>
+                return string.Format(parameters.Store.UICulture, format, args.Select(argument =>
                 {
                     if (argument is LocalisableString localisableString)
                         argument = localisableString.Data;
@@ -63,7 +63,7 @@ namespace osu.Framework.Localisation
             catch (FormatException e)
             {
                 // The formatting has failed
-                Logger.Log($"Localised format failed. Culture: {parameters.Store.EffectiveCulture}, format string: \"{format}\", base format string: \"{Format}\". Exception: {e}",
+                Logger.Log($"Localised format failed. Culture: {parameters.Store.UICulture}, format string: \"{format}\", base format string: \"{Format}\". Exception: {e}",
                     LoggingTarget.Runtime, LogLevel.Verbose);
             }
 
