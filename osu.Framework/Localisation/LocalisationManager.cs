@@ -13,7 +13,7 @@ namespace osu.Framework.Localisation
     {
         public IBindable<LocalisationParameters> CurrentParameters => currentParameters;
 
-        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
+        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(LocalisationParameters.DEFAULT);
 
         private readonly Dictionary<string, LocaleMapping> locales = new Dictionary<string, LocaleMapping>(StringComparer.OrdinalIgnoreCase);
 

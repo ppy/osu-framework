@@ -8,6 +8,8 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class LocalisationParameters
     {
+        public static readonly LocalisationParameters DEFAULT = new LocalisationParameters(null, false);
+
         /// <summary>
         /// The <see cref="ILocalisationStore"/> to be used for string lookups and culture-specific formatting.
         /// </summary>
