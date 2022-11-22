@@ -118,6 +118,25 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestLocalisationFallback()
+        {
+            using (CultureInfoHelper.ChangeSystemCulture("ja-JP"))
+            {
+                var localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+
+                // string is still in English as that's the only language
+                Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
+
+                // add a new language that's a better match for the system language.
+                manager.AddLanguage("ja", new FakeStorage("ja"));
+
+                localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+
+                Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
+            }
+        }
+
+        [Test]
         public void TestFormatted()
         {
             const string to_format = "this {0} {1} formatted";
