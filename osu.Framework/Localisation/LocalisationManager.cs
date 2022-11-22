@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -121,7 +122,12 @@ namespace osu.Framework.Localisation
 
             if (tryGetLocaleMappingForLocale(locale.NewValue, out var localeMapping))
             {
-                currentParameters.Value = new LocalisationParameters(localeMapping.Storage, configPreferUnicode.Value);
+                var culture = (CultureInfo)getSpecificCultureFor(localeMapping.Storage.UICulture).Clone();
+                Debug.Assert(!culture.IsReadOnly);
+
+                var formatProvider = CustomiseCultureAndFormatProvider(culture);
+
+                currentParameters.Value = new LocalisationParameters(localeMapping.Storage, configPreferUnicode.Value, culture, localeMapping.Storage.UICulture, formatProvider);
             }
             else
             {
@@ -168,6 +174,34 @@ namespace osu.Framework.Localisation
             }
 
             return firstLocale;
+        }
+
+        /// <summary>
+        /// Gets the most specific <see cref="CultureInfo"/> matching the provided <paramref name="storeUICulture"/>.
+        /// </summary>
+        /// <param name="storeUICulture"><see cref="ILocalisationStore.UICulture"/> of the current <see cref="ILocalisationStore"/>.</param>
+        /// <returns>The appropriate non-UI culture based on the provided <paramref name="storeUICulture"/>.</returns>
+        private static CultureInfo getSpecificCultureFor(CultureInfo storeUICulture)
+        {
+            // try to find a more specific culture from user preference. eg. `en` LocaleMapping will match `en-GB` culture.
+            foreach (var culture in new[] { CultureInfoHelper.SystemUICulture, CultureInfoHelper.SystemCulture })
+            {
+                if (culture.EnumerateParentCultures().Any(c => c.Name == storeUICulture.Name))
+                    return culture;
+            }
+
+            return storeUICulture;
+        }
+
+        /// <summary>
+        /// Applies customization to the <see cref="CultureInfo"/> used for culture-specific string formatting.
+        /// Can optionally return a custom <see cref="IFormatProvider"/> to be used for formatting <see cref="LocalisableFormattableString"/>s.
+        /// </summary>
+        /// <param name="culture">Writable <see cref="CultureInfo"/> to be used for <see cref="LocalisationParameters.Culture"/>.</param>
+        /// <returns><see cref="IFormatProvider"/> to be used for <see cref="LocalisationParameters.FormatProvider"/></returns>
+        protected virtual IFormatProvider CustomiseCultureAndFormatProvider(CultureInfo culture)
+        {
+            return culture;
         }
 
         protected virtual void Dispose(bool disposing)
