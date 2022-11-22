@@ -181,9 +181,9 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Copies all values and value limitations of this bindable to another such.
+        /// Copies all values and value limitations of this bindable to another.
         /// </summary>
-        /// <param name="them">The target to copy to</param>
+        /// <param name="them">The target to copy to.</param>
         public virtual void CopyTo(Bindable<T> them)
         {
             them.Value = Value;
