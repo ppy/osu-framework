@@ -194,6 +194,19 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
+        /// Refreshes <see cref="CurrentParameters"/>.<see cref="LocalisationParameters.Culture"/>, applying <see cref="CustomiseCultureAndFormatProvider"/> customisations.
+        /// </summary>
+        /// <remarks>Should be used in derived classes when culture specifics have changed and <see cref="LocalisationParameters.Culture"/> needs to be updated.</remarks>
+        protected void RefreshCulture()
+        {
+            // get a fresh copy of the specific culture.
+            var culture = (CultureInfo)getSpecificCultureFor(currentParameters.Value.UICulture).Clone();
+            var formatProvider = CustomiseCultureAndFormatProvider(culture);
+
+            currentParameters.Value = currentParameters.Value.With(culture: culture, formatProvider: formatProvider);
+        }
+
+        /// <summary>
         /// Applies customization to the <see cref="CultureInfo"/> used for culture-specific string formatting.
         /// Can optionally return a custom <see cref="IFormatProvider"/> to be used for formatting <see cref="LocalisableFormattableString"/>s.
         /// </summary>
