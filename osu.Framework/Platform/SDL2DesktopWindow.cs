@@ -325,10 +325,6 @@ namespace osu.Framework.Platform
         private const int events_per_peep = 64;
         private readonly SDL.SDL_Event[] events = new SDL.SDL_Event[events_per_peep];
 
-#if DEBUG
-        private bool handledAnyDisplayEvent;
-#endif
-
         /// <summary>
         /// Poll for all pending events.
         /// </summary>
@@ -344,13 +340,6 @@ namespace osu.Framework.Platform
                 for (int i = 0; i < eventsRead; i++)
                     handleSDLEvent(events[i]);
             } while (eventsRead == events_per_peep);
-#if DEBUG
-            if (handledAnyDisplayEvent)
-            {
-                assertDisplaysMatchSDL();
-                handledAnyDisplayEvent = false;
-            }
-#endif
         }
 
         private void handleSDLEvent(SDL.SDL_Event e)
@@ -364,9 +353,6 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_EventType.SDL_DISPLAYEVENT:
                     handleDisplayEvent(e.display);
-#if DEBUG
-                    handledAnyDisplayEvent = true;
-#endif
                     break;
 
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:

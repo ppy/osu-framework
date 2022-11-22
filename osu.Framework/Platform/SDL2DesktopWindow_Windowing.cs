@@ -483,6 +483,10 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                     break;
             }
+
+#if DEBUG
+            EventScheduler.AddOnce(() => assertDisplaysMatchSDL());
+#endif
         }
 
         /// <summary>
