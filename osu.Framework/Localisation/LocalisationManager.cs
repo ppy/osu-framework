@@ -120,7 +120,7 @@ namespace osu.Framework.Localisation
                     return;
                 }
 
-                for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
+                foreach (var c in culture.EnumerateParentCultures())
                 {
                     localeMapping = locales.GetValueOrDefault(c.Name);
                     if (localeMapping != null)
