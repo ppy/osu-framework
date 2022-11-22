@@ -32,7 +32,10 @@ namespace osu.Framework.Localisation
             configLocale.BindValueChanged(onLocaleChanged);
 
             config.BindWith(FrameworkSetting.ShowUnicode, configPreferUnicode);
-            configPreferUnicode.BindValueChanged(_ => UpdateLocalisationParameters(), true);
+            configPreferUnicode.BindValueChanged(preferUnicode =>
+            {
+                currentParameters.Value = currentParameters.Value.With(preferOriginalScript: preferUnicode.NewValue);
+            }, true);
         }
 
         /// <summary>
@@ -96,16 +99,14 @@ namespace osu.Framework.Localisation
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
         public ILocalisedBindableString GetLocalisedBindableString(LocalisableString original) => new LocalisedBindableString(original, this);
 
-        private LocaleMapping? currentLocale;
-
         private void onLocaleChanged(ValueChangedEvent<string> locale)
         {
             if (locales.Count == 0)
                 return;
 
-            currentLocale = locales.GetValueOrDefault(locale.NewValue);
+            var localeMapping = locales.GetValueOrDefault(locale.NewValue);
 
-            if (currentLocale == null)
+            if (localeMapping == null)
             {
                 if (!CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture))
                 {
@@ -121,30 +122,16 @@ namespace osu.Framework.Localisation
 
                 for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
                 {
-                    currentLocale = locales.GetValueOrDefault(c.Name);
-                    if (currentLocale != null)
+                    localeMapping = locales.GetValueOrDefault(c.Name);
+                    if (localeMapping != null)
                         break;
                 }
 
-                currentLocale ??= firstLocale;
+                localeMapping ??= firstLocale;
             }
 
-            UpdateLocalisationParameters();
+            currentParameters.Value = new LocalisationParameters(localeMapping?.Storage, configPreferUnicode.Value);
         }
-
-        /// <summary>
-        /// Retrieves the latest localisation parameters using <see cref="CreateLocalisationParameters"/> and updates the current one with.
-        /// </summary>
-        protected void UpdateLocalisationParameters() => currentParameters.Value = CreateLocalisationParameters();
-
-        /// <summary>
-        /// Creates new <see cref="LocalisationParameters"/>.
-        /// </summary>
-        /// <remarks>
-        /// Can be overridden to provide custom parameters for <see cref="ILocalisableStringData"/> implementations.
-        /// </remarks>
-        /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
-        protected virtual LocalisationParameters CreateLocalisationParameters() => new LocalisationParameters(currentLocale?.Storage, configPreferUnicode.Value);
 
         protected virtual void Dispose(bool disposing)
         {
