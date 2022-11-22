@@ -123,18 +123,6 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestLocalisationFallback()
-        {
-            manager.AddLanguage("ja", new FakeStorage("ja"));
-
-            config.SetValue(FrameworkSetting.Locale, "ja-JP");
-
-            var localisedText = manager.GetLocalisedBindableString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
-
-            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
-        }
-
-        [Test]
         public void TestFormatted()
         {
             const string to_format = "this {0} {1} formatted";
