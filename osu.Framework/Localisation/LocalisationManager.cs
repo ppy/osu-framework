@@ -29,7 +29,7 @@ namespace osu.Framework.Localisation
         public LocalisationManager(FrameworkConfigManager config)
         {
             config.BindWith(FrameworkSetting.Locale, configLocale);
-            configLocale.BindValueChanged(updateLocale);
+            configLocale.BindValueChanged(onLocaleChanged);
 
             config.BindWith(FrameworkSetting.ShowUnicode, configPreferUnicode);
             configPreferUnicode.BindValueChanged(_ => UpdateLocalisationParameters(), true);
@@ -98,7 +98,7 @@ namespace osu.Framework.Localisation
 
         private LocaleMapping? currentLocale;
 
-        private void updateLocale(ValueChangedEvent<string> locale)
+        private void onLocaleChanged(ValueChangedEvent<string> locale)
         {
             if (locales.Count == 0)
                 return;
