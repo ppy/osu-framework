@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
@@ -21,10 +19,10 @@ namespace osu.Framework.Tests.Localisation
     public class ThreadCultureTest : FrameworkTestScene
     {
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         [Resolved]
-        private FrameworkConfigManager config { get; set; }
+        private FrameworkConfigManager config { get; set; } = null!;
 
         [Test]
         public void TestDefaultCultureIsSystem()
@@ -80,11 +78,11 @@ namespace osu.Framework.Tests.Localisation
 
         private void assertThreadCulture(string name)
         {
-            CultureInfo culture = null;
+            CultureInfo? culture = null;
 
             AddStep("start new thread", () => new Thread(() => culture = CultureInfo.CurrentCulture) { IsBackground = true }.Start());
             AddUntilStep("wait for culture", () => culture != null);
-            AddAssert($"thread culture is {name}", () => culture.Name == name);
+            AddAssert($"thread culture is {name}", () => culture!.Name == name);
         }
     }
 }
