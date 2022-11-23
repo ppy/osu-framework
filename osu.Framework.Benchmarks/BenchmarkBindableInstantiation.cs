@@ -20,6 +20,9 @@ namespace osu.Framework.Benchmarks
         [Benchmark(Baseline = true)]
         public Bindable<int> GetBoundCopyOld() => new BindableOld<int>().GetBoundCopy();
 
+        [Benchmark]
+        public Bindable<int> GetUnboundCopy() => new Bindable<int>().GetUnboundCopy();
+
         private class BindableOld<T> : Bindable<T> where T : notnull
         {
             public BindableOld(T defaultValue = default!)
