@@ -8,6 +8,8 @@ namespace osu.Framework.Localisation
     /// </summary>
     public class LocalisationParameters
     {
+        public static readonly LocalisationParameters DEFAULT = new LocalisationParameters(null, false);
+
         /// <summary>
         /// The <see cref="ILocalisationStore"/> to be used for string lookups and culture-specific formatting.
         /// </summary>
@@ -37,5 +39,15 @@ namespace osu.Framework.Localisation
             Store = store;
             PreferOriginalScript = preferOriginalScript;
         }
+
+        /// <summary>
+        /// Creates new <see cref="LocalisationParameters"/> from this <see cref="LocalisationParameters"/> with the provided fields changed.
+        /// </summary>
+        /// <returns>New <see cref="LocalisationParameters"/> based on this <see cref="LocalisationParameters"/>.</returns>
+        public LocalisationParameters With(ILocalisationStore? store = null, bool? preferOriginalScript = null)
+            => new LocalisationParameters(
+                store ?? Store,
+                preferOriginalScript ?? PreferOriginalScript
+            );
     }
 }

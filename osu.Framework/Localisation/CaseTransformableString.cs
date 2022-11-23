@@ -68,7 +68,7 @@ namespace osu.Framework.Localisation
             }
         }
 
-        public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
+        public override string ToString() => GetLocalised(LocalisationParameters.DEFAULT);
 
         public bool Equals(ILocalisableStringData? other) => other is CaseTransformableString transformable && Equals(transformable);
 
