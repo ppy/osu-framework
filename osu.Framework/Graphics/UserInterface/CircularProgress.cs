@@ -93,6 +93,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private float innerRadius;
             private float progress;
+            private float texelSize;
             private bool roundedCaps;
 
             public override void ApplyState()
@@ -102,6 +103,9 @@ namespace osu.Framework.Graphics.UserInterface
                 innerRadius = Source.innerRadius;
                 progress = Math.Abs((float)Source.current.Value);
                 roundedCaps = Source.roundedCaps;
+
+                // smoothstep looks too sharp with 1px, let's give it a bit more
+                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
             protected override void UpdateUniforms(IShader shader)
@@ -110,6 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
+                shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
             }
 

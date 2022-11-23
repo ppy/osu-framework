@@ -185,11 +185,11 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
-        /// Returns a string representation that is prefixed with this thread's identifier.
+        /// Returns a string representation that is suffixed with a game thread identifier.
         /// </summary>
-        /// <param name="name">The content to prefix.</param>
-        /// <returns>A prefixed string.</returns>
-        public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
+        /// <param name="name">The content to suffix.</param>
+        /// <returns>A suffixed string.</returns>
+        public static string SuffixedThreadNameFor(string name) => $"{name} ({nameof(GameThread)})";
 
         /// <summary>
         /// Start this thread.
@@ -400,7 +400,7 @@ namespace osu.Framework.Threading
 
             Thread = new Thread(runWork)
             {
-                Name = PrefixedThreadNameFor(Name),
+                Name = SuffixedThreadNameFor(Name),
                 IsBackground = true,
             };
 
@@ -469,10 +469,12 @@ namespace osu.Framework.Threading
 
         private void updateCulture()
         {
-            if (Thread == null || culture == null) return;
+            if (culture == null) return;
 
-            Thread.CurrentCulture = culture;
-            Thread.CurrentUICulture = culture;
+            Debug.Assert(IsCurrent);
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
         }
 
         private void setExitState(GameThreadState exitState)
@@ -489,6 +491,7 @@ namespace osu.Framework.Threading
                 {
                     case GameThreadState.Exited:
                         Monitor?.Dispose();
+                        Clock.Dispose();
 
                         if (initializedEvent.IsNotNull())
                             initializedEvent.Dispose();

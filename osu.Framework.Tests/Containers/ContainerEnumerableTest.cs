@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Containers
             {
                 var unused = new AudioContainer
                 {
-                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)
+                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)!
                 };
             });
 
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Containers
             {
                 var unused = new AudioContainer();
 
-                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType));
+                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType)!);
             });
         }
     }
