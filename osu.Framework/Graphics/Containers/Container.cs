@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
                 throw new ArgumentNullException(nameof(drawable));
 
             if (drawable.IsDisposed)
-                return;
+                throw new ObjectDisposedException(nameof(drawable));
 
             if (Content == this)
                 AddInternal(drawable);
