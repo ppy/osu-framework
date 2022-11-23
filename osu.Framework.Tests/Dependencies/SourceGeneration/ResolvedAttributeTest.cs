@@ -11,7 +11,7 @@ using osu.Framework.Testing.Dependencies;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
-namespace osu.Framework.Tests.Dependencies
+namespace osu.Framework.Tests.Dependencies.SourceGeneration
 {
     [TestFixture]
     public partial class ResolvedAttributeTest
@@ -103,14 +103,6 @@ namespace osu.Framework.Tests.Dependencies
             var receiver = new Receiver9();
 
             Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
-        }
-
-        [Test]
-        public void TestNoSetter()
-        {
-            var receiver = new Receiver10();
-
-            Assert.Throws<PropertyNotWritableException>(() => createDependencies().Inject(receiver));
         }
 
         [Test]
@@ -219,7 +211,7 @@ namespace osu.Framework.Tests.Dependencies
             return dependencies;
         }
 
-        private class BaseObject
+        private partial class BaseObject
         {
         }
 
@@ -283,12 +275,6 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected internal set; }
-        }
-
-        private partial class Receiver10
-        {
-            [Resolved(CanBeNull = true)]
-            public BaseObject Obj { get; }
         }
 
         private partial class Receiver11 : Receiver8

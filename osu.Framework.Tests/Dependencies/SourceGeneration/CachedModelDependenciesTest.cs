@@ -8,7 +8,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 
-namespace osu.Framework.Tests.Dependencies
+namespace osu.Framework.Tests.Dependencies.SourceGeneration
 {
     [TestFixture]
     public partial class CachedModelDependenciesTest

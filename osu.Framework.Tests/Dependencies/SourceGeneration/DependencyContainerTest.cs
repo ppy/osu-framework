@@ -11,7 +11,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
 
-namespace osu.Framework.Tests.Dependencies
+namespace osu.Framework.Tests.Dependencies.SourceGeneration
 {
     [TestFixture]
     public partial class DependencyContainerTest
@@ -339,16 +339,16 @@ namespace osu.Framework.Tests.Dependencies
         {
         }
 
-        private class BaseObject
+        private partial class BaseObject
         {
             public int TestValue;
         }
 
-        private struct BaseStructObject : IBaseInterface
+        private partial struct BaseStructObject : IBaseInterface
         {
         }
 
-        private class DerivedObject : BaseObject
+        private partial class DerivedObject : BaseObject
         {
         }
 
@@ -372,7 +372,7 @@ namespace osu.Framework.Tests.Dependencies
             private void load(BaseObject baseObject) => OnLoad?.Invoke(baseObject);
         }
 
-        private class Receiver4
+        private partial class Receiver4
         {
             public Action Loaded4;
 
