@@ -236,18 +236,18 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Sets the current culture of all threads to the supplied <paramref name="culture"/>.
         /// </summary>
-        public void SetCulture(CultureInfo culture)
+        public void SetCulture(CultureInfo culture, CultureInfo uiCulture)
         {
             // for single-threaded mode, switch the current (assumed to be main) thread's culture, since it's actually the one that's running the frames.
             CultureInfo.CurrentCulture = culture;
-            CultureInfo.CurrentUICulture = culture;
+            CultureInfo.CurrentUICulture = uiCulture;
 
             // for multi-threaded mode, schedule the culture change on all threads.
             // note that if the threads haven't been created yet (e.g. if the game started single-threaded), this will only store the culture in GameThread.CurrentCulture.
             // in that case, the stored value will be set on the actual threads after the next Start() call.
             foreach (var t in Threads)
             {
-                t.Scheduler.Add(() => t.CurrentCulture = culture);
+                t.Scheduler.Add(() => t.SetCulture(culture, uiCulture));
             }
         }
     }
