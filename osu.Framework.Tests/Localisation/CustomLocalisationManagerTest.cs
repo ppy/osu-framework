@@ -11,10 +11,12 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Localisation;
+using osu.Framework.Testing;
 using osu.Framework.Tests.Visual.Localisation;
 
 namespace osu.Framework.Tests.Localisation
 {
+    [HeadlessTest]
     public class CustomLocalisationManagerTest : LocalisationTestScene
     {
         private readonly BindableBool useCustomDateFormatBindable = new BindableBool();
