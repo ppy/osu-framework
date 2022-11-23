@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, shaderName);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, $"{shaderName}Rounded");
         }
 
         protected override DrawNode CreateDrawNode() => new ShaderDrawNode(this);
@@ -38,7 +37,7 @@ namespace osu.Framework.Graphics
 
             protected override void Blit(IRenderer renderer)
             {
-                UpdateUniforms(GetAppropriateShader(renderer));
+                UpdateUniforms(TextureShader);
                 base.Blit(renderer);
             }
 
