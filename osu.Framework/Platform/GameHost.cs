@@ -315,6 +315,9 @@ namespace osu.Framework.Platform
 
         protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            // ensure that SystemCulture and SystemUICulture values are fetched before something can change them.
+            RuntimeHelpers.RunClassConstructor(typeof(CultureInfoHelper).TypeHandle);
+
             Options = options ?? new HostOptions();
 
             Name = gameName;
