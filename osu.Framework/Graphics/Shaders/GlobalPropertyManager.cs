@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
-        private static readonly HashSet<Shader> all_shaders = new HashSet<Shader>();
+        private static readonly HashSet<IShader> all_shaders = new HashSet<IShader>();
         private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
@@ -22,6 +22,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties = new IUniformMapping[values.Length];
 
             global_properties[(int)GlobalProperty.ProjMatrix] = new UniformMapping<Matrix4>("g_ProjMatrix");
+            global_properties[(int)GlobalProperty.IsMasking] = new UniformMapping<bool>("g_IsMasking");
             global_properties[(int)GlobalProperty.MaskingRect] = new UniformMapping<Vector4>("g_MaskingRect");
             global_properties[(int)GlobalProperty.ToMaskingSpace] = new UniformMapping<Matrix3>("g_ToMaskingSpace");
             global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");
@@ -48,12 +49,12 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
         public static void Set<T>(GlobalProperty property, T value)
-            where T : struct, IEquatable<T>
+            where T : unmanaged, IEquatable<T>
         {
             ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
         }
 
-        public static void Register(Shader shader)
+        public static void Register(IShader shader)
         {
             if (!all_shaders.Add(shader)) return;
 
@@ -67,7 +68,7 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        public static void Unregister(Shader shader)
+        public static void Unregister(IShader shader)
         {
             if (!all_shaders.Remove(shader)) return;
 

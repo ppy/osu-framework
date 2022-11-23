@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Platform
@@ -59,7 +60,7 @@ namespace osu.Framework.Platform
             string basePath = Path.GetFullPath(GetFullPath(string.Empty));
             return paths.Select(Path.GetFullPath).Select(path =>
             {
-                if (!path.StartsWith(basePath, StringComparison.Ordinal)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
+                if (!path.StartsWith(basePath, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
 
                 return path.AsSpan(basePath.Length).TrimStart(Path.DirectorySeparatorChar).ToString();
             });
@@ -72,9 +73,9 @@ namespace osu.Framework.Platform
             string basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
             string resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
-            if (!resolvedPath.StartsWith(basePath, StringComparison.Ordinal)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
+            if (!resolvedPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
 
-            if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath));
+            if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath).AsNonNull());
             return resolvedPath;
         }
 

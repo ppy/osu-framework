@@ -67,8 +67,10 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
+        /// <param name="name">A name identifying the track internally.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        internal TrackBass(Stream data, bool quick = false)
+        internal TrackBass(Stream data, string name, bool quick = false)
+            : base(name)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));

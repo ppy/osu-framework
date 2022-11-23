@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
@@ -13,13 +11,8 @@ namespace osu.Framework.Graphics
     public interface ITexturedShaderDrawable : IDrawable
     {
         /// <summary>
-        /// The <see cref="IShader"/> to be used for rendering when masking is not required.
+        /// The <see cref="IShader"/> to be used for rendering.
         /// </summary>
-        IShader TextureShader { get; }
-
-        /// <summary>
-        /// The <see cref="IShader"/> to be used for rendering when masking is required.
-        /// </summary>
-        IShader RoundedTextureShader { get; }
+        IShader? TextureShader { get; }
     }
 }

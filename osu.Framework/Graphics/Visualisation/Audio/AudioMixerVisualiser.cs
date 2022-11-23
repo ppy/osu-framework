@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 
                 case NotifyCollectionChangedAction.Remove:
                     Debug.Assert(e.OldItems != null);
-                    mixerFlow.RemoveAll(m => e.OldItems.OfType<AudioMixer>().Contains(m.Mixer));
+                    mixerFlow.RemoveAll(m => e.OldItems.OfType<AudioMixer>().Contains(m.Mixer), true);
                     break;
             }
         });

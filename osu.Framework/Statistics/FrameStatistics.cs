@@ -20,12 +20,15 @@ namespace osu.Framework.Statistics
 
         internal static readonly long[] COUNTERS = new long[NUM_STATISTICS_COUNTER_TYPES];
 
+        public double Jitter;
+
         internal void Clear()
         {
             CollectedTimes.Clear();
             GarbageCollections.Clear();
             Counts.Clear();
             FramesPerSecond = 0;
+            Jitter = 0;
         }
 
         internal static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
@@ -48,7 +51,7 @@ namespace osu.Framework.Statistics
         Sleep,
         Scheduler,
         IPC,
-        GLReset,
+        DrawReset,
     }
 
     internal enum StatisticsCounterType

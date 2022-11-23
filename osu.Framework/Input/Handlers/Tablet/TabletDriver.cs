@@ -1,49 +1,61 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 #if NET6_0_OR_GREATER
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Components;
 using OpenTabletDriver.Plugin.Tablet;
-using osu.Framework.Logging;
 using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
     public sealed class TabletDriver : Driver
     {
-        private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
+        private readonly int[] knownVendors;
 
-        private CancellationTokenSource cancellationSource;
+        private CancellationTokenSource? cancellationSource;
 
-        public event EventHandler<IDeviceReport> DeviceReported;
+        public event EventHandler<IDeviceReport>? DeviceReported;
 
-        public TabletDriver([NotNull] ICompositeDeviceHub deviceHub, [NotNull] IReportParserProvider reportParserProvider, [NotNull] IDeviceConfigurationProvider configurationProvider)
+        public Action<string, LogLevel, Exception?>? PostLog;
+
+        public TabletDriver(ICompositeDeviceHub deviceHub, IReportParserProvider reportParserProvider, IDeviceConfigurationProvider configurationProvider)
             : base(deviceHub, reportParserProvider, configurationProvider)
         {
-            Log.Output += (_, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
+            var vendors = from config in configurationProvider.TabletConfigurations
+                          from id in config.DigitizerIdentifiers
+                          select id.VendorID;
+
+            knownVendors = vendors.Distinct().ToArray();
+
+            Log.Output += (_, logMessage) =>
+            {
+                LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
+                PostLog?.Invoke($"{logMessage.Group}: {logMessage.Message}", level, null);
+            };
 
             deviceHub.DevicesChanged += (_, args) =>
             {
                 // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
                 if (!Tablets.Any() && args.Additions.Any())
-                {
-                    cancellationSource?.Cancel();
-                    cancellationSource = new CancellationTokenSource();
-
-                    Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
-                }
+                    detectAsync();
             };
+
+            detectAsync();
+        }
+
+        private void detectAsync()
+        {
+            cancellationSource?.Cancel();
+            cancellationSource = new CancellationTokenSource();
+
+            Task.Run(() => detectAsync(cancellationSource.Token), cancellationSource.Token);
         }
 
         private async Task detectAsync(CancellationToken cancellationToken)
@@ -51,11 +63,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             // wait a small delay as multiple devices may appear over a very short interval.
             await Task.Delay(50, cancellationToken).ConfigureAwait(false);
 
-            int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+            int foundVendor = CompositeDeviceHub.GetDevices().Select(d => d.VendorID).Intersect(knownVendors).FirstOrDefault();
 
             if (foundVendor > 0)
             {
-                Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+                PostLog?.Invoke($"Tablet detected (vid{foundVendor}), searching for usable configuration...", LogLevel.Verbose, null);
 
                 Detect();
 

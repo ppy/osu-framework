@@ -25,7 +25,6 @@ namespace osu.Framework.Graphics.Video
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO_ROUNDED);
         }
 
         protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(video);

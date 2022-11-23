@@ -10,7 +10,6 @@ using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using osu.Framework.Layout;
-using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -29,12 +28,9 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         public IShader TextureShader { get; protected set; }
-
-        public IShader RoundedTextureShader { get; protected set; }
 
         private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);
 
@@ -228,7 +224,7 @@ namespace osu.Framework.Graphics.Sprites
             // ======================================================================================================================
 
             // RectangleF texRect = RelativeDrawTextureRectangle;
-            // Vector2 shrinkageAmount = Vector2.Divide(texRect.Size * (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) / 2, Texture.Size);
+            // Vector2 shrinkageAmount = Vector2.Divide(texRect.Size * (1 << IRenderer.MAX_MIPMAP_LEVELS) / 2, Texture.Size);
             // shrinkageAmount = Vector2.ComponentMin(shrinkageAmount, texRect.Size / 2);
             // texRect = texRect.Inflate(-shrinkageAmount);
             //

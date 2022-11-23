@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Markdig.Extensions.CustomContainers;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -56,6 +57,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         {
                             switch (literal.Parent)
                             {
+                                case CustomContainerInline containerInline:
+                                    AddCustomComponent(containerInline);
+                                    break;
+
                                 case EmphasisInline:
                                     var parent = literal.Parent;
 
@@ -138,6 +143,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual void AddImage(LinkInline linkInline)
             => AddDrawable(new MarkdownImage(linkInline.Url));
+
+        protected virtual void AddCustomComponent(CustomContainerInline customContainerInline)
+            => AddNotImplementedInlineText(customContainerInline);
 
         protected virtual void AddNotImplementedInlineText(Inline inline)
             => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);

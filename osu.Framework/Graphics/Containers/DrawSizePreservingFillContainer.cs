@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osuTK;
 
@@ -67,7 +65,9 @@ namespace osu.Framework.Graphics.Containers
                     break;
             }
 
-            content.Size = Vector2.Divide(Vector2.One, content.Scale);
+            content.Size = new Vector2(
+                content.Scale.X == 0 ? 0 : 1 / content.Scale.X,
+                content.Scale.Y == 0 ? 0 : 1 / content.Scale.Y);
         }
     }
 

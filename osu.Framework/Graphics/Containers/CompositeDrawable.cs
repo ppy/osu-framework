@@ -59,9 +59,6 @@ namespace osu.Framework.Graphics.Containers
             AddLayout(childrenSizeDependencies);
         }
 
-        [Resolved]
-        private Game game { get; set; }
-
         /// <summary>
         /// Create a local dependency container which will be used by our nested children.
         /// If not overridden, the load-time parent's dependency tree will be used.
@@ -142,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
                                                                Scheduler scheduler = null)
             where TLoadable : Drawable
         {
-            if (game == null)
+            if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
@@ -221,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="components">The children or grand-children to be loaded.</param>
         protected void LoadComponents<TLoadable>(IEnumerable<TLoadable> components) where TLoadable : Drawable
         {
-            if (game == null)
+            if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             if (IsDisposed)
@@ -254,7 +251,7 @@ namespace osu.Framework.Graphics.Containers
         {
             hasCustomDrawNode = GetType().GetMethod(nameof(CreateDrawNode))?.DeclaringType != typeof(CompositeDrawable);
 
-            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -487,36 +484,45 @@ namespace osu.Framework.Graphics.Containers
         /// Removes a given child from this <see cref="InternalChildren"/>.
         /// </summary>
         /// <param name="drawable">The <see cref="Drawable"/> to be removed.</param>
+        /// <param name="disposeImmediately">Whether removed item should be immediately disposed.</param>
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
-        protected internal virtual bool RemoveInternal(Drawable drawable)
+        protected internal virtual bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
-            EnsureChildMutationAllowed();
-
-            if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable));
-
-            int index = IndexOfInternal(drawable);
-            if (index < 0)
-                return false;
-
-            internalChildren.RemoveAt(index);
-
-            if (drawable.IsAlive)
+            try
             {
-                aliveInternalChildren.Remove(drawable);
-                ChildDied?.Invoke(drawable);
+                EnsureChildMutationAllowed();
+
+                if (drawable == null)
+                    throw new ArgumentNullException(nameof(drawable));
+
+                int index = IndexOfInternal(drawable);
+                if (index < 0)
+                    return false;
+
+                internalChildren.RemoveAt(index);
+
+                if (drawable.IsAlive)
+                {
+                    aliveInternalChildren.Remove(drawable);
+                    ChildDied?.Invoke(drawable);
+                }
+
+                if (drawable.LoadState >= LoadState.Ready && drawable.Parent != this)
+                    throw new InvalidOperationException($@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+
+                drawable.Parent = null;
+                drawable.IsAlive = false;
+
+                if (AutoSizeAxes != Axes.None)
+                    Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
+
+                return true;
             }
-
-            if (drawable.LoadState >= LoadState.Ready && drawable.Parent != this)
-                throw new InvalidOperationException($@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
-
-            drawable.Parent = null;
-            drawable.IsAlive = false;
-
-            if (AutoSizeAxes != Axes.None)
-                Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
-
-            return true;
+            finally
+            {
+                if (disposeImmediately)
+                    drawable?.Dispose();
+            }
         }
 
         /// <summary>
@@ -567,7 +573,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
-        protected internal virtual void AddInternal(Drawable drawable)
+        protected virtual void AddInternal(Drawable drawable)
         {
             EnsureChildMutationAllowed();
 
@@ -841,7 +847,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (child.RemoveWhenNotAlive)
             {
-                RemoveInternal(child);
+                RemoveInternal(child, false);
 
                 if (child.DisposeOnDeathRemoval)
                     DisposeChildAsync(child);

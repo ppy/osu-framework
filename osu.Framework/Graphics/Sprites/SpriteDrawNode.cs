@@ -4,12 +4,9 @@
 #nullable disable
 
 using osuTK;
-using System;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -58,53 +55,53 @@ namespace osu.Framework.Graphics.Sprites
                 ConservativeScreenSpaceDrawQuad = Source.ConservativeScreenSpaceDrawQuad;
         }
 
-        protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
+        protected virtual void Blit(IRenderer renderer)
         {
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
+            renderer.DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, null,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
                 null, TextureCoords);
         }
 
-        protected virtual void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+        protected virtual void BlitOpaqueInterior(IRenderer renderer)
         {
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
+            if (renderer.IsMaskingActive)
+                renderer.DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
             else
-                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, textureCoords: TextureCoords);
+                renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(IRenderer renderer)
         {
-            base.Draw(vertexAction);
+            base.Draw(renderer);
 
             if (Texture?.Available != true)
                 return;
 
-            Shader.Bind();
+            var shader = TextureShader;
 
-            Blit(vertexAction);
+            shader.Bind();
 
-            Shader.Unbind();
+            Blit(renderer);
+
+            shader.Unbind();
         }
 
-        protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
-
-        protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+        protected override void DrawOpaqueInterior(IRenderer renderer)
         {
-            base.DrawOpaqueInterior(vertexAction);
+            base.DrawOpaqueInterior(renderer);
 
             if (Texture?.Available != true)
                 return;
 
             TextureShader.Bind();
 
-            BlitOpaqueInterior(vertexAction);
+            BlitOpaqueInterior(renderer);
 
             TextureShader.Unbind();
         }

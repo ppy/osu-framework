@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                     mixerChannelsContainer.Add(new AudioChannelDisplay(channel));
             }
 
-            mixerChannelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));
+            mixerChannelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle), true);
         }
     }
 }

@@ -7,7 +7,7 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -210,7 +210,6 @@ namespace osu.Framework.Graphics.UserInterface
             private class SaturationBox : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
 
                 private float hue;
 
@@ -235,7 +234,6 @@ namespace osu.Framework.Graphics.UserInterface
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
                 }
 
                 protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
@@ -257,10 +255,10 @@ namespace osu.Framework.Graphics.UserInterface
                         hue = Source.hue;
                     }
 
-                    protected override void Blit(Action<TexturedVertex2D> vertexAction)
+                    protected override void Blit(IRenderer renderer)
                     {
-                        Shader.GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(vertexAction);
+                        TextureShader.GetUniform<float>("hue").UpdateValue(ref hue);
+                        base.Blit(renderer);
                     }
                 }
             }

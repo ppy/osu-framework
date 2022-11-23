@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osuTK;
 using System;
 using System.Collections.Generic;
@@ -24,7 +22,17 @@ namespace osu.Framework.Graphics.Containers
     {
         IReadOnlyList<T> Children { get; }
 
-        int RemoveAll(Predicate<T> match);
+        /// <summary>
+        /// Remove all matching children from this container.
+        /// </summary>
+        /// <param name="match">A predicate used to find matching items.</param>
+        /// <param name="disposeImmediately">Whether removed items should be immediately disposed.</param>
+        /// <remarks>
+        /// <paramref name="disposeImmediately"/> should be <c>true</c> unless the removed items are to be re-used in the future.
+        /// If <c>false</c>, ensure removed items are manually disposed else object leakage may occur.
+        /// </remarks>
+        /// <returns>The number of matching items removed.</returns>
+        int RemoveAll(Predicate<T> match, bool disposeImmediately);
     }
 
     public interface IContainerCollection<in T> : IContainer
@@ -39,7 +47,28 @@ namespace osu.Framework.Graphics.Containers
         void Add(T drawable);
         void AddRange(IEnumerable<T> collection);
 
-        bool Remove(T drawable);
-        void RemoveRange(IEnumerable<T> range);
+        /// <summary>
+        /// Remove the provided drawable from this container's children.
+        /// </summary>
+        /// <param name="drawable">The drawable to be removed.</param>
+        /// <param name="disposeImmediately">Whether removed item should be immediately disposed.</param>
+        /// <remarks>
+        /// <paramref name="disposeImmediately"/> should be <c>true</c> unless the removed item is to be re-used in the future.
+        /// If <c>false</c>, ensure the removed item is manually disposed (or added back to another part of the hierarchy) else
+        /// object leakage may occur.
+        /// </remarks>
+        /// <returns>Whether the drawable was removed.</returns>
+        bool Remove(T drawable, bool disposeImmediately);
+
+        /// <summary>
+        /// Remove all matching children from this container.
+        /// </summary>
+        /// <param name="range">The drawables to be removed.</param>
+        /// <param name="disposeImmediately">Whether removed items should be immediately disposed.</param>
+        /// <remarks>
+        /// <paramref name="disposeImmediately"/> should be <c>true</c> unless the removed items are to be re-used in the future.
+        /// If <c>false</c>, ensure removed items are manually disposed else object leakage may occur.
+        /// </remarks>
+        void RemoveRange(IEnumerable<T> range, bool disposeImmediately);
     }
 }

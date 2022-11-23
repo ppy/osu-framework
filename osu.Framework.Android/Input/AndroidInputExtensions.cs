@@ -131,7 +131,6 @@ namespace osu.Framework.Android.Input
         /// </summary>
         /// <param name="motionEventMouseButton">The given button state. Must not be a raw state or a non-mouse button.</param>
         /// <returns>The corresponding <see cref="MouseButton"/>s.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if the provided button <paramref name="motionEventMouseButton"/> is not a </exception>
         public static IEnumerable<MouseButton> ToMouseButtons(this MotionEventButtonState motionEventMouseButton)
         {
             if (motionEventMouseButton.HasFlagFast(MotionEventButtonState.Primary))
@@ -173,6 +172,12 @@ namespace osu.Framework.Android.Input
             return false;
         }
 
+        public static bool IsKeyboard(this InputSourceType source)
+        {
+            // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
+            return source is InputSourceType.Keyboard or (InputSourceType.Keyboard | InputSourceType.Dpad);
+        }
+
         public static bool TryGetJoystickButton(this KeyEvent e, out JoystickButton button)
         {
             var keycode = e.KeyCode;
@@ -193,7 +198,7 @@ namespace osu.Framework.Android.Input
                 case Keycode.DpadDown:
                 case Keycode.DpadLeft:
                 case Keycode.DpadRight:
-                case Keycode.Back when e.Source == InputSourceType.Keyboard:
+                case Keycode.Back when e.Source.IsKeyboard():
                 default:
                     button = JoystickButton.FirstButton;
                     return false;
@@ -332,6 +337,34 @@ namespace osu.Framework.Android.Input
 
             joystickAxis = JoystickAxisSource.AxisCount;
             return false;
+        }
+
+        /// <summary>
+        /// Whether this <see cref="MotionEventActions"/> is a touch down action.
+        /// </summary>
+        /// <param name="action">The <see cref="MotionEvent.ActionMasked"/> to check.</param>
+        /// <returns>
+        /// <c>true</c> if this is a touch down action.
+        /// <c>false</c> if this is a touch up action.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If this action is not a touch action.</exception>
+        public static bool IsTouchDownAction(this MotionEventActions action)
+        {
+            switch (action)
+            {
+                case MotionEventActions.Down:
+                case MotionEventActions.PointerDown:
+                case MotionEventActions.Move:
+                    return true;
+
+                case MotionEventActions.PointerUp:
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    return false;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action), action, "Motion event action is not a touch action.");
+            }
         }
     }
 }

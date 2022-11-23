@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace osu.Framework.Localisation
 {
@@ -43,6 +44,53 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <param name="interpolation">The interpolated string containing format and arguments.</param>
         public static LocalisableString Interpolate(FormattableString interpolation) => new LocalisableFormattableString(interpolation);
+
+        /// <summary>
+        /// Indicates whether the specified <see cref="LocalisableString"/> is <see langword="null"/> or an empty <see langword="string"/>.
+        /// </summary>
+        /// <remarks>
+        /// Will always be false for non-<see langword="string"/> data (e.g. <see cref="TranslatableString"/>).
+        /// </remarks>
+        /// <param name="value">The <see cref="LocalisableString"/> to test.</param>
+        /// <returns><see langword="true"/> if the <paramref name="value"/> parameter is <see langword="null"/> or an empty <see langword="string"/> (&quot;&quot;);
+        /// otherwise, <see langword="false"/>.</returns>
+        public static bool IsNullOrEmpty([NotNullWhen(false)] LocalisableString? value)
+        {
+            if (value is not LocalisableString localisable)
+                return true;
+
+            if (localisable.Data == null)
+                return true;
+
+            if (localisable.Data is not string strData)
+                return false;
+
+            return string.IsNullOrEmpty(strData);
+        }
+
+        /// <summary>
+        /// Indicates whether the specified <see cref="LocalisableString"/> is <see langword="null"/>, an empty <see langword="string"/>,
+        /// or a <see langword="string"/> that consists of only white-space characters.
+        /// </summary>
+        /// <remarks>
+        /// Will always be false for non-<see langword="string"/> data (e.g. <see cref="TranslatableString"/>).
+        /// </remarks>
+        /// <param name="value">The <see cref="LocalisableString"/> to test.</param>
+        /// <returns><see langword="true"/> if the <paramref name="value"/> parameter is <see langword="null"/>, an empty <see langword="string"/> (&quot;&quot;),
+        /// or a <see langword="string"/> that consists of only white-space characters.</returns>
+        public static bool IsNullOrWhiteSpace([NotNullWhen(false)] LocalisableString? value)
+        {
+            if (value is not LocalisableString localisable)
+                return true;
+
+            if (localisable.Data == null)
+                return true;
+
+            if (localisable.Data is not string strData)
+                return false;
+
+            return string.IsNullOrWhiteSpace(strData);
+        }
 
         // it's somehow common to call default(LocalisableString), and we should return empty string then.
         public override string ToString() => Data?.ToString() ?? string.Empty;

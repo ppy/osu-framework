@@ -23,7 +23,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework
 {
@@ -66,6 +65,8 @@ namespace osu.Framework
         protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
+
+        private readonly Container overlayContent;
 
         private DrawVisualiser drawVisualiser;
 
@@ -113,6 +114,11 @@ namespace osu.Framework
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                 },
+                overlayContent = new DrawSizePreservingFillContainer
+                {
+                    TargetDrawSize = new Vector2(1280, 960),
+                    RelativeSizeAxes = Axes.Both,
+                },
             });
         }
 
@@ -139,8 +145,8 @@ namespace osu.Framework
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
-            Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
-                filteringMode: DefaultTextureFilteringMode == TextureFilteringMode.Linear ? All.Linear : All.Nearest);
+            Textures = new TextureStore(Host.Renderer, Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
+                filteringMode: DefaultTextureFilteringMode);
 
             Textures.AddTextureSource(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
@@ -165,17 +171,17 @@ namespace osu.Framework
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
-            Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
+            Shaders = new ShaderManager(Host.Renderer, new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
             var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
-            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
+            Fonts = new FontStore(Host.Renderer, useAtlas: true, cacheStorage: cacheStorage);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
-            Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
+            Fonts.AddStore(localFonts = new FontStore(Host.Renderer, useAtlas: false));
 
             // Roboto (FrameworkFont.Regular)
             addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
@@ -194,7 +200,7 @@ namespace osu.Framework
             dependencies.Cache(Fonts);
 
             Localisation = CreateLocalisationManager(config);
-            dependencies.Cache(Localisation);
+            dependencies.CacheAs(Localisation);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
@@ -210,7 +216,7 @@ namespace osu.Framework
                         LoadComponentAsync(logOverlay = new LogOverlay
                         {
                             Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     logOverlay.Show();
@@ -250,7 +256,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, AddInternal);
+            }, overlayContent.Add);
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
         }
@@ -264,6 +270,8 @@ namespace osu.Framework
         private Bindable<FrameSync> frameSyncMode;
 
         private Bindable<ExecutionMode> executionMode;
+
+        private float currentOverlayDepth;
 
         public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
@@ -297,12 +305,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
+                            State = { Value = Visibility.Visible },
+                            Depth = getNextFrontMostOverlayDepth(),
                             ToolPosition = getCascadeLocation(0),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(drawVisualiser);
 
-                    drawVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleGlobalStatistics:
@@ -311,12 +321,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
                         {
-                            Depth = float.MinValue / 2,
+                            State = { Value = Visibility.Visible },
                             Position = getCascadeLocation(1),
-                        }, AddInternal);
+                            Depth = getNextFrontMostOverlayDepth(),
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(globalStatistics);
 
-                    globalStatistics.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleAtlasVisualiser:
@@ -325,12 +337,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(textureVisualiser = new TextureVisualiser
                         {
+                            State = { Value = Visibility.Visible },
                             Position = getCascadeLocation(2),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
+                            Depth = getNextFrontMostOverlayDepth(),
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(textureVisualiser);
 
-                    textureVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleAudioMixerVisualiser:
@@ -338,12 +352,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
                         {
+                            State = { Value = Visibility.Visible },
                             Position = getCascadeLocation(3),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
+                            Depth = getNextFrontMostOverlayDepth(),
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(audioMixerVisualiser);
 
-                    audioMixerVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
@@ -378,6 +394,16 @@ namespace osu.Framework
             static Vector2 getCascadeLocation(int index)
                 => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
+
+        private void toggleOverlay(OverlayContainer overlay)
+        {
+            overlay.ToggleVisibility();
+
+            if (overlay.State.Value == Visibility.Visible)
+                overlayContent.ChangeChildDepth(overlay, getNextFrontMostOverlayDepth());
+        }
+
+        private float getNextFrontMostOverlayDepth() => currentOverlayDepth -= 0.01f;
 
         public void OnReleased(KeyBindingReleaseEvent<FrameworkAction> e)
         {
@@ -448,6 +474,9 @@ namespace osu.Framework
 
             localFonts?.Dispose();
             localFonts = null;
+
+            Localisation?.Dispose();
+            Localisation = null;
         }
     }
 }

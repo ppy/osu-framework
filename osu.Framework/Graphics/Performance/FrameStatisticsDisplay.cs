@@ -19,6 +19,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Events;
 using osuTK;
 using SixLabors.ImageSharp;
@@ -109,7 +110,10 @@ namespace osu.Framework.Graphics.Performance
         public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
+
+            Debug.Assert(thread.Monitor != null);
             monitor = thread.Monitor;
+
             this.uploadPool = uploadPool;
 
             Origin = Anchor.TopRight;
@@ -152,7 +156,6 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(1, HEIGHT, true),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -241,7 +244,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(IRenderer renderer)
         {
             //initialise background
             var columnUpload = new ArrayPoolTextureUpload(1, HEIGHT);
@@ -257,7 +260,12 @@ namespace osu.Framework.Graphics.Performance
 
             addArea(null, null, HEIGHT, amount_count_steps, columnUpload);
 
-            counterBarBackground?.Texture.SetData(columnUpload);
+            if (counterBarBackground != null)
+            {
+                counterBarBackground.Texture = renderer.CreateTexture(1, HEIGHT, true);
+                counterBarBackground.Texture.SetData(columnUpload);
+            }
+
             Schedule(() =>
             {
                 foreach (var t in timeBars)
@@ -431,7 +439,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
 
-                case PerformanceCollectionType.GLReset:
+                case PerformanceCollectionType.DrawReset:
                     return Color4.Cyan;
             }
         }
@@ -513,8 +521,13 @@ namespace osu.Framework.Graphics.Performance
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
+            }
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT, true) { TextureGL = { BypassTextureUploadQueueing = true } };
+            [BackgroundDependencyLoader]
+            private void load(IRenderer renderer)
+            {
+                Sprite.Texture = renderer.CreateTexture(WIDTH, HEIGHT, true);
+                Sprite.Texture.BypassTextureUploadQueueing = true;
             }
         }
 

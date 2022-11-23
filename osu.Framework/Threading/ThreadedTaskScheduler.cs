@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Threading
 {
@@ -82,7 +81,19 @@ namespace osu.Framework.Threading
         /// Queues a Task to be executed by this scheduler.
         /// </summary>
         /// <param name="task">The task to be executed.</param>
-        protected override void QueueTask(Task task) => tasks.Add(task);
+        protected override void QueueTask(Task task)
+        {
+            try
+            {
+                tasks.Add(task);
+            }
+            catch (ObjectDisposedException)
+            {
+                // tasks may have been disposed. there's no easy way to check on this other than catch for it.
+                Logger.Log($"Task was queued for execution on a {nameof(ThreadedTaskScheduler)} ({name}) after it was disposed. The task will be executed inline.");
+                TryExecuteTask(task);
+            }
+        }
 
         /// <summary>
         /// Provides a list of the scheduled tasks for the debugger to consume.

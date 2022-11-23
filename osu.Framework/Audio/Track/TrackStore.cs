@@ -27,11 +27,11 @@ namespace osu.Framework.Audio.Track
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
-        public Track GetVirtual(double length = double.PositiveInfinity)
+        public Track GetVirtual(double length = double.PositiveInfinity, string name = "virtual")
         {
             if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(TrackStore)}");
 
-            var track = new TrackVirtual(length);
+            var track = new TrackVirtual(length, name);
             AddItem(track);
             return track;
         }
@@ -47,7 +47,7 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
-            TrackBass trackBass = new TrackBass(dataStream);
+            TrackBass trackBass = new TrackBass(dataStream, name);
 
             mixer.Add(trackBass);
             AddItem(trackBass);

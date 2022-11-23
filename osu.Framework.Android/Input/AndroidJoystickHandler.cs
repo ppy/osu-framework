@@ -8,7 +8,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
@@ -65,18 +64,34 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
-        protected override void OnKeyDown(Keycode keycode, KeyEvent e)
+        private ReturnCode returnCodeForSource(InputSourceType source)
         {
-            if (e.TryGetJoystickButton(out var button))
-                enqueueButtonDown(button);
-            else if (e.Source != InputSourceType.Keyboard) // keyboard only events are handled in AndroidKeyboardHandler.
-                Logger.Log($"Unknown joystick keycode: {keycode}");
+            // keyboard only events are handled in AndroidKeyboardHandler
+            return source.IsKeyboard()
+                ? ReturnCode.UnhandledSuppressLogging
+                : ReturnCode.Unhandled;
         }
 
-        protected override void OnKeyUp(Keycode keycode, KeyEvent e)
+        protected override ReturnCode OnKeyDown(Keycode keycode, KeyEvent e)
         {
             if (e.TryGetJoystickButton(out var button))
+            {
+                enqueueButtonDown(button);
+                return ReturnCode.Handled;
+            }
+
+            return returnCodeForSource(e.Source);
+        }
+
+        protected override ReturnCode OnKeyUp(Keycode keycode, KeyEvent e)
+        {
+            if (e.TryGetJoystickButton(out var button))
+            {
                 enqueueButtonUp(button);
+                return ReturnCode.Handled;
+            }
+
+            return returnCodeForSource(e.Source);
         }
 
         /// <summary>
@@ -134,19 +149,22 @@ namespace osu.Framework.Android.Input
                 if (axis.TryGetJoystickAxisSource(out _))
                     return true;
 
-                Logger.Log($"Unknown joystick axis: {axis}");
+                Log($"Unknown joystick axis: {axis}");
                 return false;
             }
         }
 
-        protected override void OnGenericMotion(MotionEvent genericMotionEvent)
+        protected override bool OnGenericMotion(MotionEvent genericMotionEvent)
         {
             switch (genericMotionEvent.Action)
             {
                 case MotionEventActions.Move:
                     updateAvailableAxesForDevice(genericMotionEvent.Device);
                     genericMotionEvent.HandleHistorically(apply);
-                    break;
+                    return true;
+
+                default:
+                    return false;
             }
         }
 

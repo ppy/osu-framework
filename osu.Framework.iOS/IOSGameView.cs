@@ -12,7 +12,6 @@ using CoreAnimation;
 using Foundation;
 using ObjCRuntime;
 using OpenGLES;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 using osuTK.iOS;
 using UIKit;
@@ -26,6 +25,8 @@ namespace osu.Framework.iOS
         public event Action<NSSet, UIEvent> HandleTouches;
 
         public HiddenTextField KeyboardTextField { get; }
+
+        public int DefaultFrameBuffer;
 
         [Export("layerClass")]
         public static Class LayerClass() => GetLayerClass();
@@ -104,7 +105,7 @@ namespace osu.Framework.iOS
         protected override void CreateFrameBuffer()
         {
             base.CreateFrameBuffer();
-            GLWrapper.DefaultFrameBuffer = Framebuffer;
+            DefaultFrameBuffer = Framebuffer;
         }
 
         private bool needsResizeFrameBuffer;

@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Timing;
@@ -15,7 +13,8 @@ namespace osu.Framework.Audio.Track
 
         private double seekOffset;
 
-        public TrackVirtual(double length)
+        public TrackVirtual(double length, string name = "virtual")
+            : base(name)
         {
             Length = length;
         }

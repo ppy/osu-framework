@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -199,7 +200,16 @@ namespace osu.Framework.Extensions
             MemberInfo type;
 
             if (value is Enum)
-                type = value.GetType().GetField(value.ToString());
+            {
+                string stringValue = value.ToString();
+                Debug.Assert(stringValue != null, "Enum.ToString() should not return null.");
+
+                type = value.GetType().GetField(stringValue);
+
+                // The enumeration may not contain the value, in which case just return the value as a string.
+                if (type == null)
+                    return stringValue;
+            }
             else
                 type = value as Type ?? value.GetType();
 
@@ -242,7 +252,7 @@ namespace osu.Framework.Extensions
                 return description;
 
             Type type = value as Type ?? value.GetType();
-            return type.GetField(value.ToString())?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+            return type.GetField(value.ToString() ?? string.Empty)?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
         }
 
         private static string toLowercaseHex(this byte[] bytes)

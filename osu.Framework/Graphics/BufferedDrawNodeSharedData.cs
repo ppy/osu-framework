@@ -4,9 +4,9 @@
 #nullable disable
 
 using System;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using osuTK.Graphics.ES30;
+using System.Diagnostics;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics
 {
@@ -25,11 +25,6 @@ namespace osu.Framework.Graphics
         internal long DrawVersion = -1;
 
         /// <summary>
-        /// The <see cref="FrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
-        /// </summary>
-        public FrameBuffer MainBuffer { get; }
-
-        /// <summary>
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".
         /// </summary>
@@ -40,15 +35,23 @@ namespace osu.Framework.Graphics
         /// </summary>
         public readonly bool ClipToRootNode;
 
+        public bool IsInitialised { get; private set; }
+
         /// <summary>
-        /// A set of <see cref="FrameBuffer"/>s which are used in a ping-pong manner to render effects to.
+        /// A set of <see cref="IFrameBuffer"/>s which are used in a ping-pong manner to render effects to.
         /// </summary>
-        private readonly FrameBuffer[] effectBuffers;
+        private readonly IFrameBuffer[] effectBuffers;
+
+        private readonly RenderBufferFormat[] formats;
+        private readonly TextureFilteringMode filterMode;
+
+        private IRenderer renderer;
+        private IFrameBuffer mainBuffer;
 
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
         /// </summary>
-        public BufferedDrawNodeSharedData(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedDrawNodeSharedData(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
             : this(0, formats, pixelSnapping, clipToRootNode)
         {
         }
@@ -62,43 +65,53 @@ namespace osu.Framework.Graphics
         /// This amounts to setting the texture filtering mode to "nearest".</param>
         /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node..</param>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
-        public BufferedDrawNodeSharedData(int effectBufferCount, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
         {
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
+            this.formats = formats;
             PixelSnapping = pixelSnapping;
-            All filterMode = pixelSnapping ? All.Nearest : All.Linear;
-
             ClipToRootNode = clipToRootNode;
+            filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
 
-            MainBuffer = new FrameBuffer(formats, filterMode);
-            effectBuffers = new FrameBuffer[effectBufferCount];
+            effectBuffers = new IFrameBuffer[effectBufferCount];
+        }
 
-            for (int i = 0; i < effectBufferCount; i++)
-                effectBuffers[i] = new FrameBuffer(formats, filterMode);
+        /// <summary>
+        /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
+        /// </summary>
+        public IFrameBuffer MainBuffer => mainBuffer ??= renderer.CreateFrameBuffer(formats, filterMode);
+
+        public void Initialise(IRenderer renderer)
+        {
+            this.renderer = renderer;
+            IsInitialised = true;
         }
 
         private int currentEffectBuffer = -1;
 
         /// <summary>
-        /// The <see cref="FrameBuffer"/> which contains the most up-to-date drawn effect.
+        /// The <see cref="IFrameBuffer"/> which contains the most up-to-date drawn effect.
         /// </summary>
-        public FrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
+        public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : getEffectBufferAtIndex(currentEffectBuffer);
 
         /// <summary>
-        /// Retrieves the next <see cref="FrameBuffer"/> which effects can be rendered to.
+        /// Retrieves the next <see cref="IFrameBuffer"/> which effects can be rendered to.
         /// </summary>
         /// <exception cref="InvalidOperationException">If there are no available effect buffers.</exception>
-        public FrameBuffer GetNextEffectBuffer()
+        public IFrameBuffer GetNextEffectBuffer()
         {
             if (effectBuffers.Length == 0)
                 throw new InvalidOperationException($"The {nameof(BufferedDrawNode)} requested an effect buffer, but none were available.");
 
             if (++currentEffectBuffer >= effectBuffers.Length)
                 currentEffectBuffer = 0;
-            return effectBuffers[currentEffectBuffer];
+
+            return getEffectBufferAtIndex(currentEffectBuffer);
         }
+
+        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(formats, filterMode);
 
         /// <summary>
         /// Resets <see cref="CurrentEffectBuffer"/>.
@@ -108,16 +121,17 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            GLWrapper.ScheduleDisposal(d => d.Dispose(true), this);
+            renderer?.ScheduleDisposal(d => d.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
         {
-            MainBuffer.Dispose();
+            Debug.Assert(IsInitialised);
 
+            MainBuffer?.Dispose();
             for (int i = 0; i < effectBuffers.Length; i++)
-                effectBuffers[i].Dispose();
+                effectBuffers[i]?.Dispose();
         }
     }
 }

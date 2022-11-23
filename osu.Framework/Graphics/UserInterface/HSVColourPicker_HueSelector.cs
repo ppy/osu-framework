@@ -97,13 +97,11 @@ namespace osu.Framework.Graphics.UserInterface
             private class HueSelectorBackground : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
 
                 [BackgroundDependencyLoader]
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackgroundRounded");
                 }
             }
         }

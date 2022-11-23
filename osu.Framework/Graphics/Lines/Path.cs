@@ -12,16 +12,18 @@ using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
     public partial class Path : Drawable, IBufferedDrawable
     {
-        public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
         private IShader pathShader;
+
+        [Resolved]
+        private IRenderer renderer { get; set; }
 
         public Path()
         {
@@ -31,7 +33,6 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
@@ -259,7 +260,7 @@ namespace osu.Framework.Graphics.Lines
 
         protected Texture Texture
         {
-            get => texture ?? Texture.WhitePixel;
+            get => texture ?? renderer?.WhitePixel;
             set
             {
                 if (texture == value)
@@ -281,7 +282,7 @@ namespace osu.Framework.Graphics.Lines
 
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 }, clipToRootNode: true);
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
 
         protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData);
 

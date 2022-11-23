@@ -259,6 +259,12 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 config.SetValue(FrameworkSetting.Locale, "ja");
             }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                localisation?.Dispose();
+                base.Dispose(isDisposing);
+            }
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
