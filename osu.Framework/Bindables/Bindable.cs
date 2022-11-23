@@ -181,6 +181,17 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// Copies all values and value limitations of this bindable to another.
+        /// </summary>
+        /// <param name="them">The target to copy to.</param>
+        public virtual void CopyTo(Bindable<T> them)
+        {
+            them.Value = Value;
+            them.Default = Default;
+            them.Disabled = Disabled;
+        }
+
+        /// <summary>
         /// Binds this bindable to another such that bi-directional updates are propagated.
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
@@ -191,9 +202,7 @@ namespace osu.Framework.Bindables
             if (Bindings?.Contains(them) == true)
                 throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
 
-            Value = them.Value;
-            Default = them.Default;
-            Disabled = them.Disabled;
+            them.CopyTo(this);
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
@@ -389,9 +398,9 @@ namespace osu.Framework.Bindables
         /// </summary>
         public Bindable<T> GetUnboundCopy()
         {
-            var clone = GetBoundCopy();
-            clone.UnbindAll();
-            return clone;
+            var newBindable = CreateInstance();
+            CopyTo(newBindable);
+            return newBindable;
         }
 
         IBindable IBindable.CreateInstance() => CreateInstance();
