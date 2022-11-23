@@ -480,7 +480,7 @@ namespace osu.Framework.Tests.Localisation
         }
 
         /// <summary>
-        /// Tests a possible edge case where both the old and new locales could be invalid in the 'revert to previous value' logic in <see cref="LocalisationManager.updateLocale"/>.
+        /// Tests a possible edge case where both the old and new locales could be invalid in the 'revert to previous value' logic in <see cref="LocalisationManager.onLocaleChanged"/>.
         /// </summary>
         [Test]
         public void TestInvalidLocaleToInvalid()

@@ -13,9 +13,15 @@ namespace osu.Framework.Localisation
     {
         public IBindable<LocalisationParameters> CurrentParameters => currentParameters;
 
-        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
+        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(LocalisationParameters.DEFAULT);
 
-        private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
+        private readonly Dictionary<string, LocaleMapping> locales = new Dictionary<string, LocaleMapping>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// The first locale added to <see cref="locales"/>.
+        /// Used as the fallback locale if there are no matches.
+        /// </summary>
+        private LocaleMapping? firstLocale;
 
         private readonly Bindable<string> configLocale = new Bindable<string>();
         private readonly Bindable<bool> configPreferUnicode = new BindableBool();
@@ -23,10 +29,13 @@ namespace osu.Framework.Localisation
         public LocalisationManager(FrameworkConfigManager config)
         {
             config.BindWith(FrameworkSetting.Locale, configLocale);
-            configLocale.BindValueChanged(updateLocale);
+            configLocale.BindValueChanged(onLocaleChanged);
 
             config.BindWith(FrameworkSetting.ShowUnicode, configPreferUnicode);
-            configPreferUnicode.BindValueChanged(_ => UpdateLocalisationParameters(), true);
+            configPreferUnicode.BindValueChanged(preferUnicode =>
+            {
+                currentParameters.Value = currentParameters.Value.With(preferOriginalScript: preferUnicode.NewValue);
+            }, true);
         }
 
         /// <summary>
@@ -35,7 +44,12 @@ namespace osu.Framework.Localisation
         /// <param name="mappings">All available locale mappings.</param>
         public void AddLocaleMappings(IEnumerable<LocaleMapping> mappings)
         {
-            locales.AddRange(mappings);
+            foreach (var mapping in mappings)
+            {
+                locales.Add(mapping.Name, mapping);
+                firstLocale ??= mapping;
+            }
+
             configLocale.TriggerChange();
         }
 
@@ -48,7 +62,11 @@ namespace osu.Framework.Localisation
         /// <param name="storage">A storage providing localisations for the specified language.</param>
         public void AddLanguage(string language, ILocalisationStore storage)
         {
-            locales.Add(new LocaleMapping(language, storage));
+            var mapping = new LocaleMapping(language, storage);
+
+            locales.Add(language, mapping);
+            firstLocale ??= mapping;
+
             configLocale.TriggerChange();
         }
 
@@ -81,16 +99,14 @@ namespace osu.Framework.Localisation
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
         public ILocalisedBindableString GetLocalisedBindableString(LocalisableString original) => new LocalisedBindableString(original, this);
 
-        private LocaleMapping? currentLocale;
-
-        private void updateLocale(ValueChangedEvent<string> locale)
+        private void onLocaleChanged(ValueChangedEvent<string> locale)
         {
             if (locales.Count == 0)
                 return;
 
-            currentLocale = locales.Find(l => l.Name == locale.NewValue);
+            var localeMapping = locales.GetValueOrDefault(locale.NewValue);
 
-            if (currentLocale == null)
+            if (localeMapping == null)
             {
                 if (!CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture))
                 {
@@ -104,32 +120,18 @@ namespace osu.Framework.Localisation
                     return;
                 }
 
-                for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
+                foreach (var c in culture.EnumerateParentCultures())
                 {
-                    currentLocale = locales.Find(l => l.Name == c.Name);
-                    if (currentLocale != null)
+                    localeMapping = locales.GetValueOrDefault(c.Name);
+                    if (localeMapping != null)
                         break;
                 }
 
-                currentLocale ??= locales[0];
+                localeMapping ??= firstLocale;
             }
 
-            UpdateLocalisationParameters();
+            currentParameters.Value = new LocalisationParameters(localeMapping?.Storage, configPreferUnicode.Value);
         }
-
-        /// <summary>
-        /// Retrieves the latest localisation parameters using <see cref="CreateLocalisationParameters"/> and updates the current one with.
-        /// </summary>
-        protected void UpdateLocalisationParameters() => currentParameters.Value = CreateLocalisationParameters();
-
-        /// <summary>
-        /// Creates new <see cref="LocalisationParameters"/>.
-        /// </summary>
-        /// <remarks>
-        /// Can be overridden to provide custom parameters for <see cref="ILocalisableStringData"/> implementations.
-        /// </remarks>
-        /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
-        protected virtual LocalisationParameters CreateLocalisationParameters() => new LocalisationParameters(currentLocale?.Storage, configPreferUnicode.Value);
 
         protected virtual void Dispose(bool disposing)
         {
