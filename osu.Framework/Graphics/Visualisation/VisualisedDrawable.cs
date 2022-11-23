@@ -20,7 +20,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
+    internal partial class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
     {
         private const int line_height = 12;
 
@@ -468,7 +468,7 @@ namespace osu.Framework.Graphics.Visualisation
             currentContainer = container;
         }
 
-        private class VisualisedDrawableFlow : FillFlowContainer<VisualisedDrawable>
+        private partial class VisualisedDrawableFlow : FillFlowContainer<VisualisedDrawable>
         {
             public override IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => -d.Depth).ThenBy(d => ((VisualisedDrawable)d).Target.ChildID);
         }

@@ -16,7 +16,7 @@ namespace osu.Framework.Testing
     /// <summary>
     /// A test scene that provides a set of helper functions and structures for testing a <see cref="Menu"/>.
     /// </summary>
-    public abstract class MenuTestScene : ManualInputManagerTestScene
+    public abstract partial class MenuTestScene : ManualInputManagerTestScene
     {
         protected MenuStructure Menus;
 

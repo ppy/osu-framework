@@ -7,7 +7,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    public abstract class FrameworkGridTestScene : GridTestScene
+    public abstract partial class FrameworkGridTestScene : GridTestScene
     {
         protected FrameworkGridTestScene(int rows, int cols)
             : base(rows, cols)

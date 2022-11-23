@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkFillFlowContainerAllocations : GameBenchmark
+    public partial class BenchmarkFillFlowContainerAllocations : GameBenchmark
     {
         private TestGame game = null!;
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestFillFlowContainer : FillFlowContainer
+        private partial class TestFillFlowContainer : FillFlowContainer
         {
             public void TestComputeLayoutPositions()
             {
@@ -74,7 +74,7 @@ namespace osu.Framework.Benchmarks
             }
         }
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             public readonly List<TestFillFlowContainer> Containers = new List<TestFillFlowContainer>();
 

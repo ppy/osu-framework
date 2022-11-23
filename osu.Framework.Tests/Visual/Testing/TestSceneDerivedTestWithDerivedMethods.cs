@@ -5,7 +5,7 @@
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDerivedTestWithDerivedMethods : TestSceneTest
+    public partial class TestSceneDerivedTestWithDerivedMethods : TestSceneTest
     {
         // ReSharper disable once RedundantOverriddenMember
         public override void SetUp() => base.SetUp();

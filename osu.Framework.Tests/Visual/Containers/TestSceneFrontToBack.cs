@@ -20,7 +20,7 @@ using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneFrontToBack : GridTestScene
+    public partial class TestSceneFrontToBack : GridTestScene
     {
         private SpriteText labelDrawables;
         private QueryingCompositeDrawableDrawNode drawNode;

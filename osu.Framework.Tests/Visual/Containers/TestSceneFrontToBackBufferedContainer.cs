@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneFrontToBackBufferedContainer : FrameworkTestScene
+    public partial class TestSceneFrontToBackBufferedContainer : FrameworkTestScene
     {
         [Test]
         public void TestBufferedContainerBehindBox()
@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
-        public class TestBufferedContainer : BufferedContainer
+        public partial class TestBufferedContainer : BufferedContainer
         {
             public TestBufferedContainer(bool behind)
             {

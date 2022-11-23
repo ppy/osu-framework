@@ -10,7 +10,7 @@ using osu.Framework.IO.Stores;
 namespace osu.Framework.Tests
 {
     [Cached]
-    internal class TestGame : Game
+    internal partial class TestGame : Game
     {
         public readonly Bindable<bool> BlockExit = new Bindable<bool>();
 

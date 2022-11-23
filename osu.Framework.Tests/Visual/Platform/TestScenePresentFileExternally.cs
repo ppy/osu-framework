@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestScenePresentFileExternally : FrameworkTestScene
+    public partial class TestScenePresentFileExternally : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
@@ -94,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Platform
             };
         }
 
-        private class ButtonWithDescription : FillFlowContainer
+        private partial class ButtonWithDescription : FillFlowContainer
         {
             public ButtonWithDescription(Action action, string text, string description)
             {

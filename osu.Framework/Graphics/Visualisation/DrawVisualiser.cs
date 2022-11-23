@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
     // Implementing IRequireHighFrequencyMousePosition is necessary to gain the ability to block high frequency mouse position updates.
-    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
+    internal partial class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
     {
         public Vector2 ToolPosition
         {

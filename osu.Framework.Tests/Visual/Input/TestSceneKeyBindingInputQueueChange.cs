@@ -18,7 +18,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneKeyBindingInputQueueChange : ManualInputManagerTestScene
+    public partial class TestSceneKeyBindingInputQueueChange : ManualInputManagerTestScene
     {
         [Test]
         public void TestReleaseDoesNotTriggerWithoutPress()
@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("hidden not released", () => !hiddenReceptor.Released);
         }
 
-        private class TestInputReceptor : CompositeDrawable, IKeyBindingHandler<TestAction>
+        private partial class TestInputReceptor : CompositeDrawable, IKeyBindingHandler<TestAction>
         {
             public bool Pressed;
             public bool Released;
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Input
             Action1
         }
 
-        private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
             {

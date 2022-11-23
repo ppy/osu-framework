@@ -19,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class WindowDisplaysPreview : Container
+    public partial class WindowDisplaysPreview : Container
     {
         public const float FONT_SIZE = 120f;
 

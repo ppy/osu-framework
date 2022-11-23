@@ -14,7 +14,7 @@ using osu.Framework.Testing.Dependencies;
 namespace osu.Framework.Tests.Dependencies
 {
     [TestFixture]
-    public class DependencyContainerTest
+    public partial class DependencyContainerTest
     {
         [Test]
         public void TestCacheAsMostDerivedType()
@@ -352,7 +352,7 @@ namespace osu.Framework.Tests.Dependencies
         {
         }
 
-        private class Receiver1
+        private partial class Receiver1
         {
             public Action<BaseObject, DerivedObject> OnLoad;
 
@@ -360,11 +360,11 @@ namespace osu.Framework.Tests.Dependencies
             private void load(BaseObject baseObject, DerivedObject derivedObject) => OnLoad?.Invoke(baseObject, derivedObject);
         }
 
-        private class Receiver2
+        private partial class Receiver2
         {
         }
 
-        private class Receiver3
+        private partial class Receiver3
         {
             public Action<BaseObject> OnLoad;
 
@@ -380,7 +380,7 @@ namespace osu.Framework.Tests.Dependencies
             private void load() => Loaded4?.Invoke();
         }
 
-        private class Receiver5 : Receiver4
+        private partial class Receiver5 : Receiver4
         {
             public Action Loaded5;
 
@@ -388,7 +388,7 @@ namespace osu.Framework.Tests.Dependencies
             private void load() => Loaded5?.Invoke();
         }
 
-        private class Receiver6
+        private partial class Receiver6
         {
             [BackgroundDependencyLoader]
             public void Load()
@@ -396,7 +396,7 @@ namespace osu.Framework.Tests.Dependencies
             }
         }
 
-        private class Receiver7
+        private partial class Receiver7
         {
             [BackgroundDependencyLoader]
             protected void Load()
@@ -404,7 +404,7 @@ namespace osu.Framework.Tests.Dependencies
             }
         }
 
-        private class Receiver8
+        private partial class Receiver8
         {
             [BackgroundDependencyLoader]
             internal void Load()
@@ -412,7 +412,7 @@ namespace osu.Framework.Tests.Dependencies
             }
         }
 
-        private class Receiver9
+        private partial class Receiver9
         {
             [BackgroundDependencyLoader]
             protected internal void Load()
@@ -420,7 +420,7 @@ namespace osu.Framework.Tests.Dependencies
             }
         }
 
-        private class Receiver10
+        private partial class Receiver10
         {
             public CachedStructProvider.Struct TestObject { get; private set; }
 
@@ -428,7 +428,7 @@ namespace osu.Framework.Tests.Dependencies
             private void load(CachedStructProvider.Struct testObject) => TestObject = testObject;
         }
 
-        private class Receiver11
+        private partial class Receiver11
         {
             public int? TestObject { get; private set; }
 
@@ -436,7 +436,7 @@ namespace osu.Framework.Tests.Dependencies
             private void load(int? testObject) => TestObject = testObject;
         }
 
-        private class Receiver12
+        private partial class Receiver12
         {
             [UsedImplicitly] // param used implicitly
             [BackgroundDependencyLoader]
@@ -445,7 +445,7 @@ namespace osu.Framework.Tests.Dependencies
             }
         }
 
-        private class Receiver13
+        private partial class Receiver13
         {
             public int? TestObject { get; private set; } = 1;
 
@@ -455,7 +455,7 @@ namespace osu.Framework.Tests.Dependencies
 
 #nullable enable
         [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-        private class Receiver14
+        private partial class Receiver14
         {
             [BackgroundDependencyLoader]
             private void load(BaseObject nonNullObject, DerivedObject? nullableObject)

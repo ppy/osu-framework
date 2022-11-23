@@ -17,7 +17,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneSearchContainer : LocalisationTestScene
+    public partial class TestSceneSearchContainer : LocalisationTestScene
     {
         private SearchContainer search;
         private BasicTextBox textBox;
@@ -178,7 +178,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
-        private class HeaderContainer : Container, IHasFilterableChildren
+        private partial class HeaderContainer : Container, IHasFilterableChildren
         {
             public IEnumerable<LocalisableString> FilterTerms => header.FilterTerms;
 
@@ -220,7 +220,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class FilterableFlowContainer : FillFlowContainer, IFilterable
+        private partial class FilterableFlowContainer : FillFlowContainer, IFilterable
         {
             public IEnumerable<LocalisableString> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
 
@@ -241,7 +241,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class HeaderText : SpriteText, IFilterable
+        private partial class HeaderText : SpriteText, IFilterable
         {
             public bool MatchingFilter
             {
@@ -260,7 +260,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class SearchableText : SpriteText, IFilterable
+        private partial class SearchableText : SpriteText, IFilterable
         {
             public bool MatchingFilter
             {

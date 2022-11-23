@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class DrawableTransform : CompositeDrawable
+    internal partial class DrawableTransform : CompositeDrawable
     {
         private readonly Transform transform;
         private readonly Box applied;

@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Sprite, IHasCurrentValue<double>
+    public partial class CircularProgress : Sprite, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 

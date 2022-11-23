@@ -11,7 +11,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public abstract class CursorEffectContainer<TSelf, TTarget> : Container
+    public abstract partial class CursorEffectContainer<TSelf, TTarget> : Container
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
     {

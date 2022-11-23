@@ -12,7 +12,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BenchmarkBeginAbsoluteSequence : GameBenchmark
+    public partial class BenchmarkBeginAbsoluteSequence : GameBenchmark
     {
         private TestGame game = null!;
 
@@ -102,7 +102,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             public Container Flat = null!;
             public Container VeryNested = null!;

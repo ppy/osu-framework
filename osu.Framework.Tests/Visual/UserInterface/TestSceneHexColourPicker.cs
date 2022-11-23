@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneHexColourPicker : ManualInputManagerTestScene
+    public partial class TestSceneHexColourPicker : ManualInputManagerTestScene
     {
         private TestHexColourPicker hexColourPicker;
         private SpriteText currentText;
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void assertPreviewUpdated(Colour4 expected)
             => AddAssert("preview colour updated", () => hexColourPicker.Preview.Current.Value == expected);
 
-        private class TestHexColourPicker : BasicHexColourPicker
+        private partial class TestHexColourPicker : BasicHexColourPicker
         {
             public TextBox HexCodeTextBox => this.ChildrenOfType<TextBox>().Single();
             public ColourPreview Preview => this.ChildrenOfType<ColourPreview>().Single();

@@ -17,7 +17,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTextBoxEvents : ManualInputManagerTestScene
+    public partial class TestSceneTextBoxEvents : ManualInputManagerTestScene
     {
         private EventQueuesTextBox textBox;
         private ManualTextInput textInput;
@@ -571,7 +571,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("user text consumed event raised", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
         }
 
-        public class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
+        public partial class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
         {
             public bool ImeAllowed { get; set; } = true;
 
@@ -615,7 +615,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public new bool ImeCompositionActive => base.ImeCompositionActive;
         }
 
-        public class ManualTextInputContainer : Container
+        public partial class ManualTextInputContainer : Container
         {
             [Cached(typeof(TextInputSource))]
             public readonly ManualTextInput TextInput;

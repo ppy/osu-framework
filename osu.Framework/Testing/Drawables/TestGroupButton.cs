@@ -13,7 +13,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestGroupButton : VisibilityContainer, IHasFilterableChildren
+    internal partial class TestGroupButton : VisibilityContainer, IHasFilterableChildren
     {
         public IEnumerable<LocalisableString> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<LocalisableString>();
 

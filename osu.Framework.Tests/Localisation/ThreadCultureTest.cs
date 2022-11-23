@@ -18,7 +18,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Localisation
 {
     [HeadlessTest]
-    public class ThreadCultureTest : FrameworkTestScene
+    public partial class ThreadCultureTest : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }

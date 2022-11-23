@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkInvalidationWithManyNotAlive : GameBenchmark
+    public partial class BenchmarkInvalidationWithManyNotAlive : GameBenchmark
     {
         [Test]
         [Benchmark]
@@ -18,7 +18,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             protected override void LoadComplete()
             {

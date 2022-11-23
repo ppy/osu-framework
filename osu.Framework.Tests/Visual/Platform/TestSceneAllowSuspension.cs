@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneAllowSuspension : FrameworkTestScene
+    public partial class TestSceneAllowSuspension : FrameworkTestScene
     {
         private readonly Bindable<bool> allowSuspension = new Bindable<bool>(true);
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Platform
             AddToggleStep("toggle allow suspension", v => allowSuspension.Value = v);
         }
 
-        private class SuspensionVisualiser : Box
+        private partial class SuspensionVisualiser : Box
         {
             private readonly IBindable<bool> allowSuspension = new Bindable<bool>();
 

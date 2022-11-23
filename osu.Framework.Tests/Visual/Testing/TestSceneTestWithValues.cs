@@ -8,7 +8,7 @@ using osu.Framework.Tests.Bindables;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTestWithValues : FrameworkTestScene
+    public partial class TestSceneTestWithValues : FrameworkTestScene
     {
         [Test]
         public void TestValues([Values] BindableEnumTest.TestEnum vals1, [Values] BindableEnumTest.TestEnum vals2)

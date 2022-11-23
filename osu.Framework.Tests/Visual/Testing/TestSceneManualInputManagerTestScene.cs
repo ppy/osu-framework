@@ -15,7 +15,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneManualInputManagerTestScene : ManualInputManagerTestScene
+    public partial class TestSceneManualInputManagerTestScene : ManualInputManagerTestScene
     {
         protected override Vector2 InitialMousePosition => new Vector2(10f);
 

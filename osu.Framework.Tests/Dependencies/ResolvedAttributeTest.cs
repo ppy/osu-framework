@@ -14,7 +14,7 @@ using osu.Framework.Testing.Dependencies;
 namespace osu.Framework.Tests.Dependencies
 {
     [TestFixture]
-    public class ResolvedAttributeTest
+    public partial class ResolvedAttributeTest
     {
         [Test]
         public void TestInjectIntoNothing()
@@ -223,7 +223,7 @@ namespace osu.Framework.Tests.Dependencies
         {
         }
 
-        private class Receiver1
+        private partial class Receiver1
         {
 #pragma warning disable 649, IDE0032
             private BaseObject obj;
@@ -233,7 +233,7 @@ namespace osu.Framework.Tests.Dependencies
             public BaseObject Obj => obj;
         }
 
-        private class Receiver2
+        private partial class Receiver2
         {
             [Resolved]
             private BaseObject obj { get; set; }
@@ -241,13 +241,13 @@ namespace osu.Framework.Tests.Dependencies
             public BaseObject Obj => obj;
         }
 
-        private class Receiver3
+        private partial class Receiver3
         {
             [Resolved(CanBeNull = true)]
             private BaseObject obj { get; set; }
         }
 
-        private class Receiver4 : Receiver2
+        private partial class Receiver4 : Receiver2
         {
             [Resolved]
             private BaseObject obj { get; set; }
@@ -255,71 +255,71 @@ namespace osu.Framework.Tests.Dependencies
             public BaseObject Obj2 => obj;
         }
 
-        private class Receiver5
+        private partial class Receiver5
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; set; }
         }
 
-        private class Receiver6
+        private partial class Receiver6
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected set; }
         }
 
-        private class Receiver7
+        private partial class Receiver7
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; internal set; }
         }
 
-        private class Receiver8
+        private partial class Receiver8
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; private set; }
         }
 
-        private class Receiver9
+        private partial class Receiver9
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected internal set; }
         }
 
-        private class Receiver10
+        private partial class Receiver10
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; }
         }
 
-        private class Receiver11 : Receiver8
+        private partial class Receiver11 : Receiver8
         {
         }
 
-        private class Receiver12
+        private partial class Receiver12
         {
             [Resolved]
             public CachedStructProvider.Struct Obj { get; private set; }
         }
 
-        private class Receiver13
+        private partial class Receiver13
         {
             [Resolved]
             public int? Obj { get; private set; }
         }
 
-        private class Receiver14
+        private partial class Receiver14
         {
             [Resolved]
             public int Obj { get; private set; }
         }
 
-        private class Receiver15
+        private partial class Receiver15
         {
             [Resolved(CanBeNull = true)]
             public int Obj { get; private set; } = 1;
         }
 
-        private class Receiver16
+        private partial class Receiver16
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; }
@@ -329,13 +329,13 @@ namespace osu.Framework.Tests.Dependencies
         }
 
 #nullable enable
-        private class Receiver17
+        private partial class Receiver17
         {
             [Resolved]
             public Bindable<int>? Obj { get; private set; }
         }
 
-        private class Receiver18
+        private partial class Receiver18
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; } = null!;

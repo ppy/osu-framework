@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// | --------- | --------- |
     /// |  cell 1   |  cell 2   |
     /// </code>
-    public class MarkdownTable : CompositeDrawable
+    public partial class MarkdownTable : CompositeDrawable
     {
         private GridContainer tableContainer;
 

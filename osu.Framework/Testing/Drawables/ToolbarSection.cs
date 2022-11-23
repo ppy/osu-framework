@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Testing.Drawables
 {
-    public class ToolbarSection : CompositeDrawable
+    public partial class ToolbarSection : CompositeDrawable
     {
         public ToolbarSection()
         {

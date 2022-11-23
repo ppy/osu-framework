@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal abstract class ToolWindow : OverlayContainer
+    internal abstract partial class ToolWindow : OverlayContainer
     {
         public const float WIDTH = 500;
         public const float HEIGHT = 600;

@@ -16,7 +16,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkDependencyContainer : GameBenchmark
+    public partial class BenchmarkDependencyContainer : GameBenchmark
     {
         private Game game = null!;
         private TestBdlReceiver bdlReceiver = null!;
@@ -51,7 +51,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestBdlReceiver : Drawable
+        private partial class TestBdlReceiver : Drawable
         {
             [UsedImplicitly] // params used implicitly
             [BackgroundDependencyLoader]
@@ -60,7 +60,7 @@ namespace osu.Framework.Benchmarks
             }
         }
 
-        private class TestCachedReceiver : Drawable
+        private partial class TestCachedReceiver : Drawable
         {
             [Resolved]
             private GameHost host { get; set; } = null!;
@@ -72,7 +72,7 @@ namespace osu.Framework.Benchmarks
             private FrameworkDebugConfigManager frameworkDebugConfigManager { get; set; } = null!;
         }
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
         }
     }

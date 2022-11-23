@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectorySelectorItem : CompositeDrawable
+    public abstract partial class DirectorySelectorItem : CompositeDrawable
     {
         private readonly string displayName;
 

@@ -12,7 +12,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BenchmarkDrawableLoad : GameBenchmark
+    public partial class BenchmarkDrawableLoad : GameBenchmark
     {
         private TestGame game = null!;
 
@@ -102,7 +102,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
         }
     }

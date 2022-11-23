@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which adds a basic visibility state.
     /// </summary>
-    public abstract class VisibilityContainer : Container
+    public abstract partial class VisibilityContainer : Container
     {
         /// <summary>
         /// The current visibility state.
