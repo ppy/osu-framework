@@ -66,6 +66,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidPublicAccessor()
         {
             var receiver = new Receiver5();
@@ -74,6 +75,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidExplicitProtectedAccessor()
         {
             var receiver = new Receiver6();
@@ -82,6 +84,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidExplicitPrivateAccessor()
         {
             var receiver = new Receiver7();
@@ -98,6 +101,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestExplicitInvalidProtectedInternalAccessor()
         {
             var receiver = new Receiver9();

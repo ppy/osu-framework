@@ -171,6 +171,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidPublicAccessor()
         {
             var provider = new Provider13();
@@ -179,6 +180,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidProtectedAccessor()
         {
             var provider = new Provider14();
@@ -187,6 +189,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidInternalAccessor()
         {
             var provider = new Provider15();
@@ -195,6 +198,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestInvalidProtectedInternalAccessor()
         {
             var provider = new Provider16();
@@ -237,6 +241,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestCachePropertyWithPublicSetter()
         {
             var provider = new Provider21();
@@ -245,6 +250,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestCachePropertyWithNonAutoSetter()
         {
             var provider = new Provider22();
@@ -253,6 +259,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily not analysed.")]
         public void TestCacheWithNonAutoGetter()
         {
             var provider = new Provider24();
