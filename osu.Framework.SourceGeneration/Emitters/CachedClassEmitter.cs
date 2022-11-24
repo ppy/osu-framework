@@ -30,7 +30,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                 if (!attribute.AttributeClass!.Equals(fileEmitter.CachedAttributeType, SymbolEqualityComparer.Default))
                     continue;
 
-                string? cachedType =
+                string cachedType =
                     attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value?.ToString()
                     ?? attribute.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString()
                     ?? fileEmitter.ClassType.ToDisplayString();

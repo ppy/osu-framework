@@ -40,12 +40,16 @@ namespace osu.Framework.Benchmarks
 
     public class ClassInjectedWithReflection
     {
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
         [Resolved]
         private object dependency { get; set; } = null!;
     }
 
+    // This inspection can be removed once the source generator is merged in/referenced as a package.
+    // ReSharper disable once PartialTypeWithSinglePart
     public partial class ClassInjectedWithSourceGenerator
     {
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
         [Resolved]
         private object dependency { get; set; } = null!;
     }
