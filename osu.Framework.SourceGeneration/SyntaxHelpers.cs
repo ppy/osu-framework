@@ -134,6 +134,9 @@ namespace osu.Framework.SourceGeneration
         public static bool IsIDrawableInterface(ITypeSymbol? type)
             => type?.Name == "IDrawable";
 
+        public static bool IsITransformableInterface(ITypeSymbol? type)
+            => type?.Name == "ITransformable";
+
         public static bool IsISourceGeneratedDependencyActivatorInterface(ITypeSymbol? type)
             => type?.Name == "ISourceGeneratedDependencyActivator";
 

@@ -34,19 +34,28 @@ namespace osu.Framework.SourceGeneration
             if (classSyntax.Ancestors().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
                 return;
 
+            // Determine if the class is a candidate for the source generator.
+            // Classes may be candidates even if they don't resolve/cache anything themselves, but a base type does.
             foreach (var iFace in symbol.AllInterfaces)
             {
                 // All classes that derive from IDrawable need to use the source generator.
                 // This is conservative for all other (i.e. non-Drawable) classes to avoid polluting irrelevant classes.
-                if (iFace.Name == "IDrawable" || iFace.Name == "ITransformable")
+                if (SyntaxHelpers.IsIDrawableInterface(iFace) || SyntaxHelpers.IsITransformableInterface(iFace) || SyntaxHelpers.IsISourceGeneratedDependencyActivatorInterface(iFace))
+                {
                     addCandidate(context, classSyntax);
+                    break;
+                }
+            }
 
+            // Process any [Cached] attributes on any interface on the class excluding base types.
+            foreach (var iFace in symbol.Interfaces)
+            {
                 // Add an interface entry for all interfaces that have a cached attribute.
                 if (iFace.GetAttributes().Any(attrib => SyntaxHelpers.IsCachedAttribute(attrib.AttributeClass)))
                     addCandidate(context, classSyntax).CachedInterfaces.Add(iFace);
             }
 
-            // Process any attributes on the class itself.
+            // Process any [Cached] attributes on the class.
             foreach (var attrib in enumerateAttributes(context.SemanticModel, classSyntax))
             {
                 if (SyntaxHelpers.IsCachedAttribute(context.SemanticModel, attrib))
