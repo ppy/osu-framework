@@ -1,0 +1,18 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    public class BackgroundDependencyLoaderAttribute : Attribute
+    {
+        private bool permitNulls { get; }
+
+        public BackgroundDependencyLoaderAttribute()
+        {
+        }
+
+        public BackgroundDependencyLoaderAttribute(bool permitNulls)
+        {
+            this.permitNulls = permitNulls;
+        }
+    }
+}

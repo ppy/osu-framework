@@ -1,0 +1,7 @@
+public partial class CanBeNullParameters : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.BackgroundDependencyLoader(true)]
+    private void load(object obj)
+    {
+    }
+}

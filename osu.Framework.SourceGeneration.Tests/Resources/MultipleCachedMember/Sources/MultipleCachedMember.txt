@@ -1,0 +1,14 @@
+#nullable enable
+
+public partial class MultipleCachedMember : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Cached]
+    [osu.Framework.Allocation.Cached(typeof(IDummyInterface))]
+    private object? CachedMember { get; set; }
+}
+
+public interface IDummyInterface
+{
+}
+
+#nullable disable

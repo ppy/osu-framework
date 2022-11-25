@@ -1,0 +1,11 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    public class DependencyNotRegisteredException : Exception
+    {
+        public DependencyNotRegisteredException(Type type, Type requestedType)
+        {
+        }
+    }
+}
