@@ -1,0 +1,22 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    public class ResolvedAttribute : Attribute
+    {
+        public Type Parent;
+        public string Name;
+        public bool CanBeNull;
+
+        public ResolvedAttribute()
+        {
+        }
+
+        public ResolvedAttribute(Type parent = null, string name = null, bool canBeNull = false)
+        {
+            Parent = parent;
+            Name = name;
+            CanBeNull = canBeNull;
+        }
+    }
+}

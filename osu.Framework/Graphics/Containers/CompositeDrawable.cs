@@ -282,7 +282,7 @@ namespace osu.Framework.Graphics.Containers
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children added.");
+                    return;
 
                 child.Load(Clock, Dependencies, false);
 
@@ -367,7 +367,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children set.");
+                    return;
 
                 ClearInternal();
                 AddInternal(value);
@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 ClearInternal();
                 AddRangeInternal(value);
@@ -537,7 +537,7 @@ namespace osu.Framework.Graphics.Containers
             EnsureChildMutationAllowed();
 
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Children cannot be cleared on a disposed drawable.");
+                return;
 
             if (internalChildren.Count == 0) return;
 
@@ -578,7 +578,7 @@ namespace osu.Framework.Graphics.Containers
             EnsureChildMutationAllowed();
 
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                return;
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");

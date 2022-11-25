@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osuTK;
 
@@ -113,6 +114,14 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+            }
+
+            protected override void Blit(IRenderer renderer)
+            {
+                if (innerRadius == 0)
+                    return;
+
+                base.Blit(renderer);
             }
 
             protected override void UpdateUniforms(IShader shader)

@@ -5,6 +5,7 @@
 
 using System;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Transforms;
 
@@ -106,6 +107,14 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+            }
+
+            protected override void Blit(IRenderer renderer)
+            {
+                if (innerRadius == 0 || (!roundedCaps && progress == 0))
+                    return;
+
+                base.Blit(renderer);
             }
 
             protected override void UpdateUniforms(IShader shader)
