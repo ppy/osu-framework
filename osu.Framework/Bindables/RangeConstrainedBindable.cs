@@ -160,13 +160,15 @@ namespace osu.Framework.Bindables
 
         public override void CopyTo(Bindable<T> them)
         {
-            base.CopyTo(them);
-
+            // if the other bindable is range-constrained, the bounds need to be copied across first,
+            // as Value assignment (in the base call below) automatically clamps to [MinValue, MaxValue].
             if (them is RangeConstrainedBindable<T> other)
             {
                 other.MinValue = MinValue;
                 other.MaxValue = MaxValue;
             }
+
+            base.CopyTo(them);
         }
 
         public override void BindTo(Bindable<T> them)
