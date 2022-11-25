@@ -4,12 +4,12 @@
 
 partial class WithParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(WithParameters)))
+        if (registry.IsRegistered(typeof(WithParameters)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(WithParameters), (t, d) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(WithParameters), (t, d) =>
         {
             ((WithParameters)t).load(osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(WithParameters), null, null, false, false));
         }, null);

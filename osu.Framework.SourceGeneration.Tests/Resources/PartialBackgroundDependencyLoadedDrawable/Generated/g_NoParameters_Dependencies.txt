@@ -4,12 +4,12 @@
 
 partial class NoParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(NoParameters)))
+        if (registry.IsRegistered(typeof(NoParameters)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(NoParameters), (t, d) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(NoParameters), (t, d) =>
         {
             ((NoParameters)t).load();
         }, null);

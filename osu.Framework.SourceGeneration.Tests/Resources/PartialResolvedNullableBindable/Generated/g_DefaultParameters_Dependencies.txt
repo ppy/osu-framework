@@ -4,12 +4,12 @@
 
 partial class DefaultParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(DefaultParameters)))
+        if (registry.IsRegistered(typeof(DefaultParameters)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(DefaultParameters), (t, d) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(DefaultParameters), (t, d) =>
         {
             ((DefaultParameters)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<osu.Framework.Bindables.Bindable<int>>(d, typeof(DefaultParameters), null, null, true, true);
         }, null);

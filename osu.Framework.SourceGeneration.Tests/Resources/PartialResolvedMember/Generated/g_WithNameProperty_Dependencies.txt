@@ -4,12 +4,12 @@
 
 partial class WithNameProperty : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(WithNameProperty)))
+        if (registry.IsRegistered(typeof(WithNameProperty)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(WithNameProperty), (t, d) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(WithNameProperty), (t, d) =>
         {
             ((WithNameProperty)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(WithNameProperty), "Custom Name", null, false, true);
         }, null);

@@ -4,11 +4,11 @@
 
 partial class DoubleGeneric<T1, T2> : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(DoubleGeneric<T1, T2>)))
+        if (registry.IsRegistered(typeof(DoubleGeneric<T1, T2>)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(DoubleGeneric<T1, T2>), null, null);
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(DoubleGeneric<T1, T2>), null, null);
     }
 }

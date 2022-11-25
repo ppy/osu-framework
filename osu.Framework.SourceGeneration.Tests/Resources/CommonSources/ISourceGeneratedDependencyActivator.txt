@@ -2,6 +2,6 @@ namespace osu.Framework.Allocation
 {
     public interface ISourceGeneratedDependencyActivator
     {
-        void RegisterDependencyActivator(IDependencyActivator activator);
+        void RegisterForDependencyActivation(IDependencyActivatorRegistry registry);
     }
 }

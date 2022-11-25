@@ -14,7 +14,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Invoked to register dependency activation functions for this object.
         /// </summary>
-        /// <param name="activator">The <see cref="IDependencyActivator"/> to register activation functions with.</param>
-        void RegisterDependencyActivator(IDependencyActivator activator);
+        /// <param name="registry">The <see cref="IDependencyActivatorRegistry"/> to register activation functions with.</param>
+        void RegisterForDependencyActivation(IDependencyActivatorRegistry registry);
     }
 }

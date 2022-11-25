@@ -4,12 +4,12 @@
 
 partial class NullableValueType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(NullableValueType)))
+        if (registry.IsRegistered(typeof(NullableValueType)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(NullableValueType), (t, d) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(NullableValueType), (t, d) =>
         {
             ((NullableValueType)t).load(osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken>(d, typeof(NullableValueType), null, null, true, false));
         }, null);

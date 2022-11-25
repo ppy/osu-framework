@@ -117,7 +117,7 @@ namespace osu.Framework.Allocation
                 return;
 
             if (!activator_cache.ContainsKey(obj.GetType()))
-                sgActivator.RegisterDependencyActivator(activator_proxy);
+                sgActivator.RegisterForDependencyActivation(activator_proxy);
         }
 
         private static DependencyActivator getActivator(Type type)
@@ -131,7 +131,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// A proxy class used to register activation functions for objects implementing <see cref="ISourceGeneratedDependencyActivator"/>.
         /// </summary>
-        private class DependencyActivatorProxy : IDependencyActivator
+        private class DependencyActivatorProxy : IDependencyActivatorRegistry
         {
             public bool IsRegistered(Type type) => activator_cache.ContainsKey(type);
 

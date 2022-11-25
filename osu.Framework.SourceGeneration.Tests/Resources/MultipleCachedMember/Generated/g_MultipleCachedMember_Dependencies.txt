@@ -4,12 +4,12 @@
 
 partial class MultipleCachedMember : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(MultipleCachedMember)))
+        if (registry.IsRegistered(typeof(MultipleCachedMember)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(MultipleCachedMember), null, (t, d, i) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(MultipleCachedMember), null, (t, d, i) =>
         {
             var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
             osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(MultipleCachedMember), ((MultipleCachedMember)t).CachedMember, i, null, null, "CachedMember");

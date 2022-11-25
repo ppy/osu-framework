@@ -4,11 +4,11 @@
 
 partial class A : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public virtual void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public virtual void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(A)))
+        if (registry.IsRegistered(typeof(A)))
             return;
-        activator.Register(typeof(A), null, (t, d, i) =>
+        registry.Register(typeof(A), null, (t, d, i) =>
         {
             var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
             osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(A), t, i, typeof(A), null, null);

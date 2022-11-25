@@ -4,11 +4,11 @@
 
 partial class A : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(A)))
+        if (registry.IsRegistered(typeof(A)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(A), null, null);
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(A), null, null);
     }
 }

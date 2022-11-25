@@ -2,7 +2,7 @@ using System;
 
 namespace osu.Framework.Allocation
 {
-    public interface IDependencyActivator
+    public interface IDependencyActivatorRegistry
     {
         bool IsRegistered(Type type);
 

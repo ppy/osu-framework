@@ -4,12 +4,12 @@
 
 partial class WithCanBeNullProperty : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterDependencyActivator(osu.Framework.Allocation.IDependencyActivator activator)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (activator.IsRegistered(typeof(WithCanBeNullProperty)))
+        if (registry.IsRegistered(typeof(WithCanBeNullProperty)))
             return;
-        base.RegisterDependencyActivator(activator);
-        activator.Register(typeof(WithCanBeNullProperty), (t, d) =>
+        base.RegisterForDependencyActivation(registry);
+        registry.Register(typeof(WithCanBeNullProperty), (t, d) =>
         {
             ((WithCanBeNullProperty)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(WithCanBeNullProperty), null, null, true, true);
         }, null);

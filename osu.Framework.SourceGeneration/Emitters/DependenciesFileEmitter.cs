@@ -13,10 +13,10 @@ namespace osu.Framework.SourceGeneration.Emitters
 {
     public class DependenciesFileEmitter
     {
-        public const string ACTIVATOR_PARAMETER_NAME = "activator";
+        public const string REGISTRY_PARAMETER_NAME = "registry";
 
         public const string IS_REGISTERED_METHOD_NAME = "IsRegistered";
-        public const string REGISTER_DEPENDENCY_ACTIVATOR_METHOD_NAME = "RegisterDependencyActivator";
+        public const string REGISTER_FOR_DEPENDENCY_ACTIVATION_METHOD_NAME = "RegisterForDependencyActivation";
         public const string REGISTER_METHOD_NAME = "Register";
 
         public const string TARGET_PARAMETER_NAME = "t";
@@ -42,7 +42,7 @@ namespace osu.Framework.SourceGeneration.Emitters
         public readonly INamedTypeSymbol? BindableTypeSymbol;
 
         private readonly ITypeSymbol iSourceGeneratedDependencyActivatorType;
-        private readonly ITypeSymbol iDependencyActivatorType;
+        private readonly ITypeSymbol iDependencyActivatorRegistryType;
         private readonly bool needsOverride;
 
         public DependenciesFileEmitter(GeneratorExecutionContext context, SyntaxContextReceiver receiver, GeneratorClassCandidate candidate)
@@ -57,7 +57,7 @@ namespace osu.Framework.SourceGeneration.Emitters
             BackgroundDependencyLoaderAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.BackgroundDependencyLoaderAttribute");
             BindableTypeSymbol = context.Compilation.GetTypeByMetadataName("osu.Framework.Bindables.IBindable");
             iSourceGeneratedDependencyActivatorType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.ISourceGeneratedDependencyActivator")!;
-            iDependencyActivatorType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.IDependencyActivator")!;
+            iDependencyActivatorRegistryType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.IDependencyActivatorRegistry")!;
 
             needsOverride =
                 // Override necessary if the class already has the source generator interface name.
@@ -105,16 +105,16 @@ namespace osu.Framework.SourceGeneration.Emitters
                                SyntaxFactory.MethodDeclaration(
                                                 SyntaxFactory.PredefinedType(
                                                     SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                                                REGISTER_DEPENDENCY_ACTIVATOR_METHOD_NAME)
+                                                REGISTER_FOR_DEPENDENCY_ACTIVATION_METHOD_NAME)
                                             .WithModifiers(
                                                 emitMethodModifiers())
                                             .WithParameterList(
                                                 SyntaxFactory.ParameterList(
                                                     SyntaxFactory.SingletonSeparatedList(
                                                         SyntaxFactory.Parameter(
-                                                                         SyntaxFactory.Identifier(ACTIVATOR_PARAMETER_NAME))
+                                                                         SyntaxFactory.Identifier(REGISTRY_PARAMETER_NAME))
                                                                      .WithType(
-                                                                         SyntaxFactory.ParseTypeName(iDependencyActivatorType.ToDisplayString())))))
+                                                                         SyntaxFactory.ParseTypeName(iDependencyActivatorRegistryType.ToDisplayString())))))
                                             .WithBody(
                                                 SyntaxFactory.Block(
                                                     emitPrecondition(),
@@ -175,7 +175,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxFactory.InvocationExpression(
                                  SyntaxFactory.MemberAccessExpression(
                                      SyntaxKind.SimpleMemberAccessExpression,
-                                     SyntaxFactory.IdentifierName(ACTIVATOR_PARAMETER_NAME),
+                                     SyntaxFactory.IdentifierName(REGISTRY_PARAMETER_NAME),
                                      SyntaxFactory.IdentifierName(IS_REGISTERED_METHOD_NAME)))
                              .WithArgumentList(
                                  SyntaxFactory.ArgumentList(
@@ -196,12 +196,12 @@ namespace osu.Framework.SourceGeneration.Emitters
                                                      SyntaxFactory.MemberAccessExpression(
                                                          SyntaxKind.SimpleMemberAccessExpression,
                                                          SyntaxFactory.BaseExpression(),
-                                                         SyntaxFactory.IdentifierName(REGISTER_DEPENDENCY_ACTIVATOR_METHOD_NAME)))
+                                                         SyntaxFactory.IdentifierName(REGISTER_FOR_DEPENDENCY_ACTIVATION_METHOD_NAME)))
                                                  .WithArgumentList(
                                                      SyntaxFactory.ArgumentList(
                                                          SyntaxFactory.SingletonSeparatedList(
                                                              SyntaxFactory.Argument(
-                                                                 SyntaxFactory.IdentifierName(ACTIVATOR_PARAMETER_NAME))))))
+                                                                 SyntaxFactory.IdentifierName(REGISTRY_PARAMETER_NAME))))))
                                 .WithLeadingTrivia(
                                     SyntaxFactory.TriviaList(
                                         SyntaxFactory.LineFeed));
@@ -213,7 +213,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxFactory.InvocationExpression(
                                  SyntaxFactory.MemberAccessExpression(
                                      SyntaxKind.SimpleMemberAccessExpression,
-                                     SyntaxFactory.IdentifierName(ACTIVATOR_PARAMETER_NAME),
+                                     SyntaxFactory.IdentifierName(REGISTRY_PARAMETER_NAME),
                                      SyntaxFactory.IdentifierName(REGISTER_METHOD_NAME)))
                              .WithArgumentList(
                                  SyntaxFactory.ArgumentList(

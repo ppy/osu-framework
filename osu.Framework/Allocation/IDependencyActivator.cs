@@ -8,7 +8,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// An interface for objects to register dependency activation functions with.
     /// </summary>
-    public interface IDependencyActivator
+    public interface IDependencyActivatorRegistry
     {
         /// <summary>
         /// Whether dependency activation functions have already been registered for the given type.
