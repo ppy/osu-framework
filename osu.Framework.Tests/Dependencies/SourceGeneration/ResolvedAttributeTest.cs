@@ -9,7 +9,10 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Testing.Dependencies;
 
+// ReSharper disable PartialTypeWithSinglePart
 // ReSharper disable UnusedAutoPropertyAccessor.Local
+
+#pragma warning disable IDE0052 // Unread private member
 
 namespace osu.Framework.Tests.Dependencies.SourceGeneration
 {

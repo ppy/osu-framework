@@ -14,6 +14,8 @@ using osu.Framework.Platform;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
+#pragma warning disable IDE0052 // Unread private member
+
 namespace osu.Framework.Benchmarks
 {
     public partial class BenchmarkDependencyContainer : GameBenchmark
