@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Xunit;
-using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.Tests.TestableDependencyInjectionSourceGenerator>;
+using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.DependencyInjectionSourceGenerator>;
 
 namespace osu.Framework.SourceGeneration.Tests
 {
