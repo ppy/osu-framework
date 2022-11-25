@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using Microsoft.CodeAnalysis;
 using osu.Framework.SourceGeneration.Emitters;
 
@@ -26,8 +25,12 @@ namespace osu.Framework.SourceGeneration
             {
                 GeneratorClassCandidate classCandidate = kvp.Value;
 
-                string suffix = AddUniqueNameSuffix ? $"_{Guid.NewGuid()}" : string.Empty;
-                string filename = $"g_{classCandidate.ClassSyntax.Identifier.ValueText}_Dependencies{suffix}.cs";
+                // Fully qualified name, with generics replaced with friendly characters.
+                string typeName = classCandidate.Symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+                                                .Replace('<', '{')
+                                                .Replace('>', '}');
+
+                string filename = $"g_{typeName}_Dependencies.cs";
 
                 context.AddSource(filename, new DependenciesFileEmitter(context, receiver, classCandidate).Emit());
             }
