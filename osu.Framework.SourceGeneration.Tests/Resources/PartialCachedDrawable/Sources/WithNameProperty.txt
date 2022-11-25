@@ -1,0 +1,4 @@
+[osu.Framework.Allocation.Cached(Name = "Custom Name")]
+public partial class WithNameProperty : osu.Framework.Graphics.Drawable
+{
+}

@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Localisation
 {
@@ -12,12 +15,12 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// The system-default <see cref="CultureInfo"/> used for number, date, time and other string formatting.
         /// </summary>
-        public static CultureInfo SystemCulture { get; } = CultureInfo.CurrentCulture;
+        public static CultureInfo SystemCulture { get; private set; } = CultureInfo.CurrentCulture;
 
         /// <summary>
         /// The system-default <see cref="CultureInfo"/> used for app languages/translations.
         /// </summary>
-        public static CultureInfo SystemUICulture { get; } = CultureInfo.CurrentUICulture;
+        public static CultureInfo SystemUICulture { get; private set; } = CultureInfo.CurrentUICulture;
 
         /// <summary>
         /// Wrapper around <see cref="CultureInfo.GetCultureInfo(string)"/> providing common behaviour and exception handling.
@@ -56,5 +59,39 @@ namespace osu.Framework.Localisation
                 return false;
             }
         }
+
+        /// <summary>
+        /// Enumerates all <see cref="CultureInfo.Parent"/> cultures of this <see cref="CultureInfo"/> (including itself, but excluding <see cref="CultureInfo.InvariantCulture"/>).
+        /// </summary>
+        public static IEnumerable<CultureInfo> EnumerateParentCultures(this CultureInfo cultureInfo)
+        {
+            for (var c = cultureInfo; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
+                yield return c;
+        }
+
+        /// <summary>
+        /// For use in tests only.
+        /// Temporarily changes <see cref="SystemCulture"/> and <see cref="SystemUICulture"/>.
+        /// </summary>
+        internal static IDisposable ChangeSystemCulture(string culture, string uiCulture)
+        {
+            var previousCulture = SystemCulture;
+            var previousUICulture = SystemUICulture;
+
+            SystemCulture = new CultureInfo(culture);
+            SystemUICulture = new CultureInfo(uiCulture);
+
+            return new InvokeOnDisposal(() =>
+            {
+                SystemCulture = previousCulture;
+                SystemUICulture = previousUICulture;
+            });
+        }
+
+        /// <summary>
+        /// For use in tests only.
+        /// Temporarily changes <see cref="SystemCulture"/> and <see cref="SystemUICulture"/>.
+        /// </summary>
+        internal static IDisposable ChangeSystemCulture(string allCultures) => ChangeSystemCulture(allCultures, allCultures);
     }
 }
