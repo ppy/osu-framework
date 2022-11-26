@@ -343,16 +343,16 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        private partial class BaseObject
+        private class BaseObject
         {
             public int TestValue;
         }
 
-        private partial struct BaseStructObject : IBaseInterface
+        private struct BaseStructObject : IBaseInterface
         {
         }
 
-        private partial class DerivedObject : BaseObject
+        private class DerivedObject : BaseObject
         {
         }
 

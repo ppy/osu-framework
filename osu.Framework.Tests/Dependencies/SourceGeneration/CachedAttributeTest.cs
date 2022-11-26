@@ -286,7 +286,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
-            Assert.IsNull(dependencies.Get<Provider26>());
+            Assert.AreEqual(provider, dependencies.Get<Provider26>());
         }
 
         [Test]
@@ -297,23 +297,23 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<IProviderInterface2>());
+            Assert.AreEqual(provider, dependencies.Get<Provider27>());
             Assert.IsNull(dependencies.Get<IProviderInterface4>());
-            Assert.IsNull(dependencies.Get<Provider27>());
         }
 
         private interface IProvidedInterface1
         {
         }
 
-        private partial class ProvidedType1 : IProvidedInterface1
+        private class ProvidedType1 : IProvidedInterface1
         {
         }
 
-        private partial class ProvidedType2
+        private class ProvidedType2
         {
         }
 
-        private partial struct ProvidedType3 : IProvidedInterface1
+        private struct ProvidedType3 : IProvidedInterface1
         {
         }
 
@@ -472,10 +472,12 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
+        [Cached]
         private partial class Provider26 : Provider1
         {
         }
 
+        [Cached]
         private partial class Provider27 : IProviderInterface4
         {
         }

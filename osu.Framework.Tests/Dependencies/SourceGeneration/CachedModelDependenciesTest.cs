@@ -267,6 +267,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(null, resolver.BindableString.Value);
         }
 
+        [Cached]
         private partial class NonBindablePublicFieldModel
         {
 #pragma warning disable 649
@@ -274,6 +275,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 #pragma warning restore 649
         }
 
+        [Cached]
         private partial class NonBindablePrivateFieldModel
         {
 #pragma warning disable 169
@@ -281,6 +283,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 #pragma warning restore 169
         }
 
+        [Cached]
         private partial class NonReadOnlyFieldModel
         {
 #pragma warning disable 649
@@ -288,6 +291,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 #pragma warning restore 649
         }
 
+        [Cached]
         private partial class PropertyModel
         {
             // ReSharper disable once UnusedMember.Local
