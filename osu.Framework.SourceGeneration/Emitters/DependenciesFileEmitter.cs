@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -43,11 +42,11 @@ namespace osu.Framework.SourceGeneration.Emitters
         private readonly ITypeSymbol iDependencyActivatorRegistryType;
         private readonly bool needsOverride;
 
-        public DependenciesFileEmitter(GeneratorClassCandidate candidate, Compilation compilation, ImmutableHashSet<ISymbol?> allClasses)
+        public DependenciesFileEmitter(GeneratorClassCandidate candidate, Compilation compilation)
         {
             Candidate = candidate;
 
-            ClassType = (ITypeSymbol)ModelExtensions.GetDeclaredSymbol(compilation.GetSemanticModel(candidate.ClassSyntax.SyntaxTree), candidate.ClassSyntax)!;
+            ClassType = candidate.Symbol;
             CachedAttributeType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.CachedAttribute");
             ResolvedAttributeType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.ResolvedAttribute");
             BackgroundDependencyLoaderAttributeType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.BackgroundDependencyLoaderAttribute");
@@ -55,10 +54,8 @@ namespace osu.Framework.SourceGeneration.Emitters
             iDependencyActivatorRegistryType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.IDependencyActivatorRegistry")!;
 
             needsOverride =
-                // Override necessary if the class already has the source generator interface name.
-                candidate.Symbol.AllInterfaces.Any(SyntaxHelpers.IsISourceGeneratedDependencyActivatorInterface)
-                // Or if any base types are to be processed by this generator.
-                || SyntaxHelpers.EnumerateBaseTypes(candidate.Symbol).Any(allClasses.Contains);
+                candidate.Symbol.BaseType != null
+                && candidate.Symbol.BaseType.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
         }
 
         public string Emit()

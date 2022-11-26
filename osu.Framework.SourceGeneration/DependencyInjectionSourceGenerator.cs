@@ -15,8 +15,6 @@ namespace osu.Framework.SourceGeneration
     [Generator]
     public class DependencyInjectionSourceGenerator : IIncrementalGenerator
     {
-        protected virtual bool AddUniqueNameSuffix => true;
-
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             IncrementalValuesProvider<GeneratorClassCandidate> candidateClasses =
@@ -111,7 +109,6 @@ namespace osu.Framework.SourceGeneration
                 return;
 
             IEnumerable<GeneratorClassCandidate> distinctCandidates = items.candidates.Distinct();
-            ImmutableHashSet<ISymbol?> allClasses = items.candidates.Select(c => c.Symbol).ToImmutableHashSet(SymbolEqualityComparer.Default);
 
             foreach (var candidate in distinctCandidates)
             {
@@ -122,7 +119,7 @@ namespace osu.Framework.SourceGeneration
 
                 string filename = $"g_{typeName}_Dependencies.cs";
 
-                context.AddSource(filename, new DependenciesFileEmitter(candidate, items.compilation, allClasses).Emit());
+                context.AddSource(filename, new DependenciesFileEmitter(candidate, items.compilation).Emit());
             }
         }
     }
