@@ -31,6 +31,8 @@ namespace osu.Framework.SourceGeneration.Tests
         [InlineData("NestedCachedClass")]
         [InlineData("MultipleCachedMember")]
         [InlineData("CachedInheritedInterface")]
+        // Todo: Fix this.
+        // [InlineData("CachedBaseType")]
         public async Task Check(string name) => await RunTest(name).ConfigureAwait(false);
 
         protected override Task Verify((string filename, string content)[] sources, (string filename, string content)[] generated)
