@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
@@ -13,6 +14,7 @@ using osu.Framework.Testing.Dependencies;
 namespace osu.Framework.Tests.Dependencies.Reflection
 {
     [TestFixture]
+    [SuppressMessage("Performance", "OFSG001:Class contributes to dependency injection and should be partial")]
     public class CachedAttributeTest
     {
         [Test]

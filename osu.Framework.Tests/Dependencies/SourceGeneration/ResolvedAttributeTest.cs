@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var receiver = new Receiver12();
 
-            var testObject = new CachedStructProvider();
+            var testObject = new PartialCachedStructProvider();
 
             var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
 
@@ -144,7 +144,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var receiver = new Receiver13();
 
-            var testObject = new CachedNullableProvider();
+            var testObject = new PartialCachedNullableProvider();
             testObject.SetValue(testValue);
 
             var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
@@ -291,7 +291,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         private partial class Receiver12 : IDependencyInjectionCandidate
         {
             [Resolved]
-            public CachedStructProvider.Struct Obj { get; private set; }
+            public PartialCachedStructProvider.Struct Obj { get; private set; }
         }
 
         private partial class Receiver13 : IDependencyInjectionCandidate

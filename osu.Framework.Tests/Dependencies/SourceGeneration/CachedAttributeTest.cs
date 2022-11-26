@@ -141,11 +141,11 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         [Test]
         public void TestCacheStructInternal()
         {
-            var provider = new CachedStructProvider();
+            var provider = new PartialCachedStructProvider();
 
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
-            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<CachedStructProvider.Struct>().Value);
+            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<PartialCachedStructProvider.Struct>().Value);
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         [TestCase(10)]
         public void TestCacheNullableInternal(int? testValue)
         {
-            var provider = new CachedNullableProvider();
+            var provider = new PartialCachedNullableProvider();
 
             provider.SetValue(testValue);
 
