@@ -28,7 +28,19 @@ namespace osu.Framework.Input.Handlers.Mouse
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
 
+        public BindableBool UseSeparateSensitivity { get; } = new BindableBool(false)
+        {
+            Description = "Use different sensitivities for horizontal movement and vertical movement",
+        };
+
         public BindableDouble Sensitivity { get; } = new BindableDouble(1)
+        {
+            MinValue = 0.1,
+            MaxValue = 10,
+            Precision = 0.01
+        };
+        
+        public BindableDouble SensitivityY { get; } = new BindableDouble(1)
         {
             MinValue = 0.1,
             MaxValue = 10,
@@ -206,7 +218,11 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         protected virtual void HandleMouseMoveRelative(Vector2 delta)
         {
-            enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
+            if (UseSeparateSensitivity.Value)
+                enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X * (float)Sensitivity.Value, delta.Y * (float)SensitivityY.Value)});
+            else
+                // This is necessary when the game hasn't supported separate sensitivity yet
+                enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
         }
 
         private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
