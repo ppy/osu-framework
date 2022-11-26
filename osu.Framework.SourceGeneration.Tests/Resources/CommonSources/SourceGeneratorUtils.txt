@@ -7,7 +7,7 @@ namespace osu.Framework.Utils
 {
     public static class SourceGeneratorUtils
     {
-        public static void CacheDependency(DependencyContainer container, Type callerType, object obj, CacheInfo info, Type? asType, string? cachedName, string? propertyName)
+        public static void CacheDependency(DependencyContainer container, Type callerType, object? obj, CacheInfo info, Type? asType, string? cachedName, string? propertyName)
         {
         }
 
