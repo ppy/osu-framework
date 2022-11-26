@@ -72,7 +72,7 @@ namespace osu.Framework.SourceGeneration
                                                          SyntaxFactory.TypeArgumentList(
                                                              SyntaxFactory.SeparatedList(new[]
                                                              {
-                                                                 SyntaxFactory.ParseTypeName(GetUnderlyingType(requestedType))
+                                                                 SyntaxFactory.ParseTypeName(requestedType.ToDisplayString())
                                                              })))))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
@@ -175,6 +175,17 @@ namespace osu.Framework.SourceGeneration
                              IsBackgroundDependencyLoaderAttribute(semanticModel, attrib)
                              || IsResolvedAttribute(semanticModel, attrib)
                              || IsCachedAttribute(semanticModel, attrib));
+        }
+
+        public static IEnumerable<ITypeSymbol> GetDeclaredInterfacesOnType(INamedTypeSymbol type)
+        {
+            foreach (var declared in type.Interfaces)
+            {
+                yield return declared;
+
+                foreach (var nested in declared.AllInterfaces)
+                    yield return nested;
+            }
         }
     }
 }

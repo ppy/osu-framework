@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneDrawSizePreservingFillContainer : FrameworkTestScene
+    public partial class TestSceneDrawSizePreservingFillContainer : FrameworkTestScene
     {
         public TestSceneDrawSizePreservingFillContainer()
         {

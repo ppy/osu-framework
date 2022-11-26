@@ -48,9 +48,9 @@ namespace osu.Framework.SourceGeneration
             }
 
             // Process any [Cached] attributes on any interface on the class excluding base types.
-            foreach (var iFace in symbol.Interfaces)
+            foreach (var iFace in SyntaxHelpers.GetDeclaredInterfacesOnType(symbol))
             {
-                // Add an interface entry for all interfaces that have a cached attribute.
+                // Add an entry if this interface has a cached attribute.
                 if (iFace.GetAttributes().Any(attrib => SyntaxHelpers.IsCachedAttribute(attrib.AttributeClass)))
                     addCandidate(context, classSyntax).CachedInterfaces.Add(iFace);
             }

@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Testing
 {
-    internal class DrawFrameRecordingContainer : Container
+    internal partial class DrawFrameRecordingContainer : Container
     {
         private readonly Bindable<RecordState> recordState = new Bindable<RecordState>();
         private readonly BindableInt currentFrame = new BindableInt();
@@ -101,7 +101,7 @@ namespace osu.Framework.Testing
         }
 
         // An empty drawable which captures DrawVisualiser input in this container
-        private class InputCapturingDrawable : Drawable
+        private partial class InputCapturingDrawable : Drawable
         {
             // Required for the DrawVisualiser to not treat this Drawable as an overlay input receptor
             // ReSharper disable once RedundantOverriddenMember

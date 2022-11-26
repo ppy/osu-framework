@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneRigidBody : FrameworkTestScene
+    public partial class TestSceneRigidBody : FrameworkTestScene
     {
         private readonly TestRigidBodySimulation sim;
 
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestRigidBody : RigidBodyContainer<Drawable>
+        private partial class TestRigidBody : RigidBodyContainer<Drawable>
         {
             public TestRigidBody()
             {
@@ -169,7 +169,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestRigidBodySimulation : RigidBodySimulation
+        private partial class TestRigidBodySimulation : RigidBodySimulation
         {
             protected override void LoadComplete()
             {

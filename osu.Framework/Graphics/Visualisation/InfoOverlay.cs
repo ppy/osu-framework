@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class InfoOverlay : Container<FlashyBox>
+    internal partial class InfoOverlay : Container<FlashyBox>
     {
         private Drawable target;
 

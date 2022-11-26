@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameTimeDisplay : Container
+    internal partial class FrameTimeDisplay : Container
     {
         private readonly SpriteText counter;
 
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Performance
                            + (clock.Throttling ? $"{(clock.MaximumUpdateHz > 0 && clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞"),4}hz" : string.Empty);
         }
 
-        private class CounterText : SpriteText
+        private partial class CounterText : SpriteText
         {
             public CounterText()
             {

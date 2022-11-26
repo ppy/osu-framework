@@ -18,7 +18,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestScenePassThroughInputManager : ManualInputManagerTestScene
+    public partial class TestScenePassThroughInputManager : ManualInputManagerTestScene
     {
         public TestScenePassThroughInputManager()
         {
@@ -241,7 +241,7 @@ namespace osu.Framework.Tests.Visual.Input
                 && testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button2));
         }
 
-        public class TestInputManager : ManualInputManager
+        public partial class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;
 
@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class HandlingBox : Box
+        public partial class HandlingBox : Box
         {
             public Func<UIEvent, bool> OnHandle;
 

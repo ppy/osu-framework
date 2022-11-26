@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkMakeChildAlive : GameBenchmark
+    public partial class BenchmarkMakeChildAlive : GameBenchmark
     {
         [Test]
         [Benchmark]
@@ -16,7 +16,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             private readonly Box child;
 

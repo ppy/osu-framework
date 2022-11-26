@@ -10,7 +10,7 @@ using osu.Framework.Testing.Dependencies;
 
 #pragma warning disable IDE0052 // Unread private member
 
-namespace osu.Framework.Tests.Dependencies
+namespace osu.Framework.Tests.Dependencies.Reflection
 {
     [TestFixture]
     public class CachedAttributeTest

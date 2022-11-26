@@ -12,7 +12,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description(@"Checking for bugged corner radius")]
-    public class TestSceneCircularContainer : FrameworkTestScene
+    public partial class TestSceneCircularContainer : FrameworkTestScene
     {
         private SingleUpdateCircularContainer container;
 
@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
-        private class SingleUpdateCircularContainer : CircularContainer
+        private partial class SingleUpdateCircularContainer : CircularContainer
         {
             private bool firstUpdate = true;
 

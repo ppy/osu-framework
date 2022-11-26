@@ -11,7 +11,7 @@ using osu.Framework.Testing.Drawables.Steps;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTest : FrameworkTestScene
+    public partial class TestSceneTest : FrameworkTestScene
     {
         private int setupRun;
         private int setupStepsRun;
@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Visual.Testing
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 
-        private class TestRunner : TestSceneTestRunner
+        private partial class TestRunner : TestSceneTestRunner
         {
             public override void RunTestBlocking(TestScene test)
             {

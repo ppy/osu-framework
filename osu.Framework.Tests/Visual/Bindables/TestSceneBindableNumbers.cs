@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Tests.Visual.Bindables
 {
-    public class TestSceneBindableNumbers : FrameworkTestScene
+    public partial class TestSceneBindableNumbers : FrameworkTestScene
     {
         private readonly BindableInt bindableInt = new BindableInt();
         private readonly BindableLong bindableLong = new BindableLong();
@@ -206,7 +206,7 @@ namespace osu.Framework.Tests.Visual.Bindables
             bindableDouble.Precision = Convert.ToDouble(precision);
         }
 
-        private class BindableDisplayContainer<T> : CompositeDrawable
+        private partial class BindableDisplayContainer<T> : CompositeDrawable
             where T : struct, IComparable<T>, IConvertible, IEquatable<T>
         {
             public BindableDisplayContainer(BindableNumber<T> bindable)

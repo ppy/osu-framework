@@ -14,7 +14,7 @@ namespace osu.Framework.Tests.IO
     /// <summary>
     /// A headless host for testing purposes. Contains an arbitrary game that is running after construction.
     /// </summary>
-    public class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
+    public partial class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
     {
         public BackgroundGameHeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
             : base(gameName, options, realtime: realtime)
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.IO
                 throw new TimeoutException("Game took too long to process a frame");
         }
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             internal readonly ManualResetEventSlim HasProcessed = new ManualResetEventSlim(false);
 

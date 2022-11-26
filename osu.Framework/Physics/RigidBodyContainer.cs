@@ -16,7 +16,7 @@ namespace osu.Framework.Physics
     /// <summary>
     /// Contains physical state and methods necessary for rigid body simulation.
     /// </summary>
-    public class RigidBodyContainer<T> : Container<T>, IRigidBody
+    public partial class RigidBodyContainer<T> : Container<T>, IRigidBody
         where T : Drawable
     {
         public RigidBodyContainer()

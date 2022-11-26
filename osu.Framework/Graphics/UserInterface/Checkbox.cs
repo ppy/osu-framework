@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// An abstract class that implements the functionality of a checkbox.
     /// </summary>
-    public abstract class Checkbox : Container, IHasCurrentValue<bool>
+    public abstract partial class Checkbox : Container, IHasCurrentValue<bool>
     {
         private readonly BindableWithCurrent<bool> current = new BindableWithCurrent<bool>();
 

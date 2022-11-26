@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicFileSelector : FileSelector
+    public partial class BasicFileSelector : FileSelector
     {
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.UserInterface
             this.FlashColour(Colour4.Red, 300);
         }
 
-        private class BasicFilePiece : DirectoryListingFile
+        private partial class BasicFilePiece : DirectoryListingFile
         {
             public BasicFilePiece(FileInfo file)
                 : base(file)

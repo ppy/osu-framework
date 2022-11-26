@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteText : FrameworkTestScene
+    public partial class TestSceneSpriteText : FrameworkTestScene
     {
         public TestSceneSpriteText()
         {

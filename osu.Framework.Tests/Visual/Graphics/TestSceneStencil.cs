@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Graphics
 {
-    public class TestSceneStencil : FrameworkTestScene
+    public partial class TestSceneStencil : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Graphics
             }
         }
 
-        private class StencilDrawable : CompositeDrawable
+        private partial class StencilDrawable : CompositeDrawable
         {
             public Drawable Background
             {

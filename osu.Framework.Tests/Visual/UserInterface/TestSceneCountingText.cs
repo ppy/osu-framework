@@ -13,7 +13,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCountingText : FrameworkTestScene
+    public partial class TestSceneCountingText : FrameworkTestScene
     {
         private readonly Bindable<CountType> countType = new Bindable<CountType>();
 
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
     }
 
-    public class TestTextCounter : Counter
+    public partial class TestTextCounter : Counter
     {
         private readonly Func<double, string> resultFunction;
         private readonly SpriteText text;

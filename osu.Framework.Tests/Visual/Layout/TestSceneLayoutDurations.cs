@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneLayoutDurations : FrameworkTestScene
+    public partial class TestSceneLayoutDurations : FrameworkTestScene
     {
         private ManualClock manualClock;
         private Container autoSizeContainer;

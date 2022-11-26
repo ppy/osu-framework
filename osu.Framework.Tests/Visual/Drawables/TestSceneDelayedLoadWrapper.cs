@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedLoadWrapper : FrameworkTestScene
+    public partial class TestSceneDelayedLoadWrapper : FrameworkTestScene
     {
         private FillFlowContainer<Container> flow;
         private TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll;
@@ -148,7 +148,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
         }
 
-        public class TestBox : Container
+        public partial class TestBox : Container
         {
             private readonly Action onLoadAction;
 

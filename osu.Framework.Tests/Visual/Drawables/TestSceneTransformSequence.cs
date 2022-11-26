@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneTransformSequence : GridTestScene
+    public partial class TestSceneTransformSequence : GridTestScene
     {
         private readonly Container[] boxes;
 

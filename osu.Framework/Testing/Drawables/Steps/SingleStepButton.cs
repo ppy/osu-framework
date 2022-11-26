@@ -7,7 +7,7 @@ using System;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class SingleStepButton : StepButton
+    public partial class SingleStepButton : StepButton
     {
         public new Action Action;
 

@@ -21,7 +21,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneTransformRewinding : FrameworkTestScene
+    public partial class TestSceneTransformRewinding : FrameworkTestScene
     {
         private const double interval = 250;
         private const int interval_count = 4;
@@ -482,7 +482,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
         }
 
-        private class AnimationContainer : Container
+        private partial class AnimationContainer : Container
         {
             public override bool RemoveCompletedTransforms => false;
             protected override Container<Drawable> Content => content;
@@ -594,7 +594,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             }
 
-            private class Tick : Box
+            private partial class Tick : Box
             {
                 private readonly int tick;
                 private readonly bool colouring;
@@ -620,7 +620,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class WrappingTimeContainer : Container
+        private partial class WrappingTimeContainer : Container
         {
             // Padding, in milliseconds, at each end of maxima of the clock time
             private const double time_padding = 50;

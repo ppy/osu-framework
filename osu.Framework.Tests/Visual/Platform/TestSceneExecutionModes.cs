@@ -13,7 +13,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test does not cover correct GL context acquire/release when run headless.")]
-    public class TestSceneExecutionModes : FrameworkTestScene
+    public partial class TestSceneExecutionModes : FrameworkTestScene
     {
         private Bindable<ExecutionMode> executionMode;
 

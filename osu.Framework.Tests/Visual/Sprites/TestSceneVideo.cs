@@ -15,7 +15,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideo : FrameworkTestScene
+    public partial class TestSceneVideo : FrameworkTestScene
     {
         private ResourceStore<byte[]> videoStore;
 

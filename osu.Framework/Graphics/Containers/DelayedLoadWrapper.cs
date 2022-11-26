@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer{T}"/>.
     /// </summary>
-    public class DelayedLoadWrapper : CompositeDrawable
+    public partial class DelayedLoadWrapper : CompositeDrawable
     {
         [Resolved]
         protected Game Game { get; private set; }

@@ -4,7 +4,7 @@ using osu.Framework.Screens;
 
 namespace TemplateGame.Game
 {
-    public class TemplateGameGame : TemplateGameGameBase
+    public partial class TemplateGameGame : TemplateGameGameBase
     {
         private ScreenStack screenStack;
 

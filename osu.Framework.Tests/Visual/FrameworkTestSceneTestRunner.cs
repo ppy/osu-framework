@@ -9,7 +9,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class FrameworkTestSceneTestRunner : TestSceneTestRunner
+    public partial class FrameworkTestSceneTestRunner : TestSceneTestRunner
     {
         [BackgroundDependencyLoader]
         private void load()

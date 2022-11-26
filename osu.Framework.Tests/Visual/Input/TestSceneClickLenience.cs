@@ -14,7 +14,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneClickLenience : ManualInputManagerTestScene
+    public partial class TestSceneClickLenience : ManualInputManagerTestScene
     {
         private ClickBox box;
 
@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void checkClicked(bool clicked) => AddAssert($"button {(clicked ? "clicked" : "not clicked")}", () => box.Clicked == clicked);
 
-        public class ClickBox : BasicButton
+        public partial class ClickBox : BasicButton
         {
             public bool Clicked;
 
@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class NonBlockingScroll : BasicScrollContainer
+        public partial class NonBlockingScroll : BasicScrollContainer
         {
             public override bool DragBlocksClick => false;
         }

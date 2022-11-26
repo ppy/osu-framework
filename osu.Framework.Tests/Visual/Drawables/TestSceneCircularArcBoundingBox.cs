@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneCircularArcBoundingBox : FrameworkTestScene
+    public partial class TestSceneCircularArcBoundingBox : FrameworkTestScene
     {
         private SmoothPath path;
         private Box boundingBox;

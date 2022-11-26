@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Testing
 {
-    public class TestBrowserTestRunner : CompositeDrawable
+    public partial class TestBrowserTestRunner : CompositeDrawable
     {
         private const double time_between_tests = 200;
 

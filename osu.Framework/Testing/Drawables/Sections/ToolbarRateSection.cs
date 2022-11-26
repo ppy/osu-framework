@@ -11,7 +11,7 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
-    public class ToolbarRateSection : ToolbarSection
+    public partial class ToolbarRateSection : ToolbarSection
     {
         [BackgroundDependencyLoader]
         private void load(TestBrowser browser)

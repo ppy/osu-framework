@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularBlob : Sprite
+    public partial class CircularBlob : Sprite
     {
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)

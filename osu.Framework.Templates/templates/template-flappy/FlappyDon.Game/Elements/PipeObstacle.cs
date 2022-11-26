@@ -11,7 +11,7 @@ namespace FlappyDon.Game.Elements
     /// A single obstacle for the player to overcome, consisting of two pipe sprites, one rotated 180
     /// degrees and placed along the top of the screen.
     /// </summary>
-    public class PipeObstacle : CompositeDrawable
+    public partial class PipeObstacle : CompositeDrawable
     {
         /// <summary>
         /// The vertical offset from the middle of the screen to denote the default vertical position of the gap in the pipes.

@@ -10,7 +10,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class TabItem : ClickableContainer
+    public abstract partial class TabItem : ClickableContainer
     {
         /// <summary>
         /// If false, ths <see cref="TabItem{T}"/> cannot be removed from its <see cref="TabControl{T}"/>.
@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.UserInterface
         public abstract bool IsRemovable { get; }
     }
 
-    public abstract class TabItem<T> : TabItem
+    public abstract partial class TabItem<T> : TabItem
     {
         internal Action<TabItem<T>> ActivationRequested;
         internal Action<TabItem<T>> PinnedChanged;

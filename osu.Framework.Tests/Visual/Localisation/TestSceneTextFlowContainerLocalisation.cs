@@ -17,7 +17,7 @@ using osu.Framework.Localisation;
 namespace osu.Framework.Tests.Visual.Localisation
 {
     [TestFixture]
-    public class TestSceneTextFlowContainerLocalisation : LocalisationTestScene
+    public partial class TestSceneTextFlowContainerLocalisation : LocalisationTestScene
     {
         private const string rank = "rank";
         private const string rank_lost = "rank_lost";

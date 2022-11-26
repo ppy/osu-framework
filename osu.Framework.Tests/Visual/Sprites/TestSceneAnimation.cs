@@ -19,7 +19,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneAnimation : FrameworkTestScene
+    public partial class TestSceneAnimation : FrameworkTestScene
     {
         private SpriteText timeText;
 
@@ -299,7 +299,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class TestAnimation : TextureAnimation
+        private partial class TestAnimation : TextureAnimation
         {
             public const int LOADABLE_FRAMES = 72;
 

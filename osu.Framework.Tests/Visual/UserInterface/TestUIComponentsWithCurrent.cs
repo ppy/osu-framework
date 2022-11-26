@@ -11,7 +11,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Visual.UserInterface
 {
     [HeadlessTest]
-    public class TestUIComponentsWithCurrent : FrameworkTestScene
+    public partial class TestUIComponentsWithCurrent : FrameworkTestScene
     {
         [Test]
         public void TestUnbindDoesntUnbindBound()

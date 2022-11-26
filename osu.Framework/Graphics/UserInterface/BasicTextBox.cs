@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicTextBox : TextBox
+    public partial class BasicTextBox : TextBox
     {
         protected virtual float CaretWidth => 2;
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
             X = CaretWidth,
         };
 
-        public class FallingDownContainer : Container
+        public partial class FallingDownContainer : Container
         {
             public override void Show()
             {
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class FadingPlaceholderText : SpriteText
+        public partial class FadingPlaceholderText : SpriteText
         {
             public override void Show() => this.FadeIn(200);
 
@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectionColour = SelectionColour,
         };
 
-        public class BasicCaret : Caret
+        public partial class BasicCaret : Caret
         {
             public BasicCaret()
             {
