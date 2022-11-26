@@ -72,7 +72,7 @@ namespace osu.Framework.SourceGeneration
                                                          SyntaxFactory.TypeArgumentList(
                                                              SyntaxFactory.SeparatedList(new[]
                                                              {
-                                                                 SyntaxFactory.ParseTypeName(GetUnderlyingType(requestedType))
+                                                                 SyntaxFactory.ParseTypeName(requestedType.ToDisplayString())
                                                              })))))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(

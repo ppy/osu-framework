@@ -11,7 +11,7 @@ partial class DefaultParameters : osu.Framework.Allocation.ISourceGeneratedDepen
         base.RegisterForDependencyActivation(registry);
         registry.Register(typeof(DefaultParameters), (t, d) =>
         {
-            ((DefaultParameters)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<osu.Framework.Bindables.Bindable<int>>(d, typeof(DefaultParameters), null, null, true, true);
+            ((DefaultParameters)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<osu.Framework.Bindables.Bindable<int>?>(d, typeof(DefaultParameters), null, null, true, true);
         }, null);
     }
 }
