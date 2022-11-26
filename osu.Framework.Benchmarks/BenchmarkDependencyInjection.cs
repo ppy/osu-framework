@@ -40,7 +40,7 @@ namespace osu.Framework.Benchmarks
         }
     }
 
-    public class ClassInjectedWithReflection
+    public class ClassInjectedWithReflection : IDependencyInjectionCandidate
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         [Resolved]
@@ -49,7 +49,7 @@ namespace osu.Framework.Benchmarks
 
     // This inspection can be removed once the source generator is merged in/referenced as a package.
     // ReSharper disable once PartialTypeWithSinglePart
-    public partial class ClassInjectedWithSourceGenerator
+    public partial class ClassInjectedWithSourceGenerator : IDependencyInjectionCandidate
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         [Resolved]

@@ -33,7 +33,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
         /// <param name="instance">The instance to inject dependencies into.</param>
-        void Inject<T>(T instance) where T : class;
+        void Inject<T>(T instance) where T : class, IDependencyInjectionCandidate;
     }
 
     public static class ReadOnlyDependencyContainerExtensions

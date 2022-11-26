@@ -10,7 +10,7 @@ namespace osu.Framework.Testing.Dependencies
     /// <summary>
     /// This is used for internal <see cref="DependencyContainer"/> testing purposes.
     /// </summary>
-    internal class CachedStructProvider
+    internal class CachedStructProvider : IDependencyInjectionCandidate
     {
         [Cached]
         public Struct CachedObject { get; } = new Struct { Value = 10 };

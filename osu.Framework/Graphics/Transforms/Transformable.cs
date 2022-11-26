@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Transforms
     /// An implementer of this class must call <see cref="UpdateTransforms"/> to
     /// update and apply its <see cref="Transform"/>s.
     /// </summary>
-    public abstract partial class Transformable : ITransformable
+    public abstract partial class Transformable : ITransformable, IDependencyInjectionCandidate
     {
         /// <summary>
         /// The clock that is used to provide the timing for this object's <see cref="Transform"/>s.

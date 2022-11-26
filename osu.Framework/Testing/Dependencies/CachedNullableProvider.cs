@@ -10,7 +10,7 @@ namespace osu.Framework.Testing.Dependencies
     /// <summary>
     /// Used for internal <see cref="DependencyContainer"/> testing purposes.
     /// </summary>
-    public class CachedNullableProvider
+    public class CachedNullableProvider : IDependencyInjectionCandidate
     {
         [Cached]
         public int? CachedObject { get; private set; } = 5;
