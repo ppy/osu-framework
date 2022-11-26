@@ -24,7 +24,7 @@ namespace osu.Framework.SourceGeneration
             IncrementalValueProvider<(Compilation Compilation, ImmutableArray<GeneratorClassCandidate> classes)> compilationAndClasses =
                 context.CompilationProvider.Combine(candidateClasses.Collect());
 
-            context.RegisterSourceOutput(compilationAndClasses, emit);
+            context.RegisterImplementationSourceOutput(compilationAndClasses, emit);
         }
 
         private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
