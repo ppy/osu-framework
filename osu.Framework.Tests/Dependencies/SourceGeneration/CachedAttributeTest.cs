@@ -477,7 +477,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        [Cached]
         private partial class Provider27 : IProviderInterface4
         {
         }
