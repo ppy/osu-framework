@@ -364,6 +364,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             private void load(BaseObject baseObject, DerivedObject derivedObject) => OnLoad?.Invoke(baseObject, derivedObject);
         }
 
+        [Cached]
         private partial class Receiver2
         {
         }
