@@ -35,22 +35,24 @@ namespace osu.Framework.SourceGeneration
                 return;
 
             // Determine if the class is a candidate for the source generator.
-            if (symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
-                addCandidate(context, classSyntax);
+            if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
+                return;
+
+            GeneratorClassCandidate candidate = addCandidate(context, classSyntax);
 
             // Process any [Cached] attributes on any interface on the class excluding base types.
             foreach (var iFace in SyntaxHelpers.GetDeclaredInterfacesOnType(symbol))
             {
                 // Add an entry if this interface has a cached attribute.
                 if (iFace.GetAttributes().Any(attrib => SyntaxHelpers.IsCachedAttribute(attrib.AttributeClass)))
-                    addCandidate(context, classSyntax).CachedInterfaces.Add(iFace);
+                    candidate.CachedInterfaces.Add(iFace);
             }
 
             // Process any [Cached] attributes on the class.
             foreach (var attrib in enumerateAttributes(context.SemanticModel, classSyntax))
             {
                 if (SyntaxHelpers.IsCachedAttribute(context.SemanticModel, attrib))
-                    addCandidate(context, classSyntax).CachedClasses.Add(new SyntaxWithSymbol(context, classSyntax));
+                    candidate.CachedClasses.Add(new SyntaxWithSymbol(context, classSyntax));
             }
 
             // Process any attributes of members of the class.
@@ -59,16 +61,16 @@ namespace osu.Framework.SourceGeneration
                 foreach (var attrib in enumerateAttributes(context.SemanticModel, member))
                 {
                     if (SyntaxHelpers.IsBackgroundDependencyLoaderAttribute(context.SemanticModel, attrib))
-                        addCandidate(context, classSyntax).DependencyLoaderMemebers.Add(new SyntaxWithSymbol(context, member));
+                        candidate.DependencyLoaderMemebers.Add(new SyntaxWithSymbol(context, member));
 
                     if (member is not PropertyDeclarationSyntax && member is not FieldDeclarationSyntax)
                         continue;
 
                     if (SyntaxHelpers.IsResolvedAttribute(context.SemanticModel, attrib))
-                        addCandidate(context, classSyntax).ResolvedMembers.Add(new SyntaxWithSymbol(context, member));
+                        candidate.ResolvedMembers.Add(new SyntaxWithSymbol(context, member));
 
                     if (SyntaxHelpers.IsCachedAttribute(context.SemanticModel, attrib))
-                        addCandidate(context, classSyntax).CachedMembers.Add(new SyntaxWithSymbol(context, member));
+                        candidate.CachedMembers.Add(new SyntaxWithSymbol(context, member));
                 }
             }
         }
