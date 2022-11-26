@@ -35,17 +35,8 @@ namespace osu.Framework.SourceGeneration
                 return;
 
             // Determine if the class is a candidate for the source generator.
-            // Classes may be candidates even if they don't resolve/cache anything themselves, but a base type does.
-            foreach (var iFace in symbol.AllInterfaces)
-            {
-                // All classes that derive from IDrawable need to use the source generator.
-                // This is conservative for all other (i.e. non-Drawable) classes to avoid polluting irrelevant classes.
-                if (SyntaxHelpers.IsIDrawableInterface(iFace) || SyntaxHelpers.IsITransformableInterface(iFace) || SyntaxHelpers.IsISourceGeneratedDependencyActivatorInterface(iFace))
-                {
-                    addCandidate(context, classSyntax);
-                    break;
-                }
-            }
+            if (symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
+                addCandidate(context, classSyntax);
 
             // Process any [Cached] attributes on any interface on the class excluding base types.
             foreach (var iFace in SyntaxHelpers.GetDeclaredInterfacesOnType(symbol))
