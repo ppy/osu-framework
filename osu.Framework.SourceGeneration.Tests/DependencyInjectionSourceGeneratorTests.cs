@@ -30,6 +30,7 @@ namespace osu.Framework.SourceGeneration.Tests
         [InlineData("PartialNestedClasses")]
         [InlineData("NestedCachedClass")]
         [InlineData("MultipleCachedMember")]
+        [InlineData("CachedInheritedInterface")]
         public async Task Check(string name) => await RunTest(name).ConfigureAwait(false);
 
         protected override Task Verify((string filename, string content)[] sources, (string filename, string content)[] generated)

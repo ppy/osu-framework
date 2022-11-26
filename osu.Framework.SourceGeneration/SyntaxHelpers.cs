@@ -176,5 +176,16 @@ namespace osu.Framework.SourceGeneration
                              || IsResolvedAttribute(semanticModel, attrib)
                              || IsCachedAttribute(semanticModel, attrib));
         }
+
+        public static IEnumerable<ITypeSymbol> GetDeclaredInterfacesOnType(INamedTypeSymbol type)
+        {
+            foreach (var declared in type.Interfaces)
+            {
+                yield return declared;
+
+                foreach (var nested in declared.AllInterfaces)
+                    yield return nested;
+            }
+        }
     }
 }
