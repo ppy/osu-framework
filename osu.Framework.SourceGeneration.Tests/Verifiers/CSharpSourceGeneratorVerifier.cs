@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
     public partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : ISourceGenerator, new()
+        where TSourceGenerator : IIncrementalGenerator, new()
     {
         public static async Task VerifyAsync((string filename, string content)[] sources, (string filename, string content)[] generated)
         {

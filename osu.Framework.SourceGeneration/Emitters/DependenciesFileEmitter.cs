@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -31,39 +32,33 @@ namespace osu.Framework.SourceGeneration.Emitters
 
 ";
 
-        public readonly GeneratorExecutionContext Context;
-        public readonly SyntaxContextReceiver Receiver;
         public readonly GeneratorClassCandidate Candidate;
 
         public readonly ITypeSymbol ClassType;
         public readonly INamedTypeSymbol? CachedAttributeType;
         public readonly INamedTypeSymbol? ResolvedAttributeType;
         public readonly INamedTypeSymbol? BackgroundDependencyLoaderAttributeType;
-        public readonly INamedTypeSymbol? BindableTypeSymbol;
 
         private readonly ITypeSymbol iSourceGeneratedDependencyActivatorType;
         private readonly ITypeSymbol iDependencyActivatorRegistryType;
         private readonly bool needsOverride;
 
-        public DependenciesFileEmitter(GeneratorExecutionContext context, SyntaxContextReceiver receiver, GeneratorClassCandidate candidate)
+        public DependenciesFileEmitter(GeneratorClassCandidate candidate, Compilation compilation, ImmutableHashSet<ISymbol?> allClasses)
         {
-            Context = context;
-            Receiver = receiver;
             Candidate = candidate;
 
-            ClassType = (ITypeSymbol)ModelExtensions.GetDeclaredSymbol(context.Compilation.GetSemanticModel(candidate.ClassSyntax.SyntaxTree), candidate.ClassSyntax)!;
-            CachedAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.CachedAttribute");
-            ResolvedAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.ResolvedAttribute");
-            BackgroundDependencyLoaderAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.BackgroundDependencyLoaderAttribute");
-            BindableTypeSymbol = context.Compilation.GetTypeByMetadataName("osu.Framework.Bindables.IBindable");
-            iSourceGeneratedDependencyActivatorType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.ISourceGeneratedDependencyActivator")!;
-            iDependencyActivatorRegistryType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.IDependencyActivatorRegistry")!;
+            ClassType = (ITypeSymbol)ModelExtensions.GetDeclaredSymbol(compilation.GetSemanticModel(candidate.ClassSyntax.SyntaxTree), candidate.ClassSyntax)!;
+            CachedAttributeType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.CachedAttribute");
+            ResolvedAttributeType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.ResolvedAttribute");
+            BackgroundDependencyLoaderAttributeType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.BackgroundDependencyLoaderAttribute");
+            iSourceGeneratedDependencyActivatorType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.ISourceGeneratedDependencyActivator")!;
+            iDependencyActivatorRegistryType = compilation.GetTypeByMetadataName("osu.Framework.Allocation.IDependencyActivatorRegistry")!;
 
             needsOverride =
                 // Override necessary if the class already has the source generator interface name.
                 candidate.Symbol.AllInterfaces.Any(SyntaxHelpers.IsISourceGeneratedDependencyActivatorInterface)
                 // Or if any base types are to be processed by this generator.
-                || SyntaxHelpers.EnumerateBaseTypes(candidate.Symbol).Any(t => receiver.CandidateClasses.ContainsKey(t));
+                || SyntaxHelpers.EnumerateBaseTypes(candidate.Symbol).Any(allClasses.Contains);
         }
 
         public string Emit()
