@@ -28,14 +28,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
             Manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
             {
                 [goodbye] = "Goodbye",
+                [general] = "General",
             }));
             Manager.AddLanguage("es", new TestLocalisationStore("es", new Dictionary<string, string>
             {
                 [goodbye] = "Adiós",
+                [general] = "General",
+            }));
+            manager.AddLanguage("pl", new TestLocalisationStore("pl", new Dictionary<string, string>
+            {
+                [goodbye] = "Do widzenia",
+                [general] = "Ogólne",
             }));
         }
 
         private const string goodbye = "goodbye";
+        private const string general = "general";
 
         [SetUp]
         public void SetUp() => Schedule(() =>
@@ -88,6 +96,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                         new SearchableText { Text = "?!()[]{}" },
                                         new SearchableText { Text = "@€$" },
                                         new SearchableText { Text = new LocalisableString(new TranslatableString(goodbye, "Goodbye")) },
+                                        new SearchableText { Text = new LocalisableString(new TranslatableString(general, "General")) },
                                     },
                                 },
                             },
@@ -105,9 +114,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase("èê", 1)]
         [TestCase("321", 0)]
         [TestCase("mul pi", 1)]
-        [TestCase("header", 9)]
+        [TestCase("header", 10)]
         public void TestFiltering(string term, int count)
         {
+            setTerm(term);
+            checkCount(count);
+        }
+
+        [TestCase("sUbSeCtIoN 1", 6)]
+        [TestCase("èê", 1)]
+        [TestCase("ouaeeeaaa", 0)]
+        public void TestMatchingNonSpace(string term, int count)
+        {
+            AddStep("set matching non-space characters on", () => search.IgnoreNonSpace = false);
+            setTerm(term);
+            checkCount(count);
+        }
+
+        [TestCase("sUbSeCtIoN 1", 6)]
+        [TestCase("èê", 1)]
+        [TestCase("ouaeeeaaa", 1)]
+        public void TestIgnoreNonSpace(string term, int count)
+        {
+            AddStep("set matching non-space characters off", () => search.IgnoreNonSpace = true);
             setTerm(term);
             checkCount(count);
         }
@@ -115,7 +144,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase("tst", 2)]
         [TestCase("ssn 1", 6)]
         [TestCase("sns 1", 0)]
-        [TestCase("hdr", 9)]
+        [TestCase("hdr", 10)]
         [TestCase("tt", 2)]
         [TestCase("ttt", 0)]
         public void TestEagerFilteringEnabled(string term, int count)
@@ -158,7 +187,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             SetLocale("es");
             setTerm("Adiós");
             checkCount(1);
+            setTerm("Adios");
+            checkCount(1);
             setTerm("Goodbye");
+            checkCount(1);
+            AddStep("Change locale to pl", () => configManager.SetValue(FrameworkSetting.Locale, "pl"));
+            setTerm("Ogólne");
+            checkCount(1);
+            setTerm("Ogolne");
             checkCount(1);
         }
 

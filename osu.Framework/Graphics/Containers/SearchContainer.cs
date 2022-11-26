@@ -50,6 +50,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private bool ignoreNonSpace = true;
+
+        /// <summary>
+        /// Whether the matching algorithm should use <see cref="CompareOptions.IgnoreNonSpace"/> to ignore non-space characters like diacritics.
+        /// If <c>true</c>, searching for "Adios" will match "Adiós".
+        /// </summary>
+        public bool IgnoreNonSpace
+        {
+            get => ignoreNonSpace;
+            set
+            {
+                if (value == ignoreNonSpace)
+                    return;
+
+                ignoreNonSpace = value;
+                filterValid.Invalidate();
+            }
+        }
+
         private string searchTerm;
 
         /// <summary>
@@ -93,11 +112,11 @@ namespace osu.Framework.Graphics.Containers
 
         private void performFilter()
         {
-            string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching));
+            string[] terms = (searchTerm ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching, ignoreNonSpace));
         }
 
-        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
+        private bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching, bool ignoreNonSpaceCharacters)
         {
             IEnumerable<string> filterTerms = filterable.FilterTerms.SelectMany(localisedStr =>
                 new[] { localisedStr.ToString(), localisation.GetLocalisedString(localisedStr) });
@@ -105,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
             //Words matched by parent is not needed to match children
             string[] childTerms = searchTerms.Where(term =>
                 !filterTerms.Any(filterTerm =>
-                    checkTerm(filterTerm, term, nonContiguousMatching))).ToArray();
+                    checkTerm(filterTerm, term, nonContiguousMatching, ignoreNonSpaceCharacters))).ToArray();
 
             bool matching = childTerms.Length == 0;
 
@@ -113,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
             if (filterable is IHasFilterableChildren hasFilterableChildren)
             {
                 foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
-                    matching |= match(child, childTerms, searchActive, nonContiguousMatching);
+                    matching |= match(child, childTerms, searchActive, nonContiguousMatching, ignoreNonSpaceCharacters);
             }
 
             filterable.FilteringActive = searchActive;
@@ -123,17 +142,25 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Check whether a search term exists in a forward direction, allowing for potentially non-matching characters to exist between matches.
         /// </summary>
-        private static bool checkTerm(string haystack, string needle, bool nonContiguous)
+        private static bool checkTerm(string haystack, string needle, bool nonContiguous, bool ignoreNonSpaceCharacters)
         {
+            var compareOptions = ignoreNonSpaceCharacters
+                ? CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase
+                : CompareOptions.OrdinalIgnoreCase;
+
             if (!nonContiguous)
+            {
+                if (ignoreNonSpaceCharacters)
+                    return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, compareOptions) >= 0;
+
                 return haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
+            }
 
             int index = 0;
 
             for (int i = 0; i < needle.Length; i++)
             {
-                // string.IndexOf doesn't have an overload which takes both a `startIndex` and `StringComparison` mode.
-                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.OrdinalIgnoreCase);
+                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, compareOptions);
                 if (found < 0)
                     return false;
 
