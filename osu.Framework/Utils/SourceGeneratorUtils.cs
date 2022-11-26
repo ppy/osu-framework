@@ -25,7 +25,7 @@ namespace osu.Framework.Utils
         /// <param name="cachedName">The name which <paramref name="obj"/> should be cached as.</param>
         /// <param name="propertyName">A fallback name for <paramref name="obj"/> to be cached as.</param>
         /// <exception cref="NullDependencyException">If <paramref name="obj"/> is <c>null</c>.</exception>
-        public static void CacheDependency(DependencyContainer container, Type callerType, object obj, CacheInfo info, Type? asType, string? cachedName, string? propertyName)
+        public static void CacheDependency(DependencyContainer container, Type callerType, object? obj, CacheInfo info, Type? asType, string? cachedName, string? propertyName)
         {
             bool allowValueTypes = callerType.Assembly == typeof(Drawable).Assembly;
 
