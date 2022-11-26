@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Xunit;
-using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.Tests.TestableDependencyInjectionSourceGenerator>;
+using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.DependencyInjectionSourceGenerator>;
 
 namespace osu.Framework.SourceGeneration.Tests
 {
@@ -30,6 +30,9 @@ namespace osu.Framework.SourceGeneration.Tests
         [InlineData("PartialNestedClasses")]
         [InlineData("NestedCachedClass")]
         [InlineData("MultipleCachedMember")]
+        [InlineData("CachedInheritedInterface")]
+        // Todo: Fix this.
+        // [InlineData("CachedBaseType")]
         public async Task Check(string name) => await RunTest(name).ConfigureAwait(false);
 
         protected override Task Verify((string filename, string content)[] sources, (string filename, string content)[] generated)

@@ -11,7 +11,7 @@ partial class NRTNullableReferenceType : osu.Framework.Allocation.ISourceGenerat
         base.RegisterForDependencyActivation(registry);
         registry.Register(typeof(NRTNullableReferenceType), (t, d) =>
         {
-            ((NRTNullableReferenceType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(NRTNullableReferenceType), null, null, true, true);
+            ((NRTNullableReferenceType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object?>(d, typeof(NRTNullableReferenceType), null, null, true, true);
         }, null);
     }
 }

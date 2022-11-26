@@ -64,7 +64,6 @@ namespace osu.Framework.Tests.Containers
             Assert.IsFalse(container.Contains(sprite));
 
             // Attempts re-add
-            Assert.Throws<ObjectDisposedException>(() => container.Add(sprite));
             Assert.IsFalse(container.Contains(sprite));
         }
 

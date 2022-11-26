@@ -115,6 +115,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void Blit(IRenderer renderer)
             {
+                if (innerRadius == 0 || (!roundedCaps && progress == 0))
+                    return;
+
                 var shader = TextureShader;
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);

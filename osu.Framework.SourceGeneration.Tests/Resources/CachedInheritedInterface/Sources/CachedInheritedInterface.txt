@@ -1,0 +1,13 @@
+public partial class CachedInheritedInterface : osu.Framework.Graphics.Drawable, IInterface1
+{
+}
+
+[osu.Framework.Allocation.Cached]
+public interface IInterface1 : IInterface2
+{
+}
+
+[osu.Framework.Allocation.Cached]
+public interface IInterface2
+{
+}
