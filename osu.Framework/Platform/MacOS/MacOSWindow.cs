@@ -6,6 +6,7 @@
 using System;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
+using SDL2;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -32,6 +33,8 @@ namespace osu.Framework.Platform.MacOS
             var viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
+
+            SDL.SDL_SetHint(SDL.SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
         }
 
         /// <summary>
