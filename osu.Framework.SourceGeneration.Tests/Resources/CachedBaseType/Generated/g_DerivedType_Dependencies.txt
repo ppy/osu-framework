@@ -4,10 +4,11 @@
 
 partial class DerivedType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public virtual void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
         if (registry.IsRegistered(typeof(DerivedType)))
             return;
+        base.RegisterForDependencyActivation(registry);
         registry.Register(typeof(DerivedType), null, null);
     }
 }
