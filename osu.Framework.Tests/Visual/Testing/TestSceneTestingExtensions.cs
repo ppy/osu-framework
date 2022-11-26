@@ -12,7 +12,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTestingExtensions : FrameworkTestScene
+    public partial class TestSceneTestingExtensions : FrameworkTestScene
     {
         [Test]
         public void TestChildrenOfTypeMatchingComposite()

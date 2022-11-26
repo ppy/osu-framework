@@ -15,7 +15,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    internal class AudioMixerVisualiser : ToolWindow
+    internal partial class AudioMixerVisualiser : ToolWindow
     {
         [Resolved]
         private AudioManager audioManager { get; set; }

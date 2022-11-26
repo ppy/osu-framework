@@ -21,7 +21,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestScenePopoverContainer : ManualInputManagerTestScene
+    public partial class TestScenePopoverContainer : ManualInputManagerTestScene
     {
         private Container[,] cells;
         private Container popoverWrapper;
@@ -546,13 +546,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             });
 
-        private class AnimatedPopover : BasicPopover
+        private partial class AnimatedPopover : BasicPopover
         {
             protected override void PopIn() => this.FadeIn(300, Easing.OutQuint);
             protected override void PopOut() => this.FadeOut(300, Easing.OutQuint);
         }
 
-        private class DrawableWithPopover : CircularContainer, IHasPopover
+        private partial class DrawableWithPopover : CircularContainer, IHasPopover
         {
             public Func<DrawableWithPopover, Popover> CreateContent { get; set; }
 
@@ -594,7 +594,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TextBoxWithPopover : BasicTextBox, IHasPopover
+        private partial class TextBoxWithPopover : BasicTextBox, IHasPopover
         {
             protected override void OnFocus(FocusEvent e)
             {
@@ -617,7 +617,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
         }
 
-        private class EventHandlingContainer : Container
+        private partial class EventHandlingContainer : Container
         {
             private readonly Box colourBox;
 

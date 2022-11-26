@@ -13,7 +13,7 @@ using osu.Framework.Timing;
 namespace osu.Framework.Tests.Bindables
 {
     [TestFixture]
-    public class BindableBindingTest
+    public partial class BindableBindingTest
     {
         [Test]
         public void TestBindToAlreadyBound()
@@ -526,7 +526,7 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable2.IsBound, Is.False);
         }
 
-        private class TestDrawable : Drawable
+        private partial class TestDrawable : Drawable
         {
             public bool ValueChanged;
 
@@ -543,7 +543,7 @@ namespace osu.Framework.Tests.Bindables
             public virtual void SetValue(int value) => bindable.Value = value;
         }
 
-        private class TestSubDrawable : TestDrawable
+        private partial class TestSubDrawable : TestDrawable
         {
             public bool ValueChanged2;
 
@@ -561,7 +561,7 @@ namespace osu.Framework.Tests.Bindables
             }
         }
 
-        private class TestDrawable2 : Drawable
+        private partial class TestDrawable2 : Drawable
         {
             public Func<Bindable<int>> GetBindable;
             private Bindable<int> bindable => GetBindable();
@@ -575,7 +575,7 @@ namespace osu.Framework.Tests.Bindables
             public void SetValue(int value) => bindable.Value = value;
         }
 
-        private class TestDrawable3 : Drawable
+        private partial class TestDrawable3 : Drawable
         {
             public Bindable<int> Bindable { get; } = new Bindable<int>();
 

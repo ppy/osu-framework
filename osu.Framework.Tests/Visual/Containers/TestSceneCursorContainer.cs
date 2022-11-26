@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCursorContainer : ManualInputManagerTestScene
+    public partial class TestSceneCursorContainer : ManualInputManagerTestScene
     {
         private Container container;
         private TestCursorContainer cursorContainer;
@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.Containers
             };
         }
 
-        private class TestCursorContainer : CursorContainer
+        private partial class TestCursorContainer : CursorContainer
         {
             protected override Drawable CreateCursor() => new Circle
             {

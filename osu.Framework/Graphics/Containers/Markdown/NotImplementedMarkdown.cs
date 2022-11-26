@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Visualises a message that displays when a <see cref="IMarkdownObject"/> doesn't have a visual implementation.
     /// </summary>
-    public class NotImplementedMarkdown : CompositeDrawable, IMarkdownTextComponent
+    public partial class NotImplementedMarkdown : CompositeDrawable, IMarkdownTextComponent
     {
         private readonly IMarkdownObject markdownObject;
 

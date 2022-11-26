@@ -10,7 +10,7 @@ using osuTK.Input;
 
 namespace FlappyDon.Game
 {
-    public class FlappyDonGame : FlappyDonGameBase
+    public partial class FlappyDonGame : FlappyDonGameBase
     {
         // The main container for holding all of the game content
         private readonly DrawSizePreservingFillContainer gameScreen = new DrawSizePreservingFillContainer();

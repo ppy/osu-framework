@@ -17,7 +17,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Testing.Input
 {
-    public class ManualInputManager : PassThroughInputManager
+    public partial class ManualInputManager : PassThroughInputManager
     {
         private readonly ManualInputHandler handler;
 
@@ -169,7 +169,7 @@ namespace osu.Framework.Testing.Input
         public void PressTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, true));
         public void ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, false));
 
-        private class LocalPlatformActionContainer : PlatformActionContainer
+        private partial class LocalPlatformActionContainer : PlatformActionContainer
         {
             public bool ShouldHandle;
 

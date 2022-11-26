@@ -26,7 +26,7 @@ using osuTK;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
+    public abstract partial class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 

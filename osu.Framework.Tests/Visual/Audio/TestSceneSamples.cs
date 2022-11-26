@@ -18,7 +18,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneSamples : FrameworkTestScene
+    public partial class TestSceneSamples : FrameworkTestScene
     {
         private readonly AudioContainer samples;
         private readonly TrackingLine tracking;
@@ -92,7 +92,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class TrackingLine : CompositeDrawable
+        private partial class TrackingLine : CompositeDrawable
         {
             public TrackingLine()
             {
@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        public class Grid : CompositeDrawable
+        public partial class Grid : CompositeDrawable
         {
             public Grid(int beats, int notes)
             {
@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class DraggableSample : CompositeDrawable
+        private partial class DraggableSample : CompositeDrawable
         {
             public DraggableSample(int beat, int pitch)
             {

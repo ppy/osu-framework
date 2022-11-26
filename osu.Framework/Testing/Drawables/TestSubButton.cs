@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestSubButton : TestButtonBase
+    internal partial class TestSubButton : TestButtonBase
     {
         private readonly int indentLevel;
 

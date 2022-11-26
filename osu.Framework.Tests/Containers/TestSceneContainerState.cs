@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
     [HeadlessTest]
-    public class TestSceneContainerState : FrameworkTestScene
+    public partial class TestSceneContainerState : FrameworkTestScene
     {
         /// <summary>
         /// Tests if a drawable can be added to a container, removed, and then re-added to the same container.
@@ -298,7 +298,7 @@ namespace osu.Framework.Tests.Containers
             AddUntilStep("container has no children", () => container.Count == 0);
         }
 
-        private class DelayedLoadDrawable : CompositeDrawable
+        private partial class DelayedLoadDrawable : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -375,7 +375,7 @@ namespace osu.Framework.Tests.Containers
             AddAssert("non-alive child not contained", () => !container.AliveChildren.Contains(nonAliveChild));
         }
 
-        private class TestContainer : Container
+        private partial class TestContainer : Container
         {
             public new void ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
         }

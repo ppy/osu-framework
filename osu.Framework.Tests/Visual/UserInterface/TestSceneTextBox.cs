@@ -21,7 +21,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTextBox : ManualInputManagerTestScene
+    public partial class TestSceneTextBox : ManualInputManagerTestScene
     {
         private FillFlowContainer textBoxes;
 
@@ -832,7 +832,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Keys(PlatformAction.DeleteBackwardChar);
         }
 
-        public class InsertableTextBox : BasicTextBox
+        public partial class InsertableTextBox : BasicTextBox
         {
             /// <summary>
             /// Returns the shown-in-screen text.
@@ -842,18 +842,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public new void InsertString(string text) => base.InsertString(text);
         }
 
-        private class NumberTextBox : BasicTextBox
+        private partial class NumberTextBox : BasicTextBox
         {
             protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
 
             protected override bool AllowIme => false;
         }
 
-        private class CustomTextBox : BasicTextBox
+        private partial class CustomTextBox : BasicTextBox
         {
             protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
 
-            private class ScalingText : CompositeDrawable
+            private partial class ScalingText : CompositeDrawable
             {
                 private readonly SpriteText text;
 
@@ -890,7 +890,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override Caret CreateCaret() => new BorderCaret();
 
-            private class BorderCaret : Caret
+            private partial class BorderCaret : Caret
             {
                 private const float caret_width = 2;
 
@@ -917,7 +917,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class PaddedTextBox : BasicTextBox
+        private partial class PaddedTextBox : BasicTextBox
         {
             public const float LEFT_RIGHT_PADDING = 50;
 

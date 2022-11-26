@@ -4,6 +4,8 @@
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Allocation;
 
+#pragma warning disable IDE0052 // Unread private member
+
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]

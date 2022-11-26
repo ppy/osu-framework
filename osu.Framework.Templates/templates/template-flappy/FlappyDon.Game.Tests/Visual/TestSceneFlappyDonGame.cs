@@ -9,7 +9,7 @@ namespace FlappyDon.Game.Tests.Visual
     /// including audio.
     /// </summary>
     [TestFixture]
-    public class TestSceneFlappyDonGame : FlappyDonTestScene
+    public partial class TestSceneFlappyDonGame : FlappyDonTestScene
     {
         private FlappyDonGame game;
 

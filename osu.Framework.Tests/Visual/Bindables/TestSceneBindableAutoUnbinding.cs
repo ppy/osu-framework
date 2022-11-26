@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Bindables
 {
-    public class TestSceneBindableAutoUnbinding : FrameworkTestScene
+    public partial class TestSceneBindableAutoUnbinding : FrameworkTestScene
     {
         [Test]
         public void TestBindableAutoUnbindingAssign()
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.Bindables
             AddAssert("transfer 1-2 fails", () => drawable1.Bindable.Value != drawable2.Bindable.Value);
         }
 
-        public class BindableExposingFillFlowContainer : FillFlowContainer
+        public partial class BindableExposingFillFlowContainer : FillFlowContainer
         {
             [Cached]
 #pragma warning disable IDE0052 // Unread private member
@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual.Bindables
 #pragma warning restore IDE0052 //
         }
 
-        public class TestResolvedBindableDrawable : TestExposedBindableDrawable
+        public partial class TestResolvedBindableDrawable : TestExposedBindableDrawable
         {
             private readonly bool badActor;
 
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Visual.Bindables
             }
         }
 
-        public class TestExposedBindableDrawable : CompositeDrawable
+        public partial class TestExposedBindableDrawable : CompositeDrawable
         {
             public Bindable<int> Bindable;
 

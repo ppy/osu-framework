@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Animations
     /// <summary>
     /// An animation that switches the displayed texture when a new frame is displayed.
     /// </summary>
-    public class TextureAnimation : Animation<Texture>
+    public partial class TextureAnimation : Animation<Texture>
     {
         private Sprite textureHolder;
 

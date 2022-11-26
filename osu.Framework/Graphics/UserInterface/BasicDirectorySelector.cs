@@ -9,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectorySelector : DirectorySelector
+    public partial class BasicDirectorySelector : DirectorySelector
     {
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 

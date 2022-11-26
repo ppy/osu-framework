@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTestWithExternalSource : FrameworkTestScene
+    public partial class TestSceneTestWithExternalSource : FrameworkTestScene
     {
         [TestCaseSource(typeof(TestSceneTestWithSource), nameof(TestSceneTestWithSource.ExposedSourceField))]
         public void TestExposedSourceField(int a, int b)

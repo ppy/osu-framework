@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Cursor
     /// <summary>
     /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandlePositionalInput"/> set to true will be checked for their tooltips.
     /// </summary>
-    public class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>
+    public partial class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>
     {
         private readonly CursorContainer cursorContainer;
         private readonly ITooltip defaultTooltip;
@@ -309,7 +309,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : VisibilityContainer, ITooltip<LocalisableString>
+        public partial class Tooltip : VisibilityContainer, ITooltip<LocalisableString>
         {
             private readonly SpriteText text;
 

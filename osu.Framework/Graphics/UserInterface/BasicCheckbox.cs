@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A basic checkbox for framework internal use and for prototyping UI.
     /// </summary>
-    public class BasicCheckbox : Checkbox
+    public partial class BasicCheckbox : Checkbox
     {
         /// <summary>
         /// The color of the checkbox when the checkbox is checked. Defaults to White

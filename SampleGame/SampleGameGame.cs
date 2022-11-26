@@ -10,7 +10,7 @@ using osu.Framework.Allocation;
 
 namespace SampleGame
 {
-    public class SampleGameGame : Game
+    public partial class SampleGameGame : Game
     {
         private Box box = null!;
 

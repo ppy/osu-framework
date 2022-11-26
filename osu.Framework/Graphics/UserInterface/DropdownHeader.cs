@@ -15,7 +15,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
+    public abstract partial class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
     {
         public event Action<DropdownSelectionAction> ChangeSelection;
 

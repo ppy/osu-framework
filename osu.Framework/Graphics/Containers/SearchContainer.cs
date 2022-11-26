@@ -14,7 +14,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class SearchContainer : SearchContainer<Drawable>
+    public partial class SearchContainer : SearchContainer<Drawable>
     {
     }
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
     /// new items are added as direct children of this container.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
+    public partial class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
         /// <summary>
         /// Fired whenever a filter operation completes.

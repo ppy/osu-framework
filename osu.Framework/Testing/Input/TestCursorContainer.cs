@@ -15,12 +15,12 @@ using osuTK.Input;
 
 namespace osu.Framework.Testing.Input
 {
-    internal class TestCursorContainer : CursorContainer
+    internal partial class TestCursorContainer : CursorContainer
     {
         protected override Drawable CreateCursor() => new TestCursor();
     }
 
-    internal class TestCursor : CompositeDrawable
+    internal partial class TestCursor : CompositeDrawable
     {
         private readonly Container circle;
 

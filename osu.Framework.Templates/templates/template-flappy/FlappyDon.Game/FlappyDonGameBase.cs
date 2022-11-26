@@ -8,7 +8,7 @@ namespace FlappyDon.Game
     /// <summary>
     /// Set up the relevant resource stores and texture settings.
     /// </summary>
-    public abstract class FlappyDonGameBase : osu.Framework.Game
+    public abstract partial class FlappyDonGameBase : osu.Framework.Game
     {
         protected override TextureFilteringMode DefaultTextureFilteringMode
             // To preserve the 8-bit aesthetic, disable texture filtering

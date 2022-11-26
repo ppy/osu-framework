@@ -17,7 +17,7 @@ using osuTK;
 namespace osu.Framework.Tests.Layout
 {
     [HeadlessTest]
-    public class TestSceneContainerLayout : FrameworkTestScene
+    public partial class TestSceneContainerLayout : FrameworkTestScene
     {
         /// <summary>
         /// Tests that auto-size is updated when a child becomes alive.
@@ -407,12 +407,12 @@ namespace osu.Framework.Tests.Layout
             AddAssert("child not invalidated", () => !invalidated);
         }
 
-        private class TestBox1 : Box
+        private partial class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
         }
 
-        private class TestContainer1 : Container
+        private partial class TestContainer1 : Container
         {
             public new Action<Invalidation> Invalidated;
 

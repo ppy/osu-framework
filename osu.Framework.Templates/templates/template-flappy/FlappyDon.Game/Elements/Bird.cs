@@ -15,7 +15,7 @@ namespace FlappyDon.Game.Elements
     /// The Sprite element controlled by the player. Plays a looping 'flapping' texture sequence, which
     /// is reset each time the player interacts with it.
     /// </summary>
-    public class Bird : CompositeDrawable
+    public partial class Bird : CompositeDrawable
     {
         /// <summary>
         /// In the relative space, the absolute position of the ground that when crossed will register as a collision.

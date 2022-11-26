@@ -19,7 +19,7 @@ namespace osu.Framework.Screens
     /// <summary>
     /// A component which provides functionality for displaying and handling transitions between multiple <see cref="IScreen"/>s.
     /// </summary>
-    public class ScreenStack : CompositeDrawable
+    public partial class ScreenStack : CompositeDrawable
     {
         /// <summary>
         /// Invoked when <see cref="ScreenExtensions.Push"/> is called on a <see cref="IScreen"/>.

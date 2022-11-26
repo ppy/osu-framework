@@ -6,7 +6,7 @@ using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Testing
 {
-    public class FlappyDonTestBrowser : FlappyDonGameBase
+    public partial class FlappyDonTestBrowser : FlappyDonGameBase
     {
         protected override void LoadComplete()
         {
