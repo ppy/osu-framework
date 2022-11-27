@@ -937,7 +937,7 @@ namespace osu.Framework.Platform
 
         private Bindable<string> ignoredInputHandlers;
 
-        private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
+        private readonly BindableVector2d cursorSensitivity = new BindableVector2d(new Vector2d(1, 1));
 
         public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 

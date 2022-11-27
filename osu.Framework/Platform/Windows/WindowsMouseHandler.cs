@@ -91,7 +91,8 @@ namespace osu.Framework.Platform.Windows
             }
 
             var position = new Vector2(mouse.LastX, mouse.LastY);
-            float sensitivity = (float)Sensitivity.Value;
+            float sensitivityX = (float)Sensitivity.Value.X;
+            float sensitivityY = (float)Sensitivity.Value.Y;
 
             if (mouse.Flags.HasFlagFast(RawMouseFlags.MoveAbsolute))
             {
@@ -113,13 +114,14 @@ namespace osu.Framework.Platform.Windows
                     position *= screenSize;
                 }
 
-                if (Sensitivity.Value != 1)
+                if (sensitivityX != 1 && sensitivityY != 1)
                 {
                     // apply absolute sensitivity adjustment from the centre of the screen area.
                     Vector2 halfScreenSize = (screenSize / 2);
 
                     position -= halfScreenSize;
-                    position *= (float)Sensitivity.Value;
+                    position.X *= sensitivityX;
+                    position.Y *= sensitivityY;
                     position += halfScreenSize;
                 }
 
@@ -132,7 +134,7 @@ namespace osu.Framework.Platform.Windows
             }
             else
             {
-                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) * sensitivity });
+                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX * sensitivityX, mouse.LastY * sensitivityY)});
             }
 
             return IntPtr.Zero;
