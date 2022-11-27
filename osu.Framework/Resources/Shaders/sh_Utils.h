@@ -47,6 +47,16 @@ lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
     );
 }
 
+lowp vec4 premultiplyAlpha(lowp vec4 colour)
+{
+    if (colour.a >= 0.0)
+        return vec4(colour.rgb * colour.a, colour.a);
+    else
+        // Negative alpha denotes that we would like additive blending, hence the alpha value
+        // (which dictates the attenuation of the destination color) must become zero.
+        return vec4(colour.rgb * -colour.a, 0.0);
+}
+
 // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
 // slightly amended to also handle alpha
 vec4 hsv2rgb(vec4 c)

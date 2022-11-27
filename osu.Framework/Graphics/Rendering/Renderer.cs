@@ -313,15 +313,18 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Blending
 
+
         public void SetBlend(BlendingParameters blendingParameters)
         {
-            if (CurrentBlendingParameters == blendingParameters)
+            // The assignment is necessary, because the equality operator does not check for additive blending
+            BlendingParameters oldBlendingParameters = CurrentBlendingParameters;
+            CurrentBlendingParameters = blendingParameters;
+
+            if (CurrentBlendingParameters == oldBlendingParameters)
                 return;
 
             FlushCurrentBatch(FlushBatchSource.SetBlend);
             SetBlendImplementation(blendingParameters);
-
-            CurrentBlendingParameters = blendingParameters;
         }
 
         public void SetBlendMask(BlendingMask blendingMask)

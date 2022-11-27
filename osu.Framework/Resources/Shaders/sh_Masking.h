@@ -78,7 +78,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
 	if (!g_IsMasking && v_BlendRange == vec2(0.0))
 	{
-		return toSRGB(v_Colour * texel);
+		return premultiplyAlpha(toSRGB(v_Colour * texel));
 	}
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
@@ -130,11 +130,11 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 
 	if (colourWeight <= 0.0)
 	{
-		return toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor));
+		return premultiplyAlpha(toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor)));
 	}
 
 	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
 	lowp vec4 src = vec4(borderColour.rgb, borderColour.a * (1.0 - colourWeight));
 
-	return blend(toSRGB(src), toSRGB(dest));
+	return premultiplyAlpha(blend(toSRGB(src), toSRGB(dest)));
 }
