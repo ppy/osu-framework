@@ -63,10 +63,21 @@ lowp vec4 getBorderColour()
 
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
-	if (!g_IsMasking && v_BlendRange == vec2(0.0))
+	// The rest of the shader assumes that textures have non-premultiplied alpha, so unmultiply. Only when the shader returns will we remultiply.
+	if (g_TextureHasPremultipliedAlpha)
 	{
-		return v_Colour * texel;
+		// Technically, fully additive colours can not have their alpha unmultiplied, because it is zero (no opacity). Hence the following
+		// hack: set alpha to a small, but non-zero value, such that it permits unmultiplication and later remultiplication without visibly
+		// affecting blending.
+		texel.a = max(texel.a, 1.0 / 1024.0);
+		texel.rgb = texel.rgb / texel.a;
 	}
+
+	bool isEmissive = v_Colour.a < 0.0;
+	vec4 colour = abs(v_Colour);
+
+	if (!g_IsMasking && v_BlendRange == vec2(0.0))
+		return toEmissive(isEmissive, premul(colour * texel));
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
@@ -77,9 +88,8 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 		highp float innerDist = (g_EdgeOffset == vec2(0.0) && g_InnerCornerRadius == g_CornerRadius) ?
 			dist : distanceFromRoundedRect(g_EdgeOffset, g_InnerCornerRadius);
 
-		// v_BlendRange is set from outside in a hacky way to tell us the g_MaskingBlendRange used for the rounded
-		// corners of the edge effect container itself. We can then derive the alpha factor for smooth inner edge
-		// effect from that.
+		// v_BlendRange is set from outside in a hacky way to tell us the g_MaskingBlendRange used for the rounded corners of the edge effect
+		// container itself. We can then derive the alpha factor for smooth inner edge effect from that.
 		highp float innerBlendFactor = (g_InnerCornerRadius - g_MaskingBlendRange - innerDist) / v_BlendRange.x;
 		if (innerBlendFactor > 1.0)
 		{
@@ -98,14 +108,10 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	alphaFactor *= min(fadeStart - dist, 1.0);
 
 	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
-	{
 		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(texCoord), 0.0, 1.0);
-	}
 
 	if (alphaFactor <= 0.0)
-	{
 		return vec4(0.0);
-	}
 
 	// This ends up softening glow without negatively affecting edge smoothness much.
 	alphaFactor = pow(alphaFactor, g_AlphaExponent);
@@ -113,19 +119,19 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
 
-	lowp vec4 contentColour = v_Colour * texel;
+	lowp vec4 contentColour = colour * texel;
 
 	if (colourWeight == 1.0)
-		return vec4(contentColour.rgb, contentColour.a * alphaFactor);
+		return toEmissive(isEmissive, premul(contentColour) * alphaFactor);
 
 	lowp vec4 borderColour = getBorderColour();
 
 	if (colourWeight <= 0.0)
-		return vec4(borderColour.rgb, borderColour.a * alphaFactor);
+		return toEmissive(isEmissive, premul(borderColour) * alphaFactor);
 
 	contentColour.a *= alphaFactor;
 	borderColour.a *= 1.0 - colourWeight;
-	return blend(borderColour, contentColour);
+	return toEmissive(isEmissive, blend(premul(borderColour), premul(contentColour)));
 }
 
 #endif

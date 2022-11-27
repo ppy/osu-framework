@@ -4,19 +4,22 @@
 #undef GAMMA
 #define GAMMA 2.4
 
-// perform alpha compositing of two colour components.
-// see http://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha.html
+// Perform alpha compositing of two colour components. Assumed both are linear with premultiplied alpha.
+// The linearity assumption is sometimes broken in practice (IIRC because it produces nicer looking blends
+// than the physically correct linear blend), but alpha premultiplication must always be satisfied.
 lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
 {
-    lowp float finalAlpha = src.a + dst.a * (1.0 - src.a);
+    return src + dst * (1.0 - src.a);
+}
 
-    if (finalAlpha == 0.0)
-        return vec4(0);
+lowp vec4 premul(lowp vec4 colour)
+{
+    return vec4(colour.rgb * colour.a, colour.a);
+}
 
-    return vec4(
-        (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / finalAlpha,
-        finalAlpha
-    );
+lowp vec4 toEmissive(bool isEmissive, lowp vec4 colour)
+{
+    return vec4(colour.rgb, isEmissive ? 0.0 : colour.a);
 }
 
 // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl

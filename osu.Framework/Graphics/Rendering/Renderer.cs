@@ -79,6 +79,7 @@ namespace osu.Framework.Graphics.Rendering
         protected ClearInfo CurrentClearInfo { get; private set; }
         public BlendingParameters CurrentBlendingParameters { get; private set; }
         protected BlendingMask CurrentBlendingMask { get; private set; }
+        public bool CurrentTextureHasPremultipliedAlpha { get; private set; }
 
         /// <summary>
         /// Whether scissor is currently enabled.
@@ -391,13 +392,14 @@ namespace osu.Framework.Graphics.Rendering
 
         public void SetBlend(BlendingParameters blendingParameters)
         {
-            if (CurrentBlendingParameters == blendingParameters)
+            BlendingParameters oldBlendingParameters = CurrentBlendingParameters;
+            CurrentBlendingParameters = blendingParameters;
+
+            if (CurrentBlendingParameters.EqualsExceptForAdditive(oldBlendingParameters))
                 return;
 
             FlushCurrentBatch(FlushBatchSource.SetBlend);
             SetBlendImplementation(blendingParameters);
-
-            CurrentBlendingParameters = blendingParameters;
         }
 
         public void SetBlendMask(BlendingMask blendingMask)
@@ -422,6 +424,16 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="blendingMask">The blending mask.</param>
         protected abstract void SetBlendMaskImplementation(BlendingMask blendingMask);
+
+        public void SetTextureHasPremultipliedAlpha(bool hasPremultipliedAlpha)
+        {
+            if (CurrentTextureHasPremultipliedAlpha == hasPremultipliedAlpha)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.SetTextureHasPremultipliedAlpha);
+            CurrentTextureHasPremultipliedAlpha = hasPremultipliedAlpha;
+            globalUniformsChanged = true;
+        }
 
         #endregion
 
@@ -973,6 +985,7 @@ namespace osu.Framework.Graphics.Rendering
                     IsMasking = IsMaskingActive,
                     CornerRadius = currentMaskingInfo.CornerRadius,
                     CornerExponent = currentMaskingInfo.CornerExponent,
+                    TextureHasPremultipliedAlpha = CurrentTextureHasPremultipliedAlpha,
                     MaskingRect = new Vector4(
                         currentMaskingInfo.MaskingRect.Left,
                         currentMaskingInfo.MaskingRect.Top,

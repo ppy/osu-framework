@@ -3,10 +3,12 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.Utils;
@@ -27,13 +29,16 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
+        /// <param name="premultipliedAlpha">Whether the texture has premultiplied alpha or not.</param>
         public static void DrawTriangle(this IRenderer renderer, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                        Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+                                        Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null, bool premultipliedAlpha = false)
         {
             ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (!renderer.BindTexture(texture))
                 return;
+
+            renderer.SetTextureHasPremultipliedAlpha(premultipliedAlpha);
 
             RectangleF texRect = texture.GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
@@ -64,13 +69,15 @@ namespace osu.Framework.Graphics.Rendering
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
+            bool additive = renderer.CurrentBlendingParameters.DestinationAdditive;
+
             vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P0,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = topColour.SRGB,
+                Colour = topColour.SRGB.NegateAlphaIfTrue(additive),
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
@@ -78,7 +85,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = drawColour.BottomLeft.SRGB,
+                Colour = drawColour.BottomLeft.SRGB.NegateAlphaIfTrue(additive),
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
@@ -86,7 +93,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = bottomColour.SRGB,
+                Colour = bottomColour.SRGB.NegateAlphaIfTrue(additive),
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
@@ -94,7 +101,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = drawColour.BottomRight.SRGB,
+                Colour = drawColour.BottomRight.SRGB.NegateAlphaIfTrue(additive),
             });
 
             long area = (long)vertexTriangle.Area;
@@ -117,13 +124,16 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
+        /// <param name="premultipliedAlpha">Whether the texture has premultiplied alpha or not.</param>
         public static void DrawQuad(this IRenderer renderer, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D>? vertexAction = null,
-                                    Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+                                    Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null, bool premultipliedAlpha = false)
         {
             ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (!renderer.BindTexture(texture))
                 return;
+
+            renderer.SetTextureHasPremultipliedAlpha(premultipliedAlpha);
 
             RectangleF texRect = texture.GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
@@ -148,13 +158,15 @@ namespace osu.Framework.Graphics.Rendering
 
             vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
+            bool additive = renderer.CurrentBlendingParameters.DestinationAdditive;
+
             vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.BottomLeft.SRGB,
+                Colour = drawColour.BottomLeft.SRGB.NegateAlphaIfTrue(additive),
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
@@ -162,7 +174,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.BottomRight.SRGB,
+                Colour = drawColour.BottomRight.SRGB.NegateAlphaIfTrue(additive),
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
@@ -170,7 +182,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.TopRight.SRGB,
+                Colour = drawColour.TopRight.SRGB.NegateAlphaIfTrue(additive),
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
@@ -178,7 +190,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.TopLeft.SRGB,
+                Colour = drawColour.TopLeft.SRGB.NegateAlphaIfTrue(additive),
             });
 
             long area = (long)vertexQuad.Area;
@@ -225,10 +237,11 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
+        /// <param name="premultipliedAlpha">Whether the framebuffer's RGB values have premultiplied alpha. Usually true due to the way shaders work in this codebase.</param>
         public static void DrawFrameBuffer(this IRenderer renderer, IFrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D>? vertexAction = null,
-                                           Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+                                           Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, bool premultipliedAlpha = true)
         {
-            renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, null, vertexAction, inflationPercentage, blendRangeOverride);
+            renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, null, vertexAction, inflationPercentage, blendRangeOverride, null, premultipliedAlpha);
         }
 
         /// <summary>
