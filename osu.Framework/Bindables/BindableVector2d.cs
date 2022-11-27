@@ -71,8 +71,7 @@ namespace osu.Framework.Bindables
             else
                 base.Value = value;
         }
-
-        
+       
         protected override Vector2d DefaultMinValue => new Vector2d(double.MinValue, double.MinValue);
         protected override Vector2d DefaultMaxValue => new Vector2d(double.MaxValue, double.MaxValue);
         
