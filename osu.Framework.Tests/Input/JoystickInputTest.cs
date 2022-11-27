@@ -15,7 +15,7 @@ using osuTK;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class JoystickInputTest : ManualInputManagerTestScene
+    public partial class JoystickInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that if the hierarchy is changed while a joystick button is held, the <see cref="Drawable.OnJoystickRelease"/> event is
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptor 2 did not handle key up", () => !receptors[2].ReleaseReceived);
         }
 
-        private class InputReceptor : Box
+        private partial class InputReceptor : Box
         {
             public bool PressReceived { get; private set; }
             public bool ReleaseReceived { get; private set; }

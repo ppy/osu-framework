@@ -5,7 +5,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Clocks
 {
-    public class TestSceneClocks : TestSceneClock
+    public partial class TestSceneClocks : TestSceneClock
     {
         protected override void LoadComplete()
         {

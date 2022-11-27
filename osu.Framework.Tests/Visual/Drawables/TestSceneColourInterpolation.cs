@@ -18,7 +18,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneColourInterpolation : FrameworkTestScene
+    public partial class TestSceneColourInterpolation : FrameworkTestScene
     {
         [Test]
         public void TestColourInterpolatesInLinearSpace()
@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
         }
 
-        public class SampleSpriteD3 : Sprite
+        public partial class SampleSpriteD3 : Sprite
         {
             [BackgroundDependencyLoader]
             private void load(TextureStore textures)

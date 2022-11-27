@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkTransform : BenchmarkTest
+    public partial class BenchmarkTransform : BenchmarkTest
     {
         private Drawable target = null!;
 
@@ -117,7 +117,7 @@ namespace osu.Framework.Benchmarks
             public double ApplyEasing(double time) => 0;
         }
 
-        private class TestBox : Box
+        private partial class TestBox : Box
         {
             public override bool RemoveCompletedTransforms => false;
         }

@@ -12,7 +12,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Layout
 {
     [TestFixture]
-    public class TestSceneFitInsideFlow : FrameworkTestScene
+    public partial class TestSceneFitInsideFlow : FrameworkTestScene
     {
         private const float container_width = 60;
 

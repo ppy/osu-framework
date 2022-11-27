@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class HexColourPicker : CompositeDrawable, IHasCurrentValue<Colour4>
+    public abstract partial class HexColourPicker : CompositeDrawable, IHasCurrentValue<Colour4>
     {
         private readonly BindableWithCurrent<Colour4> current = new BindableWithCurrent<Colour4>();
 
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.UserInterface
             Current.Value = colour;
         }
 
-        public abstract class ColourPreview : CompositeDrawable
+        public abstract partial class ColourPreview : CompositeDrawable
         {
             public Bindable<Colour4> Current = new Bindable<Colour4>();
         }

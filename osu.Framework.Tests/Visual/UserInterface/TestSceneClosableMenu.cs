@@ -13,7 +13,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneClosableMenu : MenuTestScene
+    public partial class TestSceneClosableMenu : MenuTestScene
     {
         [SetUpSteps]
         public void SetUpSteps()
@@ -94,7 +94,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("mouse handler not activated", () => !actionReceived);
         }
 
-        private class MouseHandlingLayer : Drawable
+        private partial class MouseHandlingLayer : Drawable
         {
             public Action Action { get; set; }
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class AnimatedMenu : BasicMenu
+        private partial class AnimatedMenu : BasicMenu
         {
             public bool PressBlocked { get; set; }
 

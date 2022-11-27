@@ -10,7 +10,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class UserInputManagerTest
+    public partial class UserInputManagerTest
     {
         [Test]
         public void IsAliveTest()
@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        private class TestTestGame : TestGame
+        private partial class TestTestGame : TestGame
         {
             public bool IsRootAlive;
 

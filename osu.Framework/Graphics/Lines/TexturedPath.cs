@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class TexturedPath : Path
+    public partial class TexturedPath : Path
     {
         public new Texture Texture
         {

@@ -10,7 +10,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneFrontToBackTriangle : FrameworkTestScene
+    public partial class TestSceneFrontToBackTriangle : FrameworkTestScene
     {
         public TestSceneFrontToBackTriangle()
         {

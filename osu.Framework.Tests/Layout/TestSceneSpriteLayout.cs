@@ -14,7 +14,7 @@ using osuTK;
 namespace osu.Framework.Tests.Layout
 {
     [HeadlessTest]
-    public class TestSceneSpriteLayout : FrameworkTestScene
+    public partial class TestSceneSpriteLayout : FrameworkTestScene
     {
         [Test]
         public void TestChangeEdgeSmoothnessAfterDraw()

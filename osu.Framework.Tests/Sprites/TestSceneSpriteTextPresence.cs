@@ -17,7 +17,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Sprites
 {
     [HeadlessTest]
-    public class TestSceneSpriteTextPresence : FrameworkTestScene
+    public partial class TestSceneSpriteTextPresence : FrameworkTestScene
     {
         /// <summary>
         /// Tests with a normal <see cref="SpriteText"/> which changes presence based on whether text is empty.
@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Sprites
             AddWaitStep("wait for some update frames", 2);
         }
 
-        private class AlwaysPresentSpriteText : SpriteText
+        private partial class AlwaysPresentSpriteText : SpriteText
         {
             public override bool IsPresent => true;
         }

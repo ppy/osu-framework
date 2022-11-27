@@ -13,7 +13,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicButton : Button
+    public partial class BasicButton : Button
     {
         public LocalisableString Text
         {

@@ -15,7 +15,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Exceptions
 {
     [HeadlessTest]
-    public class TestSceneDependencyInjectionExceptions : FrameworkTestScene
+    public partial class TestSceneDependencyInjectionExceptions : FrameworkTestScene
     {
         [Test]
         public void TestImmediateException()
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Exceptions
             return stackTrace.Contains($"{nameof(TestSceneDependencyInjectionExceptions)}.{nameof(Thrower)}");
         });
 
-        private class AsyncThrower : CompositeDrawable
+        private partial class AsyncThrower : CompositeDrawable
         {
             public Exception ThrownException { get; private set; }
 
@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Exceptions
             }
         }
 
-        private class Thrower : Drawable
+        private partial class Thrower : Drawable
         {
             private readonly Type exceptionType;
             private readonly bool aggregate;

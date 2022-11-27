@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A drawable object that supports counting to values.
     /// </summary>
-    public class Counter : CompositeDrawable
+    public partial class Counter : CompositeDrawable
     {
         private double count;
 

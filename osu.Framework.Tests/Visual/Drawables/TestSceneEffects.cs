@@ -15,7 +15,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [System.ComponentModel.Description("implementing the IEffect interface")]
-    public class TestSceneEffects : FrameworkTestScene
+    public partial class TestSceneEffects : FrameworkTestScene
     {
         private readonly SpriteText changeColourText;
 

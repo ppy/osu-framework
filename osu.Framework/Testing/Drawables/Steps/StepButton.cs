@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public abstract class StepButton : CompositeDrawable
+    public abstract partial class StepButton : CompositeDrawable
     {
         public virtual int RequiredRepetitions => 1;
 

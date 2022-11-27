@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneFrontToBackBox : FrameworkTestScene
+    public partial class TestSceneFrontToBackBox : FrameworkTestScene
     {
         [Resolved]
         private FrameworkDebugConfigManager debugConfig { get; set; }
@@ -224,7 +224,7 @@ namespace osu.Framework.Tests.Visual.Containers
             setupAction?.Invoke(blendedBox);
         });
 
-        private class TestBox : Box
+        private partial class TestBox : Box
         {
             public bool CanDrawOpaqueInterior => currentDrawNode.CanDrawOpaqueInterior;
 

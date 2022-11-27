@@ -7,7 +7,7 @@ using osuTK.Graphics;
 
 namespace TemplateGame.Game
 {
-    public class MainScreen : Screen
+    public partial class MainScreen : Screen
     {
         [BackgroundDependencyLoader]
         private void load()

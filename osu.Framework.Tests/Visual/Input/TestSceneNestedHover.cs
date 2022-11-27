@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneNestedHover : FrameworkTestScene
+    public partial class TestSceneNestedHover : FrameworkTestScene
     {
         public TestSceneNestedHover()
         {
@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
         }
 
-        private class HoverBox : Container
+        private partial class HoverBox : Container
         {
             private readonly Color4 normalColour;
             private readonly Color4 hoveredColour;

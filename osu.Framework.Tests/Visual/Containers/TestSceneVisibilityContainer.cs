@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneVisibilityContainer : FrameworkTestScene
+    public partial class TestSceneVisibilityContainer : FrameworkTestScene
     {
         private TestVisibilityContainer testContainer;
 
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 AddUntilStep("wait alpha one", () => testContainer.Alpha == 1);
         }
 
-        private class TestNestedVisibilityContainer : TestVisibilityContainer
+        private partial class TestNestedVisibilityContainer : TestVisibilityContainer
         {
             public bool BoxHasTransforms => box.Transforms.Any();
 
@@ -163,7 +163,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class TestVisibilityContainer : VisibilityContainer
+        private partial class TestVisibilityContainer : VisibilityContainer
         {
             private readonly bool? startHidden;
 

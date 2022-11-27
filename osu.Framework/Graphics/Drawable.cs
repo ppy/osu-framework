@@ -2720,7 +2720,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public static Drawable Empty() => new EmptyDrawable();
 
-        private class EmptyDrawable : Drawable
+        private partial class EmptyDrawable : Drawable
         {
         }
 

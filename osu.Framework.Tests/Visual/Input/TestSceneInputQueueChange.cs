@@ -17,7 +17,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneInputQueueChange : ManualInputManagerTestScene
+    public partial class TestSceneInputQueueChange : ManualInputManagerTestScene
     {
         private readonly HittableBox box1;
         private readonly HittableBox box2;
@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("box 3 not pressed", () => box3.HitCount == 0);
         }
 
-        private class HittableBox : CompositeDrawable
+        private partial class HittableBox : CompositeDrawable
         {
             private readonly int index;
 

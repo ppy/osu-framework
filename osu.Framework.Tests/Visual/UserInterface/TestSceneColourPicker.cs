@@ -11,7 +11,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneColourPicker : FrameworkTestScene
+    public partial class TestSceneColourPicker : FrameworkTestScene
     {
         [Test]
         public void TestExternalColourSetAfterCreation()

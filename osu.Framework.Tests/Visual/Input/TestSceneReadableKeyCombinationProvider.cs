@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneReadableKeyCombinationProvider : FrameworkTestScene
+    public partial class TestSceneReadableKeyCombinationProvider : FrameworkTestScene
     {
         private readonly InputKey[][] keyboard =
         {
@@ -101,7 +101,7 @@ namespace osu.Framework.Tests.Visual.Input
             };
         }
 
-        public class Key : CompositeDrawable
+        public partial class Key : CompositeDrawable
         {
             [Resolved]
             private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }
@@ -174,7 +174,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class PressedKeyCombinationDisplay : CompositeDrawable
+        public partial class PressedKeyCombinationDisplay : CompositeDrawable
         {
             [Resolved]
             private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }

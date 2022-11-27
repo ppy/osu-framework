@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestScenePathInput : FrameworkTestScene
+    public partial class TestScenePathInput : FrameworkTestScene
     {
         private const float path_width = 50;
         private const float path_radius = path_width / 2;
@@ -139,7 +139,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
         }
 
-        private class TestPoint : CircularContainer
+        private partial class TestPoint : CircularContainer
         {
             public TestPoint()
             {
@@ -153,7 +153,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class HoverablePath : Path
+        private partial class HoverablePath : Path
         {
             protected override bool OnHover(HoverEvent e)
             {

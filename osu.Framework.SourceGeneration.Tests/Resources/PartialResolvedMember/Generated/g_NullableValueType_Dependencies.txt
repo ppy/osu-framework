@@ -11,7 +11,7 @@ partial class NullableValueType : osu.Framework.Allocation.ISourceGeneratedDepen
         base.RegisterForDependencyActivation(registry);
         registry.Register(typeof(NullableValueType), (t, d) =>
         {
-            ((NullableValueType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken>(d, typeof(NullableValueType), null, null, true, true);
+            ((NullableValueType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken?>(d, typeof(NullableValueType), null, null, true, true);
         }, null);
     }
 }

@@ -12,7 +12,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSceneSyncDisposal : FrameworkTestScene
+    public partial class TestSceneSyncDisposal : FrameworkTestScene
     {
         [Test]
         public void TestRemoveAndDisposeImmediatelyFromComposite()
@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Containers
             });
         }
 
-        private class TestComposite : CompositeDrawable
+        private partial class TestComposite : CompositeDrawable
         {
             public readonly Drawable CompositeChild;
 
@@ -100,7 +100,7 @@ namespace osu.Framework.Tests.Containers
             }
         }
 
-        private class TestContainer : Container
+        private partial class TestContainer : Container
         {
             public readonly Drawable ContainerChild;
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Containers
             }
         }
 
-        private class TestContainerWithCustomContent : Container
+        private partial class TestContainerWithCustomContent : Container
         {
             public readonly Drawable NonContentChild;
             public readonly Drawable ContentChild;

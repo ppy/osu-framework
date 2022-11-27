@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneScreenshot : FrameworkTestScene
+    public partial class TestSceneScreenshot : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }

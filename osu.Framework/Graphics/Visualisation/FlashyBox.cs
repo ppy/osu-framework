@@ -9,7 +9,7 @@ using System;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class FlashyBox : Box
+    internal partial class FlashyBox : Box
     {
         private Drawable target;
         private readonly Func<Drawable, Quad> getScreenSpaceQuad;

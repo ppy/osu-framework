@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class StepSlider<T> : SliderBar<T>
+    public partial class StepSlider<T> : SliderBar<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         private readonly Box selection;

@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Markdown text flow container.
     /// </summary>
-    public class MarkdownTextFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
+    public partial class MarkdownTextFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
     {
         public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
 

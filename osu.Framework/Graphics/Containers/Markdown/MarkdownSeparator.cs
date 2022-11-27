@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// ---
     /// </code>
-    public class MarkdownSeparator : CompositeDrawable
+    public partial class MarkdownSeparator : CompositeDrawable
     {
         public MarkdownSeparator()
         {

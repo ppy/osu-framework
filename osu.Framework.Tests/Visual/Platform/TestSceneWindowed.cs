@@ -13,7 +13,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test cannot be run in headless mode (a window instance is required).")]
-    public class TestSceneWindowed : FrameworkTestScene
+    public partial class TestSceneWindowed : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
