@@ -108,7 +108,7 @@ namespace osu.Framework.SourceGeneration
             if (items.candidates.IsDefaultOrEmpty)
                 return;
 
-            foreach (var candidate in items.candidates.Distinct())
+            foreach (var candidate in items.candidates)
             {
                 // Fully qualified name, with generics replaced with friendly characters.
                 string typeName = candidate.TypeName.Replace('<', '{').Replace('>', '}');
