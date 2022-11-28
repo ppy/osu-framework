@@ -12,6 +12,7 @@ namespace osu.Framework.SourceGeneration
     {
         public readonly ClassDeclarationSyntax ClassSyntax;
         public readonly ITypeSymbol Symbol;
+        public readonly string TypeName;
         public readonly HashSet<SyntaxWithSymbol> ResolvedMembers = new HashSet<SyntaxWithSymbol>();
         public readonly HashSet<SyntaxWithSymbol> CachedMembers = new HashSet<SyntaxWithSymbol>();
         public readonly HashSet<SyntaxWithSymbol> CachedClasses = new HashSet<SyntaxWithSymbol>();
@@ -22,6 +23,7 @@ namespace osu.Framework.SourceGeneration
         {
             ClassSyntax = classSyntax;
             Symbol = symbol;
+            TypeName = Symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
         }
 
         public bool Equals(GeneratorClassCandidate? other)
@@ -29,7 +31,7 @@ namespace osu.Framework.SourceGeneration
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return EqualityComparer<SyntaxNode>.Default.Equals(ClassSyntax, other.ClassSyntax);
+            return string.Equals(TypeName, other.TypeName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override bool Equals(object? obj)
@@ -41,6 +43,6 @@ namespace osu.Framework.SourceGeneration
             return Equals((GeneratorClassCandidate)obj);
         }
 
-        public override int GetHashCode() => EqualityComparer<SyntaxNode>.Default.GetHashCode(ClassSyntax);
+        public override int GetHashCode() => TypeName.GetHashCode();
     }
 }

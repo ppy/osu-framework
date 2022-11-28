@@ -108,18 +108,10 @@ namespace osu.Framework.SourceGeneration
             if (items.candidates.IsDefaultOrEmpty)
                 return;
 
-            HashSet<string> distinctNames = new HashSet<string>();
-
-            foreach (var candidate in items.candidates)
+            foreach (var candidate in items.candidates.Distinct())
             {
                 // Fully qualified name, with generics replaced with friendly characters.
-                string typeName = candidate.Symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
-                                           .Replace('<', '{')
-                                           .Replace('>', '}');
-
-                if (!distinctNames.Add(typeName))
-                    continue;
-
+                string typeName = candidate.TypeName.Replace('<', '{').Replace('>', '}');
                 string filename = $"g_{typeName}_Dependencies.cs";
 
                 context.AddSource(filename, new DependenciesFileEmitter(candidate, items.compilation).Emit());
