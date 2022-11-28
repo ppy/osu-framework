@@ -25,6 +25,8 @@ uniform highp vec2 g_EdgeOffset;
 uniform bool g_DiscardInner;
 uniform highp float g_InnerCornerRadius;
 
+uniform bool g_TextureHasPremultipliedAlpha;
+
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
 	highp vec2 maskingPosition = v_MaskingPosition + offset;
@@ -76,10 +78,15 @@ lowp vec4 getBorderColour()
 
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
+	// The rest of the shader assumes that textures have non-premultiplied alpha
+	if (g_TextureHasPremultipliedAlpha && texel.a > 0.0)
+		texel.rgb /= texel.a;
+
+	bool isEmissive = v_Colour.a < 0.0;
+	vec4 colour = abs(v_Colour);
+
 	if (!g_IsMasking && v_BlendRange == vec2(0.0))
-	{
-		return premultiplyAlpha(toSRGB(v_Colour * texel));
-	}
+		return toEmissive(toPremultipliedAlpha(toSRGB(colour * texel)), isEmissive);
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
@@ -111,14 +118,10 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	alphaFactor *= min(fadeStart - dist, 1.0);
 
 	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
-	{
 		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(texCoord), 0.0, 1.0);
-	}
 
 	if (alphaFactor <= 0.0)
-	{
 		return vec4(0.0);
-	}
 
 	// This ends up softening glow without negatively affecting edge smoothness much.
 	alphaFactor = pow(alphaFactor, g_AlphaExponent);
@@ -129,12 +132,10 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	lowp vec4 borderColour = getBorderColour();
 
 	if (colourWeight <= 0.0)
-	{
-		return premultiplyAlpha(toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor)));
-	}
+		return toEmissive(toPremultipliedAlpha(toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor))), isEmissive);
 
-	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
+	lowp vec4 dest = vec4(colour.rgb, colour.a * alphaFactor) * texel;
 	lowp vec4 src = vec4(borderColour.rgb, borderColour.a * (1.0 - colourWeight));
 
-	return premultiplyAlpha(blend(toSRGB(src), toSRGB(dest)));
+	return toEmissive(blend(toPremultipliedAlpha(toSRGB(src)), toPremultipliedAlpha(toSRGB(dest))), isEmissive);
 }

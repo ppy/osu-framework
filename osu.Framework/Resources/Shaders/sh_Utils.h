@@ -4,7 +4,7 @@ uniform bool g_GammaCorrection;
 
 lowp float toLinear(lowp float color)
 {
-    return color <= 0.04045 ? (color / 12.92) : pow((color + 0.055) / 1.055, GAMMA);
+    return abs(color) <= 0.04045 ? (color / 12.92) : (sign(color) * pow((abs(color) + 0.055) / 1.055, GAMMA));
 }
 
 lowp vec4 toLinear(lowp vec4 colour)
@@ -18,7 +18,7 @@ lowp vec4 toLinear(lowp vec4 colour)
 
 lowp float toSRGB(lowp float color)
 {
-    return color < 0.0031308 ? (12.92 * color) : (1.055 * pow(color, 1.0 / GAMMA) - 0.055);
+    return abs(color) < 0.0031308 ? (12.92 * color) : (1.055 * sign(color) * (pow(abs(color), 1.0 / GAMMA) - 0.055));
 }
 
 lowp vec4 toSRGB(lowp vec4 colour)
@@ -32,29 +32,20 @@ lowp vec4 toSRGB(lowp vec4 colour)
     //return vec4(mix(colour.rgb * 12.92, 1.055 * pow(colour.rgb, vec3(1.0 / GAMMA)) - vec3(0.055), step(0.0031308, colour.rgb)), colour.a);
 }
 
-// perform alpha compositing of two colour components.
-// see http://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha.html
+// perform alpha compositing of two colour components. Assumed both are linear with premultiplied alpha
 lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
 {
-    lowp float finalAlpha = src.a + dst.a * (1.0 - src.a);
-
-    if (finalAlpha == 0.0)
-        return vec4(0);
-
-    return vec4(
-        (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / finalAlpha,
-        finalAlpha
-    );
+    return src + dst * (1.0 - src.a);
 }
 
-lowp vec4 premultiplyAlpha(lowp vec4 colour)
+lowp vec4 toPremultipliedAlpha(lowp vec4 colour)
 {
-    if (colour.a >= 0.0)
-        return vec4(colour.rgb * colour.a, colour.a);
-    else
-        // Negative alpha denotes that we would like additive blending, hence the alpha value
-        // (which dictates the attenuation of the destination color) must become zero.
-        return vec4(colour.rgb * -colour.a, 0.0);
+    return vec4(colour.rgb * colour.a, colour.a);
+}
+
+lowp vec4 toEmissive(lowp vec4 colour, bool isEmissive)
+{
+    return vec4(colour.rgb, isEmissive ? 0.0 : colour.a);
 }
 
 // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl

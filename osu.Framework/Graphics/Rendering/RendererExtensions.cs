@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.Utils;
@@ -28,14 +29,17 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
+        /// <param name="premultipliedAlpha">Whether the texture has premultiplied alpha or not.</param>
         public static void DrawTriangle(this IRenderer renderer, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
-                                        Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+                                        Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null, bool premultipliedAlpha = false)
         {
             if (!texture.Available)
                 throw new ObjectDisposedException(texture.ToString(), "Can not draw a triangle with a disposed texture.");
 
             if (!renderer.BindTexture(texture))
                 return;
+
+            GlobalPropertyManager.Set(GlobalProperty.TextureHasPremultipliedAlpha, premultipliedAlpha);
 
             RectangleF texRect = texture.GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
@@ -121,14 +125,17 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
+        /// <param name="premultipliedAlpha">Whether the texture has premultiplied alpha or not.</param>
         public static void DrawQuad(this IRenderer renderer, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D>? vertexAction = null,
-                                    Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+                                    Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null, bool premultipliedAlpha = false)
         {
             if (!texture.Available)
                 throw new ObjectDisposedException(texture.ToString(), "Can not draw a quad with a disposed texture.");
 
             if (!renderer.BindTexture(texture))
                 return;
+
+            GlobalPropertyManager.Set(GlobalProperty.TextureHasPremultipliedAlpha, premultipliedAlpha);
 
             RectangleF texRect = texture.GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
@@ -232,13 +239,14 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
+        /// <param name="premultipliedAlpha">Whether the framebuffer's RGB values have premultiplied alpha. Usually true due to the way shaders work in this codebase.</param>
         public static void DrawFrameBuffer(this IRenderer renderer, IFrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D>? vertexAction = null,
-                                           Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+                                           Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, bool premultipliedAlpha = true)
         {
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
-            renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride, null, premultipliedAlpha);
         }
 
         /// <summary>

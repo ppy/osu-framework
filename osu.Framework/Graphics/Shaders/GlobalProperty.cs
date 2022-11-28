@@ -25,5 +25,6 @@ namespace osu.Framework.Graphics.Shaders
         WrapModeS,
         WrapModeT,
         BackbufferDraw,
+        TextureHasPremultipliedAlpha,
     }
 }
