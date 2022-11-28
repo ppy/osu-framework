@@ -19,7 +19,10 @@ namespace osu.Framework.SourceGeneration
                 context.SyntaxProvider.CreateSyntaxProvider(selectClasses, extractCandidates)
                        .Where(c => c != null);
 
-            context.RegisterImplementationSourceOutput(candidateClasses, emit);
+            IncrementalValuesProvider<GeneratorClassCandidate> distinctCandidates =
+                candidateClasses.Collect().SelectMany((c, _) => c.Distinct());
+
+            context.RegisterImplementationSourceOutput(distinctCandidates, emit);
         }
 
         private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
