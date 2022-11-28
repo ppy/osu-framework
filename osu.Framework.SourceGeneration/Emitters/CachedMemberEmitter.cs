@@ -2,10 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using osu.Framework.SourceGeneration.Data;
 
 namespace osu.Framework.SourceGeneration.Emitters
 {
@@ -15,38 +14,24 @@ namespace osu.Framework.SourceGeneration.Emitters
     public class CachedMemberEmitter : IStatementEmitter
     {
         private readonly DependenciesFileEmitter fileEmitter;
-        private readonly SyntaxWithSymbol syntax;
+        private readonly CachedAttributeData data;
 
-        public CachedMemberEmitter(DependenciesFileEmitter fileEmitter, SyntaxWithSymbol syntax)
+        public CachedMemberEmitter(DependenciesFileEmitter fileEmitter, CachedAttributeData data)
         {
             this.fileEmitter = fileEmitter;
-            this.syntax = syntax;
+            this.data = data;
         }
 
         public IEnumerable<StatementSyntax> Emit()
         {
-            foreach (var attribute in syntax.Symbol.GetAttributes())
-            {
-                if (!attribute.AttributeClass!.Equals(fileEmitter.CachedAttributeType, SymbolEqualityComparer.Default))
-                    continue;
-
-                string? cachedType =
-                    attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value?.ToString()
-                    ?? attribute.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
-
-                string? cachedName = (string?)
-                    (attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Name").Value.Value
-                     ?? attribute.ConstructorArguments.ElementAtOrDefault(1).Value);
-
-                yield return SyntaxFactory.ExpressionStatement(
-                    SyntaxHelpers.CacheDependencyInvocation(
-                        fileEmitter.ClassType,
-                        createMemberAccessor(),
-                        cachedType,
-                        cachedName,
-                        syntax.Symbol.Name
-                    ));
-            }
+            yield return SyntaxFactory.ExpressionStatement(
+                SyntaxHelpers.CacheDependencyInvocation(
+                    fileEmitter.Candidate.TypeName,
+                    createMemberAccessor(),
+                    data.Type,
+                    data.Name,
+                    data.PropertyName
+                ));
         }
 
         private ExpressionSyntax createMemberAccessor()
@@ -55,9 +40,9 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.ClassType.ToDisplayString()),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.TypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
-                SyntaxFactory.IdentifierName(syntax.Symbol.Name));
+                SyntaxFactory.IdentifierName(data.PropertyName!));
         }
     }
 }

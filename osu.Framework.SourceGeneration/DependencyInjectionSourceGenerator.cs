@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -21,10 +19,7 @@ namespace osu.Framework.SourceGeneration
                 context.SyntaxProvider.CreateSyntaxProvider(selectClasses, extractCandidates)
                        .Where(c => c != null);
 
-            IncrementalValueProvider<(Compilation Compilation, ImmutableArray<GeneratorClassCandidate> classes)> compilationAndClasses =
-                context.CompilationProvider.Combine(candidateClasses.Collect());
-
-            context.RegisterImplementationSourceOutput(compilationAndClasses, emit);
+            context.RegisterImplementationSourceOutput(candidateClasses, emit);
         }
 
         private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
@@ -53,69 +48,16 @@ namespace osu.Framework.SourceGeneration
             if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
                 return null!;
 
-            GeneratorClassCandidate candidate = new GeneratorClassCandidate(classSyntax, symbol);
-
-            // Process any [Cached] attributes on any interface on the class excluding base types.
-            foreach (var iFace in SyntaxHelpers.GetDeclaredInterfacesOnType(symbol))
-            {
-                // Add an entry if this interface has a cached attribute.
-                if (iFace.GetAttributes().Any(attrib => SyntaxHelpers.IsCachedAttribute(attrib.AttributeClass)))
-                    candidate.CachedInterfaces.Add(iFace);
-            }
-
-            // Process any [Cached] attributes on the class.
-            foreach (var attrib in enumerateAttributes(context.SemanticModel, classSyntax))
-            {
-                if (SyntaxHelpers.IsCachedAttribute(context.SemanticModel, attrib))
-                    candidate.CachedClasses.Add(new SyntaxWithSymbol(context, classSyntax));
-            }
-
-            // Process any attributes of members of the class.
-            foreach (var member in classSyntax.Members)
-            {
-                foreach (var attrib in enumerateAttributes(context.SemanticModel, member))
-                {
-                    if (SyntaxHelpers.IsBackgroundDependencyLoaderAttribute(context.SemanticModel, attrib))
-                        candidate.DependencyLoaderMemebers.Add(new SyntaxWithSymbol(context, member));
-
-                    if (member is not PropertyDeclarationSyntax && member is not FieldDeclarationSyntax)
-                        continue;
-
-                    if (SyntaxHelpers.IsResolvedAttribute(context.SemanticModel, attrib))
-                        candidate.ResolvedMembers.Add(new SyntaxWithSymbol(context, member));
-
-                    if (SyntaxHelpers.IsCachedAttribute(context.SemanticModel, attrib))
-                        candidate.CachedMembers.Add(new SyntaxWithSymbol(context, member));
-                }
-            }
-
-            return candidate;
+            return new GeneratorClassCandidate(symbol);
         }
 
-        private static IEnumerable<AttributeSyntax> enumerateAttributes(SemanticModel semanticModel, MemberDeclarationSyntax member)
+        private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)
         {
-            return member.AttributeLists
-                         .SelectMany(attribList =>
-                             attribList.Attributes
-                                       .Where(attrib =>
-                                           SyntaxHelpers.IsBackgroundDependencyLoaderAttribute(semanticModel, attrib)
-                                           || SyntaxHelpers.IsResolvedAttribute(semanticModel, attrib)
-                                           || SyntaxHelpers.IsCachedAttribute(semanticModel, attrib)));
-        }
+            // Fully qualified name, with generics replaced with friendly characters.
+            string typeName = candidate.FullyQualifiedTypeName.Replace('<', '{').Replace('>', '}');
+            string filename = $"g_{typeName}_Dependencies.cs";
 
-        private void emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<GeneratorClassCandidate> candidates) items)
-        {
-            if (items.candidates.IsDefaultOrEmpty)
-                return;
-
-            foreach (var candidate in items.candidates)
-            {
-                // Fully qualified name, with generics replaced with friendly characters.
-                string typeName = candidate.TypeName.Replace('<', '{').Replace('>', '}');
-                string filename = $"g_{typeName}_Dependencies.cs";
-
-                context.AddSource(filename, new DependenciesFileEmitter(candidate, items.compilation).Emit());
-            }
+            context.AddSource(filename, new DependenciesFileEmitter(candidate).Emit());
         }
     }
 }
