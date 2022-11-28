@@ -29,7 +29,7 @@ namespace osu.Framework.SourceGeneration
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return Symbol.Equals(other.Symbol, SymbolEqualityComparer.Default);
+            return EqualityComparer<SyntaxNode>.Default.Equals(ClassSyntax, other.ClassSyntax);
         }
 
         public override bool Equals(object? obj)
@@ -41,11 +41,6 @@ namespace osu.Framework.SourceGeneration
             return Equals((GeneratorClassCandidate)obj);
         }
 
-        public override int GetHashCode()
-        {
-#pragma warning disable RS1024
-            return Symbol.GetHashCode();
-#pragma warning restore RS1024
-        }
+        public override int GetHashCode() => EqualityComparer<SyntaxNode>.Default.GetHashCode(ClassSyntax);
     }
 }

@@ -108,14 +108,17 @@ namespace osu.Framework.SourceGeneration
             if (items.candidates.IsDefaultOrEmpty)
                 return;
 
-            IEnumerable<GeneratorClassCandidate> distinctCandidates = items.candidates.Distinct();
+            HashSet<string> distinctNames = new HashSet<string>();
 
-            foreach (var candidate in distinctCandidates)
+            foreach (var candidate in items.candidates)
             {
                 // Fully qualified name, with generics replaced with friendly characters.
                 string typeName = candidate.Symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
                                            .Replace('<', '{')
                                            .Replace('>', '}');
+
+                if (!distinctNames.Add(typeName))
+                    continue;
 
                 string filename = $"g_{typeName}_Dependencies.cs";
 
