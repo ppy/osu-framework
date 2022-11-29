@@ -184,7 +184,7 @@ namespace osu.Framework.Allocation
         /// <param name="instance">The instance to inject dependencies into.</param>
         /// <exception cref="OperationCanceledException">When the injection process was cancelled.</exception>
         public void Inject<T>(T instance)
-            where T : class
+            where T : class, IDependencyInjectionCandidate
             => DependencyActivator.Activate(instance, this);
     }
 

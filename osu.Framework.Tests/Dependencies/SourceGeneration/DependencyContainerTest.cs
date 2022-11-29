@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var receiver = new Receiver10();
 
-            var testObject = new CachedStructProvider();
+            var testObject = new PartialCachedStructProvider();
 
             var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
 
@@ -230,7 +230,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var receiver = new Receiver11();
 
-            var testObject = new CachedNullableProvider();
+            var testObject = new PartialCachedNullableProvider();
             testObject.SetValue(testValue);
 
             var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
@@ -356,7 +356,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        private partial class Receiver1
+        private partial class Receiver1 : IDependencyInjectionCandidate
         {
             public Action<BaseObject, DerivedObject> OnLoad;
 
@@ -365,11 +365,11 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Cached]
-        private partial class Receiver2
+        private partial class Receiver2 : IDependencyInjectionCandidate
         {
         }
 
-        private partial class Receiver3
+        private partial class Receiver3 : IDependencyInjectionCandidate
         {
             public Action<BaseObject> OnLoad;
 
@@ -377,7 +377,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             private void load(BaseObject baseObject) => OnLoad?.Invoke(baseObject);
         }
 
-        private partial class Receiver4
+        private partial class Receiver4 : IDependencyInjectionCandidate
         {
             public Action Loaded4;
 
@@ -393,7 +393,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             private void load() => Loaded5?.Invoke();
         }
 
-        private partial class Receiver6
+        private partial class Receiver6 : IDependencyInjectionCandidate
         {
             [BackgroundDependencyLoader]
             public void Load()
@@ -401,7 +401,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             }
         }
 
-        private partial class Receiver7
+        private partial class Receiver7 : IDependencyInjectionCandidate
         {
             [BackgroundDependencyLoader]
             protected void Load()
@@ -409,7 +409,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             }
         }
 
-        private partial class Receiver8
+        private partial class Receiver8 : IDependencyInjectionCandidate
         {
             [BackgroundDependencyLoader]
             internal void Load()
@@ -417,7 +417,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             }
         }
 
-        private partial class Receiver9
+        private partial class Receiver9 : IDependencyInjectionCandidate
         {
             [BackgroundDependencyLoader]
             protected internal void Load()
@@ -425,15 +425,15 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             }
         }
 
-        private partial class Receiver10
+        private partial class Receiver10 : IDependencyInjectionCandidate
         {
-            public CachedStructProvider.Struct TestObject { get; private set; }
+            public PartialCachedStructProvider.Struct TestObject { get; private set; }
 
             [BackgroundDependencyLoader]
-            private void load(CachedStructProvider.Struct testObject) => TestObject = testObject;
+            private void load(PartialCachedStructProvider.Struct testObject) => TestObject = testObject;
         }
 
-        private partial class Receiver11
+        private partial class Receiver11 : IDependencyInjectionCandidate
         {
             public int? TestObject { get; private set; }
 
@@ -441,7 +441,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             private void load(int? testObject) => TestObject = testObject;
         }
 
-        private partial class Receiver12
+        private partial class Receiver12 : IDependencyInjectionCandidate
         {
             [UsedImplicitly] // param used implicitly
             [BackgroundDependencyLoader]
@@ -450,7 +450,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             }
         }
 
-        private partial class Receiver13
+        private partial class Receiver13 : IDependencyInjectionCandidate
         {
             public int? TestObject { get; private set; } = 1;
 
@@ -460,7 +460,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
 #nullable enable
         [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-        private partial class Receiver14
+        private partial class Receiver14 : IDependencyInjectionCandidate
         {
             [BackgroundDependencyLoader]
             private void load(BaseObject nonNullObject, DerivedObject? nullableObject)

@@ -144,7 +144,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             Assert.AreEqual(3, model2.BindableTwo.Value);
         }
 
-        private class CrossDependentFieldModel
+        private class CrossDependentFieldModel : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
@@ -269,34 +269,34 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             Assert.AreEqual(null, resolver.BindableString.Value);
         }
 
-        private class NonBindablePublicFieldModel
+        private class NonBindablePublicFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             public readonly int FailingField;
 #pragma warning restore 649
         }
 
-        private class NonBindablePrivateFieldModel
+        private class NonBindablePrivateFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 169
             private readonly int failingField;
 #pragma warning restore 169
         }
 
-        private class NonReadOnlyFieldModel
+        private class NonReadOnlyFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             public Bindable<int> Bindable;
 #pragma warning restore 649
         }
 
-        private class PropertyModel
+        private class PropertyModel : IDependencyInjectionCandidate
         {
             // ReSharper disable once UnusedMember.Local
             public Bindable<int> Bindable { get; private set; }
         }
 
-        private class FieldModel
+        private class FieldModel : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
@@ -308,19 +308,19 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public readonly Bindable<string> BindableString = new Bindable<string>();
         }
 
-        private class FieldModelResolver
+        private class FieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
             public FieldModel Model { get; private set; }
         }
 
-        private class DerivedFieldModelResolver
+        private class DerivedFieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
             public DerivedFieldModel Model { get; private set; }
         }
 
-        private class DerivedFieldModelPropertyResolver
+        private class DerivedFieldModelPropertyResolver : IDependencyInjectionCandidate
         {
             [Resolved(typeof(DerivedFieldModel))]
             public Bindable<int> Bindable { get; private set; }

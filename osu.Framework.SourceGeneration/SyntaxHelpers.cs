@@ -131,20 +131,14 @@ namespace osu.Framework.SourceGeneration
         public static bool IsCachedAttribute(ITypeSymbol? type)
             => type?.Name == "CachedAttribute";
 
-        public static bool IsIDrawableInterface(ITypeSymbol? type)
-            => type?.Name == "IDrawable";
-
-        public static bool IsITransformableInterface(ITypeSymbol? type)
-            => type?.Name == "ITransformable";
-
         public static bool IsISourceGeneratedDependencyActivatorInterface(ITypeSymbol? type)
             => type?.Name == "ISourceGeneratedDependencyActivator";
 
         public static bool IsIReadOnlyDependencyContainerInterface(ITypeSymbol? type)
             => type?.Name == "IReadOnlyDependencyContainer";
 
-        public static bool IsTransformableType(ITypeSymbol? type)
-            => type?.Name == "Transformable";
+        public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
+            => type?.Name == "IDependencyInjectionCandidate";
 
         public static IEnumerable<ITypeSymbol> EnumerateBaseTypes(ITypeSymbol type)
         {

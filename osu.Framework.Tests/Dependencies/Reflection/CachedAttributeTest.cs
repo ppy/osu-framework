@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
@@ -13,6 +14,7 @@ using osu.Framework.Testing.Dependencies;
 namespace osu.Framework.Tests.Dependencies.Reflection
 {
     [TestFixture]
+    [SuppressMessage("Performance", "OFSG001:Class contributes to dependency injection and should be partial")]
     public class CachedAttributeTest
     {
         [Test]
@@ -319,12 +321,12 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         }
 
         [Cached]
-        private class Provider1
+        private class Provider1 : IDependencyInjectionCandidate
         {
         }
 
         [Cached(Type = typeof(object))]
-        private class Provider2
+        private class Provider2 : IDependencyInjectionCandidate
         {
         }
 
@@ -333,7 +335,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         {
         }
 
-        private class Provider4
+        private class Provider4 : IDependencyInjectionCandidate
         {
             [Cached]
 #pragma warning disable 169
@@ -341,7 +343,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
 #pragma warning restore 169
         }
 
-        private class Provider5
+        private class Provider5 : IDependencyInjectionCandidate
         {
             [Cached]
             public ProvidedType1 Provided1 { get; } = new ProvidedType1();
@@ -356,7 +358,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public ProvidedType1 Provided3 { get; } = new ProvidedType1();
         }
 
-        private class Provider7
+        private class Provider7 : IDependencyInjectionCandidate
         {
             [Cached]
             [Cached(Type = typeof(object))]
@@ -365,66 +367,66 @@ namespace osu.Framework.Tests.Dependencies.Reflection
 
         [Cached]
         [Cached(Type = typeof(object))]
-        private class Provider8
+        private class Provider8 : IDependencyInjectionCandidate
         {
         }
 
-        private class Provider9
+        private class Provider9 : IDependencyInjectionCandidate
         {
             [Cached(Type = typeof(ProvidedType1))]
             private object provided1 = new object();
         }
 
-        private class Provider10
+        private class Provider10 : IDependencyInjectionCandidate
         {
             [Cached]
             private object provided1 = new ProvidedType1();
         }
 
-        private class Provider11
+        private class Provider11 : IDependencyInjectionCandidate
         {
             [Cached]
             [Cached(Type = typeof(IProvidedInterface1))]
             private IProvidedInterface1 provided1 = new ProvidedType1();
         }
 
-        private class Provider12
+        private class Provider12 : IDependencyInjectionCandidate
         {
             [Cached(Type = typeof(IProvidedInterface1))]
             private IProvidedInterface1 provided1 = new ProvidedType3();
         }
 
-        private class Provider13
+        private class Provider13 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 = new ProvidedType1();
         }
 
-        private class Provider14
+        private class Provider14 : IDependencyInjectionCandidate
         {
             [Cached]
             protected object Provided1 = new ProvidedType1();
         }
 
-        private class Provider15
+        private class Provider15 : IDependencyInjectionCandidate
         {
             [Cached]
             internal object Provided1 = new ProvidedType1();
         }
 
-        private class Provider16
+        private class Provider16 : IDependencyInjectionCandidate
         {
             [Cached]
             protected internal object Provided1 = new ProvidedType1();
         }
 
-        private class Provider17
+        private class Provider17 : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly object Provided1 = new ProvidedType1();
         }
 
-        private class Provider18
+        private class Provider18 : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             [Cached]
@@ -432,25 +434,25 @@ namespace osu.Framework.Tests.Dependencies.Reflection
 #pragma warning restore 649
         }
 
-        private class Provider19
+        private class Provider19 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 { get; private set; } = new object();
         }
 
-        private class Provider20
+        private class Provider20 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 { get; } = new object();
         }
 
-        private class Provider21
+        private class Provider21 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 { get; set; }
         }
 
-        private class Provider22
+        private class Provider22 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1
@@ -463,7 +465,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             }
         }
 
-        private class Provider23
+        private class Provider23 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1
@@ -475,7 +477,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             }
         }
 
-        private class Provider24
+        private class Provider24 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 => null;
@@ -499,7 +501,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         }
 
         [Cached]
-        private interface IProviderInterface2
+        private interface IProviderInterface2 : IDependencyInjectionCandidate
         {
         }
 
