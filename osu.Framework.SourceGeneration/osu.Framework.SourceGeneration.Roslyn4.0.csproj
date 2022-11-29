@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AnalyserVersion>4.0</AnalyserVersion>
+    <RoslynApiVersion>4.0.1</RoslynApiVersion>
+  </PropertyGroup>
+
+  <Import Project="osu.Framework.SourceGeneration.targets" />
+
+  <ItemGroup>
+    <Compile Include="DependencyInjectionSourceGenerator.Roslyn4.0.cs" />
+  </ItemGroup>
+</Project>
