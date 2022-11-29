@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// ## H2
     /// ### H3
     /// </code>
-    public class MarkdownHeading : CompositeDrawable, IMarkdownTextFlowComponent
+    public partial class MarkdownHeading : CompositeDrawable, IMarkdownTextFlowComponent
     {
         private readonly HeadingBlock headingBlock;
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        private class MarkdownHeadingTextFlowContainer : MarkdownTextFlowContainer
+        private partial class MarkdownHeadingTextFlowContainer : MarkdownTextFlowContainer
         {
             public float FontSize;
 

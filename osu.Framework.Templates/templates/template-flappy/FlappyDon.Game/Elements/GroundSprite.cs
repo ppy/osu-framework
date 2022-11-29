@@ -9,7 +9,7 @@ namespace FlappyDon.Game.Elements
     /// <summary>
     /// Manages the ground texture in the foreground of the game scene.
     /// </summary>
-    public class GroundSprite : Sprite
+    public partial class GroundSprite : Sprite
     {
         public GroundSprite()
         {

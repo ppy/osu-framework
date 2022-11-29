@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Pooling
     /// Drawables exceeding the pool's available size will not be asynchronously loaded as it is assumed they are immediately required for consumption.
     /// </remarks>
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
-    public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
+    public partial class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
         private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
 

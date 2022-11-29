@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A sprite that displays its texture.
     /// </summary>
-    public class Sprite : Drawable, ITexturedShaderDrawable
+    public partial class Sprite : Drawable, ITexturedShaderDrawable
     {
         public Sprite()
         {

@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class TransformDisplay : Container
+    internal partial class TransformDisplay : Container
     {
         private readonly FillFlowContainer<DrawableTransform> flow;
         private Bindable<Drawable> inspectedDrawable;

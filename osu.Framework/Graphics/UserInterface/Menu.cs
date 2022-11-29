@@ -21,7 +21,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class Menu : CompositeDrawable, IStateful<MenuState>
+    public abstract partial class Menu : CompositeDrawable, IStateful<MenuState>
     {
         /// <summary>
         /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
@@ -656,7 +656,7 @@ namespace osu.Framework.Graphics.UserInterface
         #region DrawableMenuItem
 
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public abstract class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
+        public abstract partial class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
@@ -892,7 +892,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        private class ItemsFlow : FillFlowContainer<DrawableMenuItem>
+        private partial class ItemsFlow : FillFlowContainer<DrawableMenuItem>
         {
             public readonly LayoutValue SizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
 

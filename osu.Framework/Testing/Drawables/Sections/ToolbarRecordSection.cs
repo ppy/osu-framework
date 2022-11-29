@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
-    public class ToolbarRecordSection : ToolbarSection
+    public partial class ToolbarRecordSection : ToolbarSection
     {
         private BasicButton recordButton;
         private FillFlowContainer playbackControls;

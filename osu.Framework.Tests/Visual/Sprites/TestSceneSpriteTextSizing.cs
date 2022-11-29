@@ -6,7 +6,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteTextSizing : FrameworkTestScene
+    public partial class TestSceneSpriteTextSizing : FrameworkTestScene
     {
         [Test]
         public void TestNewSizeImmediatelyAvailableAfterTextChange()

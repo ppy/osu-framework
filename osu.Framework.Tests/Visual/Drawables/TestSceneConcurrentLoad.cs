@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneConcurrentLoad : FrameworkTestScene
+    public partial class TestSceneConcurrentLoad : FrameworkTestScene
     {
         private const int panel_count = 6;
 
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
         }
 
-        public class DelayedTestBox : Box
+        public partial class DelayedTestBox : Box
         {
             public DelayedTestBox()
             {
@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class DelayedTestBoxAsync : Box
+        public partial class DelayedTestBoxAsync : Box
         {
             public DelayedTestBoxAsync()
             {

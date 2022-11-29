@@ -7,7 +7,7 @@ using System;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class RepeatStepButton : StepButton
+    public partial class RepeatStepButton : StepButton
     {
         private readonly int count;
         private int invocations;

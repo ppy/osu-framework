@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class MixerDisplay : CompositeDrawable
+    public partial class MixerDisplay : CompositeDrawable
     {
         public readonly AudioMixer Mixer;
 

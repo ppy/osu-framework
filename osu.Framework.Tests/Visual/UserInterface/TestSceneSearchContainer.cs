@@ -3,64 +3,37 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Localisation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Tests.Visual.Localisation;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneSearchContainer : FrameworkTestScene
+    public partial class TestSceneSearchContainer : LocalisationTestScene
     {
         private SearchContainer search;
         private BasicTextBox textBox;
 
-        [Resolved]
-        private FrameworkConfigManager configManager { get; set; }
-
-        [Cached]
-        private LocalisationManager manager;
-
         [BackgroundDependencyLoader]
         private void load()
         {
-            manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
+            Manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
             {
                 [goodbye] = "Goodbye",
             }));
-            manager.AddLanguage("es", new TestLocalisationStore("es", new Dictionary<string, string>
+            Manager.AddLanguage("es", new TestLocalisationStore("es", new Dictionary<string, string>
             {
                 [goodbye] = "Adiós",
             }));
-        }
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-        {
-            var dependencies = new DependencyContainer(parent);
-
-            configManager = parent.Get<FrameworkConfigManager>();
-            dependencies.Cache(manager = new LocalisationManager(configManager));
-
-            return dependencies;
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            manager?.Dispose();
-            base.Dispose(isDisposing);
         }
 
         private const string goodbye = "goodbye";
@@ -231,10 +204,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase]
         public void TestFilterLocalisedStrings()
         {
-            AddStep("Change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+            SetLocale("en");
             setTerm("Goodbye");
             checkCount(1);
-            AddStep("Change locale to es", () => configManager.SetValue(FrameworkSetting.Locale, "es"));
+            SetLocale("es");
             setTerm("Adiós");
             checkCount(1);
             setTerm("Goodbye");
@@ -257,7 +230,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
-        private class HeaderContainer : Container, IConditionalFilterable
+        private partial class HeaderContainer : Container, IConditionalFilterable
         {
             public IEnumerable<LocalisableString> FilterTerms => header.FilterTerms;
 
@@ -300,7 +273,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class FilterableFlowContainer : FillFlowContainer, IFilterable
+        private partial class FilterableFlowContainer : FillFlowContainer, IFilterable
         {
             public IEnumerable<LocalisableString> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
 
@@ -321,7 +294,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class HeaderText : SpriteText, IFilterable
+        private partial class HeaderText : SpriteText, IFilterable
         {
             public bool MatchingFilter
             {
@@ -340,7 +313,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class SearchableText : SpriteText, IFilterable
+        private partial class SearchableText : SpriteText, IFilterable
         {
             public bool MatchingFilter
             {
@@ -359,33 +332,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestLocalisationStore : ILocalisationStore
-        {
-            public CultureInfo EffectiveCulture { get; }
-
-            private readonly IDictionary<string, string> translations;
-
-            public TestLocalisationStore(string locale, IDictionary<string, string> translations)
-            {
-                EffectiveCulture = new CultureInfo(locale);
-
-                this.translations = translations;
-            }
-
-            public string Get(string key) => translations.TryGetValue(key, out string value) ? value : null;
-
-            public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult(Get(key));
-
-            public Stream GetStream(string name) => throw new NotSupportedException();
-
-            public IEnumerable<string> GetAvailableResources() => Array.Empty<string>();
-
-            public void Dispose()
-            {
-            }
-        }
-
-        private class HideableSearchText : SearchableText, IConditionalFilterable
+        private partial class HideableSearchText : SearchableText, IConditionalFilterable
         {
             public Bindable<bool> CanBeShown { get; } = new Bindable<bool>();
 

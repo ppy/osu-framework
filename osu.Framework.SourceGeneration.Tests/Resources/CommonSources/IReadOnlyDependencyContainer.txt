@@ -1,0 +1,49 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    public interface IReadOnlyDependencyContainer
+    {
+        object Get(Type type);
+        object Get(Type type, CacheInfo info);
+        void Inject<T>(T instance) where T : class, IDependencyInjectionCandidate;
+    }
+
+    public static class ReadOnlyDependencyContainerExtensions
+    {
+        public static T Get<T>(this IReadOnlyDependencyContainer container)
+            where T : class
+            => Get<T>(container, default);
+
+        public static T Get<T>(this IReadOnlyDependencyContainer container, CacheInfo info)
+            where T : class
+            => (T)container.Get(typeof(T), info);
+
+        internal static T GetValue<T>(this IReadOnlyDependencyContainer container)
+            => GetValue<T>(container, default);
+
+        internal static T GetValue<T>(this IReadOnlyDependencyContainer container, CacheInfo info)
+        {
+            if (container.Get(typeof(T), info) is T value)
+                return value;
+
+            return default;
+        }
+
+        public static bool TryGet<T>(this IReadOnlyDependencyContainer container, out T value)
+            where T : class
+            => TryGet(container, out value, default);
+
+        public static bool TryGet<T>(this IReadOnlyDependencyContainer container, out T value, CacheInfo info)
+            where T : class
+        {
+            value = container.Get<T>(info);
+            return value != null;
+        }
+        
+        public static object Get(this IReadOnlyDependencyContainer container, Type requestingType, Type retrievalType, string cachedName, Type cachedParent, bool allowNulls, bool rebindBindables)
+        {
+            return null;
+        }
+    }
+}

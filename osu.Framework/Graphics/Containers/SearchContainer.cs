@@ -14,7 +14,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class SearchContainer : SearchContainer<Drawable>
+    public partial class SearchContainer : SearchContainer<Drawable>
     {
     }
 
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
     /// </list>
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
+    public partial class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
         /// <summary>
         /// Fired whenever a filter operation completes.

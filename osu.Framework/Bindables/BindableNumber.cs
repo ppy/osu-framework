@@ -199,12 +199,12 @@ namespace osu.Framework.Bindables
                 PrecisionChanged?.Invoke(precision);
         }
 
-        public override void BindTo(Bindable<T> them)
+        public override void CopyTo(Bindable<T> them)
         {
             if (them is BindableNumber<T> other)
-                Precision = other.Precision;
+                other.Precision = Precision;
 
-            base.BindTo(them);
+            base.CopyTo(them);
         }
 
         public override void UnbindEvents()

@@ -8,10 +8,10 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 
-namespace osu.Framework.Tests.Dependencies
+namespace osu.Framework.Tests.Dependencies.SourceGeneration
 {
     [TestFixture]
-    public class CachedModelDependenciesTest
+    public partial class CachedModelDependenciesTest
     {
         [Test]
         public void TestModelWithNonBindableFieldsFails()
@@ -142,7 +142,7 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(3, model2.BindableTwo.Value);
         }
 
-        private class CrossDependentFieldModel
+        private partial class CrossDependentFieldModel : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
@@ -267,58 +267,62 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(null, resolver.BindableString.Value);
         }
 
-        private class NonBindablePublicFieldModel
+        [Cached]
+        private partial class NonBindablePublicFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             public readonly int FailingField;
 #pragma warning restore 649
         }
 
-        private class NonBindablePrivateFieldModel
+        [Cached]
+        private partial class NonBindablePrivateFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 169
             private readonly int failingField;
 #pragma warning restore 169
         }
 
-        private class NonReadOnlyFieldModel
+        [Cached]
+        private partial class NonReadOnlyFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             public Bindable<int> Bindable;
 #pragma warning restore 649
         }
 
-        private class PropertyModel
+        [Cached]
+        private partial class PropertyModel : IDependencyInjectionCandidate
         {
             // ReSharper disable once UnusedMember.Local
             public Bindable<int> Bindable { get; private set; }
         }
 
-        private class FieldModel
+        private partial class FieldModel : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
         }
 
-        private class DerivedFieldModel : FieldModel
+        private partial class DerivedFieldModel : FieldModel
         {
             [Cached]
             public readonly Bindable<string> BindableString = new Bindable<string>();
         }
 
-        private class FieldModelResolver
+        private partial class FieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
             public FieldModel Model { get; private set; }
         }
 
-        private class DerivedFieldModelResolver
+        private partial class DerivedFieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
             public DerivedFieldModel Model { get; private set; }
         }
 
-        private class DerivedFieldModelPropertyResolver
+        private partial class DerivedFieldModelPropertyResolver : IDependencyInjectionCandidate
         {
             [Resolved(typeof(DerivedFieldModel))]
             public Bindable<int> Bindable { get; private set; }

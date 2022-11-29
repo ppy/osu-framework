@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDerivedTestWithDerivedSource : TestSceneTestWithSource
+    public partial class TestSceneDerivedTestWithDerivedSource : TestSceneTestWithSource
     {
         [TestCaseSource(nameof(SourceField))]
         public void TestDerivedSourceField(int a, int b)

@@ -17,7 +17,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Layout
 {
     [HeadlessTest]
-    public class TestSceneDrawableLayout : FrameworkTestScene
+    public partial class TestSceneDrawableLayout : FrameworkTestScene
     {
         /// <summary>
         /// Tests that multiple invalidations trigger for properties that don't overlap in their invalidation types (size + scale).
@@ -134,7 +134,7 @@ namespace osu.Framework.Tests.Layout
             });
         }
 
-        private class TestContainer1 : Container<Drawable>
+        private partial class TestContainer1 : Container<Drawable>
         {
             public void AdjustScale(float scale = 1.0f)
             {
@@ -143,7 +143,7 @@ namespace osu.Framework.Tests.Layout
             }
         }
 
-        private class TestBox1 : Box
+        private partial class TestBox1 : Box
         {
             public readonly LayoutValue MiscGeometryLayoutValue = new LayoutValue(Invalidation.MiscGeometry, InvalidationSource.Self);
             public readonly LayoutValue DrawSizeLayoutValue = new LayoutValue(Invalidation.DrawSize, InvalidationSource.Self);

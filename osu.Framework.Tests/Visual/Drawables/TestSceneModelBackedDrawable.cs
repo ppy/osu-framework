@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneModelBackedDrawable : FrameworkTestScene
+    public partial class TestSceneModelBackedDrawable : FrameworkTestScene
     {
         private TestModelBackedDrawable backedDrawable;
 
@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestDrawableModel : CompositeDrawable
+        private partial class TestDrawableModel : CompositeDrawable
         {
             private readonly int id;
 
@@ -253,7 +253,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestNullDrawableModel : TestDrawableModel
+        private partial class TestNullDrawableModel : TestDrawableModel
         {
             protected override Color4 BackgroundColour => Color4.SlateGray;
 
@@ -264,7 +264,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
+        private partial class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
             public bool ShowNullModel;
 

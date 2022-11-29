@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics
 {
     public abstract partial class Drawable
     {
-        private class ProxyDrawable : Drawable
+        private partial class ProxyDrawable : Drawable
         {
             private readonly ulong[] drawNodeValidationIds = new ulong[IRenderer.MAX_DRAW_NODES];
             private readonly DrawNode[] originalDrawNodes;

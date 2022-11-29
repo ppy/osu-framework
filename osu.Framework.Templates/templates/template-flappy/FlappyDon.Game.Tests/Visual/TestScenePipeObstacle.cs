@@ -9,7 +9,7 @@ namespace FlappyDon.Game.Tests.Visual
     /// A scene to test the layout and positioning and rotation of two pipe sprites.
     /// </summary>
     [TestFixture]
-    public class TestScenePipeObstacle : FlappyDonTestScene
+    public partial class TestScenePipeObstacle : FlappyDonTestScene
     {
         [BackgroundDependencyLoader]
         private void load()

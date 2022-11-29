@@ -13,7 +13,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Layout
 {
     [System.ComponentModel.Description("Rewinding of transforms that are important to layout.")]
-    public class TestSceneLayoutTransformRewinding : FrameworkTestScene
+    public partial class TestSceneLayoutTransformRewinding : FrameworkTestScene
     {
         private readonly ManualUpdateSubTreeContainer manualContainer;
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
         }
 
-        private class ManualUpdateSubTreeContainer : Container
+        private partial class ManualUpdateSubTreeContainer : Container
         {
             public override bool RemoveCompletedTransforms => false;
 

@@ -19,7 +19,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Configuration
 {
     [TestFixture]
-    public class InputConfigManagerTest
+    public partial class InputConfigManagerTest
     {
         private Storage storage;
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Configuration
             };
         }
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             private readonly Action<GameHost, FrameworkConfigManager> action;
 

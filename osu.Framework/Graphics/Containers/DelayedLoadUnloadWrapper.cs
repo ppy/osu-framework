@@ -12,7 +12,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class DelayedLoadUnloadWrapper : DelayedLoadWrapper
+    public partial class DelayedLoadUnloadWrapper : DelayedLoadWrapper
     {
         private readonly double timeBeforeUnload;
 

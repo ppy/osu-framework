@@ -11,7 +11,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneSampleLooping : FrameworkTestScene
+    public partial class TestSceneSampleLooping : FrameworkTestScene
     {
         private Sample sample;
         private SampleChannel channel;

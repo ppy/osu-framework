@@ -16,7 +16,7 @@ using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal abstract class TestButtonBase : ClickableContainer, IFilterable
+    internal abstract partial class TestButtonBase : ClickableContainer, IFilterable
     {
         public IEnumerable<LocalisableString> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 

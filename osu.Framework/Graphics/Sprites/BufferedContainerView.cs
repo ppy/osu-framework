@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A view that displays the contents of a <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
+    public partial class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
         where T : Drawable
     {
         public IShader TextureShader { get; private set; }

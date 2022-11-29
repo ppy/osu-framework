@@ -7,7 +7,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class LabelStep : StepButton
+    public partial class LabelStep : StepButton
     {
         protected override Color4 IdleColour => new Color4(77, 77, 77, 255);
 

@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneSafeAreaContainer : FrameworkTestScene
+    public partial class TestSceneSafeAreaContainer : FrameworkTestScene
     {
         private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
 
@@ -152,7 +152,7 @@ namespace osu.Framework.Tests.Visual.Containers
             safeAreaBottomOverlay.Height = padding.Bottom;
         }
 
-        private class MarginPaddingControlsContainer : FillFlowContainer
+        private partial class MarginPaddingControlsContainer : FillFlowContainer
         {
             private readonly Bindable<float> safeAreaPaddingTop;
             private readonly Bindable<float> safeAreaPaddingBottom;
@@ -197,7 +197,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 };
             }
 
-            private class MarginPaddingControl : FillFlowContainer
+            private partial class MarginPaddingControl : FillFlowContainer
             {
                 public MarginPaddingControl(SafeAreaContainer safeAreaBackground, SafeAreaContainer safeAreaGrid, string title, Bindable<float> bindable, Edges edge)
                 {

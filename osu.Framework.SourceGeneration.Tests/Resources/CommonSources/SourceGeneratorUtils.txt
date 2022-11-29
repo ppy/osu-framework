@@ -1,0 +1,21 @@
+#nullable enable
+
+using System;
+using osu.Framework.Allocation;
+
+namespace osu.Framework.Utils
+{
+    public static class SourceGeneratorUtils
+    {
+        public static void CacheDependency(DependencyContainer container, Type callerType, object? obj, CacheInfo info, Type? asType, string? cachedName, string? propertyName)
+        {
+        }
+
+        public static T GetDependency<T>(IReadOnlyDependencyContainer container, Type callerType, string? cachedName, Type? cachedParent, bool allowNulls, bool rebindBindables)
+        {
+            return default;
+        }
+    }
+}
+
+#nullable disable

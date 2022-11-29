@@ -1,0 +1,39 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    public class DependencyContainer : IReadOnlyDependencyContainer
+    {
+        public DependencyContainer(IReadOnlyDependencyContainer parent = null)
+        {
+        }
+
+        public void Cache(object instance) { }
+
+        public void Cache(object instance, CacheInfo info) { }
+
+        public void CacheAs<T>(T instance) where T : class { }
+
+        public void CacheAs<T>(T instance, CacheInfo info) where T : class { }
+
+        public void CacheAs<T>(Type type, T instance) where T : class { }
+
+        public void CacheAs<T>(Type type, T instance, CacheInfo info) where T : class { }
+
+        internal void CacheValue(object instance) { }
+
+        internal void CacheValue(object instance, CacheInfo info) { }
+
+        internal void CacheValueAs<T>(T instance) { }
+
+        internal void CacheValueAs<T>(T instance, CacheInfo info) { }
+
+        internal void CacheAs(Type type, CacheInfo info, object instance, bool allowValueTypes) { }
+
+        public object Get(Type type) => default;
+
+        public object Get(Type type, CacheInfo info) => default;
+
+        public void Inject<T>(T instance) where T : class, IDependencyInjectionCandidate { }
+    }
+}

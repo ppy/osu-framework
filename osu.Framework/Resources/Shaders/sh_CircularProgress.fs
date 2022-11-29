@@ -15,12 +15,6 @@ uniform bool roundedCaps;
 
 void main(void)
 {
-    if (progress == 0.0 || innerRadius == 0.0)
-    {
-        gl_FragColor = vec4(0.0);
-        return;
-    }
-
     highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     

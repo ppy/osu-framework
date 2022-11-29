@@ -18,7 +18,7 @@ using osu.Framework.Tests.IO;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class HeadlessGameHostTest
+    public partial class HeadlessGameHostTest
     {
         [Test]
         public void TestGameHostExceptionDuringSetupHost()
@@ -153,7 +153,7 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        internal class ExceptionDuringAsynchronousLoadTestGame : TestGame
+        internal partial class ExceptionDuringAsynchronousLoadTestGame : TestGame
         {
             [BackgroundDependencyLoader]
             private void load()

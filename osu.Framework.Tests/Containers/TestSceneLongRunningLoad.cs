@@ -17,7 +17,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSceneLongRunningLoad : FrameworkTestScene
+    public partial class TestSceneLongRunningLoad : FrameworkTestScene
     {
         /// <summary>
         /// Tests that an exception is thrown when a long-running drawable is synchronously loaded.
@@ -127,7 +127,7 @@ namespace osu.Framework.Tests.Containers
             });
         }
 
-        private class TestLoadBlockingDrawableLongRunningDerived : TestLoadBlockingDrawableLongRunning
+        private partial class TestLoadBlockingDrawableLongRunningDerived : TestLoadBlockingDrawableLongRunning
         {
             public TestLoadBlockingDrawableLongRunningDerived(bool allowLoad = false)
                 : base(allowLoad)
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Containers
         }
 
         [LongRunningLoad]
-        private class TestLoadBlockingDrawableLongRunning : CompositeDrawable
+        private partial class TestLoadBlockingDrawableLongRunning : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -154,7 +154,7 @@ namespace osu.Framework.Tests.Containers
             }
         }
 
-        private class TestLoadBlockingDrawable : CompositeDrawable
+        private partial class TestLoadBlockingDrawable : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 

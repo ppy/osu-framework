@@ -1,0 +1,4 @@
+[osu.Framework.Allocation.Cached]
+public partial class BaseType : osu.Framework.Allocation.IDependencyInjectionCandidate
+{
+}

@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Animations
     /// <summary>
     /// A drawable which handles sizing in a roughly expected way when wrapping a single direct child.
     /// </summary>
-    public abstract class CustomisableSizeCompositeDrawable : CompositeDrawable
+    public abstract partial class CustomisableSizeCompositeDrawable : CompositeDrawable
     {
         private bool hasCustomWidth;
 

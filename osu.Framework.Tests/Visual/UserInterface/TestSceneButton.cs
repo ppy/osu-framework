@@ -12,7 +12,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneButton : ManualInputManagerTestScene
+    public partial class TestSceneButton : ManualInputManagerTestScene
     {
         private int clickCount;
         private readonly BasicButton button;

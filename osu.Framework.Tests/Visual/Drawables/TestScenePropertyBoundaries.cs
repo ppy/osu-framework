@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     [HeadlessTest]
     [System.ComponentModel.Description("ensure validity of drawables when receiving certain values")]
-    public class TestScenePropertyBoundaries : FrameworkTestScene
+    public partial class TestScenePropertyBoundaries : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load()

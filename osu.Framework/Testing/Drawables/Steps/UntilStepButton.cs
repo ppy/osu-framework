@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class UntilStepButton : StepButton
+    public partial class UntilStepButton : StepButton
     {
         private bool success;
 

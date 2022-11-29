@@ -17,7 +17,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class KeyBindingInputTest : ManualInputManagerTestScene
+    public partial class KeyBindingInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that if the current input queue is changed, drawables that originally handled <see cref="IKeyBindingHandler{T}.OnPressed"/>
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptorBelow received release", () => receptorBelow.ReleasedReceived);
         }
 
-        private class InputReceptor : Box, IKeyBindingHandler<TestKeyBinding>
+        private partial class InputReceptor : Box, IKeyBindingHandler<TestKeyBinding>
         {
             public bool PressedReceived { get; private set; }
             public bool ReleasedReceived { get; private set; }
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Input
             }
         }
 
-        private class TestKeyBindingContainer : KeyBindingContainer<TestKeyBinding>, IHandleGlobalKeyboardInput
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestKeyBinding>, IHandleGlobalKeyboardInput
         {
             public TestKeyBindingContainer()
                 : base(SimultaneousBindingMode.Unique, KeyCombinationMatchingMode.Modifiers)

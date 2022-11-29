@@ -1,0 +1,15 @@
+public partial class ClassA : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.BackgroundDependencyLoader]
+    private void load()
+    {
+    }
+
+    public partial class ClassB : osu.Framework.Graphics.Drawable
+    {
+        [osu.Framework.Allocation.BackgroundDependencyLoader]
+        private void load()
+        {
+        }
+    }
+}

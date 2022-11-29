@@ -14,7 +14,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Tests.Graphics
 {
     [HeadlessTest]
-    public class TestSceneDrawableScheduling : FrameworkTestScene
+    public partial class TestSceneDrawableScheduling : FrameworkTestScene
     {
         /// <summary>
         /// Ensures scheduled delegates between <see cref="Drawable.Schedule"/> and <see cref="Scheduler.Add(Action, bool)"/> with no delays execute in correct order.

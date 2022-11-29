@@ -5,7 +5,7 @@ using osu.Framework.Testing;
 
 namespace TemplateGame.Game.Tests
 {
-    public class TemplateGameTestBrowser : TemplateGameGameBase
+    public partial class TemplateGameTestBrowser : TemplateGameGameBase
     {
         protected override void LoadComplete()
         {

@@ -9,7 +9,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ClickableContainer : Container
+    public partial class ClickableContainer : Container
     {
         private Action action;
 

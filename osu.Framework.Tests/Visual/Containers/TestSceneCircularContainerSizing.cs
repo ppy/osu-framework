@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCircularContainerSizing : FrameworkTestScene
+    public partial class TestSceneCircularContainerSizing : FrameworkTestScene
     {
         [Test]
         public void TestLateSizing() => Schedule(() =>
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         });
 
-        private class HookedContainer : Container
+        private partial class HookedContainer : Container
         {
             public new Action OnUpdate;
             public Action OnUpdateAfterChildren;

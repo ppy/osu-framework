@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container that can be used to fluently arrange its children.
     /// </summary>
-    public abstract class FlowContainer<T> : Container<T>
+    public abstract partial class FlowContainer<T> : Container<T>
         where T : Drawable
     {
         internal event Action OnLayout;
