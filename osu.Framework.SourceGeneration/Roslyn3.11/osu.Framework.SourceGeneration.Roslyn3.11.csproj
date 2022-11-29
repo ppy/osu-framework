@@ -7,6 +7,6 @@
   <Import Project="..\osu.Framework.SourceGeneration.targets" />
 
   <ItemGroup>
-    <Compile Include="DependencyInjectionSourceGenerator.Roslyn3.11.cs" />
+    <Compile Include="DependencyInjectionSourceGenerator.cs" />
   </ItemGroup>
 </Project>
