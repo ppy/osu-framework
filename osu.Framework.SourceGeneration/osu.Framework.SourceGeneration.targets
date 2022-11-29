@@ -14,10 +14,7 @@
     <NoWarn>1591</NoWarn>
 
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-
-    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(RoslynApiVersion)</OutputPath>
-    <PackageOutputPath>bin\$(Configuration)</PackageOutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)</PackageOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Label="Nuget">
@@ -37,18 +34,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Analysers/**/*.cs" />
-    <Compile Include="Data/**/*.cs" />
-    <Compile Include="Emitters/**/*.cs" />
-    <Compile Include="GeneratorClassCandidate.cs" />
-    <Compile Include="SyntaxHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Analysers/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Emitters/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GeneratorClassCandidate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SyntaxHelpers.cs" />
   </ItemGroup>
 
   <Target Name="CopyToArtifactsDir" AfterTargets="AfterBuild">
-    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="artifacts\roslyn$(AnalyserVersion)\cs\" />
+    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="$(MSBuildThisFileDirectory)artifacts\roslyn$(AnalyserVersion)\cs\" />
   </Target>
 
   <ItemGroup>
-    <None Include="artifacts/" Pack="true" PackagePath="analyzers/dotnet/" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)artifacts/" Pack="true" PackagePath="analyzers/dotnet/" Visible="false" />
   </ItemGroup>
 </Project>
