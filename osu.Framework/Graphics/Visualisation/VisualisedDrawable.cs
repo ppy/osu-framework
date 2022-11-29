@@ -20,7 +20,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal partial class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
+    internal partial class VisualisedDrawable : Container, IContainVisualisedDrawables, IFilterable
     {
         private const int line_height = 12;
 
@@ -45,8 +45,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target.ToString()
         };
-
-        public IEnumerable<IFilterable> FilterableChildren => flow.Children;
 
         public bool FilteringActive { get; set; }
 
