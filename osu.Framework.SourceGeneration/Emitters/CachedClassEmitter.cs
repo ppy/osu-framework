@@ -2,10 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using osu.Framework.SourceGeneration.Data;
 
 namespace osu.Framework.SourceGeneration.Emitters
 {
@@ -15,39 +14,24 @@ namespace osu.Framework.SourceGeneration.Emitters
     public class CachedClassEmitter : IStatementEmitter
     {
         private readonly DependenciesFileEmitter fileEmitter;
-        private readonly SyntaxWithSymbol syntax;
+        private readonly CachedAttributeData data;
 
-        public CachedClassEmitter(DependenciesFileEmitter fileEmitter, SyntaxWithSymbol syntax)
+        public CachedClassEmitter(DependenciesFileEmitter fileEmitter, CachedAttributeData data)
         {
             this.fileEmitter = fileEmitter;
-            this.syntax = syntax;
+            this.data = data;
         }
 
         public IEnumerable<StatementSyntax> Emit()
         {
-            foreach (var attribute in syntax.Symbol.GetAttributes())
-            {
-                if (!attribute.AttributeClass!.Equals(fileEmitter.CachedAttributeType, SymbolEqualityComparer.Default))
-                    continue;
-
-                string cachedType =
-                    attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value?.ToString()
-                    ?? attribute.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString()
-                    ?? fileEmitter.ClassType.ToDisplayString();
-
-                string? cachedName = (string?)
-                    (attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Name").Value.Value
-                     ?? attribute.ConstructorArguments.ElementAtOrDefault(1).Value);
-
-                yield return SyntaxFactory.ExpressionStatement(
-                    SyntaxHelpers.CacheDependencyInvocation(
-                        fileEmitter.ClassType,
-                        SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME),
-                        cachedType,
-                        cachedName,
-                        null
-                    ));
-            }
+            yield return SyntaxFactory.ExpressionStatement(
+                SyntaxHelpers.CacheDependencyInvocation(
+                    fileEmitter.Candidate.TypeName,
+                    SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME),
+                    data.Type,
+                    data.Name,
+                    null
+                ));
         }
     }
 }

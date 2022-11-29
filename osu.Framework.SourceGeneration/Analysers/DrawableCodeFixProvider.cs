@@ -142,7 +142,7 @@ namespace osu.Framework.SourceGeneration.Analysers
                 if (target.Modifiers.Any(SyntaxKind.PartialKeyword))
                     continue;
 
-                var currentNode = rootNode.GetCurrentNode(target);
+                var currentNode = rootNode.GetCurrentNode(target)!;
 
                 rootNode = rootNode.ReplaceNode(
                     currentNode,

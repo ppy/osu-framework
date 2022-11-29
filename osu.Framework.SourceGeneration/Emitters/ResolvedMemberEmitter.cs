@@ -2,10 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using osu.Framework.SourceGeneration.Data;
 
 namespace osu.Framework.SourceGeneration.Emitters
 {
@@ -15,55 +14,27 @@ namespace osu.Framework.SourceGeneration.Emitters
     public class ResolvedMemberEmitter : IStatementEmitter
     {
         private readonly DependenciesFileEmitter fileEmitter;
-        private readonly SyntaxWithSymbol syntax;
+        private readonly ResolvedAttributeData data;
 
-        public ResolvedMemberEmitter(DependenciesFileEmitter fileEmitter, SyntaxWithSymbol syntax)
+        public ResolvedMemberEmitter(DependenciesFileEmitter fileEmitter, ResolvedAttributeData data)
         {
             this.fileEmitter = fileEmitter;
-            this.syntax = syntax;
+            this.data = data;
         }
 
         public IEnumerable<StatementSyntax> Emit()
         {
-            IPropertySymbol propertySymbol = (IPropertySymbol)syntax.Symbol;
-            ITypeSymbol propertyType = propertySymbol.Type;
-
-            foreach (var attribute in syntax.Symbol.GetAttributes())
-            {
-                if (!attribute.AttributeClass!.Equals(fileEmitter.ResolvedAttributeType, SymbolEqualityComparer.Default))
-                    continue;
-
-                string? resolvedParentType =
-                    attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Parent").Value.Value?.ToString()
-                    ?? attribute.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
-
-                string? resolvedName = (string?)
-                    (attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Name").Value.Value
-                     ?? attribute.ConstructorArguments.ElementAtOrDefault(1).Value);
-
-                // When a parent type exists, infer the property name if one is not provided
-                if (resolvedParentType != null)
-                    resolvedName ??= syntax.Symbol.Name;
-
-                bool resolvedCanBeNull = (bool)
-                    (attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "CanBeNull").Value.Value
-                     ?? attribute.ConstructorArguments.ElementAtOrDefault(2).Value
-                     ?? false);
-
-                resolvedCanBeNull |= propertySymbol.NullableAnnotation == NullableAnnotation.Annotated;
-
-                yield return SyntaxFactory.ExpressionStatement(
-                    SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        createMemberAccessor(),
-                        SyntaxHelpers.GetDependencyInvocation(
-                            fileEmitter.ClassType,
-                            propertyType,
-                            resolvedName,
-                            resolvedParentType,
-                            resolvedCanBeNull,
-                            true)));
-            }
+            yield return SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    createMemberAccessor(),
+                    SyntaxHelpers.GetDependencyInvocation(
+                        fileEmitter.Candidate.TypeName,
+                        data.Type,
+                        data.CachedName,
+                        data.ParentType,
+                        data.CanBeNull,
+                        true)));
         }
 
         private ExpressionSyntax createMemberAccessor()
@@ -72,9 +43,9 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.ClassType.ToDisplayString()),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.TypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
-                SyntaxFactory.IdentifierName(syntax.Symbol.Name));
+                SyntaxFactory.IdentifierName(data.PropertyName));
         }
     }
 }

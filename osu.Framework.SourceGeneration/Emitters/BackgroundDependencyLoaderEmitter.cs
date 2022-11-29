@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using osu.Framework.SourceGeneration.Data;
 
 namespace osu.Framework.SourceGeneration.Emitters
 {
@@ -15,38 +15,29 @@ namespace osu.Framework.SourceGeneration.Emitters
     public class BackgroundDependencyLoaderEmitter : IStatementEmitter
     {
         private readonly DependenciesFileEmitter fileEmitter;
-        private readonly SyntaxWithSymbol syntax;
+        private readonly BackgroundDependencyLoaderAttributeData data;
 
-        public BackgroundDependencyLoaderEmitter(DependenciesFileEmitter fileEmitter, SyntaxWithSymbol syntax)
+        public BackgroundDependencyLoaderEmitter(DependenciesFileEmitter fileEmitter, BackgroundDependencyLoaderAttributeData data)
         {
             this.fileEmitter = fileEmitter;
-            this.syntax = syntax;
+            this.data = data;
         }
 
         public IEnumerable<StatementSyntax> Emit()
         {
-            IMethodSymbol methodSymbol = (IMethodSymbol)syntax.Symbol;
-
-            var attributeData = methodSymbol.GetAttributes().Single(a => a.AttributeClass!.Equals(fileEmitter.BackgroundDependencyLoaderAttributeType, SymbolEqualityComparer.Default));
-
-            bool canBeNull = (bool)
-                (attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "permitNulls").Value.Value
-                 ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value
-                 ?? false);
-
             yield return SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
                     createMemberAccessor(),
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            methodSymbol.Parameters.Select(p =>
+                            data.Parameters.Select(p =>
                                 SyntaxFactory.Argument(
                                     SyntaxHelpers.GetDependencyInvocation(
-                                        fileEmitter.ClassType,
+                                        fileEmitter.Candidate.TypeName,
                                         p.Type,
                                         null,
                                         null,
-                                        canBeNull || p.Type.NullableAnnotation == NullableAnnotation.Annotated,
+                                        p.CanBeNull || data.CanBeNull,
                                         false)))))));
         }
 
@@ -56,9 +47,9 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.ClassType.ToDisplayString()),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.TypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
-                SyntaxFactory.IdentifierName(syntax.Symbol.Name));
+                SyntaxFactory.IdentifierName(data.MethodName));
         }
     }
 }

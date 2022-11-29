@@ -31,39 +31,12 @@ namespace osu.Framework.SourceGeneration.Emitters
 
 ";
 
-        public readonly GeneratorExecutionContext Context;
-        public readonly SyntaxContextReceiver Receiver;
         public readonly GeneratorClassCandidate Candidate;
+        // public readonly INamedTypeSymbol ClassType;
 
-        public readonly ITypeSymbol ClassType;
-        public readonly INamedTypeSymbol? CachedAttributeType;
-        public readonly INamedTypeSymbol? ResolvedAttributeType;
-        public readonly INamedTypeSymbol? BackgroundDependencyLoaderAttributeType;
-        public readonly INamedTypeSymbol? BindableTypeSymbol;
-
-        private readonly ITypeSymbol iSourceGeneratedDependencyActivatorType;
-        private readonly ITypeSymbol iDependencyActivatorRegistryType;
-        private readonly bool needsOverride;
-
-        public DependenciesFileEmitter(GeneratorExecutionContext context, SyntaxContextReceiver receiver, GeneratorClassCandidate candidate)
+        public DependenciesFileEmitter(GeneratorClassCandidate candidate)
         {
-            Context = context;
-            Receiver = receiver;
             Candidate = candidate;
-
-            ClassType = (ITypeSymbol)ModelExtensions.GetDeclaredSymbol(context.Compilation.GetSemanticModel(candidate.ClassSyntax.SyntaxTree), candidate.ClassSyntax)!;
-            CachedAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.CachedAttribute");
-            ResolvedAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.ResolvedAttribute");
-            BackgroundDependencyLoaderAttributeType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.BackgroundDependencyLoaderAttribute");
-            BindableTypeSymbol = context.Compilation.GetTypeByMetadataName("osu.Framework.Bindables.IBindable");
-            iSourceGeneratedDependencyActivatorType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.ISourceGeneratedDependencyActivator")!;
-            iDependencyActivatorRegistryType = context.Compilation.GetTypeByMetadataName("osu.Framework.Allocation.IDependencyActivatorRegistry")!;
-
-            needsOverride =
-                // Override necessary if the class already has the source generator interface name.
-                candidate.Symbol.AllInterfaces.Any(SyntaxHelpers.IsISourceGeneratedDependencyActivatorInterface)
-                // Or if any base types are to be processed by this generator.
-                || SyntaxHelpers.EnumerateBaseTypes(candidate.Symbol).Any(t => receiver.CandidateClasses.ContainsKey(t));
         }
 
         public string Emit()
@@ -71,7 +44,7 @@ namespace osu.Framework.SourceGeneration.Emitters
             StringBuilder result = new StringBuilder();
             result.Append(headers);
 
-            if (ClassType.ContainingNamespace.IsGlobalNamespace)
+            if (Candidate.ContainingNamespace == null)
             {
                 result.Append(
                     emitDependenciesClass().NormalizeWhitespace());
@@ -80,8 +53,7 @@ namespace osu.Framework.SourceGeneration.Emitters
             {
                 result.Append(
                     SyntaxFactory.NamespaceDeclaration(
-                                     SyntaxFactory.IdentifierName(
-                                         ClassType.ContainingNamespace.ToDisplayString()))
+                                     SyntaxFactory.IdentifierName(Candidate.ContainingNamespace))
                                  .WithMembers(
                                      SyntaxFactory.SingletonList(
                                          emitDependenciesClass()))
@@ -99,7 +71,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                            SyntaxFactory.BaseList(
                                SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                                    SyntaxFactory.SimpleBaseType(
-                                       SyntaxFactory.ParseTypeName(iSourceGeneratedDependencyActivatorType.ToDisplayString())))))
+                                       SyntaxFactory.ParseTypeName("osu.Framework.Allocation.ISourceGeneratedDependencyActivator")))))
                        .WithMembers(
                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                SyntaxFactory.MethodDeclaration(
@@ -114,7 +86,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                                         SyntaxFactory.Parameter(
                                                                          SyntaxFactory.Identifier(REGISTRY_PARAMETER_NAME))
                                                                      .WithType(
-                                                                         SyntaxFactory.ParseTypeName(iDependencyActivatorRegistryType.ToDisplayString())))))
+                                                                         SyntaxFactory.ParseTypeName("osu.Framework.Allocation.IDependencyActivatorRegistry")))))
                                             .WithBody(
                                                 SyntaxFactory.Block(
                                                     emitPrecondition(),
@@ -126,13 +98,8 @@ namespace osu.Framework.SourceGeneration.Emitters
         {
             List<ClassDeclarationSyntax> classes = new List<ClassDeclarationSyntax>();
 
-            ITypeSymbol? typeSymbol = ClassType;
-
-            while (typeSymbol != null)
-            {
-                classes.Add(createClassSyntax(typeSymbol));
-                typeSymbol = typeSymbol.ContainingType ?? null;
-            }
+            foreach (string type in Candidate.TypeHierarchy)
+                classes.Add(createClassSyntax(type));
 
             classes[0] = innerClassAction(classes[0]);
 
@@ -141,14 +108,9 @@ namespace osu.Framework.SourceGeneration.Emitters
 
             return classes.Last();
 
-            static ClassDeclarationSyntax createClassSyntax(ITypeSymbol typeSymbol)
+            static ClassDeclarationSyntax createClassSyntax(string type)
             {
-                string name = typeSymbol.Name;
-
-                if (typeSymbol is INamedTypeSymbol named && named.TypeParameters.Length > 0)
-                    name += $@"<{string.Join(@", ", named.TypeParameters)}>";
-
-                return SyntaxFactory.ClassDeclaration(name)
+                return SyntaxFactory.ClassDeclaration(type)
                                     .WithModifiers(
                                         SyntaxTokenList.Create(
                                             SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
@@ -157,7 +119,7 @@ namespace osu.Framework.SourceGeneration.Emitters
 
         private SyntaxTokenList emitMethodModifiers()
         {
-            if (needsOverride)
+            if (Candidate.NeedsOverride)
             {
                 return SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PublicKeyword),
@@ -182,13 +144,13 @@ namespace osu.Framework.SourceGeneration.Emitters
                                      SyntaxFactory.SingletonSeparatedList(
                                          SyntaxFactory.Argument(
                                              SyntaxFactory.TypeOfExpression(
-                                                 SyntaxFactory.ParseTypeName(ClassType.ToDisplayString())))))),
+                                                 SyntaxFactory.ParseTypeName(Candidate.TypeName)))))),
                 SyntaxFactory.ReturnStatement());
         }
 
         private StatementSyntax emitBaseCall()
         {
-            if (!needsOverride)
+            if (!Candidate.NeedsOverride)
                 return SyntaxFactory.ParseStatement(string.Empty);
 
             return SyntaxFactory.ExpressionStatement(
@@ -221,7 +183,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                      {
                                          SyntaxFactory.Argument(
                                              SyntaxFactory.TypeOfExpression(
-                                                 SyntaxFactory.ParseTypeName(ClassType.ToDisplayString()))),
+                                                 SyntaxFactory.ParseTypeName(Candidate.TypeName))),
                                          SyntaxFactory.Argument(
                                              emitInjectDependenciesDelegate()),
                                          SyntaxFactory.Argument(
@@ -231,7 +193,7 @@ namespace osu.Framework.SourceGeneration.Emitters
 
         private ExpressionSyntax emitInjectDependenciesDelegate()
         {
-            if (Candidate.DependencyLoaderMemebers.Count == 0 && Candidate.ResolvedMembers.Count == 0)
+            if (Candidate.DependencyLoaderMembers.Count == 0 && Candidate.ResolvedMembers.Count == 0)
                 return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
             return SyntaxFactory.ParenthesizedLambdaExpression()
@@ -248,7 +210,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                     SyntaxFactory.Block(
                                         Candidate.ResolvedMembers.Select(m => (IStatementEmitter)new ResolvedMemberEmitter(this, m))
                                                  .Concat(
-                                                     Candidate.DependencyLoaderMemebers.Select(m => new BackgroundDependencyLoaderEmitter(this, m)))
+                                                     Candidate.DependencyLoaderMembers.Select(m => new BackgroundDependencyLoaderEmitter(this, m)))
                                                  .SelectMany(
                                                      e => e.Emit())));
         }

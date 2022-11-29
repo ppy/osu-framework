@@ -1,39 +1,66 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Emitters;
 
 namespace osu.Framework.SourceGeneration
 {
     [Generator]
-    public class DependencyInjectionSourceGenerator : ISourceGenerator
+    public class DependencyInjectionSourceGenerator : IIncrementalGenerator
     {
-        protected virtual bool AddUniqueNameSuffix => true;
-
-        public void Initialize(GeneratorInitializationContext context)
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxContextReceiver());
+            IncrementalValuesProvider<GeneratorClassCandidate> candidateClasses =
+                context.SyntaxProvider.CreateSyntaxProvider(selectClasses, extractCandidates)
+                       .Where(c => c != null);
+
+            IncrementalValuesProvider<GeneratorClassCandidate> distinctCandidates =
+                candidateClasses.Collect().SelectMany((c, _) => c.Distinct());
+
+            context.RegisterImplementationSourceOutput(distinctCandidates, emit);
         }
 
-        public void Execute(GeneratorExecutionContext context)
+        private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
-            if (context.SyntaxContextReceiver is not SyntaxContextReceiver receiver)
-                return;
+            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
+                return false;
 
-            foreach (var kvp in receiver.CandidateClasses)
-            {
-                GeneratorClassCandidate classCandidate = kvp.Value;
+            if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
+                return false;
 
-                // Fully qualified name, with generics replaced with friendly characters.
-                string typeName = classCandidate.Symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
-                                                .Replace('<', '{')
-                                                .Replace('>', '}');
+            if (classSyntax.BaseList == null && classSyntax.AttributeLists.Count == 0)
+                return false;
 
-                string filename = $"g_{typeName}_Dependencies.cs";
+            return true;
+        }
 
-                context.AddSource(filename, new DependenciesFileEmitter(context, receiver, classCandidate).Emit());
-            }
+        private GeneratorClassCandidate extractCandidates(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+        {
+            ClassDeclarationSyntax classSyntax = (ClassDeclarationSyntax)context.Node;
+            INamedTypeSymbol? symbol = context.SemanticModel.GetDeclaredSymbol(classSyntax);
+
+            if (symbol == null)
+                return null!;
+
+            // Determine if the class is a candidate for the source generator.
+            if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
+                return null!;
+
+            return new GeneratorClassCandidate(symbol);
+        }
+
+        private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)
+        {
+            // Fully qualified name, with generics replaced with friendly characters.
+            string typeName = candidate.FullyQualifiedTypeName.Replace('<', '{').Replace('>', '}');
+            string filename = $"g_{typeName}_Dependencies.cs";
+
+            context.AddSource(filename, new DependenciesFileEmitter(candidate).Emit());
         }
     }
 }
