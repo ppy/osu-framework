@@ -34,11 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Analysers/**/*.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Data/**/*.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Emitters/**/*.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GeneratorClassCandidate.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SyntaxHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common/**/*.cs" />
   </ItemGroup>
 
   <Target Name="CopyToArtifactsDir" AfterTargets="AfterBuild">
