@@ -4,7 +4,7 @@ uniform bool g_GammaCorrection;
 
 lowp float toLinear(lowp float color)
 {
-    return abs(color) <= 0.04045 ? (color / 12.92) : (sign(color) * pow((abs(color) + 0.055) / 1.055, GAMMA));
+    return color <= 0.04045 ? (color / 12.92) : pow((color + 0.055) / 1.055, GAMMA);
 }
 
 lowp vec4 toLinear(lowp vec4 colour)
@@ -18,7 +18,7 @@ lowp vec4 toLinear(lowp vec4 colour)
 
 lowp float toSRGB(lowp float color)
 {
-    return abs(color) < 0.0031308 ? (12.92 * color) : (1.055 * sign(color) * (pow(abs(color), 1.0 / GAMMA) - 0.055));
+    return color < 0.0031308 ? (12.92 * color) : (1.055 * (pow(color, 1.0 / GAMMA) - 0.055));
 }
 
 lowp vec4 toSRGB(lowp vec4 colour)
@@ -32,7 +32,9 @@ lowp vec4 toSRGB(lowp vec4 colour)
     //return vec4(mix(colour.rgb * 12.92, 1.055 * pow(colour.rgb, vec3(1.0 / GAMMA)) - vec3(0.055), step(0.0031308, colour.rgb)), colour.a);
 }
 
-// perform alpha compositing of two colour components. Assumed both are linear with premultiplied alpha
+// Perform alpha compositing of two colour components. Assumed both are linear with premultiplied alpha.
+// The linearity assumption is sometimes broken in practice (IIRC because it produces nicer looking blends
+// than the physically correct linear blend), but alpha premultiplication must always be satisfied.
 lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
 {
     return src + dst * (1.0 - src.a);

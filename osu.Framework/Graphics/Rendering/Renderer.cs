@@ -313,7 +313,6 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Blending
 
-
         public void SetBlend(BlendingParameters blendingParameters)
         {
             // The assignment is necessary, because the equality operator does not check for additive blending

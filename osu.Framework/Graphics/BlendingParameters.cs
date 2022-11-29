@@ -130,9 +130,6 @@ namespace osu.Framework.Graphics
 
             if (AlphaEquation == BlendingEquation.Inherit)
                 AlphaEquation = parent.AlphaEquation;
-
-            if (AlphaEquation == BlendingEquation.Inherit)
-                AlphaEquation = parent.AlphaEquation;
         }
 
         /// <summary>
