@@ -23,7 +23,7 @@ namespace osu.Framework.SourceGeneration
             if (context.SyntaxContextReceiver is not CustomSyntaxContextReceiver receiver)
                 return;
 
-            foreach (var candidate in receiver.Candidates)
+            foreach (var candidate in receiver.Candidates.Distinct())
             {
                 // Fully qualified name, with generics replaced with friendly characters.
                 string typeName = candidate.FullyQualifiedTypeName.Replace('<', '{').Replace('>', '}');
