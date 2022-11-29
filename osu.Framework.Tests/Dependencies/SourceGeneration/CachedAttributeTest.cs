@@ -286,7 +286,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
-            Assert.AreEqual(provider, dependencies.Get<Provider26>());
+            Assert.IsNull(dependencies.Get<Provider26>());
         }
 
         [Test]
@@ -472,7 +472,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        [Cached]
         private partial class Provider26 : Provider1
         {
         }
