@@ -69,9 +69,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.iOS", "osu.Framew
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Tests", "osu.Framework.SourceGeneration.Tests\osu.Framework.SourceGeneration.Tests.csproj", "{A0DDCF0A-A352-4CC6-8E6E-0E16CAA50CDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Roslyn3.11", "osu.Framework.SourceGeneration\osu.Framework.SourceGeneration.Roslyn3.11.csproj", "{447F6732-9BA1-4416-94B2-9BE838DE8F2E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Roslyn3.11", "osu.Framework.SourceGeneration\Roslyn3.11\osu.Framework.SourceGeneration.Roslyn3.11.csproj", "{447F6732-9BA1-4416-94B2-9BE838DE8F2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Roslyn4.0", "osu.Framework.SourceGeneration\osu.Framework.SourceGeneration.Roslyn4.0.csproj", "{46A4B178-B3F9-4771-9D45-B2F5A91CE605}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Roslyn4.0", "osu.Framework.SourceGeneration\Roslyn4.0\osu.Framework.SourceGeneration.Roslyn4.0.csproj", "{46A4B178-B3F9-4771-9D45-B2F5A91CE605}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

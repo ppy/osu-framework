@@ -11,6 +11,6 @@
     <PackageReference Include="xunit" Version="2.4.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.SourceGeneration\osu.Framework.SourceGeneration.Roslyn4.0.csproj" />
+    <ProjectReference Include="..\osu.Framework.SourceGeneration\Roslyn4.0\osu.Framework.SourceGeneration.Roslyn4.0.csproj" />
   </ItemGroup>
 </Project>
