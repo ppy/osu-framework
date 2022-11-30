@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics
             Destination = BlendingType.OneMinusSrcAlpha,
             DestinationAdditive = false,
             SourceAlpha = BlendingType.One,
-            DestinationAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.OneMinusSrcAlpha,
             RGBEquation = BlendingEquation.Add,
             AlphaEquation = BlendingEquation.Add,
         };
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics
             Destination = BlendingType.OneMinusSrcAlpha,
             DestinationAdditive = true,
             SourceAlpha = BlendingType.One,
-            DestinationAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.OneMinusSrcAlpha,
             RGBEquation = BlendingEquation.Add,
             AlphaEquation = BlendingEquation.Add,
         };
