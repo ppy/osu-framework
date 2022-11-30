@@ -26,11 +26,13 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private readonly FillFlowContainer blendingSrcContainer;
         private readonly FillFlowContainer blendingDestContainer;
+        private readonly FillFlowContainer blendingDestAdditiveContainer;
         private readonly FillFlowContainer blendingAlphaSrcContainer;
         private readonly FillFlowContainer blendingAlphaDestContainer;
 
         private readonly Dropdown<BlendingType> blendingSrcDropdown;
         private readonly Dropdown<BlendingType> blendingDestDropdown;
+        private readonly Dropdown<bool> blendingDestAdditiveDropdown;
         private readonly Dropdown<BlendingType> blendingAlphaSrcDropdown;
         private readonly Dropdown<BlendingType> blendingAlphaDestDropdown;
 
@@ -185,6 +187,18 @@ namespace osu.Framework.Tests.Visual.Drawables
                 },
             };
 
+            blendingDestAdditiveContainer = new FillFlowContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(0, 5),
+                Children = new Drawable[]
+                {
+                    new SpriteText { Text = "Custom: DestinationAdditive" },
+                    blendingDestAdditiveDropdown = new BasicDropdown<bool> { Width = 200 }
+                },
+            };
+
             blendingAlphaSrcContainer = new FillFlowContainer
             {
                 AutoSizeAxes = Axes.Both,
@@ -215,6 +229,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             blendingSrcDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
             blendingDestDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
+            blendingDestAdditiveDropdown.Items = new[] { false, true };
             blendingAlphaSrcDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
             blendingAlphaDestDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
 
@@ -222,16 +237,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             colourEquation.Current.Value = foregroundContainer.Blending.RGBEquation;
             alphaEquation.Current.Value = foregroundContainer.Blending.AlphaEquation;
 
-            blendingSrcDropdown.Current.Value = BlendingType.SrcAlpha;
+            blendingSrcDropdown.Current.Value = BlendingType.One;
             blendingDestDropdown.Current.Value = BlendingType.OneMinusSrcAlpha;
+            blendingDestAdditiveDropdown.Current.Value = false;
             blendingAlphaSrcDropdown.Current.Value = BlendingType.One;
-            blendingAlphaDestDropdown.Current.Value = BlendingType.One;
+            blendingAlphaDestDropdown.Current.Value = BlendingType.OneMinusSrcAlpha;
 
             colourModeDropdown.Current.ValueChanged += _ => updateBlending();
             colourEquation.Current.ValueChanged += _ => updateBlending();
             alphaEquation.Current.ValueChanged += _ => updateBlending();
             blendingSrcDropdown.Current.ValueChanged += _ => updateBlending();
             blendingDestDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingDestAdditiveDropdown.Current.ValueChanged += _ => updateBlending();
             blendingAlphaSrcDropdown.Current.ValueChanged += _ => updateBlending();
             blendingAlphaDestDropdown.Current.ValueChanged += _ => updateBlending();
         }
@@ -240,6 +257,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             settingsBox.Add(blendingSrcContainer);
             settingsBox.Add(blendingDestContainer);
+            settingsBox.Add(blendingDestAdditiveContainer);
             settingsBox.Add(blendingAlphaSrcContainer);
             settingsBox.Add(blendingAlphaDestContainer);
         }
@@ -248,6 +266,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             settingsBox.Remove(blendingSrcContainer, false);
             settingsBox.Remove(blendingDestContainer, false);
+            settingsBox.Remove(blendingDestAdditiveContainer, false);
             settingsBox.Remove(blendingAlphaSrcContainer, false);
             settingsBox.Remove(blendingAlphaDestContainer, false);
         }
@@ -263,6 +282,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     Source = blendingSrcDropdown.Current.Value,
                     Destination = blendingDestDropdown.Current.Value,
+                    DestinationAdditive = blendingDestAdditiveDropdown.Current.Value,
                     SourceAlpha = blendingAlphaSrcDropdown.Current.Value,
                     DestinationAlpha = blendingAlphaDestDropdown.Current.Value,
                     RGBEquation = colourEquation.Current.Value,
