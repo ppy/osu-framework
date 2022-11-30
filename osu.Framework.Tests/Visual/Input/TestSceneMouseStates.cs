@@ -236,6 +236,36 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void DragWithDraggedDrawableRemovedMidDrag()
+        {
+            initTestScene();
+
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            checkEventCount(mouse_down, 1);
+            checkIsDragged(false);
+
+            AddStep("move bottom left", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
+            checkEventCount(drag_start, 1);
+            checkEventCount(drag, 1);
+            checkIsDragged(true);
+
+            AddStep("Remove drawable", () => Clear());
+
+            checkEventCount(drag, 0);
+            checkEventCount(drag_end, 0);
+            checkIsDragged(false);
+
+            AddStep("move bottom right", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            checkEventCount(drag_start, 0);
+            checkEventCount(drag, 0);
+            checkEventCount(mouse_up, 0);
+            checkEventCount(drag_end, 0);
+            checkIsDragged(false);
+        }
+
+        [Test]
         public void CombinationChanges()
         {
             initTestScene();
