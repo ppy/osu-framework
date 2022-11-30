@@ -42,7 +42,9 @@
     <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="$(MSBuildThisFileDirectory)artifacts\roslyn$(AnalyserVersion)\cs\" />
   </Target>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)artifacts/" Pack="true" PackagePath="analyzers/dotnet/" Visible="false" />
+  <ItemGroup Label="Package">
+    <None Include="$(MSBuildThisFileDirectory)targets\ppy.osu.Framework.SourceGeneration.targets" PackagePath="buildTransitive\netstandard2.0" Pack="true" />
+    <None Include="$(MSBuildThisFileDirectory)targets\ppy.osu.Framework.SourceGeneration.targets" PackagePath="build\netstandard2.0" Pack="true" />
+    <None Include="$(MSBuildThisFileDirectory)artifacts\" Pack="true" PackagePath="analyzers/dotnet/" Visible="false" />
   </ItemGroup>
 </Project>
