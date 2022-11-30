@@ -7,6 +7,7 @@
 
     <IsRoslynComponent>true</IsRoslynComponent>
     <IsPackable>true</IsPackable>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Do not include the generator as a lib dependency. -->
