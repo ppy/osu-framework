@@ -39,7 +39,7 @@ namespace osu.Framework.SourceGeneration.Emitters
             Candidate = candidate;
         }
 
-        public string Emit()
+        public void Emit(AddSourceDelegate addSource)
         {
             StringBuilder result = new StringBuilder();
             result.Append(headers);
@@ -60,7 +60,11 @@ namespace osu.Framework.SourceGeneration.Emitters
                                  .NormalizeWhitespace());
             }
 
-            return result.ToString();
+            // Fully qualified name, with generics replaced with friendly characters.
+            string typeName = Candidate.FullyQualifiedTypeName.Replace('<', '{').Replace('>', '}');
+            string filename = $"g_{typeName}_Dependencies.cs";
+
+            addSource(filename, result.ToString());
         }
 
         private MemberDeclarationSyntax emitDependenciesClass()
@@ -265,4 +269,6 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(LOCAL_DEPENDENCIES_VAR_NAME));
         }
     }
+
+    public delegate void AddSourceDelegate(string filename, string sourceText);
 }

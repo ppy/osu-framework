@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Data;
 
 namespace osu.Framework.SourceGeneration
@@ -86,6 +88,37 @@ namespace osu.Framework.SourceGeneration
                     }
                 }
             }
+        }
+
+        public static bool IsCandidate(SyntaxNode syntaxNode)
+        {
+            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
+                return false;
+
+            if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
+                return false;
+
+            if (classSyntax.BaseList == null && classSyntax.AttributeLists.Count == 0)
+                return false;
+
+            return true;
+        }
+
+        public static GeneratorClassCandidate? TryCreate(SyntaxNode syntaxNode, SemanticModel semanticModel)
+        {
+            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
+                return null;
+
+            INamedTypeSymbol? symbol = semanticModel.GetDeclaredSymbol(classSyntax);
+
+            if (symbol == null)
+                return null;
+
+            // Determine if the class is a candidate for the source generator.
+            if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
+                return null;
+
+            return new GeneratorClassCandidate(symbol);
         }
 
         private static string createTypeName(ITypeSymbol typeSymbol)

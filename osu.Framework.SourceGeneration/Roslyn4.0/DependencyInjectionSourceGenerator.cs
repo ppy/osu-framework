@@ -4,8 +4,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Emitters;
 
 namespace osu.Framework.SourceGeneration
@@ -26,41 +24,12 @@ namespace osu.Framework.SourceGeneration
         }
 
         private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
-        {
-            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
-                return false;
-
-            if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
-                return false;
-
-            if (classSyntax.BaseList == null && classSyntax.AttributeLists.Count == 0)
-                return false;
-
-            return true;
-        }
+            => GeneratorClassCandidate.IsCandidate(syntaxNode);
 
         private GeneratorClassCandidate extractCandidates(GeneratorSyntaxContext context, CancellationToken cancellationToken)
-        {
-            ClassDeclarationSyntax classSyntax = (ClassDeclarationSyntax)context.Node;
-            INamedTypeSymbol? symbol = context.SemanticModel.GetDeclaredSymbol(classSyntax);
-
-            if (symbol == null)
-                return null!;
-
-            // Determine if the class is a candidate for the source generator.
-            if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
-                return null!;
-
-            return new GeneratorClassCandidate(symbol);
-        }
+            => GeneratorClassCandidate.TryCreate(context.Node, context.SemanticModel)!;
 
         private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)
-        {
-            // Fully qualified name, with generics replaced with friendly characters.
-            string typeName = candidate.FullyQualifiedTypeName.Replace('<', '{').Replace('>', '}');
-            string filename = $"g_{typeName}_Dependencies.cs";
-
-            context.AddSource(filename, new DependenciesFileEmitter(candidate).Emit());
-        }
+            => new DependenciesFileEmitter(candidate).Emit(context.AddSource);
     }
 }
