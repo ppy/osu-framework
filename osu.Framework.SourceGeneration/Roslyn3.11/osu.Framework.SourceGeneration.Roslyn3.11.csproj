@@ -4,7 +4,7 @@
     <RoslynApiVersion>3.11</RoslynApiVersion>
   </PropertyGroup>
 
-  <Import Project="..\osu.Framework.SourceGeneration.targets" />
+  <Import Project="..\Build.targets" />
 
   <ItemGroup>
     <Compile Include="DependencyInjectionSourceGenerator.cs" />
