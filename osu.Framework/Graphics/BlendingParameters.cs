@@ -159,9 +159,18 @@ namespace osu.Framework.Graphics
                 AlphaEquation = BlendingEquation.Add;
         }
 
+        public readonly bool EqualsExceptForAdditive(BlendingParameters other) =>
+            other.Source == Source
+            && other.Destination == Destination
+            && other.SourceAlpha == SourceAlpha
+            && other.DestinationAlpha == DestinationAlpha
+            && other.RGBEquation == RGBEquation
+            && other.AlphaEquation == AlphaEquation;
+
         public readonly bool Equals(BlendingParameters other) =>
             other.Source == Source
             && other.Destination == Destination
+            && other.DestinationAdditive == DestinationAdditive
             && other.SourceAlpha == SourceAlpha
             && other.DestinationAlpha == DestinationAlpha
             && other.RGBEquation == RGBEquation
@@ -170,6 +179,7 @@ namespace osu.Framework.Graphics
         public static bool operator ==(in BlendingParameters left, in BlendingParameters right) =>
             left.Source == right.Source &&
             left.Destination == right.Destination &&
+            left.DestinationAdditive == right.DestinationAdditive &&
             left.SourceAlpha == right.SourceAlpha &&
             left.DestinationAlpha == right.DestinationAlpha &&
             left.RGBEquation == right.RGBEquation &&

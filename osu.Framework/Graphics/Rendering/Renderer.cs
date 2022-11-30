@@ -315,11 +315,10 @@ namespace osu.Framework.Graphics.Rendering
 
         public void SetBlend(BlendingParameters blendingParameters)
         {
-            // The assignment is necessary, because the equality operator does not check for additive blending
             BlendingParameters oldBlendingParameters = CurrentBlendingParameters;
             CurrentBlendingParameters = blendingParameters;
 
-            if (CurrentBlendingParameters == oldBlendingParameters)
+            if (CurrentBlendingParameters.EqualsExceptForAdditive(oldBlendingParameters))
                 return;
 
             FlushCurrentBatch(FlushBatchSource.SetBlend);
