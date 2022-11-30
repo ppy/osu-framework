@@ -79,8 +79,19 @@ lowp vec4 getBorderColour()
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
 	// The rest of the shader assumes that textures have non-premultiplied alpha
-	if (g_TextureHasPremultipliedAlpha && texel.a > 0.0)
-		texel.rgb /= texel.a;
+	if (g_TextureHasPremultipliedAlpha)
+	{
+		// Technically, fully additive colours can not have their alpha
+		// unmultiplied, because it is zero (no opacity). Hence the following
+		// hack: set alpha to a small, but non-zero value, such that it permits
+		// unmultiplication and later remultiplication without visibly affecting
+		// the blending.
+		texel.a = max(texel.a, 1.0 / 1024.0);
+
+		// More hackiness: because osu! blends non-physically in sRGB space for
+		// asthetic reasons, we need to unmultiply alpha in sRGB space.
+		texel.rgb = toLinear(toSRGB(texel) / texel.a).rgb;
+	}
 
 	bool isEmissive = v_Colour.a < 0.0;
 	vec4 colour = abs(v_Colour);
