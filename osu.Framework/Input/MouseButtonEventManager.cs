@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -142,7 +143,10 @@ namespace osu.Framework.Input
             BlockNextClick = false;
 
             if (EnableDrag)
-                handleDragEnd(state);
+            {
+                DragStarted = false;
+                handleDragDrawableEnd(state);
+            }
 
             MouseDownPosition = null;
         }
@@ -188,8 +192,8 @@ namespace osu.Framework.Input
 
         private void handleDragStart(InputState state)
         {
-            Trace.Assert(DraggedDrawable == null, $"The {nameof(DraggedDrawable)} was not set to null by {nameof(handleDragEnd)}.");
-            Trace.Assert(!DragStarted, $"A {nameof(DraggedDrawable)} was already searched for. Call {nameof(handleDragEnd)} first.");
+            Trace.Assert(DraggedDrawable == null, $"The {nameof(DraggedDrawable)} was not set to null by {nameof(handleDragDrawableEnd)}.");
+            Trace.Assert(!DragStarted, $"A {nameof(DraggedDrawable)} was already searched for. Call {nameof(handleDragDrawableEnd)} first.");
 
             Trace.Assert(MouseDownPosition != null);
 
@@ -200,26 +204,36 @@ namespace osu.Framework.Input
 
             var draggable = PropagateButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
             if (draggable != null)
-                handleDragBegin(draggable);
+                handleDragDrawableBegin(draggable);
         }
 
-        private void handleDragBegin(Drawable drawable)
+        private void draggedDrawableInvalidated(Drawable drawable, Invalidation invalidation)
+        {
+            if (invalidation.HasFlagFast(Invalidation.Parent))
+            {
+                // end drag if no longer rooted.
+                if (drawable.FindClosestParent<InputManager>() == null)
+                    handleDragDrawableEnd();
+            }
+        }
+
+        private void handleDragDrawableBegin(Drawable drawable)
         {
             DraggedDrawable = drawable;
             DraggedDrawable.IsDragged = true;
+            DraggedDrawable.Invalidated += draggedDrawableInvalidated;
         }
 
-        private void handleDragEnd(InputState state)
+        private void handleDragDrawableEnd(InputState? state = null)
         {
-            DragStarted = false;
-
             if (DraggedDrawable == null) return;
 
             var previousDragged = DraggedDrawable;
-            previousDragged.IsDragged = false;
             DraggedDrawable = null;
 
-            PropagateButtonEvent(new[] { previousDragged }, new DragEndEvent(state, Button, MouseDownPosition));
+            previousDragged.IsDragged = false;
+            if (state != null)
+                PropagateButtonEvent(new[] { previousDragged }, new DragEndEvent(state, Button, MouseDownPosition));
         }
     }
 }
