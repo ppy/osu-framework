@@ -164,7 +164,7 @@ namespace osu.Framework.Input
 
         private bool handleDoubleClick(InputState state, List<Drawable> targets)
         {
-            if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
+            if (!ClickedDrawable.TryGetTarget(out Drawable? clicked))
                 return false;
 
             if (!targets.Contains(clicked))

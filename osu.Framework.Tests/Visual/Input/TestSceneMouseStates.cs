@@ -539,8 +539,8 @@ namespace osu.Framework.Tests.Visual.Input
                     var state = inputManager.CurrentState;
 
                     source.Text = inputManager.ToString();
-                    keyboard.Text = state.Keyboard.ToString();
-                    mouse.Text = state.Mouse.ToString();
+                    keyboard.Text = state.Keyboard?.ToString() ?? string.Empty;
+                    mouse.Text = state.Mouse?.ToString() ?? string.Empty;
                 }
             }
 

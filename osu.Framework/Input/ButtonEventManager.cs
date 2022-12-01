@@ -35,7 +35,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The input queue.
         /// </summary>
-        protected IEnumerable<Drawable> InputQueue => GetInputQueue.Invoke() ?? Enumerable.Empty<Drawable>();
+        protected IEnumerable<Drawable> InputQueue => GetInputQueue.Invoke();
 
         /// <summary>
         /// A function to retrieve the input queue.
