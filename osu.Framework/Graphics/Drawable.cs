@@ -421,7 +421,7 @@ namespace osu.Framework.Graphics
         /// <summary>.
         /// Fired after the <see cref="Invalidate"/> method is called.
         /// </summary>
-        internal event Action<Drawable> Invalidated;
+        internal event Action<Drawable, Invalidation> Invalidated;
 
         /// <summary>
         /// Fired after the <see cref="Dispose(bool)"/> method is called.
@@ -1811,7 +1811,7 @@ namespace osu.Framework.Graphics
             if (anyInvalidated)
                 InvalidationID++;
 
-            Invalidated?.Invoke(this);
+            Invalidated?.Invoke(this, invalidation);
 
             return anyInvalidated;
         }

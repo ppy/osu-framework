@@ -299,7 +299,7 @@ namespace osu.Framework.Tests.Layout
                 // Trigger a validation of draw size.
                 Assert.That(child.DrawSize, Is.EqualTo(new Vector2(200)));
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("resize parent", () => parent.Size = new Vector2(400));
@@ -328,7 +328,7 @@ namespace osu.Framework.Tests.Layout
             AddStep("make child dead", () =>
             {
                 child.LifetimeStart = double.MaxValue;
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             // See above: won't cause an invalidation
@@ -364,7 +364,7 @@ namespace osu.Framework.Tests.Layout
                     }
                 };
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("invalidate parent", () =>
@@ -395,7 +395,7 @@ namespace osu.Framework.Tests.Layout
                     Child = child = new Box { RelativeSizeAxes = Axes.Both }
                 };
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("invalidate parent", () =>
