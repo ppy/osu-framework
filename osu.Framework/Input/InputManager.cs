@@ -136,7 +136,10 @@ namespace osu.Framework.Input
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
         private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<TabletPenButton, TabletPenButtonEventManager> tabletPenButtonEventManagers = new Dictionary<TabletPenButton, TabletPenButtonEventManager>();
-        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers = new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
+        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers =
+            new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
@@ -155,9 +158,10 @@ namespace osu.Framework.Input
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
                 var manager = CreateButtonEventManagerFor(button);
-                manager.RequestFocus = ChangeFocusFromClick;
+
+                manager.InputManager = this;
                 manager.GetInputQueue = () => PositionalInputQueue;
-                manager.GetCurrentTime = () => Time.Current;
+
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -214,6 +218,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return keyButtonEventManagers[key] = manager;
         }
@@ -236,6 +241,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
+            manager.InputManager = this;
             manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
@@ -258,6 +264,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => PositionalInputQueue;
             return tabletPenButtonEventManagers[button] = manager;
         }
@@ -280,6 +287,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return tabletAuxiliaryButtonEventManagers[button] = manager;
         }
@@ -302,6 +310,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
         }
@@ -324,6 +333,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return midiKeyEventManagers[key] = manager;
         }
@@ -857,7 +867,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
+            PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
@@ -940,7 +951,7 @@ namespace osu.Framework.Input
             return valid;
         }
 
-        protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)
+        protected internal virtual void ChangeFocusFromClick(Drawable clickedDrawable)
         {
             Drawable focusTarget = null;
 

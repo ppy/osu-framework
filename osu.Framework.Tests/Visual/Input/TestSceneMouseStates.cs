@@ -260,7 +260,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             checkEventCount(drag_start, 0);
             checkEventCount(drag, 0);
-            checkEventCount(mouse_up, 1); // TODO: requires a different fix in ButtonEventManager.
+            checkEventCount(mouse_up, 0);
             checkEventCount(drag_end, 0);
             checkIsDragged(false);
         }

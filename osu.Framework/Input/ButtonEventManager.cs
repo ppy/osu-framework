@@ -1,12 +1,11 @@
+#nullable enable
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using JetBrains.Annotations;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
@@ -20,6 +19,8 @@ namespace osu.Framework.Input
     /// </summary>
     public abstract class ButtonEventManager<TButton>
     {
+        internal InputManager InputManager { get; set; } = null!;
+
         /// <summary>
         /// The button this <see cref="ButtonEventManager{TButton}"/> manages.
         /// </summary>
@@ -29,19 +30,17 @@ namespace osu.Framework.Input
         /// The input queue for propagating button up events.
         /// This is created from <see cref="InputQueue"/> when the button is pressed.
         /// </summary>
-        [CanBeNull]
-        protected List<Drawable> ButtonDownInputQueue { get; private set; }
+        protected List<Drawable>? ButtonDownInputQueue { get; private set; }
 
         /// <summary>
         /// The input queue.
         /// </summary>
-        [NotNull]
         protected IEnumerable<Drawable> InputQueue => GetInputQueue.Invoke() ?? Enumerable.Empty<Drawable>();
 
         /// <summary>
         /// A function to retrieve the input queue.
         /// </summary>
-        internal Func<IEnumerable<Drawable>> GetInputQueue;
+        internal Func<IEnumerable<Drawable>> GetInputQueue = null!;
 
         protected ButtonEventManager(TButton button)
         {
@@ -69,7 +68,7 @@ namespace osu.Framework.Input
         private bool handleButtonDown(InputState state)
         {
             List<Drawable> inputQueue = InputQueue.ToList();
-            Drawable handledBy = HandleButtonDown(state, inputQueue);
+            Drawable? handledBy = HandleButtonDown(state, inputQueue);
 
             if (handledBy != null)
             {
@@ -89,7 +88,7 @@ namespace osu.Framework.Input
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <param name="targets">The list of possible targets that can handle the event.</param>
         /// <returns>The <see cref="Drawable"/> that handled the event.</returns>
-        protected abstract Drawable HandleButtonDown(InputState state, List<Drawable> targets);
+        protected abstract Drawable? HandleButtonDown(InputState state, List<Drawable> targets);
 
         /// <summary>
         /// Handles the button being released.
@@ -97,7 +96,9 @@ namespace osu.Framework.Input
         /// <param name="state">The current <see cref="InputState"/>.</param>
         private void handleButtonUp(InputState state)
         {
-            HandleButtonUp(state, ButtonDownInputQueue);
+            Debug.Assert(ButtonDownInputQueue != null);
+
+            HandleButtonUp(state, ButtonDownInputQueue.Where(d => d.IsRootedAt(InputManager)).ToList());
             ButtonDownInputQueue = null;
         }
 
@@ -114,7 +115,7 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
         /// <returns>The drawable which handled the event or null if none.</returns>
-        protected Drawable PropagateButtonEvent(IEnumerable<Drawable> drawables, UIEvent e)
+        protected Drawable? PropagateButtonEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 

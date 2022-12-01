@@ -46,6 +46,23 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Check whether the drawable is rooted at a proposed parent drawable.
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> to be checked.</param>
+        /// <param name="root">The root to be checked against.</param>
+        /// <returns>Whether the drawable was rooted.</returns>
+        internal static bool IsRootedAt(this Drawable drawable, Drawable root)
+        {
+            while ((drawable = drawable.Parent) != null)
+            {
+                if (drawable == root)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Forces removal of this drawable from its parent, followed by immediate synchronous disposal.
         /// </summary>
         /// <remarks>
