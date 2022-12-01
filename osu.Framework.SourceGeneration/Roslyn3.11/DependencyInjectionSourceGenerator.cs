@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Emitters;
 
 namespace osu.Framework.SourceGeneration
@@ -31,13 +32,10 @@ namespace osu.Framework.SourceGeneration
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
-                if (!GeneratorClassCandidate.IsCandidate(context.Node))
+                if (!GeneratorClassCandidate.IsSyntaxTarget(context.Node))
                     return;
 
-                GeneratorClassCandidate? candidate = GeneratorClassCandidate.TryCreate(context.Node, context.SemanticModel);
-
-                if (candidate != null)
-                    Candidates.Add(candidate);
+                Candidates.Add(new GeneratorClassCandidate((ClassDeclarationSyntax)context.Node, context.SemanticModel).GetSemanticTarget());
             }
         }
     }

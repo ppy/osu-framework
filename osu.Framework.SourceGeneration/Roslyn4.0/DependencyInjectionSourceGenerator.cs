@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Emitters;
 
 namespace osu.Framework.SourceGeneration
@@ -13,21 +13,20 @@ namespace osu.Framework.SourceGeneration
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            IncrementalValuesProvider<GeneratorClassCandidate> candidateClasses =
-                context.SyntaxProvider.CreateSyntaxProvider(selectClasses, extractCandidates)
-                       .Where(c => c != null);
+            IncrementalValuesProvider<GeneratorClassCandidate> syntaxTargets =
+                context.SyntaxProvider.CreateSyntaxProvider(
+                    (n, _) => GeneratorClassCandidate.IsSyntaxTarget(n),
+                    (ctx, _) => new GeneratorClassCandidate((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel));
+
+            IncrementalValuesProvider<GeneratorClassCandidate> semanticTargets =
+                syntaxTargets
+                    .Select((c, _) => c.GetSemanticTarget());
 
             IncrementalValuesProvider<GeneratorClassCandidate> distinctCandidates =
-                candidateClasses.Collect().SelectMany((c, _) => c.Distinct());
+                semanticTargets.Collect().SelectMany((c, _) => c.Distinct());
 
             context.RegisterImplementationSourceOutput(distinctCandidates, emit);
         }
-
-        private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
-            => GeneratorClassCandidate.IsCandidate(syntaxNode);
-
-        private GeneratorClassCandidate extractCandidates(GeneratorSyntaxContext context, CancellationToken cancellationToken)
-            => GeneratorClassCandidate.TryCreate(context.Node, context.SemanticModel)!;
 
         private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)
             => new DependenciesFileEmitter(candidate).Emit(context.AddSource);
