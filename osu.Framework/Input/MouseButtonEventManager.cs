@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,12 +23,12 @@ namespace osu.Framework.Input
         /// <summary>
         /// Used for requesting focus from click.
         /// </summary>
-        internal Action<Drawable> RequestFocus;
+        internal Action<Drawable> RequestFocus = null!;
 
         /// <summary>
         /// A function for retrieving the current time.
         /// </summary>
-        internal Func<double> GetCurrentTime;
+        internal Func<double> GetCurrentTime = null!;
 
         /// <summary>
         /// Whether dragging is handled by the managed button.
@@ -75,7 +73,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The drawable which is clicked by the last click.
         /// </summary>
-        protected WeakReference<Drawable> ClickedDrawable = new WeakReference<Drawable>(null);
+        protected WeakReference<Drawable> ClickedDrawable = new WeakReference<Drawable>(null!);
 
         /// <summary>
         /// Whether a drag operation has started and <see cref="DraggedDrawable"/> has been searched for.
@@ -85,7 +83,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
         /// </summary>
-        public Drawable DraggedDrawable { get; protected set; }
+        public Drawable? DraggedDrawable { get; protected set; }
 
         public void HandlePositionChange(InputState state, Vector2 lastPosition)
         {
@@ -125,7 +123,7 @@ namespace osu.Framework.Input
             return handledBy;
         }
 
-        protected override void HandleButtonUp(InputState state, List<Drawable> targets)
+        protected override void HandleButtonUp(InputState state, List<Drawable>? targets)
         {
             Trace.Assert(!state.Mouse.IsPressed(Button));
 
@@ -151,7 +149,7 @@ namespace osu.Framework.Input
 
         protected bool BlockNextClick;
 
-        private void handleClick(InputState state, List<Drawable> targets)
+        private void handleClick(InputState state, List<Drawable>? targets)
         {
             if (targets == null) return;
 
@@ -200,9 +198,15 @@ namespace osu.Framework.Input
             // also the laziness of IEnumerable here
             var drawables = ButtonDownInputQueue.AsNonNull().Where(t => t.IsAlive && t.IsPresent);
 
-            DraggedDrawable = PropagateButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
-            if (DraggedDrawable != null)
-                DraggedDrawable.IsDragged = true;
+            var draggable = PropagateButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
+            if (draggable != null)
+                handleDragBegin(draggable);
+        }
+
+        private void handleDragBegin(Drawable drawable)
+        {
+            DraggedDrawable = drawable;
+            DraggedDrawable.IsDragged = true;
         }
 
         private void handleDragEnd(InputState state)
