@@ -217,12 +217,15 @@ namespace osu.Framework.Input
 
         private void handleDragDrawableEnd(InputState? state = null)
         {
-            if (DraggedDrawable == null) return;
-
             var previousDragged = DraggedDrawable;
+
+            if (previousDragged == null) return;
+
+            previousDragged.Invalidated -= draggedDrawableInvalidated;
+            previousDragged.IsDragged = false;
+
             DraggedDrawable = null;
 
-            previousDragged.IsDragged = false;
             if (state != null)
                 PropagateButtonEvent(new[] { previousDragged }, new DragEndEvent(state, Button, MouseDownPosition));
         }
