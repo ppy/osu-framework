@@ -20,7 +20,8 @@ namespace osu.Framework.SourceGeneration
                 context.SyntaxProvider.CreateSyntaxProvider(
                            (n, _) => GeneratorClassCandidate.IsSyntaxTarget(n),
                            (ctx, _) => new SyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel))
-                       .Select((t, _) => t.WithName());
+                       .Select((t, _) => t.WithName())
+                       .Select((t, _) => t.WithSemanticTarget());
 
             // Stage 2: Separate out the old and new syntax targets for the same class object.
             // At this point, there are a bunch of old and new syntax targets that may refer to the same class object.
@@ -56,13 +57,7 @@ namespace osu.Framework.SourceGeneration
                         return result;
                     });
 
-            // Stage 3: Generate the semantic targets for the filtered syntax targets.
-            // For any old syntax targets, this is a no-op. For any new targets, this is a fairly complex operation involving semantic lookup.
-            IncrementalValuesProvider<GeneratorClassCandidate> semanticTargets =
-                distinctSyntaxTargets
-                    .Select((t, _) => t.ResolveSemanticTarget());
-
-            context.RegisterImplementationSourceOutput(semanticTargets, emit);
+            context.RegisterImplementationSourceOutput(distinctSyntaxTargets.Select((t, _) => t.SemanticTarget!), emit);
         }
 
         private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)

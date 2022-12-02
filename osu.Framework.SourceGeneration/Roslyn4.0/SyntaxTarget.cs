@@ -12,9 +12,9 @@ namespace osu.Framework.SourceGeneration
         public readonly ClassDeclarationSyntax Syntax;
         public string? SyntaxName { get; set; }
         public long? GenerationId;
+        public GeneratorClassCandidate? SemanticTarget { get; private set; }
 
         private SemanticModel? semanticModel;
-        private GeneratorClassCandidate? semanticTarget;
 
         public SyntaxTarget(ClassDeclarationSyntax syntax, SemanticModel semanticModel)
         {
@@ -28,12 +28,11 @@ namespace osu.Framework.SourceGeneration
             return this;
         }
 
-        public GeneratorClassCandidate ResolveSemanticTarget()
+        public SyntaxTarget WithSemanticTarget()
         {
-            semanticTarget ??= new GeneratorClassCandidate(Syntax, semanticModel!);
+            SemanticTarget ??= new GeneratorClassCandidate(Syntax, semanticModel!);
             semanticModel = null;
-
-            return semanticTarget;
+            return this;
         }
 
         public bool Equals(SyntaxTarget? other)
