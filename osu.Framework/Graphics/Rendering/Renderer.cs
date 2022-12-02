@@ -33,8 +33,6 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         private const int vbo_free_check_interval = 300;
 
-        public virtual GraphicsBackend BackendType => GraphicsBackend.OpenGL;
-
         public abstract bool VerticalSync { get; set; }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
@@ -133,9 +131,20 @@ namespace osu.Framework.Graphics.Rendering
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
         }
 
-        void IRenderer.Initialise(IWindowGraphics graphics)
+        void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
-            Initialise(graphics);
+            switch (graphicsSurface.Type)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                    Trace.Assert(graphicsSurface is IOpenGLGraphicsSurface, $"Window must implement {nameof(IOpenGLGraphicsSurface)}.");
+                    break;
+
+                case GraphicsSurfaceType.Metal:
+                    Trace.Assert(graphicsSurface is IMetalGraphicsSurface, $"Window graphics API must implement {nameof(IMetalGraphicsSurface)}.");
+                    break;
+            }
+
+            Initialise(graphicsSurface);
 
             defaultQuadBatch = CreateQuadBatch<TexturedVertex2D>(100, 1000);
             resetScheduler.AddDelayed(disposalQueue.CheckPendingDisposals, 0, true);
@@ -280,7 +289,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
         /// </summary>
-        protected abstract void Initialise(IWindowGraphics graphics);
+        protected abstract void Initialise(IGraphicsSurface graphicsSurface);
 
         /// <summary>
         /// Swaps the back buffer with the front buffer to display the new frame.

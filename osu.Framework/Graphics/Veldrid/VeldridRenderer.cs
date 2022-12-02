@@ -15,36 +15,12 @@ using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using Veldrid.OpenGL;
-using GraphicsBackend = osu.Framework.Platform.GraphicsBackend;
 using PixelFormat = Veldrid.PixelFormat;
 
 namespace osu.Framework.Graphics.Veldrid
 {
     internal class VeldridRenderer : Renderer
     {
-        private IWindowGraphics graphics = null!;
-
-        public override GraphicsBackend BackendType
-        {
-            get
-            {
-                switch (RuntimeInfo.OS)
-                {
-                    case RuntimeInfo.Platform.Windows:
-                        return GraphicsBackend.Direct3D11;
-
-                    case RuntimeInfo.Platform.macOS:
-                    case RuntimeInfo.Platform.iOS:
-                        return GraphicsBackend.Metal;
-
-                    default:
-                    case RuntimeInfo.Platform.Linux:
-                    case RuntimeInfo.Platform.Android:
-                        return GraphicsBackend.Vulkan;
-                }
-            }
-        }
-
         public override bool VerticalSync
         {
             get => Device.SyncToVerticalBlank;
@@ -57,6 +33,8 @@ namespace osu.Framework.Graphics.Veldrid
 
         public CommandList Commands { get; private set; } = null!;
 
+        private IGraphicsSurface graphicsSurface = null!;
+
         private GraphicsPipelineDescription pipeline = new GraphicsPipelineDescription
         {
             RasterizerState = RasterizerStateDescription.CullNone,
@@ -64,15 +42,13 @@ namespace osu.Framework.Graphics.Veldrid
             ShaderSet = { VertexLayouts = new VertexLayoutDescription[1] }
         };
 
-        protected override void Initialise(IWindowGraphics graphics)
+        protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
             // Veldrid must either be initialised on the main/"input" thread, or in a separate thread away from the draw thread at least.
             // Otherwise the window may not render anything on some platforms (macOS at least).
             Debug.Assert(!ThreadSafety.IsDrawThread, "Veldrid cannot be initialised on the draw thread.");
 
-            this.graphics = graphics;
-
-            var size = graphics.GetDrawableSize();
+            this.graphicsSurface = graphicsSurface;
 
             var options = new GraphicsDeviceOptions
             {
@@ -85,6 +61,8 @@ namespace osu.Framework.Graphics.Veldrid
                 PreferStandardClipSpaceYDirection = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
             };
+
+            var size = graphicsSurface.GetDrawableSize();
 
             var swapchain = new SwapchainDescription
             {
@@ -100,11 +78,11 @@ namespace osu.Framework.Graphics.Veldrid
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
-                    swapchain.Source = SwapchainSource.CreateWin32(graphics.WindowHandle, IntPtr.Zero);
+                    swapchain.Source = SwapchainSource.CreateWin32(graphicsSurface.WindowHandle, IntPtr.Zero);
                     break;
 
                 case RuntimeInfo.Platform.macOS:
-                    var metalGraphics = graphics as IMetalWindowGraphics ?? throw new InvalidOperationException($"Window graphics API must implement {nameof(IMetalWindowGraphics)}.");
+                    var metalGraphics = (IMetalGraphicsSurface)graphicsSurface;
                     swapchain.Source = SwapchainSource.CreateNSView(metalGraphics.CreateMetalView());
                     break;
 
@@ -114,10 +92,10 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
             }
 
-            switch (BackendType)
+            switch (graphicsSurface.Type)
             {
-                case GraphicsBackend.OpenGL:
-                    var openGLGraphics = graphics as IOpenGLWindowGraphics ?? throw new InvalidOperationException($"Window graphics API must implement {nameof(IOpenGLWindowGraphics)}");
+                case GraphicsSurfaceType.OpenGL:
+                    var openGLGraphics = (IOpenGLGraphicsSurface)graphicsSurface;
 
                     Device = GraphicsDevice.CreateOpenGL(options, new OpenGLPlatformInfo(
                         openGLContextHandle: openGLGraphics.WindowContext,
@@ -132,17 +110,17 @@ namespace osu.Framework.Graphics.Veldrid
                     Device.LogOpenGL(out maxTextureSize);
                     break;
 
-                case GraphicsBackend.Vulkan:
+                case GraphicsSurfaceType.Vulkan:
                     Device = GraphicsDevice.CreateVulkan(options, swapchain);
                     Device.LogVulkan(out maxTextureSize);
                     break;
 
-                case GraphicsBackend.Direct3D11:
+                case GraphicsSurfaceType.Direct3D11:
                     Device = GraphicsDevice.CreateD3D11(options, swapchain);
                     Device.LogD3D11(out maxTextureSize);
                     break;
 
-                case GraphicsBackend.Metal:
+                case GraphicsSurfaceType.Metal:
                     Device = GraphicsDevice.CreateMetal(options, swapchain);
                     Device.LogMetal(out maxTextureSize);
                     break;
@@ -183,18 +161,18 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void MakeCurrent()
         {
-            if (BackendType == GraphicsBackend.OpenGL)
+            if (graphicsSurface.Type == GraphicsSurfaceType.OpenGL)
             {
-                var openGLGraphics = (IOpenGLWindowGraphics)graphics;
+                var openGLGraphics = (IOpenGLGraphicsSurface)graphicsSurface;
                 openGLGraphics.MakeCurrent(openGLGraphics.WindowContext);
             }
         }
 
         protected internal override void ClearCurrent()
         {
-            if (BackendType == GraphicsBackend.OpenGL)
+            if (graphicsSurface.Type == GraphicsSurfaceType.OpenGL)
             {
-                var openGLGraphics = (IOpenGLWindowGraphics)graphics;
+                var openGLGraphics = (IOpenGLGraphicsSurface)graphicsSurface;
                 openGLGraphics.ClearCurrent();
             }
         }

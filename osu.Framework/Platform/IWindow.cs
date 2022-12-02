@@ -21,7 +21,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The graphics API for this window.
         /// </summary>
-        internal IWindowGraphics Graphics { get; }
+        internal IGraphicsSurface GraphicsSurface { get; }
 
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.

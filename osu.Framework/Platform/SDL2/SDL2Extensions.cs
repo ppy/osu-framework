@@ -903,18 +903,18 @@ namespace osu.Framework.Platform.SDL2
             return 0;
         }
 
-        public static SDL.SDL_WindowFlags ToFlags(this GraphicsBackend backend)
+        public static SDL.SDL_WindowFlags ToFlags(this GraphicsSurfaceType surfaceType)
         {
-            switch (backend)
+            switch (surfaceType)
             {
-                case GraphicsBackend.OpenGL:
+                case GraphicsSurfaceType.OpenGL:
                     return SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
 
-                case GraphicsBackend.Vulkan when !RuntimeInfo.IsApple:
+                case GraphicsSurfaceType.Vulkan when !RuntimeInfo.IsApple:
                     return SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
 
-                case GraphicsBackend.Metal:
-                case GraphicsBackend.Vulkan when RuntimeInfo.IsApple:
+                case GraphicsSurfaceType.Metal:
+                case GraphicsSurfaceType.Vulkan when RuntimeInfo.IsApple:
                     return SDL.SDL_WindowFlags.SDL_WINDOW_METAL;
             }
 

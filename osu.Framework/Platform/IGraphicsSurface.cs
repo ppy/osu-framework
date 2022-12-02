@@ -7,9 +7,9 @@ using System.Drawing;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Represents the graphics API provided by an <see cref="IWindow"/>.
+    /// Represents the graphics API surface provided by an <see cref="IWindow"/>.
     /// </summary>
-    public interface IWindowGraphics
+    public interface IGraphicsSurface
     {
         /// <summary>
         /// A pointer representing a handle to this window, provided by the operating system.
@@ -23,9 +23,9 @@ namespace osu.Framework.Platform
         IntPtr DisplayHandle { get; }
 
         /// <summary>
-        /// The type of the graphics backend represented by this renderer.
+        /// The type of surface.
         /// </summary>
-        GraphicsBackend BackendType { get; }
+        GraphicsSurfaceType Type { get; }
 
         /// <summary>
         /// Performs an initialisation of the graphics backend after <see cref="IWindow"/> has been created.

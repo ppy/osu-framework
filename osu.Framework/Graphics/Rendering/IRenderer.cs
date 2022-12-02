@@ -43,11 +43,6 @@ namespace osu.Framework.Graphics.Rendering
         public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
-        /// The type of the graphics backend represented by this renderer.
-        /// </summary>
-        GraphicsBackend BackendType { get; }
-
-        /// <summary>
         /// Enables or disables vertical sync.
         /// </summary>
         bool VerticalSync { get; set; }
@@ -142,7 +137,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="IRenderer"/>.
         /// </summary>
-        protected internal void Initialise(IWindowGraphics graphics);
+        protected internal void Initialise(IGraphicsSurface graphicsSurface);
 
         /// <summary>
         /// Resets any states to prepare for drawing a new frame.

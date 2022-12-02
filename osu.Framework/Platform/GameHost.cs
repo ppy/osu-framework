@@ -171,7 +171,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Creates the game window for the host. Should be implemented per-platform if required.
         /// </summary>
-        protected virtual IWindow CreateWindow(GraphicsBackend backend) => null;
+        protected virtual IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
 
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
@@ -530,7 +530,7 @@ namespace osu.Framework.Platform
         {
             Renderer.SwapBuffers();
 
-            if (Renderer.BackendType == GraphicsBackend.OpenGL && Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();
@@ -699,7 +699,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow(Renderer.BackendType);
+                Window = CreateWindow(GraphicsSurfaceType.OpenGL);
 
                 populateInputHandlers();
 
@@ -714,7 +714,7 @@ namespace osu.Framework.Platform
                     Window.Create();
                     Window.Title = $@"osu!framework (running ""{Name}"")";
 
-                    Renderer.Initialise(Window.Graphics);
+                    Renderer.Initialise(Window);
 
                     currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
                     currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());

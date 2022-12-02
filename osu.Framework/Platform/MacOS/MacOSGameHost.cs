@@ -21,7 +21,7 @@ namespace osu.Framework.Platform.MacOS
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsBackend backend) => new MacOSWindow(backend);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new MacOSWindow(preferredSurface);
 
         public override IEnumerable<string> UserStoragePaths
         {
@@ -50,7 +50,7 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (Renderer.BackendType == GraphicsBackend.OpenGL && !Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && !Renderer.VerticalSync)
                 Renderer.WaitUntilIdle();
         }
 

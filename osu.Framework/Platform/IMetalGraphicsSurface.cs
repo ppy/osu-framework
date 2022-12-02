@@ -8,7 +8,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents Metal-specific graphics API provided by an <see cref="IWindow"/>.
     /// </summary>
-    public interface IMetalWindowGraphics
+    public interface IMetalGraphicsSurface
     {
         /// <summary>
         /// Creates an NSView backed with a Metal layer.

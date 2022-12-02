@@ -28,9 +28,8 @@ namespace osu.Framework.Platform
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
-        private readonly SDL2WindowGraphics graphics;
-
-        IWindowGraphics IWindow.Graphics => graphics;
+        private readonly SDL2GraphicsSurface graphicsSurface;
+        IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
 
         /// <summary>
         /// Returns true if window has been created.
@@ -160,7 +159,7 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
-        public SDL2DesktopWindow(GraphicsBackend backend)
+        public SDL2DesktopWindow(GraphicsSurfaceType surfaceType)
         {
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
@@ -176,8 +175,7 @@ namespace osu.Framework.Platform
                 Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
             }, IntPtr.Zero);
 
-            graphics = CreateGraphics(backend);
-
+            graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
             SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
             CursorStateBindable.ValueChanged += evt =>
@@ -202,7 +200,7 @@ namespace osu.Framework.Platform
                                         SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN; // shown after first swap to avoid white flash on startup (windows)
 
             flags |= WindowState.ToFlags();
-            flags |= graphics.BackendType.ToFlags();
+            flags |= graphicsSurface.Type.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
@@ -219,7 +217,7 @@ namespace osu.Framework.Platform
 
             Exists = true;
 
-            graphics.Initialise();
+            graphicsSurface.Initialise();
 
             initialiseWindowingAfterCreation();
         }
@@ -445,8 +443,6 @@ namespace osu.Framework.Platform
         private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => ExitRequested?.Invoke();
 
         #endregion
-
-        protected virtual SDL2WindowGraphics CreateGraphics(GraphicsBackend backend) => new SDL2WindowGraphics(this, backend);
 
         public void SetIconFromStream(Stream stream)
         {

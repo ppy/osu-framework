@@ -35,7 +35,7 @@ namespace osu.Framework.Platform.Linux
             base.SetupForRun();
         }
 
-        protected override IWindow CreateWindow(GraphicsBackend backend) => new SDL2DesktopWindow(backend);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
 
         public override IEnumerable<string> UserStoragePaths
         {

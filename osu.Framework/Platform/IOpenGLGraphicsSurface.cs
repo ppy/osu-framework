@@ -8,7 +8,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents OpenGL-specific graphics API provided by an <see cref="IWindow"/>.
     /// </summary>
-    public interface IOpenGLWindowGraphics
+    public interface IOpenGLGraphicsSurface
     {
         /// <summary>
         /// Enables or disables vertical sync.

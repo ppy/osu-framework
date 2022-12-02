@@ -12,11 +12,11 @@ using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
-    public class OsuTKWindowGraphics : IWindowGraphics, IOpenGLWindowGraphics
+    public class OsuTKGraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface
     {
         private readonly IGameWindow window;
 
-        public GraphicsBackend BackendType => GraphicsBackend.OpenGL;
+        public GraphicsSurfaceType Type => GraphicsSurfaceType.OpenGL;
 
         public IntPtr WindowHandle => window.WindowInfo.Handle;
         public IntPtr DisplayHandle => throw new NotSupportedException($@"{nameof(DisplayHandle)} is not supported.");
@@ -29,7 +29,7 @@ namespace osu.Framework.Platform
         internal Version GLSLVersion;
         internal bool IsEmbedded;
 
-        public OsuTKWindowGraphics(IGameWindow window)
+        public OsuTKGraphicsSurface(IGameWindow window)
         {
             this.window = window;
         }

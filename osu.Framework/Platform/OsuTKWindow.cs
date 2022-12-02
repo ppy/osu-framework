@@ -24,9 +24,8 @@ namespace osu.Framework.Platform
 {
     public abstract class OsuTKWindow : IWindow, IGameWindow
     {
-        private readonly IWindowGraphics graphics;
-
-        IWindowGraphics IWindow.Graphics => graphics;
+        private readonly IGraphicsSurface graphicsSurface;
+        IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
 
         /// <summary>
         /// The <see cref="IGraphicsContext"/> associated with this <see cref="OsuTKWindow"/>.
@@ -142,8 +141,8 @@ namespace osu.Framework.Platform
 
             UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
-            graphics = new OsuTKWindowGraphics(this);
-            graphics.Initialise();
+            graphicsSurface = new OsuTKGraphicsSurface(this);
+            graphicsSurface.Initialise();
         }
 
         /// <summary>
