@@ -1,9 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Emitters;
 
 namespace osu.Framework.SourceGeneration
@@ -13,21 +15,55 @@ namespace osu.Framework.SourceGeneration
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            IncrementalValuesProvider<GeneratorClassCandidate> candidateClasses =
-                context.SyntaxProvider.CreateSyntaxProvider(selectClasses, extractCandidates)
-                       .Where(c => c != null);
+            // Stage 1: Create SyntaxTarget objects for all classes.
+            IncrementalValuesProvider<SyntaxTarget> syntaxTargets =
+                context.SyntaxProvider.CreateSyntaxProvider(
+                           (n, _) => GeneratorClassCandidate.IsSyntaxTarget(n),
+                           (ctx, _) => new SyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel))
+                       .Select((t, _) => t.WithName());
 
-            IncrementalValuesProvider<GeneratorClassCandidate> distinctCandidates =
-                candidateClasses.Collect().SelectMany((c, _) => c.Distinct());
+            // Stage 2: Separate out the old and new syntax targets for the same class object.
+            // At this point, there are a bunch of old and new syntax targets that may refer to the same class object.
+            // Find a distinct syntax target for any one class object, preferring the most-recent target.
+            // Example: Multi-partial definitions where one file is updated. We need to find the definition that was newly-updated.
+            // Example: Multi-partial definitions where an unrelated file is updated. Need to find the definition that was used for the last generation.
+            // Bug: Due to an internal bug in Roslyn, this may also occur for non-multi-partial files.
+            IncrementalValuesProvider<SyntaxTarget> distinctSyntaxTargets =
+                syntaxTargets
+                    .Collect()
+                    .SelectMany((targets, _) =>
+                    {
+                        // Ensure all targets have a generation ID. This is over-engineered as two loops to:
+                        // 1. Increment the generation ID locally for deterministic test output.
+                        // 2. Remain performant across many thousands of objects.
+                        Dictionary<SyntaxTarget, long> maxGenerationIds = new Dictionary<SyntaxTarget, long>(SyntaxTargetNameComparer.DEFAULT);
 
-            context.RegisterImplementationSourceOutput(distinctCandidates, emit);
+                        foreach (var target in targets)
+                        {
+                            maxGenerationIds.TryGetValue(target, out long existingValue);
+                            maxGenerationIds[target] = Math.Max(existingValue, target.GenerationId ?? 0);
+                        }
+
+                        foreach (var target in targets)
+                            target.GenerationId ??= maxGenerationIds[target] + 1;
+
+                        HashSet<SyntaxTarget> result = new HashSet<SyntaxTarget>(SyntaxTargetNameComparer.DEFAULT);
+
+                        // Filter out the targets, preferring the most recent at all times.
+                        foreach (SyntaxTarget t in targets.OrderByDescending(t => t.GenerationId))
+                            result.Add(t);
+
+                        return result;
+                    });
+
+            // Stage 3: Generate the semantic targets for the filtered syntax targets.
+            // For any old syntax targets, this is a no-op. For any new targets, this is a fairly complex operation involving semantic lookup.
+            IncrementalValuesProvider<GeneratorClassCandidate> semanticTargets =
+                distinctSyntaxTargets
+                    .Select((t, _) => t.ResolveSemanticTarget());
+
+            context.RegisterImplementationSourceOutput(semanticTargets, emit);
         }
-
-        private bool selectClasses(SyntaxNode syntaxNode, CancellationToken cancellationToken)
-            => GeneratorClassCandidate.IsCandidate(syntaxNode);
-
-        private GeneratorClassCandidate extractCandidates(GeneratorSyntaxContext context, CancellationToken cancellationToken)
-            => GeneratorClassCandidate.TryCreate(context.Node, context.SemanticModel)!;
 
         private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)
             => new DependenciesFileEmitter(candidate).Emit(context.AddSource);

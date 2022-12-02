@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -112,6 +114,33 @@ namespace osu.Framework.SourceGeneration
 
         public static string GetFullyQualifiedTypeName(INamedTypeSymbol type)
             => type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+
+        public static string GetFullyQualifiedSyntaxName(TypeDeclarationSyntax syntax)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var node in syntax.AncestorsAndSelf())
+            {
+                switch (node)
+                {
+                    case NamespaceDeclarationSyntax ns:
+                        sb.Append(ns.Name);
+                        break;
+
+                    case ClassDeclarationSyntax cls:
+                        sb.Append(cls.Identifier.ToString());
+
+                        if (cls.TypeParameterList != null)
+                            sb.Append($"{{{string.Join(",", cls.TypeParameterList.Parameters.Select(p => p.Identifier.ToString()))}}}");
+                        break;
+
+                    default:
+                        continue;
+                }
+            }
+
+            return sb.ToString();
+        }
 
         public static IEnumerable<ITypeSymbol> GetDeclaredInterfacesOnType(INamedTypeSymbol type)
         {

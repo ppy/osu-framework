@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -11,25 +10,37 @@ using osu.Framework.SourceGeneration.Data;
 
 namespace osu.Framework.SourceGeneration
 {
-    public class GeneratorClassCandidate : IEquatable<GeneratorClassCandidate>
+    public class GeneratorClassCandidate
     {
-        public readonly string TypeName;
-        public readonly string FullyQualifiedTypeName;
+        public readonly ClassDeclarationSyntax ClassSyntax;
+
+        public readonly string FullyQualifiedTypeName = string.Empty;
+        public readonly string TypeName = string.Empty;
         public readonly bool NeedsOverride;
         public readonly string? ContainingNamespace;
+        public readonly bool IsValid;
 
         public readonly List<string> TypeHierarchy = new List<string>();
-
         public readonly HashSet<CachedAttributeData> CachedInterfaces = new HashSet<CachedAttributeData>();
         public readonly HashSet<CachedAttributeData> CachedMembers = new HashSet<CachedAttributeData>();
         public readonly HashSet<CachedAttributeData> CachedClasses = new HashSet<CachedAttributeData>();
         public readonly HashSet<ResolvedAttributeData> ResolvedMembers = new HashSet<ResolvedAttributeData>();
         public readonly HashSet<BackgroundDependencyLoaderAttributeData> DependencyLoaderMembers = new HashSet<BackgroundDependencyLoaderAttributeData>();
 
-        public GeneratorClassCandidate(INamedTypeSymbol symbol)
+        public GeneratorClassCandidate(ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
         {
-            TypeName = symbol.ToDisplayString();
+            ClassSyntax = classSyntax;
+
+            INamedTypeSymbol symbol = semanticModel.GetDeclaredSymbol(ClassSyntax)!;
+
+            // Determine if the class is a candidate for the source generator.
+            IsValid = symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
+
+            if (!IsValid)
+                return;
+
             FullyQualifiedTypeName = SyntaxHelpers.GetFullyQualifiedTypeName(symbol);
+            TypeName = symbol.ToDisplayString();
             NeedsOverride = symbol.BaseType != null && symbol.BaseType.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
             ContainingNamespace = symbol.ContainingNamespace.IsGlobalNamespace ? null : symbol.ContainingNamespace.ToDisplayString();
 
@@ -90,7 +101,7 @@ namespace osu.Framework.SourceGeneration
             }
         }
 
-        public static bool IsCandidate(SyntaxNode syntaxNode)
+        public static bool IsSyntaxTarget(SyntaxNode syntaxNode)
         {
             if (syntaxNode is not ClassDeclarationSyntax classSyntax)
                 return false;
@@ -98,27 +109,7 @@ namespace osu.Framework.SourceGeneration
             if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
                 return false;
 
-            if (classSyntax.BaseList == null && classSyntax.AttributeLists.Count == 0)
-                return false;
-
             return true;
-        }
-
-        public static GeneratorClassCandidate? TryCreate(SyntaxNode syntaxNode, SemanticModel semanticModel)
-        {
-            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
-                return null;
-
-            INamedTypeSymbol? symbol = semanticModel.GetDeclaredSymbol(classSyntax);
-
-            if (symbol == null)
-                return null;
-
-            // Determine if the class is a candidate for the source generator.
-            if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
-                return null;
-
-            return new GeneratorClassCandidate(symbol);
         }
 
         private static string createTypeName(ITypeSymbol typeSymbol)
@@ -129,28 +120,6 @@ namespace osu.Framework.SourceGeneration
                 name += $@"<{string.Join(@", ", named.TypeParameters)}>";
 
             return name;
-        }
-
-        public bool Equals(GeneratorClassCandidate? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-
-            return FullyQualifiedTypeName == other.FullyQualifiedTypeName;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((GeneratorClassCandidate)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return FullyQualifiedTypeName.GetHashCode();
         }
     }
 }

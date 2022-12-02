@@ -8,5 +8,7 @@
 
   <ItemGroup>
     <Compile Include="DependencyInjectionSourceGenerator.cs" />
+    <Compile Include="SyntaxTarget.cs" />
+    <Compile Include="SyntaxTargetNameComparer.cs" />
   </ItemGroup>
 </Project>

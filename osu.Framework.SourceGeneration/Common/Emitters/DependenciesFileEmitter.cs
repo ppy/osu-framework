@@ -41,6 +41,9 @@ namespace osu.Framework.SourceGeneration.Emitters
 
         public void Emit(AddSourceDelegate addSource)
         {
+            if (!Candidate.IsValid)
+                return;
+
             StringBuilder result = new StringBuilder();
             result.Append(headers);
 
