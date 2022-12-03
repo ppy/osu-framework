@@ -115,13 +115,11 @@ namespace osu.Framework.SourceGeneration.Emitters
 
             return classes.Last();
 
-            static ClassDeclarationSyntax createClassSyntax(string type)
-            {
-                return SyntaxFactory.ClassDeclaration(type)
-                                    .WithModifiers(
-                                        SyntaxTokenList.Create(
-                                            SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
-            }
+            static ClassDeclarationSyntax createClassSyntax(string type) =>
+                SyntaxFactory.ClassDeclaration(type)
+                             .WithModifiers(
+                                 SyntaxTokenList.Create(
+                                     SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
         }
 
         private SyntaxTokenList emitMethodModifiers()
