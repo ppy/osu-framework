@@ -8,5 +8,6 @@
 
   <ItemGroup>
     <Compile Include="DependencyInjectionSourceGenerator.cs" />
+    <Compile Include="GeneratorClassCandidateComparer.cs" />
   </ItemGroup>
 </Project>

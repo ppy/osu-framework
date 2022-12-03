@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using osu.Framework.SourceGeneration.Emitters;
 
@@ -23,14 +22,8 @@ namespace osu.Framework.SourceGeneration
             if (context.SyntaxContextReceiver is not CustomSyntaxContextReceiver receiver)
                 return;
 
-            foreach (var candidate in receiver.Candidates.Distinct())
-            {
-                // Fully qualified name, with generics replaced with friendly characters.
-                string typeName = candidate.FullyQualifiedTypeName.Replace('<', '{').Replace('>', '}');
-                string filename = $"g_{typeName}_Dependencies.cs";
-
-                context.AddSource(filename, new DependenciesFileEmitter(candidate).Emit());
-            }
+            foreach (var candidate in receiver.Candidates.Where(c => c.IsValid).Distinct(GeneratorClassCandidateComparer.DEFAULT))
+                new DependenciesFileEmitter(candidate).Emit(context.AddSource);
         }
 
         private class CustomSyntaxContextReceiver : ISyntaxContextReceiver
@@ -39,25 +32,10 @@ namespace osu.Framework.SourceGeneration
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
-                if (context.Node is not ClassDeclarationSyntax classSyntax)
+                if (!GeneratorClassCandidate.IsSyntaxTarget(context.Node))
                     return;
 
-                if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
-                    return;
-
-                if (classSyntax.BaseList == null && classSyntax.AttributeLists.Count == 0)
-                    return;
-
-                INamedTypeSymbol? symbol = context.SemanticModel.GetDeclaredSymbol(classSyntax);
-
-                if (symbol == null)
-                    return;
-
-                // Determine if the class is a candidate for the source generator.
-                if (!symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface))
-                    return;
-
-                Candidates.Add(new GeneratorClassCandidate(symbol));
+                Candidates.Add(new GeneratorClassCandidate((ClassDeclarationSyntax)context.Node, context.SemanticModel));
             }
         }
     }
