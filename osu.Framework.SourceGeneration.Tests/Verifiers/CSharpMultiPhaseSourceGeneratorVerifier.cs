@@ -50,7 +50,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                         int phase = int.Parse(match.Groups["num"].Value);
 
                         while (multiPhaseList.Count <= phase)
-                            multiPhaseList.Add(new());
+                            multiPhaseList.Add(new List<(string filename, string content)>());
 
                         string filename = match.Groups["filename"].Value + ".cs";
                         multiPhaseList[phase].Add((filename, s.content));
@@ -59,7 +59,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                     else
                     {
                         if (multiPhaseList.Count == 0)
-                            multiPhaseList.Add(new());
+                            multiPhaseList.Add(new List<(string filename, string content)>());
                         if (multiPhaseList.Count > 1)
                             throw new InvalidOperationException($"Found {(isGenerated ? "generated" : "source")} file {s.filename} outside of a multi-phase directory.");
 
@@ -74,7 +74,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                 if (generated.Count == 0)
                 {
                     while (generated.Count < sources.Count)
-                        generated.Add(new());
+                        generated.Add(new List<(string filename, string content)>());
                 }
 
                 if (sources.Count != generated.Count)
