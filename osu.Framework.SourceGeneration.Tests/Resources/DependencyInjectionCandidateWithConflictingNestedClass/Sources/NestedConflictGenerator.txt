@@ -1,3 +1,5 @@
+namespace osu;
+
 public partial class NestedConflictGenerator : osu.Framework.Graphics.Drawable
 {
     public class osu
