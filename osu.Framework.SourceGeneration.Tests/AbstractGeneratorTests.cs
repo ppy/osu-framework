@@ -24,14 +24,16 @@ namespace osu.Framework.SourceGeneration.Tests
             Assembly assembly = Assembly.GetExecutingAssembly();
             string[] resourceNames = assembly.GetManifestResourceNames();
 
+            var commonSourceFiles = new List<(string filename, string content)>();
             var sourceFiles = new List<(string filename, string content)>();
+            var commonGeneratedFiles = new List<(string filename, string content)>();
             var generatedFiles = new List<(string filename, string content)>();
 
             foreach (string? file in resourceNames.Where(n => n.StartsWith(commonSourcesNamespace, StringComparison.Ordinal)))
-                sourceFiles.Add((getFileNameFromResourceName(commonSourcesNamespace, file), readResourceStream(assembly, file)));
+                commonSourceFiles.Add((getFileNameFromResourceName(commonSourcesNamespace, file), readResourceStream(assembly, file)));
 
             foreach (string? file in resourceNames.Where(n => n.StartsWith(commonGeneratedNamespace, StringComparison.Ordinal)))
-                generatedFiles.Add((getFileNameFromResourceName(commonGeneratedNamespace, file), readResourceStream(assembly, file)));
+                commonGeneratedFiles.Add((getFileNameFromResourceName(commonGeneratedNamespace, file), readResourceStream(assembly, file)));
 
             foreach (string? file in resourceNames.Where(n => n.StartsWith(sourcesNamespace, StringComparison.Ordinal)))
                 sourceFiles.Add((getFileNameFromResourceName(sourcesNamespace, file), readResourceStream(assembly, file)));
@@ -39,10 +41,12 @@ namespace osu.Framework.SourceGeneration.Tests
             foreach (string? file in resourceNames.Where(n => n.StartsWith(generatedNamespace, StringComparison.Ordinal)))
                 generatedFiles.Add((getFileNameFromResourceName(generatedNamespace, file), readResourceStream(assembly, file)));
 
+            removeNameIndices(commonSourceFiles);
             removeNameIndices(sourceFiles);
+            removeNameIndices(commonGeneratedFiles);
             removeNameIndices(generatedFiles);
 
-            await Verify(sourceFiles.ToArray(), generatedFiles.ToArray()).ConfigureAwait(false);
+            await Verify(commonSourceFiles.ToArray(), sourceFiles.ToArray(), commonGeneratedFiles.ToArray(), generatedFiles.ToArray()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -76,7 +80,11 @@ namespace osu.Framework.SourceGeneration.Tests
             return resourceName;
         }
 
-        protected abstract Task Verify((string filename, string content)[] sources, (string filename, string content)[] generated);
+        protected abstract Task Verify(
+            (string filename, string content)[] commonSources,
+            (string filename, string content)[] sources,
+            (string filename, string content)[] commonGenerated,
+            (string filename, string content)[] generated);
 
         private string readResourceStream(Assembly asm, string resource)
         {
