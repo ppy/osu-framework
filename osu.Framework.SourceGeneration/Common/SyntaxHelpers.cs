@@ -128,7 +128,11 @@ namespace osu.Framework.SourceGeneration
         /// </para>
         /// </remarks>
         public static string? GetGlobalPrefixedTypeName(ITypeSymbol? type)
-            => type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            => type?.ToDisplayString(fullyQualifiedFormatWithNullableAnnotations);
+
+        private static SymbolDisplayFormat fullyQualifiedFormatWithNullableAnnotations { get; } =
+            SymbolDisplayFormat.FullyQualifiedFormat
+                               .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         public static string GetFullyQualifiedSyntaxName(TypeDeclarationSyntax syntax)
         {
