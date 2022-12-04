@@ -19,9 +19,13 @@ namespace osu.Framework.SourceGeneration.Data
         public static BackgroundDependencyLoaderParameterData FromParameter(IParameterSymbol parameter)
         {
             string globalPrefixedTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(parameter.Type)!;
-            bool canBeNull = parameter.NullableAnnotation == NullableAnnotation.Annotated;
 
-            return new BackgroundDependencyLoaderParameterData(globalPrefixedTypeName, canBeNull);
+            // This allows determining whether null is permitted based on the NRT annotation of the parameter.
+            // However, this doesn't work on mobile projects due to using Xamarin, therefore it cannot be relied on and is temporarily disabled.
+            // todo: enable this once all mobile projects target .NET 6
+            // bool canBeNull = parameter.NullableAnnotation == NullableAnnotation.Annotated;
+
+            return new BackgroundDependencyLoaderParameterData(globalPrefixedTypeName, false);
         }
     }
 }

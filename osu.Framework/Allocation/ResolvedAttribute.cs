@@ -102,7 +102,14 @@ namespace osu.Framework.Allocation
                     cacheInfo = new CacheInfo(cacheInfo.Name ?? property.Name, attribute.Parent);
                 }
 
-                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.IsNullable(), cacheInfo);
+                bool permitNulls = attribute.CanBeNull;
+
+                // This allows determining whether null is permitted based on the NRT annotation of the property.
+                // However, this doesn't work on mobile projects due to using Xamarin, therefore it cannot be relied on and is temporarily disabled.
+                // todo: enable this once all mobile projects target .NET 6
+                // permitNulls |= property.IsNullable();
+
+                var fieldGetter = getDependency(property.PropertyType, type, permitNulls, cacheInfo);
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }

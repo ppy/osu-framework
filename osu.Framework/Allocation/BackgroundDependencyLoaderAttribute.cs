@@ -65,8 +65,14 @@ namespace osu.Framework.Allocation
                     Debug.Assert(attribute != null);
 
                     bool permitNulls = attribute.permitNulls;
+
+                    // This allows determining whether null is permitted based on the NRT annotation of the parameter.
+                    // However, this doesn't work on mobile projects due to using Xamarin, therefore it cannot be relied on and is temporarily disabled.
+                    // todo: enable this once all mobile projects target .NET 6
+                    // permitNulls |= parameter.IsNullable();
+
                     var parameterGetters = method.GetParameters()
-                                                 .Select(parameter => getDependency(parameter.ParameterType, type, permitNulls || parameter.IsNullable())).ToArray();
+                                                 .Select(parameter => getDependency(parameter.ParameterType, type, permitNulls)).ToArray();
 
                     return (target, dc) =>
                     {

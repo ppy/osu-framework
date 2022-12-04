@@ -47,7 +47,10 @@ namespace osu.Framework.SourceGeneration.Data
                  ?? attributeData.ConstructorArguments.ElementAtOrDefault(2).Value
                  ?? false);
 
-            canBeNull |= symbol.NullableAnnotation == NullableAnnotation.Annotated;
+            // This allows determining whether null is permitted based on the NRT annotation of the property.
+            // However, this doesn't work on mobile projects due to using Xamarin, therefore it cannot be relied on and is temporarily disabled.
+            // todo: enable this once all mobile projects target .NET 6
+            // canBeNull |= symbol.NullableAnnotation == NullableAnnotation.Annotated;
 
             return new ResolvedAttributeData(SyntaxHelpers.GetGlobalPrefixedTypeName(symbol.Type)!, symbol.Name, globalPrefixedParentTypeName, name, canBeNull);
         }
