@@ -114,7 +114,27 @@ namespace osu.Framework.Bindables
             PrecisionChanged = null;
         }
 
-        public override string ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"({Value.X}x{Value.Y})").ToString(formatProvider);
+        public override string ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"({Value.X},{Value.Y})").ToString(formatProvider);
+
+        public override void Parse(object input)
+        {
+            switch (input)
+            {
+                case string str:
+                    String trimedStr = str.TrimStart('(').TrimEnd(')');
+                    string[] split = trimedStr.Split(',');
+
+                    if (split.Length != 2)
+                        throw new ArgumentException($"Input string was in wrong format! (expected: '(<X>,<Y>)', actual: '{str}')");
+
+                    Value = new Vector2d(double.Parse(split[0]), double.Parse(split[1]));
+                    break;
+
+                default:
+                    base.Parse(input);
+                    break;
+            }
+        }
 
         protected override Bindable<Vector2d> CreateInstance() => new BindableVector2D();
 
