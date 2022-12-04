@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class WithParentProperty : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class WithParentProperty : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(WithParentProperty)))
+        if (registry.IsRegistered(typeof(global::WithParentProperty)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(WithParentProperty), (t, d) =>
+        registry.Register(typeof(global::WithParentProperty), (t, d) =>
         {
-            ((WithParentProperty)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(WithParentProperty), "ResolvedProperty", typeof(object), false, true);
+            ((global::WithParentProperty)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::WithParentProperty), "ResolvedProperty", typeof(object), false, true);
         }, null);
     }
 }
