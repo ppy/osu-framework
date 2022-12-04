@@ -17,7 +17,8 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
             (string filename, string content)[] commonSources,
             (string filename, string content)[] sources,
             (string filename, string content)[] commonGenerated,
-            (string filename, string content)[] generated)
+            (string filename, string content)[] generated,
+            Action<Test>? configure = null)
         {
             List<List<(string filename, string content)>>
                 multiPhaseSources = new(),
@@ -28,7 +29,10 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
             verifySamePhaseCount(multiPhaseSources, multiPhaseGenerated);
 
-            new Test(commonSources, commonGenerated, multiPhaseSources, multiPhaseGenerated).Verify();
+            var test = new Test(commonSources, commonGenerated, multiPhaseSources, multiPhaseGenerated);
+            configure?.Invoke(test);
+
+            test.Verify();
 
             // The filenames for the sources and generated files are expected to be in the format of:
             //     <filename>.<phase>.cs

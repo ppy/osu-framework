@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -21,6 +22,9 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
 
+            public event Action<int>? PhaseChanged;
+            public event Action? PhaseCompleted;
+
             public Test(
                 (string filename, string content)[] commonSources,
                 (string filename, string content)[] commonGenerated,
@@ -35,6 +39,35 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                 this.multiPhaseGenerated = multiPhaseGenerated;
             }
 
+            public void AddStatisticsVerification((int syntaxTargetCreated, int semanticTargetCreated, int emitHits)[] expectedStatistics)
+            {
+                int phase = 0;
+                int syntaxTargetCreated = 0;
+                int semanticTargetCreated = 0;
+                int emitHits = 0;
+
+                PhaseChanged += p =>
+                {
+                    phase = p;
+                    syntaxTargetCreated = 0;
+                    semanticTargetCreated = 0;
+                    emitHits = 0;
+                };
+
+                DependencyInjectionSourceGenerator.GeneratorEvent.SyntaxTargetCreated += _ => syntaxTargetCreated++;
+                DependencyInjectionSourceGenerator.GeneratorEvent.SemanticTargetCreated += _ => semanticTargetCreated++;
+                DependencyInjectionSourceGenerator.GeneratorEvent.Emit += _ => emitHits++;
+
+                PhaseCompleted += () =>
+                {
+                    var expected = expectedStatistics[phase];
+                    var actual = (syntaxTargetCreated, semanticTargetCreated, emitHits);
+
+                    if (actual != expected)
+                        throw new Xunit.Sdk.XunitException($"Phase {phase}: Expected statistics {expected} but got {actual}.");
+                };
+            }
+
             public void Verify()
             {
                 IncrementalCompilation compilation = new();
@@ -44,6 +77,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
                 for (int phase = 0; phase < multiPhaseSources.Count; phase++)
                 {
+                    PhaseChanged?.Invoke(phase);
                     List<(string filename, string content)> sources = multiPhaseSources[phase];
                     List<(string filename, string content)> generated = multiPhaseGenerated[phase];
                     generated.AddRange(commonGenerated);
@@ -68,6 +102,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
                     results.VerifyZeroDiagnostics();
                     results.VerifyMultiPhaseGeneratedSources(generated.ToArray(), phase);
+                    PhaseCompleted?.Invoke();
                 }
             }
         }
