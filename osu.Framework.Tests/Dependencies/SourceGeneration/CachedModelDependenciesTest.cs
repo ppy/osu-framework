@@ -142,7 +142,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(3, model2.BindableTwo.Value);
         }
 
-        private partial class CrossDependentFieldModel
+        private partial class CrossDependentFieldModel : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
@@ -267,38 +267,34 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(null, resolver.BindableString.Value);
         }
 
-        [Cached]
-        private partial class NonBindablePublicFieldModel
+        private partial class NonBindablePublicFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             public readonly int FailingField;
 #pragma warning restore 649
         }
 
-        [Cached]
-        private partial class NonBindablePrivateFieldModel
+        private partial class NonBindablePrivateFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 169
             private readonly int failingField;
 #pragma warning restore 169
         }
 
-        [Cached]
-        private partial class NonReadOnlyFieldModel
+        private partial class NonReadOnlyFieldModel : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             public Bindable<int> Bindable;
 #pragma warning restore 649
         }
 
-        [Cached]
-        private partial class PropertyModel
+        private partial class PropertyModel : IDependencyInjectionCandidate
         {
             // ReSharper disable once UnusedMember.Local
             public Bindable<int> Bindable { get; private set; }
         }
 
-        private partial class FieldModel
+        private partial class FieldModel : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
@@ -310,19 +306,19 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             public readonly Bindable<string> BindableString = new Bindable<string>();
         }
 
-        private partial class FieldModelResolver
+        private partial class FieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
             public FieldModel Model { get; private set; }
         }
 
-        private partial class DerivedFieldModelResolver
+        private partial class DerivedFieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
             public DerivedFieldModel Model { get; private set; }
         }
 
-        private partial class DerivedFieldModelPropertyResolver
+        private partial class DerivedFieldModelPropertyResolver : IDependencyInjectionCandidate
         {
             [Resolved(typeof(DerivedFieldModel))]
             public Bindable<int> Bindable { get; private set; }

@@ -141,11 +141,11 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         [Test]
         public void TestCacheStructInternal()
         {
-            var provider = new CachedStructProvider();
+            var provider = new PartialCachedStructProvider();
 
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
-            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<CachedStructProvider.Struct>().Value);
+            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<PartialCachedStructProvider.Struct>().Value);
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         [TestCase(10)]
         public void TestCacheNullableInternal(int? testValue)
         {
-            var provider = new CachedNullableProvider();
+            var provider = new PartialCachedNullableProvider();
 
             provider.SetValue(testValue);
 
@@ -286,7 +286,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
-            Assert.AreEqual(provider, dependencies.Get<Provider26>());
+            Assert.IsNull(dependencies.Get<Provider26>());
         }
 
         [Test]
@@ -318,12 +318,12 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Cached]
-        private partial class Provider1
+        private partial class Provider1 : IDependencyInjectionCandidate
         {
         }
 
         [Cached(Type = typeof(object))]
-        private partial class Provider2
+        private partial class Provider2 : IDependencyInjectionCandidate
         {
         }
 
@@ -332,7 +332,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        private partial class Provider4
+        private partial class Provider4 : IDependencyInjectionCandidate
         {
             [Cached]
 #pragma warning disable 0649
@@ -340,7 +340,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 #pragma warning restore 0649
         }
 
-        private partial class Provider5
+        private partial class Provider5 : IDependencyInjectionCandidate
         {
             [Cached]
             public ProvidedType1 Provided1 { get; } = new ProvidedType1();
@@ -355,7 +355,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             public ProvidedType1 Provided3 { get; } = new ProvidedType1();
         }
 
-        private partial class Provider7
+        private partial class Provider7 : IDependencyInjectionCandidate
         {
             [Cached]
             [Cached(Type = typeof(object))]
@@ -364,66 +364,66 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
         [Cached]
         [Cached(Type = typeof(object))]
-        private partial class Provider8
+        private partial class Provider8 : IDependencyInjectionCandidate
         {
         }
 
-        private partial class Provider9
+        private partial class Provider9 : IDependencyInjectionCandidate
         {
             [Cached(Type = typeof(ProvidedType1))]
             private object provided1 = new object();
         }
 
-        private partial class Provider10
+        private partial class Provider10 : IDependencyInjectionCandidate
         {
             [Cached]
             private object provided1 = new ProvidedType1();
         }
 
-        private partial class Provider11
+        private partial class Provider11 : IDependencyInjectionCandidate
         {
             [Cached]
             [Cached(Type = typeof(IProvidedInterface1))]
             private IProvidedInterface1 provided1 = new ProvidedType1();
         }
 
-        private partial class Provider12
+        private partial class Provider12 : IDependencyInjectionCandidate
         {
             [Cached(Type = typeof(IProvidedInterface1))]
             private IProvidedInterface1 provided1 = new ProvidedType3();
         }
 
-        private partial class Provider13
+        private partial class Provider13 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 = new ProvidedType1();
         }
 
-        private partial class Provider14
+        private partial class Provider14 : IDependencyInjectionCandidate
         {
             [Cached]
             protected object Provided1 = new ProvidedType1();
         }
 
-        private partial class Provider15
+        private partial class Provider15 : IDependencyInjectionCandidate
         {
             [Cached]
             internal object Provided1 = new ProvidedType1();
         }
 
-        private partial class Provider16
+        private partial class Provider16 : IDependencyInjectionCandidate
         {
             [Cached]
             protected internal object Provided1 = new ProvidedType1();
         }
 
-        private partial class Provider17
+        private partial class Provider17 : IDependencyInjectionCandidate
         {
             [Cached]
             public readonly object Provided1 = new ProvidedType1();
         }
 
-        private partial class Provider18
+        private partial class Provider18 : IDependencyInjectionCandidate
         {
 #pragma warning disable 649
             [Cached]
@@ -431,25 +431,25 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 #pragma warning restore 649
         }
 
-        private partial class Provider19
+        private partial class Provider19 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 { get; private set; } = new object();
         }
 
-        private partial class Provider20
+        private partial class Provider20 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 { get; } = new object();
         }
 
-        private partial class Provider21
+        private partial class Provider21 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 { get; set; }
         }
 
-        private partial class Provider22
+        private partial class Provider22 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1
@@ -462,7 +462,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             }
         }
 
-        private partial class Provider24
+        private partial class Provider24 : IDependencyInjectionCandidate
         {
             [Cached]
             public object Provided1 => null;
@@ -472,7 +472,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        [Cached]
         private partial class Provider26 : Provider1
         {
         }
@@ -487,7 +486,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Cached]
-        private interface IProviderInterface2
+        private interface IProviderInterface2 : IDependencyInjectionCandidate
         {
         }
 

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +13,7 @@ namespace osu.Framework.SourceGeneration
 {
     public static class SyntaxHelpers
     {
-        public static InvocationExpressionSyntax CacheDependencyInvocation(ITypeSymbol callerType, ExpressionSyntax objSyntax, string? asType, string? cachedName, string? propertyName)
+        public static InvocationExpressionSyntax CacheDependencyInvocation(string callerType, ExpressionSyntax objSyntax, string? asType, string? cachedName, string? propertyName)
         {
             ExpressionSyntax asTypeSyntax = asType == null
                 ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
@@ -45,7 +46,7 @@ namespace osu.Framework.SourceGeneration
                                         })));
         }
 
-        public static InvocationExpressionSyntax GetDependencyInvocation(ITypeSymbol callerType, ITypeSymbol requestedType, string? name, string? parent, bool canBeNull, bool rebindBindables)
+        public static InvocationExpressionSyntax GetDependencyInvocation(string callerType, string requestedType, string? name, string? parent, bool canBeNull, bool rebindBindables)
         {
             LiteralExpressionSyntax nameSyntax = name == null
                 ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
@@ -72,7 +73,7 @@ namespace osu.Framework.SourceGeneration
                                                          SyntaxFactory.TypeArgumentList(
                                                              SyntaxFactory.SeparatedList(new[]
                                                              {
-                                                                 SyntaxFactory.ParseTypeName(requestedType.ToDisplayString())
+                                                                 SyntaxFactory.ParseTypeName(requestedType)
                                                              })))))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
@@ -87,40 +88,17 @@ namespace osu.Framework.SourceGeneration
                                         })));
         }
 
-        public static string GetUnderlyingType(ITypeSymbol typeSymbol)
-        {
-            if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
-            {
-                if (typeSymbol.IsValueType)
-                {
-                    // For value types, the "original definition" / underlying type is System.Nullable<T>,
-                    // and the correct type is present as the first of the symbol's type parameters.
-                    typeSymbol = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-                }
-                else
-                {
-                    // For reference types... I have no idea how to retrieve the underlying type.
-                    // "OriginalDefinition" fails for generics (e.g. "Bindable<int>"? becomes "Bindable<T>").
-                    // So... We'll just do manual string manipulation for now.
-                    // Todo: Maybe use this as a general path?
-                    return typeSymbol.ToDisplayString().TrimEnd('?');
-                }
-            }
+        public static TypeOfExpressionSyntax TypeOf(string typeName)
+            => SyntaxFactory.TypeOfExpression(SyntaxFactory.ParseTypeName(typeName));
 
-            return typeSymbol.ToDisplayString();
-        }
+        public static bool IsBackgroundDependencyLoaderAttribute(AttributeData? attribute)
+            => IsBackgroundDependencyLoaderAttribute(attribute?.AttributeClass);
 
-        public static TypeOfExpressionSyntax TypeOf(ITypeSymbol typeSymbol)
-            => SyntaxFactory.TypeOfExpression(SyntaxFactory.ParseTypeName(GetUnderlyingType(typeSymbol)));
+        public static bool IsResolvedAttribute(AttributeData? attribute)
+            => IsResolvedAttribute(attribute?.AttributeClass);
 
-        public static bool IsBackgroundDependencyLoaderAttribute(SemanticModel semanticModel, AttributeSyntax attribute)
-            => IsBackgroundDependencyLoaderAttribute(semanticModel.GetTypeInfo(attribute.Name).Type);
-
-        public static bool IsResolvedAttribute(SemanticModel semanticModel, AttributeSyntax attribute)
-            => IsResolvedAttribute(semanticModel.GetTypeInfo(attribute.Name).Type);
-
-        public static bool IsCachedAttribute(SemanticModel semanticModel, AttributeSyntax attribute)
-            => IsCachedAttribute(semanticModel.GetTypeInfo(attribute.Name).Type);
+        public static bool IsCachedAttribute(AttributeData? attribute)
+            => IsCachedAttribute(attribute?.AttributeClass);
 
         public static bool IsBackgroundDependencyLoaderAttribute(ITypeSymbol? type)
             => type?.Name == "BackgroundDependencyLoaderAttribute";
@@ -131,50 +109,37 @@ namespace osu.Framework.SourceGeneration
         public static bool IsCachedAttribute(ITypeSymbol? type)
             => type?.Name == "CachedAttribute";
 
-        public static bool IsIDrawableInterface(ITypeSymbol? type)
-            => type?.Name == "IDrawable";
+        public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
+            => type?.Name == "IDependencyInjectionCandidate";
 
-        public static bool IsITransformableInterface(ITypeSymbol? type)
-            => type?.Name == "ITransformable";
+        public static string GetFullyQualifiedTypeName(INamedTypeSymbol type)
+            => type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 
-        public static bool IsISourceGeneratedDependencyActivatorInterface(ITypeSymbol? type)
-            => type?.Name == "ISourceGeneratedDependencyActivator";
-
-        public static bool IsIReadOnlyDependencyContainerInterface(ITypeSymbol? type)
-            => type?.Name == "IReadOnlyDependencyContainer";
-
-        public static bool IsTransformableType(ITypeSymbol? type)
-            => type?.Name == "Transformable";
-
-        public static IEnumerable<ITypeSymbol> EnumerateBaseTypes(ITypeSymbol type)
+        public static string GetFullyQualifiedSyntaxName(TypeDeclarationSyntax syntax)
         {
-            INamedTypeSymbol? baseType = type.BaseType;
+            StringBuilder sb = new StringBuilder();
 
-            while (baseType != null)
+            foreach (var node in syntax.AncestorsAndSelf())
             {
-                yield return baseType;
+                switch (node)
+                {
+                    case NamespaceDeclarationSyntax ns:
+                        sb.Append(ns.Name);
+                        break;
 
-                baseType = baseType.BaseType;
+                    case ClassDeclarationSyntax cls:
+                        sb.Append(cls.Identifier.ToString());
+
+                        if (cls.TypeParameterList != null)
+                            sb.Append($"{{{string.Join(",", cls.TypeParameterList.Parameters.Select(p => p.Identifier.ToString()))}}}");
+                        break;
+
+                    default:
+                        continue;
+                }
             }
-        }
 
-        public static IEnumerable<AttributeData> EnumerateDependencyInjectionAttributes(ISymbol symbol)
-        {
-            return symbol.GetAttributes()
-                         .Where(attrib =>
-                             IsBackgroundDependencyLoaderAttribute(attrib.AttributeClass)
-                             || IsResolvedAttribute(attrib.AttributeClass)
-                             || IsCachedAttribute(attrib.AttributeClass));
-        }
-
-        public static IEnumerable<AttributeSyntax> EnumerateDependencyInjectionAttributes(SemanticModel semanticModel, MemberDeclarationSyntax member)
-        {
-            return member.AttributeLists
-                         .SelectMany(l => l.Attributes)
-                         .Where(attrib =>
-                             IsBackgroundDependencyLoaderAttribute(semanticModel, attrib)
-                             || IsResolvedAttribute(semanticModel, attrib)
-                             || IsCachedAttribute(semanticModel, attrib));
+            return sb.ToString();
         }
 
         public static IEnumerable<ITypeSymbol> GetDeclaredInterfacesOnType(INamedTypeSymbol type)

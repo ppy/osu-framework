@@ -1,6 +1,0 @@
-namespace osu.Framework.Graphics
-{
-    public interface IDrawable
-    {
-    }
-}

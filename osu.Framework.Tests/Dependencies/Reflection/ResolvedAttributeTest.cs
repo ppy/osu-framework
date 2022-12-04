@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         {
         }
 
-        private class Receiver1
+        private class Receiver1 : IDependencyInjectionCandidate
         {
 #pragma warning disable 649, IDE0032
             private BaseObject obj;
@@ -235,7 +235,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public BaseObject Obj => obj;
         }
 
-        private class Receiver2
+        private class Receiver2 : IDependencyInjectionCandidate
         {
             [Resolved]
             private BaseObject obj { get; set; }
@@ -243,7 +243,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public BaseObject Obj => obj;
         }
 
-        private class Receiver3
+        private class Receiver3 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             private BaseObject obj { get; set; }
@@ -257,37 +257,37 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public BaseObject Obj2 => obj;
         }
 
-        private class Receiver5
+        private class Receiver5 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; set; }
         }
 
-        private class Receiver6
+        private class Receiver6 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected set; }
         }
 
-        private class Receiver7
+        private class Receiver7 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; internal set; }
         }
 
-        private class Receiver8
+        private class Receiver8 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; private set; }
         }
 
-        private class Receiver9
+        private class Receiver9 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected internal set; }
         }
 
-        private class Receiver10
+        private class Receiver10 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; }
@@ -297,31 +297,31 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         {
         }
 
-        private class Receiver12
+        private class Receiver12 : IDependencyInjectionCandidate
         {
             [Resolved]
             public CachedStructProvider.Struct Obj { get; private set; }
         }
 
-        private class Receiver13
+        private class Receiver13 : IDependencyInjectionCandidate
         {
             [Resolved]
             public int? Obj { get; private set; }
         }
 
-        private class Receiver14
+        private class Receiver14 : IDependencyInjectionCandidate
         {
             [Resolved]
             public int Obj { get; private set; }
         }
 
-        private class Receiver15
+        private class Receiver15 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public int Obj { get; private set; } = 1;
         }
 
-        private class Receiver16
+        private class Receiver16 : IDependencyInjectionCandidate
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; }
@@ -331,13 +331,13 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         }
 
 #nullable enable
-        private class Receiver17
+        private class Receiver17 : IDependencyInjectionCandidate
         {
             [Resolved]
             public Bindable<int>? Obj { get; private set; }
         }
 
-        private class Receiver18
+        private class Receiver18 : IDependencyInjectionCandidate
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; } = null!;

@@ -6,7 +6,7 @@ namespace osu.Framework.Allocation
     {
         object Get(Type type);
         object Get(Type type, CacheInfo info);
-        void Inject<T>(T instance) where T : class;
+        void Inject<T>(T instance) where T : class, IDependencyInjectionCandidate;
     }
 
     public static class ReadOnlyDependencyContainerExtensions

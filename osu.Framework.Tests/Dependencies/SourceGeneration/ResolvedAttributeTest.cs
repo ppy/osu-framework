@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var receiver = new Receiver12();
 
-            var testObject = new CachedStructProvider();
+            var testObject = new PartialCachedStructProvider();
 
             var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
 
@@ -144,7 +144,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var receiver = new Receiver13();
 
-            var testObject = new CachedNullableProvider();
+            var testObject = new PartialCachedNullableProvider();
             testObject.SetValue(testValue);
 
             var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
@@ -222,7 +222,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        private partial class Receiver1
+        private partial class Receiver1 : IDependencyInjectionCandidate
         {
 #pragma warning disable 649, IDE0032
             private BaseObject obj;
@@ -232,7 +232,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             public BaseObject Obj => obj;
         }
 
-        private partial class Receiver2
+        private partial class Receiver2 : IDependencyInjectionCandidate
         {
             [Resolved]
             private BaseObject obj { get; set; }
@@ -240,7 +240,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             public BaseObject Obj => obj;
         }
 
-        private partial class Receiver3
+        private partial class Receiver3 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             private BaseObject obj { get; set; }
@@ -254,31 +254,31 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             public BaseObject Obj2 => obj;
         }
 
-        private partial class Receiver5
+        private partial class Receiver5 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; set; }
         }
 
-        private partial class Receiver6
+        private partial class Receiver6 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected set; }
         }
 
-        private partial class Receiver7
+        private partial class Receiver7 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; internal set; }
         }
 
-        private partial class Receiver8
+        private partial class Receiver8 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; private set; }
         }
 
-        private partial class Receiver9
+        private partial class Receiver9 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected internal set; }
@@ -288,31 +288,31 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
         }
 
-        private partial class Receiver12
+        private partial class Receiver12 : IDependencyInjectionCandidate
         {
             [Resolved]
-            public CachedStructProvider.Struct Obj { get; private set; }
+            public PartialCachedStructProvider.Struct Obj { get; private set; }
         }
 
-        private partial class Receiver13
+        private partial class Receiver13 : IDependencyInjectionCandidate
         {
             [Resolved]
             public int? Obj { get; private set; }
         }
 
-        private partial class Receiver14
+        private partial class Receiver14 : IDependencyInjectionCandidate
         {
             [Resolved]
             public int Obj { get; private set; }
         }
 
-        private partial class Receiver15
+        private partial class Receiver15 : IDependencyInjectionCandidate
         {
             [Resolved(CanBeNull = true)]
             public int Obj { get; private set; } = 1;
         }
 
-        private partial class Receiver16
+        private partial class Receiver16 : IDependencyInjectionCandidate
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; }
@@ -322,13 +322,13 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
 #nullable enable
-        private partial class Receiver17
+        private partial class Receiver17 : IDependencyInjectionCandidate
         {
             [Resolved]
             public Bindable<int>? Obj { get; private set; }
         }
 
-        private partial class Receiver18
+        private partial class Receiver18 : IDependencyInjectionCandidate
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; } = null!;

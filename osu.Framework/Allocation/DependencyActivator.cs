@@ -64,7 +64,8 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="obj">The object to inject the dependencies into.</param>
         /// <param name="dependencies">The dependencies to use for injection.</param>
-        public static void Activate(object obj, IReadOnlyDependencyContainer dependencies)
+        public static void Activate<T>(T obj, IReadOnlyDependencyContainer dependencies)
+            where T : IDependencyInjectionCandidate
         {
             initialiseSourceGeneratedActivators(obj);
             activateRecursively(obj, dependencies, obj.GetType());
@@ -88,7 +89,8 @@ namespace osu.Framework.Allocation
         /// <param name="dependencies">The existing dependencies.</param>
         /// <param name="info">Extra information to identify parameters of <paramref name="obj"/> in the cache with.</param>
         /// <returns>A new <see cref="IReadOnlyDependencyContainer"/> if <paramref name="obj"/> provides any dependencies, otherwise <paramref name="dependencies"/>.</returns>
-        public static IReadOnlyDependencyContainer MergeDependencies(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info = default)
+        public static IReadOnlyDependencyContainer MergeDependencies<T>(T obj, IReadOnlyDependencyContainer dependencies, CacheInfo info = default)
+            where T : IDependencyInjectionCandidate
         {
             initialiseSourceGeneratedActivators(obj);
             return mergeRecursively(obj, dependencies, info, obj.GetType());
