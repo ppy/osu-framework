@@ -80,8 +80,7 @@ namespace osu.Framework.SourceGeneration.Tests
 
         public GeneratorDriverRunResult RunGenerators(ref GeneratorDriver driver)
         {
-            driver = driver.RunGeneratorsAndUpdateCompilation(Compilation, out Compilation outputCompilation, out _);
-            Compilation = outputCompilation;
+            driver = driver.RunGeneratorsAndUpdateCompilation(Compilation, out _, out _);
             return driver.GetRunResult();
         }
 
