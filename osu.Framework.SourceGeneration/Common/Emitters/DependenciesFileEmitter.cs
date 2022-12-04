@@ -78,7 +78,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                            SyntaxFactory.BaseList(
                                SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                                    SyntaxFactory.SimpleBaseType(
-                                       SyntaxFactory.ParseTypeName("osu.Framework.Allocation.ISourceGeneratedDependencyActivator")))))
+                                       SyntaxFactory.ParseTypeName("global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator")))))
                        .WithMembers(
                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                SyntaxFactory.MethodDeclaration(
@@ -93,7 +93,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                                         SyntaxFactory.Parameter(
                                                                          SyntaxFactory.Identifier(REGISTRY_PARAMETER_NAME))
                                                                      .WithType(
-                                                                         SyntaxFactory.ParseTypeName("osu.Framework.Allocation.IDependencyActivatorRegistry")))))
+                                                                         SyntaxFactory.ParseTypeName("global::osu.Framework.Allocation.IDependencyActivatorRegistry")))))
                                             .WithBody(
                                                 SyntaxFactory.Block(
                                                     emitPrecondition(),
@@ -259,7 +259,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                                       .WithInitializer(
                                                           SyntaxFactory.EqualsValueClause(
                                                               SyntaxFactory.ObjectCreationExpression(
-                                                                               SyntaxFactory.ParseTypeName("osu.Framework.Allocation.DependencyContainer"))
+                                                                               SyntaxFactory.ParseTypeName("global::osu.Framework.Allocation.DependencyContainer"))
                                                                            .WithArgumentList(
                                                                                SyntaxFactory.ArgumentList(
                                                                                    SyntaxFactory.SingletonSeparatedList(

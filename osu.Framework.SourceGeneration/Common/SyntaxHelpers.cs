@@ -30,7 +30,7 @@ namespace osu.Framework.SourceGeneration
             return SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.ParseTypeName("osu.Framework.Utils.SourceGeneratorUtils"),
+                                        SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
                                         SyntaxFactory.IdentifierName("CacheDependency")))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
@@ -67,7 +67,7 @@ namespace osu.Framework.SourceGeneration
             return SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.ParseTypeName("osu.Framework.Utils.SourceGeneratorUtils"),
+                                        SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
                                         SyntaxFactory.GenericName("GetDependency")
                                                      .WithTypeArgumentList(
                                                          SyntaxFactory.TypeArgumentList(
