@@ -4,14 +4,18 @@
 
 namespace osu
 {
-    partial class NestedConflictGenerator : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+    partial class NestedConflictGenerator : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
     {
-        public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+        public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
         {
             if (registry.IsRegistered(typeof(osu.NestedConflictGenerator)))
                 return;
             base.RegisterForDependencyActivation(registry);
-            registry.Register(typeof(osu.NestedConflictGenerator), null, null);
+            registry.Register(typeof(osu.NestedConflictGenerator), (t, d) =>
+            {
+                ((osu.NestedConflictGenerator)t).resolvedMember = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(osu.NestedConflictGenerator), null, null, false, true);
+                ((osu.NestedConflictGenerator)t).load();
+            }, null);
         }
     }
 }
