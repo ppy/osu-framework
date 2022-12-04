@@ -9,13 +9,13 @@ namespace osu.Framework.SourceGeneration.Data
 {
     public readonly struct CachedAttributeData : IEquatable<CachedAttributeData>
     {
-        public readonly string? Type;
+        public readonly string? GlobalPrefixedTypeName;
         public readonly string? Name;
         public readonly string? PropertyName;
 
         public bool Equals(CachedAttributeData other)
         {
-            return Type == other.Type && Name == other.Name && PropertyName == other.PropertyName;
+            return GlobalPrefixedTypeName == other.GlobalPrefixedTypeName && Name == other.Name && PropertyName == other.PropertyName;
         }
 
         public override bool Equals(object? obj)
@@ -27,16 +27,16 @@ namespace osu.Framework.SourceGeneration.Data
         {
             unchecked
             {
-                int hashCode = (Type != null ? Type.GetHashCode() : 0);
+                int hashCode = (GlobalPrefixedTypeName != null ? GlobalPrefixedTypeName.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyName != null ? PropertyName.GetHashCode() : 0);
                 return hashCode;
             }
         }
 
-        public CachedAttributeData(string? type, string? name, string? propertyName)
+        public CachedAttributeData(string? globalPrefixedTypeName, string? name, string? propertyName)
         {
-            Type = type;
+            GlobalPrefixedTypeName = globalPrefixedTypeName;
             Name = name;
             PropertyName = propertyName;
         }
@@ -46,29 +46,32 @@ namespace osu.Framework.SourceGeneration.Data
             if (symbol is not IPropertySymbol && symbol is not IFieldSymbol)
                 throw new InvalidOperationException("Cannot created cached attribute from a non-property/field symbol.");
 
-            string? type =
-                attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value?.ToString()
-                ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
+            object? typeSymbolCandidate =
+                attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value
+                ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value;
+            string? globalPrefixedTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(typeSymbolCandidate as ITypeSymbol);
 
             string? name = (string?)
                 (attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Name").Value.Value
                  ?? attributeData.ConstructorArguments.ElementAtOrDefault(1).Value);
 
-            return new CachedAttributeData(type, name, symbol.Name);
+            return new CachedAttributeData(globalPrefixedTypeName, name, symbol.Name);
         }
 
         public static CachedAttributeData FromInterfaceOrClass(ITypeSymbol typeSymbol, AttributeData attributeData)
         {
-            string type =
-                attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value?.ToString()
-                ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString()
-                ?? typeSymbol.ToDisplayString();
+            object typeSymbolCandidate =
+                attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Type").Value.Value
+                ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value
+                ?? typeSymbol;
+
+            string? globalPrefixedTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(typeSymbolCandidate as ITypeSymbol);
 
             string? name = (string?)
                 (attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Name").Value.Value
                  ?? attributeData.ConstructorArguments.ElementAtOrDefault(1).Value);
 
-            return new CachedAttributeData(type, name, null);
+            return new CachedAttributeData(globalPrefixedTypeName, name, null);
         }
     }
 }

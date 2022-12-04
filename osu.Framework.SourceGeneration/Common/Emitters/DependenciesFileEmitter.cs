@@ -149,7 +149,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                      SyntaxFactory.SingletonSeparatedList(
                                          SyntaxFactory.Argument(
                                              SyntaxFactory.TypeOfExpression(
-                                                 SyntaxFactory.ParseTypeName(Candidate.TypeName)))))),
+                                                 SyntaxFactory.ParseTypeName(Candidate.GlobalPrefixedTypeName)))))),
                 SyntaxFactory.ReturnStatement());
         }
 
@@ -188,7 +188,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                      {
                                          SyntaxFactory.Argument(
                                              SyntaxFactory.TypeOfExpression(
-                                                 SyntaxFactory.ParseTypeName(Candidate.TypeName))),
+                                                 SyntaxFactory.ParseTypeName(Candidate.GlobalPrefixedTypeName))),
                                          SyntaxFactory.Argument(
                                              emitInjectDependenciesDelegate()),
                                          SyntaxFactory.Argument(

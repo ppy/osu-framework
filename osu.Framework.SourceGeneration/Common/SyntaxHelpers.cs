@@ -115,6 +115,21 @@ namespace osu.Framework.SourceGeneration
         public static string GetFullyQualifiedTypeName(INamedTypeSymbol type)
             => type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 
+        /// <summary>
+        /// Returns a fully-qualified name for the supplied <paramref name="type"/>, with the <c>global::</c> prefix included.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Type keywords are not changed by this method, i.e. an <c>object</c> type symbol will be formatted to string as <c>object</c> rather than <c>System.Object</c>.
+        /// </para>
+        /// <para>
+        /// This method does not return <see langword="null"/> if <paramref name="type"/> is not <see langword="null"/>.
+        /// This cannot be expressed via <c>NotNullWhenNotNullAttribute</c> due to targeting .NET Standard 2.0.
+        /// </para>
+        /// </remarks>
+        public static string? GetGlobalPrefixedTypeName(ITypeSymbol? type)
+            => type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
         public static string GetFullyQualifiedSyntaxName(TypeDeclarationSyntax syntax)
         {
             StringBuilder sb = new StringBuilder();
