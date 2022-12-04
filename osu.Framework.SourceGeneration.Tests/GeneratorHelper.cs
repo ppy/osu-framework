@@ -92,6 +92,11 @@ namespace osu.Framework.SourceGeneration.Tests
             {
                 var oldTree = sources[filename];
                 sources[filename] = newTree;
+                if (newTree.ToString() == oldTree.ToString())
+                {
+                    return;
+                }
+
                 Compilation = Compilation.ReplaceSyntaxTree(oldTree, newTree);
             }
             else
