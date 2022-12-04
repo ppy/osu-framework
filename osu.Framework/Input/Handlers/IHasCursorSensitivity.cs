@@ -12,6 +12,6 @@ namespace osu.Framework.Input.Handlers
     /// </summary>
     public interface IHasCursorSensitivity
     {
-        BindableVector2d Sensitivity { get; }
+        BindableVector2D Sensitivity { get; }
     }
 }

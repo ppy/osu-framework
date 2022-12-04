@@ -9,13 +9,13 @@ namespace osu.Framework.Bindables
     /// <summary>
     /// Represents a <see cref="Vector2d"/> bindable with defined component-wise constraints applied to it.
     /// </summary>
-    public class BindableVector2d : RangeConstrainedBindable<Vector2d>
+    public class BindableVector2D : RangeConstrainedBindable<Vector2d>
     {
         public event Action<double>? PrecisionChanged;
         
         private double precision = double.Epsilon;
 
-        public BindableVector2d(Vector2d defaultValue = default)
+        public BindableVector2D(Vector2d defaultValue = default)
             : base(defaultValue)
         {
             setValue(defaultValue);
@@ -42,7 +42,7 @@ namespace osu.Framework.Bindables
         /// <param name="precision">The new precision.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the precision is set.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetPrecision(double precision, bool updateCurrentValue, BindableVector2d source)
+        internal void SetPrecision(double precision, bool updateCurrentValue, BindableVector2D source)
         {
             this.precision = precision;
             TriggerPrecisionChange(source);
@@ -87,7 +87,7 @@ namespace osu.Framework.Bindables
             TriggerPrecisionChange(this, false);
         }
 
-        protected void TriggerPrecisionChange(BindableVector2d source, bool propagateToBindings = true)
+        protected void TriggerPrecisionChange(BindableVector2D source, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             double beforePropagation = precision;
@@ -98,7 +98,7 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    if (b is BindableVector2d bn)
+                    if (b is BindableVector2D bn)
                         bn.SetPrecision(precision, false, this);
                 }
             }
@@ -116,7 +116,7 @@ namespace osu.Framework.Bindables
 
         public override string ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"({Value.X}x{Value.Y})").ToString(formatProvider);
 
-        protected override Bindable<Vector2d> CreateInstance() => new BindableVector2d();
+        protected override Bindable<Vector2d> CreateInstance() => new BindableVector2D();
 
         protected sealed override Vector2d ClampValue(Vector2d value, Vector2d minValue, Vector2d maxValue)
         {
