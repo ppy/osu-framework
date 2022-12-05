@@ -70,7 +70,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
             public void Verify()
             {
-                IncrementalCompilation compilation = new();
+                IncrementalCompilation compilation = new IncrementalCompilation();
 
                 foreach (var s in commonSources)
                     compilation.AddOrUpdateSource(s.filename, s.content);
@@ -85,7 +85,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                     // Remove sources from previous phase that are not existing in the current phase
                     if (phase > 0)
                     {
-                        foreach (var (filename, _) in multiPhaseSources[phase - 1].Where(old => !sources.Any(@new => @new.filename == old.filename)))
+                        foreach (var (filename, _) in multiPhaseSources[phase - 1].Where(old => sources.All(@new => @new.filename != old.filename)))
                             compilation.RemoveSource(filename);
                     }
 

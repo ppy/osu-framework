@@ -16,12 +16,12 @@ namespace osu.Framework.SourceGeneration.Tests
         public static void VerifyZeroDiagnostics(this GeneratorDriverRunResult runResult)
         {
             var compilationDiagnostics = runResult.Diagnostics
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .ToArray();
+                                                  .Where(d => d.Severity == DiagnosticSeverity.Error)
+                                                  .ToArray();
             var generatorDiagnostics = runResult.Results
-                .SelectMany(r => r.Diagnostics)
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .ToArray();
+                                                .SelectMany(r => r.Diagnostics)
+                                                .Where(d => d.Severity == DiagnosticSeverity.Error)
+                                                .ToArray();
 
             if (compilationDiagnostics.Any() || generatorDiagnostics.Any())
             {
@@ -42,13 +42,14 @@ namespace osu.Framework.SourceGeneration.Tests
         public static void VerifyMultiPhaseGeneratedSources(this GeneratorDriverRunResult runResult, (string filename, string content)[] files, int phase)
         {
             var generatedSources = runResult.Results
-                .SelectMany(r => r.GeneratedSources)
-                .ToDictionary(s => s.HintName);
+                                            .SelectMany(r => r.GeneratedSources)
+                                            .ToDictionary(s => s.HintName);
 
             if (generatedSources.Count != files.Length)
                 throw new Xunit.Sdk.XunitException($"Phase {phase}: Expected {files.Length} generated sources, but found {generatedSources.Count}");
 
             int matches = 0;
+
             foreach (var (filename, content) in files)
             {
                 if (!generatedSources.TryGetValue(filename, out var source))
@@ -68,7 +69,7 @@ namespace osu.Framework.SourceGeneration.Tests
 
     public class IncrementalCompilation
     {
-        private readonly Dictionary<string, SyntaxTree> sources = new();
+        private readonly Dictionary<string, SyntaxTree> sources = new Dictionary<string, SyntaxTree>();
 
         public Compilation Compilation { get; private set; }
 
@@ -93,6 +94,7 @@ namespace osu.Framework.SourceGeneration.Tests
             {
                 var oldTree = sources[filename];
                 sources[filename] = newTree;
+
                 if (newTree.ToString() == oldTree.ToString())
                 {
                     return;

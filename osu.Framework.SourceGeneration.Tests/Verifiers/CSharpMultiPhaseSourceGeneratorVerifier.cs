@@ -11,7 +11,8 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
     public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
-        private static readonly Regex multi_phase = new(@"^(?<filename>.*)\.(?<num>\d+)\.cs$", RegexOptions.Compiled);
+        // ReSharper disable once StaticMemberInGenericType
+        private static readonly Regex multi_phase = new Regex(@"^(?<filename>.*)\.(?<num>\d+)\.cs$", RegexOptions.Compiled);
 
         public static void Verify(
             (string filename, string content)[] commonSources,
@@ -21,8 +22,8 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
             Action<Test>? configure = null)
         {
             List<List<(string filename, string content)>>
-                multiPhaseSources = new(),
-                multiPhaseGenerated = new();
+                multiPhaseSources = new List<List<(string filename, string content)>>(),
+                multiPhaseGenerated = new List<List<(string filename, string content)>>();
 
             extractPhases(sources, multiPhaseSources);
             extractPhases(generated, multiPhaseGenerated, isGenerated: true);
@@ -48,6 +49,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                 foreach (var s in sources)
                 {
                     var match = multi_phase.Match(s.filename);
+
                     // Is multi-phase
                     if (match.Success)
                     {

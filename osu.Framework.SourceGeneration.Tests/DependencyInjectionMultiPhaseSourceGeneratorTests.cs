@@ -26,21 +26,25 @@ namespace osu.Framework.SourceGeneration.Tests
             VerifyIncremental.Verify(commonSources, sources, commonGenerated, generated);
         }
 
-        public static TheoryData<string, (int syntaxTargetCreated, int semanticTargetCreated, int emitHits)[]> CheckWithStatistics_Data => new()
-        {
-            { "GeneratorCached", new[] {
-                (2, 2, 2),
-                (0, 0, 0),
-            } },
-            // TODO: fix this failing case
-            // { "MultiPhasePartialCachedInterface", new[] {
-            //     (3, 3, 3),
-            //     (3, 2, 2), // should be (3, 2, 2) but current implementation returns (3, 1, 1), and generates invalid code due to a caching issue with single partials
-            // } },
-        };
+        public static TheoryData<string, (int syntaxTargetCreated, int semanticTargetCreated, int emitHits)[]> CheckWithStatisticsData =>
+            new TheoryData<string, (int syntaxTargetCreated, int semanticTargetCreated, int emitHits)[]>
+            {
+                {
+                    "GeneratorCached", new[]
+                    {
+                        (2, 2, 2),
+                        (0, 0, 0),
+                    }
+                },
+                // TODO: fix this failing case
+                // { "MultiPhasePartialCachedInterface", new[] {
+                //     (3, 3, 3),
+                //     (3, 2, 2), // should be (3, 2, 2) but current implementation returns (3, 1, 1), and generates invalid code due to a caching issue with single partials
+                // } },
+            };
 
         [Theory]
-        [MemberData(nameof(CheckWithStatistics_Data))]
+        [MemberData(nameof(CheckWithStatisticsData))]
         public void CheckWithStatistics(string name, (int, int, int)[] expectedStatistics)
         {
             GetTestSources(name,
