@@ -19,9 +19,12 @@
   </Target>
 
   <Target Name="_ppy_osu_Framework_SourceGenerationRemoveAnalyzers"
-          Condition="'$(DisableOsuFrameworkSourceGenerator)' == 'true'"
+          Condition="'$(DisableOsuFrameworkSourceGenerator)' == 'true' Or '$(Platform)' == 'iPhone' Or '$(Platform)' == 'iPhoneSimulator'"
           AfterTargets="ResolvePackageDependenciesForBuild;ResolveNuGetPackageAssets"
           DependsOnTargets="_ppy_osu_Framework_SourceGenerationGatherAnalyzers">
+
+    <!-- As per the conditions above, source generation breaks horribly on Xamarin.iOS projects (specifically due to importing "Xamarin.iOS.CSharp.targets" in *any* project).
+         todo: enable back once iOS targets .NET 6 -->
 
     <!-- Remove all our analyzers -->
     <ItemGroup>
