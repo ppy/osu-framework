@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace osu.Framework.SourceGeneration.Tests
 {
@@ -54,8 +56,7 @@ namespace osu.Framework.SourceGeneration.Tests
 
                 string actual = source.SourceText.ToString();
 
-                if (actual != content)
-                    throw new Xunit.Sdk.XunitException($"Phase {phase}: Generated source {filename} did not match expected content");
+                new XUnitVerifier().EqualOrDiff(content, actual, $"Phase {phase}: Generated source {filename} did not match expected content");
 
                 matches++;
             }
