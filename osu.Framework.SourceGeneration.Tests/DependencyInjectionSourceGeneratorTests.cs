@@ -34,9 +34,16 @@ namespace osu.Framework.SourceGeneration.Tests
         [InlineData("MultipleCachedMember")]
         [InlineData("CachedInheritedInterface")]
         [InlineData("CachedBaseType")]
-        public async Task Check(string name) => await RunTest(name).ConfigureAwait(false);
+        public Task Check(string name)
+        {
+            GetTestSources(name,
+                out (string filename, string content)[] commonSourceFiles,
+                out (string filename, string content)[] sourceFiles,
+                out (string filename, string content)[] commonGeneratedFiles,
+                out (string filename, string content)[] generatedFiles
+            );
 
-        protected override Task Verify((string filename, string content)[] sources, (string filename, string content)[] generated)
-            => VerifyCS.VerifyAsync(sources, generated);
+            return VerifyCS.VerifyAsync(commonSourceFiles, sourceFiles, commonGeneratedFiles, generatedFiles);
+        }
     }
 }
