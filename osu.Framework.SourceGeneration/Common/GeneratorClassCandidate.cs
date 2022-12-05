@@ -15,7 +15,7 @@ namespace osu.Framework.SourceGeneration
         public readonly ClassDeclarationSyntax ClassSyntax;
 
         public readonly string FullyQualifiedTypeName = string.Empty;
-        public readonly string TypeName = string.Empty;
+        public readonly string GlobalPrefixedTypeName = string.Empty;
         public readonly bool NeedsOverride;
         public readonly string? ContainingNamespace;
         public readonly bool IsValid;
@@ -40,7 +40,7 @@ namespace osu.Framework.SourceGeneration
                 return;
 
             FullyQualifiedTypeName = SyntaxHelpers.GetFullyQualifiedTypeName(symbol);
-            TypeName = symbol.ToDisplayString();
+            GlobalPrefixedTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(symbol)!;
             NeedsOverride = symbol.BaseType != null && symbol.BaseType.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
             ContainingNamespace = symbol.ContainingNamespace.IsGlobalNamespace ? null : symbol.ContainingNamespace.ToDisplayString();
 

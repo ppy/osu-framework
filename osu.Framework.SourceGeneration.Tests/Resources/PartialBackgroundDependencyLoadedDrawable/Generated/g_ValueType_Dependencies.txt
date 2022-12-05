@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class ValueType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class ValueType : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(ValueType)))
+        if (registry.IsRegistered(typeof(global::ValueType)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(ValueType), (t, d) =>
+        registry.Register(typeof(global::ValueType), (t, d) =>
         {
-            ((ValueType)t).load(osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken>(d, typeof(ValueType), null, null, false, false));
+            ((global::ValueType)t).load(global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<global::System.Threading.CancellationToken>(d, typeof(global::ValueType), null, null, false, false));
         }, null);
     }
 }

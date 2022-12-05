@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class CanBeNullParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class CanBeNullParameters : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(CanBeNullParameters)))
+        if (registry.IsRegistered(typeof(global::CanBeNullParameters)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(CanBeNullParameters), (t, d) =>
+        registry.Register(typeof(global::CanBeNullParameters), (t, d) =>
         {
-            ((CanBeNullParameters)t).load(osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(CanBeNullParameters), null, null, true, false));
+            ((global::CanBeNullParameters)t).load(global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::CanBeNullParameters), null, null, true, false));
         }, null);
     }
 }

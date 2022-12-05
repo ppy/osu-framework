@@ -4,17 +4,17 @@
 
 partial class A
 {
-    partial class B : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+    partial class B : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
     {
-        public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+        public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
         {
-            if (registry.IsRegistered(typeof(A.B)))
+            if (registry.IsRegistered(typeof(global::A.B)))
                 return;
             base.RegisterForDependencyActivation(registry);
-            registry.Register(typeof(A.B), null, (t, d, i) =>
+            registry.Register(typeof(global::A.B), null, (t, d, i) =>
             {
-                var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
-                osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(A.B), t, i, typeof(A.B), null, null);
+                var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
+                global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::A.B), t, i, typeof(global::A.B), null, null);
                 return dependencies;
             });
         }

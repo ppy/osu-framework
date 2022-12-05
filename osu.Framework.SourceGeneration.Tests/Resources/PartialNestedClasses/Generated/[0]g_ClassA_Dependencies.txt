@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class ClassA : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class ClassA : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(ClassA)))
+        if (registry.IsRegistered(typeof(global::ClassA)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(ClassA), (t, d) =>
+        registry.Register(typeof(global::ClassA), (t, d) =>
         {
-            ((ClassA)t).load();
+            ((global::ClassA)t).load();
         }, null);
     }
 }

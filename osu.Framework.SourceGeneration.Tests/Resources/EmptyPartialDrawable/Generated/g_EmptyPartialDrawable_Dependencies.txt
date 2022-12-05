@@ -2,13 +2,13 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class EmptyPartialDrawable : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class EmptyPartialDrawable : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(EmptyPartialDrawable)))
+        if (registry.IsRegistered(typeof(global::EmptyPartialDrawable)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(EmptyPartialDrawable), null, null);
+        registry.Register(typeof(global::EmptyPartialDrawable), null, null);
     }
 }
