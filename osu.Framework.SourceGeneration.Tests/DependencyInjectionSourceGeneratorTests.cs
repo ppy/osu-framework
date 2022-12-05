@@ -17,6 +17,8 @@ namespace osu.Framework.SourceGeneration.Tests
         [InlineData("CachedClass")]
         [InlineData("CachedDrawable")]
         // Partial-class tests:
+        [InlineData("DependencyInjectionCandidateWithConflictingLocal")]
+        [InlineData("DependencyInjectionCandidateWithConflictingNestedClass")]
         [InlineData("EmptyPartialDrawable")]
         [InlineData("GenericEmptyPartialDrawable")]
         [InlineData("PartialCachedClass")]

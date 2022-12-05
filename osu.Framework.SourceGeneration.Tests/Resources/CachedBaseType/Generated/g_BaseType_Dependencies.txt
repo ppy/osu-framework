@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class BaseType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class BaseType : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public virtual void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public virtual void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(BaseType)))
+        if (registry.IsRegistered(typeof(global::BaseType)))
             return;
-        registry.Register(typeof(BaseType), null, (t, d, i) =>
+        registry.Register(typeof(global::BaseType), null, (t, d, i) =>
         {
-            var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
-            osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(BaseType), t, i, typeof(BaseType), null, null);
+            var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
+            global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::BaseType), t, i, typeof(global::BaseType), null, null);
             return dependencies;
         });
     }

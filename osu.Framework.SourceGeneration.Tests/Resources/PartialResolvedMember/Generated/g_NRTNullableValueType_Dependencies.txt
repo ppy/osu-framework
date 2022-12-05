@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class NRTNullableValueType : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class NRTNullableValueType : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(NRTNullableValueType)))
+        if (registry.IsRegistered(typeof(global::NRTNullableValueType)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(NRTNullableValueType), (t, d) =>
+        registry.Register(typeof(global::NRTNullableValueType), (t, d) =>
         {
-            ((NRTNullableValueType)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<System.Threading.CancellationToken?>(d, typeof(NRTNullableValueType), null, null, true, true);
+            ((global::NRTNullableValueType)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<global::System.Threading.CancellationToken?>(d, typeof(global::NRTNullableValueType), null, null, true, true);
         }, null);
     }
 }

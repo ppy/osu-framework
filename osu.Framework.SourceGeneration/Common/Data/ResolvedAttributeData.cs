@@ -8,32 +8,35 @@ namespace osu.Framework.SourceGeneration.Data
 {
     public readonly struct ResolvedAttributeData
     {
-        public readonly string Type;
+        public readonly string GlobalPrefixedTypeName;
         public readonly string PropertyName;
 
-        public readonly string? ParentType;
+        public readonly string? GlobalPrefixedParentTypeName;
         public readonly string? CachedName;
         public readonly bool CanBeNull;
 
-        public ResolvedAttributeData(string type, string propertyName, string? parentType, string? cachedName, bool canBeNull)
+        public ResolvedAttributeData(string globalPrefixedTypeName, string propertyName, string? globalPrefixedParentTypeName, string? cachedName, bool canBeNull)
         {
-            Type = type;
+            GlobalPrefixedTypeName = globalPrefixedTypeName;
             PropertyName = propertyName;
 
-            ParentType = parentType;
+            GlobalPrefixedParentTypeName = globalPrefixedParentTypeName;
+
             CachedName = cachedName;
             CanBeNull = canBeNull;
 
             // When a parent type exists, infer the property name if one is not provided
-            if (parentType != null)
+            if (globalPrefixedParentTypeName != null)
                 CachedName ??= propertyName;
         }
 
         public static ResolvedAttributeData FromProperty(IPropertySymbol symbol, AttributeData attributeData)
         {
-            string? parentType =
-                attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Parent").Value.Value?.ToString()
-                ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
+            object? parentTypeCandidate =
+                attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Parent").Value.Value
+                ?? attributeData.ConstructorArguments.ElementAtOrDefault(0).Value;
+
+            string? globalPrefixedParentTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(parentTypeCandidate as ITypeSymbol);
 
             string? name = (string?)
                 (attributeData.NamedArguments.SingleOrDefault(arg => arg.Key == "Name").Value.Value
@@ -46,7 +49,7 @@ namespace osu.Framework.SourceGeneration.Data
 
             canBeNull |= symbol.NullableAnnotation == NullableAnnotation.Annotated;
 
-            return new ResolvedAttributeData(symbol.Type.ToDisplayString(), symbol.Name, parentType, name, canBeNull);
+            return new ResolvedAttributeData(SyntaxHelpers.GetGlobalPrefixedTypeName(symbol.Type)!, symbol.Name, globalPrefixedParentTypeName, name, canBeNull);
         }
     }
 }
