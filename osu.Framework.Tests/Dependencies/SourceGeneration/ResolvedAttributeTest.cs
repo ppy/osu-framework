@@ -140,6 +140,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
         [TestCase(null)]
         [TestCase(10)]
+        [Ignore("Temporarily disabled due to Xamarin projects not recognising NRT annotations.")]
         public void TestResolveNullableInternal(int? testValue)
         {
             var receiver = new Receiver13();
@@ -191,6 +192,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
+        [Ignore("Temporarily disabled due to Xamarin projects not recognising NRT annotations.")]
         public void TestResolveNullableWithNullableReferenceTypes()
         {
             var receiver = new Receiver17();
