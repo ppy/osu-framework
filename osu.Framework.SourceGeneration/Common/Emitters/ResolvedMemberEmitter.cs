@@ -29,10 +29,10 @@ namespace osu.Framework.SourceGeneration.Emitters
                     SyntaxKind.SimpleAssignmentExpression,
                     createMemberAccessor(),
                     SyntaxHelpers.GetDependencyInvocation(
-                        fileEmitter.Candidate.TypeName,
-                        data.Type,
+                        fileEmitter.Candidate.GlobalPrefixedTypeName,
+                        data.GlobalPrefixedTypeName,
                         data.CachedName,
-                        data.ParentType,
+                        data.GlobalPrefixedParentTypeName,
                         data.CanBeNull,
                         true)));
         }
@@ -43,7 +43,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.TypeName),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.GlobalPrefixedTypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
                 SyntaxFactory.IdentifierName(data.PropertyName));
         }

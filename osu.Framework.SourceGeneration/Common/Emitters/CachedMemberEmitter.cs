@@ -26,9 +26,9 @@ namespace osu.Framework.SourceGeneration.Emitters
         {
             yield return SyntaxFactory.ExpressionStatement(
                 SyntaxHelpers.CacheDependencyInvocation(
-                    fileEmitter.Candidate.TypeName,
+                    fileEmitter.Candidate.GlobalPrefixedTypeName,
                     createMemberAccessor(),
-                    data.Type,
+                    data.GlobalPrefixedTypeName,
                     data.Name,
                     data.PropertyName
                 ));
@@ -40,7 +40,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.TypeName),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.GlobalPrefixedTypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
                 SyntaxFactory.IdentifierName(data.PropertyName!));
         }

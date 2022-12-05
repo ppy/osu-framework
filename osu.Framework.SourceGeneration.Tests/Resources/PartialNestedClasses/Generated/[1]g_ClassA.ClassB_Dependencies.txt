@@ -4,16 +4,16 @@
 
 partial class ClassA
 {
-    partial class ClassB : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+    partial class ClassB : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
     {
-        public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+        public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
         {
-            if (registry.IsRegistered(typeof(ClassA.ClassB)))
+            if (registry.IsRegistered(typeof(global::ClassA.ClassB)))
                 return;
             base.RegisterForDependencyActivation(registry);
-            registry.Register(typeof(ClassA.ClassB), (t, d) =>
+            registry.Register(typeof(global::ClassA.ClassB), (t, d) =>
             {
-                ((ClassA.ClassB)t).load();
+                ((global::ClassA.ClassB)t).load();
             }, null);
         }
     }

@@ -2,17 +2,17 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class DerivedClass : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class DerivedClass : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(DerivedClass)))
+        if (registry.IsRegistered(typeof(global::DerivedClass)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(DerivedClass), null, (t, d, i) =>
+        registry.Register(typeof(global::DerivedClass), null, (t, d, i) =>
         {
-            var dependencies = new osu.Framework.Allocation.DependencyContainer(d);
-            osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(DerivedClass), t, i, typeof(IDerivedClass), null, null);
+            var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
+            global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::DerivedClass), t, i, typeof(global::IDerivedClass), null, null);
             return dependencies;
         });
     }
