@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Extensions
 {
-    public static class IFormattableExtensions
+    public static class FormattableExtensions
     {
         /// <summary>
         /// Formats the value of <paramref name="formattable"/> using the default format string and the supplied <paramref name="formatProvider"/>.
