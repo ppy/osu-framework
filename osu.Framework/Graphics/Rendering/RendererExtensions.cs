@@ -5,6 +5,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Textures;
@@ -178,6 +179,67 @@ namespace osu.Framework.Graphics.Rendering
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = blendRange,
+                Colour = drawColour.TopLeft.Linear,
+            });
+
+            long area = (long)vertexQuad.Area;
+
+            // Area may incorrect return a negative value, so guard against that case for now.
+            // See https://sentry.ppy.sh/organizations/ppy/issues/5739.
+            if (area > 0)
+                FrameStatistics.Add(StatisticsCounterType.Pixels, area);
+        }
+
+        /// <summary>
+        /// Draws a quad to the screen.
+        /// </summary>
+        /// <param name="renderer">The renderer to draw with.</param>
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="IVertexBatch{T}"/>.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The coordinates of the quad's vertices.</param>
+        public static void DrawQuad(this IRenderer renderer, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D>? vertexAction = null,
+                                    Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+        {
+            RectangleF texRect = textureRect ?? new RectangleF(0f, 0f, 1f, 1f);
+
+            RectangleF coordRect = textureCoords ?? texRect;
+            Vector2 blendRange = blendRangeOverride ?? Vector2.Zero;
+
+            vertexAction ??= renderer.DefaultQuadBatch.AddAction;
+
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexQuad.BottomLeft,
+                TexturePosition = new Vector2(coordRect.Left, coordRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = blendRange,
+                Colour = drawColour.BottomLeft.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexQuad.BottomRight,
+                TexturePosition = new Vector2(coordRect.Right, coordRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = blendRange,
+                Colour = drawColour.BottomRight.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexQuad.TopRight,
+                TexturePosition = new Vector2(coordRect.Right, coordRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = blendRange,
+                Colour = drawColour.TopRight.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexQuad.TopLeft,
+                TexturePosition = new Vector2(coordRect.Left, coordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
                 Colour = drawColour.TopLeft.Linear,
