@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Android.App;
@@ -74,6 +75,9 @@ namespace osu.Framework.Android
 
         public override void OpenUrlExternally(string url)
         {
+            if (!url.StartsWith("https://", StringComparison.Ordinal) && !url.StartsWith("http://", StringComparison.Ordinal))
+                throw new ArgumentException("URL must be either http or https protocol.", nameof(url));
+
             if (gameView.Activity.PackageManager == null) return;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))

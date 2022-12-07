@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Foundation;
@@ -83,6 +84,9 @@ namespace osu.Framework.iOS
 
         public override void OpenUrlExternally(string url)
         {
+            if (!url.StartsWith("https://", StringComparison.Ordinal) && !url.StartsWith("http://", StringComparison.Ordinal))
+                throw new ArgumentException("URL must be either http or https protocol.", nameof(url));
+
             UIApplication.SharedApplication.InvokeOnMainThread(() =>
             {
                 NSUrl nsurl = NSUrl.FromString(url);
