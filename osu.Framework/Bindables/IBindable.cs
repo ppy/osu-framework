@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Globalization;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Utils;
 
@@ -65,10 +64,6 @@ namespace osu.Framework.Bindables
             copy.BindTo(source);
             return (T)copy;
         }
-
-        string ToString() => ToString(null, CultureInfo.CurrentCulture);
-
-        string ToString(IFormatProvider formatProvider) => ToString(null, formatProvider);
     }
 
     /// <summary>
@@ -116,9 +111,5 @@ namespace osu.Framework.Bindables
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindable<T> GetBoundCopy();
-
-        string ToString() => ToString(null, CultureInfo.CurrentCulture);
-
-        string ToString(IFormatProvider formatProvider) => ToString(null, formatProvider);
     }
 }
