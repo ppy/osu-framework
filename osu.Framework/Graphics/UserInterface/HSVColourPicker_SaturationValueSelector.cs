@@ -10,12 +10,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.UserInterface
 {
