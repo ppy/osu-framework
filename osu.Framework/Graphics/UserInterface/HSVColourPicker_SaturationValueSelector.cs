@@ -7,6 +7,7 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
@@ -14,6 +15,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -207,10 +209,8 @@ namespace osu.Framework.Graphics.UserInterface
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private partial class SaturationBox : Box, ITexturedShaderDrawable
+            private partial class SaturationBox : Drawable
             {
-                public new IShader TextureShader { get; private set; }
-
                 private float hue;
 
                 public float Hue
@@ -230,15 +230,17 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.Both;
                 }
 
+                private IShader shader;
+
                 [BackgroundDependencyLoader]
                 private void load(ShaderManager shaders)
                 {
-                    TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
+                    shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
                 }
 
                 protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
 
-                private class SaturationBoxDrawNode : SpriteDrawNode
+                private class SaturationBoxDrawNode : DrawNode
                 {
                     public new SaturationBox Source => (SaturationBox)base.Source;
 
@@ -248,17 +250,35 @@ namespace osu.Framework.Graphics.UserInterface
                     }
 
                     private float hue;
+                    private IShader shader;
+                    private Vector2 drawSize;
 
                     public override void ApplyState()
                     {
                         base.ApplyState();
+
                         hue = Source.hue;
+                        shader = Source.shader;
+                        drawSize = Source.DrawSize;
                     }
 
-                    protected override void Blit(IRenderer renderer)
+                    public override void Draw(IRenderer renderer)
                     {
-                        TextureShader.GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(renderer);
+                        base.Draw(renderer);
+
+                        shader.Bind();
+                        shader.GetUniform<float>("hue").UpdateValue(ref hue);
+
+                        var quad = new Quad(
+                            Vector2Extensions.Transform(Vector2.Zero, DrawInfo.Matrix),
+                            Vector2Extensions.Transform(new Vector2(drawSize.X, 0f), DrawInfo.Matrix),
+                            Vector2Extensions.Transform(new Vector2(0f, drawSize.Y), DrawInfo.Matrix),
+                            Vector2Extensions.Transform(drawSize, DrawInfo.Matrix)
+                        );
+
+                        renderer.DrawQuad(quad, DrawColourInfo.Colour);
+
+                        shader.Unbind();
                     }
                 }
             }

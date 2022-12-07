@@ -6,8 +6,9 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
 
@@ -41,10 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Height = 30,
                         RelativeSizeAxes = Axes.X,
-                        Child = new HueSelectorBackground
-                        {
-                            RelativeSizeAxes = Axes.Both
-                        }
+                        Child = new HueSelectorBackground()
                     },
                     nub = CreateSliderNub().With(d =>
                     {
@@ -94,14 +92,60 @@ namespace osu.Framework.Graphics.UserInterface
                 Hue.Value = localSpacePosition.X / DrawWidth;
             }
 
-            private partial class HueSelectorBackground : Box, ITexturedShaderDrawable
+            private partial class HueSelectorBackground : Drawable
             {
-                public new IShader TextureShader { get; private set; }
+                public HueSelectorBackground()
+                {
+                    RelativeSizeAxes = Axes.Both;
+                }
+
+                private IShader shader;
 
                 [BackgroundDependencyLoader]
                 private void load(ShaderManager shaders)
                 {
-                    TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackground");
+                    shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackground");
+                }
+
+                protected override DrawNode CreateDrawNode() => new HueSelectorBackgroundDrawNode(this);
+
+                private class HueSelectorBackgroundDrawNode : DrawNode
+                {
+                    public new HueSelectorBackground Source => (HueSelectorBackground)base.Source;
+
+                    public HueSelectorBackgroundDrawNode(HueSelectorBackground source)
+                        : base(source)
+                    {
+                    }
+
+                    private IShader shader;
+                    private Vector2 drawSize;
+
+                    public override void ApplyState()
+                    {
+                        base.ApplyState();
+
+                        shader = Source.shader;
+                        drawSize = Source.DrawSize;
+                    }
+
+                    public override void Draw(IRenderer renderer)
+                    {
+                        base.Draw(renderer);
+
+                        shader.Bind();
+
+                        var quad = new Quad(
+                            Vector2Extensions.Transform(Vector2.Zero, DrawInfo.Matrix),
+                            Vector2Extensions.Transform(new Vector2(drawSize.X, 0f), DrawInfo.Matrix),
+                            Vector2Extensions.Transform(new Vector2(0f, drawSize.Y), DrawInfo.Matrix),
+                            Vector2Extensions.Transform(drawSize, DrawInfo.Matrix)
+                        );
+
+                        renderer.DrawQuad(quad, DrawColourInfo.Colour);
+
+                        shader.Unbind();
+                    }
                 }
             }
         }
