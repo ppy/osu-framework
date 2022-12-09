@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.Containers
@@ -10,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which adds a basic visibility state.
     /// </summary>
-    public abstract class VisibilityContainer : Container
+    public abstract partial class VisibilityContainer : Container
     {
         /// <summary>
         /// The current visibility state.

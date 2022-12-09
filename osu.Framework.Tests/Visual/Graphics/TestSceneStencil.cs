@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Graphics
 {
-    public class TestSceneStencil : FrameworkTestScene
+    public partial class TestSceneStencil : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)
@@ -53,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Graphics
             }
         }
 
-        private class StencilDrawable : CompositeDrawable
+        private partial class StencilDrawable : CompositeDrawable
         {
             public Drawable Background
             {
@@ -93,6 +94,8 @@ namespace osu.Framework.Tests.Visual.Graphics
 
                 // No depth testing.
                 renderer.PushDepthInfo(new DepthInfo(false));
+
+                Debug.Assert(Children != null);
 
                 drawStencil(renderer, Children[1]);
                 drawBackground(renderer, Children[0]);
@@ -141,7 +144,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 renderer.PopStencilInfo();
             }
 
-            public List<DrawNode> Children { get; set; } = new List<DrawNode>();
+            public List<DrawNode>? Children { get; set; } = new List<DrawNode>();
 
             public bool AddChildDrawNodes => true;
         }

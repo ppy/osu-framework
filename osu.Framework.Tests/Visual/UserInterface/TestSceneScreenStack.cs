@@ -25,7 +25,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneScreenStack : FrameworkTestScene
+    public partial class TestSceneScreenStack : FrameworkTestScene
     {
         private TestScreen baseScreen;
         private ScreenStack stack;
@@ -958,7 +958,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("ensure current", () => screen.IsCurrentScreen());
         }
 
-        private class TestScreenSlow : TestScreen
+        private partial class TestScreenSlow : TestScreen
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -975,7 +975,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestScreen : Screen
+        private partial class TestScreen : Screen
         {
             public Func<bool> Exiting;
 

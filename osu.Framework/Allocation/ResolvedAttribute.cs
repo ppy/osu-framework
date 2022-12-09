@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Allocation
 {
@@ -26,6 +27,8 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
+        private static readonly GlobalStatistic<int> count_reflection_attributes = GlobalStatistics.Get<int>("Dependencies", "Reflected [Resolved]s");
+
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
@@ -73,6 +76,8 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
+            count_reflection_attributes.Value++;
+
             var activators = new List<Action<object, IReadOnlyDependencyContainer>>();
 
             var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<ResolvedAttribute>() != null);

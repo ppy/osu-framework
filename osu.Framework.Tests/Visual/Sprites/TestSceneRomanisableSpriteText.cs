@@ -14,7 +14,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneRomanisableSpriteText : FrameworkTestScene
+    public partial class TestSceneRomanisableSpriteText : FrameworkTestScene
     {
         private readonly FillFlowContainer flow;
 

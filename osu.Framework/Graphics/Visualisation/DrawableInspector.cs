@@ -14,7 +14,7 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class DrawableInspector : VisibilityContainer
+    internal partial class DrawableInspector : VisibilityContainer
     {
         [Cached]
         public Bindable<Drawable> InspectedDrawable { get; private set; } = new Bindable<Drawable>();

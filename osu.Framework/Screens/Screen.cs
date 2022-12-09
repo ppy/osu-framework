@@ -11,7 +11,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Screens
 {
-    public class Screen : CompositeDrawable, IScreen
+    public partial class Screen : CompositeDrawable, IScreen
     {
         public bool ValidForResume { get; set; } = true;
 

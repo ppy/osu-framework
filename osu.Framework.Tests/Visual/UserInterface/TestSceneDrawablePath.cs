@@ -20,7 +20,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDrawablePath : FrameworkTestScene
+    public partial class TestSceneDrawablePath : FrameworkTestScene
     {
         private const int texture_width = 20;
 

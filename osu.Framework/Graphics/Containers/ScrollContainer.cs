@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public abstract class ScrollContainer<T> : Container<T>, IScrollContainer, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+    public abstract partial class ScrollContainer<T> : Container<T>, IScrollContainer, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="direction">The scrolling direction.</param>
         protected abstract ScrollbarContainer CreateScrollbar(Direction direction);
 
-        protected internal abstract class ScrollbarContainer : Container
+        protected internal abstract partial class ScrollbarContainer : Container
         {
             private float dragOffset;
 

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -12,7 +13,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Testing
 {
-    internal class DrawFrameRecordingContainer : Container
+    internal partial class DrawFrameRecordingContainer : Container
     {
         private readonly Bindable<RecordState> recordState = new Bindable<RecordState>();
         private readonly BindableInt currentFrame = new BindableInt();
@@ -80,6 +81,8 @@ namespace osu.Framework.Testing
             if (!(drawNode is ICompositeDrawNode composite))
                 return;
 
+            Debug.Assert(composite.Children != null);
+
             foreach (var child in composite.Children)
                 referenceRecursively(child);
         }
@@ -91,12 +94,14 @@ namespace osu.Framework.Testing
             if (!(drawNode is ICompositeDrawNode composite))
                 return;
 
+            Debug.Assert(composite.Children != null);
+
             foreach (var child in composite.Children)
                 disposeRecursively(child);
         }
 
         // An empty drawable which captures DrawVisualiser input in this container
-        private class InputCapturingDrawable : Drawable
+        private partial class InputCapturingDrawable : Drawable
         {
             // Required for the DrawVisualiser to not treat this Drawable as an overlay input receptor
             // ReSharper disable once RedundantOverriddenMember

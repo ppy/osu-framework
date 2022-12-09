@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Visualisation.Audio;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneAudioMixerVisualiser : FrameworkTestScene
+    public partial class TestSceneAudioMixerVisualiser : FrameworkTestScene
     {
         private Container<TestAudioPlayingSource> mixedSources = new Container<TestAudioPlayingSource>();
         private TestAudioPlayingSource globalSource;
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Testing
                 AddStep($"remove mixer {name}", () => source.Expire());
         }
 
-        private class TestAudioPlayingSource : CompositeDrawable
+        private partial class TestAudioPlayingSource : CompositeDrawable
         {
             private readonly bool withMixer;
             private DrawableTrack track;

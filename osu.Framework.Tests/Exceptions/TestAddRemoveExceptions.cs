@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Shapes;
 namespace osu.Framework.Tests.Exceptions
 {
     [TestFixture]
-    public class TestAddRemoveExceptions
+    public partial class TestAddRemoveExceptions
     {
         [Test]
         public void TestNonStableComparer()
@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Exceptions
             });
         }
 
-        internal class BrokenFillFlowContainer : FillFlowContainer
+        internal partial class BrokenFillFlowContainer : FillFlowContainer
         {
             protected override int Compare(Drawable x, Drawable y) => 0;
         }

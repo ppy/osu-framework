@@ -1,0 +1,5 @@
+public partial class WithCanBeNullProperty : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Resolved(CanBeNull = true)]
+    public object ResolvedProperty { get; private set; }
+}

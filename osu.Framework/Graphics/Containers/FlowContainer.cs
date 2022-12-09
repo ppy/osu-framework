@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container that can be used to fluently arrange its children.
     /// </summary>
-    public abstract class FlowContainer<T> : Container<T>
+    public abstract partial class FlowContainer<T> : Container<T>
         where T : Drawable
     {
         internal event Action OnLayout;
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             layoutChildren.Add(drawable, 0f);
             // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (!childLayout.IsValid)
             {
-                layout.Invalidate();
+                InvalidateLayout();
                 childLayout.Validate();
             }
 

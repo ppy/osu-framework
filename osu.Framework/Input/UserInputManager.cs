@@ -19,7 +19,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Input
 {
-    public class UserInputManager : PassThroughInputManager
+    public partial class UserInputManager : PassThroughInputManager
     {
         protected override ImmutableArray<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 

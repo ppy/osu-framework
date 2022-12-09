@@ -9,7 +9,7 @@ namespace FlappyDon.Game.Elements
     /// <summary>
     /// A centered sprite used to display titles and text to the player.
     /// </summary>
-    public class TitleSprite : Sprite
+    public partial class TitleSprite : Sprite
     {
         private readonly string textureName;
 

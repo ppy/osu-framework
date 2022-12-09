@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics
     /// This is currently used as a marker for cases where nothing more than load, update, lifetime support and hierarchy presence are required.
     /// Eventually this will be fleshed out (and the inheritance will be reversed to Drawable : Component).
     /// </summary>
-    public abstract class Component : Drawable
+    public abstract partial class Component : Drawable
     {
     }
 }

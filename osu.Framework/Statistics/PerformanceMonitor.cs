@@ -153,6 +153,7 @@ namespace osu.Framework.Statistics
                     global.Value = count;
                     currentFrame.Counts[type] = count;
                     currentFrame.FramesPerSecond = Clock.FramesPerSecond;
+                    currentFrame.Jitter = Clock.Jitter;
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }

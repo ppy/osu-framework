@@ -1,10 +1,11 @@
 #include "sh_Utils.h"
+#include "sh_Masking.h"
 #include "sh_yuv2rgb.h"
 
-varying lowp vec4 v_Colour;
 varying mediump vec2 v_TexCoord;
-varying mediump vec4 v_TexRect;
 
-void main() {
-    gl_FragColor = toSRGB(v_Colour) * wrappedSamplerRgb(wrap(v_TexCoord, v_TexRect), v_TexRect, 0.0);
+void main(void) 
+{
+    vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
+    gl_FragColor = getRoundedColor(toLinear(wrappedSamplerRgb(wrappedCoord, v_TexRect, 0.0)), wrappedCoord);
 }

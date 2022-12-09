@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// code
     /// ```
     /// </code>
-    public class MarkdownFencedCodeBlock : CompositeDrawable, IMarkdownTextFlowComponent
+    public partial class MarkdownFencedCodeBlock : CompositeDrawable, IMarkdownTextFlowComponent
     {
         private readonly FencedCodeBlock fencedCodeBlock;
 

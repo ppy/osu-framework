@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Audio
     /// <summary>
     /// A <see cref="Track"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableTrack : DrawableAudioWrapper, ITrack
+    public partial class DrawableTrack : DrawableAudioWrapper, ITrack
     {
         private readonly Track track;
 
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public bool TrackLoaded => track.IsLoaded;
 
-        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer?> mixer)
         {
             base.OnMixerChanged(mixer);
 

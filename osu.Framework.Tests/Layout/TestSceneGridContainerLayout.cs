@@ -15,7 +15,7 @@ using osuTK;
 namespace osu.Framework.Tests.Layout
 {
     [HeadlessTest]
-    public class TestSceneGridContainerLayout : FrameworkTestScene
+    public partial class TestSceneGridContainerLayout : FrameworkTestScene
     {
         /// <summary>
         /// Tests that a grid's auto-size is updated when a child becomes alive.
@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Layout
             AddAssert("parent has size 0", () => Precision.AlmostEquals(Vector2.Zero, parent.DrawSize));
         }
 
-        private class TestBox1 : Box
+        private partial class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
         }

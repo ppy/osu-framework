@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
@@ -655,5 +656,7 @@ namespace osu.Framework.Bindables
         }
 
         public bool IsDefault => Count == 0;
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }

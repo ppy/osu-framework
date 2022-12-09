@@ -15,7 +15,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSceneCompositeMutability : FrameworkTestScene
+    public partial class TestSceneCompositeMutability : FrameworkTestScene
     {
         [TestCase(TestThread.External, false)]
         [TestCase(TestThread.Update, false)]
@@ -139,7 +139,7 @@ namespace osu.Framework.Tests.Containers
             }
         }
 
-        private class BlockableLoadContainer : Framework.Graphics.Containers.Container
+        private partial class BlockableLoadContainer : Framework.Graphics.Containers.Container
         {
             /// <summary>
             /// Allows continuation to a point in the <see cref="LoadState.Loading"/> state which invokes <see cref="OnLoading"/>.

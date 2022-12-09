@@ -15,7 +15,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
-    public class TestSceneBorderless : FrameworkTestScene
+    public partial class TestSceneBorderless : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();

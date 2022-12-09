@@ -18,7 +18,7 @@ using osu.Framework.Utils;
 namespace osu.Framework.Tests.Audio
 {
     [HeadlessTest]
-    public class TestSceneDrawableTrack : FrameworkTestScene
+    public partial class TestSceneDrawableTrack : FrameworkTestScene
     {
         [Resolved]
         private ITrackStore trackStore { get; set; }

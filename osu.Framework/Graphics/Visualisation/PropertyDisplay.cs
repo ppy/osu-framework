@@ -21,7 +21,7 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class PropertyDisplay : Container
+    internal partial class PropertyDisplay : Container
     {
         private readonly FillFlowContainer flow;
 
@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Visualisation
                                .Select(m => new PropertyItem(m, source)));
         }
 
-        private class PropertyItem : Container
+        private partial class PropertyItem : Container
         {
             private readonly SpriteText valueText;
             private readonly Box changeMarker;

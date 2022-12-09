@@ -1,14 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics.Shapes;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class BasicScrollContainer : BasicScrollContainer<Drawable>
+    public partial class BasicScrollContainer : BasicScrollContainer<Drawable>
     {
         public BasicScrollContainer(Direction scrollDirection = Direction.Vertical)
             : base(scrollDirection)
@@ -16,7 +14,7 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class BasicScrollContainer<T> : ScrollContainer<T>
+    public partial class BasicScrollContainer<T> : ScrollContainer<T>
         where T : Drawable
     {
         public BasicScrollContainer(Direction scrollDirection = Direction.Vertical)
@@ -26,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override ScrollbarContainer CreateScrollbar(Direction direction) => new BasicScrollbar(direction);
 
-        protected internal class BasicScrollbar : ScrollbarContainer
+        protected internal partial class BasicScrollbar : ScrollbarContainer
         {
             private const float dim_size = 8;
 

@@ -17,7 +17,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Visual.Input
 {
     [HeadlessTest]
-    public class TestSceneKeyBindingContainer : ManualInputManagerTestScene
+    public partial class TestSceneKeyBindingContainer : ManualInputManagerTestScene
     {
         [Test]
         public void TestTriggerWithNoKeyBindings()
@@ -299,7 +299,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release B", () => InputManager.ReleaseKey(Key.B));
         }
 
-        private class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
+        private partial class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction> Pressed;
             public Action<TestAction> Repeated;
@@ -326,7 +326,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {

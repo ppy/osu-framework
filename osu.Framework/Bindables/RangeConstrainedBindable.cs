@@ -158,6 +158,19 @@ namespace osu.Framework.Bindables
                 MaxValueChanged?.Invoke(maxValue);
         }
 
+        public override void CopyTo(Bindable<T> them)
+        {
+            // if the other bindable is range-constrained, the bounds need to be copied across first,
+            // as Value assignment (in the base call below) automatically clamps to [MinValue, MaxValue].
+            if (them is RangeConstrainedBindable<T> other)
+            {
+                other.MinValue = MinValue;
+                other.MaxValue = MaxValue;
+            }
+
+            base.CopyTo(them);
+        }
+
         public override void BindTo(Bindable<T> them)
         {
             if (them is RangeConstrainedBindable<T> other)
@@ -167,9 +180,6 @@ namespace osu.Framework.Bindables
                     throw new ArgumentOutOfRangeException(
                         nameof(them), $"The target bindable has specified an invalid range of [{other.MinValue} - {other.MaxValue}].");
                 }
-
-                MinValue = other.MinValue;
-                MaxValue = other.MaxValue;
             }
 
             base.BindTo(them);

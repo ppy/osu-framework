@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCompositeDrawable : FrameworkTestScene
+    public partial class TestSceneCompositeDrawable : FrameworkTestScene
     {
         [Test]
         public void TestSortWithComparerChange()
@@ -89,7 +89,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddUntilStep("container still autosized", () => container.Size == new Vector2(100));
         }
 
-        private class SortableComposite : CompositeDrawable
+        private partial class SortableComposite : CompositeDrawable
         {
             public SortableComposite()
             {
@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 => ((SortableBox)x).Id.CompareTo(((SortableBox)y).Id);
         }
 
-        private class SortableBox : Box
+        private partial class SortableBox : Box
         {
             public int Id;
         }

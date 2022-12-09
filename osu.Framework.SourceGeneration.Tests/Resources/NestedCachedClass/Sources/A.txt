@@ -1,0 +1,7 @@
+public partial class A : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Cached]
+    public partial class B : osu.Framework.Graphics.Drawable
+    {
+    }
+}

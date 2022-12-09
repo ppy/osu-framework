@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Sprites
     /// A sprite representing an icon.
     /// Uses <see cref="FontStore"/> to perform character lookups.
     /// </summary>
-    public class SpriteIcon : CompositeDrawable
+    public partial class SpriteIcon : CompositeDrawable
     {
         private Sprite spriteShadow;
         private Sprite spriteMain;

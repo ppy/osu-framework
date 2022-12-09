@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A component which allows a user to select a file.
     /// </summary>
-    public abstract class FileSelector : DirectorySelector
+    public abstract partial class FileSelector : DirectorySelector
     {
         private readonly string[] validFileExtensions;
         protected abstract DirectoryListingFile CreateFileItem(FileInfo file);
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected abstract class DirectoryListingFile : DirectorySelectorItem
+        protected abstract partial class DirectoryListingFile : DirectorySelectorItem
         {
             protected readonly FileInfo File;
 
