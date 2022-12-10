@@ -1,6 +1,6 @@
 echo "Installing Cake.Tool..."
 dotnet tool restore
-dotnet workload install android
+dotnet workload restore
 
 # Parse arguments.
 CAKE_ARGUMENTS=()

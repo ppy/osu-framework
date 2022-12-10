@@ -138,8 +138,11 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
+      - name: Install .NET workloads
+        run: dotnet workload install ios
+
       # Contrary to seemingly any other msbuild, msbuild running on macOS/Mono
       # cannot accept .sln(f) files as arguments.
       # Build just the iOS framework project for now.
       - name: Build
-        run: msbuild osu.Framework.iOS/osu.Framework.iOS.csproj /restore /p:Configuration=Debug
+        run: dotnet build -c Debug osu-framework.iOS.slnf
