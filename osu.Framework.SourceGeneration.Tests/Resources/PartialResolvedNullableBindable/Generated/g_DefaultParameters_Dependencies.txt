@@ -2,16 +2,16 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class DefaultParameters : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+partial class DefaultParameters : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
 {
-    public override void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+    public override void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
     {
-        if (registry.IsRegistered(typeof(DefaultParameters)))
+        if (registry.IsRegistered(typeof(global::DefaultParameters)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(DefaultParameters), (t, d) =>
+        registry.Register(typeof(global::DefaultParameters), (t, d) =>
         {
-            ((DefaultParameters)t).ResolvedProperty = osu.Framework.Utils.SourceGeneratorUtils.GetDependency<osu.Framework.Bindables.Bindable<int>?>(d, typeof(DefaultParameters), null, null, true, true);
+            ((global::DefaultParameters)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<global::osu.Framework.Bindables.Bindable<int>?>(d, typeof(global::DefaultParameters), null, null, true, true);
         }, null);
     }
 }

@@ -4,13 +4,13 @@
 
 namespace osu.Framework.Graphics
 {
-    partial class Drawable : osu.Framework.Allocation.ISourceGeneratedDependencyActivator
+    partial class Drawable : global::osu.Framework.Allocation.ISourceGeneratedDependencyActivator
     {
-        public virtual void RegisterForDependencyActivation(osu.Framework.Allocation.IDependencyActivatorRegistry registry)
+        public virtual void RegisterForDependencyActivation(global::osu.Framework.Allocation.IDependencyActivatorRegistry registry)
         {
-            if (registry.IsRegistered(typeof(osu.Framework.Graphics.Drawable)))
+            if (registry.IsRegistered(typeof(global::osu.Framework.Graphics.Drawable)))
                 return;
-            registry.Register(typeof(osu.Framework.Graphics.Drawable), null, null);
+            registry.Register(typeof(global::osu.Framework.Graphics.Drawable), null, null);
         }
     }
 }

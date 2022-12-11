@@ -1,0 +1,4 @@
+[osu.Framework.Allocation.Cached]
+public interface IDifferentFile
+{
+}

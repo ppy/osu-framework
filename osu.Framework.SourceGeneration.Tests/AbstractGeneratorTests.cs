@@ -6,44 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace osu.Framework.SourceGeneration.Tests
 {
     public abstract class AbstractGeneratorTests
     {
         private const string resources_namespace = "osu.Framework.SourceGeneration.Tests.Resources";
-
-        public async Task RunTest(string name)
-        {
-            string commonSourcesNamespace = $"{resources_namespace}.CommonSources";
-            string commonGeneratedNamespace = $"{resources_namespace}.CommonGenerated";
-            string sourcesNamespace = $"{resources_namespace}.{name}.Sources";
-            string generatedNamespace = $"{resources_namespace}.{name}.Generated";
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string[] resourceNames = assembly.GetManifestResourceNames();
-
-            var sourceFiles = new List<(string filename, string content)>();
-            var generatedFiles = new List<(string filename, string content)>();
-
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonSourcesNamespace, StringComparison.Ordinal)))
-                sourceFiles.Add((getFileNameFromResourceName(commonSourcesNamespace, file), readResourceStream(assembly, file)));
-
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonGeneratedNamespace, StringComparison.Ordinal)))
-                generatedFiles.Add((getFileNameFromResourceName(commonGeneratedNamespace, file), readResourceStream(assembly, file)));
-
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(sourcesNamespace, StringComparison.Ordinal)))
-                sourceFiles.Add((getFileNameFromResourceName(sourcesNamespace, file), readResourceStream(assembly, file)));
-
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(generatedNamespace, StringComparison.Ordinal)))
-                generatedFiles.Add((getFileNameFromResourceName(generatedNamespace, file), readResourceStream(assembly, file)));
-
-            removeNameIndices(sourceFiles);
-            removeNameIndices(generatedFiles);
-
-            await Verify(sourceFiles.ToArray(), generatedFiles.ToArray()).ConfigureAwait(false);
-        }
 
         /// <summary>
         /// This method is kind of SILLY and is a HACK.
@@ -76,7 +44,48 @@ namespace osu.Framework.SourceGeneration.Tests
             return resourceName;
         }
 
-        protected abstract Task Verify((string filename, string content)[] sources, (string filename, string content)[] generated);
+        protected void GetTestSources(
+            string name,
+            out (string filename, string content)[] commonSources,
+            out (string filename, string content)[] sources,
+            out (string filename, string content)[] commonGenerated,
+            out (string filename, string content)[] generated)
+        {
+            string commonSourcesNamespace = $"{resources_namespace}.CommonSources";
+            string commonGeneratedNamespace = $"{resources_namespace}.CommonGenerated";
+            string sourcesNamespace = $"{resources_namespace}.{name}.Sources";
+            string generatedNamespace = $"{resources_namespace}.{name}.Generated";
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string[] resourceNames = assembly.GetManifestResourceNames();
+
+            var commonSourceFiles = new List<(string filename, string content)>();
+            var sourceFiles = new List<(string filename, string content)>();
+            var commonGeneratedFiles = new List<(string filename, string content)>();
+            var generatedFiles = new List<(string filename, string content)>();
+
+            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonSourcesNamespace, StringComparison.Ordinal)))
+                commonSourceFiles.Add((getFileNameFromResourceName(commonSourcesNamespace, file), readResourceStream(assembly, file)));
+
+            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonGeneratedNamespace, StringComparison.Ordinal)))
+                commonGeneratedFiles.Add((getFileNameFromResourceName(commonGeneratedNamespace, file), readResourceStream(assembly, file)));
+
+            foreach (string? file in resourceNames.Where(n => n.StartsWith(sourcesNamespace, StringComparison.Ordinal)))
+                sourceFiles.Add((getFileNameFromResourceName(sourcesNamespace, file), readResourceStream(assembly, file)));
+
+            foreach (string? file in resourceNames.Where(n => n.StartsWith(generatedNamespace, StringComparison.Ordinal)))
+                generatedFiles.Add((getFileNameFromResourceName(generatedNamespace, file), readResourceStream(assembly, file)));
+
+            removeNameIndices(commonSourceFiles);
+            removeNameIndices(sourceFiles);
+            removeNameIndices(commonGeneratedFiles);
+            removeNameIndices(generatedFiles);
+
+            commonSources = commonSourceFiles.ToArray();
+            sources = sourceFiles.ToArray();
+            commonGenerated = commonGeneratedFiles.ToArray();
+            generated = generatedFiles.ToArray();
+        }
 
         private string readResourceStream(Assembly asm, string resource)
         {

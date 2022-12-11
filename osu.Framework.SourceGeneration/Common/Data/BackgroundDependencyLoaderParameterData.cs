@@ -7,21 +7,21 @@ namespace osu.Framework.SourceGeneration.Data
 {
     public readonly struct BackgroundDependencyLoaderParameterData
     {
-        public readonly string Type;
+        public readonly string GlobalPrefixedTypeName;
         public readonly bool CanBeNull;
 
-        public BackgroundDependencyLoaderParameterData(string type, bool canBeNull)
+        public BackgroundDependencyLoaderParameterData(string globalPrefixedTypeName, bool canBeNull)
         {
-            Type = type;
+            GlobalPrefixedTypeName = globalPrefixedTypeName;
             CanBeNull = canBeNull;
         }
 
         public static BackgroundDependencyLoaderParameterData FromParameter(IParameterSymbol parameter)
         {
-            string type = parameter.Type.ToDisplayString();
+            string globalPrefixedTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(parameter.Type)!;
             bool canBeNull = parameter.NullableAnnotation == NullableAnnotation.Annotated;
 
-            return new BackgroundDependencyLoaderParameterData(type, canBeNull);
+            return new BackgroundDependencyLoaderParameterData(globalPrefixedTypeName, canBeNull);
         }
     }
 }
