@@ -206,6 +206,13 @@ Task("PackTemplate")
             RegexOptions.Multiline
         );
 
+        ctx.ReplaceRegexInFiles(
+            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
+            "^.*osu.Framework.iOS.props.*$\n",
+            "",
+            RegexOptions.Multiline
+        );
+
         DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
