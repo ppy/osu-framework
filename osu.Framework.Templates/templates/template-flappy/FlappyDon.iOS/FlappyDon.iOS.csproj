@@ -1,157 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{48783186-230D-4048-A97A-E4F1DF43BF5C}</ProjectGuid>
-    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{48783186-230D-4048-A97A-E4F1DF43BF5C}</ProjectGuid>
-    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>FlappyDon.iOS</RootNamespace>
-    <AssemblyName>FlappyDon</AssemblyName>
-  </PropertyGroup>
-  <PropertyGroup>
-    <!-- Generated via osu.Framework.iOS/generate-symbol-strip-flags.sh -->
-    <GeneratedMtouchSymbolStripFlags>--nosymbolstrip=BASS_FX_BPM_BeatCallbackReset --nosymbolstrip=BASS_FX_BPM_BeatCallbackSet --nosymbolstrip=BASS_FX_BPM_BeatDecodeGet --nosymbolstrip=BASS_FX_BPM_BeatFree --nosymbolstrip=BASS_FX_BPM_BeatGetParameters --nosymbolstrip=BASS_FX_BPM_BeatSetParameters --nosymbolstrip=BASS_FX_BPM_CallbackReset --nosymbolstrip=BASS_FX_BPM_CallbackSet --nosymbolstrip=BASS_FX_BPM_DecodeGet --nosymbolstrip=BASS_FX_BPM_Free --nosymbolstrip=BASS_FX_BPM_Translate --nosymbolstrip=BASS_FX_GetVersion --nosymbolstrip=BASS_FX_ReverseCreate --nosymbolstrip=BASS_FX_ReverseGetSource --nosymbolstrip=BASS_FX_TempoCreate --nosymbolstrip=BASS_FX_TempoGetRateRatio --nosymbolstrip=BASS_FX_TempoGetSource --nosymbolstrip=BASS_Mixer_ChannelFlags --nosymbolstrip=BASS_Mixer_ChannelGetData --nosymbolstrip=BASS_Mixer_ChannelGetEnvelopePos --nosymbolstrip=BASS_Mixer_ChannelGetLevel --nosymbolstrip=BASS_Mixer_ChannelGetLevelEx --nosymbolstrip=BASS_Mixer_ChannelGetMatrix --nosymbolstrip=BASS_Mixer_ChannelGetMixer --nosymbolstrip=BASS_Mixer_ChannelGetPosition --nosymbolstrip=BASS_Mixer_ChannelGetPositionEx --nosymbolstrip=BASS_Mixer_ChannelIsActive --nosymbolstrip=BASS_Mixer_ChannelRemove --nosymbolstrip=BASS_Mixer_ChannelRemoveSync --nosymbolstrip=BASS_Mixer_ChannelSetEnvelope --nosymbolstrip=BASS_Mixer_ChannelSetEnvelopePos --nosymbolstrip=BASS_Mixer_ChannelSetMatrix --nosymbolstrip=BASS_Mixer_ChannelSetMatrixEx --nosymbolstrip=BASS_Mixer_ChannelSetPosition --nosymbolstrip=BASS_Mixer_ChannelSetSync --nosymbolstrip=BASS_Mixer_GetVersion --nosymbolstrip=BASS_Mixer_StreamAddChannel --nosymbolstrip=BASS_Mixer_StreamAddChannelEx --nosymbolstrip=BASS_Mixer_StreamCreate --nosymbolstrip=BASS_Mixer_StreamGetChannels --nosymbolstrip=BASS_Split_StreamCreate --nosymbolstrip=BASS_Split_StreamGetAvailable --nosymbolstrip=BASS_Split_StreamGetSource --nosymbolstrip=BASS_Split_StreamGetSplits --nosymbolstrip=BASS_Split_StreamReset --nosymbolstrip=BASS_Split_StreamResetEx</GeneratedMtouchSymbolStripFlags>
-    <!-- Disable mono-cil-strip (nostrip) to avoid random attributes potentially stripped out from certain members. -->
-    <MtouchExtraArgs>--nolinkaway --nostrip $(GeneratedMtouchSymbolStripFlags)</MtouchExtraArgs>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>full</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Debug</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>
-    </CodesignKey>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <additionalargs>/unsafe</additionalargs>
-    <Externalconsole>True</Externalconsole>
-    <MtouchUseArmv7>false</MtouchUseArmv7>
-    <DebugSymbols>True</DebugSymbols>
-    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
-    <CrashReportingApiKey>
-    </CrashReportingApiKey>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>False</Optimize>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>False</ConsolePause>
-    <MtouchDebug>True</MtouchDebug>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchArch>x86_64</MtouchArch>
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>False</Optimize>
-    <OutputPath>bin\iPhoneSimulator\Debug</OutputPath>
-    <DefineConstants>iOS DEBUG DIST SIMULATOR</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>False</ConsolePause>
-    <MtouchDebug>True</MtouchDebug>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
-    <MtouchLink>None</MtouchLink>
+    <TargetFramework>net6.0-ios</TargetFramework>
+    <SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>
     <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RootNamespace>TemplateGame.iOS</RootNamespace>
-    <AssemblyName>TemplateGame.iOS</AssemblyName>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>full</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Debug</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <additionalargs>/unsafe</additionalargs>
-    <Externalconsole>True</Externalconsole>
-    <MtouchUseArmv7>false</MtouchUseArmv7>
-    <DebugSymbols>True</DebugSymbols>
-    <IpaPackageName>
-    </IpaPackageName>
-    <MtouchArch>ARM64</MtouchArch>
-    <CrashReportingApiKey>
-    </CrashReportingApiKey>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodesignProvision>
-    </CodesignProvision>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <MtouchArch>ARM64</MtouchArch>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
-    <OutputPath>bin\iPhoneSimulator\Release</OutputPath>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <MtouchLink>SdkOnly</MtouchLink>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <MtouchArch>x86_64</MtouchArch>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <CodesignKey>iPhone Distribution</CodesignKey>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <OutputPath>bin\iPhone\Release</OutputPath>
-    <MtouchArch>ARM64</MtouchArch>
-  </PropertyGroup>
+  <Import Project="..\..\..\..\osu.Framework.iOS.props" />
   <ItemGroup>
-    <InterfaceDefinition Include="LaunchScreen.storyboard" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Info.plist" />
-    <None Include="Entitlements.plist" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Application.cs" />
-    <Compile Include="AppDelegate.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj">
-      <Project>{7809CB42-8FED-4BB7-8C68-7638357B94A6}</Project>
-      <Name>FlappyDon.Game</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ImageAsset Include="Assets.xcassets\Contents.json">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
-      <Visible>false</Visible>
-    </ImageAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-    <Reference Include="Xamarin.iOS" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System.Net.Http" />
+    <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
     <ProjectReference Include="..\..\..\..\osu.Framework\osu.Framework.csproj" />
@@ -160,5 +16,4 @@
   <ItemGroup Label="Transitive Dependencies">
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2022.525.0" ExcludeAssets="all" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

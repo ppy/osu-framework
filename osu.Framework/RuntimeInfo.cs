@@ -55,7 +55,7 @@ namespace osu.Framework
         }
 
         private static bool detectAndroid() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Mono.Android"));
-        private static bool detectIOS() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Xamarin.iOS"));
+        private static bool detectIOS() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Microsoft.iOS"));
 
         public enum Platform
         {

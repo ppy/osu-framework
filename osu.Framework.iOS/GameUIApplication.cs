@@ -37,7 +37,7 @@ namespace osu.Framework.iOS
         {
             if (eventMem == null) return;
 
-            var eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
+            var eventPtr = (IntPtr*)eventMem.Handle.Handle.ToPointer();
 
             int eventType = (int)eventPtr[gsevent_type];
             int eventModifier = (int)eventPtr[gsevent_flags];

@@ -1,12 +1,12 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.22">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>xamarinios10</TargetFramework>
+    <TargetFramework>net6.0-ios</TargetFramework>
+    <SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework iOS</AssemblyTitle>
     <AssemblyName>osu.Framework.iOS</AssemblyName>
     <RootNamespace>osu.Framework.iOS</RootNamespace>
-    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
@@ -15,17 +15,11 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-    <Reference Include="Xamarin.iOS" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.192" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.192" />
   </ItemGroup>
   <ItemGroup>
     <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
