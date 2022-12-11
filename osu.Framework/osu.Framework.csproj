@@ -6,7 +6,9 @@
     <AssemblyTitle>osu!framework</AssemblyTitle>
     <AssemblyName>osu.Framework</AssemblyName>
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Enabling this breaks iOS projects from building due to silly naming conflicts (https://github.com/dotnet/runtime/issues/79500#issuecomment-1345624309).
+         It's still enabled externally on packaging scripts so should be fine to disable in project. -->
+    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
     <NoWarn>$(NoWarn);CS1591;NU5104</NoWarn>
     <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
