@@ -10,31 +10,43 @@
     <RuntimeIdentifiers>iossimulator-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
-    <PackageReference Include="SharpFNT" Version="2.0.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="ManagedBass" Version="3.1.0" />
-    <PackageReference Include="ManagedBass.Fx" Version="3.1.0" />
-    <PackageReference Include="ManagedBass.Mix" Version="3.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
-    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1"/>
+    <PackageReference Include="SharpFNT" Version="2.0.0"/>
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0"/>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2"/>
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0"/>
+    <PackageReference Include="NUnit" Version="3.13.2"/>
+    <PackageReference Include="System.Net.Http" Version="4.3.4"/>
+    <PackageReference Include="ManagedBass" Version="4.1.0"/>
+    <PackageReference Include="ManagedBass.Fx" Version="4.1.0"/>
+    <PackageReference Include="ManagedBass.Mix" Version="4.1.0"/>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0"/>
+    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0"/>
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0"/>
 
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
-    <PackageReference Include="System.Memory" Version="4.5.4" NoWarn="NU1605" />
+    <PackageReference Include="System.Memory" Version="4.5.4" NoWarn="NU1605"/>
 
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401"/>
 
     <!-- Any version ahead of this will cause runtime issues on iOS
          See https://github.com/xoofx/markdig/issues/564 -->
-    <PackageReference Include="Markdig" Version="0.23.0" />
+    <PackageReference Include="Markdig" Version="0.23.0"/>
+  </ItemGroup>
+  <ItemGroup>
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bass.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bass_fx.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bassmix.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavcodec.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavdevice.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavfilter.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavformat.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavutil.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswresample.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswscale.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
   </ItemGroup>
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.

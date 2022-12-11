@@ -22,20 +22,9 @@
     <PackageReference Include="ppy.osuTK.iOS" Version="1.0.192" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)*.a">
-      <LogicalName>%(Filename)%(Extension)</LogicalName>
-      <WithCulture>False</WithCulture>
-      <Type>Non-Resx</Type>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup Label="Dllmaps (local)">
-    <!-- Without separate dll configs and using BundleResource, dllmaps won't work properly
-         See https://github.com/ManagedBass/ManagedBass/issues/76 -->
-    <BundleResource Include="$(MSBuildThisFileDirectory)*.dll.config" />
-  </ItemGroup>
-  <ItemGroup Label="Dllmaps (package)">
-    <None Include="$(MSBuildThisFileDirectory)*.dll.config" Pack="true" PackagePath="dllmaps" />
-    <Content Include="$(MSBuildThisFileDirectory)osu.Framework.iOS.Dllmaps.props" Pack="true" PackagePath="build\$(PackageId).props" />
+    <None Include="runtimes\**\*">
+      <Pack>true</Pack>
+      <PackagePath>runtimes</PackagePath>
+    </None>
   </ItemGroup>
 </Project>
