@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using Java.Interop;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Logging;
