@@ -314,7 +314,11 @@ namespace osu.Framework.Platform
 
             IEnumerable<Display> get()
             {
-                for (int i = 0; i < SDL.SDL_GetNumVideoDisplays(); i++)
+                int numDisplays = SDL.SDL_GetNumVideoDisplays();
+                if (numDisplays <= 0)
+                    throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL.SDL_GetError()}");
+
+                for (int i = 0; i < numDisplays; i++)
                 {
                     if (tryGetDisplayFromSDL(i, out Display? display))
                         yield return display;
