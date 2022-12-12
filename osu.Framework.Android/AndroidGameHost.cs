@@ -10,6 +10,7 @@ using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -75,8 +76,8 @@ namespace osu.Framework.Android
 
         public override void OpenUrlExternally(string url)
         {
-            if (!url.StartsWith("https://", StringComparison.Ordinal) && !url.StartsWith("http://", StringComparison.Ordinal))
-                throw new ArgumentException("URL must be either http or https protocol.", nameof(url));
+            if (!url.CheckIsValidUrl())
+                throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
             if (gameView.Activity.PackageManager == null) return;
 

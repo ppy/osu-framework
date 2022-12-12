@@ -88,8 +88,8 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url)
         {
-            if (!url.StartsWith("https://", StringComparison.Ordinal) && !url.StartsWith("http://", StringComparison.Ordinal))
-                throw new ArgumentException("URL must be either http or https protocol.", nameof(url));
+            if (!url.CheckIsValidUrl())
+                throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
             openUsingShellExecute(url);
         }
