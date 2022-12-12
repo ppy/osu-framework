@@ -30,9 +30,8 @@ namespace osu.Framework
         }
 
         public static Platform OS { get; }
-        public static bool IsUnix => OS != Platform.Windows;
 
-        public static bool SupportsJIT => OS != Platform.iOS;
+        public static bool IsUnix => OS != Platform.Windows;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.macOS || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
         public static bool IsApple => OS == Platform.iOS || OS == Platform.macOS;

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 
@@ -17,7 +18,7 @@ namespace osu.Framework.Audio.Callbacks
 
         protected BassCallback()
         {
-            if (!RuntimeInfo.SupportsJIT)
+            if (!RuntimeFeature.IsDynamicCodeSupported)
                 handle = new ObjectHandle<BassCallback>(this, GCHandleType.Normal);
         }
 
