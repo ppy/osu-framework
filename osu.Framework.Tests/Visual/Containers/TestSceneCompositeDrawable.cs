@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         /// <summary>
-        /// Ensures that <see cref="CompositeDrawable.ClearTransforms"/> does not discard auto-sizing indefinitely.
+        /// Ensures that <see cref="Framework.Graphics.Transforms.Transformable.ClearTransforms"/> does not discard auto-sizing indefinitely.
         /// </summary>
         [Test]
         public void TestClearTransformsOnDelayedAutoSize()

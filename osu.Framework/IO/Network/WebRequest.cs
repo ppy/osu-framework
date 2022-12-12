@@ -152,13 +152,21 @@ namespace osu.Framework.IO.Network
 
         private static readonly HttpClient client = new HttpClient(
 #if NET6_0_OR_GREATER
-            new SocketsHttpHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
-                Credentials = CredentialCache.DefaultCredentials,
-                ConnectCallback = onConnect,
-            }
+            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
+            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
+            RuntimeInfo.IsMobile
+                ? new HttpClientHandler
+                {
+                    Credentials = CredentialCache.DefaultCredentials,
+                    AutomaticDecompression = DecompressionMethods.All
+                }
+                : new SocketsHttpHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.All,
+                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                    Credentials = CredentialCache.DefaultCredentials,
+                    ConnectCallback = onConnect,
+                }
 #else
             new HttpClientHandler
             {
