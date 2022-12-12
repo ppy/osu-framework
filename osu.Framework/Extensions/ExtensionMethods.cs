@@ -392,7 +392,7 @@ namespace osu.Framework.Extensions
         /// </remarks>
         /// <param name="url">The URL to check.</param>
         /// <returns>Whether the URL is safe to open.</returns>
-        internal static bool CheckIsValidUrl(this string url)
+        public static bool CheckIsValidUrl(this string url)
         {
             return url.StartsWith("https://", StringComparison.Ordinal)
                    || url.StartsWith("http://", StringComparison.Ordinal)
