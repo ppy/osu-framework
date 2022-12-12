@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
-    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.192" />
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.211" />
   </ItemGroup>
   <ItemGroup>
     <None Include="runtimes\**\*">
