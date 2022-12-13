@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -85,7 +86,13 @@ namespace osu.Framework.Platform
             return true;
         }
 
-        public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
+        public override void OpenUrlExternally(string url)
+        {
+            if (!url.CheckIsValidUrl())
+                throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
+
+            openUsingShellExecute(url);
+        }
 
         public override bool PresentFileExternally(string filename)
         {
