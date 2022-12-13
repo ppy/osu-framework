@@ -81,9 +81,9 @@ namespace osu.Framework.Graphics.Containers
         private readonly Cached filterValid = new Cached();
         private readonly ICollection<IBindable<bool>> canBeShownBindables = new List<IBindable<bool>>();
 
-        protected override void InvalidateLayout()
+        protected override void AddInternal(Drawable drawable)
         {
-            base.InvalidateLayout();
+            base.AddInternal(drawable);
             filterValid.Invalidate();
         }
 

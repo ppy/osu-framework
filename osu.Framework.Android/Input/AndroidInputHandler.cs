@@ -57,6 +57,8 @@ namespace osu.Framework.Android.Input
             return true;
         }
 
+#pragma warning disable 1574 // unresolved cref attribute
+
         /// <summary>
         /// Invoked on every <see cref="AndroidGameView.CapturedPointer"/> event that matches an <see cref="InputSourceType"/> from <see cref="HandledEventSources"/>.
         /// </summary>

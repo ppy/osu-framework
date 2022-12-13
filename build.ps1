@@ -22,6 +22,7 @@ if ($Experimental) { $cakeArguments += "-experimental" }
 $cakeArguments += $ScriptArgs
 
 dotnet tool restore
+dotnet workload install android
 dotnet cake ./build/build.cake --bootstrap
 dotnet cake ./build/build.cake $cakeArguments
 exit $LASTEXITCODE
