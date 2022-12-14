@@ -44,7 +44,8 @@ namespace osu.Framework.Statistics
 
     internal enum PerformanceCollectionType
     {
-        Work = 0,
+        GPUWork = 0,
+        Work,
         SwapBuffer,
         WndProc,
         Debug,

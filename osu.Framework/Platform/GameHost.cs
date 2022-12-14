@@ -460,6 +460,8 @@ namespace osu.Framework.Platform
         }
 
         private readonly DepthValue depthValue = new DepthValue();
+        private IRendererQuery elapsedQuery;
+        private double gpuWorkTime;
 
         protected virtual void DrawFrame()
         {
@@ -479,44 +481,49 @@ namespace osu.Framework.Platform
 
             try
             {
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
-                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                elapsedQuery ??= Renderer.CreateQuery(QueryType.TimeElapsed, gpuTimeElapsed => gpuWorkTime = gpuTimeElapsed / 1000.0 / 1000.0);
 
-                if (!bypassFrontToBackPass.Value)
+                using (elapsedQuery.Begin())
                 {
-                    depthValue.Reset();
+                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
+                        Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                    Renderer.SetBlend(BlendingParameters.None);
+                    if (!bypassFrontToBackPass.Value)
+                    {
+                        depthValue.Reset();
 
-                    Renderer.SetBlendMask(BlendingMask.None);
-                    Renderer.PushDepthInfo(DepthInfo.Default);
+                        Renderer.SetBlend(BlendingParameters.None);
 
-                    // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
+                        Renderer.SetBlendMask(BlendingMask.None);
+                        Renderer.PushDepthInfo(DepthInfo.Default);
+
+                        // Front pass
+                        buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
+
+                        Renderer.PopDepthInfo();
+                        Renderer.SetBlendMask(BlendingMask.All);
+
+                        // The back pass doesn't write depth, but needs to depth test properly
+                        Renderer.PushDepthInfo(new DepthInfo(true, false));
+                    }
+                    else
+                    {
+                        // Disable depth testing
+                        Renderer.PushDepthInfo(new DepthInfo());
+                    }
+
+                    // Back pass
+                    buffer.Object.Draw(Renderer);
 
                     Renderer.PopDepthInfo();
-                    Renderer.SetBlendMask(BlendingMask.All);
 
-                    // The back pass doesn't write depth, but needs to depth test properly
-                    Renderer.PushDepthInfo(new DepthInfo(true, false));
+                    Renderer.FinishFrame();
                 }
-                else
-                {
-                    // Disable depth testing
-                    Renderer.PushDepthInfo(new DepthInfo());
-                }
-
-                // Back pass
-                buffer.Object.Draw(Renderer);
-
-                Renderer.PopDepthInfo();
-
-                Renderer.FinishFrame();
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                {
                     Swap();
-                }
+
+                drawMonitor.Push(PerformanceCollectionType.GPUWork, gpuWorkTime);
             }
             finally
             {
