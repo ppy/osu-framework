@@ -56,17 +56,14 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private float frequency = 1.5f;
+        private int pointCount = 8;
 
-        public float Frequency
+        public int PointCount
         {
-            get => frequency;
+            get => pointCount;
             set
             {
-                if (!float.IsFinite(value))
-                    throw new ArgumentException($"{nameof(Frequency)} must be finite, but is {value}.");
-
-                frequency = value;
+                pointCount = Math.Max(value, 3);
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -94,7 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private float innerRadius;
             private float texelSize;
-            private float frequency;
+            private int pointCount;
             private float amplitude;
             private Vector2 noisePosition;
             private int seed = -1;
@@ -104,7 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
                 base.ApplyState();
 
                 innerRadius = Source.innerRadius;
-                frequency = Source.frequency;
+                pointCount = Source.pointCount;
                 amplitude = Source.amplitude;
 
                 int newSeed = Source.seed;
@@ -129,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
-                shader.GetUniform<float>("frequency").UpdateValue(ref frequency);
+                shader.GetUniform<int>("pointCount").UpdateValue(ref pointCount);
                 shader.GetUniform<float>("amplitude").UpdateValue(ref amplitude);
                 shader.GetUniform<Vector2>("noisePosition").UpdateValue(ref noisePosition);
 
