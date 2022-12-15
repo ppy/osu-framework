@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.Video
         public SwsGetCachedContextDelegate sws_getCachedContext;
         public SwsScaleDelegate sws_scale;
 
-        // Touching AGffmpeg or its LibraryLoader in any way on non-Desktop platforms
+        // Touching AutoGen.ffmpeg or its LibraryLoader in any way on non-Desktop platforms
         // will cause it to throw in static constructor, which can't be bypassed.
         // Define our own constants to avoid touching the class.
 
