@@ -37,8 +37,10 @@ namespace osu.Framework.iOS
         {
             Scale = (float)UIScreen.MainScreen.Scale;
             ContentScaleFactor = UIScreen.MainScreen.Scale;
+#pragma warning disable BI1234,CA1416 // todo: remove once we move away from osuTK/OpenGL
             LayerColorFormat = EAGLColorFormat.RGBA8;
             ContextRenderingApi = EAGLRenderingAPI.OpenGLES3;
+#pragma warning restore BI1234,CA1416
             LayerRetainsBacking = false;
 
             AddSubview(KeyboardTextField = new HiddenTextField());
