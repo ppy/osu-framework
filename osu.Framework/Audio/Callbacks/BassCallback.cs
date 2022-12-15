@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Callbacks
 
         protected BassCallback()
         {
-            if (!RuntimeFeature.IsDynamicCodeSupported)
+            if (!RuntimeFeature.IsDynamicCodeCompiled)
                 handle = new ObjectHandle<BassCallback>(this, GCHandleType.Normal);
         }
 
