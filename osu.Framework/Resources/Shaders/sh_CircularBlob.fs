@@ -18,7 +18,11 @@ void main(void)
 {
     highp vec2 pixelPos = v_TexCoord / (v_TexRect.zw - v_TexRect.xy);
 
-    if (distance(pixelPos, vec2(0.5)) > 0.5)
+    highp float dstFromCentre = distance(pixelPos, vec2(0.5));
+    highp float minUsableDst = 0.5 * ((1.0 - amplitude) * sin(HALF_PI * (1.0 - 2.0 / float(pointCount))) - innerRadius);
+
+    // Discard some pixels from inside and outside the shape
+    if (dstFromCentre > 0.5 || dstFromCentre < minUsableDst)
     {
         gl_FragColor = vec4(0.0);
         return;
