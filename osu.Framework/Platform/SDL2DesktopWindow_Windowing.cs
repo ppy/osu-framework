@@ -335,6 +335,7 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
             {
+                Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL.SDL_GetError()}");
                 display = null;
                 return false;
             }
@@ -343,6 +344,7 @@ namespace osu.Framework.Platform
 
             if (numModes <= 0)
             {
+                Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
                 display = null;
                 return false;
             }

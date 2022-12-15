@@ -206,6 +206,9 @@ namespace osu.Framework.Platform
             graphicsBackend.InitialiseBeforeWindowCreation();
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
+            if (SDLWindowHandle == IntPtr.Zero)
+                throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL.SDL_GetError()}");
+
             Exists = true;
 
             graphicsBackend.Initialise(this);
