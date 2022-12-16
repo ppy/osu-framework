@@ -77,7 +77,7 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
 highp vec2 getVertexPosByAngle(mediump float angle, highp vec2 noisePosition, mediump float amplitude, highp float texelSize)
 {
     highp vec2 cs = vec2(cos(angle), sin(angle));
-    highp float vertexDstFromCentre = clamp(0.5 * (1.0 - amplitude * random(noisePosition + cs * 20.0)) - texelSize, 0.0, 0.5);
+    highp float vertexDstFromCentre = 0.5 * (1.0 - amplitude * random(noisePosition + cs * 20.0)) * (1.0 - texelSize);
     return vec2(0.5) + cs * vertexDstFromCentre;
 }
 
