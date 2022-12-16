@@ -159,6 +159,7 @@ namespace osu.Framework.Platform
                 return default;
 
             var wmInfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_GetVersion(out wmInfo.version);
             SDL.SDL_GetWindowWMInfo(SDLWindowHandle, ref wmInfo);
             return wmInfo;
         }
