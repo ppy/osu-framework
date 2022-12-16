@@ -52,6 +52,8 @@ namespace osu.Framework.Platform
                 invalidateWindowSpecifics();
             };
 
+            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
+
             sizeWindowed.MinValueChanged += min =>
             {
                 if (min.Width < 0 || min.Height < 0)
@@ -75,7 +77,6 @@ namespace osu.Framework.Platform
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
-            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
