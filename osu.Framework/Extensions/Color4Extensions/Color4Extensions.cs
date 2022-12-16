@@ -67,6 +67,15 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
+        /// Returns a version of the color with negated components depending on arguments.
+        /// Used for the shader-level additive blend mode.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="negateAlpha">Negates alpha if true</param>
+        public static Color4 NegateAlphaIfTrue(this Color4 colour, bool negateAlpha) =>
+            new Color4(colour.R, colour.G, colour.B, negateAlpha ? -colour.A : colour.A);
+
+        /// <summary>
         /// Returns a lightened version of the colour.
         /// </summary>
         /// <param name="colour">Original colour</param>

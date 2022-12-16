@@ -124,6 +124,11 @@ namespace osu.Framework.Graphics.Rendering
         Texture WhitePixel { get; }
 
         /// <summary>
+        /// The current blending parameters.
+        /// </summary>
+        BlendingParameters CurrentBlendingParameters { get; }
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="IRenderer"/>.
         /// </summary>
         internal void Initialise();

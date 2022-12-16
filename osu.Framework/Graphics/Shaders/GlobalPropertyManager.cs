@@ -37,6 +37,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.GammaCorrection] = new UniformMapping<bool>("g_GammaCorrection");
             global_properties[(int)GlobalProperty.WrapModeS] = new UniformMapping<int>("g_WrapModeS");
             global_properties[(int)GlobalProperty.WrapModeT] = new UniformMapping<int>("g_WrapModeT");
+            global_properties[(int)GlobalProperty.TextureHasPremultipliedAlpha] = new UniformMapping<bool>("g_TextureHasPremultipliedAlpha");
 
             // Backbuffer internals
             global_properties[(int)GlobalProperty.BackbufferDraw] = new UniformMapping<bool>("g_BackbufferDraw");

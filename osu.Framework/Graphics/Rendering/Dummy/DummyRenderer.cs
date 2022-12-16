@@ -37,6 +37,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public float BackbufferDrawDepth => 0;
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
+        public BlendingParameters CurrentBlendingParameters => BlendingParameters.None;
 
         public DummyRenderer()
         {

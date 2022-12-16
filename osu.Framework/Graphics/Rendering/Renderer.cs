@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Rendering
         public Texture WhitePixel => whitePixel.Value;
 
         protected ClearInfo CurrentClearInfo { get; private set; }
-        protected BlendingParameters CurrentBlendingParameters { get; private set; }
+        public BlendingParameters CurrentBlendingParameters { get; private set; }
         protected BlendingMask CurrentBlendingMask { get; private set; }
 
         /// <summary>
@@ -315,13 +315,14 @@ namespace osu.Framework.Graphics.Rendering
 
         public void SetBlend(BlendingParameters blendingParameters)
         {
-            if (CurrentBlendingParameters == blendingParameters)
+            BlendingParameters oldBlendingParameters = CurrentBlendingParameters;
+            CurrentBlendingParameters = blendingParameters;
+
+            if (CurrentBlendingParameters.EqualsExceptForAdditive(oldBlendingParameters))
                 return;
 
             FlushCurrentBatch(FlushBatchSource.SetBlend);
             SetBlendImplementation(blendingParameters);
-
-            CurrentBlendingParameters = blendingParameters;
         }
 
         public void SetBlendMask(BlendingMask blendingMask)

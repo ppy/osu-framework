@@ -27,6 +27,14 @@ namespace osu.Framework.Graphics
         public BlendingType Destination;
 
         /// <summary>
+        /// Whether or not blending is additive. If true, the destination color will act as if using
+        /// <see cref="BlendingType.One"/> rather than <see cref="BlendingType.OneMinusSrcAlpha"/>,
+        /// but this is accomplished at the shader level rather than via the rendering backend's
+        /// blend function for performance reasons.
+        /// </summary>
+        public bool DestinationAdditive;
+
+        /// <summary>
         /// The blending factor for the source alpha of the blend.
         /// </summary>
         public BlendingType SourceAlpha;
@@ -54,6 +62,7 @@ namespace osu.Framework.Graphics
         {
             Source = BlendingType.One,
             Destination = BlendingType.Zero,
+            DestinationAdditive = false,
             SourceAlpha = BlendingType.One,
             DestinationAlpha = BlendingType.Zero,
             RGBEquation = BlendingEquation.Add,
@@ -64,6 +73,7 @@ namespace osu.Framework.Graphics
         {
             Source = BlendingType.Inherit,
             Destination = BlendingType.Inherit,
+            DestinationAdditive = false,
             SourceAlpha = BlendingType.Inherit,
             DestinationAlpha = BlendingType.Inherit,
             RGBEquation = BlendingEquation.Inherit,
@@ -72,20 +82,22 @@ namespace osu.Framework.Graphics
 
         public static BlendingParameters Mixture => new BlendingParameters
         {
-            Source = BlendingType.SrcAlpha,
+            Source = BlendingType.One,
             Destination = BlendingType.OneMinusSrcAlpha,
+            DestinationAdditive = false,
             SourceAlpha = BlendingType.One,
-            DestinationAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.OneMinusSrcAlpha,
             RGBEquation = BlendingEquation.Add,
             AlphaEquation = BlendingEquation.Add,
         };
 
         public static BlendingParameters Additive => new BlendingParameters
         {
-            Source = BlendingType.SrcAlpha,
-            Destination = BlendingType.One,
+            Source = BlendingType.One,
+            Destination = BlendingType.OneMinusSrcAlpha,
+            DestinationAdditive = true,
             SourceAlpha = BlendingType.One,
-            DestinationAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.OneMinusSrcAlpha,
             RGBEquation = BlendingEquation.Add,
             AlphaEquation = BlendingEquation.Add,
         };
@@ -102,7 +114,10 @@ namespace osu.Framework.Graphics
                 Source = parent.Source;
 
             if (Destination == BlendingType.Inherit)
+            {
                 Destination = parent.Destination;
+                DestinationAdditive = parent.DestinationAdditive;
+            }
 
             if (SourceAlpha == BlendingType.Inherit)
                 SourceAlpha = parent.SourceAlpha;
@@ -123,16 +138,19 @@ namespace osu.Framework.Graphics
         public void ApplyDefaultToInherited()
         {
             if (Source == BlendingType.Inherit)
-                Source = BlendingType.SrcAlpha;
+                Source = BlendingType.One;
 
             if (Destination == BlendingType.Inherit)
+            {
                 Destination = BlendingType.OneMinusSrcAlpha;
+                DestinationAdditive = false;
+            }
 
             if (SourceAlpha == BlendingType.Inherit)
                 SourceAlpha = BlendingType.One;
 
             if (DestinationAlpha == BlendingType.Inherit)
-                DestinationAlpha = BlendingType.One;
+                DestinationAlpha = BlendingType.OneMinusSrcAlpha;
 
             if (RGBEquation == BlendingEquation.Inherit)
                 RGBEquation = BlendingEquation.Add;
@@ -141,9 +159,18 @@ namespace osu.Framework.Graphics
                 AlphaEquation = BlendingEquation.Add;
         }
 
+        public readonly bool EqualsExceptForAdditive(BlendingParameters other) =>
+            other.Source == Source
+            && other.Destination == Destination
+            && other.SourceAlpha == SourceAlpha
+            && other.DestinationAlpha == DestinationAlpha
+            && other.RGBEquation == RGBEquation
+            && other.AlphaEquation == AlphaEquation;
+
         public readonly bool Equals(BlendingParameters other) =>
             other.Source == Source
             && other.Destination == Destination
+            && other.DestinationAdditive == DestinationAdditive
             && other.SourceAlpha == SourceAlpha
             && other.DestinationAlpha == DestinationAlpha
             && other.RGBEquation == RGBEquation
@@ -152,6 +179,7 @@ namespace osu.Framework.Graphics
         public static bool operator ==(in BlendingParameters left, in BlendingParameters right) =>
             left.Source == right.Source &&
             left.Destination == right.Destination &&
+            left.DestinationAdditive == right.DestinationAdditive &&
             left.SourceAlpha == right.SourceAlpha &&
             left.DestinationAlpha == right.DestinationAlpha &&
             left.RGBEquation == right.RGBEquation &&
