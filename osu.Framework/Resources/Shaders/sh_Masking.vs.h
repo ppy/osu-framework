@@ -1,19 +1,22 @@
-﻿attribute highp vec2 m_MaskingTexCoord;
+﻿#version 130
 
-varying highp vec2 v_MaskingPosition;
-varying highp float g_CornerRadius;
-varying highp float g_CornerExponent;
-varying highp vec4 g_MaskingRect;
-varying highp float g_BorderThickness;
-varying lowp mat4 g_BorderColour;
-varying lowp vec4 v_BorderColour;
-varying mediump float g_MaskingBlendRange;
-varying lowp float g_AlphaExponent;
-varying highp vec2 g_EdgeOffset;
-varying lowp float g_DiscardInner;
-varying highp float g_InnerCornerRadius;
-varying highp mat3 g_ToMaskingSpace;
-varying lowp float g_IsMasking;
+attribute highp vec2 m_MaskingTexCoord;
+
+out highp vec2 v_MaskingPosition;
+out lowp vec4 v_BorderColour;
+
+flat out highp float g_CornerRadius;
+flat out highp float g_CornerExponent;
+flat out highp vec4 g_MaskingRect;
+flat out highp float g_BorderThickness;
+flat out lowp mat4 g_BorderColour;
+flat out mediump float g_MaskingBlendRange;
+flat out lowp float g_AlphaExponent;
+flat out highp vec2 g_EdgeOffset;
+flat out lowp float g_DiscardInner;
+flat out highp float g_InnerCornerRadius;
+flat out highp mat3 g_ToMaskingSpace;
+flat out lowp float g_IsMasking;
 
 uniform highp vec2 g_MaskingTexSize;
 uniform highp sampler2D g_MaskingBlockSampler;
