@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createFieldGetter(FieldInfo field)
         {
-            if (!RuntimeFeature.IsDynamicCodeSupported) return transformable => (TValue)field.GetValue(transformable);
+            if (!RuntimeFeature.IsDynamicCodeCompiled) return transformable => (TValue)field.GetValue(transformable);
 
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new[] { typeof(T) }, true);
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static WriteFunc createFieldSetter(FieldInfo field)
         {
-            if (!RuntimeFeature.IsDynamicCodeSupported) return (transformable, value) => field.SetValue(transformable, value);
+            if (!RuntimeFeature.IsDynamicCodeCompiled) return (transformable, value) => field.SetValue(transformable, value);
 
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(T), typeof(TValue) }, true);
@@ -69,14 +69,14 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeFeature.IsDynamicCodeSupported) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
+            if (!RuntimeFeature.IsDynamicCodeCompiled) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }
 
         private static WriteFunc createPropertySetter(MethodInfo setter)
         {
-            if (!RuntimeFeature.IsDynamicCodeSupported) return (transformable, value) => setter.Invoke(transformable, new object[] { value });
+            if (!RuntimeFeature.IsDynamicCodeCompiled) return (transformable, value) => setter.Invoke(transformable, new object[] { value });
 
             return (WriteFunc)setter.CreateDelegate(typeof(WriteFunc));
         }
