@@ -144,22 +144,16 @@ Task("PackFramework")
 
 Task("PackiOSFramework")
     .Does(() => {
-        MSBuild(iosFrameworkProject, new MSBuildSettings {
-            Restore = true,
-            BinaryLogger = new MSBuildBinaryLogSettings{
-                Enabled = true,
-                FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
-            },
-            Verbosity = Verbosity.Minimal,
-            ArgumentCustomization = args =>
-            {
-                args.Append($"/p:Configuration={configuration}");
+        DotNetCorePack(iosFrameworkProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
+            ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
-                args.Append($"/p:PackageOutputPath={artifactsDirectory.MakeAbsolute(Context.Environment)}");
-
+                args.Append($"/p:GenerateDocumentationFile=true");
                 return args;
             }
-        }.WithTarget("Pack"));
+        });
     });
 
 Task("PackAndroidFramework")
@@ -194,15 +188,8 @@ Task("PackTemplate")
     .Does(ctx => {
         ctx.ReplaceRegexInFiles(
             $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
-            "^.*osu.Framework.csproj.*$",
-            $"    <PackageReference Include=\"ppy.osu.Framework\" Version=\"{version}\" />",
-            RegexOptions.Multiline
-        );
-
-        ctx.ReplaceRegexInFiles(
-            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
-            "^.*osu.Framework.iOS.csproj.*$",
-            $"    <PackageReference Include=\"ppy.osu.Framework.iOS\" Version=\"{version}\" />",
+            "^.*osu.Framework.iOS.props.*$\n",
+            "",
             RegexOptions.Multiline
         );
 

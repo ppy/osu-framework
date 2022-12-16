@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 
@@ -13,18 +14,18 @@ namespace osu.Framework.Audio.Callbacks
     /// </summary>
     public abstract class BassCallback : IDisposable
     {
-        private ObjectHandle<BassCallback> pinnedHandle;
+        private ObjectHandle<BassCallback> handle;
 
         protected BassCallback()
         {
-            if (!RuntimeInfo.SupportsJIT)
-                pinnedHandle = new ObjectHandle<BassCallback>(this, GCHandleType.Pinned);
+            if (!RuntimeFeature.IsDynamicCodeCompiled)
+                handle = new ObjectHandle<BassCallback>(this, GCHandleType.Normal);
         }
 
         /// <summary>
-        /// The pinned handle, or <see cref="IntPtr.Zero"/> if the object is not pinned.
+        /// The callback handle, or <see cref="IntPtr.Zero"/> if the object is not pinned.
         /// </summary>
-        public IntPtr Handle => pinnedHandle.Handle;
+        public IntPtr Handle => handle.Handle;
 
         #region IDisposable Support
 
@@ -34,7 +35,7 @@ namespace osu.Framework.Audio.Callbacks
         {
             if (!disposedValue)
             {
-                pinnedHandle.Dispose();
+                handle.Dispose();
                 disposedValue = true;
             }
         }

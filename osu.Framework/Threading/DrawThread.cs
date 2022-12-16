@@ -28,10 +28,10 @@ namespace osu.Framework.Threading
 
             if (window != null)
             {
-                window.MakeCurrent();
+                host.Renderer.MakeCurrent();
 
-                host.Renderer.Initialise();
                 host.Renderer.BeginFrame(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+                host.Renderer.FinishFrame();
             }
         }
 
@@ -41,14 +41,17 @@ namespace osu.Framework.Threading
 
             ThreadSafety.IsDrawThread = true;
 
-            // Seems to be required on some drivers as the context is lost from the draw thread.
-            host.Window?.MakeCurrent();
+            if (host.Renderer.IsInitialised)
+                // Seems to be required on some drivers as the context is lost from the draw thread.
+                host.Renderer.MakeCurrent();
         }
 
         protected sealed override void OnSuspended()
         {
             base.OnSuspended();
-            host.Window?.ClearCurrent();
+
+            if (host.Renderer.IsInitialised)
+                host.Renderer.ClearCurrent();
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
