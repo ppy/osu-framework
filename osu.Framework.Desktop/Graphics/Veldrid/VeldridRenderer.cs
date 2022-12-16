@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Development;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Dummy;
@@ -17,7 +18,7 @@ using Veldrid;
 using Veldrid.OpenGL;
 using PixelFormat = Veldrid.PixelFormat;
 
-namespace osu.Framework.Graphics.Veldrid
+namespace osu.Framework.Desktop.Graphics.Veldrid
 {
     internal class VeldridRenderer : Renderer
     {
@@ -254,7 +255,7 @@ namespace osu.Framework.Graphics.Veldrid
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);
 
-        protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
+        protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Framework.Graphics.Rendering.PrimitiveTopology primitiveType)
             => new DummyVertexBatch<TVertex>();
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new DummyVertexBatch<TVertex>();

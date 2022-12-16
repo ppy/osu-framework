@@ -16,4 +16,8 @@
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Veldrid" Version="4.9.0-beta2" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
+  </ItemGroup>
 </Project>

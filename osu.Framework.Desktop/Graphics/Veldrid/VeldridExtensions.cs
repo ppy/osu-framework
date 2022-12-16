@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osuTK.Graphics;
@@ -21,7 +22,7 @@ using GraphicsBackend = Veldrid.GraphicsBackend;
 using StencilOperation = Veldrid.StencilOperation;
 using StringName = Veldrid.OpenGLBinding.StringName;
 
-namespace osu.Framework.Graphics.Veldrid
+namespace osu.Framework.Desktop.Graphics.Veldrid
 {
     internal static class VeldridExtensions
     {
@@ -145,32 +146,32 @@ namespace osu.Framework.Graphics.Veldrid
             }
         }
 
-        public static StencilOperation ToStencilOperation(this Rendering.StencilOperation operation)
+        public static StencilOperation ToStencilOperation(this Framework.Graphics.Rendering.StencilOperation operation)
         {
             switch (operation)
             {
-                case Rendering.StencilOperation.Zero:
+                case Framework.Graphics.Rendering.StencilOperation.Zero:
                     return StencilOperation.Zero;
 
-                case Rendering.StencilOperation.Invert:
+                case Framework.Graphics.Rendering.StencilOperation.Invert:
                     return StencilOperation.Invert;
 
-                case Rendering.StencilOperation.Keep:
+                case Framework.Graphics.Rendering.StencilOperation.Keep:
                     return StencilOperation.Keep;
 
-                case Rendering.StencilOperation.Replace:
+                case Framework.Graphics.Rendering.StencilOperation.Replace:
                     return StencilOperation.Replace;
 
-                case Rendering.StencilOperation.Increase:
+                case Framework.Graphics.Rendering.StencilOperation.Increase:
                     return StencilOperation.IncrementAndClamp;
 
-                case Rendering.StencilOperation.Decrease:
+                case Framework.Graphics.Rendering.StencilOperation.Decrease:
                     return StencilOperation.DecrementAndClamp;
 
-                case Rendering.StencilOperation.IncreaseWrap:
+                case Framework.Graphics.Rendering.StencilOperation.IncreaseWrap:
                     return StencilOperation.IncrementAndWrap;
 
-                case Rendering.StencilOperation.DecreaseWrap:
+                case Framework.Graphics.Rendering.StencilOperation.DecreaseWrap:
                     return StencilOperation.DecrementAndWrap;
 
                 default:
