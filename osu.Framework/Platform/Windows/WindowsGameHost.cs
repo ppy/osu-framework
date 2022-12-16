@@ -79,7 +79,7 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1);
         }
 
-        protected override IWindow CreateWindow() => new WindowsWindow();
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new WindowsWindow(preferredSurface);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {

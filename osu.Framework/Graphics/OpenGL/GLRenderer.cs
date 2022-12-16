@@ -12,6 +12,8 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
@@ -21,6 +23,14 @@ namespace osu.Framework.Graphics.OpenGL
 {
     internal class GLRenderer : Renderer
     {
+        private IOpenGLGraphicsSurface openGLSurface = null!;
+
+        protected internal override bool VerticalSync
+        {
+            get => openGLSurface.VerticalSync;
+            set => openGLSurface.VerticalSync = value;
+        }
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>
@@ -37,8 +47,14 @@ namespace osu.Framework.Graphics.OpenGL
 
         private bool? lastBlendingEnabledState;
 
-        protected override void Initialise()
+        protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
+            if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
+                throw new InvalidOperationException($"{nameof(GLRenderer)} only supports OpenGL graphics surfaces.");
+
+            openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
+            openGLSurface.MakeCurrent(openGLSurface.WindowContext);
+
             string version = GL.GetString(StringName.Version);
             IsEmbedded = version.Contains("OpenGL ES"); // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
 
@@ -47,6 +63,15 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+
+            Logger.Log($@"GL Initialized
+                        GL Version:                 {GL.GetString(StringName.Version)}
+                        GL Renderer:                {GL.GetString(StringName.Renderer)}
+                        GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
+                        GL Vendor:                  {GL.GetString(StringName.Vendor)}
+                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
+
+            openGLSurface.ClearCurrent();
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)
@@ -58,6 +83,11 @@ namespace osu.Framework.Graphics.OpenGL
 
             base.BeginFrame(windowSize);
         }
+
+        protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);
+        protected internal override void ClearCurrent() => openGLSurface.ClearCurrent();
+        protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
+        protected internal override void WaitUntilIdle() => GL.Finish();
 
         public bool BindBuffer(BufferTarget target, int buffer)
         {
