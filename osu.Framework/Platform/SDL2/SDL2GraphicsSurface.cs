@@ -13,7 +13,7 @@ using SDL2;
 
 namespace osu.Framework.Platform.SDL2
 {
-    public class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface
+    public class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
         private readonly SDL2DesktopWindow window;
 
@@ -170,6 +170,12 @@ namespace osu.Framework.Platform.SDL2
         #region Metal-specific implementation
 
         IntPtr IMetalGraphicsSurface.CreateMetalView() => SDL.SDL_Metal_CreateView(window.SDLWindowHandle);
+
+        #endregion
+
+        #region Linux-specific implementation
+
+        bool ILinuxGraphicsSurface.IsWayland => window.IsWayland;
 
         #endregion
     }

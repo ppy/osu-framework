@@ -74,6 +74,20 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Whether the current display server is Wayland.
+        /// </summary>
+        internal bool IsWayland
+        {
+            get
+            {
+                if (SDLWindowHandle == IntPtr.Zero)
+                    return false;
+
+                return getWindowWMInfo().subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND;
+            }
+        }
+
+        /// <summary>
         /// Gets the native window handle as provided by the operating system.
         /// </summary>
         public IntPtr WindowHandle
@@ -145,6 +159,7 @@ namespace osu.Framework.Platform
                 return default;
 
             var wmInfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_GetVersion(out wmInfo.version);
             SDL.SDL_GetWindowWMInfo(SDLWindowHandle, ref wmInfo);
             return wmInfo;
         }

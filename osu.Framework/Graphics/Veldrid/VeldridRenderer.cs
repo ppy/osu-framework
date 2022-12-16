@@ -87,8 +87,10 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
 
                 case RuntimeInfo.Platform.Linux:
-                    // todo: needs fix. either we expose SDL_SysWMInfo to SDL2WindowGraphics, define a WindowsSubsystem enum, or a boolean in RuntimeInfo to decide between x11 and wayland.
-                    // swapchain.Source = SwapchainSource.CreateXlib(graphics.DisplayHandle, graphics.WindowHandle);
+                    var linuxGraphics = (ILinuxGraphicsSurface)graphicsSurface;
+                    swapchain.Source = linuxGraphics.IsWayland
+                        ? SwapchainSource.CreateWayland(graphicsSurface.DisplayHandle, graphicsSurface.WindowHandle)
+                        : SwapchainSource.CreateXlib(graphicsSurface.DisplayHandle, graphicsSurface.WindowHandle);
                     break;
             }
 
