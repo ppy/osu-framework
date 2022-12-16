@@ -19,7 +19,8 @@ void main(void)
     highp vec2 pixelPos = v_TexCoord / (v_TexRect.zw - v_TexRect.xy);
 
     highp float dstFromCentre = distance(pixelPos, vec2(0.5));
-    highp float minUsableDst = 0.5 * ((1.0 - amplitude) * sin(HALF_PI * (1.0 - 2.0 / float(pointCount))) - innerRadius);
+    mediump float pathRadius = innerRadius * 0.5;
+    highp float minUsableDst = 0.5 * ((1.0 - amplitude) * sin(HALF_PI * (1.0 - 2.0 / float(pointCount)))) - pathRadius - texelSize;
 
     // Discard some pixels from inside and outside the shape
     if (dstFromCentre > 0.5 || dstFromCentre < minUsableDst)
@@ -31,5 +32,5 @@ void main(void)
     highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
     lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9), wrappedCoord);
 
-    gl_FragColor = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, innerRadius, texelSize, pointCount, amplitude, noisePosition));
+    gl_FragColor = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, pathRadius, texelSize, pointCount, amplitude, noisePosition));
 }
