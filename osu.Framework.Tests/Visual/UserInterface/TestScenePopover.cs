@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestScenePopover : GridTestScene
+    public partial class TestScenePopover : GridTestScene
     {
         public TestScenePopover()
             : base(3, 3)

@@ -49,12 +49,17 @@ namespace osu.Framework.IO.Stores
                 return input?.ReadAllBytesToArray();
         }
 
-        public virtual Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
+        public virtual async Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-                return input?.ReadAllBytesToArrayAsync(cancellationToken);
+            {
+                if (input == null)
+                    return null;
+
+                return await input.ReadAllBytesToArrayAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

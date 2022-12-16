@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class HSVColourPicker
     {
-        public abstract class SaturationValueSelector : CompositeDrawable
+        public abstract partial class SaturationValueSelector : CompositeDrawable
         {
             public readonly Bindable<Colour4> Current = new Bindable<Colour4>();
 
@@ -202,15 +202,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Value.Value = 1 - localSpacePosition.Y / DrawHeight;
             }
 
-            protected abstract class Marker : CompositeDrawable
+            protected abstract partial class Marker : CompositeDrawable
             {
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private class SaturationBox : Box, ITexturedShaderDrawable
+            private partial class SaturationBox : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
 
                 private float hue;
 
@@ -235,7 +234,6 @@ namespace osu.Framework.Graphics.UserInterface
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
                 }
 
                 protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
@@ -259,7 +257,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                     protected override void Blit(IRenderer renderer)
                     {
-                        GetAppropriateShader(renderer).GetUniform<float>("hue").UpdateValue(ref hue);
+                        TextureShader.GetUniform<float>("hue").UpdateValue(ref hue);
                         base.Blit(renderer);
                     }
                 }

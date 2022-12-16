@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
     /// If all children are of a specific non-<see cref="Drawable"/> type, use the
     /// generic version <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainer : BufferedContainer<Drawable>
+    public partial class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
         public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
@@ -236,8 +236,6 @@ namespace osu.Framework.Graphics.Containers
 
         public IShader TextureShader { get; private set; }
 
-        public IShader RoundedTextureShader { get; private set; }
-
         private IShader blurShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
@@ -268,7 +266,6 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 

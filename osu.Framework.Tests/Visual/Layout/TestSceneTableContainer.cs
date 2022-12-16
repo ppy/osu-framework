@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneTableContainer : FrameworkTestScene
+    public partial class TestSceneTableContainer : FrameworkTestScene
     {
         private TableContainer table;
 
@@ -289,7 +289,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private GridContainer getGrid() => (GridContainer)table.InternalChild;
 
-        private class Cell : SpriteText
+        private partial class Cell : SpriteText
         {
             public Cell(int index)
             {

@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Pooling
     /// Drawables exceeding the pool's available size will not be asynchronously loaded as it is assumed they are immediately required for consumption.
     /// </remarks>
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
-    public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
+    public partial class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
         private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
 
@@ -42,6 +42,9 @@ namespace osu.Framework.Graphics.Pooling
         /// <param name="maximumSize">An optional maximum size after which the pool will no longer be expanded.</param>
         public DrawablePool(int initialSize, int? maximumSize = null)
         {
+            if (initialSize > maximumSize)
+                throw new ArgumentOutOfRangeException(nameof(initialSize), "Initial size must be less than or equal to maximum size.");
+
             this.maximumSize = maximumSize;
             this.initialSize = initialSize;
 
@@ -55,7 +58,8 @@ namespace osu.Framework.Graphics.Pooling
         private void load()
         {
             for (int i = 0; i < initialSize; i++)
-                push(create());
+                pool.Push(create());
+            CurrentPoolSize = initialSize;
 
             LoadComponents(pool.ToArray());
         }
@@ -66,7 +70,7 @@ namespace osu.Framework.Graphics.Pooling
         /// <param name="pooledDrawable">The drawable to return. Should have originally come from this pool.</param>
         public void Return(PoolableDrawable pooledDrawable)
         {
-            if (!(pooledDrawable is T))
+            if (pooledDrawable is not T typedDrawable)
                 throw new ArgumentException("Invalid type", nameof(pooledDrawable));
 
             if (pooledDrawable.Parent != null)
@@ -80,7 +84,21 @@ namespace osu.Framework.Graphics.Pooling
             }
 
             //TODO: check the drawable was sourced from this pool for safety.
-            push((T)pooledDrawable);
+
+            if (CountAvailable >= maximumSize)
+            {
+                // if the drawable can't be returned to the pool, mark it as such so it can be disposed of.
+                pooledDrawable.SetPool(null);
+
+                // then attempt disposal.
+                if (pooledDrawable.DisposeOnDeathRemoval)
+                    DisposeChildAsync(pooledDrawable);
+            }
+            else
+            {
+                pool.Push(typedDrawable);
+            }
+
             CountInUse--;
         }
 
@@ -97,11 +115,19 @@ namespace osu.Framework.Graphics.Pooling
             {
                 drawable = create();
 
+                if (maximumSize == null || currentPoolSize < maximumSize)
+                {
+                    CurrentPoolSize++;
+                    Debug.Assert(maximumSize == null || CurrentPoolSize <= maximumSize);
+                }
+                else
+                    CountExcessConstructed++;
+
                 if (LoadState >= LoadState.Loading)
                     LoadComponent(drawable);
             }
-            else
-                CountAvailable--;
+
+            CountInUse++;
 
             drawable.Assign();
             drawable.LifetimeStart = double.MinValue;
@@ -109,7 +135,6 @@ namespace osu.Framework.Graphics.Pooling
 
             setupAction?.Invoke(drawable);
 
-            CountInUse++;
             return drawable;
         }
 
@@ -121,30 +146,10 @@ namespace osu.Framework.Graphics.Pooling
         private T create()
         {
             var drawable = CreateNewDrawable();
+
             drawable.SetPool(this);
-            CountConstructed++;
 
             return drawable;
-        }
-
-        private bool push(T poolableDrawable)
-        {
-            if (CountAvailable >= maximumSize)
-            {
-                // if the drawable can't be returned to the pool, mark it as such so it can be disposed of.
-                poolableDrawable.SetPool(null);
-
-                // then attempt disposal.
-                if (poolableDrawable.DisposeOnDeathRemoval)
-                    DisposeChildAsync(poolableDrawable);
-
-                return false;
-            }
-
-            pool.Push(poolableDrawable);
-            CountAvailable++;
-
-            return true;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -155,13 +160,29 @@ namespace osu.Framework.Graphics.Pooling
                 p.Dispose();
 
             CountInUse = 0;
-            CountConstructed = 0;
-            CountAvailable = 0;
+            CountExcessConstructed = 0;
+            CurrentPoolSize = 0;
 
             GlobalStatistics.Remove(statistic);
 
             // Disallow any further Gets/Returns to adjust the statistics.
             statistic = null;
+        }
+
+        private int currentPoolSize;
+
+        /// <summary>
+        /// The current size of the pool.
+        /// </summary>
+        public int CurrentPoolSize
+        {
+            get => currentPoolSize;
+            private set
+            {
+                Debug.Assert(statistic != null);
+
+                statistic.Value.CurrentPoolSize = currentPoolSize = value;
+            }
         }
 
         private int countInUse;
@@ -176,51 +197,37 @@ namespace osu.Framework.Graphics.Pooling
             {
                 Debug.Assert(statistic != null);
 
-                statistic.Value.CountInUse += value - countInUse;
-                countInUse = value;
+                statistic.Value.CountInUse = countInUse = value;
             }
         }
 
-        private int countConstructed;
+        private int countExcessConstructed;
 
         /// <summary>
-        /// The total number of drawables constructed.
+        /// The total number of drawables constructed that were not pooled.
         /// </summary>
-        public int CountConstructed
+        public int CountExcessConstructed
         {
-            get => countConstructed;
+            get => countExcessConstructed;
             private set
             {
                 Debug.Assert(statistic != null);
 
-                statistic.Value.CountConstructed += value - countConstructed;
-                countConstructed = value;
+                statistic.Value.CountExcessConstructed = countExcessConstructed = value;
             }
         }
-
-        private int countAvailable;
 
         /// <summary>
         /// The number of drawables currently available for consumption.
         /// </summary>
-        public int CountAvailable
-        {
-            get => countAvailable;
-            private set
-            {
-                Debug.Assert(statistic != null);
-
-                statistic.Value.CountAvailable += value - countAvailable;
-                countAvailable = value;
-            }
-        }
+        public int CountAvailable => pool.Count;
 
         private class DrawablePoolUsageStatistic
         {
             /// <summary>
             /// Total number of drawables available for use (in the pool).
             /// </summary>
-            public int CountAvailable;
+            public int CurrentPoolSize;
 
             /// <summary>
             /// Total number of drawables currently in use.
@@ -228,11 +235,11 @@ namespace osu.Framework.Graphics.Pooling
             public int CountInUse;
 
             /// <summary>
-            /// Total number of drawables constructed (can exceed the max count).
+            /// Total number of drawables constructed that were not pooled.
             /// </summary>
-            public int CountConstructed;
+            public int CountExcessConstructed;
 
-            public override string ToString() => $"{CountAvailable}/{CountConstructed} ({CountInUse})";
+            public override string ToString() => $"{CountInUse}/{CurrentPoolSize} ({CountExcessConstructed} excess)";
         }
     }
 }

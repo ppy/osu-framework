@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Video
 
         public override void Draw(IRenderer renderer)
         {
-            var shader = GetAppropriateShader(renderer);
+            var shader = TextureShader;
 
             shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
             shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);

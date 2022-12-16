@@ -19,7 +19,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneFocus : ManualInputManagerTestScene
+    public partial class TestSceneFocus : ManualInputManagerTestScene
     {
         private FocusOverlay overlay;
         private RequestingFocusBox requestingFocus;
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
+        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DisabledFocusDrawableCannotReceiveFocusViaChangeFocus()
@@ -149,7 +149,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a non-present drawable returns <see langword="false"/>.
+        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a non-present drawable returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void NotPresentDrawableCannotReceiveFocusViaChangeFocus()
@@ -163,7 +163,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus"/> to a drawable of a non-present parent returns <see langword="false"/>.
+        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable of a non-present parent returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DrawableOfNotPresentParentCannotReceiveFocusViaChangeFocus()
@@ -246,7 +246,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
         private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
 
-        private class FocusOverlay : FocusedOverlayContainer
+        private partial class FocusOverlay : FocusedOverlayContainer
         {
             private readonly Box box;
             private readonly SpriteText stateText;
@@ -325,7 +325,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class RequestingFocusBox : FocusBox
+        public partial class RequestingFocusBox : FocusBox
         {
             public override bool RequestsFocus => true;
 
@@ -342,7 +342,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class FocusBox : CompositeDrawable
+        public partial class FocusBox : CompositeDrawable
         {
             protected Box Box;
             public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount;

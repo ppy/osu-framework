@@ -13,7 +13,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class PopoverContainer : Container
+    public partial class PopoverContainer : Container
     {
         private readonly Container content;
         private readonly Container dismissOnMouseDownContainer;
@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Cursor
             return availableSize;
         }
 
-        private class DismissOnMouseDownContainer : Container
+        private partial class DismissOnMouseDownContainer : Container
         {
             protected override bool OnMouseDown(MouseDownEvent e)
             {

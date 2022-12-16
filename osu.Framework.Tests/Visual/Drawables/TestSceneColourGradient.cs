@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneColourGradient : GridTestScene
+    public partial class TestSceneColourGradient : GridTestScene
     {
         public TestSceneColourGradient()
             : base(4, 2)

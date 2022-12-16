@@ -10,27 +10,19 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectorySelectorBreadcrumbDisplay : DirectorySelectorBreadcrumbDisplay
+    public partial class BasicDirectorySelectorBreadcrumbDisplay : DirectorySelectorBreadcrumbDisplay
     {
         protected override Drawable CreateCaption() => new SpriteText
         {
             Text = "Current Directory:",
             Font = FrameworkFont.Condensed.With(size: 20),
-            Anchor = Anchor.CentreLeft,
-            Origin = Anchor.CentreLeft
         };
 
         protected override DirectorySelectorDirectory CreateRootDirectoryItem() => new BreadcrumbDisplayComputer();
 
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BreadcrumbDisplayDirectory(directory, displayName);
 
-        public BasicDirectorySelectorBreadcrumbDisplay()
-        {
-            RelativeSizeAxes = Axes.X;
-            AutoSizeAxes = Axes.Y;
-        }
-
-        protected class BreadcrumbDisplayComputer : BreadcrumbDisplayDirectory
+        protected partial class BreadcrumbDisplayComputer : BreadcrumbDisplayDirectory
         {
             protected override IconUsage? Icon => null;
 
@@ -40,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected class BreadcrumbDisplayDirectory : BasicDirectorySelectorDirectory
+        protected partial class BreadcrumbDisplayDirectory : BasicDirectorySelectorDirectory
         {
             protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
 

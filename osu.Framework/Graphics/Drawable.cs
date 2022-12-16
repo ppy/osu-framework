@@ -438,7 +438,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         private static readonly object scheduler_acquisition_lock = new object();
 
-        private Scheduler scheduler;
+        private volatile Scheduler scheduler;
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
@@ -452,7 +452,14 @@ namespace osu.Framework.Graphics
                     return scheduler;
 
                 lock (scheduler_acquisition_lock)
-                    return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
+                {
+                    if (scheduler != null)
+                        return scheduler;
+
+                    scheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
+                }
+
+                return scheduler;
             }
         }
 
@@ -2084,9 +2091,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        [Obsolete("Use TriggerClick instead.")] // Can be removed 20220203
-        public bool Click() => TriggerClick();
-
         /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
@@ -2716,7 +2720,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public static Drawable Empty() => new EmptyDrawable();
 
-        private class EmptyDrawable : Drawable
+        private partial class EmptyDrawable : Drawable
         {
         }
 

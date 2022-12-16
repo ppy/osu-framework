@@ -1,0 +1,21 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+    public class CachedAttribute : Attribute
+    {
+        public Type Type;
+        public string Name;
+
+        public CachedAttribute()
+        {
+        }
+
+        public CachedAttribute(Type type = null, string name = null)
+        {
+            Type = type;
+            Name = name;
+        }
+    }
+}

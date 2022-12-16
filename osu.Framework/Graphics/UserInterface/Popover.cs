@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// It typically is activated by another control and includes an arrow pointing to the location from which it emerged.
     /// (loosely paraphrasing: https://developer.apple.com/design/human-interface-guidelines/ios/views/popovers/)
     /// </summary>
-    public abstract class Popover : FocusedOverlayContainer
+    public abstract partial class Popover : FocusedOverlayContainer
     {
         protected override bool BlockPositionalInput => true;
 
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected internal sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
+        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
 
         #region Sizing delegation
 

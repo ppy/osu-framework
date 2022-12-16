@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneSafeAreaOverrides : FrameworkTestScene
+    public partial class TestSceneSafeAreaOverrides : FrameworkTestScene
     {
         public TestSceneSafeAreaOverrides()
         {
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 && bottomOverridden == container.SafeAreaContainer.Padding.Bottom < 0);
         }
 
-        private class OverrideTestContainer : SafeAreaDefiningContainer
+        private partial class OverrideTestContainer : SafeAreaDefiningContainer
         {
             internal readonly SafeAreaContainer SafeAreaContainer;
 

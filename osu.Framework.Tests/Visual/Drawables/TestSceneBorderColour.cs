@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneBorderColour : FrameworkTestScene
+    public partial class TestSceneBorderColour : FrameworkTestScene
     {
         [Test]
         public void TestSolidBorder() => createBorderTest(Colour4.Blue, Colour4.Red);

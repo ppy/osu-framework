@@ -30,6 +30,7 @@ namespace osu.Framework.Android.Input
 
             Enabled.BindValueChanged(enabled =>
             {
+#nullable disable // Events misses nullable mark in .NET Android SDK (6.0.402)
                 if (enabled.NewValue)
                 {
                     View.Hover += HandleHover;
@@ -39,6 +40,7 @@ namespace osu.Framework.Android.Input
                 {
                     View.Hover -= HandleHover;
                     View.Touch -= HandleTouch;
+#nullable restore
                 }
             }, true);
 

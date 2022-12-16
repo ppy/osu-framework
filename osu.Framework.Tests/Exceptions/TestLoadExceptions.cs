@@ -23,7 +23,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Exceptions
 {
     [TestFixture]
-    public class TestLoadExceptions
+    public partial class TestLoadExceptions
     {
         [Test]
         public void TestLoadIntoInvalidTarget()
@@ -278,7 +278,7 @@ namespace osu.Framework.Tests.Exceptions
             }
         }
 
-        private class LoadTarget : Container
+        private partial class LoadTarget : Container
         {
             private readonly Drawable loadable;
 
@@ -293,7 +293,7 @@ namespace osu.Framework.Tests.Exceptions
             });
         }
 
-        public class DelayedTestBoxAsync : Box
+        public partial class DelayedTestBoxAsync : Box
         {
             private readonly bool throws;
 

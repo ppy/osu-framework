@@ -20,7 +20,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneSynchronizationContext : FrameworkTestScene
+    public partial class TestSceneSynchronizationContext : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
@@ -223,7 +223,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class AsyncPerformingBox : Box
+        public partial class AsyncPerformingBox : Box
         {
             private readonly bool performAsyncLoadComplete;
 

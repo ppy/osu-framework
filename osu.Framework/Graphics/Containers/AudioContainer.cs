@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// This is a bare-minimal implementation of a container, so it may be required to be nested inside a <see cref="Container"/> for some use cases.
     /// </remarks>
     /// <typeparam name="T">The type of <see cref="Drawable"/>.</typeparam>
-    public class AudioContainer<T> : DrawableAudioWrapper, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
+    public partial class AudioContainer<T> : DrawableAudioWrapper, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
         private readonly Container<T> container;
@@ -160,7 +158,7 @@ namespace osu.Framework.Graphics.Containers
     /// <remarks>
     /// This is a bare-minimal implementation of a container, so it may be required to be nested inside a <see cref="Container"/> for some use cases.
     /// </remarks>
-    public class AudioContainer : AudioContainer<Drawable>
+    public partial class AudioContainer : AudioContainer<Drawable>
     {
     }
 }

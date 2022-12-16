@@ -133,11 +133,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             if (IsNullable(eventInfo.EventHandlerType))
                 return true;
 
-#if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(eventInfo));
-#else
-            return false;
-#endif
         }
 
         /// <summary>
@@ -153,11 +149,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             if (IsNullable(parameterInfo.ParameterType))
                 return true;
 
-#if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(parameterInfo));
-#else
-            return false;
-#endif
         }
 
         /// <summary>
@@ -173,11 +165,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             if (IsNullable(fieldInfo.FieldType))
                 return true;
 
-#if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(fieldInfo));
-#else
-            return false;
-#endif
         }
 
         /// <summary>
@@ -193,16 +181,10 @@ namespace osu.Framework.Extensions.TypeExtensions
             if (IsNullable(propertyInfo.PropertyType))
                 return true;
 
-#if NET6_0_OR_GREATER
             return isNullableInfo(new NullabilityInfoContext().Create(propertyInfo));
-#else
-            return false;
-#endif
         }
 
-#if NET6_0_OR_GREATER
         private static bool isNullableInfo(NullabilityInfo info) => info.WriteState == NullabilityState.Nullable || info.ReadState == NullabilityState.Nullable;
-#endif
     }
 
     [Flags]

@@ -47,6 +47,7 @@ namespace osu.Framework.Android.Input
 
             Enabled.BindValueChanged(enabled =>
             {
+#nullable disable // Events misses nullable mark in .NET Android SDK (6.0.402)
                 if (enabled.NewValue)
                 {
                     View.GenericMotion += HandleGenericMotion;
@@ -59,6 +60,7 @@ namespace osu.Framework.Android.Input
                     View.KeyDown -= HandleKeyDown;
                     View.KeyUp -= HandleKeyUp;
                 }
+#nullable restore
             }, true);
 
             return true;

@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class AudioChannelDisplay : CompositeDrawable
+    public partial class AudioChannelDisplay : CompositeDrawable
     {
         private const int sample_window = 30;
         private const int peak_hold_time = 3000;

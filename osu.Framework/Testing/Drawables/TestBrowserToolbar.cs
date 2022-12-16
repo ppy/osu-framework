@@ -12,7 +12,7 @@ using osu.Framework.Testing.Drawables.Sections;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestBrowserToolbar : CompositeDrawable
+    internal partial class TestBrowserToolbar : CompositeDrawable
     {
         private ToolbarAssemblySection assemblySection;
 

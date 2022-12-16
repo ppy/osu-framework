@@ -15,12 +15,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneWaveform : FrameworkTestScene
+    public partial class TestSceneWaveform : FrameworkTestScene
     {
         private BasicButton button;
         private Track track;
@@ -28,15 +29,12 @@ namespace osu.Framework.Tests.Visual.Drawables
         private Container<Drawable> waveformContainer;
         private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
 
+        private ITrackStore store;
+
         [BackgroundDependencyLoader]
         private void load(Game game, AudioManager audio)
         {
-            var store = audio.GetTrackStore(game.Resources);
-
-            const string track_name = "Tracks/sample-track.mp3";
-
-            track = store.Get(track_name);
-            waveform = new Waveform(store.GetStream(track_name));
+            store = audio.GetTrackStore(game.Resources);
 
             const float track_width = 1366; // required because RelativeSizeAxes.X doesn't seem to work with horizontal scroll
 
@@ -92,6 +90,32 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
 
             zoom.ValueChanged += e => waveformContainer.Width = track_width * e.NewValue;
+        }
+
+        private void loadTrack(bool stereo)
+        {
+            string trackName = stereo
+                ? "Tracks/sample-track.mp3"
+                : "Tracks/sample-track-mono.mp3";
+
+            track = store.Get(trackName);
+            waveform = new Waveform(store.GetStream(trackName));
+        }
+
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddStep("Load stereo track", () => loadTrack(true));
+        }
+
+        [Test]
+        public void TestMonoTrack()
+        {
+            AddStep("Load mono track", () => loadTrack(false));
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = waveform });
+            AddUntilStep("wait for load", () => graph.Regenerated);
         }
 
         [TestCase(1f)]
@@ -153,7 +177,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             track?.Stop();
         }
 
-        private class TestWaveform : CompositeDrawable
+        private partial class TestWaveform : CompositeDrawable
         {
             private readonly Track track;
             private readonly TestWaveformGraph graph;
@@ -256,7 +280,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestWaveformGraph : WaveformGraph
+        private partial class TestWaveformGraph : WaveformGraph
         {
             public bool Regenerated { get; private set; }
 

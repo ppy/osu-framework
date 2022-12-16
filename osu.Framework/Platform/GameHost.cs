@@ -655,7 +655,11 @@ namespace osu.Framework.Platform
                 Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
             }
 
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            if (RuntimeInfo.IsDesktop)
+            {
+                // Mono (netcore) throws for this property
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            }
 
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");

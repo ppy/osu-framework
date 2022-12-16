@@ -15,7 +15,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneHSVColourPicker : ManualInputManagerTestScene
+    public partial class TestSceneHSVColourPicker : ManualInputManagerTestScene
     {
         private TestHSVColourPicker colourPicker;
 
@@ -166,7 +166,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert($"value is {value}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Value.Value, value, tolerance));
         }
 
-        private class TestHSVColourPicker : BasicHSVColourPicker
+        private partial class TestHSVColourPicker : BasicHSVColourPicker
         {
             public HueSelector HueControl => this.ChildrenOfType<HueSelector>().Single();
             public SaturationValueSelector SaturationValueControl => this.ChildrenOfType<SaturationValueSelector>().Single();

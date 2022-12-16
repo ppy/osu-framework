@@ -13,6 +13,10 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         int Size { get; }
 
+        /// <summary>
+        /// Draw any newly added indices in this vertex batch.
+        /// </summary>
+        /// <returns>The number of indices drawn, if any.</returns>
         int Draw();
 
         internal void ResetCounters();

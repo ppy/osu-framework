@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
+    public abstract partial class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (boundItemSource != null)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
 
-                setItems(value);
+                Scheduler.AddOnce(setItems, value);
             }
         }
 
@@ -343,7 +343,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region DropdownMenu
 
-        public abstract class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
+        public abstract partial class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
             protected DropdownMenu()
                 : base(Direction.Vertical)
@@ -434,7 +434,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             #region DrawableDropdownMenuItem
 
-            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract partial class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
 

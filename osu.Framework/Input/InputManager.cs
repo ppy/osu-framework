@@ -30,7 +30,7 @@ using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container, IInputStateChangeHandler
+    public abstract partial class InputManager : Container, IInputStateChangeHandler
     {
         /// <summary>
         /// The initial delay before key repeat begins.

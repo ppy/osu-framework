@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Audio
     /// <summary>
     /// A <see cref="SampleChannel"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableSample : DrawableAudioWrapper, ISample
+    public partial class DrawableSample : DrawableAudioWrapper, ISample
     {
         private readonly WeakList<SampleChannel> playingChannels = new WeakList<SampleChannel>();
 

@@ -27,7 +27,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
         protected FillFlowContainer TextFlow { get; private set; }
         protected Container TextContainer { get; private set; }

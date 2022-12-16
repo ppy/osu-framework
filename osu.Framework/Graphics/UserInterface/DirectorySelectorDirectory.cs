@@ -12,7 +12,7 @@ using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectorySelectorDirectory : DirectorySelectorItem
+    public abstract partial class DirectorySelectorDirectory : DirectorySelectorItem
     {
         protected readonly DirectoryInfo Directory;
         protected override string FallbackName => Directory.Name;
@@ -35,6 +35,13 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (isHidden && !isSystemDrive)
                     ApplyHiddenState();
+            }
+            catch (IOException)
+            {
+                // various IO exceptions could occur when attempting to read attributes.
+                // one example is when a target directory is a drive which is locked by BitLocker:
+                //
+                // "Unhandled exception. System.IO.IOException: This drive is locked by BitLocker Drive Encryption. You must unlock this drive from Control Panel. : 'D:\'"
             }
             catch (UnauthorizedAccessException)
             {
