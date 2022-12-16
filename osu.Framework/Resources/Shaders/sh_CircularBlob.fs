@@ -8,7 +8,7 @@
 varying highp vec2 v_TexCoord;
 
 uniform lowp sampler2D m_Sampler;
-uniform mediump float innerRadius;
+uniform mediump float pathRadius;
 uniform int pointCount;
 uniform mediump float amplitude;
 uniform highp vec2 noisePosition;
@@ -19,8 +19,7 @@ void main(void)
     highp vec2 pixelPos = v_TexCoord / (v_TexRect.zw - v_TexRect.xy);
 
     highp float dstFromCentre = distance(pixelPos, vec2(0.5));
-    mediump float pathRadius = innerRadius * 0.5;
-    highp float minUsableDst = 0.5 * ((1.0 - amplitude) * sin(HALF_PI * (1.0 - 2.0 / float(pointCount)))) - pathRadius - texelSize;
+    highp float minUsableDst = 0.5 * ((1.0 - amplitude) * sin(HALF_PI * (1.0 - 2.0 / float(pointCount)))) - pathRadius;
 
     // Discard some pixels from inside and outside the shape
     if (dstFromCentre > 0.5 || dstFromCentre < minUsableDst)

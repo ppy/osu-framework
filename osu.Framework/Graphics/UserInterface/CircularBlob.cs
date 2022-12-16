@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
             }
 
-            private float innerRadius;
+            private float pathRadius;
             private float texelSize;
             private int pointCount;
             private float amplitude;
@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.ApplyState();
 
-                innerRadius = Source.innerRadius;
+                pathRadius = Source.innerRadius * 0.5f;
                 pointCount = Source.pointCount;
                 amplitude = Source.amplitude;
 
@@ -119,12 +119,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void Blit(IRenderer renderer)
             {
-                if (innerRadius == 0)
+                if (pathRadius == 0)
                     return;
 
                 var shader = TextureShader;
 
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
+                shader.GetUniform<float>("pathRadius").UpdateValue(ref pathRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<int>("pointCount").UpdateValue(ref pointCount);
                 shader.GetUniform<float>("amplitude").UpdateValue(ref amplitude);
