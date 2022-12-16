@@ -119,8 +119,8 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
-      - name: Install .NET workloads
-        run: dotnet workload install android
+      - name: Restore .NET workloads
+        run: dotnet workload restore
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.Android.slnf
@@ -138,8 +138,8 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
-      - name: Install .NET workloads
-        run: dotnet workload install ios
+      - name: Restore .NET workloads
+        run: dotnet workload restore
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.iOS.slnf

@@ -159,15 +159,7 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                // the following warning disables are caused by netstandard2.1 and net6.0 differences
-                // the former declares Types as Type[], while the latter declares as Type?[]:
-                // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
-                // which trips some inspectcode errors which are only "valid" for the first of the two.
-                // TODO: remove if netstandard2.1 is removed
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                // ReSharper disable once ConstantConditionalAccessQualifier
-                // ReSharper disable once ConstantNullCoalescingCondition
-                return e.Types?.Where(t => t != null).ToArray() ?? Array.Empty<Type>();
+                return e.Types.Where(t => t != null).ToArray();
             }
         }
 
@@ -290,15 +282,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="str">The string to create a hash from.</param>
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
-        public static string ComputeSHA2Hash(this string str)
-        {
-#if NET6_0_OR_GREATER
-            return SHA256.HashData(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
-#else
-            using (var alg = SHA256.Create())
-                return alg.ComputeHash(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
-#endif
-        }
+        public static string ComputeSHA2Hash(this string str) => SHA256.HashData(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
 
         public static string ComputeMD5Hash(this Stream stream)
         {
@@ -312,15 +296,7 @@ namespace osu.Framework.Extensions
             return hash;
         }
 
-        public static string ComputeMD5Hash(this string input)
-        {
-#if NET6_0_OR_GREATER
-            return MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
-#else
-            using (var md5 = MD5.Create())
-                return md5.ComputeHash(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
-#endif
-        }
+        public static string ComputeMD5Hash(this string input) => MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
 
         public static DisplayIndex GetIndex(this DisplayDevice display)
         {

@@ -3,15 +3,13 @@
 
 #nullable disable
 
-#if NET6_0_OR_GREATER
-using System.Net.Sockets;
-#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -151,10 +149,9 @@ namespace osu.Framework.IO.Network
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         private static readonly HttpClient client = new HttpClient(
-#if NET6_0_OR_GREATER
             // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
             // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
-            RuntimeInfo.IsMobile
+            RuntimeInfo.OS == RuntimeInfo.Platform.Android
                 ? new HttpClientHandler
                 {
                     Credentials = CredentialCache.DefaultCredentials,
@@ -167,13 +164,6 @@ namespace osu.Framework.IO.Network
                     Credentials = CredentialCache.DefaultCredentials,
                     ConnectCallback = onConnect,
                 }
-#else
-            new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                Credentials = CredentialCache.DefaultCredentials,
-            }
-#endif
         )
         {
             // Timeout is controlled manually through cancellation tokens because
@@ -341,11 +331,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET6_0_OR_GREATER
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
-#else
-                            postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
                         }
 
                         if (postContent != null)
@@ -449,15 +435,9 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET6_0_OR_GREATER
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
-#else
-            using (var responseStream = await response.Content
-                                                      .ReadAsStreamAsync()
-                                                      .ConfigureAwait(false))
-#endif
             {
                 reportForwardProgress();
                 Started?.Invoke();
@@ -785,7 +765,6 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET6_0_OR_GREATER
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>
@@ -860,7 +839,6 @@ namespace osu.Framework.IO.Network
                 throw;
             }
         }
-#endif
 
         #endregion
 

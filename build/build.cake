@@ -188,20 +188,6 @@ Task("PackTemplate")
     .Does(ctx => {
         ctx.ReplaceRegexInFiles(
             $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
-            "^.*osu.Framework.csproj.*$",
-            $"    <PackageReference Include=\"ppy.osu.Framework\" Version=\"{version}\" />",
-            RegexOptions.Multiline
-        );
-
-        ctx.ReplaceRegexInFiles(
-            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
-            "^.*osu.Framework.iOS.csproj.*$",
-            $"    <PackageReference Include=\"ppy.osu.Framework.iOS\" Version=\"{version}\" />",
-            RegexOptions.Multiline
-        );
-
-        ctx.ReplaceRegexInFiles(
-            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
             "^.*osu.Framework.iOS.props.*$\n",
             "",
             RegexOptions.Multiline

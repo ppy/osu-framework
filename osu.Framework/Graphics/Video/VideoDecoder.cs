@@ -19,9 +19,7 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
-#if NET6_0_OR_GREATER
 using osu.Framework.Extensions.ObjectExtensions;
-#endif
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -807,7 +805,6 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NET6_0_OR_GREATER
             FFmpeg.AutoGen.ffmpeg.GetOrLoadLibrary = name =>
             {
                 int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
@@ -835,7 +832,6 @@ namespace osu.Framework.Graphics.Video
 
                 return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
-#endif
 
             return new FFmpegFuncs
             {

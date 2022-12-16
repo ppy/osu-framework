@@ -3,7 +3,6 @@
 
 #nullable disable
 
-#if NET6_0_OR_GREATER
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -163,4 +162,3 @@ namespace osu.Framework.Tests.Visual.Input
         }
     }
 }
-#endif
