@@ -11,6 +11,7 @@ using osu.Framework.Testing;
 // Note, that we omit visual tests as they are meant to test the framework
 // behavior "in the wild".
 
+[assembly: InternalsVisibleTo("osu.Framework.Desktop")]
 [assembly: InternalsVisibleTo("osu.Framework.Android")]
 [assembly: InternalsVisibleTo("osu.Framework.Benchmarks")]
 [assembly: InternalsVisibleTo("osu.Framework.iOS")]

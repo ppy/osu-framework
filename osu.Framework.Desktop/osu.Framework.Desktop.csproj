@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Project">
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyTitle>osu!framework Desktop</AssemblyTitle>
+    <AssemblyName>osu.Framework.Desktop</AssemblyName>
+    <RootNamespace>osu.Framework.Desktop</RootNamespace>
+    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
+  </PropertyGroup>
+  <PropertyGroup Label="Nuget">
+    <Title>osu!framework Desktop</Title>
+    <PackageId>ppy.osu.Framework.Desktop</PackageId>
+    <PackageTags>osu game framework</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+</Project>

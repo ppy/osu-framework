@@ -73,6 +73,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGenerat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Roslyn4.0", "osu.Framework.SourceGeneration\Roslyn4.0\osu.Framework.SourceGeneration.Roslyn4.0.csproj", "{46A4B178-B3F9-4771-9D45-B2F5A91CE605}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Desktop", "osu.Framework.Desktop\osu.Framework.Desktop.csproj", "{D2FADCAB-9142-467D-B4D0-470BCDC0356B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -379,6 +381,18 @@ Global
 		{46A4B178-B3F9-4771-9D45-B2F5A91CE605}.Release|iPhone.Build.0 = Release|Any CPU
 		{46A4B178-B3F9-4771-9D45-B2F5A91CE605}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{46A4B178-B3F9-4771-9D45-B2F5A91CE605}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Release|iPhone.Build.0 = Release|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{D2FADCAB-9142-467D-B4D0-470BCDC0356B}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

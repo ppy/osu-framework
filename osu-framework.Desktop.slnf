@@ -3,6 +3,7 @@
     "path": "osu-framework.sln",
     "projects": [
       "osu.Framework.Benchmarks\\osu.Framework.Benchmarks.csproj",
+      "osu.Framework.Desktop\\osu.Framework.Desktop.csproj",
       "osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
       "osu.Framework.SourceGeneration.Tests\\osu.Framework.SourceGeneration.Tests.csproj",
       "osu.Framework.SourceGeneration\\Roslyn3.11\\osu.Framework.SourceGeneration.Roslyn3.11.csproj",

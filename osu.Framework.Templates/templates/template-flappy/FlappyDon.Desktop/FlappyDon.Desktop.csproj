@@ -9,6 +9,7 @@
     <FileVersion>0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\osu.Framework.Desktop\osu.Framework.Desktop.csproj" />
     <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj" />
   </ItemGroup>
   <ItemGroup Label="Resources">

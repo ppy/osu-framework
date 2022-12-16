@@ -70,6 +70,42 @@ jobs:
           name: osu-framework
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
+  pack-desktop:
+    name: Pack (Desktop)
+    runs-on: windows-latest
+    needs: [check-if-tag]
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set Artifacts Directory
+        id: artifactsPath
+        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+
+      # FIXME: 3.1 LTS is required here because iOS builds refuse to build without it.
+      # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
+      - name: Install .NET 3.1.x LTS
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "3.1.x"
+
+      - name: Install .NET 6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "6.0.x"
+
+      - name: Pack (Desktop)
+        run: dotnet pack -c Release osu.Framework.Desktop /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: osu-framework-desktop
+          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+
   pack-template:
     name: Pack (Templates)
     runs-on: windows-latest

@@ -21,6 +21,7 @@ var artifactsDirectory = rootDirectory.Combine("artifacts");
 var sln = rootDirectory.CombineWithFilePath("osu-framework.sln");
 var desktopSlnf = rootDirectory.CombineWithFilePath("osu-framework.Desktop.slnf");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
+var desktopFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Desktop/osu.Framework.Desktop.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
@@ -142,6 +143,20 @@ Task("PackFramework")
         });
     });
 
+Task("PackDesktopFramework")
+    .Does(() => {
+        DotNetCorePack(desktopFrameworkProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
+            ArgumentCustomization = args => {
+                args.Append($"/p:Version={version}");
+                args.Append($"/p:GenerateDocumentationFile=true");
+                return args;
+            }
+        });
+    });
+
 Task("PackiOSFramework")
     .Does(() => {
         DotNetCorePack(iosFrameworkProject.FullPath, new DotNetCorePackSettings{
@@ -232,6 +247,7 @@ Task("DeployFrameworkDesktop")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
+    .IsDependentOn("PackDesktopFramework")
     .IsDependentOn("Publish");
 
 Task("DeployFrameworkTemplates")

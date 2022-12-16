@@ -5,6 +5,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\osu.Framework.Desktop\osu.Framework.Desktop.csproj" />
     <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
