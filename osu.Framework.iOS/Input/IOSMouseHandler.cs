@@ -38,10 +38,6 @@ namespace osu.Framework.iOS.Input
 
         public override bool Initialize(GameHost host)
         {
-            // UIPointerInteraction is only available on iOS 13.4 and up
-            if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
-                return false;
-
             view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
             mouseDelegate.LocationUpdated += locationUpdated;
 
