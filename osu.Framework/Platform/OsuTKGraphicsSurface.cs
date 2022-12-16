@@ -8,28 +8,28 @@ using System.Linq;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
     public class OsuTKGraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface
     {
-        private readonly IGameWindow window;
+        private readonly OsuTKWindow window;
 
         public GraphicsSurfaceType Type => GraphicsSurfaceType.OpenGL;
 
         public IntPtr WindowHandle => window.WindowInfo.Handle;
         public IntPtr DisplayHandle => throw new NotSupportedException($@"{nameof(DisplayHandle)} is not supported.");
+
         public bool VerticalSync { get; set; }
 
-        public IntPtr WindowContext => throw new NotSupportedException($@"{nameof(WindowContext)} is not supported.");
+        public IntPtr WindowContext { get; private set; }
         public IntPtr CurrentContext => GraphicsContext.CurrentContextHandle.Handle;
 
         internal Version GLVersion;
         internal Version GLSLVersion;
         internal bool IsEmbedded;
 
-        public OsuTKGraphicsSurface(IGameWindow window)
+        public OsuTKGraphicsSurface(OsuTKWindow window)
         {
             this.window = window;
         }
@@ -37,6 +37,9 @@ namespace osu.Framework.Platform
         public void Initialise()
         {
             window.MakeCurrent();
+
+            // there's no sane way to retrieve the GL context of the window so just use the current context after making window current.
+            WindowContext = CurrentContext;
 
             string version = GL.GetString(StringName.Version);
             string versionNumberSubstring = getVersionNumberSubstring(version);
@@ -74,10 +77,10 @@ namespace osu.Framework.Platform
 
         public Size GetDrawableSize() => window.ClientSize;
         public void MakeCurrent(IntPtr context) => window.MakeCurrent();
+        public void ClearCurrent() => window.ClearCurrent();
         public void SwapBuffers() => window.SwapBuffers();
 
         public void CreateContext() => throw new NotSupportedException($@"{nameof(CreateContext)} is not supported.");
-        public void ClearCurrent() => throw new NotSupportedException($@"{nameof(ClearCurrent)} is not supported.");
         public void DeleteContext(IntPtr context) => throw new NotSupportedException($@"{nameof(DeleteContext)} is not supported.");
         public IntPtr GetProcAddress(string symbol) => throw new NotSupportedException($@"{nameof(GetProcAddress)} is not supported.");
     }
