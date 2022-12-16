@@ -24,13 +24,13 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="NuGet.ProjectModel" Version="5.11.0" />
+    <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
+    <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
+    <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="ManagedBass" Version="3.1.0" />
-    <PackageReference Include="ManagedBass.Fx" Version="3.1.0" />
-    <PackageReference Include="ManagedBass.Mix" Version="3.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
