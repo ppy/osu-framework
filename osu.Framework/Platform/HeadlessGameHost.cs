@@ -15,7 +15,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// A GameHost which doesn't require a graphical or sound device.
     /// </summary>
-    public class HeadlessGameHost : DesktopGameHost
+    public class HeadlessGameHost : GameHost
     {
         public const double CLOCK_RATE = 1000.0 / 30;
 
@@ -37,6 +37,8 @@ namespace osu.Framework.Platform
         }
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
+
+        public override Storage GetStorage(string path) => new NativeStorage(path, this);
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 

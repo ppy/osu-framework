@@ -6,7 +6,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace osu.Framework.Platform.Windows
+namespace osu.Framework.Desktop.Platform.Window
 {
     /// <summary>
     /// Set the windows multimedia timer to a specific accuracy.

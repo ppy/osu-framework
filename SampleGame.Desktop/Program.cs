@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework;
+using osu.Framework.Desktop;
 using osu.Framework.Platform;
 
 namespace SampleGame.Desktop
@@ -12,7 +13,7 @@ namespace SampleGame.Desktop
         [STAThread]
         public static void Main(string[] args)
         {
-            using (GameHost host = Host.GetSuitableDesktopHost(@"sample-game"))
+            using (GameHost host = DesktopHost.GetSuitableHost(@"sample-game"))
             using (Game game = new SampleGameGame())
                 host.Run(game);
         }

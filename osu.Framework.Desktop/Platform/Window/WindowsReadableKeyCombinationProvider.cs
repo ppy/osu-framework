@@ -7,16 +7,16 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.SDL2;
 using SDL2;
 
-namespace osu.Framework.Platform.Linux
+namespace osu.Framework.Desktop.Platform.Window
 {
-    public class LinuxReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class WindowsReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {
             switch (key)
             {
                 case InputKey.Super:
-                    return "Super";
+                    return "Win";
 
                 default:
                     return base.GetReadableKey(key);
@@ -28,11 +28,11 @@ namespace osu.Framework.Platform.Linux
             switch (keycode)
             {
                 case SDL.SDL_Keycode.SDLK_LGUI:
-                    name = "LSuper";
+                    name = "LWin";
                     return true;
 
                 case SDL.SDL_Keycode.SDLK_RGUI:
-                    name = "RSuper";
+                    name = "RWin";
                     return true;
 
                 default:

@@ -7,14 +7,17 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using osu.Framework.Desktop.Platform.Window.Native;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using SDL2;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
+using WindowState = osu.Framework.Platform.WindowState;
 
-namespace osu.Framework.Platform.Windows
+namespace osu.Framework.Desktop.Platform.Window
 {
     public class WindowsWindow : SDL2DesktopWindow
     {

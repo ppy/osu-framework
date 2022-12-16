@@ -7,19 +7,16 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.SDL2;
 using SDL2;
 
-namespace osu.Framework.Platform.MacOS
+namespace osu.Framework.Desktop.Platform.Linux
 {
-    public class MacOSReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class LinuxReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {
             switch (key)
             {
                 case InputKey.Super:
-                    return "Cmd";
-
-                case InputKey.Alt:
-                    return "Opt";
+                    return "Super";
 
                 default:
                     return base.GetReadableKey(key);
@@ -31,19 +28,11 @@ namespace osu.Framework.Platform.MacOS
             switch (keycode)
             {
                 case SDL.SDL_Keycode.SDLK_LGUI:
-                    name = "LCmd";
+                    name = "LSuper";
                     return true;
 
                 case SDL.SDL_Keycode.SDLK_RGUI:
-                    name = "RCmd";
-                    return true;
-
-                case SDL.SDL_Keycode.SDLK_LALT:
-                    name = "LOpt";
-                    return true;
-
-                case SDL.SDL_Keycode.SDLK_RALT:
-                    name = "ROpt";
+                    name = "RSuper";
                     return true;
 
                 default:

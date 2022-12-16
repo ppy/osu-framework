@@ -22,7 +22,6 @@ using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
-using osu.Framework.Platform.MacOS;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -104,6 +103,6 @@ namespace osu.Framework.iOS
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new IOSVideoDecoder(Renderer, stream);
 
-        public override IEnumerable<KeyBinding> PlatformKeyBindings => MacOSGameHost.KeyBindings;
+        public override IEnumerable<KeyBinding> PlatformKeyBindings => AppleConstants.KeyBindings;
     }
 }

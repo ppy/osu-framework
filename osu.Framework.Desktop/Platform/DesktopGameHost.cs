@@ -18,8 +18,9 @@ using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
+using osu.Framework.Platform;
 
-namespace osu.Framework.Platform
+namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {

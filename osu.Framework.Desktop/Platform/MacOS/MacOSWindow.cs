@@ -4,10 +4,11 @@
 #nullable disable
 
 using System;
+using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
 
-namespace osu.Framework.Platform.MacOS
+namespace osu.Framework.Desktop.Platform.MacOS
 {
     /// <summary>
     /// macOS-specific subclass of <see cref="SDL2DesktopWindow"/>.

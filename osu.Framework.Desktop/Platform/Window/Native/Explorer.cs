@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 
-namespace osu.Framework.Platform.Windows.Native
+namespace osu.Framework.Desktop.Platform.Window.Native
 {
     internal static class Explorer
     {

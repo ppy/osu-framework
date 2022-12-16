@@ -5,16 +5,17 @@
 
 using System;
 using System.Drawing;
+using osu.Framework.Desktop.Platform.Window.Native;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Platform.Windows.Native;
+using osu.Framework.Platform;
 using osuTK;
 using SDL2;
 
 // ReSharper disable UnusedParameter.Local (Class regularly handles native events where we don't consume all parameters)
 
-namespace osu.Framework.Platform.Windows
+namespace osu.Framework.Desktop.Platform.Window
 {
     /// <summary>
     /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.

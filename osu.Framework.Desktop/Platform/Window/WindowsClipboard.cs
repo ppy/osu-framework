@@ -8,11 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using osu.Framework.Platform;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Bmp;
 
-namespace osu.Framework.Platform.Windows
+namespace osu.Framework.Desktop.Platform.Window
 {
     public class WindowsClipboard : Clipboard
     {

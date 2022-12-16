@@ -7,7 +7,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
-namespace osu.Framework.Platform.Windows.Native
+namespace osu.Framework.Desktop.Platform.Window.Native
 {
     internal static class Input
     {

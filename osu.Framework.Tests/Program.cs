@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Desktop;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests
@@ -17,7 +18,7 @@ namespace osu.Framework.Tests
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
 
-            using (GameHost host = Host.GetSuitableDesktopHost(@"visual-tests", new HostOptions { PortableInstallation = portable }))
+            using (GameHost host = DesktopHost.GetSuitableHost(@"visual-tests", new HostOptions { PortableInstallation = portable }))
             {
                 if (benchmark)
                     host.Run(new AutomatedVisualTestGame());

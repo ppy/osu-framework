@@ -1,5 +1,5 @@
 ﻿using osu.Framework.Platform;
-using osu.Framework;
+using osu.Framework.Desktop;
 using TemplateGame.Game;
 
 namespace TemplateGame.Desktop
@@ -8,7 +8,7 @@ namespace TemplateGame.Desktop
     {
         public static void Main()
         {
-            using (GameHost host = Host.GetSuitableDesktopHost(@"TemplateGame"))
+            using (GameHost host = DesktopHost.GetSuitableHost(@"TemplateGame"))
             using (osu.Framework.Game game = new TemplateGameGame())
                 host.Run(game);
         }

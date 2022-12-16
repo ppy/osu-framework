@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
+using osu.Framework.Platform.Windows;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Platform.Windows
+namespace osu.Framework.Desktop.Platform.Window
 {
     internal class WindowsGLRenderer : GLRenderer, IWindowsRenderer
     {
@@ -35,7 +37,7 @@ namespace osu.Framework.Platform.Windows
             if (isIntel)
             {
                 // Exclusive fullscreen is always supported on Intel.
-                fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
+                fullscreenCapability.Value = Framework.Platform.Windows.FullscreenCapability.Capable;
             }
             else
             {
@@ -54,7 +56,7 @@ namespace osu.Framework.Platform.Windows
             fullscreenCapabilityDetectionCancellationSource?.Dispose();
             fullscreenCapabilityDetectionCancellationSource = null;
 
-            if (window.WindowState != WindowState.Fullscreen || !window.IsActive.Value || fullscreenCapability.Value != Windows.FullscreenCapability.Unknown)
+            if (window.WindowState != WindowState.Fullscreen || !window.IsActive.Value || fullscreenCapability.Value != Framework.Platform.Windows.FullscreenCapability.Unknown)
                 return;
 
             var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
@@ -79,10 +81,10 @@ namespace osu.Framework.Platform.Windows
                     SHQueryUserNotificationState(out var notificationState);
 
                     var capability = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
-                        ? Windows.FullscreenCapability.Capable
-                        : Windows.FullscreenCapability.Incapable;
+                        ? Framework.Platform.Windows.FullscreenCapability.Capable
+                        : Framework.Platform.Windows.FullscreenCapability.Incapable;
 
-                    if (capability == Windows.FullscreenCapability.Incapable && attempts < max_attempts)
+                    if (capability == Framework.Platform.Windows.FullscreenCapability.Incapable && attempts < max_attempts)
                     {
                         queueNextAttempt();
                         return;
@@ -94,7 +96,7 @@ namespace osu.Framework.Platform.Windows
                 catch (Exception ex)
                 {
                     Logger.Error(ex, "Failed to detect fullscreen capabilities.");
-                    fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
+                    fullscreenCapability.Value = Framework.Platform.Windows.FullscreenCapability.Capable;
                 }
             }, cancellationToken);
         }

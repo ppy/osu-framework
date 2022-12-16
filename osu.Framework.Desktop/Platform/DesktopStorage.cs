@@ -3,7 +3,9 @@
 
 #nullable disable
 
-namespace osu.Framework.Platform
+using osu.Framework.Platform;
+
+namespace osu.Framework.Desktop.Platform
 {
     public class DesktopStorage : NativeStorage
     {

@@ -7,16 +7,19 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.SDL2;
 using SDL2;
 
-namespace osu.Framework.Platform.Windows
+namespace osu.Framework.Desktop.Platform.MacOS
 {
-    public class WindowsReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class MacOSReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {
             switch (key)
             {
                 case InputKey.Super:
-                    return "Win";
+                    return "Cmd";
+
+                case InputKey.Alt:
+                    return "Opt";
 
                 default:
                     return base.GetReadableKey(key);
@@ -28,11 +31,19 @@ namespace osu.Framework.Platform.Windows
             switch (keycode)
             {
                 case SDL.SDL_Keycode.SDLK_LGUI:
-                    name = "LWin";
+                    name = "LCmd";
                     return true;
 
                 case SDL.SDL_Keycode.SDLK_RGUI:
-                    name = "RWin";
+                    name = "RCmd";
+                    return true;
+
+                case SDL.SDL_Keycode.SDLK_LALT:
+                    name = "LOpt";
+                    return true;
+
+                case SDL.SDL_Keycode.SDLK_RALT:
+                    name = "ROpt";
                     return true;
 
                 default:

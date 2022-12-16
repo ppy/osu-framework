@@ -6,11 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SDL2;
+using osu.Framework.Desktop.Platform.Linux.SDL2;
 using osu.Framework.Input;
-using osu.Framework.Platform.Linux.SDL2;
+using osu.Framework.Platform;
+using SDL2;
 
-namespace osu.Framework.Platform.Linux
+namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {

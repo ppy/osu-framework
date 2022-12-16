@@ -1,4 +1,4 @@
-﻿using osu.Framework;
+﻿using osu.Framework.Desktop;
 using osu.Framework.Platform;
 
 namespace TemplateGame.Game.Tests
@@ -7,7 +7,7 @@ namespace TemplateGame.Game.Tests
     {
         public static void Main()
         {
-            using (GameHost host = Host.GetSuitableDesktopHost("visual-tests"))
+            using (GameHost host = DesktopHost.GetSuitableHost("visual-tests"))
             using (var game = new TemplateGameTestBrowser())
                 host.Run(game);
         }

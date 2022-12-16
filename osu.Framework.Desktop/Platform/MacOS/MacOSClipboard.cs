@@ -4,10 +4,11 @@
 #nullable disable
 
 using System;
+using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
 
-namespace osu.Framework.Platform.MacOS
+namespace osu.Framework.Desktop.Platform.MacOS
 {
     public class MacOSClipboard : Clipboard
     {

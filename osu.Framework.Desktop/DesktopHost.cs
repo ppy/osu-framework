@@ -4,16 +4,16 @@
 #nullable disable
 
 using System;
-using osu.Framework.Platform;
-using osu.Framework.Platform.Linux;
-using osu.Framework.Platform.MacOS;
-using osu.Framework.Platform.Windows;
+using osu.Framework.Desktop.Platform;
+using osu.Framework.Desktop.Platform.Linux;
+using osu.Framework.Desktop.Platform.MacOS;
+using osu.Framework.Desktop.Platform.Window;
 
-namespace osu.Framework
+namespace osu.Framework.Desktop
 {
-    public static class Host
+    public static class DesktopHost
     {
-        public static DesktopGameHost GetSuitableDesktopHost(string gameName, HostOptions hostOptions = null)
+        public static DesktopGameHost GetSuitableHost(string gameName, HostOptions hostOptions = null)
         {
             switch (RuntimeInfo.OS)
             {

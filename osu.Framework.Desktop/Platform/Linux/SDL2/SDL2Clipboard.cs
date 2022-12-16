@@ -3,10 +3,11 @@
 
 #nullable disable
 
+using osu.Framework.Platform;
 using SDL2;
 using SixLabors.ImageSharp;
 
-namespace osu.Framework.Platform.Linux.SDL2
+namespace osu.Framework.Desktop.Platform.Linux.SDL2
 {
     public class SDL2Clipboard : Clipboard
     {

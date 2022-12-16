@@ -9,7 +9,7 @@ using System.Text;
 using Microsoft.Win32.SafeHandles;
 using osu.Framework.Extensions.EnumExtensions;
 
-namespace osu.Framework.Platform.Windows.Native
+namespace osu.Framework.Desktop.Platform.Window.Native
 {
     /// <summary>
     /// Static class for interacting with the Input Method Manager,
