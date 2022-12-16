@@ -52,6 +52,8 @@ namespace osu.Framework.Platform
                 invalidateWindowSpecifics();
             };
 
+            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
+
             sizeWindowed.MinValueChanged += min =>
             {
                 if (min.Width < 0 || min.Height < 0)
@@ -75,7 +77,6 @@ namespace osu.Framework.Platform
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
-            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
@@ -335,6 +336,7 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
             {
+                Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL.SDL_GetError()}");
                 display = null;
                 return false;
             }
@@ -343,6 +345,7 @@ namespace osu.Framework.Platform
 
             if (numModes <= 0)
             {
+                Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
                 display = null;
                 return false;
             }

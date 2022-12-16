@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Localisation
 {
@@ -37,6 +38,7 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <param name="format">The format string.</param>
         /// <param name="args">The objects to format.</param>
+        [StringFormatMethod("format")]
         public static LocalisableString Format(string format, params object?[] args) => new LocalisableFormattableString(format, args);
 
         /// <summary>

@@ -3,7 +3,6 @@
 
 #nullable disable
 
-#if NET6_0_OR_GREATER
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 
@@ -19,4 +18,3 @@ namespace osu.Framework.Input.Handlers.Tablet
         public override IAbsolutePointer Pointer { get; set; }
     }
 }
-#endif
