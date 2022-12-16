@@ -21,7 +21,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneWaveform : FrameworkTestScene
+    public partial class TestSceneWaveform : FrameworkTestScene
     {
         private BasicButton button;
         private Track track;
@@ -177,7 +177,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             track?.Stop();
         }
 
-        private class TestWaveform : CompositeDrawable
+        private partial class TestWaveform : CompositeDrawable
         {
             private readonly Track track;
             private readonly TestWaveformGraph graph;
@@ -280,7 +280,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestWaveformGraph : WaveformGraph
+        private partial class TestWaveformGraph : WaveformGraph
         {
             public bool Regenerated { get; private set; }
 

@@ -10,7 +10,7 @@ namespace FlappyDon.Game.Elements
     /// A sprite that shows a single green pipe. There are two pipe sprites for every obstacle the
     /// player must overcome.
     /// </summary>
-    public class Pipe : Sprite
+    public partial class Pipe : Sprite
     {
         public Pipe()
         {

@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTextureUnit : GridTestScene
+    public partial class TestSceneTextureUnit : GridTestScene
     {
         public TestSceneTextureUnit()
             : base(2, 2)
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         };
 
-        private class TestSprite : Sprite
+        private partial class TestSprite : Sprite
         {
             private readonly TextureUnit unit;
 

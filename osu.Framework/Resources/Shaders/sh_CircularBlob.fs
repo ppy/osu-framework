@@ -16,12 +16,6 @@ uniform highp float texelSize;
 
 void main(void)
 {
-    if (innerRadius == 0.0)
-    {
-        gl_FragColor = vec4(0.0);
-        return;
-    }
-
     highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     

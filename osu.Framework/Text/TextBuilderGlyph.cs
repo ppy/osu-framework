@@ -18,7 +18,6 @@ namespace osu.Framework.Text
         public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
         public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
         public readonly float Width => Glyph.Width * textSize;
-        public readonly float Height => Glyph.Height * textSize;
         public readonly char Character => Glyph.Character;
 
         public readonly float YOffset
@@ -43,12 +42,30 @@ namespace osu.Framework.Text
             }
         }
 
+        public readonly float Height
+        {
+            get
+            {
+                // Space characters typically have heights that exceed the height of all other characters in the font
+                // Thus, the height is forced to 0 such that only non-whitespace character heights are considered
+                if (Glyph.IsWhiteSpace())
+                    return 0;
+
+                return Glyph.Height * textSize;
+            }
+        }
+
         public readonly ITexturedCharacterGlyph Glyph;
 
         /// <summary>
         /// The rectangle for the character to be drawn in.
         /// </summary>
         public RectangleF DrawRectangle { get; internal set; }
+
+        /// <summary>
+        /// The top position of the line where this glyph will be placed on.
+        /// </summary>
+        public float LinePosition { get; internal set; }
 
         /// <summary>
         /// Whether this is the first character on a new line.

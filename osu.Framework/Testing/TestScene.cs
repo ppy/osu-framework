@@ -32,7 +32,7 @@ namespace osu.Framework.Testing
 {
     [ExcludeFromDynamicCompile]
     [TestFixture]
-    public abstract class TestScene : Container
+    public abstract partial class TestScene : Container
     {
         public readonly FillFlowContainer<Drawable> StepsContainer;
         private readonly Container content;

@@ -1,0 +1,15 @@
+public partial class ConflictGenerator : osu.Framework.Graphics.Drawable
+{
+    private bool osu;
+
+    [osu.Framework.Allocation.Cached]
+    public object CachedProperty { get; set; }
+
+    [osu.Framework.Allocation.Resolved]
+    public object ResolvedProperty { get; set; }
+
+    [osu.Framework.Allocation.BackgroundDependencyLoader]
+    private void load(object dependency)
+    {
+    }
+}

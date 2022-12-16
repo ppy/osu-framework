@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// * item 1
     /// * item 2
     /// </code>
-    public class MarkdownList : FillFlowContainer
+    public partial class MarkdownList : FillFlowContainer
     {
         public MarkdownList()
         {

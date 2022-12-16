@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTextureCropping : GridTestScene
+    public partial class TestSceneTextureCropping : GridTestScene
     {
         public TestSceneTextureCropping()
             : base(3, 3)

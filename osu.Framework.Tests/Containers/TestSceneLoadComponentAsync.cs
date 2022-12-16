@@ -18,7 +18,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSceneLoadComponentAsync : FrameworkTestScene
+    public partial class TestSceneLoadComponentAsync : FrameworkTestScene
     {
         [Test]
         public void TestEnumerableOnlyInvokedOnce()
@@ -189,7 +189,7 @@ namespace osu.Framework.Tests.Containers
             });
         }
 
-        private class AsyncChildrenLoadingComposite : CompositeDrawable
+        private partial class AsyncChildrenLoadingComposite : CompositeDrawable
         {
             public IEnumerable<TestLoadBlockingDrawable> LoadedChildren;
 
@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Containers
             private void loadComplete(IEnumerable<TestLoadBlockingDrawable> loadedChildren) => LoadedChildren = loadedChildren;
         }
 
-        private class AsyncChildLoadingComposite : CompositeDrawable
+        private partial class AsyncChildLoadingComposite : CompositeDrawable
         {
             public TestLoadBlockingDrawable AsyncChild { get; } = new TestLoadBlockingDrawable();
 
@@ -239,7 +239,7 @@ namespace osu.Framework.Tests.Containers
             }
         }
 
-        private class TestLoadBlockingDrawable : CompositeDrawable
+        private partial class TestLoadBlockingDrawable : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 

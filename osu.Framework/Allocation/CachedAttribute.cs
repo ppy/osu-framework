@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Allocation
 {
@@ -52,6 +53,8 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
     public class CachedAttribute : Attribute
     {
+        private static readonly GlobalStatistic<int> count_reflection_attributes = GlobalStatistics.Get<int>("Dependencies", "Reflected [Cached]s");
+
         internal const BindingFlags ACTIVATOR_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
@@ -120,6 +123,8 @@ namespace osu.Framework.Allocation
 
         internal static CacheDependencyDelegate CreateActivator(Type type)
         {
+            count_reflection_attributes.Value++;
+
             var additionActivators = new List<Action<object, DependencyContainer, CacheInfo>>();
 
             // Types within the framework should be able to cache value types if they desire (e.g. cancellation tokens)

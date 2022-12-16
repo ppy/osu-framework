@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
     /// If all children are of a specific non-<see cref="Drawable"/> type, use the
     /// generic version <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainer : BufferedContainer<Drawable>
+    public partial class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
         public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)

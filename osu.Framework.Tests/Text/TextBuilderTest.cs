@@ -199,10 +199,10 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that the bounds are set correctly on a builder which has <see cref="TextBuilder.useFontSizeAsHeight"/> disabled.
+        /// Tests positioning of glyphs and text builder bounds when not using font height as size.
         /// </summary>
         [Test]
-        public void TestBoundsWhenNotUsingFontHeightAsSize()
+        public void TestCharactersOffsetWhenNotUsingFontHeightAsSize()
         {
             var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
 
@@ -210,17 +210,47 @@ namespace osu.Framework.Tests.Text
             var glyphP = fontStore.Get(normal_font.FontName, 'P').AsNonNull();
 
             builder.AddText("q");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphQ.XAdvance, glyphQ.Height)));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(0));
+            Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom));
 
             builder.AddText("P");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphQ.XAdvance + glyphP.GetKerning(glyphQ) + glyphP.XAdvance, glyphQ.Height + (getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)))));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(0));
+            Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom));
 
-            builder.Reset();
+            builder.AddNewLine();
             builder.AddText("P");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphP.XAdvance, glyphP.Height)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom));
+            Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[2].DrawRectangle.Bottom));
 
             builder.AddText("q");
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphP.XAdvance + glyphQ.GetKerning(glyphP) + glyphQ.XAdvance, glyphQ.Height + (getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)))));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom));
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom + (getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ))));
+            Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[3].DrawRectangle.Bottom));
+        }
+
+        [Test]
+        public void TestWhitespaceDoesNotAffectBaselineOrHeight()
+        {
+            var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
+
+            builder.AddText("a b");
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.Zero);
+            Assert.That(builder.Bounds.Y, Is.EqualTo(glyphB.Height));
+
+            // ensure both removing character doesn't break when a space is in text...
+            builder.RemoveLastCharacter();
+
+            // ...and also removing a space in a newline still correctly returns back to previous line.
+            builder.AddNewLine();
+            builder.AddText(" ");
+            builder.RemoveLastCharacter();
+            builder.AddText("b");
+
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.Zero);
+            Assert.That(builder.Bounds.Y, Is.EqualTo(glyphB.Height));
         }
 
         /// <summary>
@@ -446,24 +476,27 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font, useFontSizeAsHeight: false);
 
-            builder.AddText("ab");
+            var glyphQ = fontStore.Get(normal_font.FontName, 'q').AsNonNull();
+            var glyphP = fontStore.Get(normal_font.FontName, 'P').AsNonNull();
+
+            builder.AddText("qP");
             builder.AddNewLine();
-            builder.AddText("am");
+            builder.AddText("Pqq");
 
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(glyphB.Height + getTrimmedBaseline(glyphM) - getTrimmedBaseline(glyphA)));
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphA.XAdvance + glyphM.GetKerning(glyphA) + glyphM.XAdvance, glyphB.Height + glyphM.Height + getTrimmedBaseline(glyphM) - getTrimmedBaseline(glyphA))));
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom + getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)));
+            Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[3].DrawRectangle.Bottom));
 
-            // tests that removing a character resets bounds, and the baseline of the relevant line correctly
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(glyphB.Height));
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphA.XAdvance + glyphB.GetKerning(glyphA) + glyphB.XAdvance, glyphB.Height + glyphA.Height)));
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(builder.Characters[0].DrawRectangle.Bottom + getTrimmedBaseline(glyphP) - getTrimmedBaseline(glyphQ)));
+            Assert.That(builder.Bounds.Y, Is.EqualTo(builder.Characters[3].DrawRectangle.Bottom));
 
-            // tests that removing a character on a new line resets the current line to the previous line correctly (tests baseline and bounds after adding a new character)
+            // ensure line height is correct by checking position of a glyph in a new line
+            builder.AddNewLine();
+            builder.AddText("q");
+            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(builder.Characters[3].DrawRectangle.Bottom));
+
             builder.RemoveLastCharacter();
-            builder.AddText("a");
-            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(getTrimmedBaseline(glyphB) - getTrimmedBaseline(glyphA)));
-            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(glyphA.XAdvance + glyphB.GetKerning(glyphA) + glyphB.XAdvance + glyphA.GetKerning(glyphB) + glyphA.XAdvance, glyphB.Height)));
         }
 
         /// <summary>

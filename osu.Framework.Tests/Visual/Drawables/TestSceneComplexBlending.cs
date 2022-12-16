@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneComplexBlending : FrameworkTestScene
+    public partial class TestSceneComplexBlending : FrameworkTestScene
     {
         private readonly Dropdown<string> colourModeDropdown;
         private readonly Dropdown<BlendingEquation> colourEquation;
@@ -293,7 +293,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class GradientPart : Box
+        private partial class GradientPart : Box
         {
             public GradientPart(int index, Color4 start, Color4 end)
             {

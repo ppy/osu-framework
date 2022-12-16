@@ -22,8 +22,6 @@ namespace osu.Framework.iOS.Input
 
         private UIEventButtonMask? lastButtonMask;
 
-        private readonly bool indirectPointerSupported = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
-
         private readonly UITouch[] activeTouches = new UITouch[TouchState.MAX_TOUCH_COUNT];
 
         public IOSTouchHandler(IOSGameView view)
@@ -43,7 +41,7 @@ namespace osu.Framework.iOS.Input
             var cgLocation = touch.LocationInView(null);
             Vector2 location = new Vector2((float)cgLocation.X * view.Scale, (float)cgLocation.Y * view.Scale);
 
-            if (indirectPointerSupported && touch.Type == UITouchType.IndirectPointer)
+            if (touch.Type == UITouchType.IndirectPointer)
                 handleIndirectPointer(touch, e.ButtonMask, location);
             else
                 handleTouch(touch, location);
@@ -141,8 +139,6 @@ namespace osu.Framework.iOS.Input
 
         private MouseButton buttonFromMask(UIEventButtonMask buttonMask)
         {
-            Debug.Assert(indirectPointerSupported);
-
             switch (buttonMask)
             {
                 default:

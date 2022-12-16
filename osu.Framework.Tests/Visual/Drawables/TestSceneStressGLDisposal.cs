@@ -13,7 +13,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [Ignore("This test needs a game host to be useful.")]
-    public class TestSceneStressGLDisposal : FrameworkTestScene
+    public partial class TestSceneStressGLDisposal : FrameworkTestScene
     {
         private FillFlowContainer fillFlow;
 

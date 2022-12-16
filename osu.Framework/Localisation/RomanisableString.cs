@@ -51,7 +51,7 @@ namespace osu.Framework.Localisation
             return preferUnicode ? Original : Romanised;
         }
 
-        public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
+        public override string ToString() => GetLocalised(LocalisationParameters.DEFAULT);
 
         public bool Equals(RomanisableString? other)
         {

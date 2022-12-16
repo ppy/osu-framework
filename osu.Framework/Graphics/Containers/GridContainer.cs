@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which allows laying out <see cref="Drawable"/>s in a grid.
     /// </summary>
-    public class GridContainer : CompositeDrawable
+    public partial class GridContainer : CompositeDrawable
     {
         public GridContainer()
         {
@@ -363,7 +363,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Represents one cell of the <see cref="GridContainer"/>.
         /// </summary>
-        private class CellContainer : Container
+        private partial class CellContainer : Container
         {
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {

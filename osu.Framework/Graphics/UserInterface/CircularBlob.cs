@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularBlob : Sprite
+    public partial class CircularBlob : Sprite
     {
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)
@@ -122,6 +122,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void Blit(IRenderer renderer)
             {
+                if (innerRadius == 0)
+                    return;
+
                 var shader = TextureShader;
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);

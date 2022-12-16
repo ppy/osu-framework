@@ -12,7 +12,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Transforms
 {
     [HeadlessTest]
-    public class TestSceneTransformEventBindings : FrameworkTestScene
+    public partial class TestSceneTransformEventBindings : FrameworkTestScene
     {
         [Test]
         public void TestOnCompleteBinding()

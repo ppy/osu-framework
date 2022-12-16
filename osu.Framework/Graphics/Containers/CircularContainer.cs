@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which is rounded (via automatic corner-radius and corner-exponent=2) on the shortest edge.
     /// </summary>
-    public class CircularContainer : Container
+    public partial class CircularContainer : Container
     {
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {

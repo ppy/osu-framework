@@ -1,0 +1,7 @@
+public partial class SameFile : osu.Framework.Graphics.Drawable, ISameFile
+{
+}
+
+public interface ISameFile
+{
+}

@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Shapes
     /// <summary>
     /// A simple rectangular box. Can be colored using the <see cref="Drawable.Colour"/> property.
     /// </summary>
-    public class Box : Sprite
+    public partial class Box : Sprite
     {
         public Box()
         {

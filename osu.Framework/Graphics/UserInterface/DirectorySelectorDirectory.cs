@@ -12,7 +12,7 @@ using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectorySelectorDirectory : DirectorySelectorItem
+    public abstract partial class DirectorySelectorDirectory : DirectorySelectorItem
     {
         protected readonly DirectoryInfo Directory;
         protected override string FallbackName => Directory.Name;

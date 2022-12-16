@@ -26,7 +26,7 @@ using osuTK;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
+    public abstract partial class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -200,7 +200,7 @@ namespace osu.Framework
             dependencies.Cache(Fonts);
 
             Localisation = CreateLocalisationManager(config);
-            dependencies.Cache(Localisation);
+            dependencies.CacheAs(Localisation);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 

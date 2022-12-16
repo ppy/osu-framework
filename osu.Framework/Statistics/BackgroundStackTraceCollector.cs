@@ -183,11 +183,7 @@ namespace osu.Framework.Statistics
         {
             try
             {
-#if NET6_0_OR_GREATER
                 using (var target = DataTarget.CreateSnapshotAndAttach(Environment.ProcessId))
-#else
-                using (var target = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id))
-#endif
                 {
                     using (var runtime = target.ClrVersions[0].CreateRuntime())
                     {

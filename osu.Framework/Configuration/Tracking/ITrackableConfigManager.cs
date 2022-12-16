@@ -14,7 +14,7 @@ namespace osu.Framework.Configuration.Tracking
         /// Retrieves all the settings of this <see cref="ConfigManager{T}"/> that are to be tracked for changes.
         /// </summary>
         /// <returns>A list of <see cref="ITrackedSetting"/>.</returns>
-        TrackedSettings CreateTrackedSettings();
+        TrackedSettings? CreateTrackedSettings();
 
         /// <summary>
         /// Loads <see cref="Bindable{T}"/>s into <see cref="TrackedSettings"/>.

@@ -52,6 +52,8 @@ namespace osu.Framework.Platform
                 invalidateWindowSpecifics();
             };
 
+            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
+
             sizeWindowed.MinValueChanged += min =>
             {
                 if (min.Width < 0 || min.Height < 0)
@@ -75,7 +77,6 @@ namespace osu.Framework.Platform
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
-            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
@@ -314,7 +315,11 @@ namespace osu.Framework.Platform
 
             IEnumerable<Display> get()
             {
-                for (int i = 0; i < SDL.SDL_GetNumVideoDisplays(); i++)
+                int numDisplays = SDL.SDL_GetNumVideoDisplays();
+                if (numDisplays <= 0)
+                    throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL.SDL_GetError()}");
+
+                for (int i = 0; i < numDisplays; i++)
                 {
                     if (tryGetDisplayFromSDL(i, out Display? display))
                         yield return display;
@@ -331,6 +336,7 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
             {
+                Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL.SDL_GetError()}");
                 display = null;
                 return false;
             }
@@ -339,6 +345,7 @@ namespace osu.Framework.Platform
 
             if (numModes <= 0)
             {
+                Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
                 display = null;
                 return false;
             }
@@ -450,8 +457,6 @@ namespace osu.Framework.Platform
                             storeWindowPositionToConfig();
                     }
 
-                    // we may get a SDL_WINDOWEVENT_MOVED when the resolution of a display changes.
-                    fetchDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -486,7 +491,9 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            assertDisplaysMatchSDL();
+#if DEBUG
+            EventScheduler.AddOnce(() => assertDisplaysMatchSDL());
+#endif
         }
 
         /// <summary>
@@ -599,6 +606,8 @@ namespace osu.Framework.Platform
 
             if (tryFetchDisplayMode(SDLWindowHandle, state, display, out var newMode))
                 currentDisplayMode.Value = newMode;
+
+            fetchDisplays();
         }
 
         private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)

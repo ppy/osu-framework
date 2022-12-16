@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoLayout : FrameworkGridTestScene
+    public partial class TestSceneVideoLayout : FrameworkGridTestScene
     {
         public TestSceneVideoLayout()
             : base(1, 4)

@@ -22,7 +22,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTextures : FrameworkTestScene
+    public partial class TestSceneTextures : FrameworkTestScene
     {
         private BlockingStoreProvidingContainer spriteContainer;
 
@@ -155,7 +155,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [LongRunningLoad]
-        private class Avatar : Sprite
+        private partial class Avatar : Sprite
         {
             private readonly string url;
 
@@ -247,7 +247,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class BlockingStoreProvidingContainer : Container
+        private partial class BlockingStoreProvidingContainer : Container
         {
             [Cached]
             public TextureStore NormalStore { get; private set; }

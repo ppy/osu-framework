@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class HSVColourPicker
     {
-        public abstract class SaturationValueSelector : CompositeDrawable
+        public abstract partial class SaturationValueSelector : CompositeDrawable
         {
             public readonly Bindable<Colour4> Current = new Bindable<Colour4>();
 
@@ -202,12 +202,12 @@ namespace osu.Framework.Graphics.UserInterface
                 Value.Value = 1 - localSpacePosition.Y / DrawHeight;
             }
 
-            protected abstract class Marker : CompositeDrawable
+            protected abstract partial class Marker : CompositeDrawable
             {
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private class SaturationBox : Box, ITexturedShaderDrawable
+            private partial class SaturationBox : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
 

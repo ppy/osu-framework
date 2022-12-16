@@ -20,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneInputManager : FrameworkTestScene
+    public partial class TestSceneInputManager : FrameworkTestScene
     {
         public TestSceneInputManager()
         {
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
         }
 
-        public class SmallText : SpriteText
+        public partial class SmallText : SpriteText
         {
             public SmallText()
             {
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class ContainingInputManagerStatusText : Container
+        public partial class ContainingInputManagerStatusText : Container
         {
             private readonly SpriteText inputManagerStatus,
                                         mouseStatus,

@@ -20,7 +20,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDropdown : ManualInputManagerTestScene
+    public partial class TestSceneDropdown : ManualInputManagerTestScene
     {
         private const int items_to_add = 10;
         private const float explicit_height = 100;
@@ -431,7 +431,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public static implicit operator TestModel(string str) => new TestModel(str);
         }
 
-        private class TestDropdown : BasicDropdown<TestModel>
+        private partial class TestDropdown : BasicDropdown<TestModel>
         {
             internal new DropdownMenuItem<TestModel> SelectedItem => base.SelectedItem;
 
@@ -442,7 +442,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         /// <summary>
         /// Dropdown that will access <see cref="ResolvedAttribute"/> properties in <see cref="GenerateItemText"/>.
         /// </summary>
-        private class BdlDropdown : TestDropdown
+        private partial class BdlDropdown : TestDropdown
         {
             [Resolved]
             private GameHost host { get; set; }

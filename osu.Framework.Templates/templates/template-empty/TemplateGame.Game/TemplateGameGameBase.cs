@@ -7,7 +7,7 @@ using TemplateGame.Resources;
 
 namespace TemplateGame.Game
 {
-    public class TemplateGameGameBase : osu.Framework.Game
+    public partial class TemplateGameGameBase : osu.Framework.Game
     {
         // Anything in this class is shared between the test browser and the game implementation.
         // It allows for caching global dependencies that should be accessible to tests, or changing

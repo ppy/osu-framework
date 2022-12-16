@@ -10,7 +10,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneUnclosableMenu : MenuTestScene
+    public partial class TestSceneUnclosableMenu : MenuTestScene
     {
         [SetUpSteps]
         public void SetUpSteps()
@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        private class TestMenu : BasicMenu
+        private partial class TestMenu : BasicMenu
         {
             protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new TestDrawableMenuItem(item);
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
             }
 
-            private class TestDrawableMenuItem : BasicDrawableMenuItem
+            private partial class TestDrawableMenuItem : BasicDrawableMenuItem
             {
                 public override bool CloseMenuOnClick => false;
 
