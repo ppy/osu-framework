@@ -49,7 +49,7 @@ namespace osu.Framework.iOS
                 true);
         }
 
-        protected override IWindow CreateWindow() => new IOSGameWindow(gameView);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSGameWindow(gameView);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {

@@ -30,7 +30,8 @@ namespace osu.Framework.Platform.Windows
 
         private const int wm_killfocus = 8;
 
-        public WindowsWindow()
+        public WindowsWindow(GraphicsSurfaceType surfaceType)
+            : base(surfaceType)
         {
             try
             {
