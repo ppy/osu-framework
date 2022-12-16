@@ -25,7 +25,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
 
-        public bool VerticalSync { get; set; } = true;
         public RectangleI Viewport => RectangleI.Empty;
         public RectangleF Ortho => RectangleF.Empty;
         public RectangleI Scissor => RectangleI.Empty;
@@ -47,6 +46,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             maskingInfo = default;
             WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
         }
+
+        bool IRenderer.VerticalSync { get; set; } = true;
 
         void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {

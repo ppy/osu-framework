@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Enables or disables vertical sync.
         /// </summary>
-        bool VerticalSync { get; set; }
+        protected internal bool VerticalSync { get; set; }
 
         /// <summary>
         /// The maximum allowed texture size.

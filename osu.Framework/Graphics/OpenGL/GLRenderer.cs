@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.OpenGL
     {
         private IOpenGLGraphicsSurface openGLSurface = null!;
 
-        public override bool VerticalSync
+        protected internal override bool VerticalSync
         {
             get => openGLSurface.VerticalSync;
             set => openGLSurface.VerticalSync = value;

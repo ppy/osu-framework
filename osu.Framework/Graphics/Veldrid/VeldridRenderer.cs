@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Veldrid
 {
     internal class VeldridRenderer : Renderer
     {
-        public override bool VerticalSync
+        protected internal override bool VerticalSync
         {
             get => Device.SyncToVerticalBlank;
             set => Device.SyncToVerticalBlank = value;

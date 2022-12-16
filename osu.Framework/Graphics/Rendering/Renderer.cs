@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         private const int vbo_free_check_interval = 300;
 
-        public abstract bool VerticalSync { get; set; }
+        protected internal abstract bool VerticalSync { get; set; }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
@@ -1056,6 +1056,12 @@ namespace osu.Framework.Graphics.Rendering
         #endregion
 
         #region IRenderer explicit implementation
+
+        bool IRenderer.VerticalSync
+        {
+            get => VerticalSync;
+            set => VerticalSync = value;
+        }
 
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
