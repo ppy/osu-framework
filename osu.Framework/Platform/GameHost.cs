@@ -81,10 +81,22 @@ namespace osu.Framework.Platform
         /// </remarks>
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
+        private bool isPrimaryInstance = true;
+
         /// <summary>
         /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
         /// </summary>
-        public virtual bool IsPrimaryInstance { get; protected set; } = true;
+        public bool IsPrimaryInstance
+        {
+            get
+            {
+                // make sure we have actually attempted to bind IPC as this call may occur before the host is run.
+                ensureIPCReady();
+
+                return isPrimaryInstance;
+            }
+            protected set => isPrimaryInstance = value;
+        }
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.
@@ -134,7 +146,11 @@ namespace osu.Framework.Platform
 
         protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
+        public virtual Task SendMessageAsync(IpcMessage message)
+        {
+            ensureIPCReady();
+            return ipcProvider.SendMessageAsync(message);
+        }
 
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
@@ -799,6 +815,9 @@ namespace osu.Framework.Platform
         /// <returns>The <see cref="Storage"/>.</returns>
         protected virtual Storage GetDefaultGameStorage()
         {
+            if (Options.PortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
+                return GetStorage(RuntimeInfo.StartupDirectory);
+
             // first check all valid paths for any existing install.
             foreach (string path in UserStoragePaths)
             {
@@ -866,8 +885,28 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void SetupForRun()
         {
+            ensureIPCReady();
+
             Logger.Storage = Storage.GetStorageForDirectory("logs");
             Logger.Enabled = true;
+        }
+
+        public const int IPC_PORT = 45356;
+
+        private TcpIpcProvider ipcProvider;
+
+        private void ensureIPCReady()
+        {
+            if (!Options.BindIPC)
+                return;
+
+            if (ipcProvider != null)
+                return;
+
+            ipcProvider = new TcpIpcProvider(IPC_PORT);
+            ipcProvider.MessageReceived += OnMessageReceived;
+
+            IsPrimaryInstance = ipcProvider.Bind();
         }
 
         private void populateInputHandlers()
@@ -1147,6 +1186,8 @@ namespace osu.Framework.Platform
 
             Root?.Dispose();
             Root = null;
+
+            ipcProvider?.Dispose();
 
             stoppedEvent.Dispose();
 

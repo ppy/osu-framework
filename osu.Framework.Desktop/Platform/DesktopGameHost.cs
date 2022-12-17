@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
@@ -24,59 +22,13 @@ namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
-        public const int IPC_PORT = 45356;
-
-        private TcpIpcProvider ipcProvider;
-        private readonly bool bindIPCPort;
-
         protected DesktopGameHost(string gameName, HostOptions options = null)
             : base(gameName, options)
         {
-            bindIPCPort = Options.BindIPC;
             IsPortableInstallation = Options.PortableInstallation;
         }
 
-        protected sealed override Storage GetDefaultGameStorage()
-        {
-            if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
-                return GetStorage(RuntimeInfo.StartupDirectory);
-
-            return base.GetDefaultGameStorage();
-        }
-
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
-
-        public override bool IsPrimaryInstance
-        {
-            get
-            {
-                // make sure we have actually attempted to bind IPC as this call may occur before the host is run.
-                ensureIPCReady();
-
-                return base.IsPrimaryInstance;
-            }
-        }
-
-        protected override void SetupForRun()
-        {
-            ensureIPCReady();
-
-            base.SetupForRun();
-        }
-
-        private void ensureIPCReady()
-        {
-            if (!bindIPCPort)
-                return;
-
-            if (ipcProvider != null)
-                return;
-
-            ipcProvider = new TcpIpcProvider(IPC_PORT);
-            ipcProvider.MessageReceived += OnMessageReceived;
-
-            IsPrimaryInstance = ipcProvider.Bind();
-        }
 
         public bool IsPortableInstallation { get; }
 
@@ -128,18 +80,5 @@ namespace osu.Framework.Desktop.Platform
                 new JoystickHandler(),
                 new MidiHandler(),
             };
-
-        public override Task SendMessageAsync(IpcMessage message)
-        {
-            ensureIPCReady();
-
-            return ipcProvider.SendMessageAsync(message);
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            ipcProvider?.Dispose();
-            base.Dispose(isDisposing);
-        }
     }
 }

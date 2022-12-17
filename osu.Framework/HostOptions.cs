@@ -6,7 +6,7 @@ using osu.Framework.Platform;
 namespace osu.Framework
 {
     /// <summary>
-    /// Various configuration properties for a <see cref="Host"/>.
+    /// Various configuration properties for a <see cref="GameHost"/>.
     /// </summary>
     public class HostOptions
     {
