@@ -21,9 +21,7 @@
     <PackageReference Include="ppy.osuTK.iOS" Version="1.0.211" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="runtimes\**\*">
-      <Pack>true</Pack>
-      <PackagePath>runtimes</PackagePath>
-    </None>
+    <None Include="runtimes\**\*" Pack="true" PackagePath="runtimes" />
+    <Content Include="osu.Framework.iOS.Workarounds.targets" Pack="true" PackagePath="build\$(PackageId).targets" />
   </ItemGroup>
 </Project>
