@@ -196,8 +196,6 @@ namespace osu.Framework.Graphics.Veldrid
             base.BeginFrame(windowSize);
 
             boundTextureSet = defaultTextureSet;
-
-            Clear(new ClearInfo(Color4.FromHsv(new Vector4(ResetId % 360 / 360f, 0.5f, 0.5f, 1f))));
         }
 
         protected internal override void FinishFrame()
