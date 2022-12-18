@@ -20,11 +20,6 @@ highp bool inBoundingBox(highp vec2 point, highp vec2 p0, highp vec2 p1, highp v
 
 // Distance to Bezier curve https://www.shadertoy.com/view/MlKcDD
 
-highp float dot2(highp vec2 v)
-{
-    return dot(v, v);
-}
-
 highp float det(highp vec2 a, highp vec2 b)
 {
     return a.x * b.y - a.y * b.x;
@@ -37,9 +32,9 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
     highp vec2 c = a * 2.0;
     highp vec2 d = A - pos;
 
-    highp float kk = 1.0 / dot2(b);
+    highp float kk = 1.0 / dot(b, b);
     highp float kx = kk * dot(a, b);
-    highp float ky = kk * (2.0 * dot2(a) + dot(d, b)) / 3.0;
+    highp float ky = kk * (2.0 * dot(a, a) + dot(d, b)) / 3.0;
 
     highp float p = ky - kx * kx;
     highp float q = kx * (2.0 * kx * kx - 3.0 * ky) + kk * dot(d, a);
@@ -52,7 +47,7 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
         highp vec2 uv = sign(x) * pow(abs(x), vec2(1.0 / 3.0));
         highp float t = clamp(uv.x + uv.y - kx, 0.0, 1.0);
         highp vec2 q1 = d + (c + b * t) * t;
-        return sqrt(dot2(q1)) * sign(det(c + 2.0 * b * t, q1));
+        return sqrt(dot(q1, q1)) * sign(det(c + 2.0 * b * t, q1));
     }
     
     // 3 roots
@@ -64,9 +59,9 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
     highp vec2 qx = d + (c + b * t.x) * t.x;
     highp vec2 qy = d + (c + b * t.y) * t.y;
     highp vec2 qz = d + (c + b * t.z) * t.z;
-    highp float dx = dot2(qx);
-    highp float dy = dot2(qy);
-    highp float dz = dot2(qz);
+    highp float dx = dot(qx, qx);
+    highp float dy = dot(qy, qy);
+    highp float dz = dot(qz, qz);
     highp float sx = det(c + 2.0 * b * t.x, qx);
     highp float sy = det(c + 2.0 * b * t.y, qy);
     highp float sz = det(c + 2.0 * b * t.z, qz);
