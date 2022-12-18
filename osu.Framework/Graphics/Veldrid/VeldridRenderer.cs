@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Shaders;
+using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
@@ -23,6 +24,7 @@ using Veldrid;
 using Veldrid.OpenGL;
 using PixelFormat = Veldrid.PixelFormat;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
+using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -56,6 +58,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         internal static readonly ResourceLayoutDescription UNIFORM_LAYOUT = new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("m_Uniforms", ResourceKind.UniformBuffer, ShaderStages.Fragment | ShaderStages.Vertex));
+        internal static readonly ResourceLayoutDescription TEXTURE_LAYOUT = new ResourceLayoutDescription(
+            new ResourceLayoutElementDescription("m_Texture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
+            new ResourceLayoutElementDescription("m_Sampler", ResourceKind.Sampler, ShaderStages.Fragment));
 
         private GraphicsPipelineDescription pipeline = new GraphicsPipelineDescription
         {
@@ -226,6 +231,59 @@ namespace osu.Framework.Graphics.Veldrid
         protected override void SetScissorStateImplementation(bool enabled) => pipeline.RasterizerState.ScissorTestEnabled = enabled;
 
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit) => true;
+        /// <summary>
+        /// Updates a <see cref="Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="texture">The <see cref="Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The textural data.</param>
+        /// <param name="bufferRowLength">An optional length per row on the given <paramref name="data"/>.</param>
+        /// <typeparam name="T">The pixel type.</typeparam>
+        public unsafe void UpdateTexture<T>(Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data, int? bufferRowLength = null)
+            where T : unmanaged
+        {
+            fixed (T* ptr = data)
+            {
+                if (bufferRowLength != null)
+                {
+                    var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
+
+                    for (uint yi = 0; yi < height; yi++)
+                        Device.UpdateTexture(staging, (IntPtr)(ptr + yi * bufferRowLength.Value), (uint)width, 0, yi, 0, (uint)width, 1, 1, 0, 0);
+
+                    Commands.CopyTexture(staging, texture);
+                    staging.Dispose();
+                }
+                else
+                    Device.UpdateTexture(texture, (IntPtr)ptr, (uint)(data.Length * sizeof(T)), (uint)x, (uint)y, 0, (uint)width, (uint)height, 1, (uint)level, 0);
+            }
+        }
+
+        private static readonly Dictionary<int, ResourceLayout> texture_layouts = new Dictionary<int, ResourceLayout>();
+
+        /// <summary>
+        /// Retrieves a <see cref="ResourceLayout"/> for a texture-sampler resource set.
+        /// </summary>
+        /// <param name="textureCount">The number of textures in the resource layout.</param>
+        /// <returns></returns>
+        public ResourceLayout GetTextureResourceLayout(int textureCount)
+        {
+            if (texture_layouts.TryGetValue(textureCount, out var layout))
+                return layout;
+
+            var description = new ResourceLayoutDescription(new ResourceLayoutElementDescription[textureCount + 1]);
+            var textureElement = TEXTURE_LAYOUT.Elements.Single(e => e.Kind == ResourceKind.TextureReadOnly);
+
+            for (int i = 0; i < textureCount; i++)
+                description.Elements[i] = new ResourceLayoutElementDescription($"{textureElement.Name}{i}", textureElement.Kind, textureElement.Stages);
+
+            description.Elements[^1] = TEXTURE_LAYOUT.Elements.Single(e => e.Kind == ResourceKind.Sampler);
+            return texture_layouts[textureCount] = Factory.CreateResourceLayout(ref description);
+        }
 
         protected override void SetShaderImplementation(IShader shader)
         {
@@ -340,7 +398,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)
-            => new DummyNativeTexture(this);
+            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new DummyNativeTexture(this);
 
