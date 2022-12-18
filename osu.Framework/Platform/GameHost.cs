@@ -502,7 +502,7 @@ namespace osu.Framework.Platform
                 else
                 {
                     // Disable depth testing
-                    Renderer.PushDepthInfo(new DepthInfo());
+                    Renderer.PushDepthInfo(new DepthInfo(false, false));
                 }
 
                 // Back pass
