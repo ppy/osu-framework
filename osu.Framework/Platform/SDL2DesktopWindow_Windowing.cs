@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -311,22 +312,22 @@ namespace osu.Framework.Platform
 
         private static IEnumerable<Display> getSDLDisplays()
         {
-            return get().ToArray();
+            int numDisplays = SDL.SDL_GetNumVideoDisplays();
 
-            IEnumerable<Display> get()
+            if (numDisplays <= 0)
+                throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL.SDL_GetError()}");
+
+            var builder = ImmutableArray.CreateBuilder<Display>(numDisplays);
+
+            for (int i = 0; i < numDisplays; i++)
             {
-                int numDisplays = SDL.SDL_GetNumVideoDisplays();
-                if (numDisplays <= 0)
-                    throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL.SDL_GetError()}");
-
-                for (int i = 0; i < numDisplays; i++)
-                {
-                    if (tryGetDisplayFromSDL(i, out Display? display))
-                        yield return display;
-                    else
-                        Debug.Fail($"Failed to retrieve display at index ({i})");
-                }
+                if (tryGetDisplayFromSDL(i, out Display? display))
+                    builder.Add(display);
+                else
+                    Debug.Fail($"Failed to retrieve display at index ({i})");
             }
+
+            return builder.ToImmutable();
         }
 
         private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
