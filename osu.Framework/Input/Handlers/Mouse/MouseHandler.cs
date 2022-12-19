@@ -27,14 +27,8 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
-
-        public BindableVector2D Sensitivity { get; } = new BindableVector2D(new Vector2d(1, 1))
-        {
-            MinValue = new Vector2d(0.1, 0.1),
-            MaxValue = new Vector2d(10, 10),
-            Precision = 0.01
-        };
-
+        
+        public Bindable<Vector2d> Sensitivity { get; } = new Bindable<Vector2d>(new Vector2d(1, 1));
         public override string Description => "Mouse";
 
         public override bool IsActive => true;
