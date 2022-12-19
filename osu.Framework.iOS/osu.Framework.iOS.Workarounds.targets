@@ -1,0 +1,18 @@
+<Project>
+  <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
+       See: https://github.com/mellinoe/veldrid/issues/472#issuecomment-1356461410 -->
+  <Target Name="OsuFrameworkIOSCopyStubAssemblies" BeforeTargets="_AOTCompile">
+    <ItemGroup>
+      <StubFiles Include="$(MSBuildThisFileDirectory)..\stubs\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+  </Target>
+  <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
+       This leads iOS linker into attempting to include that framework, despite not existing on such platform.
+       See: https://github.com/OpenTabletDriver/OpenTabletDriver/issues/2524 / https://github.com/xamarin/xamarin-macios/issues/15118#issuecomment-1141893683 -->
+  <Target Name="OsuFrameworkIOSRemoveQuartz" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
+    <ItemGroup>
+      <_LinkerFrameworks Remove="Quartz" />
+    </ItemGroup>
+  </Target>
+</Project>

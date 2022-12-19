@@ -29,6 +29,14 @@
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswresample.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswscale.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
   </ItemGroup>
+  <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
+       See: https://github.com/mellinoe/veldrid/issues/472#issuecomment-1356461410 -->
+  <Target Name="OsuFrameworkIOSCopyStubAssemblies" BeforeTargets="_AOTCompile">
+    <ItemGroup>
+      <StubFiles Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\stubs\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+  </Target>
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.
        See: https://github.com/OpenTabletDriver/OpenTabletDriver/issues/2524 / https://github.com/xamarin/xamarin-macios/issues/15118#issuecomment-1141893683 -->
