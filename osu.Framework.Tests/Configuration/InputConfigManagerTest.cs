@@ -15,6 +15,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
+using osuTK;
 
 namespace osu.Framework.Tests.Configuration
 {
@@ -40,14 +41,14 @@ namespace osu.Framework.Tests.Configuration
             // test with only FrameworkConfigManager configuration file present
             storage.Delete(InputConfigManager.FILENAME);
 
-            double sensitivity = 0;
+            Vector2d sensitivity = new Vector2d(0, 0);
 
             using (var host = new TestHeadlessGameHost())
             {
                 host.Run(new TestGame((h, _) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
             }
 
-            Assert.AreEqual(5, sensitivity);
+            Assert.AreEqual(new Vector2d(5, 5), sensitivity);
         }
 
         [Test]
@@ -58,21 +59,22 @@ namespace osu.Framework.Tests.Configuration
                 host.Run(new TestGame((h, _) =>
                 {
                     storage = h.Storage;
-                    h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = 5;
+                    h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = new Vector2d(5, 5);
+                
                 }));
             }
 
             // test with only InputConfigManager configuration file present
             storage.Delete(FrameworkConfigManager.FILENAME);
 
-            double sensitivity = 0;
+            Vector2d sensitivity = new Vector2d(0, 0);
 
             using (var host = new TestHeadlessGameHost())
             {
                 host.Run(new TestGame((h, _) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
             }
 
-            Assert.AreEqual(5, sensitivity);
+            Assert.AreEqual(new Vector2d(5, 5), sensitivity);
         }
 
         /// <summary>
@@ -84,7 +86,7 @@ namespace osu.Framework.Tests.Configuration
             var handler = new MouseHandler();
             var config = new TestInputConfigManager(new[] { handler });
 
-            handler.Sensitivity.Value = 5;
+            handler.Sensitivity.Value = new Vector2d(5, 5);
             Assert.IsTrue(config.SaveEvent.WaitOne(10000)); // wait for QueueBackgroundSave() debounce.
             Assert.AreEqual(1, config.TimesSaved);
 
@@ -98,7 +100,7 @@ namespace osu.Framework.Tests.Configuration
 
             for (int i = 0; i < 10; i++)
             {
-                handler.Sensitivity.Value += 0.1;
+                handler.Sensitivity.Value = new Vector2d(handler.Sensitivity.Value.X + 0.1,  handler.Sensitivity.Value.Y + 0.1);
                 Assert.AreEqual(3, config.TimesSaved);
             }
 

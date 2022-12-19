@@ -206,7 +206,7 @@ namespace osu.Framework.Tests.Visual.Input
             if (mouseHandler == null)
                 return;
 
-            mouseHandler.Sensitivity.Value = sensitivity;
+            mouseHandler.Sensitivity.Value = new Vector2d(sensitivity, sensitivity);
         }
 
         private void setRelativeMode(bool enabled)
