@@ -18,8 +18,10 @@ using Vortice.DXGI;
 using Vulkan;
 using GetPName = Veldrid.OpenGLBinding.GetPName;
 using GraphicsBackend = Veldrid.GraphicsBackend;
+using PrimitiveTopology = Veldrid.PrimitiveTopology;
 using StencilOperation = Veldrid.StencilOperation;
 using StringName = Veldrid.OpenGLBinding.StringName;
+using VertexAttribPointerType = osuTK.Graphics.ES30.VertexAttribPointerType;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -175,6 +177,108 @@ namespace osu.Framework.Graphics.Veldrid
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(operation));
+            }
+        }
+
+        public static VertexElementFormat ToVertexElementFormat(this VertexAttribPointerType type, int count)
+        {
+            switch (type)
+            {
+                case VertexAttribPointerType.Byte when count == 2:
+                    return VertexElementFormat.SByte2;
+
+                case VertexAttribPointerType.Byte when count == 4:
+                    return VertexElementFormat.SByte4;
+
+                case VertexAttribPointerType.UnsignedByte when count == 2:
+                    return VertexElementFormat.Byte2;
+
+                case VertexAttribPointerType.UnsignedByte when count == 4:
+                    return VertexElementFormat.Byte4;
+
+                case VertexAttribPointerType.Short when count == 2:
+                    return VertexElementFormat.Short2;
+
+                case VertexAttribPointerType.Short when count == 4:
+                    return VertexElementFormat.Short4;
+
+                case VertexAttribPointerType.UnsignedShort when count == 2:
+                    return VertexElementFormat.UShort2;
+
+                case VertexAttribPointerType.UnsignedShort when count == 4:
+                    return VertexElementFormat.UShort4;
+
+                case VertexAttribPointerType.Int when count == 1:
+                    return VertexElementFormat.Int1;
+
+                case VertexAttribPointerType.Int when count == 2:
+                    return VertexElementFormat.Int2;
+
+                case VertexAttribPointerType.Int when count == 3:
+                    return VertexElementFormat.Int3;
+
+                case VertexAttribPointerType.Int when count == 4:
+                    return VertexElementFormat.Int4;
+
+                case VertexAttribPointerType.UnsignedInt when count == 1:
+                    return VertexElementFormat.UInt1;
+
+                case VertexAttribPointerType.UnsignedInt when count == 2:
+                    return VertexElementFormat.UInt2;
+
+                case VertexAttribPointerType.UnsignedInt when count == 3:
+                    return VertexElementFormat.UInt3;
+
+                case VertexAttribPointerType.UnsignedInt when count == 4:
+                    return VertexElementFormat.UInt4;
+
+                case VertexAttribPointerType.Float when count == 1:
+                    return VertexElementFormat.Float1;
+
+                case VertexAttribPointerType.Float when count == 2:
+                    return VertexElementFormat.Float2;
+
+                case VertexAttribPointerType.Float when count == 3:
+                    return VertexElementFormat.Float3;
+
+                case VertexAttribPointerType.Float when count == 4:
+                    return VertexElementFormat.Float4;
+
+                case VertexAttribPointerType.HalfFloat when count == 1:
+                    return VertexElementFormat.Half1;
+
+                case VertexAttribPointerType.HalfFloat when count == 2:
+                    return VertexElementFormat.Half2;
+
+                case VertexAttribPointerType.HalfFloat when count == 4:
+                    return VertexElementFormat.Half4;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        public static PrimitiveTopology ToPrimitiveTopology(this Rendering.PrimitiveTopology type)
+        {
+            switch (type)
+            {
+                case Rendering.PrimitiveTopology.Points:
+                    return PrimitiveTopology.PointList;
+
+                case Rendering.PrimitiveTopology.Lines:
+                    return PrimitiveTopology.LineList;
+
+                case Rendering.PrimitiveTopology.LineStrip:
+                    return PrimitiveTopology.LineStrip;
+
+                case Rendering.PrimitiveTopology.Triangles:
+                    return PrimitiveTopology.TriangleList;
+
+                case Rendering.PrimitiveTopology.TriangleStrip:
+                    return PrimitiveTopology.TriangleStrip;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
 
