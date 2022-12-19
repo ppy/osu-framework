@@ -11,14 +11,14 @@ using osuTK;
 namespace osu.Framework.IO.Serialization
 {
     /// <summary>
-    /// A type of <see cref="JsonConverter"/> that serializes only the X and Y coordinates of a <see cref="Vector2"/>.
+    /// A type of <see cref="JsonConverter"/> that serializes only the X and Y coordinates of a <see cref="Vector2d"/>.
     /// </summary>
     public class Vector2DConverter : JsonConverter<Vector2d>
     {
         public override Vector2d ReadJson(JsonReader reader, Type objectType, Vector2d existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             var obj = JObject.Load(reader);
-            return new Vector2d((double)obj["x"], (float)obj["y"]);
+            return new Vector2d((double)obj["x"], (double)obj["y"]);
         }
 
         public override void WriteJson(JsonWriter writer, Vector2d value, JsonSerializer serializer)
