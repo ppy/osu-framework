@@ -119,11 +119,7 @@ namespace osu.Framework.Bindables
             return true;
         }
 
-#if NETSTANDARD
-        public bool TryGetValue(TKey key, out TValue value) => collection.TryGetValue(key, out value);
-#else
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
-#endif
 
         /// <inheritdoc cref="IDictionary{TKey,TValue}.this" />
         /// <exception cref="InvalidOperationException">Thrown when setting an item while this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>

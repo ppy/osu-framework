@@ -903,6 +903,24 @@ namespace osu.Framework.Platform.SDL2
             return 0;
         }
 
+        public static SDL.SDL_WindowFlags ToFlags(this GraphicsSurfaceType surfaceType)
+        {
+            switch (surfaceType)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+
+                case GraphicsSurfaceType.Vulkan when !RuntimeInfo.IsApple:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
+
+                case GraphicsSurfaceType.Metal:
+                case GraphicsSurfaceType.Vulkan when RuntimeInfo.IsApple:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_METAL;
+            }
+
+            return 0;
+        }
+
         public static JoystickAxisSource ToJoystickAxisSource(this SDL.SDL_GameControllerAxis axis)
         {
             switch (axis)
