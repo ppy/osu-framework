@@ -60,7 +60,6 @@ namespace osu.Framework.Tests.Configuration
                 {
                     storage = h.Storage;
                     h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = new Vector2d(5, 5);
-                
                 }));
             }
 
