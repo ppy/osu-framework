@@ -44,10 +44,10 @@ namespace osu.Framework.Graphics.Veldrid
 
         public CommandList Commands { get; private set; } = null!;
 
-        private IGraphicsSurface graphicsSurface = null!;
+        public VeldridIndexData SharedLinearIndex { get; }
+        public VeldridIndexData SharedQuadIndex { get; }
 
-        internal VeldridIndexData SharedLinearIndex { get; }
-        internal VeldridIndexData SharedQuadIndex { get; }
+        private IGraphicsSurface graphicsSurface = null!;
 
         private ResourceLayout uniformLayout = null!;
 

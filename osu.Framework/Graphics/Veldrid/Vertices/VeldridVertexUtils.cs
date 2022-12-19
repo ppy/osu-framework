@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 // ReSharper disable StaticMemberInGenericType
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

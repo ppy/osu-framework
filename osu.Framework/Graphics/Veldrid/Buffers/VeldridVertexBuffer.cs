@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -28,10 +26,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly BufferUsage usage;
 
         private Memory<DepthWrappingVertex<T>> vertexMemory;
-        private IMemoryOwner<DepthWrappingVertex<T>> memoryOwner;
-        private NativeMemoryTracker.NativeMemoryLease memoryLease;
+        private IMemoryOwner<DepthWrappingVertex<T>>? memoryOwner;
+        private NativeMemoryTracker.NativeMemoryLease? memoryLease;
 
-        private DeviceBuffer buffer;
+        private DeviceBuffer? buffer;
 
         protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices, BufferUsage usage)
         {
