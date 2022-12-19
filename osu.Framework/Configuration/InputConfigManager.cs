@@ -42,6 +42,9 @@ namespace osu.Framework.Configuration
             Load();
 
             bindToHandlersBindables();
+
+            // Save config to migrate Sensitivity
+            QueueBackgroundSave();
         }
 
         protected override bool PerformSave()
