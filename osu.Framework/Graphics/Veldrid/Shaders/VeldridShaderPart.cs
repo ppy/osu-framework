@@ -26,7 +26,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         private static readonly Regex include_regex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
 
-        // private static readonly Regex shader_resource_regex = new Regex(@"^\s*(?>uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(texture2D|sampler)\s+\w+;", RegexOptions.Multiline);
         private static readonly Regex shader_uniform_regex = new Regex(@"^\s*(?>uniform)\s+(?:(lowp|mediump|highp)\s+)?(\w+)\s+(\w+);", RegexOptions.Multiline);
         private static readonly Regex shader_attribute_location_regex = new Regex(@"(layout\(location\s=\s)(-?\d+)(\)\s(?>attribute|in).*)", RegexOptions.Multiline);
 
@@ -95,7 +94,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 if (type == ShaderPartType.Vertex)
                     data = appendBackbuffer(data, shaders, uniforms);
 
-                // data = resolveResources(data);
                 data = omitUniforms(data, uniforms);
 
                 return data;
@@ -136,36 +134,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             data = data.Replace(attributeLocationMatch.Value, shader_attribute_location_regex.Replace(attributeLocationMatch.Value, m => m.Groups[1] + count.ToString() + m.Groups[3]));
             return data;
         }
-
-        // private static string resolveResources(string data)
-        // {
-        //     Match resourceMatch = shader_resource_regex.Match(data);
-        //
-        //     while (resourceMatch.Success)
-        //     {
-        //         int index;
-        //
-        //         switch (resourceMatch.Groups[1].Value)
-        //         {
-        //             case "texture2D":
-        //                 index = Array.FindIndex(Vd.TEXTURE_LAYOUT.Elements, e => e.Kind == ResourceKind.TextureReadOnly);
-        //                 break;
-        //
-        //             case "sampler":
-        //                 index = Array.FindIndex(Vd.TEXTURE_LAYOUT.Elements, e => e.Kind == ResourceKind.Sampler);
-        //                 break;
-        //
-        //             default:
-        //                 throw new ArgumentOutOfRangeException(nameof(data));
-        //         }
-        //
-        //         data = data.Replace(resourceMatch.Value, $"layout(set = {Vd.TEXTURE_RESOURCE_SLOT}, binding = {index}) {resourceMatch.Value}");
-        //
-        //         resourceMatch = resourceMatch.NextMatch();
-        //     }
-        //
-        //     return data;
-        // }
 
         /// <summary>
         /// Omits all uniform declarations inside the given data, and fills them up in the given uniform group.
