@@ -37,8 +37,10 @@ namespace osu.Framework.iOS
         {
             Scale = (float)UIScreen.MainScreen.Scale;
             ContentScaleFactor = UIScreen.MainScreen.Scale;
+#pragma warning disable BI1234,CA1416 // todo: remove once we move away from osuTK/OpenGL
             LayerColorFormat = EAGLColorFormat.RGBA8;
             ContextRenderingApi = EAGLRenderingAPI.OpenGLES3;
+#pragma warning restore BI1234,CA1416
             LayerRetainsBacking = false;
 
             AddSubview(KeyboardTextField = new HiddenTextField());
@@ -73,28 +75,19 @@ namespace osu.Framework.iOS
         public override void PressesBegan(NSSet<UIPress> presses, UIPressesEvent evt)
         {
             base.PressesBegan(presses, evt);
-
-            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
-            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
-                HandlePresses?.Invoke(presses, evt);
+            HandlePresses?.Invoke(presses, evt);
         }
 
         public override void PressesCancelled(NSSet<UIPress> presses, UIPressesEvent evt)
         {
             base.PressesCancelled(presses, evt);
-
-            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
-            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
-                HandlePresses?.Invoke(presses, evt);
+            HandlePresses?.Invoke(presses, evt);
         }
 
         public override void PressesEnded(NSSet<UIPress> presses, UIPressesEvent evt)
         {
             base.PressesEnded(presses, evt);
-
-            // On early iOS versions, hardware keyboard events are handled from GSEvents in GameUIApplication instead.
-            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
-                HandlePresses?.Invoke(presses, evt);
+            HandlePresses?.Invoke(presses, evt);
         }
 
         public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);

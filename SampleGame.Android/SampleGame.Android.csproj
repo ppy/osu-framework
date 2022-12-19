@@ -1,24 +1,13 @@
-﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\osu.Framework.Android.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5A378BB7-11D6-4008-980E-A67507CD9969}</ProjectGuid>
-    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>net6.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
     <RootNamespace>SampleGame.Android</RootNamespace>
     <AssemblyName>SampleGame.Android</AssemblyName>
-    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="SampleGameActivity.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Properties\AndroidManifest.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SampleGame\SampleGame.csproj">
-      <Project>{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}</Project>
-      <Name>SampleGame</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj" />
+    <ProjectReference Include="..\SampleGame\SampleGame.csproj" />
   </ItemGroup>
 </Project>

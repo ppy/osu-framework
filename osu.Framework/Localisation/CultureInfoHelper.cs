@@ -38,11 +38,8 @@ namespace osu.Framework.Localisation
 
             try
             {
-#if NET6_0_OR_GREATER
                 culture = CultureInfo.GetCultureInfo(name, predefinedOnly: true);
-#else
-                culture = CultureInfo.GetCultureInfo(name);
-#endif
+
                 // This is best-effort for now to catch cases where dotnet is creating cultures.
                 // See https://github.com/dotnet/runtime/blob/5877e8b713742b6d80bd1aa9819094be029e3e1f/src/libraries/System.Private.CoreLib/src/System/Globalization/CultureData.Icu.cs#L341-L345
                 if (culture.ThreeLetterWindowsLanguageName == "ZZZ")
