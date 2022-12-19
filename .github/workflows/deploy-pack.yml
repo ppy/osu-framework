@@ -97,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: osu-framework-templates
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
 
   pack-android:
     name: Pack (Android)
