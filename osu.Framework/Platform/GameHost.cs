@@ -321,7 +321,7 @@ namespace osu.Framework.Platform
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
-                Converters = new List<JsonConverter> { new Vector2Converter() }
+                Converters = new List<JsonConverter> { new Vector2Converter(), new Vector2DConverter() }
             };
         }
 
@@ -937,7 +937,9 @@ namespace osu.Framework.Platform
 
         private Bindable<string> ignoredInputHandlers;
 
-        private readonly BindableVector2D cursorSensitivity = new BindableVector2D(new Vector2d(1, 1));
+        private readonly BindableDouble cursorSensitivityX = new BindableDouble(1);
+
+        private readonly BindableDouble cursorSensitivityY = new BindableDouble(1);
 
         public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
@@ -985,19 +987,30 @@ namespace osu.Framework.Platform
                 }
             };
 
-            Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
+            Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivityX);
+            cursorSensitivityY.Value = cursorSensitivityX.Value;
 
             var cursorSensitivityHandlers = AvailableInputHandlers.OfType<IHasCursorSensitivity>();
 
             // one way bindings to preserve compatibility.
-            cursorSensitivity.BindValueChanged(val =>
+            cursorSensitivityX.BindValueChanged(val =>
             {
                 foreach (var h in cursorSensitivityHandlers)
-                    h.Sensitivity.Value = val.NewValue;
+                    h.Sensitivity.Value = new Vector2d(val.NewValue, h.Sensitivity.Value.Y);
+            }, true);
+
+            cursorSensitivityY.BindValueChanged(val =>
+            {
+                foreach (var h in cursorSensitivityHandlers)
+                    h.Sensitivity.Value = new Vector2d(h.Sensitivity.Value.X, val.NewValue);
             }, true);
 
             foreach (var h in cursorSensitivityHandlers)
-                h.Sensitivity.BindValueChanged(s => cursorSensitivity.Value = s.NewValue);
+                h.Sensitivity.BindValueChanged(s =>
+                {
+                    cursorSensitivityX.Value = s.NewValue.X;
+                    cursorSensitivityY.Value = s.NewValue.Y;
+                });
 #pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
