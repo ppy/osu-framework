@@ -134,7 +134,7 @@ namespace osu.Framework.Platform.Windows
             }
             else
             {
-                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX * sensitivityX, mouse.LastY * sensitivityY)});
+                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX * sensitivityX, mouse.LastY * sensitivityY) });
             }
 
             return IntPtr.Zero;

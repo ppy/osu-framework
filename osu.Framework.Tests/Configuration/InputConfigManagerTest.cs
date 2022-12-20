@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Configuration
 
             for (int i = 0; i < 10; i++)
             {
-                handler.Sensitivity.Value = new Vector2d(handler.Sensitivity.Value.X + 0.1,  handler.Sensitivity.Value.Y + 0.1);
+                handler.Sensitivity.Value = new Vector2d(handler.Sensitivity.Value.X + 0.1, handler.Sensitivity.Value.Y + 0.1);
                 Assert.AreEqual(3, config.TimesSaved);
             }
 

@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
-        
+
         public Bindable<Vector2d> Sensitivity { get; } = new Bindable<Vector2d>(new Vector2d(1, 1));
         public override string Description => "Mouse";
 
@@ -200,7 +200,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         protected virtual void HandleMouseMoveRelative(Vector2 delta)
         {
-            enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X * (float)Sensitivity.Value.X, delta.Y * (float)Sensitivity.Value.Y)});
+            enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X * (float)Sensitivity.Value.X, delta.Y * (float)Sensitivity.Value.Y) });
         }
 
         private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
