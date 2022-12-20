@@ -109,8 +109,8 @@ namespace osu.Framework.Graphics.UserInterface
                 progress = Math.Abs((float)Source.current.Value);
                 roundedCaps = Source.roundedCaps;
 
-                // smoothstep looks too sharp with 1px, let's give it a bit more
-                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                // Looks too sharp with 1px, let's give it a bit more
+                texelSize = 2f / ScreenSpaceDrawQuad.Size.X;
             }
 
             protected override void Blit(IRenderer renderer)
