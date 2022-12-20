@@ -25,6 +25,11 @@ highp float det(highp vec2 a, highp vec2 b)
     return a.x * b.y - a.y * b.x;
 }
 
+highp float conditionalValue(highp float ifTrue, highp float ifFalse, bool condition)
+{
+    return ifTrue * float(condition) + ifFalse * float(!condition);
+}
+
 highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C)
 {
     highp vec2 a = B - A;
@@ -66,7 +71,7 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
     highp float sy = det(c + 2.0 * b * t.y, qy);
     highp float sz = det(c + 2.0 * b * t.z, qz);
 
-    return sqrt(min(dx, dy)) * sign(dx < dy ? (dx < dz ? sx : sz) : sy);
+    return sqrt(min(dx, dy)) * sign(conditionalValue(conditionalValue(sx, sz, dx < dz), sy, dx < dy));
 }
 
 highp vec2 getVertexPosByAngle(mediump float angle, highp vec2 noisePosition, mediump float amplitude, highp float texelSize)
