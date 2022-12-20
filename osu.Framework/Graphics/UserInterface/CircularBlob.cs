@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
-                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                texelSize = 2.0f / Math.Min(ScreenSpaceDrawQuad.Width, ScreenSpaceDrawQuad.Height);
             }
 
             protected override void Blit(IRenderer renderer)

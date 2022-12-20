@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("White Colour", delegate { setColour(0); });
 
             AddToggleStep("Toggle masking", m => maskingContainer.Masking = m);
-            AddToggleStep("Toggle aspect ratio", r => blob.Size = r ? new Vector2(600, 400) : new Vector2(400));
+            AddToggleStep("Toggle aspect ratio", r => blob.Size = r ? new Vector2(600, 200) : new Vector2(400));
             AddToggleStep("Toggle background", b => background.Alpha = b ? 1 : 0);
             AddSliderStep("Scale", 0f, 2f, 1f, s => blob.Scale = new Vector2(s));
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => blob.InnerRadius = f);
