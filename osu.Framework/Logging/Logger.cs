@@ -63,7 +63,9 @@ namespace osu.Framework.Logging
             private get => storage;
             set
             {
-                storage = value ?? throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
+                
+                storage = value;
 
                 // clear static loggers so they are correctly purged at the new storage location.
                 static_loggers.Clear();

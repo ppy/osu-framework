@@ -29,7 +29,9 @@ namespace osu.Framework.Input.StateChanges.Events
 
         protected InputStateChangeEvent(InputState state, IInput input)
         {
-            State = state ?? throw new ArgumentNullException(nameof(state));
+            ArgumentNullException.ThrowIfNull(state);
+
+            State = state;
             Input = input;
         }
     }

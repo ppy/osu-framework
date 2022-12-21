@@ -68,8 +68,8 @@ namespace osu.Framework.Graphics.Transforms
         {
             public int Compare(Transform x, Transform y)
             {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
+                ArgumentNullException.ThrowIfNull(x);
+                ArgumentNullException.ThrowIfNull(y);
 
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;

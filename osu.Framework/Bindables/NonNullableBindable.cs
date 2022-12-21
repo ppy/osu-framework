@@ -10,8 +10,7 @@ namespace osu.Framework.Bindables
     {
         public NonNullableBindable(T defaultValue)
         {
-            if (defaultValue == null)
-                throw new ArgumentNullException(nameof(defaultValue));
+            ArgumentNullException.ThrowIfNull(defaultValue);
 
             Value = Default = defaultValue;
         }
@@ -25,8 +24,7 @@ namespace osu.Framework.Bindables
             get => base.Value;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value), $"Cannot set {nameof(Value)} of a {nameof(NonNullableBindable<T>)} to null.");
+                ArgumentNullException.ThrowIfNull(value);
 
                 base.Value = value;
             }

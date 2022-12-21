@@ -103,7 +103,9 @@ namespace osu.Framework.Graphics.Video
         public Video([NotNull] Stream stream, bool startAtCurrentTime = true)
             : base(startAtCurrentTime)
         {
-            this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream);
+            
+            this.stream = stream;
         }
 
         [BackgroundDependencyLoader]

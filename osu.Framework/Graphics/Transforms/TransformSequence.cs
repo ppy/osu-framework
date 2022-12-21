@@ -47,8 +47,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="origin">The <typeparamref name="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
         public TransformSequence(T origin)
         {
-            if (origin == null)
-                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
+            ArgumentNullException.ThrowIfNull(origin);
 
             this.origin = origin;
             startTime = currentTime = lastEndTime = origin.TransformStartTime;

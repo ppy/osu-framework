@@ -66,7 +66,9 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         internal Texture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
         {
-            NativeTexture = nativeTexture ?? throw new ArgumentNullException(nameof(nativeTexture));
+            ArgumentNullException.ThrowIfNull(nativeTexture);
+            
+            NativeTexture = nativeTexture;
             WrapModeS = wrapModeS;
             WrapModeT = wrapModeT;
         }

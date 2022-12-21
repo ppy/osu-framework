@@ -15,7 +15,9 @@ namespace osu.Framework.Audio.Callbacks
 
         public DataStreamFileProcedures(Stream data)
         {
-            dataStream = data ?? throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
+            
+            dataStream = data;
         }
 
         public void Close(IntPtr user)
