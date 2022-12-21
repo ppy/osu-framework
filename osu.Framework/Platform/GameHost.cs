@@ -1008,11 +1008,13 @@ namespace osu.Framework.Platform
             }, true);
 
             foreach (var h in cursorSensitivityHandlers)
+            {
                 h.Sensitivity.BindValueChanged(s =>
                 {
                     cursorSensitivityX.Value = s.NewValue.X;
                     cursorSensitivityY.Value = s.NewValue.Y;
                 });
+            }
 #pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
