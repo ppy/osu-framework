@@ -34,9 +34,7 @@ namespace osu.Framework.Graphics.Containers
         public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
             : this(timeBeforeLoad)
         {
-            ArgumentNullException.ThrowIfNull(content);
-
-            Content = content;
+            Content = content ?? throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
         }
 
         /// <summary>
