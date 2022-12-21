@@ -25,9 +25,7 @@ namespace osu.Framework.Allocation
         /// <param name="action">The action to invoke during disposal.</param>
         public ValueInvokeOnDisposal(Action action)
         {
-            ArgumentNullException.ThrowIfNull(action);
-
-            this.action = action;
+            this.action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         #region IDisposable Support

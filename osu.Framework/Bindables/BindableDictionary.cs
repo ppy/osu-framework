@@ -161,12 +161,7 @@ namespace osu.Framework.Bindables
 
         #region IDictionary
 
-        void IDictionary.Add(object key, object? value)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            Add((TKey)key, (TValue)value);
-        }
+        void IDictionary.Add(object key, object? value) => Add((TKey)key, (TValue)(value ?? throw new ArgumentNullException(nameof(value))));
 
         /// <inheritdoc cref="IDictionary.Clear" />
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>

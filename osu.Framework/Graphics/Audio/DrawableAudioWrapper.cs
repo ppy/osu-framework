@@ -79,9 +79,7 @@ namespace osu.Framework.Graphics.Audio
         protected DrawableAudioWrapper([NotNull] IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
             : this()
         {
-            ArgumentNullException.ThrowIfNull(component);
-
-            this.component = component;
+            this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
 
             component.BindAdjustments(adjustments);

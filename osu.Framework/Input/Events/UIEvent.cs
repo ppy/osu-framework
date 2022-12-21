@@ -73,9 +73,7 @@ namespace osu.Framework.Input.Events
 
         protected UIEvent([NotNull] InputState state)
         {
-            ArgumentNullException.ThrowIfNull(state);
-
-            CurrentState = state;
+            CurrentState = state ?? throw new ArgumentNullException(nameof(state));
         }
 
         public override string ToString() => $"{GetType().ReadableName()}()";

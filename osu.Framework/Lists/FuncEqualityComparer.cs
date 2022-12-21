@@ -14,9 +14,7 @@ namespace osu.Framework.Lists
 
         public FuncEqualityComparer(Func<T, T, bool> func)
         {
-            ArgumentNullException.ThrowIfNull(func);
-
-            this.func = func;
+            this.func = func ?? throw new ArgumentNullException(nameof(func));
         }
 
         public bool Equals(T x, T y) => func(x, y);

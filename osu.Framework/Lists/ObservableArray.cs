@@ -26,9 +26,7 @@ namespace osu.Framework.Lists
 
         public ObservableArray(T[] arrayToWrap)
         {
-            ArgumentNullException.ThrowIfNull(arrayToWrap);
-
-            wrappedArray = arrayToWrap;
+            wrappedArray = arrayToWrap ?? throw new ArgumentNullException(nameof(arrayToWrap));
         }
 
         public IEnumerator<T> GetEnumerator()

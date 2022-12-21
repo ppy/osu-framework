@@ -24,7 +24,8 @@ namespace osu.Framework.Bindables
             get => base.Value;
             set
             {
-                ArgumentNullException.ThrowIfNull(value);
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value), $"Cannot set {nameof(Value)} of a {nameof(NonNullableBindable<T>)} to null.");
 
                 base.Value = value;
             }
