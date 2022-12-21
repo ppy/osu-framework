@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Textures
         internal Texture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             ArgumentNullException.ThrowIfNull(nativeTexture);
-            
+
             NativeTexture = nativeTexture;
             WrapModeS = wrapModeS;
             WrapModeT = wrapModeT;

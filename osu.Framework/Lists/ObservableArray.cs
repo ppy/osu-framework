@@ -27,7 +27,7 @@ namespace osu.Framework.Lists
         public ObservableArray(T[] arrayToWrap)
         {
             ArgumentNullException.ThrowIfNull(arrayToWrap);
-            
+
             wrappedArray = arrayToWrap;
         }
 

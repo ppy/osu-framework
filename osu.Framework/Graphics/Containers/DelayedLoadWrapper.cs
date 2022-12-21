@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
             : this(timeBeforeLoad)
         {
             ArgumentNullException.ThrowIfNull(content);
-            
+
             Content = content;
         }
 

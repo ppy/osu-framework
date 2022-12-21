@@ -166,7 +166,7 @@ namespace osu.Framework.Bindables
             ArgumentNullException.ThrowIfNull(value);
 
             Add((TKey)key, (TValue)value);
-        } 
+        }
 
         /// <inheritdoc cref="IDictionary.Clear" />
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>

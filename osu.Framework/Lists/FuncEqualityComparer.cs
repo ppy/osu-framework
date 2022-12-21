@@ -15,7 +15,7 @@ namespace osu.Framework.Lists
         public FuncEqualityComparer(Func<T, T, bool> func)
         {
             ArgumentNullException.ThrowIfNull(func);
-            
+
             this.func = func;
         }
 

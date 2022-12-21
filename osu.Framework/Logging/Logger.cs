@@ -64,7 +64,7 @@ namespace osu.Framework.Logging
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
-                
+
                 storage = value;
 
                 // clear static loggers so they are correctly purged at the new storage location.

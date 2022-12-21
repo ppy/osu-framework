@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Video
             : base(startAtCurrentTime)
         {
             ArgumentNullException.ThrowIfNull(stream);
-            
+
             this.stream = stream;
         }
 
