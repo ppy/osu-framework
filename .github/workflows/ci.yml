@@ -139,7 +139,9 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Restore .NET workloads
-        run: dotnet workload restore
+        # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,
+        # see https://github.com/xamarin/xamarin-macios/issues/16400.
+        run: dotnet workload install ios
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.iOS.slnf
