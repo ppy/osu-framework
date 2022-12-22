@@ -452,8 +452,8 @@ namespace osu.Framework.Bindables
         /// <param name="them">The <see cref="BindableDictionary{TKey, TValue}"/> to be bound to.</param>
         public void BindTo(BindableDictionary<TKey, TValue> them)
         {
-            if (them == null)
-                throw new ArgumentNullException(nameof(them));
+            ArgumentNullException.ThrowIfNull(them);
+
             if (bindings?.Contains(weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
