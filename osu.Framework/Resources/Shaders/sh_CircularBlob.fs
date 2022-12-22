@@ -19,17 +19,30 @@ void main(void)
     highp vec2 pixelPos = v_TexCoord / (v_TexRect.zw - v_TexRect.xy);
 
     highp float dstFromCentre = distance(pixelPos, vec2(0.5));
-    highp float minUsableDst = 0.5 * ((1.0 - amplitude) * sin(HALF_PI * (1.0 - 2.0 / float(pointCount)))) - pathRadius;
 
-    // Discard some pixels from inside and outside the shape
-    if (dstFromCentre > 0.5 || dstFromCentre < minUsableDst)
+    highp float angle = HALF_PI * (1.0 - 2.0 / float(pointCount));
+    highp float minHeight = 0.5 * sin(angle) * (1.0 - amplitude);
+    highp float c = cos(angle);
+    highp float maxHeight = 0.5 - 0.25 * c * c + texelSize;
+
+    // Discard guaranteed empty pixels from inside and outside the shape.
+    // Skips a lot of pixels in "low amplitude thin path radius" case.
+    if (dstFromCentre > maxHeight || dstFromCentre < minHeight - pathRadius)
     {
         gl_FragColor = vec4(0.0);
         return;
     }
-    
-    highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
-    lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9), wrappedCoord);
 
-    gl_FragColor = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, pathRadius, texelSize, pointCount, amplitude, noisePosition));
+    // Assume pixel is inside the path.
+    lowp float alpha = 1.0;
+
+    // Compute curve if it's outside guaranteed filled area.
+    // Skips a lot of pixels in "low amplitude thick path radius" case.
+    if (dstFromCentre > minHeight || dstFromCentre < maxHeight - pathRadius)
+        alpha = blobAlphaAt(pixelPos, pathRadius, texelSize, pointCount, amplitude, noisePosition);
+
+    highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
+    lowp vec4 texture = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9), wrappedCoord);
+
+    gl_FragColor = vec4(texture.rgb, texture.a * alpha);
 }
