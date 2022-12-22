@@ -9,7 +9,7 @@ namespace osu.Framework.SourceGeneration
     {
         public static readonly SyntaxTargetNameComparer DEFAULT = new SyntaxTargetNameComparer();
 
-        public bool Equals(SyntaxTarget x, SyntaxTarget y)
+        public bool Equals(SyntaxTarget? x, SyntaxTarget? y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
