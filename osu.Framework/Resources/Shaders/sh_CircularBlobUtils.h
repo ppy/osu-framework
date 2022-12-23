@@ -81,7 +81,7 @@ highp vec2 getVertexPosByAngle(mediump float angle, highp vec2 noisePosition, me
     return vec2(0.5) + cs * vertexDstFromCentre;
 }
 
-lowp float blobAlphaAt(highp vec2 pixelPos, mediump float pathRadius, highp float texelSize, int pointCount, mediump float amplitude, highp vec2 noisePosition)
+lowp float blobAlphaAt(highp vec2 pixelPos, highp float pathRadius, highp float texelSize, int pointCount, mediump float amplitude, highp vec2 noisePosition)
 {
     // distances to the closest curve
     highp float absDst = 10.0;

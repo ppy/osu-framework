@@ -8,7 +8,7 @@
 varying highp vec2 v_TexCoord;
 
 uniform lowp sampler2D m_Sampler;
-uniform mediump float pathRadius;
+uniform highp float pathRadius;
 uniform int pointCount;
 uniform mediump float amplitude;
 uniform highp vec2 noisePosition;
@@ -27,8 +27,7 @@ void main(void)
 
     // Hack to make the shape appear smooth if it's thickness < texelSize by making it more transparent while leaving thickness the same
     // Makes sense for thin path radius or small-sized drawable
-    lowp float subAAMultiplier = 1.0;
-    subAAMultiplier = clamp(pathRadius / texelSize, 0.0, 1.0);
+    highp float subAAMultiplier = clamp(pathRadius / texelSize, 0.0, 1.0);
     pathRadius = max(pathRadius, texelSize);
 
     // Discard guaranteed empty pixels from inside and outside the shape.
