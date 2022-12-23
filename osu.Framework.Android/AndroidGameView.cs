@@ -273,7 +273,7 @@ namespace osu.Framework.Android
         /// <returns><c>null</c> to disable input methods</returns>
         public override IInputConnection? OnCreateInputConnection(EditorInfo? outAttrs)
         {
-            if (outAttrs == null) throw new ArgumentNullException(nameof(outAttrs));
+            ArgumentNullException.ThrowIfNull(outAttrs);
 
             // Properly disable native input methods so that the software keyboard doesn't unexpectedly open.
             // Eg. when pressing keys on a hardware keyboard.

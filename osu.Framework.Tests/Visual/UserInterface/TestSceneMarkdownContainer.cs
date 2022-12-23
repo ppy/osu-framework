@@ -316,6 +316,17 @@ soft break with '\'";
 ```");
         }
 
+        [Test]
+        public void TestFootnotes()
+        {
+            AddStep("set content", () => markdownContainer.Text = @"This text has a footnote[^test].
+
+Here's some more text[^test2] with another footnote!
+
+[^test]: This is a **footnote**.
+[^test2]: This is another footnote [with a link](https://google.com/)!");
+        }
+
         private partial class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
