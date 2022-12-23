@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private float amplitude = 0.35f;
+        private float amplitude = 0.3f;
 
         public float Amplitude
         {
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private int pointCount = 10;
+        private int pointCount = 12;
 
         public int PointCount
         {

@@ -118,8 +118,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddToggleStep("Toggle background", b => background.Alpha = b ? 1 : 0);
             AddSliderStep("Scale", 0f, 2f, 1f, s => blob.Scale = new Vector2(s));
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => blob.InnerRadius = f);
-            AddSliderStep("Amplitude", 0f, 1f, 0.35f, ns => blob.Amplitude = ns);
-            AddSliderStep("Points", 3, 100, 10, p => blob.PointCount = p);
+            AddSliderStep("Amplitude", 0f, 1f, 0.3f, ns => blob.Amplitude = ns);
+            AddSliderStep("Points", 3, 100, 12, p => blob.PointCount = p);
             AddSliderStep("Seed", 0, 999999999, 0, s => blob.Seed = s);
         }
 
