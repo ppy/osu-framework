@@ -74,10 +74,10 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
     return sqrt(min(dx, dy)) * sign(conditionalValue(conditionalValue(sx, sz, dx < dz), sy, dx < dy));
 }
 
-highp vec2 getVertexPosByAngle(mediump float angle, highp vec2 noisePosition, mediump float amplitude, highp float texelSize)
+highp vec2 getVertexPosByAngle(mediump float angle, highp vec2 noisePosition, mediump float amplitude)
 {
     highp vec2 cs = vec2(cos(angle), sin(angle));
-    highp float vertexDstFromCentre = 0.5 * (1.0 - amplitude * random(noisePosition + cs * 20.0)) * (1.0 - texelSize);
+    highp float vertexDstFromCentre = 0.5 * (1.0 - amplitude * random(noisePosition + cs * 20.0));
     return vec2(0.5) + cs * vertexDstFromCentre;
 }
 
@@ -89,16 +89,16 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float pathRadius, highp floa
 
     mediump float vertexAngleOffset = TWO_PI / float(pointCount);
 
-    highp vec2 lastVertex = getVertexPosByAngle(-vertexAngleOffset, noisePosition, amplitude, texelSize);
-    highp vec2 currentVertex = getVertexPosByAngle(0.0, noisePosition, amplitude, texelSize);
+    highp vec2 lastVertex = getVertexPosByAngle(-vertexAngleOffset, noisePosition, amplitude);
+    highp vec2 currentVertex = getVertexPosByAngle(0.0, noisePosition, amplitude);
     highp vec2 curveStart = lerp(lastVertex, currentVertex, 0.5);
 
     for (int i = 0; i < pointCount; i++)
     {
-        highp vec2 nextVertex = getVertexPosByAngle(float(i + 1) * vertexAngleOffset, noisePosition, amplitude, texelSize);
+        highp vec2 nextVertex = getVertexPosByAngle(float(i + 1) * vertexAngleOffset, noisePosition, amplitude);
         highp vec2 curveEnd = lerp(currentVertex, nextVertex, 0.5);
 
-        if (inBoundingBox(pixelPos, curveStart, currentVertex, curveEnd, pathRadius))
+        if (inBoundingBox(pixelPos, curveStart, currentVertex, curveEnd, pathRadius + texelSize))
         {
             highp float dstToCurve = dstToBezier(pixelPos, curveStart, currentVertex, curveEnd);
             highp float absDstToCurve = abs(dstToCurve);
@@ -112,5 +112,5 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float pathRadius, highp floa
         curveStart = curveEnd;
     }
 
-    return smoothstep(texelSize, 0.0, absDst + float(signedDst < 0.0) * (texelSize - pathRadius));
+    return float(signedDst < 0.0) * smoothstep(texelSize, 0.0, conditionalValue(texelSize - absDst, absDst - pathRadius, absDst < texelSize));
 }
