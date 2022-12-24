@@ -1,15 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -97,6 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private float innerRadius;
+            private float pathRadius;
             private float progress;
             private float texelSize;
             private bool roundedCaps;
@@ -111,6 +112,19 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 texelSize = 2f / Math.Min(ScreenSpaceDrawQuad.Width, ScreenSpaceDrawQuad.Height);
+
+                // This is a hack to make progress appear smooth if it's thickness < texelSize by making it more transparent while leaving thickness the same
+                float pRadius = innerRadius * 0.25f;
+                float halfTexel = texelSize * 0.5f;
+
+                if (pRadius < halfTexel)
+                {
+                    DrawColourInfo colourInfo = DrawColourInfo;
+                    colourInfo.Colour = colourInfo.Colour.MultiplyAlpha(pRadius / halfTexel);
+                    DrawColourInfo = colourInfo;
+                }
+
+                pathRadius = Math.Max(pRadius + halfTexel, texelSize);
             }
 
             protected override void Blit(IRenderer renderer)
@@ -120,7 +134,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var shader = TextureShader;
 
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
+                shader.GetUniform<float>("pathRadius").UpdateValue(ref pathRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
                 shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
