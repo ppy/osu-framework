@@ -66,7 +66,7 @@ namespace osu.Framework.Testing
         /// <param name="game">The game to add.</param>
         protected void AddGame([NotNull] Game game)
         {
-            if (game == null) throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             exitNestedGame();
 

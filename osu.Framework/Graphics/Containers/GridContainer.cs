@@ -75,8 +75,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (rowDimensions == value)
                     return;
@@ -96,8 +95,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (columnDimensions == value)
                     return;

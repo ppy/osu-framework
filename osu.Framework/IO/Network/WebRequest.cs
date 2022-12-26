@@ -631,7 +631,7 @@ namespace osu.Framework.IO.Network
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream);
 
             rawContent ??= new MemoryStream();
 
@@ -646,8 +646,8 @@ namespace osu.Framework.IO.Network
         /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(data);
 
             files[name] = data;
         }
@@ -685,8 +685,8 @@ namespace osu.Framework.IO.Network
         /// <param name="type">The type of the request parameter.</param>
         public void AddParameter(string name, string value, RequestParameterType type)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(value);
 
             switch (type)
             {
@@ -716,8 +716,8 @@ namespace osu.Framework.IO.Network
         /// <param name="value">The header value.</param>
         public void AddHeader(string name, string value)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(value);
 
             headers[name] = value;
         }
