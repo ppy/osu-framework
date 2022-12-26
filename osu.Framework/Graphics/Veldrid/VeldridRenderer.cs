@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
@@ -9,12 +10,16 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
+using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
 using Veldrid;
 using Veldrid.OpenGL;
 using PixelFormat = Veldrid.PixelFormat;
+using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -32,7 +37,12 @@ namespace osu.Framework.Graphics.Veldrid
 
         public CommandList Commands { get; private set; } = null!;
 
+        public VeldridIndexData SharedLinearIndex { get; }
+        public VeldridIndexData SharedQuadIndex { get; }
+
         private IGraphicsSurface graphicsSurface = null!;
+
+        private DeviceBuffer? boundVertexBuffer;
 
         private GraphicsPipelineDescription pipeline = new GraphicsPipelineDescription
         {
@@ -40,6 +50,14 @@ namespace osu.Framework.Graphics.Veldrid
             BlendState = BlendStateDescription.SingleOverrideBlend,
             ShaderSet = { VertexLayouts = new VertexLayoutDescription[1] }
         };
+
+        private static readonly GlobalStatistic<int> stat_graphics_pipeline_created = GlobalStatistics.Get<int>(nameof(VeldridRenderer), "Total pipelines created");
+
+        public VeldridRenderer()
+        {
+            SharedLinearIndex = new VeldridIndexData(this);
+            SharedQuadIndex = new VeldridIndexData(this);
+        }
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
@@ -130,6 +148,9 @@ namespace osu.Framework.Graphics.Veldrid
             MaxTextureSize = maxTextureSize;
 
             Commands = Factory.CreateCommandList();
+
+            pipeline.ResourceLayouts = new ResourceLayout[2];
+            pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
 
         private Vector2 currentSize;
@@ -244,6 +265,43 @@ namespace osu.Framework.Graphics.Veldrid
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
 
+        public void BindVertexBuffer(DeviceBuffer buffer, VertexLayoutDescription layout)
+        {
+            if (buffer == boundVertexBuffer)
+                return;
+
+            Commands.SetVertexBuffer(0, buffer);
+            pipeline.ShaderSet.VertexLayouts[0] = layout;
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+
+            boundVertexBuffer = buffer;
+        }
+
+        public void BindIndexBuffer(DeviceBuffer buffer, IndexFormat format) => Commands.SetIndexBuffer(buffer, format);
+
+        public void DrawVertices(PrimitiveTopology type, int indexStart, int indicesCount)
+        {
+            pipeline.PrimitiveTopology = type;
+
+            // we can't draw yet as we're missing shader support.
+            // Commands.SetPipeline(getPipelineInstance());
+            // Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
+        }
+
+        private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();
+
+        private Pipeline getPipelineInstance()
+        {
+            if (!pipelineCache.TryGetValue(pipeline, out var instance))
+            {
+                pipelineCache[pipeline] = instance = Factory.CreateGraphicsPipeline(ref pipeline);
+                stat_graphics_pipeline_created.Value++;
+            }
+
+            return instance;
+        }
+
         protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
@@ -254,9 +312,10 @@ namespace osu.Framework.Graphics.Veldrid
             => new DummyFrameBuffer(this);
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
-            => new DummyVertexBatch<TVertex>();
+            => new VeldridLinearBatch<TVertex>(this, size, maxBuffers, primitiveType.ToPrimitiveTopology());
 
-        protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new DummyVertexBatch<TVertex>();
+        protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)
+            => new VeldridQuadBatch<TVertex>(this, size, maxBuffers);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4 initialisationColour = default)

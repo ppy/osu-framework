@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal Task LoadComponentAsync<TLoadable>([NotNull] TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
-            if (component == null) throw new ArgumentNullException(nameof(component));
+            ArgumentNullException.ThrowIfNull(component);
 
             return LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
         }
@@ -394,8 +394,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
         protected virtual int Compare(Drawable x, Drawable y)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-            if (y == null) throw new ArgumentNullException(nameof(y));
+            ArgumentNullException.ThrowIfNull(x);
+            ArgumentNullException.ThrowIfNull(y);
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
@@ -411,8 +411,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
         protected int CompareReverseChildID(Drawable x, Drawable y)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-            if (y == null) throw new ArgumentNullException(nameof(y));
+            ArgumentNullException.ThrowIfNull(x);
+            ArgumentNullException.ThrowIfNull(y);
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
@@ -492,8 +492,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 EnsureChildMutationAllowed();
 
-                if (drawable == null)
-                    throw new ArgumentNullException(nameof(drawable));
+                ArgumentNullException.ThrowIfNull(drawable);
 
                 int index = IndexOfInternal(drawable);
                 if (index < 0)

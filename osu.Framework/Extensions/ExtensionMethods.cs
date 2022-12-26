@@ -151,7 +151,7 @@ namespace osu.Framework.Extensions
 
         public static Type[] GetLoadableTypes(this Assembly assembly)
         {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+            ArgumentNullException.ThrowIfNull(assembly);
 
             try
             {
