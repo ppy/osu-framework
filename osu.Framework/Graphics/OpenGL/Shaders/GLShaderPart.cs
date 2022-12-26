@@ -37,13 +37,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
         private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
 
-        internal GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
+        internal GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
             Name = name;
             Type = type;
 
-            shaderCodes.Add(loadFile(data, true, manager));
+            shaderCodes.Add(loadFile(data, true, store));
             shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
             if (shaderCodes.Count == 0)
@@ -52,22 +52,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             HasCode = true;
         }
 
-        internal GLShaderPart(IRenderer renderer, string name, string code, ShaderType type)
-        {
-            this.renderer = renderer;
-            Name = name;
-            Type = type;
-
-            shaderCodes.Add(code);
-            shaderCodes.RemoveAll(string.IsNullOrEmpty);
-
-            if (shaderCodes.Count == 0)
-                return;
-
-            HasCode = true;
-        }
-
-        private string loadFile(byte[] bytes, bool mainFile, ShaderManager manager)
+        private string loadFile(byte[] bytes, bool mainFile, IShaderStore store)
         {
             if (bytes == null)
                 return null;
@@ -101,7 +86,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName), false, manager) + '\n';
+                        code += loadFile(store.LoadRaw(includeName), false, store) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -123,13 +108,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false, manager) + "\n" + code;
+                    code = loadFile(store.LoadRaw("sh_Precision_Internal.h"), false, store) + "\n" + code;
 
                     if (isVertexShader)
                     {
                         string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false, manager);
+                        string backbufferCode = loadFile(store.LoadRaw("sh_Backbuffer_Internal.h"), false, store);
 
                         backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
                         code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';

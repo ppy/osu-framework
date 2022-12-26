@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -323,41 +324,17 @@ namespace osu.Framework.Graphics.OpenGL
             if (mipmapShader != null)
                 return mipmapShader;
 
-            const string vertex_shader_source = @"
-                attribute vec2 pos;
-                varying vec2 uv;
-                void main() {
-                    uv = pos;
-                    gl_Position = vec4(2.0 * pos - vec2(1.0), 0.0, 1.0);
-                }";
-
-            const string fragment_shader_source = @"
-                varying vec2 uv;
-                uniform sampler2D tex;
-
-                float toSRGB(float color)
-                {
-                    return color < 0.0031308 ? (12.92 * color) : (1.055 * pow(color, 1.0 / 2.4) - 0.055);
-                }
-
-                vec4 toSRGB(vec4 colour)
-                {
-                #ifdef GL_ES
-                    return colour;
-                #else
-                    return vec4(toSRGB(colour.r), toSRGB(colour.g), toSRGB(colour.b), colour.a);
-                #endif
-                }
-
-                void main() {
-                    vec2 tex_coords = uv;
-                    gl_FragColor = toSRGB(texture2D(tex, tex_coords, 0.0));
-                }";
+            var store = new PassthroughShaderStore(
+                new NamespacedResourceStore<byte[]>(
+                    new NamespacedResourceStore<byte[]>(
+                        new DllResourceStore(typeof(Game).Assembly),
+                        @"Resources"),
+                    "Shaders"));
 
             mipmapShader = new GLShader(this, "mipmap", new[]
             {
-                new GLShaderPart(this, "mipmap.vs", vertex_shader_source, ShaderType.VertexShader),
-                new GLShaderPart(this, "mipmap.fs", fragment_shader_source, ShaderType.FragmentShader),
+                new GLShaderPart(this, "mipmap.vs", store.LoadRaw("sh_mipmap.vs"), ShaderType.VertexShader, store),
+                new GLShaderPart(this, "mipmap.fs", store.LoadRaw("sh_mipmap.fs"), ShaderType.FragmentShader, store),
             });
             return mipmapShader;
         }
@@ -442,5 +419,17 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
+
+        private class PassthroughShaderStore : IShaderStore
+        {
+            private readonly IResourceStore<byte[]> store;
+
+            public PassthroughShaderStore(IResourceStore<byte[]> store)
+            {
+                this.store = store;
+            }
+
+            public byte[]? LoadRaw(string name) => store.Get(name);
+        }
     }
 }
