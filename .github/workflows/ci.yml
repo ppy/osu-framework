@@ -9,13 +9,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS side by side.
-      # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
-      - name: Install .NET 3.1.x LTS
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "3.1.x"
-
       - name: Install .NET 6.0.x
         uses: actions/setup-dotnet@v1
         with:
