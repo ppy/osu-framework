@@ -6,6 +6,7 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
+using BufferUsageHint = osuTK.Graphics.ES30.BufferUsageHint;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {

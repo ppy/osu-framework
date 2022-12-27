@@ -396,5 +396,14 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
+
+        public override IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>()
+            => new GLRawVertexBuffer<TVertex>(this);
+
+        public override IRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>()
+            => new GLRawElementBuffer<TIndex>(this);
+
+        public override IRawVertexArray CreateRawVertexArray()
+            => new GLRawVertexArray(this);
     }
 }

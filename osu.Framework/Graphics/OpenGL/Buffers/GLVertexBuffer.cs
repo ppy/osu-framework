@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp.Memory;
+using BufferUsageHint = osuTK.Graphics.ES30.BufferUsageHint;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -70,7 +71,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.GenBuffers(1, out vboId);
 
             if (Renderer.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                GLVertexUtils<DepthWrappingVertex<T>>.Bind();
+                GLVertexUtils<DepthWrappingVertex<T>>.SetLayout();
 
             int size = Size * STRIDE;
 
@@ -110,7 +111,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 Initialise();
 
             if (Renderer.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                GLVertexUtils<DepthWrappingVertex<T>>.Bind();
+                GLVertexUtils<DepthWrappingVertex<T>>.SetLayout();
         }
 
         public virtual void Unbind()

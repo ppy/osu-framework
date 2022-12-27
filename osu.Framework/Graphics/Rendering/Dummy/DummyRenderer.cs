@@ -216,5 +216,14 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         Texture[] IRenderer.GetAllTextures() => Array.Empty<Texture>();
+
+        public IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>() where TVertex : unmanaged, IVertex
+            => new DummyRawVertexBuffer<TVertex>();
+
+        public IRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>() where TIndex : unmanaged, IConvertible
+            => new DummyRawElementBuffer<TIndex>();
+
+        public IRawVertexArray CreateRawVertexArray()
+            => new DummyRawVertexArray();
     }
 }

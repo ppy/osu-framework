@@ -59,17 +59,25 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
         }
 
-        /// <summary>
-        /// Enables and binds the vertex attributes/pointers for the vertex of type <typeparamref name="T"/>.
-        /// </summary>
-        public static void Bind()
+        public static void SetLayout()
         {
-            enableAttributes(attributes.Count);
+            EnableAttributes(attributes.Count);
             for (int i = 0; i < attributes.Count; i++)
                 GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
         }
 
-        private static void enableAttributes(int amount)
+        public static void SetLayout(ReadOnlySpan<int> layoutPositions)
+        {
+            int max = amountEnabledAttributes;
+            foreach (int i in layoutPositions)
+                max = Math.Max(max, i);
+
+            EnableAttributes(max);
+            for (int i = 0; i < attributes.Count; i++)
+                GL.VertexAttribPointer(layoutPositions[i], attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
+        }
+
+        public static void EnableAttributes(int amount)
         {
             if (amount == amountEnabledAttributes)
                 return;

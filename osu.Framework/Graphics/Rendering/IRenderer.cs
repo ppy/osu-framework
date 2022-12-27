@@ -358,6 +358,23 @@ namespace osu.Framework.Graphics.Rendering
         IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
         /// <summary>
+        /// Creates a vertex buffer.
+        /// </summary>
+        /// <typeparam name="TVertex">The type of vertices the vertex buffer stores.</typeparam>
+        IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>() where TVertex : unmanaged, IVertex;
+
+        /// <summary>
+        /// Creates an element buffer.
+        /// </summary>
+        /// <typeparam name="TIndex">The type of indices the element buffer stores. This can be either <see cref="ushort"/> or <see cref="uint"/>.</typeparam>
+        IRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
+
+        /// <summary>
+        /// Creates a vertex array.
+        /// </summary>
+        IRawVertexArray CreateRawVertexArray();
+
+        /// <summary>
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
