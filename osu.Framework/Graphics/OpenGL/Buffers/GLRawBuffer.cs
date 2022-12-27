@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public static readonly int STRIDE;
         static GLRawBuffer()
         {
-            STRIDE = Marshal.SizeOf<TData>();
+            STRIDE = Marshal.SizeOf(default(TData));
         }
 
         protected int Handle { get; private set; }

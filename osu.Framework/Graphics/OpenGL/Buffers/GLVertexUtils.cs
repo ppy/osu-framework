@@ -23,8 +23,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (amount == AmountEnabledAttributes)
                 return;
 
-            FrameStatistics.Add(StatisticsCounterType.VArrayBinds, Math.Abs(AmountEnabledAttributes - amount));
-
             if (amount > AmountEnabledAttributes)
             {
                 for (int i = AmountEnabledAttributes; i < amount; ++i)
@@ -85,7 +83,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public static void SetLayout()
         {
-            FrameStatistics.Add(StatisticsCounterType.VArrayBinds, attributes.Count);
             GLVertexUtils.EnableAttributes(attributes.Count);
             for (int i = 0; i < attributes.Count; i++)
                 GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
@@ -97,7 +94,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             foreach (int i in layoutPositions)
                 max = Math.Max(max, i);
 
-            FrameStatistics.Add(StatisticsCounterType.VArrayBinds, attributes.Count);
             GLVertexUtils.EnableAttributes(max);
             for (int i = 0; i < attributes.Count; i++)
                 GL.VertexAttribPointer(layoutPositions[i], attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
