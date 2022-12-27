@@ -122,7 +122,7 @@ namespace osu.Framework.Graphics.Rendering
 
         static Renderer()
         {
-            var sources = Enum.GetValues(typeof(FlushBatchSource));
+            var sources = Enum.GetValues<FlushBatchSource>();
 
             flush_source_statistics = new GlobalStatistic<int>[sources.Length];
             foreach (FlushBatchSource source in sources)
