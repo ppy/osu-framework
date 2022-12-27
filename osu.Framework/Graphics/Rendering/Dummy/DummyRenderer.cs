@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>() where TVertex : unmanaged, IVertex
             => new DummyRawVertexBuffer<TVertex>();
 
-        public IRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>() where TIndex : unmanaged, IConvertible
+        public IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible
             => new DummyRawElementBuffer<TIndex>();
 
         public IRawVertexArray CreateRawVertexArray()

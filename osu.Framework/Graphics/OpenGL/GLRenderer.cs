@@ -411,7 +411,7 @@ namespace osu.Framework.Graphics.OpenGL
         public override GLRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>()
             => new GLRawVertexBuffer<TVertex>(this);
 
-        public override GLRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>()
+        public override GLRawElementBuffer<TIndex> CreateRawIndexBuffer<TIndex>()
             => new GLRawElementBuffer<TIndex>(this);
 
         public override GLRawVertexArray CreateRawVertexArray()

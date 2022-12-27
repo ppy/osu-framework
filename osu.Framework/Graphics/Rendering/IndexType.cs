@@ -4,7 +4,7 @@
 namespace osu.Framework.Graphics.Rendering
 {
     /// <summary>
-    /// Type of index used by <see cref="IRawElementBuffer"/>.
+    /// Type of index used by <see cref="IRawIndexBuffer"/>.
     /// </summary>
     public enum IndexType
     {

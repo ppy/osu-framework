@@ -364,10 +364,10 @@ namespace osu.Framework.Graphics.Rendering
         IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>() where TVertex : unmanaged, IVertex;
 
         /// <summary>
-        /// Creates an element buffer.
+        /// Creates an index buffer.
         /// </summary>
-        /// <typeparam name="TIndex">The type of indices the element buffer stores. This can be either <see cref="ushort"/> or <see cref="uint"/>.</typeparam>
-        IRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
+        /// <typeparam name="TIndex">The type of indices the index buffer stores. This can be either <see cref="ushort"/> or <see cref="uint"/>.</typeparam>
+        IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
 
         /// <summary>
         /// Creates a vertex array.

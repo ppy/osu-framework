@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
-    internal class DummyRawElementBuffer<TIndex> : IRawElementBuffer<TIndex> where TIndex : unmanaged, IConvertible
+    internal class DummyRawElementBuffer<TIndex> : IRawIndexBuffer<TIndex> where TIndex : unmanaged, IConvertible
     {
         public void Draw(PrimitiveTopology topology, int count, int offset = 0)
         {

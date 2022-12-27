@@ -6,7 +6,7 @@ using System;
 namespace osu.Framework.Graphics.Rendering
 {
     /// <summary>
-    /// Stores <see cref="IRawVertexBuffer"/> layouts and the optional associated <see cref="IRawElementBuffer"/>.
+    /// Stores <see cref="IRawVertexBuffer"/> layouts and the optional associated <see cref="IRawIndexBuffer"/>.
     /// </summary>
     public interface IRawVertexArray : IDisposable
     {
@@ -18,8 +18,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <list type="number">
         /// <item>All <see cref="IRawVertexBuffer{T}.SetLayout()"/> calls will be cached by this vertex array.</item>
         /// <item>
-        /// The first <see cref="IRawElementBuffer.Bind"/> call will be cached by this vertex array, and any subsequent call will replace it.
-        /// An <see cref="IRawElementBuffer.Unbind"/> call will clear this cache.
+        /// The first <see cref="IRawIndexBuffer.Bind"/> call will be cached by this vertex array, and any subsequent call will replace it.
+        /// An <see cref="IRawIndexBuffer.Unbind"/> call will clear this cache.
         /// </item>
         /// </list>
         /// Note that an implicit vertex array exists while no other vertex array is bound.

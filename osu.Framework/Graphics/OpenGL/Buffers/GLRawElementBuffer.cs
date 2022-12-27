@@ -8,7 +8,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal class GLRawElementBuffer<TIndex> : GLRawBuffer<TIndex>, IRawElementBuffer<TIndex> where TIndex : unmanaged, IConvertible
+    internal class GLRawElementBuffer<TIndex> : GLRawBuffer<TIndex>, IRawIndexBuffer<TIndex> where TIndex : unmanaged, IConvertible
     {
         public GLRawElementBuffer(GLRenderer renderer) : base(renderer, BufferTarget.ElementArrayBuffer)
         {
@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
             var drawOffset = (IntPtr)(offset * STRIDE);
-            GL.DrawElements(GLUtils.ToPrimitiveType(topology), count, GLUtils.ToDrawElementsType(IRawElementBuffer<TIndex>.INDEX_TYPE), drawOffset);
+            GL.DrawElements(GLUtils.ToPrimitiveType(topology), count, GLUtils.ToDrawElementsType(IRawIndexBuffer<TIndex>.INDEX_TYPE), drawOffset);
         }
     }
 }

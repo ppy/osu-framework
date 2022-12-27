@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 public ulong UploadedId;
 
                 public IRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>> VBO;
-                public IRawElementBuffer<ushort> EBO;
+                public IRawIndexBuffer<ushort> EBO;
                 public IRawVertexArray VAO;
 
                 public int VerticeCount;
@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     if (sharedData.VAO == null)
                     {
                         sharedData.VBO = renderer.CreateRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>>();
-                        sharedData.EBO = renderer.CreateRawElementBuffer<ushort>();
+                        sharedData.EBO = renderer.CreateRawIndexBuffer<ushort>();
                         sharedData.VAO = renderer.CreateRawVertexArray();
 
                         sharedData.VAO.Bind();
