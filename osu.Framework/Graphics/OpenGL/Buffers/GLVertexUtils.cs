@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Vertices;
-using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
