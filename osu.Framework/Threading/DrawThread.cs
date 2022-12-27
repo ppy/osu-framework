@@ -56,6 +56,7 @@ namespace osu.Framework.Threading
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
         {
+            StatisticsCounterType.VArrayBinds,
             StatisticsCounterType.VBufBinds,
             StatisticsCounterType.VBufOverflow,
             StatisticsCounterType.TextureBinds,
