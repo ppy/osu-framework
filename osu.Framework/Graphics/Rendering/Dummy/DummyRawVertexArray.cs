@@ -5,8 +5,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 {
     internal class DummyRawVertexArray : IRawVertexArray
     {
-        public void Bind ()
+        public bool Bind ()
         {
+            return true;
         }
 
         public void Unbind ()

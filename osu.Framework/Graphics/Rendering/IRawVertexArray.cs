@@ -24,7 +24,8 @@ namespace osu.Framework.Graphics.Rendering
         /// </list>
         /// Note that an implicit vertex array exists while no other vertex array is bound.
         /// </remarks>
-        void Bind();
+        /// <returns>Whether the bind was necessary.</returns>
+        bool Bind();
 
         /// <summary>
         /// Unbinds this vertex array, restoring the state cached by the implicit vertex array.

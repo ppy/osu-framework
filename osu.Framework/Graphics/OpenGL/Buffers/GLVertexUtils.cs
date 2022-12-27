@@ -3,18 +3,43 @@
 
 #nullable disable
 
-// ReSharper disable StaticMemberInGenericType
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
+    internal static class GLVertexUtils
+    {
+        public static int AmountEnabledAttributes;
+
+        public static void EnableAttributes(int amount)
+        {
+            if (amount == AmountEnabledAttributes)
+                return;
+
+            FrameStatistics.Add(StatisticsCounterType.VArrayBinds, Math.Abs(AmountEnabledAttributes - amount));
+
+            if (amount > AmountEnabledAttributes)
+            {
+                for (int i = AmountEnabledAttributes; i < amount; ++i)
+                    GL.EnableVertexAttribArray(i);
+            }
+            else
+            {
+                for (int i = AmountEnabledAttributes - 1; i >= amount; --i)
+                    GL.DisableVertexAttribArray(i);
+            }
+
+            AmountEnabledAttributes = amount;
+        }
+    }
+
     /// <summary>
     /// Helper method that provides functionality to enable and bind GL vertex attributes.
     /// </summary>
@@ -27,7 +52,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public static readonly int STRIDE = Marshal.SizeOf(default(T));
 
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
-        private static int amountEnabledAttributes;
 
         static GLVertexUtils()
         {
@@ -61,39 +85,22 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public static void SetLayout()
         {
-            EnableAttributes(attributes.Count);
+            FrameStatistics.Add(StatisticsCounterType.VArrayBinds, attributes.Count);
+            GLVertexUtils.EnableAttributes(attributes.Count);
             for (int i = 0; i < attributes.Count; i++)
                 GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
         }
 
         public static void SetLayout(ReadOnlySpan<int> layoutPositions)
         {
-            int max = amountEnabledAttributes;
+            int max = GLVertexUtils.AmountEnabledAttributes;
             foreach (int i in layoutPositions)
                 max = Math.Max(max, i);
 
-            EnableAttributes(max);
+            FrameStatistics.Add(StatisticsCounterType.VArrayBinds, attributes.Count);
+            GLVertexUtils.EnableAttributes(max);
             for (int i = 0; i < attributes.Count; i++)
                 GL.VertexAttribPointer(layoutPositions[i], attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
-        }
-
-        public static void EnableAttributes(int amount)
-        {
-            if (amount == amountEnabledAttributes)
-                return;
-
-            if (amount > amountEnabledAttributes)
-            {
-                for (int i = amountEnabledAttributes; i < amount; ++i)
-                    GL.EnableVertexAttribArray(i);
-            }
-            else
-            {
-                for (int i = amountEnabledAttributes - 1; i >= amount; --i)
-                    GL.DisableVertexAttribArray(i);
-            }
-
-            amountEnabledAttributes = amount;
         }
     }
 }

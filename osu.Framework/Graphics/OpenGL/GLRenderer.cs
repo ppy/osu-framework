@@ -80,6 +80,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundBuffers.AsSpan().Clear();
 
             GL.UseProgram(0);
+            GLRawVertexArray.BoundArray?.Unbind();
 
             base.BeginFrame(windowSize);
         }
@@ -89,6 +90,16 @@ namespace osu.Framework.Graphics.OpenGL
         protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
         protected internal override void WaitUntilIdle() => GL.Finish();
 
+        public int GetBoundBuffer(BufferTarget target)
+        {
+            int bufferIndex = target - BufferTarget.ArrayBuffer;
+            return lastBoundBuffers[bufferIndex];
+        }
+        public void ResetBoundBuffer(BufferTarget target, int buffer)
+        {
+            int bufferIndex = target - BufferTarget.ArrayBuffer;
+            lastBoundBuffers[bufferIndex] = buffer;
+        }
         public bool BindBuffer(BufferTarget target, int buffer)
         {
             int bufferIndex = target - BufferTarget.ArrayBuffer;
@@ -397,13 +408,13 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
 
-        public override IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>()
+        public override GLRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>()
             => new GLRawVertexBuffer<TVertex>(this);
 
-        public override IRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>()
+        public override GLRawElementBuffer<TIndex> CreateRawElementBuffer<TIndex>()
             => new GLRawElementBuffer<TIndex>(this);
 
-        public override IRawVertexArray CreateRawVertexArray()
+        public override GLRawVertexArray CreateRawVertexArray()
             => new GLRawVertexArray(this);
     }
 }

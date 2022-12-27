@@ -27,15 +27,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Target = target;
         }
 
-        public void Bind()
+        public bool Bind()
         {
-            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
-            GL.BindBuffer(Target, Handle);
+            return Renderer.BindBuffer(Target, Handle);
         }
 
         public void Unbind()
         {
-            GL.BindBuffer(Target, 0);
+            Renderer.BindBuffer(Target, 0);
         }
 
         public void BufferData(ReadOnlySpan<TData> data, Rendering.BufferUsageHint usageHint)

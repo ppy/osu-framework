@@ -40,7 +40,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <remarks>
         /// This call is cached by the bound (or implicit) <see cref="IRawVertexArray"/>.
         /// </remarks>
-        abstract void IRawBuffer.Bind();
+        /// <returns>Whether the bind was necessary.</returns>
+        abstract bool IRawBuffer.Bind();
 
         /// <summary>
         /// Unbinds the element buffer.

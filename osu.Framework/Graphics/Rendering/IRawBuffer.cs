@@ -38,7 +38,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Binds the buffer.
         /// </summary>
-        void Bind();
+        /// <returns>Whether the bind was necessary.</returns>
+        bool Bind();
 
         /// <summary>
         /// Unbinds the buffer.

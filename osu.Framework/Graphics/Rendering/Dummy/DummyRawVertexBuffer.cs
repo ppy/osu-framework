@@ -28,8 +28,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        public void Bind ()
+        public bool Bind ()
         {
+            return true;
         }
 
         public void Unbind ()

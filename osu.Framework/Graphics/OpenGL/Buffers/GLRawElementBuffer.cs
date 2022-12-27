@@ -17,6 +17,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void Draw(PrimitiveTopology topology, int count, int offset = 0)
         {
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
             var drawOffset = (IntPtr)(offset * STRIDE);
             GL.DrawElements(GLUtils.ToPrimitiveType(topology), count, GLUtils.ToDrawElementsType(IRawElementBuffer<TIndex>.INDEX_TYPE), drawOffset);
         }

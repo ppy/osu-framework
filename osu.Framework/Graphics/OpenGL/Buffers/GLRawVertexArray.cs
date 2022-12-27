@@ -10,23 +10,62 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     internal class GLRawVertexArray : IRawVertexArray
     {
+        // these 4 get set when un/binding, not for dynamic use
+        public static int ImplicitAmountEnabledAttributes;
+        public static int ImplicitBoundElementArray;
+
+        protected int BoundElementArray { get; private set; }
+        public int AmountEnabledAttributes;
+
+        public static GLRawVertexArray? BoundArray;
+
         protected int Handle { get; private set; }
         protected readonly GLRenderer Renderer;
+
         public GLRawVertexArray(GLRenderer renderer)
         {
             Handle = GL.GenVertexArray();
             Renderer = renderer;
         }
 
-        public void Bind()
+        public bool Bind()
         {
+            if (BoundArray == this)
+                return false;
+
             FrameStatistics.Increment(StatisticsCounterType.VArrayBinds);
             GL.BindVertexArray(Handle);
+
+            if (BoundArray != null)
+            {
+                BoundArray.AmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
+                BoundArray.BoundElementArray = Renderer.GetBoundBuffer(BufferTarget.ElementArrayBuffer);
+            }
+            else
+            {
+                ImplicitAmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
+                ImplicitBoundElementArray = Renderer.GetBoundBuffer(BufferTarget.ElementArrayBuffer);
+            }
+
+            GLVertexUtils.AmountEnabledAttributes = AmountEnabledAttributes;
+            Renderer.ResetBoundBuffer(BufferTarget.ElementArrayBuffer, BoundElementArray);
+            BoundArray = this;
+            return true;
         }
 
         public void Unbind()
         {
+            if (BoundArray == null)
+                return;
+
             GL.BindVertexArray(0);
+            BoundArray.AmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
+            BoundArray.BoundElementArray = Renderer.GetBoundBuffer(BufferTarget.ElementArrayBuffer);
+
+            GLVertexUtils.AmountEnabledAttributes = ImplicitAmountEnabledAttributes;
+            Renderer.ResetBoundBuffer(BufferTarget.ElementArrayBuffer, ImplicitBoundElementArray);
+
+            BoundArray = null;
         }
 
         protected bool IsDisposed => Handle == -1;

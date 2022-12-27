@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void Draw(PrimitiveTopology topology, int count, int offset = 0)
         {
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
             GL.DrawArrays(GLUtils.ToPrimitiveType(topology), offset, count);
         }
     }
