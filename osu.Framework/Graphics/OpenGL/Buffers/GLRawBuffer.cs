@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -28,6 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Bind()
         {
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
             GL.BindBuffer(Target, Handle);
         }
 
@@ -38,12 +40,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void BufferData(ReadOnlySpan<TData> data, Rendering.BufferUsageHint usageHint)
         {
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, data.Length);
             ref TData dataPointer = ref MemoryMarshal.GetReference(data);
             GL.BufferData(Target, data.Length * STRIDE, ref dataPointer, GLUtils.ToBufferUsageHint(usageHint));
         }
 
         public void UpdateRange(ReadOnlySpan<TData> data, int offset = 0)
         {
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, data.Length);
             var dataOffset = (IntPtr)(offset * STRIDE);
             ref TData dataPointer = ref MemoryMarshal.GetReference(data);
             GL.BufferSubData(Target, dataOffset, data.Length * STRIDE, ref dataPointer);

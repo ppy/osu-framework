@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -26,6 +27,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Draw(PrimitiveTopology topology, int count, int offset = 0)
         {
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
             GL.DrawArrays(GLUtils.ToPrimitiveType(topology), offset, count);
         }
     }

@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -19,6 +20,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Bind()
         {
+            FrameStatistics.Increment(StatisticsCounterType.VArrayBinds);
             GL.BindVertexArray(Handle);
         }
 

@@ -69,6 +69,7 @@ namespace osu.Framework.Statistics
         /// </summary>
         CCL,
 
+        VArrayBinds,
         VBufBinds,
         VBufOverflow,
         TextureBinds,
