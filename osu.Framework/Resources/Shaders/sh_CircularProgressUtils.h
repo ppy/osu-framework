@@ -2,18 +2,6 @@
 #define HALF_PI 1.57079632679
 #define TWO_PI 6.28318530718
 
-highp float dstToLine(highp vec2 start, highp vec2 end, highp vec2 pixelPos)
-{
-    highp float lineLength = distance(end, start);
-
-    if (lineLength < 0.001)
-        return distance(pixelPos, start);
-
-    highp vec2 a = (end - start) / lineLength;
-    highp vec2 closest = clamp(dot(a, pixelPos - start), 0.0, distance(end, start)) * a + start; // closest point on a line from given position
-    return distance(closest, pixelPos);
-}
-
 // Returns distance to the progress shape (to closest pixel on it's border)
 highp float distanceToProgress(highp vec2 pixelPos, mediump float progress, mediump float innerRadius, bool roundedCaps, highp float texelSize)
 {
