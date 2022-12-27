@@ -10,6 +10,16 @@ namespace osu.Framework.Graphics.Rendering
     public interface IRawBuffer<TData> : IRawBuffer where TData : unmanaged
     {
         /// <summary>
+        /// Reallocates and clears the data store so that is has excatly the given size.
+        /// </summary>
+        /// <remarks>
+        /// Use <see cref="UpdateRange(ReadOnlySpan{TData}, int)"/> for subsequent calls if a resize is not necessary.
+        /// </remarks>
+        /// <param name="size">The capacity.</param>
+        /// <param name="usageHint">A usage hint.</param>
+        void SetCapacity(int size, BufferUsageHint usageHint);
+
+        /// <summary>
         /// Sends data to the GPU, reallocating the data store.
         /// This requires the buffer to be bound.
         /// </summary>

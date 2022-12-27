@@ -8,36 +8,40 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 {
     internal class DummyRawVertexBuffer<TVertex> : IRawVertexBuffer<TVertex> where TVertex : unmanaged, IVertex
     {
-        public void SetLayout ()
+        public void SetLayout()
         {
         }
 
-        public void SetLayout (ReadOnlySpan<int> layoutPositions)
+        public void SetLayout(ReadOnlySpan<int> layoutPositions)
         {
         }
 
-        public void Draw (PrimitiveTopology topology, int count, int offset = 0)
+        public void Draw(PrimitiveTopology topology, int count, int offset = 0)
         {
         }
 
-        public void BufferData (ReadOnlySpan<TVertex> data, BufferUsageHint usageHint)
+        public void SetCapacity (int size, BufferUsageHint usageHint)
         {
         }
 
-        public void UpdateRange (ReadOnlySpan<TVertex> data, int offset = 0)
+        public void BufferData(ReadOnlySpan<TVertex> data, BufferUsageHint usageHint)
         {
         }
 
-        public bool Bind ()
+        public void UpdateRange(ReadOnlySpan<TVertex> data, int offset = 0)
+        {
+        }
+
+        public bool Bind()
         {
             return true;
         }
 
-        public void Unbind ()
+        public void Unbind()
         {
         }
 
-        public void Dispose ()
+        public void Dispose()
         {
         }
     }

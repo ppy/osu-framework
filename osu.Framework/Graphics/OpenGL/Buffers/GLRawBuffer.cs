@@ -37,6 +37,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Renderer.BindBuffer(Target, 0);
         }
 
+        public void SetCapacity(int size, Rendering.BufferUsageHint usageHint)
+        {
+            GL.BufferData(Target, size * STRIDE, IntPtr.Zero, GLUtils.ToBufferUsageHint(usageHint));
+        }
+
         public void BufferData(ReadOnlySpan<TData> data, Rendering.BufferUsageHint usageHint)
         {
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, data.Length);

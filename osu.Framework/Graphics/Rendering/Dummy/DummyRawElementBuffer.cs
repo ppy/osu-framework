@@ -7,28 +7,32 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 {
     internal class DummyRawElementBuffer<TIndex> : IRawElementBuffer<TIndex> where TIndex : unmanaged, IConvertible
     {
-        public void Draw (PrimitiveTopology topology, int count, int offset = 0)
+        public void Draw(PrimitiveTopology topology, int count, int offset = 0)
         {
         }
 
-        public void BufferData (ReadOnlySpan<TIndex> data, BufferUsageHint usageHint)
+        public void SetCapacity(int size, BufferUsageHint usageHint)
         {
         }
 
-        public void UpdateRange (ReadOnlySpan<TIndex> data, int offset = 0)
+        public void BufferData(ReadOnlySpan<TIndex> data, BufferUsageHint usageHint)
         {
         }
 
-        public bool Bind ()
+        public void UpdateRange(ReadOnlySpan<TIndex> data, int offset = 0)
+        {
+        }
+
+        public bool Bind()
         {
             return true;
         }
 
-        public void Unbind ()
+        public void Unbind()
         {
         }
 
-        public void Dispose ()
+        public void Dispose()
         {
         }
     }
