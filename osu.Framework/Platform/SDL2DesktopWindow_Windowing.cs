@@ -135,7 +135,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns the window modes that the platform should support by default.
         /// </summary>
-        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>();
+        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues<WindowMode>();
 
         private Point position;
 

@@ -152,7 +152,7 @@ namespace osu.Framework.Input
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
-            foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
+            foreach (var button in Enum.GetValues<MouseButton>())
             {
                 var manager = CreateButtonEventManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
