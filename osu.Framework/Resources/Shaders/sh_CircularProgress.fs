@@ -15,8 +15,7 @@ uniform bool roundedCaps;
 
 void main(void)
 {
-    highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
-    highp vec2 pixelPos = v_TexCoord / resolution;
+    highp vec2 pixelPos = v_TexCoord / (v_TexRect.zw - v_TexRect.xy);
     
     highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
     lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9), wrappedCoord);

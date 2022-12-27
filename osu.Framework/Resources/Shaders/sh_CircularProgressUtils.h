@@ -1,5 +1,4 @@
-﻿#define PI 3.1415926536
-#define HALF_PI 1.57079632679
+﻿#define HALF_PI 1.57079632679
 #define TWO_PI 6.28318530718
 
 // Returns distance to the progress shape (to closest pixel on it's border)
@@ -7,8 +6,7 @@ highp float distanceToProgress(highp vec2 pixelPos, mediump float progress, medi
 {
     // Compute angle of the current pixel in the (0, 2*PI) range
     mediump float pixelAngle = atan(0.5 - pixelPos.y, 0.5 - pixelPos.x) - HALF_PI;
-    if (pixelAngle < 0.0)
-        pixelAngle += TWO_PI;
+    pixelAngle += float(pixelAngle < 0.0) * TWO_PI;
 
     mediump float progressAngle = TWO_PI * progress;
     mediump float pathRadius = 0.25 * innerRadius;
@@ -39,8 +37,7 @@ highp float distanceToProgress(highp vec2 pixelPos, mediump float progress, medi
 lowp float progressAlphaAt(highp vec2 pixelPos, mediump float progress, mediump float innerRadius, bool roundedCaps, highp float texelSize)
 {
     // This is a bit of a hack to make progress appear smooth if it's radius < texelSize by making it more transparent while leaving thickness the same
-    lowp float subAAMultiplier = 1.0;
-    subAAMultiplier = clamp(innerRadius / (texelSize * 2.0), 0.1, 1.0);
+    lowp float subAAMultiplier = clamp(innerRadius / (texelSize * 2.0), 0.1, 1.0);
     innerRadius = max(innerRadius, texelSize * 2.0);
     
     return smoothstep(texelSize, 0.0, distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize)) * subAAMultiplier;
