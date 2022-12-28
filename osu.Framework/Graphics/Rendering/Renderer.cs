@@ -795,7 +795,7 @@ namespace osu.Framework.Graphics.Rendering
 
         public abstract IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>() where TVertex : unmanaged, IVertex;
         public abstract IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
-        public abstract IRawVertexArray CreateRawVertexArray();
+        public abstract IRenderStateArray CreateRenderStateArray(StateArrayFlags flags);
 
         #endregion
 

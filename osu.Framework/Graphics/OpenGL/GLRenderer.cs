@@ -80,9 +80,15 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundBuffers.AsSpan().Clear();
 
             GL.UseProgram(0);
-            GLRawVertexArray.BoundArray?.Unbind();
 
             base.BeginFrame(windowSize);
+        }
+
+        protected internal override void FinishFrame ()
+        {
+            GLStateArray.BoundArray?.Unbind();
+
+            base.FinishFrame();
         }
 
         protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);
@@ -411,10 +417,10 @@ namespace osu.Framework.Graphics.OpenGL
         public override GLRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>()
             => new GLRawVertexBuffer<TVertex>(this);
 
-        public override GLRawElementBuffer<TIndex> CreateRawIndexBuffer<TIndex>()
-            => new GLRawElementBuffer<TIndex>(this);
+        public override GLRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>()
+            => new GLRawIndexBuffer<TIndex>(this);
 
-        public override GLRawVertexArray CreateRawVertexArray()
-            => new GLRawVertexArray(this);
+        public override IRenderStateArray CreateRenderStateArray (StateArrayFlags flags)
+            => new GLStateArray(this, flags);
     }
 }

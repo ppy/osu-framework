@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Binds the index buffer.
         /// </summary>
         /// <remarks>
-        /// This call is cached by the bound (or implicit) <see cref="IRawVertexArray"/>.
+        /// This call is cached by the bound <see cref="IRenderStateArray"/> with the <see cref="StateArrayFlags.IndexBuffer"/> flag.
         /// </remarks>
         /// <returns>Whether the bind was necessary.</returns>
         abstract bool IRawBuffer.Bind();
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Unbinds the index buffer.
         /// </summary>
         /// <remarks>
-        /// This call is cached by the bound (or implicit) <see cref="IRawVertexArray"/>.
+        /// This call is cached by the bound (or implicit) <see cref="IRenderStateArray"/> with the <see cref="StateArrayFlags.IndexBuffer"/> flag.
         /// </remarks>
         abstract void IRawBuffer.Unbind();
 

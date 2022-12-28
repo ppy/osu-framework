@@ -370,9 +370,9 @@ namespace osu.Framework.Graphics.Rendering
         IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
 
         /// <summary>
-        /// Creates a vertex array.
+        /// Creates a state array which catches the specified state.
         /// </summary>
-        IRawVertexArray CreateRawVertexArray();
+        IRenderStateArray CreateRenderStateArray(StateArrayFlags flags);
 
         /// <summary>
         /// Sets the value of a uniform.

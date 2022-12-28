@@ -3,8 +3,13 @@
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
-    internal class DummyRawVertexArray : IRawVertexArray
+    internal class DummyRawVertexArray : IRenderStateArray
     {
+        public DummyRawVertexArray(StateArrayFlags flags)
+        {
+            CachedState = flags;
+        }
+
         public bool Bind()
         {
             return true;
@@ -17,5 +22,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public void Dispose()
         {
         }
+
+        public StateArrayFlags CachedState { get; set; }
     }
 }

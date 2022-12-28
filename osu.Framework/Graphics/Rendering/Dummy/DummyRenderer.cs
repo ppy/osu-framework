@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible
             => new DummyRawElementBuffer<TIndex>();
 
-        public IRawVertexArray CreateRawVertexArray()
-            => new DummyRawVertexArray();
+        public IRenderStateArray CreateRenderStateArray(StateArrayFlags flags)
+            => new DummyRawVertexArray(flags);
     }
 }

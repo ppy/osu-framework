@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Graphics
 
                 public IRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>> VBO;
                 public IRawIndexBuffer<ushort> EBO;
-                public IRawVertexArray VAO;
+                public IRenderStateArray VAO;
 
                 public int VerticeCount;
             }
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     {
                         sharedData.VBO = renderer.CreateRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>>();
                         sharedData.EBO = renderer.CreateRawIndexBuffer<ushort>();
-                        sharedData.VAO = renderer.CreateRawVertexArray();
+                        sharedData.VAO = renderer.CreateRenderStateArray(StateArrayFlags.VertexArray);
 
                         sharedData.VAO.Bind();
                         sharedData.EBO.Bind();

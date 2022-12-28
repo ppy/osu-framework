@@ -8,9 +8,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal class GLRawElementBuffer<TIndex> : GLRawBuffer<TIndex>, IRawIndexBuffer<TIndex> where TIndex : unmanaged, IConvertible
+    internal class GLRawIndexBuffer<TIndex> : GLRawBuffer<TIndex>, IRawIndexBuffer<TIndex> where TIndex : unmanaged, IConvertible
     {
-        public GLRawElementBuffer(GLRenderer renderer) : base(renderer, BufferTarget.ElementArrayBuffer)
+        public GLRawIndexBuffer(GLRenderer renderer) : base(renderer, BufferTarget.ElementArrayBuffer)
         {
         }
 

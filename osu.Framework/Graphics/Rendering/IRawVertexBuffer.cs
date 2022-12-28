@@ -11,11 +11,11 @@ namespace osu.Framework.Graphics.Rendering
     public interface IRawVertexBuffer<TVertex> : IRawVertexBuffer, IRawBuffer<TVertex> where TVertex : unmanaged, IVertex
     {
         /// <summary>
-        /// Sets the layout of this vertex buffer when drawing using the explicit layout of the <see cref="TVertex"/>.
+        /// Sets the layout of this vertex buffer when drawing using the sequential layout of the <typeparamref name="TVertex"/>.
         /// This requires the buffer to be bound.
         /// </summary>
         /// <remarks>
-        /// This call is cached by the bound (or implicit) <see cref="IRawVertexArray"/>.
+        /// This call is cached by the bound <see cref="IRenderStateArray"/> with the <see cref="StateArrayFlags.VertexLayout"/> flag.
         /// </remarks>
         void SetLayout();
     }
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="layoutPositions">The layout positions of individual vertex components.</param>
         /// <remarks>
-        /// This call is cached by the bound (or implicit) <see cref="IRawVertexArray"/>.
+        /// This call is cached by the bound <see cref="IRenderStateArray"/> with the <see cref="StateArrayFlags.VertexLayout"/> flag.
         /// </remarks>
         void SetLayout(ReadOnlySpan<int> layoutPositions);
 

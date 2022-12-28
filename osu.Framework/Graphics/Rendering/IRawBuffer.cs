@@ -11,6 +11,7 @@ namespace osu.Framework.Graphics.Rendering
     {
         /// <summary>
         /// Reallocates and clears the data store so that is has excatly the given size.
+        /// This requires the buffer to be bound.
         /// </summary>
         /// <remarks>
         /// Use <see cref="UpdateRange(ReadOnlySpan{TData}, int)"/> for subsequent calls if a resize is not necessary.
