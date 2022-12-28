@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (BoundArray == this)
                 return false;
 
-            Bind(Renderer, VAOHandle, CachesVertexLayout, CachesIndexBuffer, AmountEnabledAttributes, BoundElementBuffer, ElementBufferOverride);
+            Bind(Renderer, VAOHandle, CachesVertexLayout, CachesIndexBuffer, ref AmountEnabledAttributes, ref BoundElementBuffer, ref ElementBufferOverride);
             BoundArray = this;
             return true;
         }
@@ -60,25 +60,21 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (BoundArray != this)
                 return;
 
-            Bind(Renderer, ImplicitArray, true, true, ImplicitAmountEnabledAttributes, ImplicitBoundElementBuffer, ImplicitElementBufferOverride);
+            Bind(Renderer, ImplicitArray, true, true, ref ImplicitAmountEnabledAttributes, ref ImplicitBoundElementBuffer, ref ImplicitElementBufferOverride);
             BoundArray = null;
         }
 
         static void Bind(GLRenderer renderer, int vao, bool cacheVertexLayout, bool cacheIndexBuffer,
-            int amountEnabledAttributes, int boundElementBuffer, int elementBufferOverride)
+            ref int amountEnabledAttributes, ref int boundElementBuffer, ref int elementBufferOverride) // these are by-ref because the might get modified inside this method
         {
             var currentElementBuffer = renderer.GetBoundBuffer(BufferTarget.ElementArrayBuffer);
             if (IsImplicitArrayBound)
             {
                 ImplicitAmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
                 if (BoundArray?.CachesIndexBuffer == true)
-                {
                     ImplicitElementBufferOverride = currentElementBuffer;
-                }
                 else
-                {
-                    ImplicitBoundElementBuffer = currentElementBuffer;
-                }
+                    ImplicitElementBufferOverride = ImplicitBoundElementBuffer = currentElementBuffer;
             }
 
             if (BoundArray != null)
@@ -86,7 +82,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 if (BoundArray.CachesVertexLayout)
                     BoundArray.AmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
                 if (BoundArray.CachesIndexBuffer)
-                    BoundArray.BoundElementBuffer = currentElementBuffer;
+                    BoundArray.ElementBufferOverride = BoundArray.BoundElementBuffer = currentElementBuffer;
                 else if (BoundArray.CachesVertexLayout)
                     BoundArray.ElementBufferOverride = currentElementBuffer;
             }
@@ -100,13 +96,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 renderer.ResetBoundBuffer(BufferTarget.ElementArrayBuffer, elementBufferOverride);
 
                 if (cacheIndexBuffer)
-                {
                     renderer.BindBuffer(BufferTarget.ElementArrayBuffer, boundElementBuffer);
-                }
                 else
-                {
                     renderer.BindBuffer(BufferTarget.ElementArrayBuffer, currentElementBuffer);
-                }
             }
             else
             {

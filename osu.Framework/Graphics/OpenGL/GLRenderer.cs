@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
-            GLStateArray.ImplicitArray = GL.GenVertexArray();
+            GLStateArray.ImplicitArray = GL.GenVertexArray(); // VAO 0 is an object in compatibility mode, but core needs this to be GL.GenVertexArray()
 
             openGLSurface.ClearCurrent();
         }
