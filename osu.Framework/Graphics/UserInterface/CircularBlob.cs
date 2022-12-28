@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private int pointCount = 12;
+        private int pointCount = 10;
 
         public int PointCount
         {

@@ -2,11 +2,14 @@
 #define TWO_PI 6.28318530718
 #define SQRT3 1.732050808
 
-// 2D noise and random https://thebookofshaders.com/11/
+// random https://thebookofshaders.com/11/
 
-highp float random(highp vec2 st)
+highp float biasedRandom(highp vec2 st)
 {
-    return fract(sin(dot(floor(st), vec2(12.9898,78.233))) * 43758.5453123);
+    highp float rand = fract(sin(dot(floor(st), vec2(12.9898,78.233))) * 43758.5453123);
+
+    // make random biased towards small values so not-so-frequent big values will cause greater shape distortion
+    return rand * rand * rand;
 }
 
 // we could use exact box calculation, however this implementation is way faster but still good enough
@@ -77,7 +80,7 @@ highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C
 highp vec2 getVertexPosByAngle(mediump float angle, highp vec2 noisePosition, mediump float amplitude)
 {
     highp vec2 cs = vec2(cos(angle), sin(angle));
-    highp float vertexDstFromCentre = 0.5 * (1.0 - amplitude * random(noisePosition + cs * 20.0));
+    highp float vertexDstFromCentre = 0.5 * (1.0 - amplitude * biasedRandom(noisePosition + cs * 20.0));
     return vec2(0.5) + cs * vertexDstFromCentre;
 }
 
