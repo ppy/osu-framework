@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Graphics
 
             private class CachedStarDrawableDrawNode : DrawNode
             {
-                new protected CachedStarDrawable Source => (CachedStarDrawable)base.Source;
+                protected new CachedStarDrawable Source => (CachedStarDrawable)base.Source;
                 private CachedStarDrawableSharedData sharedData;
 
                 public CachedStarDrawableDrawNode(CachedStarDrawableSharedData sharedData, CachedStarDrawable source) : base(source)
@@ -252,7 +252,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                         indices[n++] = i.Item2;
                         indices[n++] = i.Item3;
                     }
-                    
+
                     sharedData.Indices.Bind();
                     sharedData.Indices.BufferData(indices, BufferUsageHint.StaticDraw);
                     sharedData.VerticeCount = n;

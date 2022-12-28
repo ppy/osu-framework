@@ -427,7 +427,7 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLRawIndexBuffer<TIndex>(this);
 
         public GLStateArray ImplicitStateArray = null!;
-        public override IRenderStateArray CreateRenderStateArray (StateArrayFlags flags)
+        public override IRenderStateArray CreateRenderStateArray(StateArrayFlags flags)
             => new GLStateArray(this, flags);
     }
 }

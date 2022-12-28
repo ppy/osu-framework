@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        public void SetCapacity (int size, BufferUsageHint usageHint)
+        public void SetCapacity(int size, BufferUsageHint usageHint)
         {
         }
 
