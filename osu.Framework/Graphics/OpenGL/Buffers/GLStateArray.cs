@@ -11,22 +11,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     internal class GLStateArray : IRenderStateArray
     {
-        // these 6 get set when un/binding, not for dynamic use
-        public static int ImplicitElementBufferOverride; // state arrays which cache the index but not use a vao can mess up the bound index
-        public static int ImplicitAmountEnabledAttributes;
-        public static int ImplicitBoundElementBuffer;
-
-        public int ElementBufferOverride;
+        // these 3 get set when un/binding, not for dynamic use
+        public int ElementBufferOverride; // state arrays which cache the index but not use a vao can mess up the bound index
         public int BoundElementBuffer;
         public int AmountEnabledAttributes;
 
-        public static int ImplicitArray;
-        public static GLStateArray? BoundArray;
+        public static GLStateArray VAOBoundArray = null!;
+        public static GLStateArray BoundArray = null!;
 
-        public static bool IsImplicitArrayBound => BoundArray == null || !BoundArray.CachesVertexLayout;
-
-        protected int VAOHandle { get; private set; }
+        public int VAOHandle { get; private set; }
+        public bool UsesVAO => CachesVertexLayout;
         protected readonly GLRenderer Renderer;
+
         public StateArrayFlags CachedState { get; private set; }
         public bool CachesVertexLayout { get; private set; }
         public bool CachesIndexBuffer { get; private set; }
@@ -36,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             CachesVertexLayout = flags.HasFlagFast(StateArrayFlags.VertexLayout);
             CachesIndexBuffer = flags.HasFlagFast(StateArrayFlags.IndexBuffer);
 
-            if (CachesVertexLayout)
+            if (UsesVAO)
                 VAOHandle = GL.GenVertexArray();
             else
                 VAOHandle = -1;
@@ -50,9 +46,42 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (BoundArray == this)
                 return false;
 
-            Bind(Renderer, VAOHandle, CachesVertexLayout, CachesIndexBuffer, ref AmountEnabledAttributes, ref BoundElementBuffer, ref ElementBufferOverride);
+            var currentElementBuffer = Renderer.GetBoundBuffer(BufferTarget.ElementArrayBuffer);
+
+            if (BoundArray.UsesVAO)
+            {
+                BoundArray.AmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
+                BoundArray.ElementBufferOverride = currentElementBuffer;
+                if (BoundArray.CachesIndexBuffer)
+                    BoundArray.BoundElementBuffer = currentElementBuffer;
+            }
+            else if (BoundArray.CachesIndexBuffer)
+            {
+                VAOBoundArray.ElementBufferOverride = BoundArray.BoundElementBuffer = currentElementBuffer;
+            }
+
+            if (UsesVAO)
+                bindVAO(Renderer, this, CachesIndexBuffer ? BoundElementBuffer : currentElementBuffer);
+            else
+                bindVAO(Renderer, Renderer.ImplicitStateArray, CachesIndexBuffer ? BoundElementBuffer : Renderer.ImplicitStateArray.BoundElementBuffer);
+
             BoundArray = this;
             return true;
+        }
+
+        private static void bindVAO(GLRenderer renderer, GLStateArray array, int ebo)
+        {
+            if (VAOBoundArray != array)
+            {
+                FrameStatistics.Increment(StatisticsCounterType.VArrayBinds);
+                GL.BindVertexArray(array.VAOHandle);
+                VAOBoundArray = array;
+
+                GLVertexUtils.AmountEnabledAttributes = array.AmountEnabledAttributes;
+                renderer.ResetBoundBuffer(BufferTarget.ElementArrayBuffer, array.ElementBufferOverride);
+            }
+
+            renderer.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
         }
 
         public void Unbind()
@@ -60,63 +89,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (BoundArray != this)
                 return;
 
-            Bind(Renderer, ImplicitArray, true, true, ref ImplicitAmountEnabledAttributes, ref ImplicitBoundElementBuffer, ref ImplicitElementBufferOverride);
-            BoundArray = null;
-        }
-
-        static void Bind(GLRenderer renderer, int vao, bool cacheVertexLayout, bool cacheIndexBuffer,
-            ref int amountEnabledAttributes, ref int boundElementBuffer, ref int elementBufferOverride) // these are by-ref because the might get modified inside this method
-        {
-            var currentElementBuffer = renderer.GetBoundBuffer(BufferTarget.ElementArrayBuffer);
-            if (IsImplicitArrayBound)
-            {
-                ImplicitAmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
-                if (BoundArray?.CachesIndexBuffer == true)
-                    ImplicitElementBufferOverride = currentElementBuffer;
-                else
-                    ImplicitElementBufferOverride = ImplicitBoundElementBuffer = currentElementBuffer;
-            }
-
-            if (BoundArray != null)
-            {
-                if (BoundArray.CachesVertexLayout)
-                    BoundArray.AmountEnabledAttributes = GLVertexUtils.AmountEnabledAttributes;
-                if (BoundArray.CachesIndexBuffer)
-                    BoundArray.ElementBufferOverride = BoundArray.BoundElementBuffer = currentElementBuffer;
-                else if (BoundArray.CachesVertexLayout)
-                    BoundArray.ElementBufferOverride = currentElementBuffer;
-            }
-
-            if (cacheVertexLayout)
-            {
-                FrameStatistics.Increment(StatisticsCounterType.VArrayBinds);
-                GL.BindVertexArray(vao);
-
-                GLVertexUtils.AmountEnabledAttributes = amountEnabledAttributes;
-                renderer.ResetBoundBuffer(BufferTarget.ElementArrayBuffer, elementBufferOverride);
-
-                if (cacheIndexBuffer)
-                    renderer.BindBuffer(BufferTarget.ElementArrayBuffer, boundElementBuffer);
-                else
-                    renderer.BindBuffer(BufferTarget.ElementArrayBuffer, currentElementBuffer);
-            }
-            else
-            {
-                if (!IsImplicitArrayBound)
-                {
-                    FrameStatistics.Increment(StatisticsCounterType.VArrayBinds);
-                    GL.BindVertexArray(ImplicitArray);
-
-                    GLVertexUtils.AmountEnabledAttributes = ImplicitAmountEnabledAttributes;
-                    renderer.ResetBoundBuffer(BufferTarget.ElementArrayBuffer, ImplicitElementBufferOverride);
-                    renderer.BindBuffer(BufferTarget.ElementArrayBuffer, ImplicitBoundElementBuffer);
-                }
-
-                if (cacheIndexBuffer)
-                {
-                    renderer.BindBuffer(BufferTarget.ElementArrayBuffer, boundElementBuffer);
-                }
-            }
+            Renderer.ImplicitStateArray.Bind();
         }
 
         public void Dispose()

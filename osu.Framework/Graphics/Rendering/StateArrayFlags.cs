@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         IndexBuffer = 1 << 1,
 
+        All = VertexArray | IndexBuffer,
+
         /// <summary>
         /// Known optimisation for OpenGL which uses a vertex array object.
         /// </summary>

@@ -71,7 +71,10 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
-            GLStateArray.ImplicitArray = GL.GenVertexArray(); // VAO 0 is an object in compatibility mode, but core needs this to be GL.GenVertexArray()
+            ImplicitStateArray = new GLStateArray(this, StateArrayFlags.All);
+            GL.BindVertexArray(ImplicitStateArray.VAOHandle);
+            GLStateArray.BoundArray = ImplicitStateArray;
+            GLStateArray.VAOBoundArray = ImplicitStateArray;
 
             openGLSurface.ClearCurrent();
         }
@@ -81,7 +84,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
 
-            GL.BindVertexArray(GLStateArray.ImplicitArray);
+            ImplicitStateArray.Bind();
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
@@ -89,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected internal override void FinishFrame()
         {
-            GLStateArray.BoundArray?.Unbind();
+            GLStateArray.BoundArray.Unbind();
 
             base.FinishFrame();
         }
@@ -423,6 +426,7 @@ namespace osu.Framework.Graphics.OpenGL
         public override GLRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>()
             => new GLRawIndexBuffer<TIndex>(this);
 
+        public GLStateArray ImplicitStateArray = null!;
         public override IRenderStateArray CreateRenderStateArray (StateArrayFlags flags)
             => new GLStateArray(this, flags);
     }
