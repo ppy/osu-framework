@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Rendering
         /// This call is cached by the bound <see cref="IRenderStateArray"/> with the <see cref="StateArrayFlags.IndexBuffer"/> flag.
         /// </remarks>
         /// <returns>Whether the bind was necessary.</returns>
-        abstract bool IRawBuffer.Bind();
+        new public bool Bind() => (this as IRawBuffer).Bind();
 
         /// <summary>
         /// Unbinds the index buffer.
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <remarks>
         /// This call is cached by the bound (or implicit) <see cref="IRenderStateArray"/> with the <see cref="StateArrayFlags.IndexBuffer"/> flag.
         /// </remarks>
-        abstract void IRawBuffer.Unbind();
+        new public void Unbind() => (this as IRawBuffer).Unbind();
 
         /// <summary>
         /// Draws the vertices pointed to by the indices stored in this buffer.
