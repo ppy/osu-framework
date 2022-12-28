@@ -4,12 +4,16 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Layout;
 using osuTK;
 
@@ -17,6 +21,7 @@ namespace osu.Framework.Tests.Visual.Graphics
 {
     public partial class TestSceneRawBuffers : FrameworkTestScene
     {
+        private Container starContainer;
         public TestSceneRawBuffers()
         {
             Add(new Box
@@ -26,17 +31,52 @@ namespace osu.Framework.Tests.Visual.Graphics
                 Anchor = Anchor.Centre,
                 Colour = Colour4.DarkGray
             });
-            Add(new CachedStarDrawable
+            Add(starContainer = new Container
             {
                 Size = new Vector2(200),
                 Origin = Anchor.Centre,
                 Anchor = Anchor.Centre
             });
+            BasicDropdown<RenderMode> dropdown;
+            Add(dropdown = new BasicDropdown<RenderMode>
+            {
+                Position = new Vector2(10),
+                Width = 300,
+                Items = Enum.GetValues<RenderMode>()
+            });
+
+            dropdown.Current.BindValueChanged(v =>
+            {
+                setMode(v.NewValue);
+            }, true);
+        }
+
+        private void setMode(RenderMode mode)
+        {
+            starContainer.Clear(disposeChildren: true);
+            starContainer.Add(new CachedStarDrawable(mode)
+            {
+                RelativeSizeAxes = Axes.Both,
+                Origin = Anchor.Centre,
+                Anchor = Anchor.Centre
+            });
+        }
+
+        private enum RenderMode
+        {
+            Batch,
+            CacheVertexLayout,
+            CacheIndexBufferBind,
+            CacheBoth,
         }
 
         private partial class CachedStarDrawable : Drawable
         {
-            private CachedStarDrawableSharedData sharedData = new();
+            private CachedStarDrawableSharedData sharedData;
+            public CachedStarDrawable(RenderMode mode)
+            {
+                sharedData = new CachedStarDrawableSharedData { Mode = mode };
+            }
 
             private Vector2 lastSize;
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
@@ -61,12 +101,15 @@ namespace osu.Framework.Tests.Visual.Graphics
 
             private class CachedStarDrawableSharedData
             {
+                public RenderMode Mode;
+
                 public ulong InvalidationId = 1;
                 public ulong UploadedId;
 
-                public IRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>> VBO;
-                public IRawIndexBuffer<ushort> EBO;
-                public IRenderStateArray VAO;
+                public IRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>> Vertices;
+                public IRawIndexBuffer<ushort> Indices;
+                public IRenderStateArray StateArray;
+                public IVertexBatch<TexturedVertex2D> Batch;
 
                 public int VerticeCount;
             }
@@ -92,22 +135,35 @@ namespace osu.Framework.Tests.Visual.Graphics
                     invalidationId = sharedData.InvalidationId;
                 }
 
-                private void bindBuffers(IRenderer renderer)
+                private void initBuffers(IRenderer renderer)
                 {
-                    if (sharedData.VAO == null)
+                    if (sharedData.StateArray == null)
                     {
-                        sharedData.VBO = renderer.CreateRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>>();
-                        sharedData.EBO = renderer.CreateRawIndexBuffer<ushort>();
-                        sharedData.VAO = renderer.CreateRenderStateArray(StateArrayFlags.VertexArray);
+                        sharedData.Vertices = renderer.CreateRawVertexBuffer<DepthWrappingVertex<TexturedVertex2D>>();
+                        sharedData.Indices = renderer.CreateRawIndexBuffer<ushort>();
 
-                        sharedData.VAO.Bind();
-                        sharedData.EBO.Bind();
-                        sharedData.VBO.Bind();
-                        sharedData.VBO.SetLayout();
+                        StateArrayFlags cachedState;
+                        if (sharedData.Mode == RenderMode.CacheIndexBufferBind)
+                            cachedState = StateArrayFlags.IndexBuffer;
+                        else if (sharedData.Mode == RenderMode.CacheVertexLayout)
+                            cachedState = StateArrayFlags.VertexLayout;
+                        else
+                            cachedState = StateArrayFlags.IndexBuffer | StateArrayFlags.VertexLayout;
+
+                        sharedData.StateArray = renderer.CreateRenderStateArray(cachedState);
+
+                        sharedData.StateArray.Bind();
+                        if (cachedState.HasFlagFast(StateArrayFlags.IndexBuffer))
+                            sharedData.Indices.Bind();
+                        if (cachedState.HasFlagFast(StateArrayFlags.VertexLayout))
+                        {
+                            sharedData.Vertices.Bind();
+                            sharedData.Vertices.SetLayout();
+                        }
                     }
                     else
                     {
-                        sharedData.VAO.Bind();
+                        sharedData.StateArray.Bind();
                     }
                 }
 
@@ -116,57 +172,94 @@ namespace osu.Framework.Tests.Visual.Graphics
                     return size / 2 + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) / 2 * distance * size;
                 }
 
-                private void buildBuffers(IRenderer renderer)
+                private IEnumerable<TexturedVertex2D> buildVertices()
                 {
-                    Span<DepthWrappingVertex<TexturedVertex2D>> vertices = stackalloc DepthWrappingVertex<TexturedVertex2D>[11];
                     var delta = MathF.Tau / 5;
                     for (int i = 0; i < 5; i++)
                     {
                         var thetaA = i * delta - MathF.PI / 2;
                         var thetaB = (i + 0.5f) * delta - MathF.PI / 2;
-                        vertices[i * 2] = new DepthWrappingVertex<TexturedVertex2D>
+                        yield return new TexturedVertex2D
                         {
-                            BackbufferDrawDepth = renderer.BackbufferDrawDepth,
-                            Vertex = new TexturedVertex2D
-                            {
-                                Colour = Colour4.White,
-                                Position = toCircular(thetaA, 1)
-                            }
+                            Colour = Colour4.White,
+                            Position = toCircular(thetaA, 1)
                         };
-                        vertices[i * 2 + 1] = new DepthWrappingVertex<TexturedVertex2D>
+                        yield return new TexturedVertex2D
                         {
-                            BackbufferDrawDepth = renderer.BackbufferDrawDepth,
-                            Vertex = new TexturedVertex2D
-                            {
-                                Colour = Colour4.Blue,
-                                Position = toCircular(thetaB, 0.5f)
-                            }
+                            Colour = Colour4.Blue,
+                            Position = toCircular(thetaB, 0.5f)
                         };
                     }
-                    vertices[10] = new DepthWrappingVertex<TexturedVertex2D>
+                    yield return new TexturedVertex2D
                     {
-                        BackbufferDrawDepth = renderer.BackbufferDrawDepth,
-                        Vertex = new TexturedVertex2D
-                        {
-                            Colour = Colour4.Red,
-                            Position = toCircular(0, 0)
-                        }
+                        Colour = Colour4.Red,
+                        Position = toCircular(0, 0)
                     };
-                    sharedData.VBO.Bind();
-                    sharedData.VBO.BufferData(vertices, BufferUsageHint.StaticDraw);
-
-                    Span<ushort> indices = stackalloc ushort[30];
-                    for (ushort i = 0; i < 10; i++)
-                    {
-                        indices[i * 3] = 10;
-                        indices[i * 3 + 1] = i;
-                        indices[i * 3 + 2] = (ushort)((i + 1) % 10);
-                    }
-                    sharedData.EBO.Bind();
-                    sharedData.EBO.BufferData(indices, BufferUsageHint.StaticDraw);
-                    sharedData.VerticeCount = 30;
                 }
 
+                private IEnumerable<(ushort, ushort, ushort)> buildIndices()
+                {
+                    for (ushort i = 0; i < 10; i++)
+                    {
+                        yield return (10, i, (ushort)((i + 1) % 10));
+                    }
+                }
+
+                private TexturedVertex2D[] vertexBuffer;
+                private IEnumerable<(TexturedVertex2D, TexturedVertex2D, TexturedVertex2D)> buildTriangles()
+                {
+                    vertexBuffer ??= new TexturedVertex2D[11];
+
+                    int n = 0;
+                    foreach (var i in buildVertices())
+                    {
+                        vertexBuffer[n++] = i;
+                    }
+
+                    Span<ushort> indices = stackalloc ushort[30];
+                    n = 0;
+                    foreach (var i in buildIndices())
+                    {
+                        yield return (
+                            vertexBuffer[i.Item1],
+                            vertexBuffer[i.Item2],
+                            vertexBuffer[i.Item3]
+                        );
+                    }
+                }
+
+                private void buildBuffers(IRenderer renderer)
+                {
+                    Span<DepthWrappingVertex<TexturedVertex2D>> vertices = stackalloc DepthWrappingVertex<TexturedVertex2D>[11];
+                    int n = 0;
+                    foreach (var i in buildVertices())
+                    {
+                        vertices[n++] = new DepthWrappingVertex<TexturedVertex2D>
+                        {
+                            BackbufferDrawDepth = renderer.BackbufferDrawDepth,
+                            Vertex = i
+                        };
+                    }
+
+                    sharedData.Vertices.Bind();
+                    sharedData.Vertices.BufferData(vertices, BufferUsageHint.StaticDraw);
+
+                    Span<ushort> indices = stackalloc ushort[30];
+                    n = 0;
+                    foreach (var i in buildIndices())
+                    {
+                        indices[n++] = i.Item1;
+                        indices[n++] = i.Item2;
+                        indices[n++] = i.Item3;
+                    }
+                    
+                    sharedData.Indices.Bind();
+                    sharedData.Indices.BufferData(indices, BufferUsageHint.StaticDraw);
+                    sharedData.VerticeCount = n;
+                }
+
+                // no clue why, but probably related to the batch-centric approach this being false makes it hide behind the background box when the cursor is outside the window
+                // I presume this can be fixed with allowing BackbufferDrawDepth to have a uniform offset
                 protected internal override bool CanDrawOpaqueInterior => true;
 
                 public override void Draw(IRenderer renderer)
@@ -176,14 +269,39 @@ namespace osu.Framework.Tests.Visual.Graphics
                     shader.Bind();
                     renderer.PushLocalMatrix(DrawInfo.Matrix);
                     renderer.WhitePixel.Bind();
-                    bindBuffers(renderer);
-                    if (invalidationId != sharedData.UploadedId)
+
+                    if (sharedData.Mode == RenderMode.Batch)
                     {
-                        buildBuffers(renderer);
-                        sharedData.UploadedId = invalidationId;
+                        sharedData.Batch ??= renderer.CreateQuadBatch<TexturedVertex2D>(11, 1);
+                        foreach (var (a, b, c) in buildTriangles())
+                        {
+                            sharedData.Batch.Add(a);
+                            sharedData.Batch.Add(b);
+                            sharedData.Batch.Add(c);
+                            sharedData.Batch.Add(c);
+                        }
+                        sharedData.Batch.Draw();
                     }
-                    sharedData.EBO.Draw(PrimitiveTopology.Triangles, sharedData.VerticeCount);
-                    sharedData.VAO.Unbind();
+                    else
+                    {
+                        initBuffers(renderer);
+                        if (!sharedData.StateArray.CachedState.HasFlagFast(StateArrayFlags.IndexBuffer))
+                            sharedData.Indices.Bind();
+                        if (!sharedData.StateArray.CachedState.HasFlagFast(StateArrayFlags.VertexLayout))
+                        {
+                            sharedData.Vertices.Bind();
+                            sharedData.Vertices.SetLayout();
+                        }
+
+                        if (invalidationId != sharedData.UploadedId)
+                        {
+                            buildBuffers(renderer);
+                            sharedData.UploadedId = invalidationId;
+                        }
+                        sharedData.Indices.Draw(PrimitiveTopology.Triangles, sharedData.VerticeCount);
+                        sharedData.StateArray.Unbind();
+                    }
+
                     renderer.PopLocalMatrix();
                     shader.Unbind();
                 }
@@ -192,14 +310,19 @@ namespace osu.Framework.Tests.Visual.Graphics
                 {
                     base.Dispose(isDisposing);
 
-                    if (sharedData.VAO != null)
+                    if (sharedData.StateArray != null)
                     {
-                        sharedData.VAO.Dispose();
-                        sharedData.EBO.Dispose();
-                        sharedData.VAO.Dispose();
-                        sharedData.VAO = null;
-                        sharedData.EBO = null;
-                        sharedData.VAO = null;
+                        sharedData.StateArray.Dispose();
+                        sharedData.Indices.Dispose();
+                        sharedData.StateArray.Dispose();
+                        sharedData.StateArray = null;
+                        sharedData.Indices = null;
+                        sharedData.StateArray = null;
+                    }
+                    if (sharedData.Batch != null)
+                    {
+                        sharedData.Batch.Dispose();
+                        sharedData.Batch = null;
                     }
                 }
             }

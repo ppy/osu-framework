@@ -71,6 +71,8 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
+            GLStateArray.ImplicitArray = GL.GenVertexArray();
+
             openGLSurface.ClearCurrent();
         }
 
@@ -79,12 +81,13 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
 
+            GL.BindVertexArray(GLStateArray.ImplicitArray);
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
         }
 
-        protected internal override void FinishFrame ()
+        protected internal override void FinishFrame()
         {
             GLStateArray.BoundArray?.Unbind();
 
