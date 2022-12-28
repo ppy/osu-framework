@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Transforms
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, field);
             gen.Emit(OpCodes.Ret);
-            return (ReadFunc)setterMethod.CreateDelegate(typeof(ReadFunc));
+            return setterMethod.CreateDelegate<ReadFunc>();
         }
 
         private static WriteFunc createFieldSetter(FieldInfo field)
@@ -64,21 +64,21 @@ namespace osu.Framework.Graphics.Transforms
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Stfld, field);
             gen.Emit(OpCodes.Ret);
-            return (WriteFunc)setterMethod.CreateDelegate(typeof(WriteFunc));
+            return setterMethod.CreateDelegate<WriteFunc>();
         }
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
             if (!RuntimeFeature.IsDynamicCodeCompiled) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
-            return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
+            return getter.CreateDelegate<ReadFunc>();
         }
 
         private static WriteFunc createPropertySetter(MethodInfo setter)
         {
             if (!RuntimeFeature.IsDynamicCodeCompiled) return (transformable, value) => setter.Invoke(transformable, new object[] { value });
 
-            return (WriteFunc)setter.CreateDelegate(typeof(WriteFunc));
+            return setter.CreateDelegate<WriteFunc>();
         }
 
         private static Accessor findAccessor(Type type, string propertyOrFieldName)

@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Performance
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =
-                                                from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                from StatisticsCounterType t in Enum.GetValues<StatisticsCounterType>()
                                                 where monitor.ActiveCounters[(int)t]
                                                 select counterBars[t] = new CounterBar
                                                 {
@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.Performance
                                         Spacing = new Vector2(5, 1),
                                         Padding = new MarginPadding { Right = 5 },
                                         ChildrenEnumerable =
-                                            from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                            from PerformanceCollectionType t in Enum.GetValues<PerformanceCollectionType>()
                                             select legendMapping[(int)t] = new SpriteText
                                             {
                                                 Colour = getColour(t),

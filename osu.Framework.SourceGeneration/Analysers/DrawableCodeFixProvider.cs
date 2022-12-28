@@ -55,7 +55,7 @@ namespace osu.Framework.SourceGeneration.Analysers
 
                 case TypeSyntax typeSyntax:
                 {
-                    if (await registerCodeFixForType(context, typeSyntax, diagnostic))
+                    if (await registerCodeFixForType(context, typeSyntax, diagnostic).ConfigureAwait(false))
                         return;
 
                     break;
@@ -63,7 +63,7 @@ namespace osu.Framework.SourceGeneration.Analysers
 
                 case ObjectCreationExpressionSyntax objectCreationExpression:
                 {
-                    if (await registerCodeFixForType(context, objectCreationExpression.Type.Parent!, diagnostic))
+                    if (await registerCodeFixForType(context, objectCreationExpression.Type.Parent!, diagnostic).ConfigureAwait(false))
                         return;
 
                     break;
@@ -71,7 +71,7 @@ namespace osu.Framework.SourceGeneration.Analysers
 
                 case ExpressionSyntax expressionSyntax:
                 {
-                    if (await registerCodeFixForType(context, expressionSyntax.Parent!, diagnostic))
+                    if (await registerCodeFixForType(context, expressionSyntax.Parent!, diagnostic).ConfigureAwait(false))
                         return;
 
                     break;
@@ -95,7 +95,7 @@ namespace osu.Framework.SourceGeneration.Analysers
 
         private async Task<bool> registerCodeFixForType(CodeFixContext context, SyntaxNode typeSyntax, Diagnostic diagnostic)
         {
-            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken);
+            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
 
             ITypeSymbol? typeSymbol = compilation?.GetSemanticModel(typeSyntax.SyntaxTree).GetTypeInfo(typeSyntax).Type;
 
@@ -105,7 +105,7 @@ namespace osu.Framework.SourceGeneration.Analysers
             if (typeSymbol.DeclaringSyntaxReferences.Length == 0)
                 return false;
 
-            ClassDeclarationSyntax? classSyntax = (await typeSymbol.DeclaringSyntaxReferences[0].SyntaxTree.GetRootAsync(context.CancellationToken))
+            ClassDeclarationSyntax? classSyntax = (await typeSymbol.DeclaringSyntaxReferences[0].SyntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false))
                                                   .DescendantNodes().OfType<ClassDeclarationSyntax>()
                                                   .FirstOrDefault(c => c.Identifier.ValueText == typeSymbol.Name);
 

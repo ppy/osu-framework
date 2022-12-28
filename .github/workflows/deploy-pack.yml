@@ -49,13 +49,6 @@ jobs:
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      # FIXME: 3.1 LTS is required here because iOS builds refuse to build without it.
-      # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
-      - name: Install .NET 3.1.x LTS
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "3.1.x"
-
       - name: Install .NET 6.0.x
         uses: actions/setup-dotnet@v1
         with:
@@ -152,7 +145,9 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Restore .NET Workloads
-        run: dotnet workload restore
+        # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,
+        # see https://github.com/xamarin/xamarin-macios/issues/16400.
+        run: dotnet workload install ios
 
       - name: Pack (iOS Framework)
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
