@@ -370,7 +370,7 @@ namespace osu.Framework.Graphics.Rendering
         IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
 
         /// <summary>
-        /// Creates a state array which catches the specified state.
+        /// Creates a state array which caches the specified state.
         /// </summary>
         IRenderStateArray CreateRenderStateArray(StateArrayFlags flags);
 
