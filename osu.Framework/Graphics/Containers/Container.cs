@@ -214,8 +214,7 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == Content)
                 throw new InvalidOperationException("Content may not be added to itself.");
 
-            if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable));
+            ArgumentNullException.ThrowIfNull(drawable);
 
             if (drawable.IsDisposed)
                 throw new ObjectDisposedException(nameof(drawable));

@@ -89,7 +89,7 @@ namespace osu.Framework.Logging
 
         private readonly GlobalStatistic<int> logCount;
 
-        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLowerInvariant()));
+        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames<LoggingTarget>().Select(n => n.ToLowerInvariant()));
 
         private Logger(LoggingTarget target = LoggingTarget.Runtime)
             : this(target.ToString(), false)
