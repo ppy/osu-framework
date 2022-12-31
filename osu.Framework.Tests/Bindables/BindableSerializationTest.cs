@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Bindables
         {
             var toSerialize = new BindableDouble { Value = 1337.0 };
 
-            var deserialized = JsonConvert.DeserializeObject<Bindable<double>>(JsonConvert.SerializeObject(toSerialize), converters:new JsonConverter[] { new Vector2DConverter() });
+            var deserialized = JsonConvert.DeserializeObject<Bindable<double>>(JsonConvert.SerializeObject(toSerialize), new JsonConverter[] { new Vector2DConverter() });
 
             Assert.AreEqual(toSerialize.Value, deserialized?.Value);
         }

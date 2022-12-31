@@ -20,10 +20,10 @@ namespace osu.Framework.IO.Serialization
             if (reader.ValueType == typeof(double))
             {
                 double value = (double)(reader.Value ?? double.NaN);
-                
+
                 if (objectType == typeof(Vector2d))
                     return new Vector2d(value, value);
-                
+
                 return value;
             }
 
