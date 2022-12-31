@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -96,13 +95,12 @@ namespace osu.Framework.Tests.Configuration
             {
                 var json = JObject.Parse(sr.ReadToEnd());
 
-                try
+                if (json["InputHandlers"] != null)
                 {
-                    json["InputHandlers"][0]["Sensitivity"] = 5.0;
-                }
-                catch (NullReferenceException)
-                {
-                    throw new NullReferenceException("An error occurred when trying to modify json");
+                    foreach (var h in json["InputHandlers"])
+                    {
+                        if (h["Sensitivity"] != null) h["Sensitivity"] = 5.0;
+                    }
                 }
 
                 using (var sw = new StreamWriter(stream))
