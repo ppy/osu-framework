@@ -94,7 +94,14 @@ namespace osu.Framework.Tests.Configuration
             using (var sr = new StreamReader(stream))
             {
                 var json = JObject.Parse(sr.ReadToEnd());
-                json["InputHandlers"][0]["Sensitivity"] = 5.0;
+                try
+                {
+                    json["InputHandlers"][0]["Sensitivity"] = 5.0;
+                }
+                catch(Exception)
+                {
+                    throw new Exception("An error occurred when trying to modify json");
+                }
 
                 using (var sw = new StreamWriter(stream))
                 {

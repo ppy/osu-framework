@@ -17,20 +17,23 @@ namespace osu.Framework.IO.Serialization
     {
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (objectType == typeof(Vector2d) && reader.ValueType == typeof(double))
-                return new Vector2d((double)reader.Value, (double)reader.Value);
+            if (reader.ValueType == typeof(double))
+            {
+                double value = reader.ReadAsDouble() ?? double.NaN;
+                
+                if (objectType == typeof(Vector2d))
+                    return new Vector2d(value, value);
+                
+                return value;
+            }
 
             var obj = JObject.Load(reader);
-
-            if (objectType == typeof(double))
-                return (double)obj;
-
             return new Vector2d((double)obj["x"], (double)obj["y"]);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value.GetType() == typeof(double))
+            if (value is double)
             {
                 writer.WriteValue((double)value);
             }
