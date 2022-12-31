@@ -6,6 +6,7 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -37,7 +38,7 @@ namespace osu.Framework.Tests.Bindables
         {
             var toSerialize = new BindableDouble { Value = 1337.0 };
 
-            var deserialized = JsonConvert.DeserializeObject<Bindable<double>>(JsonConvert.SerializeObject(toSerialize));
+            var deserialized = JsonConvert.DeserializeObject<Bindable<double>>(JsonConvert.SerializeObject(toSerialize), converters:new JsonConverter[] { new Vector2DConverter() });
 
             Assert.AreEqual(toSerialize.Value, deserialized?.Value);
         }
