@@ -2,6 +2,12 @@
 #define TWO_PI 6.28318530718
 #define SQRT3 1.732050808
 
+// helps to avoid branching
+highp float conditionalValue(highp float ifTrue, highp float ifFalse, bool condition)
+{
+    return mix(ifFalse, ifTrue, float(condition));
+}
+
 // random https://thebookofshaders.com/11/
 
 highp float biasedRandom(highp vec2 st)
@@ -26,11 +32,6 @@ highp bool inBoundingBox(highp vec2 point, highp vec2 p0, highp vec2 p1, highp v
 highp float det(highp vec2 a, highp vec2 b)
 {
     return a.x * b.y - a.y * b.x;
-}
-
-highp float conditionalValue(highp float ifTrue, highp float ifFalse, bool condition)
-{
-    return ifTrue * float(condition) + ifFalse * float(!condition);
 }
 
 highp float dstToBezier(highp vec2 pos, highp vec2 A, highp vec2 B, highp vec2 C)
@@ -107,13 +108,16 @@ lowp float blobAlphaAt(highp vec2 pixelPos, highp float pathRadius, highp float 
             highp float absDstToCurve = abs(dstToCurve);
 
             // save distances to current curve if it's the closest one
-            signedDst = mix(signedDst, dstToCurve, float(absDstToCurve < absDst));
+            signedDst = conditionalValue(dstToCurve, signedDst, absDstToCurve < absDst);
             absDst = min(absDst, absDstToCurve);
         }
-        
+
         currentVertex = nextVertex;
         curveStart = curveEnd;
     }
 
-    return float(signedDst < 0.0) * smoothstep(texelSize, 0.0, conditionalValue(texelSize - absDst, absDst - pathRadius, absDst < texelSize));
+    if (signedDst > 0.0) // outside
+        return 0.0;
+
+    return smoothstep(texelSize, 0.0, conditionalValue(texelSize - absDst, absDst - pathRadius, absDst < texelSize));
 }

@@ -26,7 +26,6 @@ void main(void)
     highp float maxHeight = 0.5 - 0.25 * c * c;
 
     // Hack to make the shape appear smooth if it's thickness < texelSize by making it more transparent while leaving thickness the same
-    // Makes sense for thin path radius or small-sized drawable
     highp float subAAMultiplier = clamp(pathRadius / texelSize, 0.0, 1.0);
     pathRadius = max(pathRadius, texelSize);
 
