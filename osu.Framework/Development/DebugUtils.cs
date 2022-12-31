@@ -42,10 +42,15 @@ namespace osu.Framework.Development
             }
         );
 
+        /// <summary>
+        /// Alternative to <see cref="GetEntryAssembly"/> on Android, as <see cref="Assembly.GetEntryAssembly"/> returns <c>null</c> there.
+        /// </summary>
+        internal static Assembly? AndroidEntryAssembly { private get; set; }
+
         public static bool IsDebugBuild => is_debug_build.Value;
 
         private static readonly Lazy<bool> is_debug_build = new Lazy<bool>(() =>
-            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(GetEntryAssembly())
+            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(GetEntryAssembly()) || isDebugAssembly(AndroidEntryAssembly)
         );
 
         /// <summary>
