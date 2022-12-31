@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -65,6 +67,40 @@ namespace osu.Framework.Tests.Configuration
 
             // test with only InputConfigManager configuration file present
             storage.Delete(FrameworkConfigManager.FILENAME);
+
+            Vector2d sensitivity = new Vector2d(0, 0);
+
+            using (var host = new TestHeadlessGameHost())
+            {
+                host.Run(new TestGame((h, _) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+            }
+
+            Assert.AreEqual(new Vector2d(5, 5), sensitivity);
+        }
+
+        [Test]
+        public void TestSensitivityMigrate()
+        {
+            using (var host = new TestHeadlessGameHost(bypassCleanup: true))
+            {
+                host.Run(new TestGame((h, _) =>
+                {
+                    storage = h.Storage;
+                    h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = new Vector2d(5, 5);
+                }));
+            }
+
+            using (Stream stream = storage.GetStream(InputConfigManager.FILENAME, FileAccess.ReadWrite, FileMode.Open))
+            using (var sr = new StreamReader(stream))
+            {
+                var json = JObject.Parse(sr.ReadToEnd());
+                json["InputHandlers"][0]["Sensitivity"] = 5.0;
+
+                using (var sw = new StreamWriter(stream))
+                {
+                    sw.Write(json.ToString());
+                }
+            }
 
             Vector2d sensitivity = new Vector2d(0, 0);
 

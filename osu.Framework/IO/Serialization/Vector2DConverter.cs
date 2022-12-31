@@ -13,24 +13,44 @@ namespace osu.Framework.IO.Serialization
     /// <summary>
     /// A type of <see cref="JsonConverter"/> that serializes only the X and Y coordinates of a <see cref="Vector2d"/>.
     /// </summary>
-    public class Vector2DConverter : JsonConverter<Vector2d>
+    public class Vector2DConverter : JsonConverter
     {
-        public override Vector2d ReadJson(JsonReader reader, Type objectType, Vector2d existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            if (objectType == typeof(Vector2d) && reader.ValueType == typeof(double))
+                return new Vector2d((double)reader.Value, (double)reader.Value);
+
             var obj = JObject.Load(reader);
+
+            if (objectType == typeof(double))
+                return (double)obj;
+
             return new Vector2d((double)obj["x"], (double)obj["y"]);
         }
 
-        public override void WriteJson(JsonWriter writer, Vector2d value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteStartObject();
+            if (value.GetType() == typeof(double))
+            {
+                writer.WriteValue((double)value);
+            }
+            else
+            {
+                writer.WriteStartObject();
 
-            writer.WritePropertyName("x");
-            writer.WriteValue(value.X);
-            writer.WritePropertyName("y");
-            writer.WriteValue(value.Y);
+                var vector2DValue = (Vector2d)value;
+                writer.WritePropertyName("x");
+                writer.WriteValue(vector2DValue.X);
+                writer.WritePropertyName("y");
+                writer.WriteValue(vector2DValue.Y);
 
-            writer.WriteEndObject();
+                writer.WriteEndObject();
+            }
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Vector2d) || objectType == typeof(double);
         }
     }
 }
