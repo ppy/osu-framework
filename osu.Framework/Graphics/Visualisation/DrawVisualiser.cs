@@ -39,6 +39,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool BlockPositionalInput => Searching;
 
+        private readonly Dictionary<Drawable, bool> originalTargetVisibilityStates = new Dictionary<Drawable, bool>();
+
         public DrawVisualiser()
         {
             RelativeSizeAxes = Axes.Both;
@@ -55,6 +57,7 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     GoUpOneParent = goUpOneParent,
                     ToggleInspector = toggleInspector,
+                    ToggleTargetVisibility = toggleTargetVisibility
                 },
                 new CursorContainer()
             };
@@ -106,11 +109,30 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (targetVisualiser == null)
                 return;
-
             drawableInspector.ToggleVisibility();
 
             if (drawableInspector.State.Value == Visibility.Visible)
                 setHighlight(targetVisualiser);
+        }
+
+        private void toggleTargetVisibility()
+        {
+            if (Target == null)
+                return;
+
+            if (!originalTargetVisibilityStates.ContainsKey(Target))
+            {
+                originalTargetVisibilityStates.Add(Target, Target.IsPresent);
+            }
+
+            if (Target.IsPresent)
+            {
+                Target.Hide();
+            }
+            else
+            {
+                Target.Show();
+            }
         }
 
         protected override void LoadComplete()
@@ -135,6 +157,20 @@ namespace osu.Framework.Graphics.Visualisation
             drawableInspector.Hide();
 
             recycleVisualisers();
+
+            foreach (var state in originalTargetVisibilityStates)
+            {
+                if (state.Value)
+                {
+                    state.Key.Show();
+                }
+                else
+                {
+                    state.Key.Hide();
+                }
+            }
+
+            originalTargetVisibilityStates.Clear();
         }
 
         void IContainVisualisedDrawables.AddVisualiser(VisualisedDrawable visualiser)

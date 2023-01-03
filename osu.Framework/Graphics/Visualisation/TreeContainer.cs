@@ -17,6 +17,8 @@ namespace osu.Framework.Graphics.Visualisation
         public Action ChooseTarget;
         public Action GoUpOneParent;
         public Action ToggleInspector;
+        public Action ToggleDependencyView;
+        public Action ToggleTargetVisibility;
 
         internal DrawableInspector DrawableInspector { get; private set; }
 
@@ -48,6 +50,8 @@ namespace osu.Framework.Graphics.Visualisation
             AddButton(@"choose target", () => ChooseTarget?.Invoke());
             AddButton(@"up one parent", () => GoUpOneParent?.Invoke());
             AddButton(@"toggle inspector", () => ToggleInspector?.Invoke());
+            AddButton(@"toggle dependency view", () => ToggleDependencyView?.Invoke());
+            AddButton(@"toggle target visibility", () => ToggleTargetVisibility?.Invoke());
 
             MainHorizontalContent.Add(DrawableInspector = new DrawableInspector());
         }
