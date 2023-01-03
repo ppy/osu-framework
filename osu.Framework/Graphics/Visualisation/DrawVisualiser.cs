@@ -109,6 +109,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (targetVisualiser == null)
                 return;
+
             drawableInspector.ToggleVisibility();
 
             if (drawableInspector.State.Value == Visibility.Visible)
@@ -128,11 +129,10 @@ namespace osu.Framework.Graphics.Visualisation
             if (Target.IsPresent)
             {
                 Target.Hide();
+                return;
             }
-            else
-            {
-                Target.Show();
-            }
+
+            Target.Show();
         }
 
         protected override void LoadComplete()
@@ -163,11 +163,10 @@ namespace osu.Framework.Graphics.Visualisation
                 if (state.Value)
                 {
                     state.Key.Show();
+                    continue;
                 }
-                else
-                {
-                    state.Key.Hide();
-                }
+
+                state.Key.Hide();
             }
 
             originalTargetVisibilityStates.Clear();
