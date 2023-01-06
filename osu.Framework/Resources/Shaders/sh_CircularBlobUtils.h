@@ -5,7 +5,8 @@
 // helps to avoid branching
 highp float conditionalValue(highp float ifTrue, highp float ifFalse, bool condition)
 {
-    return mix(ifFalse, ifTrue, float(condition));
+    float fc = float(condition);
+    return ifTrue * fc + ifFalse * (1.0 - fc);
 }
 
 // random https://thebookofshaders.com/11/
