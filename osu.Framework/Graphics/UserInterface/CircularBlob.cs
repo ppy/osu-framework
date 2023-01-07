@@ -21,22 +21,22 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);
 
-        private float innerRadius = 0.2f;
+        private float fill = 0.2f;
 
         /// <summary>
         /// The inner fill radius, relative to the <see cref="Drawable.DrawSize"/> of the <see cref="CircularBlob"/>.
         /// The value range is 0 to 1 where 0 is invisible and 1 is completely filled.
-        /// The entire texture still fills the disk without cropping it.
+        /// The entire texture still fills the blob without cropping it.
         /// </summary>
-        public float InnerRadius
+        public float Fill
         {
-            get => innerRadius;
+            get => fill;
             set
             {
                 if (!float.IsFinite(value))
-                    throw new ArgumentException($"{nameof(InnerRadius)} must be finite, but is {value}.");
+                    throw new ArgumentException($"{nameof(Fill)} must be finite, but is {value}.");
 
-                innerRadius = Math.Clamp(value, 0, 1);
+                fill = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.ApplyState();
 
-                pathRadius = Source.innerRadius * 0.5f;
+                pathRadius = Source.fill * 0.5f;
                 pointCount = Source.pointCount;
                 amplitude = Source.amplitude;
 
