@@ -23,7 +23,7 @@ void main(void)
     highp float angle = HALF_PI * (1.0 - 2.0 / float(pointCount));
     highp float minHeight = 0.5 * sin(angle) * (1.0 - amplitude) - texelSize;
     highp float c = cos(angle);
-    highp float maxHeight = 0.5 - 0.25 * c * c;
+    highp float maxHeight = 0.5 - 0.125 * c * c;
 
     // Hack to make the shape appear smooth if it's thickness < texelSize by making it more transparent while leaving thickness the same
     highp float subAAMultiplier = clamp(pathRadius / texelSize, 0.0, 1.0);
