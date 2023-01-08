@@ -43,11 +43,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 textFlowContainer = CreateTextFlow(),
             };
 
-            if (fencedCodeBlock.Lines.Count > 0)
-            {
-                foreach (var line in fencedCodeBlock.Lines.Lines)
-                    textFlowContainer.AddParagraph(line.ToString());
-            }
+            // Markdig sometimes appends empty lines to the processed block, only add original lines to the container
+            for (int i = 0; i < fencedCodeBlock.Lines.Count; i++)
+                textFlowContainer.AddParagraph(fencedCodeBlock.Lines.Lines[i].ToString());
         }
 
         protected virtual Drawable CreateBackground() => new Box
