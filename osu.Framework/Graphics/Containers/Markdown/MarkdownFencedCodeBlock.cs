@@ -44,10 +44,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
 
             if (fencedCodeBlock.Lines.Count > 0)
-            {
-                foreach (var line in fencedCodeBlock.Lines.Lines)
-                    textFlowContainer.AddParagraph(line.ToString());
-            }
+                textFlowContainer.AddText(fencedCodeBlock.Lines.ToString());
         }
 
         protected virtual Drawable CreateBackground() => new Box
