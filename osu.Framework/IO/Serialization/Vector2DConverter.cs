@@ -28,7 +28,7 @@ namespace osu.Framework.IO.Serialization
         }
 
         public override void WriteJson(JsonWriter writer, Vector2d value, JsonSerializer serializer)
-        {                
+        {
             writer.WriteStartObject();
 
             writer.WritePropertyName("x");
@@ -36,7 +36,7 @@ namespace osu.Framework.IO.Serialization
             writer.WritePropertyName("y");
             writer.WriteValue(value.Y);
 
-            writer.WriteEndObject();          
+            writer.WriteEndObject();
         }
     }
 }
