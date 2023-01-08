@@ -13,47 +13,30 @@ namespace osu.Framework.IO.Serialization
     /// <summary>
     /// A type of <see cref="JsonConverter"/> that serializes only the X and Y coordinates of a <see cref="Vector2d"/>.
     /// </summary>
-    public class Vector2DConverter : JsonConverter
+    public class Vector2DConverter : JsonConverter<Vector2d>
     {
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override Vector2d ReadJson(JsonReader reader, Type objectType, Vector2d existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             if (reader.ValueType == typeof(double))
             {
                 double value = (double)(reader.Value ?? double.NaN);
-
-                if (objectType == typeof(Vector2d))
-                    return new Vector2d(value, value);
-
-                return value;
+                return new Vector2d(value, value);
             }
 
             var obj = JObject.Load(reader);
             return new Vector2d((double)obj["x"], (double)obj["y"]);
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            if (value is double)
-            {
-                writer.WriteValue((double)value);
-            }
-            else
-            {
-                writer.WriteStartObject();
+        public override void WriteJson(JsonWriter writer, Vector2d value, JsonSerializer serializer)
+        {                
+            writer.WriteStartObject();
 
-                var vector2DValue = (Vector2d)value;
-                writer.WritePropertyName("x");
-                writer.WriteValue(vector2DValue.X);
-                writer.WritePropertyName("y");
-                writer.WriteValue(vector2DValue.Y);
+            writer.WritePropertyName("x");
+            writer.WriteValue(value.X);
+            writer.WritePropertyName("y");
+            writer.WriteValue(value.Y);
 
-                writer.WriteEndObject();
-            }
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(Vector2d) || objectType == typeof(double);
+            writer.WriteEndObject();          
         }
     }
 }
