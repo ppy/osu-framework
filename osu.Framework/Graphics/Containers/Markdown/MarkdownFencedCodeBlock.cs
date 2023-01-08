@@ -43,6 +43,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 textFlowContainer = CreateTextFlow(),
             };
 
+            // Markdig sometimes appends empty lines to the processed block, only add original lines to the container
             for (int i = 0; i < fencedCodeBlock.Lines.Count; i++)
                 textFlowContainer.AddParagraph(fencedCodeBlock.Lines.Lines[i].ToString());
         }
