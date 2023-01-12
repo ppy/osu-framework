@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
 using osu.Framework.Extensions.EnumExtensions;
@@ -24,8 +22,8 @@ namespace osu.Framework.Platform.Windows
     {
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL.SDL_WindowsMessageHook callback;
-        private WindowsWindow window;
+        private SDL.SDL_WindowsMessageHook callback = null!;
+        private WindowsWindow window = null!;
 
         public override bool IsActive => Enabled.Value;
 
