@@ -120,7 +120,7 @@ namespace osu.Framework
             });
         }
 
-        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
+        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
 
         /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
