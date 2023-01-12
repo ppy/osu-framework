@@ -33,6 +33,18 @@ namespace osu.Framework.Platform.Windows
         public WindowsWindow(GraphicsSurfaceType surfaceType)
             : base(surfaceType)
         {
+            switch (surfaceType)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                case GraphicsSurfaceType.Vulkan:
+                    windowsBorderlessWidthHack = 1;
+                    break;
+
+                case GraphicsSurfaceType.Direct3D11:
+                    windowsBorderlessWidthHack = 0;
+                    break;
+            }
+
             try
             {
                 // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
@@ -192,7 +204,7 @@ namespace osu.Framework.Platform.Windows
             {
                 // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
                 if (WindowState == WindowState.FullscreenBorderless)
-                    value.Width -= windows_borderless_width_hack;
+                    value.Width -= windowsBorderlessWidthHack;
 
                 base.Size = value;
             }
@@ -202,7 +214,8 @@ namespace osu.Framework.Platform.Windows
         /// Amount of extra width added to window size when in borderless mode on Windows.
         /// Some drivers require this to avoid the window switching to exclusive fullscreen automatically.
         /// </summary>
-        private const int windows_borderless_width_hack = 1;
+        /// <remarks>Used on <see cref="GraphicsSurfaceType.OpenGL"/> and <see cref="GraphicsSurfaceType.Vulkan"/>.</remarks>
+        private readonly int windowsBorderlessWidthHack;
 
         protected override Size SetBorderless(Display display)
         {
@@ -211,7 +224,7 @@ namespace osu.Framework.Platform.Windows
             // use the 1px hack we've always used, but only expand the width.
             // we also trick the game into thinking the window has normal size: see Size setter override
 
-            var sizeOffset = new Size(windows_borderless_width_hack, 0);
+            var sizeOffset = new Size(windowsBorderlessWidthHack, 0);
             var newSize = display.Bounds.Size + sizeOffset;
 
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
