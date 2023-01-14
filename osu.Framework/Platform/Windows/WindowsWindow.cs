@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -13,6 +14,7 @@ using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
 {
+    [SupportedOSPlatform("windows")]
     public class WindowsWindow : SDL2DesktopWindow
     {
         private const int seticon_message = 0x0080;

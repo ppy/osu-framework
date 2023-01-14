@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.Versioning;
 using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform
@@ -138,6 +139,7 @@ namespace osu.Framework.Platform
         /// <param name="bpp">The maximum desired bit count. Defaults to 32 bit.</param>
         /// <returns>An <see cref="Icon"/> instance, or null if a valid size could not be found.</returns>
         /// <exception cref="InvalidOperationException">If the native icon handle could not be created.</exception>
+        [SupportedOSPlatform("windows")]
         public Icon? CreateIcon(int width, int height, int bpp = 32)
         {
             int closest = findClosestEntry(width, height, bpp, false);
@@ -177,6 +179,7 @@ namespace osu.Framework.Platform
             return span.ToArray();
         }
 
+        [SupportedOSPlatform("windows")]
         [DllImport("user32.dll")]
         private static extern IntPtr CreateIconFromResourceEx(byte[] pbIconBits, uint cbIconBits, bool fIcon, uint dwVersion, int cxDesired, int cyDesired, uint uFlags);
     }

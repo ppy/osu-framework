@@ -17,7 +17,7 @@ namespace osu.Framework
         {
             switch (RuntimeInfo.OS)
             {
-                case RuntimeInfo.Platform.Windows:
+                case RuntimeInfo.Platform.Windows when OperatingSystem.IsWindows():
                     return new WindowsGameHost(gameName, hostOptions);
 
                 case RuntimeInfo.Platform.Linux:
