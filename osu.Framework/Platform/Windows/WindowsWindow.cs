@@ -27,6 +27,11 @@ namespace osu.Framework.Platform.Windows
 
         private const int wm_killfocus = 8;
 
+        /// <summary>
+        /// Whether to apply the <see cref="windows_borderless_width_hack"/>.
+        /// </summary>
+        private readonly bool applyBorderlessWindowHack;
+
         public WindowsWindow(GraphicsSurfaceType surfaceType)
             : base(surfaceType)
         {
@@ -34,11 +39,11 @@ namespace osu.Framework.Platform.Windows
             {
                 case GraphicsSurfaceType.OpenGL:
                 case GraphicsSurfaceType.Vulkan:
-                    windowsBorderlessWidthHack = 1;
+                    applyBorderlessWindowHack = true;
                     break;
 
                 case GraphicsSurfaceType.Direct3D11:
-                    windowsBorderlessWidthHack = 0;
+                    applyBorderlessWindowHack = false;
                     break;
             }
 
@@ -199,8 +204,8 @@ namespace osu.Framework.Platform.Windows
             protected set
             {
                 // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
-                if (WindowState == WindowState.FullscreenBorderless)
-                    value.Width -= windowsBorderlessWidthHack;
+                if (applyBorderlessWindowHack && WindowState == WindowState.FullscreenBorderless)
+                    value.Width -= windows_borderless_width_hack;
 
                 base.Size = value;
             }
@@ -211,17 +216,18 @@ namespace osu.Framework.Platform.Windows
         /// Some drivers require this to avoid the window switching to exclusive fullscreen automatically.
         /// </summary>
         /// <remarks>Used on <see cref="GraphicsSurfaceType.OpenGL"/> and <see cref="GraphicsSurfaceType.Vulkan"/>.</remarks>
-        private readonly int windowsBorderlessWidthHack;
+        private const int windows_borderless_width_hack = 1;
 
         protected override Size SetBorderless(Display display)
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            // use the 1px hack we've always used, but only expand the width.
-            // we also trick the game into thinking the window has normal size: see Size setter override
+            var newSize = display.Bounds.Size;
 
-            var sizeOffset = new Size(windowsBorderlessWidthHack, 0);
-            var newSize = display.Bounds.Size + sizeOffset;
+            if (applyBorderlessWindowHack)
+                // use the 1px hack we've always used, but only expand the width.
+                // we also trick the game into thinking the window has normal size: see Size setter override
+                newSize += new Size(windows_borderless_width_hack, 0);
 
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
             Position = display.Bounds.Location;
