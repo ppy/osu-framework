@@ -6,8 +6,9 @@ using System.Runtime.InteropServices;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using osu.Framework.Platform.Windows.Native;
 
-namespace osu.Framework.Platform.Windows.Native
+namespace osu.Framework.Platform
 {
     internal class IconGroup
     {
