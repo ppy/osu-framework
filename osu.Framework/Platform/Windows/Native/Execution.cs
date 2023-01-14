@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -25,10 +23,10 @@ namespace osu.Framework.Platform.Windows.Native
         }
 
         [DllImport("kernel32.dll")]
-        internal static extern bool SetWaitableTimerEx(IntPtr hTimer, in FILETIME lpDueTime, int lPeriod, TimerApcProc routine, IntPtr lpArgToCompletionRoutine, IntPtr reason, uint tolerableDelay);
+        internal static extern bool SetWaitableTimerEx(IntPtr hTimer, in FILETIME lpDueTime, int lPeriod, TimerApcProc? routine, IntPtr lpArgToCompletionRoutine, IntPtr reason, uint tolerableDelay);
 
         [DllImport("kernel32.dll")]
-        internal static extern IntPtr CreateWaitableTimerEx(IntPtr lpTimerAttributes, string lpTimerName, CreateWaitableTimerFlags dwFlags, uint dwDesiredAccess);
+        internal static extern IntPtr CreateWaitableTimerEx(IntPtr lpTimerAttributes, string? lpTimerName, CreateWaitableTimerFlags dwFlags, uint dwDesiredAccess);
 
         internal const uint TIMER_ALL_ACCESS = 2031619U;
 

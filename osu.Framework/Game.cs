@@ -106,21 +106,21 @@ namespace osu.Framework
         {
             RelativeSizeAxes = Axes.Both;
 
-            AddRangeInternal(new Drawable[]
+            base.AddInternal(content = new Container
             {
-                content = new Container
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
-                overlayContent = new DrawSizePreservingFillContainer
-                {
-                    TargetDrawSize = new Vector2(1280, 960),
-                    RelativeSizeAxes = Axes.Both,
-                },
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+            });
+
+            base.AddInternal(overlayContent = new DrawSizePreservingFillContainer
+            {
+                TargetDrawSize = new Vector2(1280, 960),
+                RelativeSizeAxes = Axes.Both,
             });
         }
+
+        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
 
         /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.

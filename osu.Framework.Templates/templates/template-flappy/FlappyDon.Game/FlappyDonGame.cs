@@ -71,7 +71,7 @@ namespace FlappyDon.Game
             // but changing the X-axis (ie window width) has no effect on scaling.
             gameScreen.Strategy = DrawSizePreservationStrategy.Minimum;
             gameScreen.TargetDrawSize = new Vector2(0, 768);
-            AddInternal(gameScreen);
+            Add(gameScreen);
 
             // Register a method to be triggered each time the bird crosses a pipe threshold
             obstacles.ThresholdCrossed = _ =>

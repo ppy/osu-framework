@@ -1,12 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -25,8 +22,8 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
-        private Icon smallIcon;
-        private Icon largeIcon;
+        private Icon? smallIcon;
+        private Icon? largeIcon;
 
         private const int wm_killfocus = 8;
 
@@ -160,8 +157,7 @@ namespace osu.Framework.Platform.Windows
         /// Used for blocking SDL IME results since we handle those ourselves.
         /// Cleared when the SDL events are blocked.
         /// </remarks>
-        [CanBeNull]
-        private string lastImeResult;
+        private string? lastImeResult;
 
         private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
         {
@@ -175,13 +171,13 @@ namespace osu.Framework.Platform.Windows
                 case Imm.WM_IME_COMPOSITION:
                     using (var inputContext = new Imm.InputContext(hWnd, lParam))
                     {
-                        if (inputContext.TryGetImeResult(out string resultText))
+                        if (inputContext.TryGetImeResult(out string? resultText))
                         {
                             lastImeResult = resultText;
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
-                        if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
+                        if (inputContext.TryGetImeComposition(out string? compositionText, out int start, out int length))
                         {
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
                         }
