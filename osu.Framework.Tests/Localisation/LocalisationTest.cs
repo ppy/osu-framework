@@ -458,6 +458,40 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestPadLeftILocalisableStringData()
+        {
+            const string str = FakeStorage.LOCALISABLE_STRING_EN;
+            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+
+            int padAmount = str.Length + 1;
+
+            var padded = manager.GetLocalisedBindableString(new TranslatableString(str, str).PadLeft(padAmount));
+
+            Assert.AreEqual(str.PadLeft(padAmount), padded.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "ja-jp");
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA_JP.PadLeft(padAmount), padded.Value);
+        }
+
+        [Test]
+        public void TestPadRightLocalisableString()
+        {
+            const string str = FakeStorage.LOCALISABLE_STRING_EN;
+
+            int padAmount = str.Length + 1;
+
+            LocalisableString localisable = new TranslatableString(str, str);
+
+            var padded = manager.GetLocalisedBindableString(localisable.PadRight(padAmount));
+
+            Assert.AreEqual(str.PadRight(padAmount), padded.Value);
+
+            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            config.SetValue(FrameworkSetting.Locale, "ja-JP");
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA_JP.PadRight(padAmount), padded.Value);
+        }
+
+        [Test]
         public void TestInvalidLocaleWhileRunning()
         {
             string localeBefore = config.Get<string>(FrameworkSetting.Locale);

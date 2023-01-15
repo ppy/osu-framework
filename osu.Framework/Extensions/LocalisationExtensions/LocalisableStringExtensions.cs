@@ -70,5 +70,33 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         /// <param name="data">The string data.</param>
         /// <returns>A case transformable string with its string data transformed to sentence case.</returns>
         public static CaseTransformableString ToSentence(this ILocalisableStringData data) => new LocalisableString(data).ToSentence();
+
+        /// <summary>
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string right-aligned by padding it with spaces on the left, for the specified <paramref name="totalWidth"/>.
+        /// </summary>
+        /// <param name="str">The localisable string.</param>
+        /// <param name="totalWidth">The minimum number of characters desired in the resulting <see cref="LocalisableString"/>. Should be a positive number.</param>
+        public static LocalisableString PadLeft(this LocalisableString str, int totalWidth) => LocalisableString.Format($"{{0,{totalWidth}}}", str);
+
+        /// <summary>
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying string data right-aligned by padding it with spaces on the left, for the specified <paramref name="totalWidth"/>.
+        /// </summary>
+        /// <param name="data">The string data.</param>
+        /// <param name="totalWidth">The minimum number of characters desired in the resulting <see cref="LocalisableString"/>. Should be a positive number.</param>
+        public static LocalisableString PadLeft(this ILocalisableStringData data, int totalWidth) => LocalisableString.Format($"{{0,{totalWidth}}}", data);
+
+        /// <summary>
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string left-aligned by padding it with spaces on the right, for the specified <paramref name="totalWidth"/>.
+        /// </summary>
+        /// <param name="str">The localisable string.</param>
+        /// <param name="totalWidth">The minimum number of characters desired in the resulting <see cref="LocalisableString"/>. Should be a positive number.</param>
+        public static LocalisableString PadRight(this LocalisableString str, int totalWidth) => LocalisableString.Format($"{{0,{-totalWidth}}}", str);
+
+        /// <summary>
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying string data left-aligned by padding it with spaces on the right, for the specified <paramref name="totalWidth"/>.
+        /// </summary>
+        /// <param name="data">The string data.</param>
+        /// <param name="totalWidth">The minimum number of characters desired in the resulting <see cref="LocalisableString"/>. Should be a positive number.</param>
+        public static LocalisableString PadRight(this ILocalisableStringData data, int totalWidth) => LocalisableString.Format($"{{0,{-totalWidth}}}", data);
     }
 }
