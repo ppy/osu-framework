@@ -48,7 +48,7 @@ namespace osu.Framework.Development
         /// <remarks>
         /// Usually obtained via <see cref="Assembly.GetEntryAssembly"/>, but can be set by a different mechanism on platforms that don't support that.
         /// </remarks>
-        internal static Assembly EntryAssembly { private get; set; } = Assembly.GetEntryAssembly()!;
+        internal static Assembly? EntryAssembly { private get; set; } = Assembly.GetEntryAssembly();
 
         public static bool IsDebugBuild => is_debug_build.Value;
 
@@ -74,6 +74,9 @@ namespace osu.Framework.Development
         {
             if (IsNUnitRunning)
                 return nunit_test_assembly.Value;
+
+            // can only be null when running under nunit, and that case is covered above.
+            Debug.Assert(EntryAssembly != null);
 
             return EntryAssembly;
         }
