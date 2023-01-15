@@ -65,7 +65,7 @@ namespace osu.Framework.Android
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
-            DebugUtils.AndroidEntryAssembly = GetType().Assembly;
+            DebugUtils.EntryAssembly = GetType().Assembly;
 
             // The default current directory on android is '/'.
             // On some devices '/' maps to the app data directory. On others it maps to the root of the internal storage.
