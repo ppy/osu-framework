@@ -53,7 +53,7 @@ namespace osu.Framework.Development
         public static bool IsDebugBuild => is_debug_build.Value;
 
         private static readonly Lazy<bool> is_debug_build = new Lazy<bool>(() =>
-            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(GetEntryAssembly()) || isDebugAssembly(EntryAssembly)
+            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(GetEntryAssembly())
         );
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace osu.Framework.Development
         private static bool isDebugAssembly(Assembly? assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
 
         /// <summary>
-        /// Gets the entry assembly, or calling assembly otherwise.
+        /// Gets the entry assembly.
         /// When running under NUnit, the assembly of the current test will be returned instead.
         /// </summary>
         /// <returns>The entry assembly (usually obtained via <see cref="Assembly.GetEntryAssembly()"/>.</returns>
@@ -75,7 +75,7 @@ namespace osu.Framework.Development
             if (IsNUnitRunning)
                 return nunit_test_assembly.Value;
 
-            return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+            return EntryAssembly;
         }
     }
 }
