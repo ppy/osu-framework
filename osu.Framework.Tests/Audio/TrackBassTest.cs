@@ -432,6 +432,20 @@ namespace osu.Framework.Tests.Audio
             Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
+        [Test]
+        public void TestTagReader()
+        {
+            var tags = track.Tags;
+
+            Assert.That(tags, Is.Not.Null);
+            Assert.That(tags.Artist, Is.EqualTo("osu-framework"));
+            Assert.That(tags.Album, Is.EqualTo("osu-framework"));
+            Assert.That(tags.Genre, Is.EqualTo("tunes"));
+            Assert.That(tags.Year, Is.EqualTo(2008));
+            Assert.That(tags.Title, Is.EqualTo("sample-track"));
+            Assert.That(tags.BPM, Is.EqualTo(200));
+        }
+
         private void takeEffectsAndUpdateAfter(int after)
         {
             bass.Update();

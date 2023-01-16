@@ -303,6 +303,27 @@ namespace osu.Framework.Audio.Track
             return conservativeClamped == seek;
         }
 
+        protected override Tags GetTags()
+        {
+            var tags = TagReader.Read(activeStream);
+
+            var parsed = new Tags
+            {
+                Artist = tags.Artist,
+                Title = tags.Title,
+                Album = tags.Album,
+                Genre = tags.Genre,
+            };
+
+            if (Int32.TryParse(tags.BPM, out int bpm))
+                parsed.BPM = bpm;
+
+            if (Int32.TryParse(tags.Year, out int year))
+                parsed.Year = year;
+
+            return parsed;
+        }
+
         private void seekInternal(double seek)
         {
             double clamped = Math.Clamp(seek, 0, Length);
