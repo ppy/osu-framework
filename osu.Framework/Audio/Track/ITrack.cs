@@ -49,7 +49,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// The ID3 tags contained in this track's metadata.
         /// </summary>
-        Tags Tags { get; }
+        Tags? Tags { get; }
 
         /// <summary>
         /// Whether this track is reversed.

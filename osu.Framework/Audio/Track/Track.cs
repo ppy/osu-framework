@@ -23,7 +23,7 @@ namespace osu.Framework.Audio.Track
 
         public virtual bool Looping { get; set; }
 
-        public Tags Tags { get => GetTags(); }
+        public Tags? Tags { get => GetTags(); }
 
         public string Name { get; }
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Audio.Track
 
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
-        protected virtual Tags GetTags() => null;
+        protected virtual Tags? GetTags() => null;
 
         protected override void UpdateState()
         {

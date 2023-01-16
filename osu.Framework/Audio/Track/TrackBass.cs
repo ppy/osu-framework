@@ -303,9 +303,12 @@ namespace osu.Framework.Audio.Track
             return conservativeClamped == seek;
         }
 
-        protected override Tags GetTags()
+        protected override Tags? GetTags()
         {
             var tags = TagReader.Read(activeStream);
+
+            if (tags == null)
+                return null;
 
             var parsed = new Tags
             {

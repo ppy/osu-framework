@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Audio
         }
 
         public int? Bitrate => track.Bitrate;
-        public Tags Tags => track.Tags;
+        public Tags? Tags => track.Tags;
 
         public bool IsRunning => track.IsRunning;
 

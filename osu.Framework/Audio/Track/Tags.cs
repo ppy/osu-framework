@@ -8,16 +8,16 @@ namespace osu.Framework.Audio.Track
     /// </summary>
     public class Tags
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
-        public string Artist { get; set; }
+        public string? Artist { get; set; }
 
         public int? BPM { get; set; }
 
-        public string Album { get; set; }
+        public string? Album { get; set; }
 
         public int? Year { get; set; }
 
-        public string Genre { get; set; }
+        public string? Genre { get; set; }
     }
 }
