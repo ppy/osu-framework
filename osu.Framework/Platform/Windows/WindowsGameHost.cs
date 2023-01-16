@@ -17,6 +17,7 @@ using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform.Windows
 {
+    [SupportedOSPlatform("windows")]
     public class WindowsGameHost : DesktopGameHost
     {
         private TimePeriod? timePeriod;
@@ -29,7 +30,6 @@ namespace osu.Framework.Platform.Windows
             // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
 
-        [SupportedOSPlatform("windows")]
         public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, HostOptions? options)
