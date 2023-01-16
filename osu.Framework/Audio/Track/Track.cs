@@ -23,7 +23,7 @@ namespace osu.Framework.Audio.Track
 
         public virtual bool Looping { get; set; }
 
-        public Tags? Tags { get => GetTags(); }
+        public Tags? Tags => GetTags();
 
         public string Name { get; }
 
