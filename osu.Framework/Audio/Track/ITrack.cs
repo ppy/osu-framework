@@ -47,6 +47,11 @@ namespace osu.Framework.Audio.Track
         int? Bitrate { get; }
 
         /// <summary>
+        /// The ID3 tags contained in this track's metadata.
+        /// </summary>
+        Tags Tags { get; }
+
+        /// <summary>
         /// Whether this track is reversed.
         /// </summary>
         bool IsReversed { get; }

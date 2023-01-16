@@ -309,11 +309,14 @@ namespace osu.Framework.Audio.Track
 
             var parsed = new Tags
             {
-                Artist = tags.Artist,
+                Artist = tags.Artist?.Trim()!,
                 Title = tags.Title,
                 Album = tags.Album,
                 Genre = tags.Genre,
             };
+
+            if (string.IsNullOrEmpty(parsed.Artist))
+                parsed.Artist = tags.AlbumArtist;
 
             if (Int32.TryParse(tags.BPM, out int bpm))
                 parsed.BPM = bpm;
