@@ -443,7 +443,6 @@ namespace osu.Framework.Tests.Audio
             Assert.That(tags.Genre, Is.EqualTo("tunes"));
             Assert.That(tags.Year, Is.EqualTo(2008));
             Assert.That(tags.Title, Is.EqualTo("sample-track"));
-            Assert.That(tags.BPM, Is.EqualTo(200));
         }
 
         private void takeEffectsAndUpdateAfter(int after)

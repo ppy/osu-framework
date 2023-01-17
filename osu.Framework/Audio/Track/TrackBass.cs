@@ -321,10 +321,7 @@ namespace osu.Framework.Audio.Track
             if (string.IsNullOrEmpty(parsed.Artist))
                 parsed.Artist = tags.AlbumArtist;
 
-            if (Int32.TryParse(tags.BPM, out int bpm))
-                parsed.BPM = bpm;
-
-            if (Int32.TryParse(tags.Year, out int year))
+            if (int.TryParse(tags.Year, out int year))
                 parsed.Year = year;
 
             return parsed;

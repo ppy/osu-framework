@@ -12,8 +12,6 @@ namespace osu.Framework.Audio.Track
 
         public string? Artist { get; set; }
 
-        public int? BPM { get; set; }
-
         public string? Album { get; set; }
 
         public int? Year { get; set; }
