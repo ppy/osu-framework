@@ -10,9 +10,6 @@ varying highp vec2 v_TexCoord;
 varying highp vec4 v_TexRect;
 varying mediump vec2 v_BlendRange;
 
-uniform mat4 g_ProjMatrix;
-uniform mat3 g_ToMaskingSpace;
-
 void main(void)
 {
 	// Transform to position to masking space.

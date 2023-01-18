@@ -6,7 +6,6 @@ attribute vec2 m_Direction;
 varying vec4 v_Colour;
 varying vec2 v_TexCoord;
 
-uniform mat4 g_ProjMatrix;
 uniform float g_FadeClock;
 uniform float g_Gravity;
 

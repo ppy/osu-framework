@@ -2,9 +2,6 @@
 
 attribute highp float m_BackbufferDrawDepth;
 
-// Whether the backbuffer is currently being drawn to
-uniform bool g_BackbufferDraw;
-
 void main()
 {
     {{ real_main }}(); // Invoke real main func

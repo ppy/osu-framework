@@ -1,7 +1,5 @@
 ﻿#define GAMMA 2.4
 
-uniform bool g_GammaCorrection;
-
 lowp float toLinear(lowp float color)
 {
     return color <= 0.04045 ? (color / 12.92) : pow((color + 0.055) / 1.055, GAMMA);

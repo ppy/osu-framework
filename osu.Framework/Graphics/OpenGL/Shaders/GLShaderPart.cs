@@ -112,7 +112,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
+                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false)
+                           + "\n"
+                           + loadFile(manager.LoadRaw("sh_GlobalUniforms.h"), false)
+                           + "\n"
+                           + code;
 
                     if (isVertexShader)
                     {
