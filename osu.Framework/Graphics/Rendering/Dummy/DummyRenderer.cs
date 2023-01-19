@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
@@ -38,14 +39,19 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
 
+        public bool IsInitialised { get; private set; }
+
         public DummyRenderer()
         {
             maskingInfo = default;
             WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
         }
 
-        void IRenderer.Initialise()
+        bool IRenderer.VerticalSync { get; set; } = true;
+
+        void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
+            IsInitialised = true;
         }
 
         void IRenderer.BeginFrame(Vector2 windowSize)
@@ -53,6 +59,22 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         void IRenderer.FinishFrame()
+        {
+        }
+
+        void IRenderer.SwapBuffers()
+        {
+        }
+
+        void IRenderer.WaitUntilIdle()
+        {
+        }
+
+        void IRenderer.MakeCurrent()
+        {
+        }
+
+        void IRenderer.ClearCurrent()
         {
         }
 

@@ -5,23 +5,23 @@ using System.Collections.Generic;
 
 namespace osu.Framework.SourceGeneration
 {
-    public class GeneratorClassCandidateComparer : IEqualityComparer<GeneratorClassCandidate>
+    public class SyntaxTargetNameComparer : IEqualityComparer<SyntaxTarget>
     {
-        public static readonly GeneratorClassCandidateComparer DEFAULT = new GeneratorClassCandidateComparer();
+        public static readonly SyntaxTargetNameComparer DEFAULT = new SyntaxTargetNameComparer();
 
-        public bool Equals(GeneratorClassCandidate x, GeneratorClassCandidate y)
+        public bool Equals(SyntaxTarget? x, SyntaxTarget? y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
             if (ReferenceEquals(y, null)) return false;
             if (x.GetType() != y.GetType()) return false;
 
-            return string.Equals(x.FullyQualifiedTypeName, y.FullyQualifiedTypeName);
+            return x.SyntaxName == y.SyntaxName;
         }
 
-        public int GetHashCode(GeneratorClassCandidate obj)
+        public int GetHashCode(SyntaxTarget obj)
         {
-            return obj.FullyQualifiedTypeName.GetHashCode();
+            return obj.SyntaxName!.GetHashCode();
         }
     }
 }

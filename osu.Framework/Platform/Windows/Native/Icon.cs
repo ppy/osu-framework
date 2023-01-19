@@ -1,13 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace osu.Framework.Platform.Windows.Native
 {
+    [SupportedOSPlatform("windows")]
     internal class Icon : IDisposable
     {
         [DllImport("user32.dll", SetLastError = true)]

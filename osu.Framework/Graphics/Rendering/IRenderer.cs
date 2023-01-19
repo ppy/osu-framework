@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Rendering
@@ -40,6 +41,11 @@ namespace osu.Framework.Graphics.Rendering
         /// Maximum number of quads in a quad vertex buffer.
         /// </summary>
         public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
+
+        /// <summary>
+        /// Enables or disables vertical sync.
+        /// </summary>
+        protected internal bool VerticalSync { get; set; }
 
         /// <summary>
         /// The maximum allowed texture size.
@@ -124,20 +130,50 @@ namespace osu.Framework.Graphics.Rendering
         Texture WhitePixel { get; }
 
         /// <summary>
+        /// Whether this <see cref="IRenderer"/> has been initialised using <see cref="Initialise"/>.
+        /// </summary>
+        bool IsInitialised { get; }
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="IRenderer"/>.
         /// </summary>
-        internal void Initialise();
+        protected internal void Initialise(IGraphicsSurface graphicsSurface);
 
         /// <summary>
         /// Resets any states to prepare for drawing a new frame.
         /// </summary>
         /// <param name="windowSize">The full window size.</param>
-        internal void BeginFrame(Vector2 windowSize);
+        protected internal void BeginFrame(Vector2 windowSize);
 
         /// <summary>
         /// Performs any last actions before a frame ends.
         /// </summary>
-        internal void FinishFrame();
+        protected internal void FinishFrame();
+
+        /// <summary>
+        /// Swaps the back buffer with the front buffer to display the new frame.
+        /// </summary>
+        protected internal void SwapBuffers();
+
+        /// <summary>
+        /// Waits until all renderer commands have been fully executed GPU-side, as signaled by the graphics backend.
+        /// </summary>
+        /// <remarks>
+        /// This is equivalent to a <c>glFinish</c> call.
+        /// </remarks>
+        protected internal void WaitUntilIdle();
+
+        /// <summary>
+        /// Invoked when the rendering thread is active and commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal void MakeCurrent();
+
+        /// <summary>
+        /// Invoked when the rendering thread is suspended and no more commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal void ClearCurrent();
 
         /// <summary>
         /// Binds a texture.

@@ -11,7 +11,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
-using osuTK.Graphics.OpenGL;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -22,7 +21,7 @@ namespace osu.Framework.Platform.MacOS
         {
         }
 
-        protected override IWindow CreateWindow() => new MacOSWindow();
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new MacOSWindow(preferredSurface);
 
         public override IEnumerable<string> UserStoragePaths
         {
@@ -51,8 +50,8 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (!Window.VerticalSync)
-                GL.Finish();
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && !Renderer.VerticalSync)
+                Renderer.WaitUntilIdle();
         }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()

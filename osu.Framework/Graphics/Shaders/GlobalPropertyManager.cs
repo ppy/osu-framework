@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Shaders
 
         static GlobalPropertyManager()
         {
-            var values = Enum.GetValues(typeof(GlobalProperty)).OfType<GlobalProperty>().ToArray();
+            var values = Enum.GetValues<GlobalProperty>();
 
             global_properties = new IUniformMapping[values.Length];
 

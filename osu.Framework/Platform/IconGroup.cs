@@ -1,15 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.IO;
 using System.Runtime.InteropServices;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
+using System.Runtime.Versioning;
+using osu.Framework.Platform.Windows.Native;
 
-namespace osu.Framework.Platform.Windows.Native
+namespace osu.Framework.Platform
 {
     internal class IconGroup
     {
@@ -41,9 +41,9 @@ namespace osu.Framework.Platform.Windows.Native
         private const uint lr_defaultcolor = 0x00000000;
 
         private IconDir iconDir;
-        private byte[] data;
+        private byte[]? data;
 
-        public static bool TryParse(byte[] data, out IconGroup iconGroup)
+        public static bool TryParse(byte[] data, [NotNullWhen(true)] out IconGroup? iconGroup)
         {
             try
             {
@@ -139,8 +139,8 @@ namespace osu.Framework.Platform.Windows.Native
         /// <param name="bpp">The maximum desired bit count. Defaults to 32 bit.</param>
         /// <returns>An <see cref="Icon"/> instance, or null if a valid size could not be found.</returns>
         /// <exception cref="InvalidOperationException">If the native icon handle could not be created.</exception>
-        [CanBeNull]
-        public Icon CreateIcon(int width, int height, int bpp = 32)
+        [SupportedOSPlatform("windows")]
+        public Icon? CreateIcon(int width, int height, int bpp = 32)
         {
             int closest = findClosestEntry(width, height, bpp, false);
             if (closest < 0)
@@ -167,8 +167,7 @@ namespace osu.Framework.Platform.Windows.Native
         /// <param name="height">The maximum desired height in pixels.</param>
         /// <param name="bpp">The maximum desired bit count. Defaults to 32 bit.</param>
         /// <returns>A byte array of raw PNG data, or null if a valid size could not be found.</returns>
-        [CanBeNull]
-        public byte[] LoadRawIcon(int width, int height, int bpp = 32)
+        public byte[]? LoadRawIcon(int width, int height, int bpp = 32)
         {
             int closest = findClosestEntry(width, height, bpp, true);
             if (closest < 0)
@@ -180,6 +179,7 @@ namespace osu.Framework.Platform.Windows.Native
             return span.ToArray();
         }
 
+        [SupportedOSPlatform("windows")]
         [DllImport("user32.dll")]
         private static extern IntPtr CreateIconFromResourceEx(byte[] pbIconBits, uint cbIconBits, bool fIcon, uint dwVersion, int cxDesired, int cyDesired, uint uFlags);
     }

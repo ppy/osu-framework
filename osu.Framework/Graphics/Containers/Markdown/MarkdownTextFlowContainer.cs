@@ -7,9 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.CustomContainers;
+using Markdig.Extensions.Footnotes;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Containers.Markdown.Footnotes;
 using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
 
@@ -119,6 +121,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         AddAutoLink(autoLink);
                         break;
 
+                    case FootnoteLink footnoteLink:
+                        if (footnoteLink.IsBackLink)
+                            AddFootnoteBacklink(footnoteLink);
+                        else
+                            AddFootnoteLink(footnoteLink);
+                        break;
+
                     default:
                         AddNotImplementedInlineText(single);
                         break;
@@ -143,6 +152,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual void AddImage(LinkInline linkInline)
             => AddDrawable(new MarkdownImage(linkInline.Url));
+
+        protected virtual void AddFootnoteLink(FootnoteLink footnoteLink)
+            => AddDrawable(new MarkdownFootnoteLink(footnoteLink));
+
+        protected virtual void AddFootnoteBacklink(FootnoteLink footnoteBacklink)
+            => AddDrawable(new MarkdownFootnoteBacklink());
 
         protected virtual void AddCustomComponent(CustomContainerInline customContainerInline)
             => AddNotImplementedInlineText(customContainerInline);

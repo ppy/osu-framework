@@ -387,7 +387,7 @@ namespace osu.Framework.Utils
                 var valueAtMethod = typeof(GenericInterpolation<TEasing>).GetMethod(interpolation_method, parameters);
 
                 if (valueAtMethod != null)
-                    FUNCTION = (InterpolationFunc<TValue, TEasing>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue, TEasing>));
+                    FUNCTION = valueAtMethod.CreateDelegate<InterpolationFunc<TValue, TEasing>>();
                 else
                 {
                     var typeRef = FormatterServices.GetSafeUninitializedObject(typeof(TValue)) as IInterpolable<TValue>;
