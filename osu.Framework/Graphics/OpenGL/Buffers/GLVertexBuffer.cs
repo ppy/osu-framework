@@ -137,7 +137,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public const int MASKING_DATA_PER_TEXEL = 4; // Number of floats that fit into a single texel of the masking texture.
         public const int MASKING_TEXTURE_WIDTH = MASKING_DATA_LENGTH / MASKING_DATA_PER_TEXEL; // Width of the masking texture - holds a single MaskingInfo for now.
 
-        protected int MaskingTextureHeight; // Height of the masking texture - expands based on the number of MaskingInfos.
         protected float[] MaskingTextureBuffer = new float[MASKING_DATA_LENGTH]; // All data stored in the texture.
 
         private int maskingTexture = -1;
@@ -237,17 +236,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
 
             GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
-
-            int totalTexels = numMaskingInfos * MASKING_DATA_LENGTH / MASKING_DATA_PER_TEXEL;
-            int currentMaskingTextureHeight = (totalTexels + MASKING_TEXTURE_WIDTH - 1) / MASKING_TEXTURE_WIDTH;
-            // if (MaskingTextureHeight < currentMaskingTextureHeight) {
-            MaskingTextureHeight = currentMaskingTextureHeight;
-            GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MASKING_TEXTURE_WIDTH, MaskingTextureHeight, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
-            // } else if (numUploadedMaskingInfos < currentMaskingTextureHeight) {
-            //     GL.TexSubImage2D(All.Texture2D, 0, 0, numUploadedMaskingInfos, MASKING_TEXTURE_WIDTH, currentMaskingTextureHeight - numUploadedMaskingInfos, All.Rgba, All.Float, ref MaskingTextureBuffer[numUploadedMaskingInfos * MASKING_TEXTURE_WIDTH * 4]);
-            // }
-
-            numUploadedMaskingInfos = currentMaskingTextureHeight;
+            GL.TexImage2D(All.Texture2D, 0, All.Rgba32f, MASKING_TEXTURE_WIDTH, numMaskingInfos, 0, All.Rgba, All.Float, ref MaskingTextureBuffer[0]);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
