@@ -9,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDrawableScale : FrameworkTestScene
+    public partial class TestSceneDrawableScale : FrameworkTestScene
     {
         [TestCase(1, true)]
         [TestCase(2, true)]

@@ -199,12 +199,12 @@ namespace osu.Framework.Bindables
                 PrecisionChanged?.Invoke(precision);
         }
 
-        public override void BindTo(Bindable<T> them)
+        public override void CopyTo(Bindable<T> them)
         {
             if (them is BindableNumber<T> other)
-                Precision = other.Precision;
+                other.Precision = Precision;
 
-            base.BindTo(them);
+            base.CopyTo(them);
         }
 
         public override void UnbindEvents()
@@ -296,8 +296,6 @@ namespace osu.Framework.Bindables
         public new BindableNumber<T> GetBoundCopy() => (BindableNumber<T>)base.GetBoundCopy();
 
         public new BindableNumber<T> GetUnboundCopy() => (BindableNumber<T>)base.GetUnboundCopy();
-
-        public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
 
         public override bool IsDefault
         {

@@ -10,14 +10,13 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularBlob : Sprite
+    public partial class CircularBlob : Sprite
     {
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlob");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularBlobRounded");
         }
 
         protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);
@@ -123,7 +122,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void Blit(IRenderer renderer)
             {
-                var shader = GetAppropriateShader(renderer);
+                if (innerRadius == 0)
+                    return;
+
+                var shader = TextureShader;
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);

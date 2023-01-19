@@ -11,7 +11,6 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
-using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
 using SDL2;
 using SixLabors.ImageSharp;
@@ -28,16 +27,8 @@ namespace osu.Framework.Platform
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
-        private readonly IGraphicsBackend graphicsBackend;
-
-        /// <summary>
-        /// Enables or disables vertical sync.
-        /// </summary>
-        public bool VerticalSync
-        {
-            get => graphicsBackend.VerticalSync;
-            set => graphicsBackend.VerticalSync = value;
-        }
+        private readonly SDL2GraphicsSurface graphicsSurface;
+        IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
 
         /// <summary>
         /// Returns true if window has been created.
@@ -78,6 +69,20 @@ namespace osu.Framework.Platform
             {
                 title = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowTitle(SDLWindowHandle, title));
+            }
+        }
+
+        /// <summary>
+        /// Whether the current display server is Wayland.
+        /// </summary>
+        internal bool IsWayland
+        {
+            get
+            {
+                if (SDLWindowHandle == IntPtr.Zero)
+                    return false;
+
+                return getWindowWMInfo().subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND;
             }
         }
 
@@ -124,19 +129,41 @@ namespace osu.Framework.Platform
             }
         }
 
+        public IntPtr DisplayHandle
+        {
+            get
+            {
+                if (SDLWindowHandle == IntPtr.Zero)
+                    return IntPtr.Zero;
+
+                var wmInfo = getWindowWMInfo();
+
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+                        return wmInfo.info.x11.display;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
+                        return wmInfo.info.wl.display;
+
+                    default:
+                        return IntPtr.Zero;
+                }
+            }
+        }
+
         private SDL.SDL_SysWMinfo getWindowWMInfo()
         {
             if (SDLWindowHandle == IntPtr.Zero)
                 return default;
 
             var wmInfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_GetVersion(out wmInfo.version);
             SDL.SDL_GetWindowWMInfo(SDLWindowHandle, ref wmInfo);
             return wmInfo;
         }
 
         public bool CapsLockPressed => SDL.SDL_GetModState().HasFlagFast(SDL.SDL_Keymod.KMOD_CAPS);
-
-        private bool firstDraw = true;
 
         // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
 
@@ -146,7 +173,7 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
-        public SDL2DesktopWindow()
+        public SDL2DesktopWindow(GraphicsSurfaceType surfaceType)
         {
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
@@ -162,8 +189,7 @@ namespace osu.Framework.Platform
                 Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
             }, IntPtr.Zero);
 
-            graphicsBackend = CreateGraphicsBackend();
-
+            graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
             SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
             CursorStateBindable.ValueChanged += evt =>
@@ -181,16 +207,14 @@ namespace osu.Framework.Platform
             setupInput(config);
         }
 
-        /// <summary>
-        /// Creates the window and initialises the graphics backend.
-        /// </summary>
         public virtual void Create()
         {
-            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
-                                        WindowState.ToFlags();
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN; // shown after first swap to avoid white flash on startup (windows)
+
+            flags |= WindowState.ToFlags();
+            flags |= graphicsSurface.Type.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
@@ -203,12 +227,14 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL.SDL_StopTextInput();
 
-            graphicsBackend.InitialiseBeforeWindowCreation();
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
+
+            if (SDLWindowHandle == IntPtr.Zero)
+                throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL.SDL_GetError()}");
 
             Exists = true;
 
-            graphicsBackend.Initialise(this);
+            graphicsSurface.Initialise();
 
             initialiseWindowingAfterCreation();
         }
@@ -263,32 +289,21 @@ namespace osu.Framework.Platform
             SDL.SDL_Quit();
         }
 
+        private bool firstDraw = true;
+
+        public void OnDraw()
+        {
+            if (!firstDraw)
+                return;
+
+            Visible = true;
+            firstDraw = false;
+        }
+
         /// <summary>
         /// Forcefully closes the window.
         /// </summary>
         public void Close() => ScheduleCommand(() => Exists = false);
-
-        public void SwapBuffers()
-        {
-            graphicsBackend.SwapBuffers();
-
-            if (firstDraw)
-            {
-                Visible = true;
-                firstDraw = false;
-            }
-        }
-
-        /// <summary>
-        /// Requests that the graphics backend become the current context.
-        /// May not be required for some backends.
-        /// </summary>
-        public void MakeCurrent() => graphicsBackend.MakeCurrent();
-
-        /// <summary>
-        /// Requests that the current context be cleared.
-        /// </summary>
-        public void ClearCurrent() => graphicsBackend.ClearCurrent();
 
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
@@ -445,8 +460,6 @@ namespace osu.Framework.Platform
         private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => ExitRequested?.Invoke();
 
         #endregion
-
-        protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
 
         public void SetIconFromStream(Stream stream)
         {

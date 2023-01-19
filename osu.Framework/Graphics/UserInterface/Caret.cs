@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A UI component generally used to show the current cursor location in a text edit field.
     /// </summary>
-    public abstract class Caret : CompositeDrawable
+    public abstract partial class Caret : CompositeDrawable
     {
         /// <summary>
         /// Request the caret be displayed at a particular location, with an optional selection length.

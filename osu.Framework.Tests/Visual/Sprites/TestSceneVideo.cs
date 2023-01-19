@@ -15,7 +15,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideo : FrameworkTestScene
+    public partial class TestSceneVideo : FrameworkTestScene
     {
         private ResourceStore<byte[]> videoStore;
 
@@ -207,8 +207,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewVideo();
 
             AddStep("Set colour", () => video.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
-            AddStep("Use normal shader", () => video.UseRoundedShader = false);
-            AddStep("Use rounded shader", () => video.UseRoundedShader = true);
+            AddToggleStep("Toggle rounding", v => video.Rounded = v);
         }
 
         private int currentSecond;

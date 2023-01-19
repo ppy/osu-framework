@@ -8,7 +8,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDerivedTestWithDerivedMethodsWithAttributes : TestSceneTest
+    public partial class TestSceneDerivedTestWithDerivedMethodsWithAttributes : TestSceneTest
     {
         [SetUp]
         public override void SetUp() => base.SetUp();

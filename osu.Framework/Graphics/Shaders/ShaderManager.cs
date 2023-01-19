@@ -135,18 +135,13 @@ namespace osu.Framework.Graphics.Shaders
         public const string TEXTURE_2 = "Texture2D";
         public const string TEXTURE_3 = "Texture3D";
         public const string POSITION = "Position";
-        public const string COLOUR = "Colour";
     }
 
     public static class FragmentShaderDescriptor
     {
         public const string TEXTURE = "Texture";
-        public const string TEXTURE_ROUNDED = "TextureRounded";
-        public const string COLOUR = "Colour";
-        public const string COLOUR_ROUNDED = "ColourRounded";
         public const string GLOW = "Glow";
         public const string BLUR = "Blur";
         public const string VIDEO = "Video";
-        public const string VIDEO_ROUNDED = "VideoRounded";
     }
 }

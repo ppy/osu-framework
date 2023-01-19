@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCircularBlob : FrameworkTestScene
+    public partial class TestSceneCircularBlob : FrameworkTestScene
     {
         [Resolved]
         private IRenderer renderer { get; set; } = null!;

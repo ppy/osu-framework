@@ -20,7 +20,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneContextMenu : ManualInputManagerTestScene
+    public partial class TestSceneContextMenu : ManualInputManagerTestScene
     {
         protected override Container<Drawable> Content => contextMenuContainer ?? base.Content;
 
@@ -322,7 +322,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void assertMenuItems(int expectedCount) => AddAssert($"menu contains {expectedCount} item(s)", () => contextMenuContainer.CurrentMenu.Items.Count == expectedCount);
 
-        private class BoxWithContextMenu : Box, IHasContextMenu
+        private partial class BoxWithContextMenu : Box, IHasContextMenu
         {
             private readonly Action[] actions;
 
@@ -334,7 +334,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public MenuItem[] ContextMenuItems => actions?.Select((a, i) => new MenuItem($"Item {i}", a)).ToArray();
         }
 
-        private class BoxWithNestedContextMenuItems : Box, IHasContextMenu
+        private partial class BoxWithNestedContextMenuItems : Box, IHasContextMenu
         {
             public MenuItem[] ContextMenuItems => new[]
             {
@@ -348,18 +348,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
         }
 
-        private class TestContextMenuContainer : BasicContextMenuContainer
+        private partial class TestContextMenuContainer : BasicContextMenuContainer
         {
             public Menu CurrentMenu { get; private set; }
 
             protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
         }
 
-        private class TestContextMenuContainerWithFade : BasicContextMenuContainer
+        private partial class TestContextMenuContainerWithFade : BasicContextMenuContainer
         {
             protected override Menu CreateMenu() => new TestMenu();
 
-            private class TestMenu : BasicMenu
+            private partial class TestMenu : BasicMenu
             {
                 public TestMenu()
                     : base(Direction.Vertical)

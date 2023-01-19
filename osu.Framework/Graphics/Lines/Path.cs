@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.Lines
 {
     public partial class Path : Drawable, IBufferedDrawable
     {
-        public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
         private IShader pathShader;
 
@@ -34,7 +33,6 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }

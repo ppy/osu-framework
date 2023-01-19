@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTestWithSource : FrameworkTestScene
+    public partial class TestSceneTestWithSource : FrameworkTestScene
     {
         protected static object[][] SourceField =
         {

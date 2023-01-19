@@ -15,7 +15,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCustomizableTextContainer : FrameworkTestScene
+    public partial class TestSceneCustomizableTextContainer : FrameworkTestScene
     {
         [Resolved]
         private FrameworkConfigManager configManager { get; set; }

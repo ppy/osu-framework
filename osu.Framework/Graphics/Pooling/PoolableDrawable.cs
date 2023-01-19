@@ -8,7 +8,7 @@ using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Pooling
 {
-    public class PoolableDrawable : CompositeDrawable
+    public partial class PoolableDrawable : CompositeDrawable
     {
         public override bool DisposeOnDeathRemoval => pool == null && base.DisposeOnDeathRemoval;
 

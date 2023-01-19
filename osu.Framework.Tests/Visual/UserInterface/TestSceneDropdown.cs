@@ -6,17 +6,21 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDropdown : ManualInputManagerTestScene
+    public partial class TestSceneDropdown : ManualInputManagerTestScene
     {
         private const int items_to_add = 10;
         private const float explicit_height = 100;
@@ -384,6 +388,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier, () => Is.EqualTo("three"));
         }
 
+        [Test]
+        public void TestAccessBdlInGenerateItemText()
+        {
+            AddStep("add dropdown that uses BDL", () => Add(new BdlDropdown
+            {
+                Width = 150,
+                Position = new Vector2(250, 350),
+                Items = new TestModel("test").Yield()
+            }));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
@@ -416,12 +431,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public static implicit operator TestModel(string str) => new TestModel(str);
         }
 
-        private class TestDropdown : BasicDropdown<TestModel>
+        private partial class TestDropdown : BasicDropdown<TestModel>
         {
             internal new DropdownMenuItem<TestModel> SelectedItem => base.SelectedItem;
 
             public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
             public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
+        }
+
+        /// <summary>
+        /// Dropdown that will access <see cref="ResolvedAttribute"/> properties in <see cref="GenerateItemText"/>.
+        /// </summary>
+        private partial class BdlDropdown : TestDropdown
+        {
+            [Resolved]
+            private GameHost host { get; set; }
+
+            protected override LocalisableString GenerateItemText(TestModel item) => $"{host.Name}: {base.GenerateItemText(item)}";
         }
     }
 }

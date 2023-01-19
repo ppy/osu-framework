@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A group of controls to be used for selecting a colour.
     /// Allows both for mouse-interactive input (via <see cref="HSVColourPicker"/>) and textual input (via <see cref="HexColourPicker"/>).
     /// </summary>
-    public abstract class ColourPicker : CompositeDrawable, IHasCurrentValue<Colour4>
+    public abstract partial class ColourPicker : CompositeDrawable, IHasCurrentValue<Colour4>
     {
         private readonly BindableWithCurrent<Colour4> current = new BindableWithCurrent<Colour4>();
 

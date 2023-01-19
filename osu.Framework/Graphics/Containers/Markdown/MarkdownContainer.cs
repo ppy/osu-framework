@@ -7,12 +7,14 @@ using System;
 using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
+using Markdig.Extensions.Footnotes;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Containers.Markdown.Footnotes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osuTK;
@@ -22,7 +24,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Visualises a markdown text document.
     /// </summary>
-    public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
+    public partial class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
     {
         private const int root_level = 0;
 
@@ -267,6 +269,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     // Link reference doesn't need to be displayed.
                     break;
 
+                case FootnoteGroup footnoteGroup:
+                    var footnoteGroupContainer = CreateFootnoteGroup(footnoteGroup);
+                    container.Add(footnoteGroupContainer);
+                    foreach (var single in footnoteGroup)
+                        AddMarkdownComponent(single, footnoteGroupContainer, level);
+                    break;
+
+                case Footnote footnote:
+                    var footnoteContainer = CreateFootnote(footnote);
+                    container.Add(footnoteContainer);
+                    break;
+
                 default:
                     container.Add(CreateNotImplemented(markdownObject));
                     break;
@@ -321,6 +335,16 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// </summary>
         /// <returns>The visualiser.</returns>
         protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator();
+
+        /// <summary>
+        /// Creates the visualiser for a <see cref="FootnoteGroup"/>.
+        /// </summary>
+        protected virtual MarkdownFootnoteGroup CreateFootnoteGroup(FootnoteGroup footnoteGroup) => new MarkdownFootnoteGroup();
+
+        /// <summary>
+        /// Creates the visualiser for a <see cref="Footnote"/>.
+        /// </summary>
+        protected virtual MarkdownFootnote CreateFootnote(Footnote footnote) => new MarkdownFootnote(footnote);
 
         /// <summary>
         /// Creates the visualiser for an element that isn't implemented.

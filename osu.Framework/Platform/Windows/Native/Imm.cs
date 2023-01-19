@@ -1,9 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
@@ -62,7 +61,7 @@ namespace osu.Framework.Platform.Windows.Native
             /// <summary>
             /// Gets the current composition text and selection.
             /// </summary>
-            public bool TryGetImeComposition(out string compositionText, out int start, out int length)
+            public bool TryGetImeComposition([NotNullWhen(true)] out string? compositionText, out int start, out int length)
             {
                 if (handleInvalidOrClosed())
                 {
@@ -103,7 +102,7 @@ namespace osu.Framework.Platform.Windows.Native
             /// <summary>
             /// Gets the current result text.
             /// </summary>
-            public bool TryGetImeResult(out string resultText)
+            public bool TryGetImeResult([NotNullWhen(true)] out string? resultText)
             {
                 if (handleInvalidOrClosed())
                 {
@@ -160,7 +159,7 @@ namespace osu.Framework.Platform.Windows.Native
             ///     <item>For <see cref="CompositionString.GCS_COMPATTR"/> .</item>
             ///   </list>
             /// </remarks>
-            private bool tryGetCompositionString(CompositionString compositionString, out int size, out byte[] data)
+            private bool tryGetCompositionString(CompositionString compositionString, out int size, [NotNullWhen(true)] out byte[]? data)
             {
                 data = null;
 
@@ -177,9 +176,9 @@ namespace osu.Framework.Platform.Windows.Native
             /// <summary>
             /// Gets the text of the current composition (<see cref="CompositionString.GCS_COMPSTR"/>) or result (<see cref="CompositionString.GCS_RESULTSTR"/>).
             /// </summary>
-            private bool tryGetCompositionText(CompositionString compositionString, out string text)
+            private bool tryGetCompositionText(CompositionString compositionString, [NotNullWhen(true)] out string? text)
             {
-                if (tryGetCompositionString(compositionString, out _, out byte[] buffer))
+                if (tryGetCompositionString(compositionString, out _, out byte[]? buffer))
                 {
                     text = Encoding.Unicode.GetString(buffer);
                     return true;
@@ -202,7 +201,7 @@ namespace osu.Framework.Platform.Windows.Native
                 targetStart = 0;
                 targetEnd = 0;
 
-                if (!tryGetCompositionString(CompositionString.GCS_COMPATTR, out int size, out byte[] attributeData))
+                if (!tryGetCompositionString(CompositionString.GCS_COMPATTR, out int size, out byte[]? attributeData))
                     return false;
 
                 int start;
@@ -286,7 +285,7 @@ namespace osu.Framework.Platform.Windows.Native
         // ReSharper disable IdentifierTypo
 
         [DllImport("imm32.dll", CharSet = CharSet.Unicode)]
-        private static extern int ImmGetCompositionString(InputContextHandle hImc, CompositionString dwIndex, byte[] lpBuf, uint dwBufLen);
+        private static extern int ImmGetCompositionString(InputContextHandle hImc, CompositionString dwIndex, byte[]? lpBuf, uint dwBufLen);
 
         [DllImport("imm32.dll", CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]

@@ -16,7 +16,7 @@ using osu.Framework.IO.Network;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneMarkdownContainer : FrameworkTestScene
+    public partial class TestSceneMarkdownContainer : FrameworkTestScene
     {
         private TestMarkdownContainer markdownContainer;
 
@@ -316,7 +316,18 @@ soft break with '\'";
 ```");
         }
 
-        private class TestMarkdownContainer : MarkdownContainer
+        [Test]
+        public void TestFootnotes()
+        {
+            AddStep("set content", () => markdownContainer.Text = @"This text has a footnote[^test].
+
+Here's some more text[^test2] with another footnote!
+
+[^test]: This is a **footnote**.
+[^test2]: This is another footnote [with a link](https://google.com/)!");
+        }
+
+        private partial class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
             {
@@ -342,7 +353,7 @@ soft break with '\'";
 
             public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("Roboto", weight: "Regular"));
 
-            private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
+            private partial class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
             {
                 public Action<LinkInline> UrlAdded;
 

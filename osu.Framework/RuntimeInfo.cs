@@ -5,9 +5,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace osu.Framework
 {
@@ -30,32 +28,28 @@ namespace osu.Framework
         }
 
         public static Platform OS { get; }
-        public static bool IsUnix => OS != Platform.Windows;
 
-        public static bool SupportsJIT => OS != Platform.iOS;
+        public static bool IsUnix => OS != Platform.Windows;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.macOS || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
         public static bool IsApple => OS == Platform.iOS || OS == Platform.macOS;
 
         static RuntimeInfo()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (OperatingSystem.IsWindows())
                 OS = Platform.Windows;
-            if (detectIOS())
-                OS = OS == 0 ? Platform.iOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.iOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
-            if (detectAndroid())
-                OS = OS == 0 ? Platform.Android : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Android)}, but is already {Enum.GetName(typeof(Platform), OS)}");
-            if (OS != Platform.iOS && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                OS = OS == 0 ? Platform.macOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.macOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
-            if (OS != Platform.Android && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                OS = OS == 0 ? Platform.Linux : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Linux)}, but is already {Enum.GetName(typeof(Platform), OS)}");
+            if (OperatingSystem.IsIOS())
+                OS = OS == 0 ? Platform.iOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.iOS)}, but is already {Enum.GetName(OS)}");
+            if (OperatingSystem.IsAndroid())
+                OS = OS == 0 ? Platform.Android : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Android)}, but is already {Enum.GetName(OS)}");
+            if (OperatingSystem.IsMacOS())
+                OS = OS == 0 ? Platform.macOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.macOS)}, but is already {Enum.GetName(OS)}");
+            if (OperatingSystem.IsLinux())
+                OS = OS == 0 ? Platform.Linux : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Linux)}, but is already {Enum.GetName(OS)}");
 
             if (OS == 0)
                 throw new PlatformNotSupportedException("Operating system could not be detected correctly.");
         }
-
-        private static bool detectAndroid() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Mono.Android"));
-        private static bool detectIOS() => AppDomain.CurrentDomain.GetAssemblies().Any(x => x.ToString().Contains("Xamarin.iOS"));
 
         public enum Platform
         {

@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteTextTruncate : FrameworkTestScene
+    public partial class TestSceneSpriteTextTruncate : FrameworkTestScene
     {
         private readonly FillFlowContainer flow;
 
@@ -81,7 +81,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             flow.ResizeWidthTo(end_range, 10000).Then().ResizeWidthTo(start_range, 10000).Loop();
         }
 
-        private class ExampleText : Container
+        private partial class ExampleText : Container
         {
             public ExampleText(string text, bool fixedWidth, bool truncate, string ellipsisString = "", bool runtimeChange = false, Vector2 spacing = new Vector2(), bool useFullGlyphHeight = true)
             {
@@ -107,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class CustomEllipsisSpriteText : SpriteText
+        private partial class CustomEllipsisSpriteText : SpriteText
         {
             public CustomEllipsisSpriteText(string customEllipsis, bool runtimeChange, bool useFullGlyphHeight)
             {

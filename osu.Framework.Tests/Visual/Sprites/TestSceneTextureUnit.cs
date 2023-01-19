@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTextureUnit : GridTestScene
+    public partial class TestSceneTextureUnit : GridTestScene
     {
         public TestSceneTextureUnit()
             : base(2, 2)
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         };
 
-        private class TestSprite : Sprite
+        private partial class TestSprite : Sprite
         {
             private readonly TextureUnit unit;
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 public override void Draw(IRenderer renderer)
                 {
-                    var shader = GetAppropriateShader(renderer);
+                    var shader = TextureShader;
 
                     redTex.Bind(1);
                     greenTex.Bind(2);

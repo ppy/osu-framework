@@ -19,7 +19,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
+    public partial class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
     {
         private TestRearrangeableList list;
 
@@ -337,7 +337,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             => list.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == index)
                    .ChildrenOfType<BasicRearrangeableListItem<int>.Button>().First();
 
-        private class TestRearrangeableList : BasicRearrangeableListContainer<int>
+        private partial class TestRearrangeableList : BasicRearrangeableListContainer<int>
         {
             public float ScrollPosition => ScrollContainer.Current;
 
@@ -349,13 +349,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == item), false);
         }
 
-        private class TestDelayedLoadRearrangeableList : BasicRearrangeableListContainer<int>
+        private partial class TestDelayedLoadRearrangeableList : BasicRearrangeableListContainer<int>
         {
             public readonly SemaphoreSlim AllowLoad = new SemaphoreSlim(0, 100);
 
             protected override BasicRearrangeableListItem<int> CreateBasicItem(int item) => new TestRearrangeableListItem(item, AllowLoad);
 
-            private class TestRearrangeableListItem : BasicRearrangeableListItem<int>
+            private partial class TestRearrangeableListItem : BasicRearrangeableListItem<int>
             {
                 private readonly SemaphoreSlim allowLoad;
 

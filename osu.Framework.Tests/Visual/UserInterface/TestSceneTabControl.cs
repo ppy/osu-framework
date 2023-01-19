@@ -19,7 +19,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTabControl : FrameworkTestScene
+    public partial class TestSceneTabControl : FrameworkTestScene
     {
         private readonly TestEnum[] items;
 
@@ -414,7 +414,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert($"Current selection {(expected ? "visible" : "not visible")}", () => tabControlWithBindable.SelectedTab.IsPresent == expected);
         }
 
-        private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
+        private partial class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
 
@@ -422,7 +422,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
-        private class StyledMultilineTabControl : TabControl<TestEnum>
+        private partial class StyledMultilineTabControl : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
 
@@ -432,7 +432,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override TabFillFlowContainer CreateTabFlow() => base.CreateTabFlow().With(f => { f.AllowMultiline = true; });
         }
 
-        public class StyledTabControl : TabControl<TestEnum?>
+        public partial class StyledTabControl : TabControl<TestEnum?>
         {
             public new IReadOnlyDictionary<TestEnum?, TabItem<TestEnum?>> TabMap => base.TabMap;
 
@@ -447,7 +447,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value) => CreateTabItem(value, true);
 
-            public class TestTabItem : BasicTabControl<TestEnum?>.BasicTabItem
+            public partial class TestTabItem : BasicTabControl<TestEnum?>.BasicTabItem
             {
                 public TestTabItem(TestEnum? value)
                     : base(value)
@@ -462,7 +462,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class StyledDropdown : Dropdown<TestEnum?>
+        private partial class StyledDropdown : Dropdown<TestEnum?>
         {
             protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 
@@ -476,7 +476,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Header.Origin = Anchor.TopRight;
             }
 
-            private class StyledDropdownMenu : BasicDropdown<TestEnum?>.BasicDropdownMenu
+            private partial class StyledDropdownMenu : BasicDropdown<TestEnum?>.BasicDropdownMenu
             {
                 public StyledDropdownMenu()
                 {
@@ -486,7 +486,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class StyledDropdownHeader : DropdownHeader
+        private partial class StyledDropdownHeader : DropdownHeader
         {
             protected internal override LocalisableString Label { get; set; }
 
@@ -507,7 +507,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TabControlWithNoDropdown : BasicTabControl<TestEnum>
+        private partial class TabControlWithNoDropdown : BasicTabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
         }

@@ -10,7 +10,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class TreeContainer : ToolWindow
+    internal partial class TreeContainer : ToolWindow
     {
         private readonly SpriteText waitingText;
 

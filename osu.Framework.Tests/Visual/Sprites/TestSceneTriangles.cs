@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTriangles : FrameworkTestScene
+    public partial class TestSceneTriangles : FrameworkTestScene
     {
         private readonly Container testContainer;
 
@@ -169,7 +169,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
     }
 
-    internal class DraggableTriangle : Triangle
+    internal partial class DraggableTriangle : Triangle
     {
         public bool AllowDrag = true;
 

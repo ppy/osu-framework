@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Sprite, IHasCurrentValue<double>
+    public partial class CircularProgress : Sprite, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
@@ -28,7 +28,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
         }
 
         protected override void LoadComplete()
@@ -116,7 +115,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void Blit(IRenderer renderer)
             {
-                var shader = GetAppropriateShader(renderer);
+                if (innerRadius == 0 || (!roundedCaps && progress == 0))
+                    return;
+
+                var shader = TextureShader;
 
                 shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
                 shader.GetUniform<float>("progress").UpdateValue(ref progress);
