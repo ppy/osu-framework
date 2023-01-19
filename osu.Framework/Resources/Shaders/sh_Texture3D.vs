@@ -15,12 +15,12 @@ uniform mat4 g_ProjMatrix;
 
 void main(void)
 {
+    initMasking(m_Position);
+
     v_Colour = m_Colour;
     v_TexCoord = m_TexCoord;
     v_TexRect = vec4(0.0);
     v_BlendRange = vec2(0.0);
 
     gl_Position = g_ProjMatrix * vec4(m_Position, 1.0);
-
-    initMasking(m_Position);
 }
