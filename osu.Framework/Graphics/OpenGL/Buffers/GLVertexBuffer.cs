@@ -135,16 +135,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             DrawRange(0, Size);
         }
 
-        public const int MASKING_DATA_LENGTH = 64;
-        public const int MASKING_TEXTURE_WIDTH = MASKING_DATA_LENGTH / 4; // Single masking info wide for now
+        public const int MASKING_DATA_LENGTH = 64; // Number of floats that fit into a single MaskingInfo.
+        public const int MASKING_DATA_PER_TEXEL = 4; // Number of floats that fit into a single texel of the masking texture.
+        public const int MASKING_TEXTURE_WIDTH = MASKING_DATA_LENGTH / MASKING_DATA_PER_TEXEL; // Width of the masking texture - holds a single MaskingInfo for now.
 
-        protected int MaskingTextureHeight = 0;
-        protected float[] MaskingTextureBuffer = new float[MASKING_TEXTURE_WIDTH * 4];
+        protected int MaskingTextureHeight; // Height of the masking texture - expands based on the number of MaskingInfos.
+        protected float[] MaskingTextureBuffer = new float[MASKING_DATA_LENGTH]; // All data stored in the texture.
 
         private int maskingTexture = -1;
-
         private int numMaskingInfos;
-
         private int numUploadedMaskingInfos;
 
         private Dictionary<int, int> localMaskingInfoIndex = new Dictionary<int, int>();
@@ -161,6 +160,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             localId = numMaskingInfos++;
             localMaskingInfoIndex.Add(info.Id, localId);
 
+            // Row of the masking texture.
             int index = localId * MASKING_DATA_LENGTH;
 
             // Ensure we have enough space for this masking data by doubling the array size every time.
@@ -240,7 +240,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
 
-            int totalTexels = numMaskingInfos * MASKING_DATA_LENGTH / 4;
+            int totalTexels = numMaskingInfos * MASKING_DATA_LENGTH / MASKING_DATA_PER_TEXEL;
             int currentMaskingTextureHeight = (totalTexels + MASKING_TEXTURE_WIDTH - 1) / MASKING_TEXTURE_WIDTH;
             // if (MaskingTextureHeight < currentMaskingTextureHeight) {
             MaskingTextureHeight = currentMaskingTextureHeight;
