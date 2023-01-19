@@ -12,8 +12,6 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp.Memory;
-using osu.Framework.Graphics.Shaders;
-using osuTK;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -56,7 +54,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             int localId = addMaskingInfo(Renderer.CurrentMaskingInfo);
 
             currentVertex.Vertex = vertex;
-            currentVertex.MaskingTexCoord = new Vector2((localId * MASKING_DATA_LENGTH / 4) % MASKING_TEXTURE_WIDTH, (localId * MASKING_DATA_LENGTH / 4) / MASKING_TEXTURE_WIDTH);
+            currentVertex.MaskingId = localId;
             currentVertex.BackbufferDrawDepth = Renderer.BackbufferDrawDepth;
 
             return isNewVertex;
@@ -257,9 +255,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void DrawRange(int startIndex, int endIndex)
         {
             uploadMaskingTexture();
-
-            // ReSharper disable once PossibleLossOfFraction
-            GlobalPropertyManager.Set(GlobalProperty.MaskingTextureSize, new Vector2(MASKING_TEXTURE_WIDTH, MaskingTextureHeight));
 
             // Reset masking info state for the next draw.
             numMaskingInfos = 0;

@@ -1,6 +1,6 @@
 ﻿#version 130
 
-attribute highp vec2 m_MaskingTexCoord;
+attribute highp int m_MaskingId;
 
 out highp vec2 v_MaskingPosition;
 out lowp vec4 v_BorderColour;
@@ -18,12 +18,11 @@ flat out highp float g_InnerCornerRadius;
 flat out highp mat3 g_ToMaskingSpace;
 flat out lowp float g_IsMasking;
 
-uniform highp vec2 g_MaskingTexSize;
 uniform highp sampler2D g_MaskingBlockSampler;
 
 vec4 maskingTex(int texIndex)
 {
-    return texture2D(g_MaskingBlockSampler, (m_MaskingTexCoord + vec2(float(texIndex), 0.0) + vec2(0.5)) / g_MaskingTexSize);
+    return texelFetch(g_MaskingBlockSampler, ivec2(texIndex, m_MaskingId), 0);
 }
 
 lowp vec4 getBorderColour()
