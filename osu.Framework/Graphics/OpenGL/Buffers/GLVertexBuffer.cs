@@ -231,8 +231,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 maskingTexture = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
             }
 
             GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
