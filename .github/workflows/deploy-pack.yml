@@ -63,6 +63,9 @@ jobs:
           name: osu-framework
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
   pack-template:
     name: Pack (Templates)
     runs-on: ubuntu-latest
@@ -91,6 +94,9 @@ jobs:
         with:
           name: osu-framework-templates
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
+
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-android:
     name: Pack (Android)
@@ -123,6 +129,9 @@ jobs:
         with:
           name: osu-framework-android
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-ios:
     name: Pack (iOS)
@@ -157,6 +166,10 @@ jobs:
         with:
           name: osu-framework-ios
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
+
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
 
   release:
     name: Release
