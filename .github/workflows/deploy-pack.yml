@@ -64,7 +64,7 @@ jobs:
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
       - name: Publish packages to nuget.org
-        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-template:
     name: Pack (Templates)
@@ -131,7 +131,7 @@ jobs:
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
       - name: Publish packages to nuget.org
-        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-ios:
     name: Pack (iOS)
