@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Containers
         protected virtual TSpriteText CreateSpriteText(TextFlowContainer textFlowContainer)
         {
             var spriteText = creationFunc.Invoke();
-            textFlowContainer.ApplyDefaultCreationParamters(spriteText);
+            textFlowContainer.ApplyDefaultCreationParameters(spriteText);
             creationParameters?.Invoke(spriteText);
             return spriteText;
         }
