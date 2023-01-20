@@ -184,6 +184,11 @@ __bold with underscore__
 *__italic with asterisk, bold with underscore__*
 _**italic with underscore, bold with asterisk**_";
             });
+
+            AddStep("Wiki notice", () =>
+            {
+                markdownContainer.Text = @"*Notice: We are still figuring out game balance and mechanics. For now, **scores set on lazer should not be considered permanent**.*";
+            });
         }
 
         [Test]
