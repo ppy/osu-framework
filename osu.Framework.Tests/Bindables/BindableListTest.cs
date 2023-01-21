@@ -53,7 +53,19 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
-        #region BindTarget
+        #region Bind
+
+        /// <summary>
+        /// Tests binding to a bindable that has already been bound.
+        /// </summary>
+        [Test]
+        public void TestBindToAlreadyBound()
+        {
+            BindableList<int> bindable1 = new BindableList<int>();
+            BindableList<int> bindable2 = bindable1.GetBoundCopy();
+
+            Assert.Throws<ArgumentException>(() => bindable1.BindTo(bindable2));
+        }
 
         /// <summary>
         /// Tests binding via the various <see cref="BindableList{T}.BindTarget"/> methods.
