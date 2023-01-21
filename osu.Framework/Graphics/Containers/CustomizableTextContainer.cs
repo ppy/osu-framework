@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
@@ -88,9 +87,10 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="name">The name of the placeholder.</param>
         /// <param name="iconFactory">The icon factory matching <paramref name="name"/>, if the method returned <see langword="true"/>.</param>
         /// <returns>Whether an icon factory was found for the given <paramref name="name"/>.</returns>
-        internal bool TryGetIconFactory(string name, out Delegate iconFactory) => iconFactories.TryGetValue(name, out iconFactory);
+        internal bool TryGetIconFactory(string name, [MaybeNullWhen(false)] out Delegate iconFactory) => iconFactories.TryGetValue(name, out iconFactory);
 
-        protected internal override TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+        protected internal override TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc,
+                                                                                       Action<TSpriteText>? creationParameters = null)
             => new CustomizableTextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
 
         protected override void RecreateAllParts()
