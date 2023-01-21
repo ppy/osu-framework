@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected abstract IEnumerable<Drawable>? GetDrawablesForSubstitution(string placeholder, TextFlowContainer textFlowContainer);
 
-        protected override IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
+        protected sealed override IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
         {
             var sprites = new List<Drawable>();
             int index = 0;
