@@ -244,6 +244,29 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Add new text to this text flow. The \n character will create a new paragraph. Placeholders will be replaced by children TextChunks.
+        /// </summary>
+        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
+        /// <param name="text">The text to add.</param>
+        /// <param name="subParts">Texts and creation callbacks for each children TextChunk.</param>
+        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text. Children chunks will raise their own callbacks.</param>
+        public CompositeTextChunk<TSpriteText> AddText<TSpriteText>(LocalisableString text, (LocalisableString text, Action<TSpriteText> creationParameters)[] subParts,
+                                                                    Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+        {
+            var subChunks = new TextChunk<TSpriteText>[subParts.Length];
+
+            for (int i = 0; i < subParts.Length; i++)
+            {
+                subChunks[i] = new TextChunk<TSpriteText>(subParts[i].text, true, () => new TSpriteText(), subParts[i].creationParameters);
+            }
+
+            var part = new CompositeTextChunk<TSpriteText>(text, true, () => new TSpriteText(), subChunks, creationParameters);
+            AddPart(part);
+            return part;
+        }
+
+        /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break
         /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
         /// </summary>
