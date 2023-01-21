@@ -20,6 +20,11 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
+        /// <summary>
+        /// Creates drawables, which will be placed instead of placeholders.
+        /// </summary>
+        /// <param name="placeholder">Placeholder's text.</param>
+        /// <param name="textFlowContainer">Container where created drawables will live.</param>
         protected abstract IEnumerable<Drawable>? GetDrawablesForSubstitution(string placeholder, TextFlowContainer textFlowContainer);
 
         protected sealed override IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
@@ -31,19 +36,19 @@ namespace osu.Framework.Graphics.Containers
             while (index < str.Length)
             {
                 IEnumerable<Drawable>? placeholderDrawables = null;
-                int nextPlaceholderIndex = str.IndexOf(CustomizableTextContainer.UNESCAPED_LEFT, index, StringComparison.Ordinal);
+                int nextPlaceholderIndex = str.IndexOf(TextFlowContainer.UNESCAPED_LEFT, index, StringComparison.Ordinal);
                 // make sure we skip ahead to the next [ as long as the current [ is escaped
-                while (nextPlaceholderIndex != -1 && str.IndexOf(CustomizableTextContainer.ESCAPED_LEFT, nextPlaceholderIndex, StringComparison.Ordinal) == nextPlaceholderIndex)
-                    nextPlaceholderIndex = str.IndexOf(CustomizableTextContainer.UNESCAPED_LEFT, nextPlaceholderIndex + 2, StringComparison.Ordinal);
+                while (nextPlaceholderIndex != -1 && str.IndexOf(TextFlowContainer.ESCAPED_LEFT, nextPlaceholderIndex, StringComparison.Ordinal) == nextPlaceholderIndex)
+                    nextPlaceholderIndex = str.IndexOf(TextFlowContainer.UNESCAPED_LEFT, nextPlaceholderIndex + 2, StringComparison.Ordinal);
 
                 string? strPiece = null;
 
                 if (nextPlaceholderIndex != -1)
                 {
-                    int placeholderEnd = str.IndexOf(CustomizableTextContainer.UNESCAPED_RIGHT, nextPlaceholderIndex, StringComparison.Ordinal);
+                    int placeholderEnd = str.IndexOf(TextFlowContainer.UNESCAPED_RIGHT, nextPlaceholderIndex, StringComparison.Ordinal);
                     // make sure we skip  ahead to the next ] as long as the current ] is escaped
-                    while (placeholderEnd != -1 && str.IndexOf(CustomizableTextContainer.ESCAPED_RIGHT, placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
-                        placeholderEnd = str.IndexOf(CustomizableTextContainer.UNESCAPED_RIGHT, placeholderEnd + 2, StringComparison.Ordinal);
+                    while (placeholderEnd != -1 && str.IndexOf(TextFlowContainer.ESCAPED_RIGHT, placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
+                        placeholderEnd = str.IndexOf(TextFlowContainer.UNESCAPED_RIGHT, placeholderEnd + 2, StringComparison.Ordinal);
 
                     if (placeholderEnd != -1)
                     {

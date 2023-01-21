@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
@@ -21,6 +22,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class TextFlowContainer : FillFlowContainer
     {
+        internal const string UNESCAPED_LEFT = "[";
+        internal const string ESCAPED_LEFT = "[[";
+
+        internal const string UNESCAPED_RIGHT = "]";
+        internal const string ESCAPED_RIGHT = "]]";
+
         private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
 
@@ -248,10 +255,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
-        /// <param name="subParts">Texts and creation callbacks for each children TextChunk.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text. Children chunks will raise their own callbacks.</param>
-        public CompositeTextChunk<TSpriteText> AddText<TSpriteText>(LocalisableString text, (LocalisableString text, Action<TSpriteText> creationParameters)[] subParts,
-                                                                    Action<TSpriteText> creationParameters = null)
+        /// <param name="subParts">Texts and creation callbacks for each child TextChunk.</param>
+        public CompositeTextChunk<TSpriteText> AddText<TSpriteText>(LocalisableString text,
+                                                                    [CanBeNull] Action<TSpriteText> creationParameters,
+                                                                    params (LocalisableString text, Action<TSpriteText> creationParameters)[] subParts)
             where TSpriteText : SpriteText, new()
         {
             var subChunks = new TextChunk<TSpriteText>[subParts.Length];
@@ -265,6 +273,16 @@ namespace osu.Framework.Graphics.Containers
             AddPart(part);
             return part;
         }
+
+        /// <summary>
+        /// Add new text to this text flow. The \n character will create a new paragraph. Placeholders will be replaced by children TextChunks.
+        /// </summary>
+        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
+        /// <param name="text">The text to add.</param>
+        /// <param name="subParts">Texts and creation callbacks for each child TextChunk.</param>
+        public CompositeTextChunk<TSpriteText> AddText<TSpriteText>(LocalisableString text, params (LocalisableString text, Action<TSpriteText> creationParameters)[] subParts)
+            where TSpriteText : SpriteText, new()
+            => AddText(text, null, subParts);
 
         /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break
@@ -284,7 +302,8 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
         /// </summary>
-        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc,
+                                                                                      Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
 

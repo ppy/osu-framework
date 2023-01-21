@@ -84,16 +84,16 @@ namespace osu.Framework.Tests.Visual.Localisation
                     "ELFENSJoN - ASH OF ROUGE (HeTo's Normal)");
                 const string mode = "osu!";
 
-                chunk = textFlowContainer!.AddText(new TranslatableString(rank, rank_default), new (LocalisableString, Action<SpriteText>)[]
+                chunk = textFlowContainer!.AddText(new TranslatableString(rank, rank_default), text =>
+                {
+                    text.Font = FontUsage.Default;
+                    text.Colour = Colour4.LimeGreen;
+                }, new (LocalisableString, Action<SpriteText>)[]
                 {
                     (player, applyColors),
                     (rankAchieved, applyColors),
                     (beatmap, applyColors),
                     (mode, applyColors)
-                }, text =>
-                {
-                    text.Font = FontUsage.Default;
-                    text.Colour = Colour4.LimeGreen;
                 });
             });
 

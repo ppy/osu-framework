@@ -13,12 +13,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class CustomizableTextContainer : TextFlowContainer
     {
-        internal const string UNESCAPED_LEFT = "[";
-        internal const string ESCAPED_LEFT = "[[";
-
-        internal const string UNESCAPED_RIGHT = "]";
-        internal const string ESCAPED_RIGHT = "]]";
-
         public static string Escape(string text) => text.Replace(UNESCAPED_LEFT, ESCAPED_LEFT).Replace(UNESCAPED_RIGHT, ESCAPED_RIGHT);
 
         public static string Unescape(string text) => text.Replace(ESCAPED_LEFT, UNESCAPED_LEFT).Replace(ESCAPED_RIGHT, UNESCAPED_RIGHT);
