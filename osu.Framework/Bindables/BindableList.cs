@@ -589,7 +589,7 @@ namespace osu.Framework.Bindables
         {
             ArgumentNullException.ThrowIfNull(them);
 
-            if (bindings?.Contains(weakReference) == true)
+            if (bindings?.Contains(them.weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
