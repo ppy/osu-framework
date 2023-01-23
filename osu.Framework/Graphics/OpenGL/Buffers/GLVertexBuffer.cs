@@ -231,6 +231,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 maskingTexture = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, maskingTexture);
+
+                // Although the shader performs raw texel lookups that shouldn't be influenced by these parameters, they're still required to get the texture into a valid state.
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
             }
