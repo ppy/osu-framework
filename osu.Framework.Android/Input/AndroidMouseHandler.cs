@@ -293,7 +293,7 @@ namespace osu.Framework.Android.Input
             void apply(MotionEvent e, int historyPosition)
             {
                 if (e.TryGetPosition(out var delta, historyPosition))
-                    enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X * Sensitivity.Value.X, delta.Y * Sensitivity.Value.Y) });
+                    enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X * (float)Sensitivity.Value.X, delta.Y * (float)Sensitivity.Value.Y) });
             }
         }
 
