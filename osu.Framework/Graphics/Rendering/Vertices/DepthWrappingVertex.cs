@@ -13,8 +13,8 @@ namespace osu.Framework.Graphics.Rendering.Vertices
     {
         public TVertex Vertex;
 
-        [VertexMember(1, VertexAttribPointerType.Int)]
-        public int MaskingId;
+        [VertexMember(1, VertexAttribPointerType.Float)]
+        public float MaskingId;
 
         [VertexMember(1, VertexAttribPointerType.Float)]
         public float BackbufferDrawDepth;

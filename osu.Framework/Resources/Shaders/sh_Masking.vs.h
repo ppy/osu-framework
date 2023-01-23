@@ -1,6 +1,6 @@
 ﻿#version 130
 
-attribute highp int m_MaskingId;
+attribute highp float m_MaskingId;
 
 out highp vec2 v_MaskingPosition;
 out lowp vec4 v_BorderColour;
