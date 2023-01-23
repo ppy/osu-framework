@@ -199,8 +199,8 @@ namespace osu.Framework.Bindables
         /// <exception cref="InvalidOperationException">Thrown when attempting to bind to an already bound object.</exception>
         public virtual void BindTo(Bindable<T> them)
         {
-            if (Bindings?.Contains(them) == true)
-                throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
+            if (Bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound bindable cannot be bound again.");
 
             them.CopyTo(this);
 

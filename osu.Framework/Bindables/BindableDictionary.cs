@@ -454,10 +454,10 @@ namespace osu.Framework.Bindables
         {
             ArgumentNullException.ThrowIfNull(them);
 
-            if (bindings?.Contains(weakReference) == true)
-                throw new ArgumentException("An already bound collection can not be bound again.");
+            if (bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound dictionary can not be bound again.");
             if (them == this)
-                throw new ArgumentException("A collection can not be bound to itself");
+                throw new ArgumentException("A dictionary can not be bound to itself");
 
             // copy state and content over
             Parse(them);

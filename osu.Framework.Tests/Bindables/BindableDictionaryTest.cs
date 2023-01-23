@@ -58,7 +58,19 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
-        #region BindTarget
+        #region Bind
+
+        /// <summary>
+        /// Tests binding to a bindable that has already been bound.
+        /// </summary>
+        [Test]
+        public void TestBindToAlreadyBound()
+        {
+            BindableDictionary<string, byte> bindable1 = new BindableDictionary<string, byte>();
+            BindableDictionary<string, byte> bindable2 = bindable1.GetBoundCopy();
+
+            Assert.Throws<ArgumentException>(() => bindable1.BindTo(bindable2));
+        }
 
         /// <summary>
         /// Tests binding via the various <see cref="BindableDictionary{TKey,TValue}"/> methods.
