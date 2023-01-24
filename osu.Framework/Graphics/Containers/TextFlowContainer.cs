@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        internal void ApplyDefaultCreationParamters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
+        internal void ApplyDefaultCreationParameters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
         public override void Add(Drawable drawable)
         {
