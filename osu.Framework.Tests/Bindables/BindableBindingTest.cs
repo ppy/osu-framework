@@ -4,9 +4,11 @@
 #nullable disable
 
 using System;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Timing;
 
@@ -15,6 +17,21 @@ namespace osu.Framework.Tests.Bindables
     [TestFixture]
     public partial class BindableBindingTest
     {
+        [Test, Repeat(100)]
+        [Ignore("manual testing only")]
+        public void TestBindThreadSafety()
+        {
+            Bindable<string> bindable1 = new Bindable<string>("incorrect");
+            Bindable<string> bindable2 = new Bindable<string>();
+
+            var task = Task.Run(() => bindable1.Value = "correct");
+            bindable2.BindTo(bindable1);
+            task.WaitSafely();
+
+            Assert.That(bindable1.Value, Is.EqualTo("correct"));
+            Assert.That(bindable2.Value, Is.EqualTo("correct"));
+        }
+
         [Test]
         public void TestBindToAlreadyBound()
         {
