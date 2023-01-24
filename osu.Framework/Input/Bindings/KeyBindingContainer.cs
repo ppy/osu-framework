@@ -357,14 +357,14 @@ namespace osu.Framework.Input.Bindings
 
         public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, GetContainingInputManager()?.CurrentState ?? new InputState(), released);
 
-        public void TriggerPressed(T pressed)
+        public Drawable TriggerPressed(T pressed)
         {
             var state = GetContainingInputManager()?.CurrentState ?? new InputState();
 
             if (simultaneousMode == SimultaneousBindingMode.None)
                 releasePressedActions(state);
 
-            PropagatePressed(KeyBindingInputQueue, state, pressed);
+            return PropagatePressed(KeyBindingInputQueue, state, pressed);
         }
 
         private List<Drawable> getInputQueue(IKeyBinding binding, bool rebuildIfEmpty = false)
