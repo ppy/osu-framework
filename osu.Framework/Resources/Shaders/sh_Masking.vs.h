@@ -33,7 +33,7 @@ lowp vec4 getBorderColour()
     return mix(top, bottom, relativeTexCoord.y);
 }
 
-void initMasking(vec3 position)
+void initMasking(vec2 position)
 {
     vec4 t0 = maskingTex(0);
 
@@ -82,7 +82,7 @@ void initMasking(vec3 position)
     g_InnerCornerRadius = t9.b;
 
     // Transform from screen space to masking space.
-    highp vec3 maskingPos = g_ToMaskingSpace * position;
+    highp vec3 maskingPos = g_ToMaskingSpace * vec3(position, 1.0);
     v_MaskingPosition = maskingPos.xy / maskingPos.z;
 
     v_BorderColour = getBorderColour();

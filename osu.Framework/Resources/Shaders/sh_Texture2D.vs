@@ -19,7 +19,7 @@ uniform highp mat4 g_ProjMatrix;
 
 void main(void)
 {
-    initMasking(vec3(m_Position, 1.0));
+    initMasking(m_Position);
 
     v_Colour = m_Colour;
     v_TexCoord = m_TexCoord;

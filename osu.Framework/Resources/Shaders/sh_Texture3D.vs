@@ -15,7 +15,7 @@ uniform mat4 g_ProjMatrix;
 
 void main(void)
 {
-    initMasking(m_Position);
+    initMasking(m_Position.xy);
 
     v_Colour = m_Colour;
     v_TexCoord = m_TexCoord;
