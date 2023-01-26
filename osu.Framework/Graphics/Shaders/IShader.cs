@@ -40,5 +40,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <returns>The retrieved uniform.</returns>
         Uniform<T> GetUniform<T>(string name)
             where T : unmanaged, IEquatable<T>;
+
+        IUniformBlock GetUniformBlock(string name);
     }
 }

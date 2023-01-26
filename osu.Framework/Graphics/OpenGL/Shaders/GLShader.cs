@@ -26,10 +26,14 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
+        internal readonly Dictionary<string, IUniformBlock> UniformBlocks = new Dictionary<string, IUniformBlock>();
+
         /// <summary>
         /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
         /// </summary>
         private List<IUniform> uniformsValues;
+
+        private List<GLUniformBlock> uniformBlockValues;
 
         public bool IsLoaded { get; private set; }
 
@@ -93,6 +97,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             foreach (var uniform in uniformsValues)
                 uniform?.Update();
 
+            foreach (var block in uniformBlockValues)
+                block?.Bind();
+
             IsBound = true;
         }
 
@@ -115,6 +122,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             EnsureShaderCompiled();
 
             return (Uniform<T>)Uniforms[name];
+        }
+
+        public IUniformBlock GetUniformBlock(string name)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+
+            EnsureShaderCompiled();
+
+            return UniformBlocks[name];
         }
 
         private protected virtual bool CompileInternal()
@@ -142,6 +159,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
 
             uniformsValues = new List<IUniform>(uniformCount);
+            uniformBlockValues = new List<GLUniformBlock>(uniformCount);
 
             int[] uniformIndices = Enumerable.Range(0, uniformCount).ToArray();
             int[] blockIndices = new int[uniformCount];
@@ -149,7 +167,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             for (int i = 0; i < uniformCount; i++)
             {
-                IUniform uniform;
                 int blockIndex = blockIndices[i];
                 string uniformName;
 
@@ -159,14 +176,18 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     GL.GetActiveUniformBlockName(this, blockIndex, 100, out _, out uniformName);
 
                     // The block may have been seen before since we're iterating over all uniform members in the composite.
-                    if (Uniforms.ContainsKey(uniformName))
+                    if (UniformBlocks.ContainsKey(uniformName))
                         continue;
 
-                    uniform = new UniformBlock(renderer, this, uniformName, blockIndex);
+                    var block = new GLUniformBlock(renderer, this, uniformName, blockIndex);
+                    UniformBlocks[uniformName] = block;
+                    uniformBlockValues.Add(block);
                 }
                 else
                 {
                     GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out uniformName);
+
+                    IUniform uniform;
 
                     switch (type)
                     {
@@ -209,10 +230,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         default:
                             continue;
                     }
-                }
 
-                Uniforms.Add(uniformName, uniform);
-                uniformsValues.Add(uniform);
+                    Uniforms[uniformName] = uniform;
+                    uniformsValues.Add(uniform);
+                }
             }
 
             IUniform createUniform<T>(string name)

@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
@@ -85,11 +86,40 @@ namespace osu.Framework.Graphics.Sprites
 
             var shader = TextureShader;
 
+            shader.GetUniformBlock("g_UniformBlock").SetValue(new UniformBlockData(new Vector2(1, 0.5f), new Vector2(-1, -1)));
+
             shader.Bind();
 
             Blit(renderer);
 
             shader.Unbind();
+        }
+
+        private readonly struct UniformBlockData : IEquatable<UniformBlockData>
+        {
+            public readonly Vector2 A;
+            public readonly Vector2 B;
+
+            public UniformBlockData(Vector2 a, Vector2 b)
+            {
+                A = a;
+                B = b;
+            }
+
+            public bool Equals(UniformBlockData other)
+            {
+                return A == other.A && B == other.B;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is UniformBlockData other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(A, B);
+            }
         }
 
         protected override void DrawOpaqueInterior(IRenderer renderer)
