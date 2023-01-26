@@ -62,11 +62,14 @@ namespace osu.Framework.Bindables
 
         internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T> source = null)
         {
-            if (!bypassChecks)
-                throwIfLeased();
+            lock (bindableChangeLock)
+            {
+                if (!bypassChecks)
+                    throwIfLeased();
 
-            disabled = value;
-            TriggerDisabledChange(source ?? this, true, bypassChecks);
+                disabled = value;
+                TriggerDisabledChange(source ?? this, true, bypassChecks);
+            }
         }
 
         /// <summary>
@@ -101,8 +104,11 @@ namespace osu.Framework.Bindables
 
         internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
-            this.value = value;
-            TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
+            lock (bindableChangeLock)
+            {
+                this.value = value;
+                TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
+            }
         }
 
         /// <summary>
@@ -127,8 +133,11 @@ namespace osu.Framework.Bindables
 
         internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
-            defaultValue = value;
-            TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
+            lock (bindableChangeLock)
+            {
+                defaultValue = value;
+                TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
+            }
         }
 
         private WeakReference<Bindable<T>> weakReferenceInstance;
@@ -154,6 +163,8 @@ namespace osu.Framework.Bindables
         }
 
         protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
+
+        private readonly object bindableChangeLock = new object();
 
         void IBindable.BindTo(IBindable them)
         {
@@ -202,10 +213,13 @@ namespace osu.Framework.Bindables
             if (Bindings?.Contains(them.weakReference) == true)
                 throw new ArgumentException("An already bound bindable cannot be bound again.");
 
-            them.CopyTo(this);
+            lock (them.bindableChangeLock)
+            {
+                them.CopyTo(this);
 
-            addWeakReference(them.weakReference);
-            them.addWeakReference(weakReference);
+                addWeakReference(them.weakReference);
+                them.addWeakReference(weakReference);
+            }
         }
 
         /// <summary>
@@ -383,8 +397,11 @@ namespace osu.Framework.Bindables
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            removeWeakReference(tThem.weakReference);
-            tThem.removeWeakReference(weakReference);
+            lock (tThem.bindableChangeLock)
+            {
+                removeWeakReference(tThem.weakReference);
+                tThem.removeWeakReference(weakReference);
+            }
         }
 
         public string Description { get; set; }
