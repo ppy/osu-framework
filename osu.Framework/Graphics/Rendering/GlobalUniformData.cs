@@ -2,64 +2,36 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.InteropServices;
-using osu.Framework.Graphics.Rendering.ShaderTypes;
-using osuTK;
+using osu.Framework.Graphics.Shaders.Types;
 
 namespace osu.Framework.Graphics.Rendering
 {
     // sh_GlobalUniforms.h
-    [StructLayout(LayoutKind.Explicit)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public record struct GlobalUniformData
     {
-        [FieldOffset(0)] // Align: N
-        public bool GammaCorrection;
+        public UniformBool GammaCorrection;
+        public UniformBool BackbufferDraw;
+        private readonly UniformPadding _, __;
 
-        [FieldOffset(4)] // Align: N
-        public bool BackbufferDraw;
+        public UniformMatrix4 ProjMatrix;
+        public UniformMatrix3 ToMaskingSpace;
+        public UniformBool IsMasking;
+        public UniformFloat CornerRadius;
+        public UniformFloat CornerExponent;
+        private readonly UniformPadding ___;
 
-        [FieldOffset(16)] // Align: 4N
-        public Matrix4 ProjMatrix;
+        public UniformVector4 MaskingRect;
+        public UniformFloat BorderThickness;
+        private readonly UniformPadding ____, _____, ______;
 
-        [FieldOffset(80)] // Align: 4N
-        public PackedMatrix3 ToMaskingSpace;
-
-        [FieldOffset(128)] // Align: N
-        public bool IsMasking;
-
-        [FieldOffset(132)] // Align: N
-        public float CornerRadius;
-
-        [FieldOffset(136)] // Align: N
-        public float CornerExponent;
-
-        [FieldOffset(144)] // Align: 4N
-        public Vector4 MaskingRect;
-
-        [FieldOffset(160)] // Align: N
-        public float BorderThickness;
-
-        [FieldOffset(176)] // Align: 4N
-        public Matrix4 BorderColour;
-
-        [FieldOffset(240)] // Align: N
-        public float MaskingBlendRange;
-
-        [FieldOffset(244)] // Align: N
-        public float AlphaExponent;
-
-        [FieldOffset(248)] // Align: 2N
-        public Vector2 EdgeOffset;
-
-        [FieldOffset(256)] // Align: N
-        public bool DiscardInner;
-
-        [FieldOffset(260)] // Align: N
-        public float InnerCornerRadius;
-
-        [FieldOffset(264)] // Align: N
-        public int WrapModeS;
-
-        [FieldOffset(268)] // Align: N
-        public int WrapModeT;
+        public UniformMatrix4 BorderColour;
+        public UniformFloat MaskingBlendRange;
+        public UniformFloat AlphaExponent;
+        public UniformVector2 EdgeOffset;
+        public UniformBool DiscardInner;
+        public UniformFloat InnerCornerRadius;
+        public UniformInt WrapModeS;
+        public UniformInt WrapModeT;
     }
 }
