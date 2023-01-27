@@ -40,17 +40,12 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             return new Uniform<T>(renderer, this, name, 0);
         }
 
-        public IUniformBlock GetUniformBlock(string name) => new DummyUniformBlock();
-
-        public void Dispose()
+        public void AssignUniformBlock(string blockName, IUniformBuffer buffer)
         {
         }
 
-        private class DummyUniformBlock : IUniformBlock
+        public void Dispose()
         {
-            public void SetValue<T>(T value) where T : unmanaged, IEquatable<T>
-            {
-            }
         }
     }
 }

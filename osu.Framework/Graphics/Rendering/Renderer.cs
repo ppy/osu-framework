@@ -1011,6 +1011,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <inheritdoc cref="IRenderer.CreateQuadBatch{TVertex}"/>
         protected abstract IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
+        /// <inheritdoc cref="IRenderer.CreateUniformBuffer{TData}"/>
+        public abstract IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
+
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/>.
         /// </summary>

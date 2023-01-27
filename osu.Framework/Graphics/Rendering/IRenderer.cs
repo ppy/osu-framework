@@ -358,6 +358,12 @@ namespace osu.Framework.Graphics.Rendering
         IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
         /// <summary>
+        /// Creates a uniform buffer that may be assigned to an <see cref="IShader"/>.
+        /// </summary>
+        /// <typeparam name="TData">The type of data in the buffer.</typeparam>
+        IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
+
+        /// <summary>
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>

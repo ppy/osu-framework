@@ -2,78 +2,39 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
 {
-    // TODO: Disposal
-    internal class GLUniformBlock : IUniformBlock
+    internal class GLUniformBlock
     {
-        private readonly GLRenderer renderer;
-        private readonly GLShader shader;
-        private readonly string uniformName;
-        private readonly int blockIndex;
-        private readonly int blockBinding;
-        private readonly int blockSize;
+        private readonly int binding;
+        private int assignedBuffer;
 
-        private int ubo = -1;
-        private object? data;
-        private byte[]? dataBuffer;
-
-        public GLUniformBlock(GLRenderer renderer, GLShader shader, string uniformName, int blockIndex, int blockBinding, int blockSize)
+        public GLUniformBlock(GLShader shader, int index, int binding)
         {
-            this.renderer = renderer;
-            this.shader = shader;
-            this.uniformName = uniformName;
-            this.blockIndex = blockIndex;
-            this.blockBinding = blockBinding;
-            this.blockSize = blockSize;
+            this.binding = binding;
+            GL.UniformBlockBinding(shader, index, binding);
         }
 
-        public void SetValue<T>(T value)
-            where T : unmanaged, IEquatable<T>
+        public void Assign(IUniformBuffer buffer)
         {
-            if (Marshal.SizeOf(value) != blockSize)
-                throw new ArgumentException($"Managed object \"{typeof(T).ReadableName()}\" does not match the size of uniform block \"{uniformName}\" in {shader}.");
+            if (buffer is not IGLUniformBuffer glBuffer)
+                throw new ArgumentException($"Provided argument must be a {typeof(GLUniformBuffer<>)}");
 
-            if (data is T tData && EqualityComparer<T>.Default.Equals(value, tData))
+            if (assignedBuffer == glBuffer.Id)
                 return;
 
-            data = value;
-            dataBuffer = ArrayPool<byte>.Shared.Rent(blockSize);
-            MemoryMarshal.Write(dataBuffer, ref value);
+            assignedBuffer = glBuffer.Id;
+
+            Bind();
         }
 
         public void Bind()
         {
-            if (dataBuffer == null)
-                return;
-
-            if (ubo == -1)
-                GL.GenBuffers(1, out ubo);
-
-            GL.BindBuffer(BufferTarget.UniformBuffer, ubo);
-            GL.BufferData(BufferTarget.UniformBuffer, blockSize, ref dataBuffer[0], BufferUsageHint.DynamicDraw);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-
-            GL.UniformBlockBinding(shader, blockIndex, blockBinding);
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, blockBinding, ubo);
-
-            returnBuffer();
-        }
-
-        private void returnBuffer()
-        {
-            if (dataBuffer == null)
-                return;
-
-            ArrayPool<byte>.Shared.Return(dataBuffer);
-            dataBuffer = null;
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, binding, assignedBuffer);
         }
     }
 }

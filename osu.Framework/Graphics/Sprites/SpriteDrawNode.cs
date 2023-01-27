@@ -77,6 +77,9 @@ namespace osu.Framework.Graphics.Sprites
                 renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
+        private IUniformBuffer<UniformBlockData> uniformBlockABuffer;
+        private IUniformBuffer<UniformBlockData> uniformBlockBBuffer;
+
         public override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
@@ -84,11 +87,16 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
+            uniformBlockABuffer ??= renderer.CreateUniformBuffer<UniformBlockData>();
+            uniformBlockBBuffer ??= renderer.CreateUniformBuffer<UniformBlockData>();
+            uniformBlockABuffer.Data = new UniformBlockData(Vector2.One);
+            uniformBlockBBuffer.Data = new UniformBlockData(new Vector2(-1, -1));
+
             var shader = TextureShader;
 
-            shader.GetUniformBlock("g_UniformBlock").SetValue(new UniformBlockData(new Vector2(1, 0.5f), new Vector2(-1, -1)));
-
             shader.Bind();
+            shader.AssignUniformBlock("g_UniformBlockA", uniformBlockABuffer);
+            shader.AssignUniformBlock("g_UniformBlockB", uniformBlockBBuffer);
 
             Blit(renderer);
 
@@ -97,18 +105,16 @@ namespace osu.Framework.Graphics.Sprites
 
         private readonly struct UniformBlockData : IEquatable<UniformBlockData>
         {
-            public readonly Vector2 A;
-            public readonly Vector2 B;
+            public readonly Vector2 Offset;
 
-            public UniformBlockData(Vector2 a, Vector2 b)
+            public UniformBlockData(Vector2 offset)
             {
-                A = a;
-                B = b;
+                Offset = offset;
             }
 
             public bool Equals(UniformBlockData other)
             {
-                return A == other.A && B == other.B;
+                return Offset == other.Offset;
             }
 
             public override bool Equals(object obj)
@@ -118,7 +124,7 @@ namespace osu.Framework.Graphics.Sprites
 
             public override int GetHashCode()
             {
-                return HashCode.Combine(A, B);
+                return Offset.GetHashCode();
             }
         }
 

@@ -12,9 +12,13 @@ varying highp vec2 v_TexCoord;
 varying highp vec4 v_TexRect;
 varying mediump vec2 v_BlendRange;
 
-uniform g_UniformBlock
+uniform g_UniformBlockA
 {
     highp vec2 offset;
+};
+
+uniform g_UniformBlockB
+{
     highp vec2 offset2;
 };
 

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
@@ -26,14 +27,14 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
-        internal readonly Dictionary<string, IUniformBlock> UniformBlocks = new Dictionary<string, IUniformBlock>();
+        private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
 
         /// <summary>
         /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
         /// </summary>
         private List<IUniform> uniformsValues;
 
-        private List<GLUniformBlock> uniformBlockValues;
+        private List<GLUniformBlock> uniformBlocksValues;
 
         public bool IsLoaded { get; private set; }
 
@@ -97,7 +98,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             foreach (var uniform in uniformsValues)
                 uniform?.Update();
 
-            foreach (var block in uniformBlockValues)
+            foreach (var block in uniformBlocksValues)
                 block?.Bind();
 
             IsBound = true;
@@ -124,15 +125,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
-        public IUniformBlock GetUniformBlock(string name)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
-
-            EnsureShaderCompiled();
-
-            return UniformBlocks[name];
-        }
+        public void AssignUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
 
         private protected virtual bool CompileInternal()
         {
@@ -159,11 +152,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
 
             uniformsValues = new List<IUniform>(uniformCount);
-            uniformBlockValues = new List<GLUniformBlock>(uniformCount);
+            uniformBlocksValues = new List<GLUniformBlock>(uniformCount);
 
             int[] uniformIndices = Enumerable.Range(0, uniformCount).ToArray();
             int[] blockIndices = new int[uniformCount];
             GL.GetActiveUniforms(this, uniformCount, uniformIndices, ActiveUniformParameter.UniformBlockIndex, blockIndices);
+
+            int blockBindingIndex = 0;
 
             for (int i = 0; i < uniformCount; i++)
             {
@@ -176,15 +171,12 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     GL.GetActiveUniformBlockName(this, blockIndex, 100, out _, out uniformName);
 
                     // The block may have been seen before since we're iterating over all uniform members in the composite.
-                    if (UniformBlocks.ContainsKey(uniformName))
+                    if (uniformBlocks.ContainsKey(uniformName))
                         continue;
 
-                    GL.GetActiveUniformBlock(this, blockIndex, ActiveUniformBlockParameter.UniformBlockDataSize, out int blockSize);
-                    GL.GetActiveUniformBlock(this, blockIndex, ActiveUniformBlockParameter.UniformBlockBinding, out int blockBinding);
-
-                    var block = new GLUniformBlock(renderer, this, uniformName, blockIndex, blockBinding, blockSize);
-                    UniformBlocks[uniformName] = block;
-                    uniformBlockValues.Add(block);
+                    var block = new GLUniformBlock(this, blockIndex, blockBindingIndex++);
+                    uniformBlocks[uniformName] = block;
+                    uniformBlocksValues.Add(block);
                 }
                 else
                 {
