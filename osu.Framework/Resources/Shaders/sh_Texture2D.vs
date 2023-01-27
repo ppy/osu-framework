@@ -12,16 +12,6 @@ varying highp vec2 v_TexCoord;
 varying highp vec4 v_TexRect;
 varying mediump vec2 v_BlendRange;
 
-uniform g_UniformBlockA
-{
-    highp vec2 offset;
-};
-
-uniform g_UniformBlockB
-{
-    highp vec2 offset2;
-};
-
 void main(void)
 {
 	// Transform from screen space to masking space.
@@ -29,7 +19,7 @@ void main(void)
 	v_MaskingPosition = maskingPos.xy / maskingPos.z;
 
 	v_Colour = m_Colour;
-	v_TexCoord = m_TexCoord + offset + offset2;
+	v_TexCoord = m_TexCoord;
 	v_TexRect = m_TexRect;
 	v_BlendRange = m_BlendRange;
 

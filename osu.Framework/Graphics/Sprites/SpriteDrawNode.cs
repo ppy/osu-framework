@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
@@ -77,9 +76,6 @@ namespace osu.Framework.Graphics.Sprites
                 renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
-        private IUniformBuffer<UniformBlockData> uniformBlockABuffer;
-        private IUniformBuffer<UniformBlockData> uniformBlockBBuffer;
-
         public override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
@@ -87,45 +83,13 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            uniformBlockABuffer ??= renderer.CreateUniformBuffer<UniformBlockData>();
-            uniformBlockBBuffer ??= renderer.CreateUniformBuffer<UniformBlockData>();
-            uniformBlockABuffer.Data = new UniformBlockData(Vector2.One);
-            uniformBlockBBuffer.Data = new UniformBlockData(new Vector2(-1, -1));
-
             var shader = TextureShader;
 
             shader.Bind();
-            shader.AssignUniformBlock("g_UniformBlockA", uniformBlockABuffer);
-            shader.AssignUniformBlock("g_UniformBlockB", uniformBlockBBuffer);
 
             Blit(renderer);
 
             shader.Unbind();
-        }
-
-        private readonly struct UniformBlockData : IEquatable<UniformBlockData>
-        {
-            public readonly Vector2 Offset;
-
-            public UniformBlockData(Vector2 offset)
-            {
-                Offset = offset;
-            }
-
-            public bool Equals(UniformBlockData other)
-            {
-                return Offset == other.Offset;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is UniformBlockData other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return Offset.GetHashCode();
-            }
         }
 
         protected override void DrawOpaqueInterior(IRenderer renderer)

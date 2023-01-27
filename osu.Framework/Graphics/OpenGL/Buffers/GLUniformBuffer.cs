@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public TData Data
         {
+            get => data;
             set
             {
                 if (value.Equals(data))
