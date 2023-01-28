@@ -9,5 +9,10 @@ namespace osu.Framework.Audio.Sample
         /// How many instances of a single sample should be allowed to playback concurrently before stopping the longest playing.
         /// </summary>
         int PlaybackConcurrency { get; set; }
+
+        /// <summary>
+        /// Add a file extension to automatically append to any lookups on this store.
+        /// </summary>
+        void AddExtension(string extension);
     }
 }

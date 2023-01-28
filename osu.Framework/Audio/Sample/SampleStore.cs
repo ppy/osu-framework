@@ -30,9 +30,11 @@ namespace osu.Framework.Audio.Sample
             this.store = new ResourceStore<byte[]>(store);
             this.mixer = mixer;
 
-            this.store.AddExtension(@"wav");
-            this.store.AddExtension(@"mp3");
+            AddExtension(@"wav");
+            AddExtension(@"mp3");
         }
+
+        public void AddExtension(string extension) => store.AddExtension(extension);
 
         public Sample Get(string name)
         {

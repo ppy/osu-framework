@@ -37,6 +37,21 @@ namespace osu.Framework.Tests.Visual.Audio
             AddAssert("extension lookups attempted", () => resourceStore.AttemptedLookups, () => Is.EquivalentTo(new[] { "sample", "sample.wav", "sample.mp3" }));
         }
 
+        [Test]
+        public void TestSampleStoreWithAdditionalExtensions()
+        {
+            TestResourceStore resourceStore = null!;
+            ISampleStore sampleStore = null!;
+
+            AddStep("create resource store", () => resourceStore = new TestResourceStore());
+            AddStep("create sample store", () => sampleStore = audioManager.GetSampleStore(resourceStore));
+            AddStep("add another extension", () => sampleStore.AddExtension("ogg"));
+
+            AddStep("attempt to look up sample", () => sampleStore.Get("sample"));
+            AddAssert("extension lookups attempted", () => resourceStore.AttemptedLookups,
+                () => Is.EquivalentTo(new[] { "sample", "sample.wav", "sample.mp3", "sample.ogg" }));
+        }
+
         private class TestResourceStore : ResourceStore<byte[]>
         {
             public new IEnumerable<string> GetFilenames(string lookup) => base.GetFilenames(lookup);
