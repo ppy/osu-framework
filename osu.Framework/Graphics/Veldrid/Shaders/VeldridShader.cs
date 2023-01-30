@@ -20,22 +20,26 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
     {
         private readonly string name;
         private readonly VeldridShaderPart[] parts;
+        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
         private readonly VeldridRenderer renderer;
 
-        private Shader[]? shaders;
+        public Shader[]? Shaders;
 
         private readonly ScheduledDelegate shaderInitialiseDelegate;
 
-        public bool IsLoaded => shaders != null;
+        public bool IsLoaded => Shaders != null;
 
         public bool IsBound { get; private set; }
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => throw new NotSupportedException();
 
-        public VeldridShader(VeldridRenderer renderer, string name, params VeldridShaderPart[] parts)
+        private readonly Dictionary<string, VeldridUniformBlock> uniformBlocks = new Dictionary<string, VeldridUniformBlock>();
+
+        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
         {
             this.name = name;
             this.parts = parts;
+            this.globalUniformBuffer = globalUniformBuffer;
             this.renderer = renderer;
 
             renderer.ScheduleExpensiveOperation(shaderInitialiseDelegate = new ScheduledDelegate(initialise));
@@ -59,6 +63,9 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             renderer.BindShader(this);
 
+            foreach (var block in uniformBlocks.Values)
+                renderer.SetResource(block);
+
             IsBound = true;
         }
 
@@ -73,9 +80,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public Uniform<T> GetUniform<T>(string name) where T : unmanaged, IEquatable<T> => throw new NotSupportedException();
 
-        public void AssignUniformBlock(string blockName, IUniformBuffer buffer)
-        {
-        }
+        public void AssignUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
 
         private void initialise()
         {
@@ -106,7 +111,25 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     Encoding.UTF8.GetBytes(compilationResult.FragmentShader),
                     "main"));
 
-                shaders = new[] { vertexShader, fragmentShader };
+                Shaders = new[] { vertexShader, fragmentShader };
+
+                for (int set = 0; set < compilationResult.Reflection.ResourceLayouts.Length; set++)
+                {
+                    ResourceLayoutDescription layout = compilationResult.Reflection.ResourceLayouts[set];
+
+                    if (layout.Elements.Length == 0)
+                        continue;
+
+                    foreach (ResourceLayoutElementDescription element in layout.Elements)
+                    {
+                        if (element.Kind != ResourceKind.UniformBuffer)
+                            continue;
+
+                        uniformBlocks[element.Name] = new VeldridUniformBlock(renderer, set, element.Name);
+                    }
+                }
+
+                AssignUniformBlock("g_GlobalUniforms", globalUniformBuffer);
             }
             catch (SpirvCompilationException e)
             {
@@ -134,12 +157,12 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             isDisposed = true;
 
-            if (shaders != null)
+            if (Shaders != null)
             {
-                for (int i = 0; i < shaders.Length; i++)
-                    shaders[i].Dispose();
+                for (int i = 0; i < Shaders.Length; i++)
+                    Shaders[i].Dispose();
 
-                shaders = null;
+                Shaders = null;
             }
         }
     }

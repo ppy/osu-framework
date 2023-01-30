@@ -218,6 +218,8 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override void SetShaderImplementation(IShader shader)
         {
+            var veldridShader = (VeldridShader)shader;
+            pipeline.ShaderSet.Shaders = veldridShader.Shaders;
         }
 
         protected override void SetBlendImplementation(BlendingParameters blendingParameters)
@@ -289,8 +291,14 @@ namespace osu.Framework.Graphics.Veldrid
         {
             pipeline.PrimitiveTopology = type;
 
-            // we can't draw yet as we're missing shader support.
             // Commands.SetPipeline(getPipelineInstance());
+            //
+            // foreach (var resource in boundResources)
+            // {
+            //     if (resource.Value.BoundResourceSet != null)
+            //         Commands.SetGraphicsResourceSet((uint)resource.Key, resource.Value.BoundResourceSet);
+            // }
+            //
             // Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
 
@@ -311,7 +319,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridShaderPart(manager, rawData, partType);
 
         protected override IShader CreateShader(string name, params IShaderPart[] parts)
-            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray());
+            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), GlobalUniformBuffer!);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);
@@ -323,7 +331,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridQuadBatch<TVertex>(this, size, maxBuffers);
 
         public override IUniformBuffer<TData> CreateUniformBuffer<TData>()
-            => new DummyUniformBuffer<TData>();
+            => new VeldridUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)
@@ -333,6 +341,14 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
+        }
+
+        private readonly Dictionary<int, VeldridUniformBlock> boundResources = new Dictionary<int, VeldridUniformBlock>();
+
+        public void SetResource(VeldridUniformBlock block)
+        {
+            pipeline.ResourceLayouts[block.Index] = block.Layout;
+            boundResources[block.Index] = block;
         }
     }
 }
