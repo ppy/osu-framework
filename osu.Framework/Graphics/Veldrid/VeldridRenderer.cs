@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Shaders;
+using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
@@ -214,7 +215,50 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override void SetScissorStateImplementation(bool enabled) => pipeline.RasterizerState.ScissorTestEnabled = enabled;
 
-        protected override bool SetTextureImplementation(INativeTexture? texture, int unit) => true;
+        protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
+        {
+            var veldridTexture = texture as VeldridTexture; // texture may be DummyNativeTexture coming from a DummyFramebuffer, since framebuffers are not supported yet.
+            if (veldridTexture == null)
+                return false;
+
+            VeldridShader shader = (VeldridShader)Shader!;
+            VeldridTextureBlock block = shader.TextureBlocks[unit];
+            block.Assign(veldridTexture);
+            SetResource(block);
+            return true;
+        }
+
+        /// <summary>
+        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The textural data.</param>
+        /// <param name="bufferRowLength">An optional length per row on the given <paramref name="data"/>.</param>
+        /// <typeparam name="T">The pixel type.</typeparam>
+        public unsafe void UpdateTexture<T>(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data, int? bufferRowLength = null)
+            where T : unmanaged
+        {
+            fixed (T* ptr = data)
+            {
+                if (bufferRowLength != null)
+                {
+                    var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
+
+                    for (uint yi = 0; yi < height; yi++)
+                        Device.UpdateTexture(staging, (IntPtr)(ptr + yi * bufferRowLength.Value), (uint)width, 0, yi, 0, (uint)width, 1, 1, 0, 0);
+
+                    Commands.CopyTexture(staging, texture);
+                    staging.Dispose();
+                }
+                else
+                    Device.UpdateTexture(texture, (IntPtr)ptr, (uint)(data.Length * sizeof(T)), (uint)x, (uint)y, 0, (uint)width, (uint)height, 1, (uint)level, 0);
+            }
+        }
 
         protected override void SetShaderImplementation(IShader shader)
         {
@@ -291,15 +335,15 @@ namespace osu.Framework.Graphics.Veldrid
         {
             pipeline.PrimitiveTopology = type;
 
-            // Commands.SetPipeline(getPipelineInstance());
-            //
-            // foreach (var resource in boundResources)
-            // {
-            //     if (resource.Value.BoundResourceSet != null)
-            //         Commands.SetGraphicsResourceSet((uint)resource.Key, resource.Value.BoundResourceSet);
-            // }
-            //
-            // Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
+            Commands.SetPipeline(getPipelineInstance());
+
+            foreach (var resource in boundResources)
+            {
+                if (resource.Value.Set != null)
+                    Commands.SetGraphicsResourceSet((uint)resource.Key, resource.Value.Set);
+            }
+
+            Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
 
         private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();
@@ -335,7 +379,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)
-            => new DummyNativeTexture(this);
+            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new DummyNativeTexture(this);
 
@@ -343,9 +387,9 @@ namespace osu.Framework.Graphics.Veldrid
         {
         }
 
-        private readonly Dictionary<int, VeldridUniformBlock> boundResources = new Dictionary<int, VeldridUniformBlock>();
+        private readonly Dictionary<int, IVeldridResourceBlock> boundResources = new Dictionary<int, IVeldridResourceBlock>();
 
-        public void SetResource(VeldridUniformBlock block)
+        public void SetResource(IVeldridResourceBlock block)
         {
             pipeline.ResourceLayouts[block.Index] = block.Layout;
             boundResources[block.Index] = block;

@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => throw new NotSupportedException();
 
         private readonly Dictionary<string, VeldridUniformBlock> uniformBlocks = new Dictionary<string, VeldridUniformBlock>();
+        public readonly List<VeldridTextureBlock> TextureBlocks = new List<VeldridTextureBlock>();
 
         public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
         {
@@ -120,12 +121,17 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     if (layout.Elements.Length == 0)
                         continue;
 
-                    foreach (ResourceLayoutElementDescription element in layout.Elements)
+                    if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                     {
-                        if (element.Kind != ResourceKind.UniformBuffer)
-                            continue;
+                        // Todo: We should enforce that a texture set contains both a texture and a sampler.
+                        var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+                        var samplerElement = layout.Elements.First(e => e.Kind == ResourceKind.Sampler);
 
-                        uniformBlocks[element.Name] = new VeldridUniformBlock(renderer, set, element.Name);
+                        TextureBlocks.Add(new VeldridTextureBlock(renderer, set, textureElement.Name, samplerElement.Name));
+                    }
+                    else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
+                    {
+                        uniformBlocks[layout.Elements[0].Name] = new VeldridUniformBlock(renderer, set, layout.Elements[0].Name);
                     }
                 }
 

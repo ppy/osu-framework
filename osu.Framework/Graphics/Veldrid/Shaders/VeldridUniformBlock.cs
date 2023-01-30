@@ -9,14 +9,13 @@ using Veldrid;
 namespace osu.Framework.Graphics.Veldrid.Shaders
 {
     // Todo: Dispose
-    internal class VeldridUniformBlock
+    internal class VeldridUniformBlock : IVeldridResourceBlock
     {
-        public readonly int Index;
-        public readonly ResourceLayout Layout;
-        public ResourceSet? BoundResourceSet { get; private set; }
+        public int Index { get; }
+        public ResourceLayout Layout { get; }
+        public ResourceSet? Set { get; private set; }
 
         private readonly VeldridRenderer renderer;
-
         private IVeldridUniformBuffer? assignedBuffer;
 
         public VeldridUniformBlock(VeldridRenderer renderer, int index, string name)
@@ -38,7 +37,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 return;
 
             assignedBuffer = veldridBuffer;
-            BoundResourceSet = renderer.Factory.CreateResourceSet(new ResourceSetDescription(Layout, veldridBuffer.Buffer));
+            Set = renderer.Factory.CreateResourceSet(new ResourceSetDescription(Layout, veldridBuffer.Buffer));
         }
     }
 }
