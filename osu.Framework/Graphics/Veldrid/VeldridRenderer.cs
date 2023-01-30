@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -13,6 +14,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
@@ -31,6 +33,8 @@ namespace osu.Framework.Graphics.Veldrid
             get => Device.SyncToVerticalBlank;
             set => Device.SyncToVerticalBlank = value;
         }
+
+        public override string ShaderFilenameSuffix => @"-veldrid";
 
         public GraphicsDevice Device { get; private set; } = null!;
 
@@ -304,10 +308,10 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
-            => new DummyShaderPart();
+            => new VeldridShaderPart(manager, rawData, partType);
 
         protected override IShader CreateShader(string name, params IShaderPart[] parts)
-            => new DummyShader(this);
+            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray());
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);
@@ -319,9 +323,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridQuadBatch<TVertex>(this, size, maxBuffers);
 
         public override IUniformBuffer<TData> CreateUniformBuffer<TData>()
-        {
-            throw new NotImplementedException();
-        }
+            => new DummyUniformBuffer<TData>();
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)

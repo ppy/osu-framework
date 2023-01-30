@@ -40,6 +40,8 @@ namespace osu.Framework.Graphics.Rendering
         public int MaxTexturesUploadedPerFrame { get; set; } = 32;
         public int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
 
+        public virtual string ShaderFilenameSuffix => string.Empty;
+
         /// <summary>
         /// The current reset index.
         /// </summary>

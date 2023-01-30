@@ -65,6 +65,12 @@ namespace osu.Framework.Graphics.Rendering
         int MaxPixelsUploadedPerFrame { get; set; }
 
         /// <summary>
+        /// A suffix to apply to shader filenames during lookup,
+        /// for interacting with compatible shader formats.
+        /// </summary>
+        string ShaderFilenameSuffix { get; }
+
+        /// <summary>
         /// The current masking parameters.
         /// </summary>
         ref readonly MaskingInfo CurrentMaskingInfo { get; }
