@@ -8,23 +8,23 @@ using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal interface IVeldridUniformBuffer
+    internal interface IVeldridUniformBuffer : IVeldridResource
     {
-        DeviceBuffer Buffer { get; }
     }
 
     internal class VeldridUniformBuffer<TData> : IUniformBuffer<TData>, IVeldridUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
-        public DeviceBuffer Buffer { get; }
-
         private readonly VeldridRenderer renderer;
+        private readonly DeviceBuffer buffer;
+
+        private ResourceSet? set;
         private TData data;
 
         public VeldridUniformBuffer(VeldridRenderer renderer)
         {
             this.renderer = renderer;
-            Buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
+            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
         }
 
         public TData Data
@@ -37,13 +37,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
                 data = value;
 
-                renderer.Commands.UpdateBuffer(Buffer, 0, ref data);
+                renderer.Commands.UpdateBuffer(buffer, 0, ref data);
             }
         }
 
+        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+
         public void Dispose()
         {
-            Buffer.Dispose();
+            buffer.Dispose();
+            set?.Dispose();
         }
     }
 }

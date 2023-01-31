@@ -19,7 +19,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
-    internal class VeldridTexture : INativeTexture
+    internal class VeldridTexture : INativeTexture, IVeldridResource
     {
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -29,10 +29,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             get
             {
-                if (!Available || TextureResource == null)
+                if (!Available || textureResource == null)
                     return "-";
 
-                return TextureResource.Name;
+                return textureResource.Name;
             }
         }
 
@@ -80,7 +80,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public VeldridTexture(VeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear, Rgba32 initialisationColour = default)
+        public VeldridTexture(VeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear,
+                              Rgba32 initialisationColour = default)
         {
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
@@ -118,16 +119,16 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 while (texture.tryGetNextUpload(out var upload))
                     upload.Dispose();
 
-                if (texture.TextureResource == null)
+                if (texture.textureResource == null)
                     return;
 
                 texture.memoryLease?.Dispose();
 
-                texture.SamplerResource?.Dispose();
-                texture.SamplerResource = null;
+                texture.samplerResource?.Dispose();
+                texture.samplerResource = null;
 
-                texture.TextureResource?.Dispose();
-                texture.TextureResource = null;
+                texture.textureResource?.Dispose();
+                texture.textureResource = null;
 
                 texture.Available = false;
             }, this);
@@ -166,8 +167,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         #endregion
 
-        public Texture TextureResource { get; private set; }
-        public Sampler SamplerResource { get; private set; }
+        private Texture textureResource;
+        private Sampler samplerResource;
+        private ResourceSet set;
 
         public void FlushUploads()
         {
@@ -194,7 +196,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             Upload();
 
-            if (TextureResource == null)
+            if (textureResource == null)
                 return false;
 
             if (Renderer.BindTexture(this, wrapModeS: wrapModeS, wrapModeT: wrapModeT))
@@ -202,6 +204,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             return true;
         }
+
+        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= Renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, textureResource, samplerResource));
 
         public bool Upload()
         {
@@ -223,7 +227,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
 
             if (didUpload && !(manualMipmaps || maximumUploadedLod > 0))
-                Renderer.Commands.GenerateMipmaps(TextureResource);
+                Renderer.Commands.GenerateMipmaps(textureResource);
 
             return didUpload;
         }
@@ -267,16 +271,16 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         protected virtual void DoUpload(ITextureUpload upload)
         {
-            if (TextureResource == null || TextureResource.Width != Width || TextureResource.Height != Height)
+            if (textureResource == null || textureResource.Width != Width || textureResource.Height != Height)
             {
-                TextureResource?.Dispose();
-                TextureResource = null;
+                textureResource?.Dispose();
+                textureResource = null;
 
-                SamplerResource?.Dispose();
-                SamplerResource = null;
+                samplerResource?.Dispose();
+                samplerResource = null;
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)calculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm_SRgb, Usages);
-                TextureResource = Renderer.Factory.CreateTexture(ref textureDescription);
+                textureResource = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
                 // similar to how OpenGL allows calling glTexImage2D with null data pointer.
@@ -298,10 +302,11 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     maximumUploadedLod = upload.Level;
                 }
 
-                Renderer.UpdateTexture(TextureResource, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level, upload.Level, upload.Data);
+                Renderer.UpdateTexture(textureResource, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
+                    upload.Level, upload.Data);
             }
 
-            if (SamplerResource == null || maximumUploadedLod > lastMaximumUploadedLod)
+            if (samplerResource == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
                 bool useUploadMipmaps = manualMipmaps || maximumUploadedLod > 0;
 
@@ -316,8 +321,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     MaximumAnisotropy = 0,
                 };
 
-                SamplerResource?.Dispose();
-                SamplerResource = Renderer.Factory.CreateSampler(ref samplerDescription);
+                samplerResource?.Dispose();
+                samplerResource = Renderer.Factory.CreateSampler(ref samplerDescription);
             }
         }
 
@@ -327,7 +332,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             using (var pixels = image.CreateReadOnlyPixelSpan())
             {
                 updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
-                Renderer.UpdateTexture(TextureResource, 0, 0, width, height, level, pixels.Span);
+                Renderer.UpdateTexture(textureResource, 0, 0, width, height, level, pixels.Span);
             }
         }
 

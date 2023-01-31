@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 using Veldrid;
@@ -32,9 +33,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public bool IsBound { get; private set; }
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => throw new NotSupportedException();
+        public int LayoutCount => uniformLayouts.Count + textureLayouts.Count;
 
-        private readonly Dictionary<string, VeldridUniformBlock> uniformBlocks = new Dictionary<string, VeldridUniformBlock>();
-        public readonly List<VeldridTextureBlock> TextureBlocks = new List<VeldridTextureBlock>();
+        private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
+        private readonly List<VeldridUniformLayout> textureLayouts = new List<VeldridUniformLayout>();
 
         public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
         {
@@ -64,9 +66,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             renderer.BindShader(this);
 
-            foreach (var block in uniformBlocks.Values)
-                renderer.SetResource(block);
-
             IsBound = true;
         }
 
@@ -81,7 +80,17 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public Uniform<T> GetUniform<T>(string name) where T : unmanaged, IEquatable<T> => throw new NotSupportedException();
 
-        public void AssignUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
+        public void AssignUniformBlock(string blockName, IUniformBuffer buffer)
+        {
+            if (buffer is not IVeldridUniformBuffer veldridBuffer)
+                throw new InvalidOperationException();
+
+            renderer.AssignUniformBuffer(blockName, veldridBuffer);
+        }
+
+        public VeldridUniformLayout? GetTextureLayout(int textureUnit) => textureUnit >= textureLayouts.Count ? null : textureLayouts[textureUnit];
+
+        public VeldridUniformLayout? GetUniformBufferLayout(string name) => uniformLayouts.GetValueOrDefault(name);
 
         private void initialise()
         {
@@ -127,11 +136,29 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                         var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
                         var samplerElement = layout.Elements.First(e => e.Kind == ResourceKind.Sampler);
 
-                        TextureBlocks.Add(new VeldridTextureBlock(renderer, set, textureElement.Name, samplerElement.Name));
+                        textureLayouts.Add(new VeldridUniformLayout(
+                            set,
+                            renderer.Factory.CreateResourceLayout(
+                                new ResourceLayoutDescription(
+                                    new ResourceLayoutElementDescription(
+                                        textureElement.Name,
+                                        ResourceKind.TextureReadOnly,
+                                        ShaderStages.Fragment),
+                                    new ResourceLayoutElementDescription(
+                                        samplerElement.Name,
+                                        ResourceKind.Sampler,
+                                        ShaderStages.Fragment)))));
                     }
                     else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
                     {
-                        uniformBlocks[layout.Elements[0].Name] = new VeldridUniformBlock(renderer, set, layout.Elements[0].Name);
+                        uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(
+                            set,
+                            renderer.Factory.CreateResourceLayout(
+                                new ResourceLayoutDescription(
+                                    new ResourceLayoutElementDescription(
+                                        layout.Elements[0].Name,
+                                        ResourceKind.UniformBuffer,
+                                        ShaderStages.Fragment | ShaderStages.Vertex))));
                     }
                 }
 

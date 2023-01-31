@@ -220,10 +220,7 @@ namespace osu.Framework.Graphics.Veldrid
             if (veldridTexture == null)
                 return false;
 
-            VeldridShader shader = (VeldridShader)Shader!;
-            VeldridTextureBlock block = shader.TextureBlocks[unit];
-            block.Assign(veldridTexture);
-            SetResource(block);
+            AssignTextureUnit(unit, veldridTexture);
             return true;
         }
 
@@ -332,18 +329,53 @@ namespace osu.Framework.Graphics.Veldrid
 
         public void DrawVertices(PrimitiveTopology type, int indexStart, int indicesCount)
         {
+            var veldridShader = (VeldridShader)Shader!;
+
             pipeline.PrimitiveTopology = type;
+            Array.Resize(ref pipeline.ResourceLayouts, veldridShader.LayoutCount);
 
-            // Active resource layouts.
-            Array.Resize(ref pipeline.ResourceLayouts, boundResources.Count);
-            foreach (var resource in boundResources.Values)
-                pipeline.ResourceLayouts[resource.Index] = resource.Layout;
+            // Activate texture layouts.
+            foreach (var (unit, _) in assignedTextureUnits)
+            {
+                var layout = veldridShader.GetTextureLayout(unit);
+                if (layout == null)
+                    continue;
 
+                pipeline.ResourceLayouts[layout.Set] = layout.Layout;
+            }
+
+            // Activate uniform buffer layouts.
+            foreach (var (name, _) in assignedUniformBuffers)
+            {
+                var layout = veldridShader.GetUniformBufferLayout(name);
+                if (layout == null)
+                    continue;
+
+                pipeline.ResourceLayouts[layout.Set] = layout.Layout;
+            }
+
+            // Activate the pipeline.
             Commands.SetPipeline(getPipelineInstance());
 
-            // Activate resource sets.
-            foreach (var resource in boundResources.Values)
-                Commands.SetGraphicsResourceSet((uint)resource.Index, resource.Set);
+            // Activate texture resources.
+            foreach (var (unit, texture) in assignedTextureUnits)
+            {
+                var layout = veldridShader.GetTextureLayout(unit);
+                if (layout == null)
+                    continue;
+
+                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(layout.Layout));
+            }
+
+            // Activate uniform buffer resources.
+            foreach (var (name, buffer) in assignedUniformBuffers)
+            {
+                var layout = veldridShader.GetUniformBufferLayout(name);
+                if (layout == null)
+                    continue;
+
+                Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout));
+            }
 
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
@@ -389,8 +421,17 @@ namespace osu.Framework.Graphics.Veldrid
         {
         }
 
-        private readonly Dictionary<int, IVeldridResourceBlock> boundResources = new Dictionary<int, IVeldridResourceBlock>();
+        private readonly Dictionary<string, IVeldridUniformBuffer> assignedUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
+        private readonly Dictionary<int, VeldridTexture> assignedTextureUnits = new Dictionary<int, VeldridTexture>();
 
-        public void SetResource(IVeldridResourceBlock block) => boundResources[block.Index] = block;
+        public void AssignUniformBuffer(string name, IVeldridUniformBuffer buffer)
+        {
+            assignedUniformBuffers[name] = buffer;
+        }
+
+        public void AssignTextureUnit(int unit, VeldridTexture texture)
+        {
+            assignedTextureUnits[unit] = texture;
+        }
     }
 }

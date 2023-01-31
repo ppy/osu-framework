@@ -5,10 +5,8 @@ using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid
 {
-    public interface IVeldridResourceBlock
+    public interface IVeldridResource
     {
-        int Index { get; }
-        ResourceLayout Layout { get; }
-        ResourceSet? Set { get; }
+        ResourceSet GetResourceSet(ResourceLayout layout);
     }
 }
