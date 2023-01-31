@@ -17,10 +17,10 @@ namespace osu.Framework.Graphics.Rendering
         private const float increment = 0.001f;
 
         /// <summary>
-        /// Calculated as (1 - (-1)) / increment - 1.
+        /// Calculated as 1 / increment - 1.
         /// -1 is subtracted since a depth of 1.0f conflicts with the default backbuffer clear value.
         /// </summary>
-        private const int max_count = 1999;
+        private const int max_count = 999;
 
         private float depth;
         private int count;
@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         internal void Reset()
         {
-            depth = -1;
+            depth = 0;
             count = 0;
         }
 
