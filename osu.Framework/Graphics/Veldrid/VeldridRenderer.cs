@@ -18,7 +18,6 @@ using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
 using osuTK;
-using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using Veldrid.OpenGL;
@@ -171,8 +170,6 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.Begin();
 
             base.BeginFrame(windowSize);
-
-            Clear(new ClearInfo(Color4.FromHsv(new Vector4(ResetId % 360 / 360f, 0.5f, 0.5f, 1f))));
         }
 
         protected internal override void FinishFrame()
