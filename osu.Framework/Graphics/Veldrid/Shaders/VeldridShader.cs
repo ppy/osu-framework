@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     "main"));
 
                 Shader fragmentShader = renderer.Factory.CreateShader(new ShaderDescription(
-                    ShaderStages.Vertex,
+                    ShaderStages.Fragment,
                     Encoding.UTF8.GetBytes(compilationResult.FragmentShader),
                     "main"));
 
