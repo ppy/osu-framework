@@ -155,7 +155,6 @@ namespace osu.Framework.Graphics.Veldrid
 
             Commands = Factory.CreateCommandList();
 
-            pipeline.ResourceLayouts = new ResourceLayout[2];
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
 
@@ -335,13 +334,16 @@ namespace osu.Framework.Graphics.Veldrid
         {
             pipeline.PrimitiveTopology = type;
 
+            // Active resource layouts.
+            Array.Resize(ref pipeline.ResourceLayouts, boundResources.Count);
+            foreach (var resource in boundResources.Values)
+                pipeline.ResourceLayouts[resource.Index] = resource.Layout;
+
             Commands.SetPipeline(getPipelineInstance());
 
-            foreach (var resource in boundResources)
-            {
-                if (resource.Value.Set != null)
-                    Commands.SetGraphicsResourceSet((uint)resource.Key, resource.Value.Set);
-            }
+            // Activate resource sets.
+            foreach (var resource in boundResources.Values)
+                Commands.SetGraphicsResourceSet((uint)resource.Index, resource.Set);
 
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
@@ -389,10 +391,6 @@ namespace osu.Framework.Graphics.Veldrid
 
         private readonly Dictionary<int, IVeldridResourceBlock> boundResources = new Dictionary<int, IVeldridResourceBlock>();
 
-        public void SetResource(IVeldridResourceBlock block)
-        {
-            pipeline.ResourceLayouts[block.Index] = block.Layout;
-            boundResources[block.Index] = block;
-        }
+        public void SetResource(IVeldridResourceBlock block) => boundResources[block.Index] = block;
     }
 }
