@@ -213,12 +213,15 @@ namespace osu.Framework.Bindables
             if (Bindings?.Contains(them.weakReference) == true)
                 throw new ArgumentException("An already bound bindable cannot be bound again.");
 
-            lock (them.bindableChangeLock)
+            lock (bindableChangeLock)
             {
-                them.CopyTo(this);
+                lock (them.bindableChangeLock)
+                {
+                    them.CopyTo(this);
 
-                addWeakReference(them.weakReference);
-                them.addWeakReference(weakReference);
+                    addWeakReference(them.weakReference);
+                    them.addWeakReference(weakReference);
+                }
             }
         }
 
@@ -397,10 +400,13 @@ namespace osu.Framework.Bindables
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            lock (tThem.bindableChangeLock)
+            lock (bindableChangeLock)
             {
-                removeWeakReference(tThem.weakReference);
-                tThem.removeWeakReference(weakReference);
+                lock (tThem.bindableChangeLock)
+                {
+                    removeWeakReference(tThem.weakReference);
+                    tThem.removeWeakReference(weakReference);
+                }
             }
         }
 

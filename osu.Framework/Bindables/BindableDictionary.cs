@@ -421,10 +421,13 @@ namespace osu.Framework.Bindables
             if (!(them is BindableDictionary<TKey, TValue> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            lock (tThem.bindableChangeLock)
+            lock (bindableChangeLock)
             {
-                removeWeakReference(tThem.weakReference);
-                tThem.removeWeakReference(weakReference);
+                lock (tThem.bindableChangeLock)
+                {
+                    removeWeakReference(tThem.weakReference);
+                    tThem.removeWeakReference(weakReference);
+                }
             }
         }
 
@@ -482,14 +485,17 @@ namespace osu.Framework.Bindables
             if (them == this)
                 throw new ArgumentException("A dictionary can not be bound to itself");
 
-            lock (them.bindableChangeLock)
+            lock (bindableChangeLock)
             {
-                // copy state and content over
-                Parse(them);
-                Disabled = them.Disabled;
+                lock (them.bindableChangeLock)
+                {
+                    // copy state and content over
+                    Parse(them);
+                    Disabled = them.Disabled;
 
-                addWeakReference(them.weakReference);
-                them.addWeakReference(weakReference);
+                    addWeakReference(them.weakReference);
+                    them.addWeakReference(weakReference);
+                }
             }
         }
 
