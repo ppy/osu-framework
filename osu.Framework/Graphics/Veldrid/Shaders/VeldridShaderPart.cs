@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -15,7 +14,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
     {
         private const string backbuffer_draw_depth_name = "m_BackbufferDrawDepth";
 
-        private readonly string data;
+        public string Data { get; private set; }
 
         public ShaderPartType Type { get; }
 
@@ -25,10 +24,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public VeldridShaderPart(ShaderManager shaders, byte[]? rawData, ShaderPartType type)
         {
             Type = type;
-            data = loadShader(rawData, type, shaders);
+            Data = loadShader(rawData, type, shaders);
         }
-
-        public byte[] GetData() => Encoding.UTF8.GetBytes(data);
 
         /// <summary>
         /// Loads a given shader data and fills the given uniform group as defined by the shader.

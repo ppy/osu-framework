@@ -45,6 +45,8 @@ namespace osu.Framework.Graphics.Veldrid
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
+        public GraphicsSurfaceType SurfaceType => graphicsSurface.Type;
+
         private IGraphicsSurface graphicsSurface = null!;
 
         private DeviceBuffer? boundVertexBuffer;
