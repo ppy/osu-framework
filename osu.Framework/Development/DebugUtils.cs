@@ -17,7 +17,7 @@ namespace osu.Framework.Development
 
         private static readonly Lazy<bool> is_nunit_running = new Lazy<bool>(() =>
             {
-                var entry = Assembly.GetEntryAssembly();
+                var entry = EntryAssembly;
 
                 // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
                 // when running under nunit + Rider > 2020.2 EAP6, entry assembly becomes ReSharperTestRunner[32|64], which isn't what we want.
@@ -42,6 +42,7 @@ namespace osu.Framework.Development
             }
         );
 
+#pragma warning disable RS0030
         /// <summary>
         /// The entry assembly.
         /// </summary>
@@ -49,6 +50,7 @@ namespace osu.Framework.Development
         /// Usually obtained via <see cref="Assembly.GetEntryAssembly"/>, but can be set by a different mechanism on platforms that don't support that.
         /// </remarks>
         internal static Assembly? EntryAssembly { private get; set; } = Assembly.GetEntryAssembly();
+#pragma warning restore RS0030
 
         public static bool IsDebugBuild => is_debug_build.Value;
 
@@ -69,7 +71,7 @@ namespace osu.Framework.Development
         /// Gets the entry assembly.
         /// When running under NUnit, the assembly of the current test will be returned instead.
         /// </summary>
-        /// <returns>The entry assembly (usually obtained via <see cref="Assembly.GetEntryAssembly()"/>.</returns>
+        /// <returns>The entry assembly.</returns>
         public static Assembly GetEntryAssembly()
         {
             if (IsNUnitRunning)
