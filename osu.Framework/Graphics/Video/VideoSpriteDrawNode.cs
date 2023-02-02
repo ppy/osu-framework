@@ -25,11 +25,6 @@ namespace osu.Framework.Graphics.Video
         {
             var shader = TextureShader;
 
-            // shader.GetUniform<object>("m_VideoProperties").UpdateValue(new
-            // {
-            //     A = 5
-            // });
-
             shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
             shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
             shader.GetUniform<int>("m_SamplerV").UpdateValue(ref vLoc);
