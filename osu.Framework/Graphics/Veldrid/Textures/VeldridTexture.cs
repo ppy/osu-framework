@@ -171,6 +171,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         private Sampler samplerResource;
         private ResourceSet set;
 
+        public Texture GetNativeResource() => textureResource;
+
         public void FlushUploads()
         {
             while (tryGetNextUpload(out var upload))
