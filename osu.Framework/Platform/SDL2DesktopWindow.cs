@@ -305,6 +305,16 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Close() => ScheduleCommand(() => Exists = false);
 
+        public void Raise() => ScheduleCommand(() =>
+        {
+            var flags = (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle);
+
+            if (flags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
+                SDL.SDL_RestoreWindow(SDLWindowHandle);
+
+            SDL.SDL_RaiseWindow(SDLWindowHandle);
+        });
+
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
         /// </summary>

@@ -147,6 +147,11 @@ namespace osu.Framework.Platform
         void Close();
 
         /// <summary>
+        /// Attempts to raise the window, bringing it above other windows and requesting input focus.
+        /// </summary>
+        void Raise();
+
+        /// <summary>
         /// Start the window's run loop.
         /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
