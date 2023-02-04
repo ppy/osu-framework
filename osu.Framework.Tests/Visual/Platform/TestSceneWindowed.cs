@@ -26,11 +26,15 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (SDL2DesktopWindow)host.Window;
+            sdlWindow = host.Window as SDL2DesktopWindow;
         }
 
         [SetUp]
-        public void SetUp() => Schedule(() => sdlWindow.Resizable = true);
+        public void SetUp() => Schedule(() =>
+        {
+            if (sdlWindow != null)
+                sdlWindow.Resizable = true;
+        });
 
         [Test]
         public void TestToggleResizable()
