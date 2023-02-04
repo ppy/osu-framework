@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [TestCase(WindowState.Fullscreen)]
         public void TestChangeCurrentDisplay(WindowState startingState)
         {
-            Display? display = null;
+            Display display = null!;
 
             WindowMode startingMode = getWindowModeForState(startingState);
 
