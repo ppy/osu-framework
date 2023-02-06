@@ -3,9 +3,9 @@
 
 #nullable disable
 
-using osuTK;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders.Types;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -19,20 +19,22 @@ namespace osu.Framework.Graphics.Video
             video = source;
         }
 
-        private int yLoc, uLoc = 1, vLoc = 2;
+        private IUniformBuffer<YuvData> yuvDataBuffer;
 
         public override void Draw(IRenderer renderer)
         {
+            yuvDataBuffer ??= renderer.CreateUniformBuffer<YuvData>();
+            yuvDataBuffer.Data = yuvDataBuffer.Data with { YuvCoeff = video.ConversionMatrix };
+
             var shader = TextureShader;
-
-            shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
-            shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
-            shader.GetUniform<int>("m_SamplerV").UpdateValue(ref vLoc);
-
-            var yuvCoeff = video.ConversionMatrix;
-            shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
+            shader.AssignUniformBlock("m_yuvData", yuvDataBuffer);
 
             base.Draw(renderer);
+        }
+
+        private record struct YuvData
+        {
+            public UniformMatrix3 YuvCoeff;
         }
     }
 }

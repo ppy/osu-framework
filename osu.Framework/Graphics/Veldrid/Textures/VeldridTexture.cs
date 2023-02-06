@@ -19,7 +19,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
-    internal class VeldridTexture : INativeTexture, IVeldridResource
+    internal class VeldridTexture : INativeTexture
     {
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool isDisposing)
+        protected virtual void Dispose(bool isDisposing)
         {
             Renderer.ScheduleDisposal(texture =>
             {
@@ -169,7 +169,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         private Texture textureResource;
         private Sampler samplerResource;
-        private ResourceSet set;
 
         public Texture GetNativeResource() => textureResource;
 
@@ -207,7 +206,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return true;
         }
 
-        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= Renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, textureResource, samplerResource));
+        public virtual IEnumerable<VeldridTextureResource> GetResources() => new[] { new VeldridTextureResource(textureResource, samplerResource) };
 
         public bool Upload()
         {
@@ -281,7 +280,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 samplerResource?.Dispose();
                 samplerResource = null;
 
-                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)calculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm_SRgb, Usages);
+                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm_SRgb, Usages);
                 textureResource = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
@@ -348,6 +347,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?
         // previous implementation was allocating mip levels all the way to 1x1 size when an ITextureUpload.Level > 0, therefore it's not limited there.
-        private static int calculateMipmapLevels(int width, int height) => 1 + (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
+        protected static int CalculateMipmapLevels(int width, int height) => 1 + (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
     }
 }

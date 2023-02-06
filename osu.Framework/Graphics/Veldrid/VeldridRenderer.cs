@@ -8,7 +8,6 @@ using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
@@ -219,7 +218,9 @@ namespace osu.Framework.Graphics.Veldrid
             if (texture is not VeldridTexture veldridTexture)
                 return false;
 
-            AssignTextureUnit(unit, veldridTexture);
+            foreach (var res in veldridTexture.GetResources())
+                AssignTextureUnit(unit++, res);
+
             return true;
         }
 
@@ -232,27 +233,33 @@ namespace osu.Framework.Graphics.Veldrid
         /// <param name="width">The width of the update region.</param>
         /// <param name="height">The height of the update region.</param>
         /// <param name="level">The texture level.</param>
-        /// <param name="data">The textural data.</param>
-        /// <param name="bufferRowLength">An optional length per row on the given <paramref name="data"/>.</param>
+        /// <param name="data">The texture data.</param>
         /// <typeparam name="T">The pixel type.</typeparam>
-        public unsafe void UpdateTexture<T>(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data, int? bufferRowLength = null)
+        public void UpdateTexture<T>(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
             where T : unmanaged
         {
-            fixed (T* ptr = data)
-            {
-                if (bufferRowLength != null)
-                {
-                    var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
+            Device.UpdateTexture(texture, data, (uint)x, (uint)y, 0, (uint)width, (uint)height, 1, (uint)level, 0);
+        }
 
-                    for (uint yi = 0; yi < height; yi++)
-                        Device.UpdateTexture(staging, (IntPtr)(ptr + yi * bufferRowLength.Value), (uint)width, 0, yi, 0, (uint)width, 1, 1, 0, 0);
+        /// <summary>
+        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The texture data.</param>
+        /// <param name="rowLengthInBytes">The number of bytes per row of the image to read from <paramref name="data"/>.</param>
+        public void UpdateTexture(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes)
+        {
+            using var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
 
-                    Commands.CopyTexture(staging, texture);
-                    staging.Dispose();
-                }
-                else
-                    Device.UpdateTexture(texture, (IntPtr)ptr, (uint)(data.Length * sizeof(T)), (uint)x, (uint)y, 0, (uint)width, (uint)height, 1, (uint)level, 0);
-            }
+            for (uint yi = (uint)y; yi < height; yi++)
+                Device.UpdateTexture(staging, (IntPtr)(data.ToInt64() + yi * rowLengthInBytes), (uint)rowLengthInBytes, (uint)x, yi, 0, (uint)width, 1, 1, (uint)level, 0);
+
+            Commands.CopyTexture(staging, texture);
         }
 
         protected override void SetShaderImplementation(IShader shader)
@@ -366,7 +373,7 @@ namespace osu.Framework.Graphics.Veldrid
                 if (layout == null)
                     continue;
 
-                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(layout.Layout));
+                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(this, layout.Layout));
             }
 
             // Activate uniform buffer resources.
@@ -429,21 +436,22 @@ namespace osu.Framework.Graphics.Veldrid
                                                               Rgba32 initialisationColour = default)
             => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
-        protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new DummyNativeTexture(this);
+        protected override INativeTexture CreateNativeVideoTexture(int width, int height)
+            => new VeldridVideoTexture(this, width, height);
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
         }
 
         private readonly Dictionary<string, IVeldridUniformBuffer> assignedUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
-        private readonly Dictionary<int, VeldridTexture> assignedTextureUnits = new Dictionary<int, VeldridTexture>();
+        private readonly Dictionary<int, VeldridTextureResource> assignedTextureUnits = new Dictionary<int, VeldridTextureResource>();
 
         public void AssignUniformBuffer(string name, IVeldridUniformBuffer buffer)
         {
             assignedUniformBuffers[name] = buffer;
         }
 
-        public void AssignTextureUnit(int unit, VeldridTexture texture)
+        public void AssignTextureUnit(int unit, VeldridTextureResource texture)
         {
             assignedTextureUnits[unit] = texture;
         }
