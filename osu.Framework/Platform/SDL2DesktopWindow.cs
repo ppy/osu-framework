@@ -11,7 +11,6 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
-using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
 using SDL2;
 using SixLabors.ImageSharp;
