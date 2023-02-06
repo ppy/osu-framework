@@ -105,12 +105,12 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 ShaderDescription vertexShaderDescription = new ShaderDescription(
                     ShaderStages.Vertex,
                     Array.Empty<byte>(),
-                    "main");
+                    renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
                 ShaderDescription fragmentShaderDescription = new ShaderDescription(
                     ShaderStages.Fragment,
                     Array.Empty<byte>(),
-                    "main");
+                    renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
                 // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under Vulkan.
                 VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
