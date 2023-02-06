@@ -29,10 +29,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             get
             {
-                if (!Available || textureResource == null)
+                if (!Available || resource == null)
                     return "-";
 
-                return textureResource.Name;
+                return resource.Texture.Name;
             }
         }
 
@@ -119,16 +119,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 while (texture.tryGetNextUpload(out var upload))
                     upload.Dispose();
 
-                if (texture.textureResource == null)
-                    return;
-
                 texture.memoryLease?.Dispose();
 
-                texture.samplerResource?.Dispose();
-                texture.samplerResource = null;
-
-                texture.textureResource?.Dispose();
-                texture.textureResource = null;
+                texture.resource?.Dispose();
+                texture.resource = null;
 
                 texture.Available = false;
             }, this);
@@ -167,10 +161,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         #endregion
 
-        private Texture textureResource;
-        private Sampler samplerResource;
-
-        public Texture GetNativeResource() => textureResource;
+        private VeldridTextureResource resource;
 
         public void FlushUploads()
         {
@@ -197,7 +188,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             Upload();
 
-            if (textureResource == null)
+            if (resource == null)
                 return false;
 
             if (Renderer.BindTexture(this, wrapModeS: wrapModeS, wrapModeT: wrapModeT))
@@ -206,7 +197,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return true;
         }
 
-        public virtual IEnumerable<VeldridTextureResource> GetResources() => new[] { new VeldridTextureResource(textureResource, samplerResource) };
+        public virtual IEnumerable<VeldridTextureResource> GetResources()
+        {
+            yield return resource;
+        }
 
         public bool Upload()
         {
@@ -228,7 +222,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
 
             if (didUpload && !(manualMipmaps || maximumUploadedLod > 0))
-                Renderer.Commands.GenerateMipmaps(textureResource);
+                Renderer.Commands.GenerateMipmaps(resource.Texture);
 
             return didUpload;
         }
@@ -272,20 +266,19 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         protected virtual void DoUpload(ITextureUpload upload)
         {
-            if (textureResource == null || textureResource.Width != Width || textureResource.Height != Height)
-            {
-                textureResource?.Dispose();
-                textureResource = null;
+            Texture texture = resource?.Texture;
+            Sampler sampler = resource?.Sampler;
 
-                samplerResource?.Dispose();
-                samplerResource = null;
+            if (texture == null || texture.Width != Width || texture.Height != Height)
+            {
+                texture?.Dispose();
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm_SRgb, Usages);
-                textureResource = Renderer.Factory.CreateTexture(ref textureDescription);
+                texture = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
                 // similar to how OpenGL allows calling glTexImage2D with null data pointer.
-                initialiseLevel(0, Width, Height);
+                initialiseLevel(texture, 0, Width, Height);
 
                 maximumUploadedLod = 0;
             }
@@ -298,17 +291,19 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 if (upload.Level > maximumUploadedLod)
                 {
                     for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
-                        initialiseLevel(i, Width >> i, Height >> i);
+                        initialiseLevel(texture, i, Width >> i, Height >> i);
 
                     maximumUploadedLod = upload.Level;
                 }
 
-                Renderer.UpdateTexture(textureResource, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
+                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
                     upload.Level, upload.Data);
             }
 
-            if (samplerResource == null || maximumUploadedLod > lastMaximumUploadedLod)
+            if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
+                sampler?.Dispose();
+
                 bool useUploadMipmaps = manualMipmaps || maximumUploadedLod > 0;
 
                 var samplerDescription = new SamplerDescription
@@ -322,18 +317,19 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     MaximumAnisotropy = 0,
                 };
 
-                samplerResource?.Dispose();
-                samplerResource = Renderer.Factory.CreateSampler(ref samplerDescription);
+                sampler = Renderer.Factory.CreateSampler(ref samplerDescription);
             }
+
+            resource = new VeldridTextureResource(texture, sampler);
         }
 
-        private unsafe void initialiseLevel(int level, int width, int height)
+        private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
         {
             using (var image = createBackingImage(width, height))
             using (var pixels = image.CreateReadOnlyPixelSpan())
             {
                 updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
-                Renderer.UpdateTexture(textureResource, 0, 0, width, height, level, pixels.Span);
+                Renderer.UpdateTexture(texture, 0, 0, width, height, level, pixels.Span);
             }
         }
 

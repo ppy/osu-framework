@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
@@ -56,14 +57,19 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private void initialiseFramebuffer()
         {
-            Debug.Assert(veldridTexture.GetNativeResource() != null);
+            VeldridTextureResource resource = veldridTexture.GetResources().Single();
 
             // todo: we probably want the arguments separated to "PixelFormat[] colorFormats, PixelFormat depthFormat".
             if (formats.Length > 1)
                 throw new ArgumentException("Veldrid framebuffer cannot contain more than one depth target.");
 
-            FramebufferDescription description = new FramebufferDescription { ColorTargets = new FramebufferAttachmentDescription[1] };
-            description.ColorTargets[0].Target = veldridTexture.GetNativeResource();
+            FramebufferDescription description = new FramebufferDescription
+            {
+                ColorTargets = new[]
+                {
+                    new FramebufferAttachmentDescription(resource.Texture, 0)
+                }
+            };
 
             if (formats.Length > 0)
             {

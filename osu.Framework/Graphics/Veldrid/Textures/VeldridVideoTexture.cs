@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -14,8 +15,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 {
     internal unsafe class VeldridVideoTexture : VeldridTexture
     {
-        public global::Veldrid.Texture[]? TextureResources { get; private set; }
-        public Sampler[]? SamplerResources { get; private set; }
+        private VeldridTextureResource[]? resources;
 
         public VeldridVideoTexture(VeldridRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
@@ -34,41 +34,41 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 return;
 
             // Do we need to generate a new texture?
-            if (TextureResources == null)
+            if (resources == null)
             {
                 Debug.Assert(memoryLease == null);
                 memoryLease = NativeMemoryTracker.AddMemory(this, Width * Height * 3 / 2);
+                resources = new VeldridTextureResource[3];
 
-                TextureResources = new global::Veldrid.Texture[3];
-                SamplerResources = new Sampler[3];
-
-                for (uint i = 0; i < TextureResources.Length; i++)
+                for (uint i = 0; i < resources.Length; i++)
                 {
                     int width = videoUpload.GetPlaneWidth(i);
                     int height = videoUpload.GetPlaneHeight(i);
                     int countPixels = width * height;
 
-                    var textureDescription = TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8_UNorm, Usages);
-                    TextureResources[i] = Renderer.Factory.CreateTexture(ref textureDescription);
-                    SamplerResources[i] = Renderer.Factory.CreateSampler(new SamplerDescription
-                    {
-                        AddressModeU = SamplerAddressMode.Clamp,
-                        AddressModeV = SamplerAddressMode.Clamp,
-                        AddressModeW = SamplerAddressMode.Clamp,
-                        Filter = SamplerFilter.MinLinear_MagLinear_MipLinear,
-                        MinimumLod = 0,
-                        MaximumLod = IRenderer.MAX_MIPMAP_LEVELS,
-                        MaximumAnisotropy = 0,
-                    });
+                    resources[i] = new VeldridTextureResource
+                    (
+                        Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8_UNorm, Usages)),
+                        Renderer.Factory.CreateSampler(new SamplerDescription
+                        {
+                            AddressModeU = SamplerAddressMode.Clamp,
+                            AddressModeV = SamplerAddressMode.Clamp,
+                            AddressModeW = SamplerAddressMode.Clamp,
+                            Filter = SamplerFilter.MinLinear_MagLinear_MipLinear,
+                            MinimumLod = 0,
+                            MaximumLod = IRenderer.MAX_MIPMAP_LEVELS,
+                            MaximumAnisotropy = 0,
+                        })
+                    );
 
                     textureSize += countPixels;
                 }
             }
 
-            for (uint i = 0; i < TextureResources.Length; i++)
+            for (uint i = 0; i < resources.Length; i++)
             {
                 Renderer.UpdateTexture(
-                    TextureResources[i],
+                    resources[i].Texture,
                     0,
                     0,
                     videoUpload.GetPlaneWidth(i),
@@ -79,12 +79,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        public override IEnumerable<VeldridTextureResource> GetResources() => new[]
-        {
-            new VeldridTextureResource(TextureResources[0], SamplerResources[0]),
-            new VeldridTextureResource(TextureResources[1], SamplerResources[1]),
-            new VeldridTextureResource(TextureResources[2], SamplerResources[2]),
-        };
+        public override IEnumerable<VeldridTextureResource> GetResources() => resources.AsNonNull();
 
         #region Disposal
 
@@ -92,20 +87,17 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             base.Dispose(isDisposing);
 
-            memoryLease?.Dispose();
-
-            Renderer.ScheduleDisposal(v =>
+            Renderer.ScheduleDisposal(texture =>
             {
-                // int[]? ids = v.TextureIds;
-                //
-                // if (ids == null)
-                //     return;
-                //
-                // for (int i = 0; i < ids.Length; i++)
-                // {
-                //     if (ids[i] >= 0)
-                //         GL.DeleteTextures(1, new[] { ids[i] });
-                // }
+                texture.memoryLease?.Dispose();
+
+                if (texture.resources != null)
+                {
+                    foreach (var res in texture.resources)
+                        res.Dispose();
+                }
+
+                texture.resources = null;
             }, this);
         }
 
