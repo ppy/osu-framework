@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -13,6 +11,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -27,12 +26,12 @@ namespace osu.Framework.Graphics.Lines
 
             private readonly List<Line> segments = new List<Line>();
 
-            private Texture texture;
+            private Texture? texture;
             private Vector2 drawSize;
             private float radius;
-            private IShader pathShader;
+            private IShader? pathShader;
 
-            private IVertexBatch<TexturedVertex3D> triangleBatch;
+            private IVertexBatch<TexturedVertex3D>? triangleBatch;
 
             public PathDrawNode(Path source)
                 : base(source)
@@ -62,6 +61,8 @@ namespace osu.Framework.Graphics.Lines
 
             private void addSegmentQuads(Line segment, Line segmentLeft, Line segmentRight, RectangleF texRect)
             {
+                Debug.Assert(triangleBatch != null);
+
                 // Each segment of the slider is actually rendered as 2 quads, being split in half along the approximating line.
                 // On this line the depth is 1 instead of 0, which is done properly handle self-overlap using the depth buffer.
                 Vector3 firstMiddlePoint = new Vector3(segment.StartPoint.X, segment.StartPoint.Y, 1);
@@ -151,8 +152,10 @@ namespace osu.Framework.Graphics.Lines
                 });
             }
 
-            private void addSegmentTriangles(Line segmentLeft, Line segmentRight, Line prevSegmentLeft, Line prevSegmentRight, RectangleF texRect)
+            private void addSegmentCaps(Line segmentLeft, Line segmentRight, Line prevSegmentLeft, Line prevSegmentRight, RectangleF texRect)
             {
+                Debug.Assert(triangleBatch != null);
+
                 float thetaDiff = segmentLeft.Theta - prevSegmentLeft.Theta;
                 float thetaOffset = -Math.Sign(thetaDiff) * MathF.PI / 2;
 
@@ -213,6 +216,8 @@ namespace osu.Framework.Graphics.Lines
 
             private void updateVertexBuffer()
             {
+                Debug.Assert(texture != null);
+
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
                 // Segments with extremely small (i.e. 0) lengths can mess up angle calculations
@@ -237,8 +242,8 @@ namespace osu.Framework.Graphics.Lines
 
                     if (prevSegmentLeft is Line psLeft && prevSegmentRight is Line psRight)
                     {
-                        // Connection/filler triangles between segment quads
-                        addSegmentTriangles(segmentLeft, segmentRight, psLeft, psRight, texRect);
+                        // Connection/filler caps between segment quads
+                        addSegmentCaps(segmentLeft, segmentRight, psLeft, psRight, texRect);
                     }
 
                     if (i == firstIndex)
@@ -247,7 +252,7 @@ namespace osu.Framework.Graphics.Lines
                         Line flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
                         Line flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
 
-                        addSegmentTriangles(segmentLeft, segmentRight, flippedLeft, flippedRight, texRect);
+                        addSegmentCaps(segmentLeft, segmentRight, flippedLeft, flippedRight, texRect);
                     }
 
                     if (i == lastIndex)
@@ -256,7 +261,7 @@ namespace osu.Framework.Graphics.Lines
                         Line flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
                         Line flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
 
-                        addSegmentTriangles(flippedLeft, flippedRight, segmentLeft, segmentRight, texRect);
+                        addSegmentCaps(flippedLeft, flippedRight, segmentLeft, segmentRight, texRect);
                     }
 
                     prevSegmentLeft = segmentLeft;
@@ -268,7 +273,7 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.Draw(renderer);
 
-                if (texture?.Available != true || segments.Count == 0)
+                if (texture?.Available != true || segments.Count == 0 || pathShader == null)
                     return;
 
                 // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
