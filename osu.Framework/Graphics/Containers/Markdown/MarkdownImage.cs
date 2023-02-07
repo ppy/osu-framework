@@ -3,6 +3,8 @@
 
 #nullable disable
 
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -64,9 +66,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
 
             [BackgroundDependencyLoader]
-            private void load(TextureStore textures)
+            private async Task load(TextureStore textures, CancellationToken cancellationToken)
             {
-                image.Texture = GetImageTexture(textures, url);
+                image.Texture = await GetImageTexture(textures, url, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -79,12 +81,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
             /// </summary>
             /// <param name="textures">The texture store.</param>
             /// <param name="url">The image URL.</param>
+            /// <param name="cancellationToken">A cancellation token.</param>
             /// <returns>The image's <see cref="Texture"/>.</returns>
-            protected virtual Texture GetImageTexture(TextureStore textures, string url)
+            protected async Task<Texture> GetImageTexture(TextureStore textures, string url, CancellationToken cancellationToken = default)
             {
                 Texture texture = null;
                 if (!string.IsNullOrEmpty(url))
-                    texture = textures.Get(url);
+                    texture = await textures.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
                 // Use a default texture
                 texture ??= GetNotFoundTexture(textures);
