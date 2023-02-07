@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly ResourceStore<TextureUpload> uploadStore = new ResourceStore<TextureUpload>();
         private readonly List<ITextureStore> nestedStores = new List<ITextureStore>();
 
-        private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
+        private readonly Dictionary<string, Task> retrievalTasks = new Dictionary<string, Task>();
 
         private readonly IRenderer renderer;
         private readonly TextureFilteringMode filteringMode;
@@ -271,48 +271,48 @@ namespace osu.Framework.Graphics.Textures
         {
             string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
-            lock (retrievalCompletionSources)
+            // Check if the texture exists in the cache.
+            if (TryGetCached(key, out Texture cached))
+                return Task.FromResult(cached);
+
+            this.LogIfNonBackgroundThread(key);
+
+            Task task;
+
+            lock (retrievalTasks)
             {
-                // Check if the texture exists in the cache.
-                if (TryGetCached(key, out Texture cached))
-                {
-                    return Task.FromResult(cached);
-                }
-
                 // check if an existing lookup was already started for this key.
-                if (retrievalCompletionSources.TryGetValue(key, out var task))
-                    return task.WaitAsync(cancellationToken);
-
-                // if not, start the lookup.
-                var tcs = new TaskCompletionSource();
-                retrievalCompletionSources[key] = tcs.Task;
-
-                this.LogIfNonBackgroundThread(key);
-
-                try
+                if (!retrievalTasks.TryGetValue(key, out task))
                 {
-                    var tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
-
-                    if (tex != null)
-                        tex.LookupKey = key;
-
-                    return Task.FromResult(CacheAndReturnTexture(key, tex));
-                }
-                catch (TextureTooLargeForGLException)
-                {
-                    Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({renderer.MaxTextureSize}px).", level: LogLevel.Error);
-                    return Task.FromResult((Texture)null);
-                }
-                finally
-                {
-                    // notify other lookups waiting on the same name lookup.
-                    lock (retrievalCompletionSources)
+                    // if not, start the lookup.
+                    task = retrievalTasks[key] = Task.Factory.StartNew(() =>
                     {
-                        tcs.SetResult();
-                        retrievalCompletionSources.Remove(key);
-                    }
+                        try
+                        {
+                            var tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
+
+                            if (tex != null)
+                                tex.LookupKey = key;
+
+                            CacheAndReturnTexture(key, tex);
+                        }
+                        catch (TextureTooLargeForGLException)
+                        {
+                            Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({renderer.MaxTextureSize}px).", level: LogLevel.Error);
+                            CacheAndReturnTexture(key, null);
+                        }
+                        finally
+                        {
+                            lock (retrievalTasks)
+                                retrievalTasks.Remove(key);
+                        }
+                    }, TaskCreationOptions.LongRunning);
+                    // Texture lookups could result in slow running web requests.
+                    // So let's avoid using the TPL thread pool for now.
                 }
             }
+
+            return task.WaitAsync(cancellationToken);
         }
 
         private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
