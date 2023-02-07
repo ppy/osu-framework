@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Veldrid
                     return BlendFunction.Maximum;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(equation));
+                    return default;
             }
         }
 
