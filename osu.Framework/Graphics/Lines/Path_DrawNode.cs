@@ -19,8 +19,8 @@ namespace osu.Framework.Graphics.Lines
     {
         private class PathDrawNode : DrawNode
         {
-            public const int MAX_RES = 24;
-            public const float MIN_SEGMENT_LENGTH = 1e-5f;
+            private const int max_res = 24;
+            private const float min_segment_length = 1e-5f;
 
             protected new Path Source => (Path)base.Source;
 
@@ -51,6 +51,36 @@ namespace osu.Framework.Graphics.Lines
                 pathShader = Source.pathShader;
             }
 
+            public override void Draw(IRenderer renderer)
+            {
+                base.Draw(renderer);
+
+                if (texture?.Available != true || segments.Count == 0 || pathShader == null)
+                    return;
+
+                // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
+                // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+                // grouping of vertices into primitives.
+                triangleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(max_res * 200 * 3, 10, PrimitiveTopology.Triangles);
+
+                renderer.PushLocalMatrix(DrawInfo.Matrix);
+                renderer.PushDepthInfo(DepthInfo.Default);
+
+                // Blending is removed to allow for correct blending between the wedges of the path.
+                renderer.SetBlend(BlendingParameters.None);
+
+                pathShader.Bind();
+
+                texture.Bind();
+
+                updateVertexBuffer();
+
+                pathShader.Unbind();
+
+                renderer.PopDepthInfo();
+                renderer.PopLocalMatrix();
+            }
+
             private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Cos(angle), MathF.Sin(angle));
 
             private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
@@ -63,8 +93,8 @@ namespace osu.Framework.Graphics.Lines
             {
                 Debug.Assert(triangleBatch != null);
 
-                // Each segment of the slider is actually rendered as 2 quads, being split in half along the approximating line.
-                // On this line the depth is 1 instead of 0, which is done properly handle self-overlap using the depth buffer.
+                // Each segment of the path is actually rendered as 2 quads, being split in half along the approximating line.
+                // On this line the depth is 1 instead of 0, which is done in order to properly handle self-overlap using the depth buffer.
                 Vector3 firstMiddlePoint = new Vector3(segment.StartPoint.X, segment.StartPoint.Y, 1);
                 Vector3 secondMiddlePoint = new Vector3(segment.EndPoint.X, segment.EndPoint.Y, 1);
                 Color4 firstMiddleColour = colourAt(segment.StartPoint);
@@ -169,7 +199,7 @@ namespace osu.Framework.Graphics.Lines
                     return;
 
                 float theta0 = prevSegmentLeft.Theta + thetaOffset;
-                float thetaStep = Math.Sign(thetaDiff) * MathF.PI / MAX_RES;
+                float thetaStep = Math.Sign(thetaDiff) * MathF.PI / max_res;
                 int stepCount = (int)(thetaDiff / thetaStep) + 1;
 
                 Vector2 origin = (segmentLeft.StartPoint + segmentRight.StartPoint) / 2;
@@ -217,12 +247,38 @@ namespace osu.Framework.Graphics.Lines
             private void updateVertexBuffer()
             {
                 Debug.Assert(texture != null);
+                Debug.Assert(segments.Count > 0);
 
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
                 // Segments with extremely small (i.e. 0) lengths can mess up angle calculations
-                int firstIndex = segments.FindIndex(l => l.Rho >= MIN_SEGMENT_LENGTH);
-                int lastIndex = segments.FindLastIndex(l => l.Rho >= MIN_SEGMENT_LENGTH);
+                int firstIndex = segments.FindIndex(l => l.Rho >= min_segment_length);
+
+                // If none of the segments meet the minimum length threshold, then simply draw a circle
+                if (firstIndex < 0)
+                {
+                    Vector2 center = segments[0].StartPoint;
+                    Vector2 left = center + radius * Vector2.UnitX;
+                    Vector2 right = center - radius * Vector2.UnitX;
+
+                    Line segmentLeft = new Line(left + Vector2.UnitY, left);
+                    Line segmentRight = new Line(right + Vector2.UnitY, right);
+                    Line flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
+                    Line flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
+
+                    addSegmentCaps(flippedLeft, flippedRight, segmentLeft, segmentRight, texRect);
+
+                    segmentLeft = new Line(left, left - Vector2.UnitY);
+                    segmentRight = new Line(right, right - Vector2.UnitY);
+                    flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
+                    flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
+
+                    addSegmentCaps(segmentLeft, segmentRight, flippedLeft, flippedRight, texRect);
+
+                    return;
+                }
+
+                int lastIndex = segments.FindLastIndex(l => l.Rho >= min_segment_length);
 
                 Line? prevSegmentLeft = null;
                 Line? prevSegmentRight = null;
@@ -231,7 +287,7 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Line segment = segments[i];
 
-                    if (segment.Rho < MIN_SEGMENT_LENGTH)
+                    if (segment.Rho < min_segment_length)
                         continue;
 
                     Vector2 ortho = segment.OrthogonalDirection;
@@ -267,36 +323,6 @@ namespace osu.Framework.Graphics.Lines
                     prevSegmentLeft = segmentLeft;
                     prevSegmentRight = segmentRight;
                 }
-            }
-
-            public override void Draw(IRenderer renderer)
-            {
-                base.Draw(renderer);
-
-                if (texture?.Available != true || segments.Count == 0 || pathShader == null)
-                    return;
-
-                // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
-                // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-                // grouping of vertices into primitives.
-                triangleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(MAX_RES * 200 * 3, 10, PrimitiveTopology.Triangles);
-
-                renderer.PushLocalMatrix(DrawInfo.Matrix);
-                renderer.PushDepthInfo(DepthInfo.Default);
-
-                // Blending is removed to allow for correct blending between the wedges of the path.
-                renderer.SetBlend(BlendingParameters.None);
-
-                pathShader.Bind();
-
-                texture.Bind();
-
-                updateVertexBuffer();
-
-                pathShader.Unbind();
-
-                renderer.PopDepthInfo();
-                renderer.PopLocalMatrix();
             }
 
             protected override void Dispose(bool isDisposing)
