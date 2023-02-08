@@ -71,9 +71,9 @@ namespace osu.Framework.Graphics.Rendering
         string ShaderFilenameSuffix { get; }
 
         /// <summary>
-        /// Whether the origin point of texture coordinates is at the bottom-left rather than top-left. This is usually true for OpenGL backends.
+        /// Whether the texture coordinates begin in the top-left of the texture. If <c>false</c>, (0, 0) corresponds to the bottom-left texel of the texture.
         /// </summary>
-        bool TextureOriginAtBottomLeft { get; }
+        bool IsUvOriginTopLeft { get; }
 
         /// <summary>
         /// The current masking parameters.

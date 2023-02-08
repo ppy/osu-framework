@@ -232,7 +232,7 @@ namespace osu.Framework.Graphics.Rendering
         {
             RectangleF textureRect = new RectangleF(0, 0, frameBuffer.Texture.Width, frameBuffer.Texture.Height);
 
-            if (renderer.TextureOriginAtBottomLeft)
+            if (!renderer.IsUvOriginTopLeft)
             {
                 textureRect.Y = frameBuffer.Texture.Height;
                 textureRect.Height = -frameBuffer.Texture.Height;
