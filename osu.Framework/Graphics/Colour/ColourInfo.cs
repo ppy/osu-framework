@@ -132,6 +132,21 @@ namespace osu.Framework.Graphics.Colour
             BottomRight = newBottomRight;
         }
 
+        public readonly ColourInfo GetPartialQuad(Quad quad)
+        {
+            if (HasSingleColour)
+                return this;
+
+            return new ColourInfo
+            {
+                TopLeft = Interpolate(quad.TopLeft),
+                TopRight = Interpolate(quad.TopRight),
+                BottomLeft = Interpolate(quad.BottomLeft),
+                BottomRight = Interpolate(quad.BottomRight),
+                HasSingleColour = false
+            };
+        }
+
         internal static ColourInfo Multiply(ColourInfo first, ColourInfo second) => new ColourInfo
         {
             TopLeft = first.TopLeft * second.TopLeft,
