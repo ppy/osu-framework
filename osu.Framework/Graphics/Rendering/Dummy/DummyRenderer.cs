@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
 
         public string ShaderFilenameSuffix => string.Empty;
-        public bool IsUvOriginTopLeft => false;
+        public bool IsUvOriginTopLeft => true;
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;

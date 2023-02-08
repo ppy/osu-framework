@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public bool IsEmbedded { get; private set; }
 
-        public override bool IsUvOriginTopLeft => true;
+        public override bool IsUvOriginTopLeft => false;
 
         protected virtual int BackbufferFramebuffer => 0;
 
