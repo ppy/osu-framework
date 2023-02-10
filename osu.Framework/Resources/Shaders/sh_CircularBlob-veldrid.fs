@@ -7,7 +7,7 @@
 
 layout(location = 2) in highp vec2 v_TexCoord;
 
-layout(std140, set = 1, binding = 0) uniform m_CircularBlobParameters
+UNIFORM_BLOCK(0, m_CircularBlobParameters)
 {
     mediump float innerRadius;
     highp float texelSize;
@@ -16,8 +16,7 @@ layout(std140, set = 1, binding = 0) uniform m_CircularBlobParameters
     highp vec2 noisePosition;
 };
 
-layout(set = 2, binding = 0) uniform lowp texture2D m_Texture;
-layout(set = 2, binding = 1) uniform lowp sampler m_Sampler;
+UNIFORM_TEXTURE(1, m_Texture, m_Sampler);
 
 layout(location = 0) out vec4 o_Colour;
 

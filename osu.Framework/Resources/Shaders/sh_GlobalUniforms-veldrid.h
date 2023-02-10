@@ -1,6 +1,23 @@
 // This file is automatically included in every shader.
 
-layout (std140, set = 0, binding = 0) uniform g_GlobalUniforms
+/**
+* \brief Retrieves the set number for a uniform layout, offset by any internal framework layouts.
+ * \param a The desired set number.
+ */
+#define BASE_SET_OFFSET(a) (a + 1)
+
+/**
+ * \brief Creates a uniform layout definition bound to binding 0 in the given set.
+ *  This calls BASE_SET_OFFSET(set_num) internally.
+ * \param set_num The desired set number.
+ */
+#define UNIFORM_BLOCK(set_num, uniform_name) layout(std140, set = BASE_SET_OFFSET(set_num), binding = 0) uniform uniform_name
+
+#define UNIFORM_TEXTURE(set_num, texture_name, sampler_name) \
+ layout(set = BASE_SET_OFFSET(set_num), binding = 0) uniform lowp texture2D texture_name; \
+ layout(set = BASE_SET_OFFSET(set_num), binding = 1) uniform lowp sampler sampler_name
+
+UNIFORM_BLOCK(-1, g_GlobalUniforms)
 {
     bool g_GammaCorrection;
 

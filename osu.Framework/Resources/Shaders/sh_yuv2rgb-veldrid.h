@@ -1,15 +1,10 @@
 #include "sh_TextureWrapping.h"
 
-layout(set = 1, binding = 0) uniform lowp texture2D m_TextureY;
-layout(set = 1, binding = 1) uniform lowp sampler m_SamplerY;
+UNIFORM_TEXTURE(0, m_TextureY, m_SamplerY);
+UNIFORM_TEXTURE(1, m_TextureU, m_SamplerU);
+UNIFORM_TEXTURE(2, m_TextureV, m_SamplerV);
 
-layout(set = 2, binding = 0) uniform lowp texture2D m_TextureU;
-layout(set = 2, binding = 1) uniform lowp sampler m_SamplerU;
-
-layout(set = 3, binding = 0) uniform lowp texture2D m_TextureV;
-layout(set = 3, binding = 1) uniform lowp sampler m_SamplerV;
-
-layout(std140, set = 4, binding = 0) uniform m_yuvData
+UNIFORM_BLOCK(3, m_yuvData)
 {
     mediump mat3 yuvCoeff;
 };

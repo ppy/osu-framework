@@ -5,7 +5,7 @@
 
 layout(location = 2) in highp vec2 v_TexCoord;
 
-layout(std140, set = 1, binding = 0) uniform m_HueData
+UNIFORM_BLOCK(0, m_HueData)
 {
     mediump float hue;
 };
