@@ -95,6 +95,21 @@ namespace osu.Framework.Graphics.Colour
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
+        public readonly ColourInfo Interpolate(Quad quad)
+        {
+            if (HasSingleColour)
+                return this;
+
+            return new ColourInfo
+            {
+                TopLeft = Interpolate(quad.TopLeft),
+                TopRight = Interpolate(quad.TopRight),
+                BottomLeft = Interpolate(quad.BottomLeft),
+                BottomRight = Interpolate(quad.BottomRight),
+                HasSingleColour = false
+            };
+        }
+
         public void ApplyChild(ColourInfo childColour)
         {
             if (!HasSingleColour)
@@ -130,21 +145,6 @@ namespace osu.Framework.Graphics.Colour
             TopRight = newTopRight;
             BottomLeft = newBottomLeft;
             BottomRight = newBottomRight;
-        }
-
-        public readonly ColourInfo GetPartialQuad(Quad quad)
-        {
-            if (HasSingleColour)
-                return this;
-
-            return new ColourInfo
-            {
-                TopLeft = Interpolate(quad.TopLeft),
-                TopRight = Interpolate(quad.TopRight),
-                BottomLeft = Interpolate(quad.BottomLeft),
-                BottomRight = Interpolate(quad.BottomRight),
-                HasSingleColour = false
-            };
         }
 
         internal static ColourInfo Multiply(ColourInfo first, ColourInfo second) => new ColourInfo

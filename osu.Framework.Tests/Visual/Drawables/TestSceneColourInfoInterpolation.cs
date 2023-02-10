@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public partial class TestSceneColourPartialQuad : FrameworkTestScene
+    public partial class TestSceneColourInfoInterpolation : FrameworkTestScene
     {
         private float left;
         private float right;
@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private readonly Box resultBox;
         private readonly Container preview;
 
-        public TestSceneColourPartialQuad()
+        public TestSceneColourInfoInterpolation()
         {
             Child = new GridContainer
             {
@@ -163,7 +163,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             preview.Position = topLeft;
             preview.Size = size;
 
-            ColourInfo result = sourceBox.Colour.GetPartialQuad(new Quad(left, top, size.X, size.Y));
+            ColourInfo result = sourceBox.Colour.Interpolate(new Quad(left, top, size.X, size.Y));
             resultBox.Colour = result;
         }
 
