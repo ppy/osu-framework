@@ -95,6 +95,14 @@ namespace osu.Framework.Graphics.Colour
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
+        /// <summary>
+        /// Interpolates this <see cref="ColourInfo"/> across a quad.
+        /// </summary>
+        /// <remarks>
+        /// This method is especially useful when working with multi-colour <see cref="ColourInfo"/>s.
+        /// When such a colour is interpolated across a quad that is a subset of the unit quad (0, 0, 1, 1),
+        /// the resulting colour can be thought of as the the original colour but "cropped" to the bounds of the subquad.
+        /// </remarks>
         public readonly ColourInfo Interpolate(Quad quad)
         {
             if (HasSingleColour)
