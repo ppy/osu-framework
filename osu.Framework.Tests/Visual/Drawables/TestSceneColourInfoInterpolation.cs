@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             base.LoadComplete();
 
-            AddStep("Vertial gradient", () =>
+            AddStep("Vertical gradient", () =>
             {
                 sourceBox.Colour = vertical;
                 updateState();
