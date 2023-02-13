@@ -15,7 +15,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShaderPart : IShaderPart
     {
-        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
+        public static readonly Regex SHADER_INPUT_REGEX = new Regex(@"^\s*(?>IN_VAR\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)");
+        private static readonly Regex include_regex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
@@ -29,14 +30,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
 
         private int partID = -1;
-
         private int lastShaderInputIndex;
 
         private readonly List<string> shaderCodes = new List<string>();
-
-        private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
-
         private readonly ShaderManager manager;
 
         internal GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
@@ -79,7 +75,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         continue;
                     }
 
-                    Match includeMatch = includeRegex.Match(line);
+                    Match includeMatch = include_regex.Match(line);
 
                     if (includeMatch.Success)
                     {
@@ -97,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
                     {
-                        Match inputMatch = shaderInputRegex.Match(line);
+                        Match inputMatch = SHADER_INPUT_REGEX.Match(line);
 
                         if (inputMatch.Success)
                         {
@@ -112,11 +108,18 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false)
-                           + "\n"
-                           + loadFile(manager.LoadRaw("sh_GlobalUniforms.h"), false)
-                           + "\n"
-                           + code;
+                    string internalIncludes = loadFile(manager.LoadRaw("sh_Compatibility_Internal-GL.h"), false) + "\n";
+
+                    internalIncludes += loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n";
+
+                    if (isVertexShader)
+                        internalIncludes += loadFile(manager.LoadRaw("sh_VertexShader_Internal.h"), false) + "\n";
+                    else
+                        internalIncludes += loadFile(manager.LoadRaw("sh_FragmentShader_Internal.h"), false) + "\n";
+
+                    internalIncludes += loadFile(manager.LoadRaw("sh_GlobalUniforms.h"), false) + "\n";
+
+                    code = internalIncludes + code;
 
                     if (isVertexShader)
                     {

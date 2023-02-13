@@ -1,16 +1,16 @@
 #include "sh_Utils.h"
 
-in highp vec2 m_Position;
-in lowp vec4 m_Colour;
-in highp vec2 m_TexCoord;
-in highp vec4 m_TexRect;
-in mediump vec2 m_BlendRange;
+IN_VAR(0) highp vec2 m_Position;
+IN_VAR(1) lowp vec4 m_Colour;
+IN_VAR(2) highp vec2 m_TexCoord;
+IN_VAR(3) highp vec4 m_TexRect;
+IN_VAR(4) mediump vec2 m_BlendRange;
 
-out highp vec2 v_MaskingPosition;
-out lowp vec4 v_Colour;
-out highp vec2 v_TexCoord;
-out highp vec4 v_TexRect;
-out mediump vec2 v_BlendRange;
+OUT_VAR(0) highp vec2 v_MaskingPosition;
+OUT_VAR(1) lowp vec4 v_Colour;
+OUT_VAR(2) highp vec2 v_TexCoord;
+OUT_VAR(3) highp vec4 v_TexRect;
+OUT_VAR(4) mediump vec2 v_BlendRange;
 
 void main(void)
 {

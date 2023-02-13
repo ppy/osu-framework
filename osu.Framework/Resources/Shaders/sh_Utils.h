@@ -7,7 +7,7 @@ lowp float toLinear(lowp float color)
 
 lowp vec4 toLinear(lowp vec4 colour)
 {
-#ifdef GL_ES
+#if defined(GL_ES) || defined(VELDRID) 
     return g_GammaCorrection ? vec4(toLinear(colour.r), toLinear(colour.g), toLinear(colour.b), colour.a) : colour;
 #else
     return vec4(toLinear(colour.r), toLinear(colour.g), toLinear(colour.b), colour.a);
@@ -21,7 +21,7 @@ lowp float toSRGB(lowp float color)
 
 lowp vec4 toSRGB(lowp vec4 colour)
 {
-#ifdef GL_ES
+#if defined(GL_ES) || defined(VELDRID) 
     return g_GammaCorrection ? vec4(toSRGB(colour.r), toSRGB(colour.g), toSRGB(colour.b), colour.a) : colour;
 #else
     return vec4(toSRGB(colour.r), toSRGB(colour.g), toSRGB(colour.b), colour.a);

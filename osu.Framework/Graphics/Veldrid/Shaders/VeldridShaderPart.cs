@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public ShaderPartType Type { get; }
 
         private static readonly Regex include_regex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private static readonly Regex shader_attribute_location_regex = new Regex(@"(layout\(location\s=\s)(-?\d+)(\)\s(?>attribute|in).*)", RegexOptions.Multiline);
+        private static readonly Regex shader_attribute_location_regex = new Regex(@"(IN_VAR\()(\s*-?\d+\s*)(\).*$)", RegexOptions.Multiline);
 
         public VeldridShaderPart(ShaderManager shaders, byte[]? rawData, ShaderPartType type)
         {
@@ -66,7 +66,9 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 if (!mainFile)
                     return data;
 
-                data = loadShader(shaders.LoadRaw("sh_Precision_Internal.h"), type, shaders, false)
+                data = loadShader(shaders.LoadRaw("sh_Compatibility_Internal-Veldrid.h"), type, shaders, false)
+                       + "\n"
+                       + loadShader(shaders.LoadRaw("sh_Precision_Internal.h"), type, shaders, false)
                        + "\n"
                        + loadShader(shaders.LoadRaw("sh_GlobalUniforms.h"), type, shaders, false)
                        + data;
