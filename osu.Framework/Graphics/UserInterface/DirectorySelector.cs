@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,9 +20,66 @@ namespace osu.Framework.Graphics.UserInterface
     /// </summary>
     public abstract partial class DirectorySelector : CompositeDrawable
     {
-        private FillFlowContainer directoryFlow;
+        protected readonly BindableList<DirectorySelectorItem> DirectoryItems = new BindableList<DirectorySelectorItem>();
 
         protected readonly BindableBool ShowHiddenItems = new BindableBool();
+
+        /// <summary>
+        /// Create the content to be displayed in this <see cref="DirectorySelector"/>.
+        /// </summary>
+        /// <returns>The content to be displayed in this <see cref="DirectorySelector"/>.</returns>
+        protected virtual Drawable CreateDirectorySelectorContainer()
+        {
+            FillFlowContainer directoryFlow = new FillFlowContainer();
+
+            var grid = new GridContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                RowDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(),
+                },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        CreateBreadcrumb()
+                    },
+                    new[]
+                    {
+                        CreateHiddenItemToggle()
+                    },
+                    new Drawable[]
+                    {
+                        CreateScrollContainer().With(d =>
+                        {
+                            d.RelativeSizeAxes = Axes.Both;
+                            d.Child = directoryFlow.With(f =>
+                            {
+                                f.AutoSizeAxes = Axes.Y;
+                                f.RelativeSizeAxes = Axes.X;
+                                f.Direction = FillDirection.Vertical;
+                                f.Spacing = new Vector2(2);
+                            });
+                        })
+                    }
+                }
+            };
+
+            DirectoryItems.BindCollectionChanged((_, _) =>
+            {
+                directoryFlow.Clear();
+
+                if (CurrentPath.Value != null)
+                    directoryFlow.Add(CreateParentDirectoryItem(CurrentPath.Value.Parent));
+
+                directoryFlow.AddRange(DirectoryItems);
+            });
+
+            return grid;
+        }
 
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
 
@@ -33,12 +89,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract DirectorySelectorBreadcrumbDisplay CreateBreadcrumb();
 
         /// <summary>
-        /// Create a button that toggles the display of hidden items.
+        /// Create a drawable that toggles the display of hidden items.
         /// </summary>
         /// <remarks>
-        /// Unless overridden, a toggle button will not be added.
+        /// Unless overridden, a toggle will not be added.
         /// </remarks>
-        protected virtual Drawable CreateHiddenToggleButton() => Empty();
+        protected virtual Drawable CreateHiddenItemToggle() => Empty();
 
         protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
@@ -69,67 +125,20 @@ namespace osu.Framework.Graphics.UserInterface
         {
             initialPath ??= gameHost.InitialFileSelectorPath;
 
-            InternalChild = new GridContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                RowDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(),
-                },
-                Content = new[]
-                {
-                    new Drawable[]
-                    {
-                        new GridContainer
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            ColumnDimensions = new[]
-                            {
-                                new Dimension(),
-                                new Dimension(GridSizeMode.AutoSize),
-                            },
-                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                            Content = new[]
-                            {
-                                new[]
-                                {
-                                    CreateBreadcrumb(),
-                                    CreateHiddenToggleButton()
-                                }
-                            }
-                        }
-                    },
-                    new Drawable[]
-                    {
-                        CreateScrollContainer().With(d =>
-                        {
-                            d.RelativeSizeAxes = Axes.Both;
-                            d.Child = directoryFlow = new FillFlowContainer
-                            {
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(2),
-                            };
-                        })
-                    }
-                }
-            };
+            InternalChild = CreateDirectorySelectorContainer();
 
-            ShowHiddenItems.ValueChanged += _ => updateDisplay();
-            CurrentPath.BindValueChanged(_ => updateDisplay(), true);
+            ShowHiddenItems.ValueChanged += _ => updateDirectoryItems();
+            CurrentPath.BindValueChanged(_ => updateDirectoryItems(), true);
         }
 
         /// <summary>
         /// Because <see cref="CurrentPath"/> changes may not necessarily lead to directories that exist/are accessible,
-        /// <see cref="updateDisplay"/> may need to change <see cref="CurrentPath"/> again to lead to a directory that is actually accessible.
-        /// This flag intends to prevent recursive <see cref="updateDisplay"/> calls from taking place during the process of finding an accessible directory.
+        /// <see cref="updateDirectoryItems"/> may need to change <see cref="CurrentPath"/> again to lead to a directory that is actually accessible.
+        /// This flag intends to prevent recursive <see cref="updateDirectoryItems"/> calls from taking place during the process of finding an accessible directory.
         /// </summary>
         private bool directoryChanging;
 
-        private void updateDisplay()
+        private void updateDirectoryItems()
         {
             if (directoryChanging)
                 return;
@@ -138,11 +147,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 directoryChanging = true;
 
-                directoryFlow.Clear();
-
                 var newDirectory = CurrentPath.Value;
                 bool notifyError = false;
-                ICollection<DirectorySelectorItem> items = Array.Empty<DirectorySelectorItem>();
+                ICollection<DirectorySelectorItem> items = new List<DirectorySelectorItem>();
 
                 while (newDirectory != null)
                 {
@@ -163,15 +170,17 @@ namespace osu.Framework.Graphics.UserInterface
                     var drives = DriveInfo.GetDrives();
 
                     foreach (var drive in drives)
-                        directoryFlow.Add(CreateDirectoryItem(drive.RootDirectory));
+                        items.Add(CreateDirectoryItem(drive.RootDirectory));
+
+                    DirectoryItems.Clear();
+                    DirectoryItems.AddRange(items);
 
                     return;
                 }
 
                 CurrentPath.Value = newDirectory;
-
-                directoryFlow.Add(CreateParentDirectoryItem(newDirectory.Parent));
-                directoryFlow.AddRange(items);
+                DirectoryItems.Clear();
+                DirectoryItems.AddRange(items);
             }
             finally
             {
