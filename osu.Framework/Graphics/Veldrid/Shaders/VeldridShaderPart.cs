@@ -66,12 +66,18 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 if (!mainFile)
                     return data;
 
-                data = loadShader(shaders.LoadRaw("sh_Compatibility_Internal-Veldrid.h"), type, shaders, false)
-                       + "\n"
-                       + loadShader(shaders.LoadRaw("sh_Precision_Internal.h"), type, shaders, false)
-                       + "\n"
-                       + loadShader(shaders.LoadRaw("sh_GlobalUniforms.h"), type, shaders, false)
-                       + data;
+                string internalIncludes = loadShader(shaders.LoadRaw("Internal/Veldrid/sh_Compatibility.h"), type, shaders, false) + "\n";
+
+                internalIncludes += loadShader(shaders.LoadRaw("Internal/Veldrid/sh_Precision.h"), type, shaders, false) + "\n";
+
+                if (type == ShaderPartType.Vertex)
+                    internalIncludes += loadShader(shaders.LoadRaw("Internal/Veldrid/sh_VertexShader.h"), type, shaders, false) + "\n";
+                else
+                    internalIncludes += loadShader(shaders.LoadRaw("Internal/Veldrid/sh_FragmentShader.h"), type, shaders, false) + "\n";
+
+                internalIncludes += loadShader(shaders.LoadRaw("Internal/sh_GlobalUniforms.h"), type, shaders, false) + "\n";
+
+                data = internalIncludes + data;
 
                 if (type == ShaderPartType.Vertex)
                     data = appendBackbuffer(data, shaders);
@@ -84,7 +90,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         }
 
         /// <summary>
-        /// Appends the "sh_Backbuffer_Internal.h" file to the given data.
+        /// Appends the "sh_Backbuffer.h" file to the given data.
         /// </summary>
         /// <param name="data">The data to append the header to.</param>
         /// <param name="shaders">The shader manager for looking up the backbuffer file.</param>
@@ -92,7 +98,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         {
             string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-            string backbufferCode = loadShader(shaders.LoadRaw("sh_Backbuffer_Internal.h"), ShaderPartType.Vertex, shaders, false);
+            string backbufferCode = loadShader(shaders.LoadRaw("Internal/sh_Backbuffer.h"), ShaderPartType.Vertex, shaders, false);
 
             backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
             data = Regex.Replace(data, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';

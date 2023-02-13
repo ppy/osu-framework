@@ -108,16 +108,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    string internalIncludes = loadFile(manager.LoadRaw("sh_Compatibility_Internal-GL.h"), false) + "\n";
+                    string internalIncludes = loadFile(manager.LoadRaw("Internal/GL/sh_Compatibility.h"), false) + "\n";
 
-                    internalIncludes += loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n";
+                    internalIncludes += loadFile(manager.LoadRaw("Internal/GL/sh_Precision.h"), false) + "\n";
 
                     if (isVertexShader)
-                        internalIncludes += loadFile(manager.LoadRaw("sh_VertexShader_Internal.h"), false) + "\n";
+                        internalIncludes += loadFile(manager.LoadRaw("Internal/GL/sh_VertexShader.h"), false) + "\n";
                     else
-                        internalIncludes += loadFile(manager.LoadRaw("sh_FragmentShader_Internal.h"), false) + "\n";
+                        internalIncludes += loadFile(manager.LoadRaw("Internal/GL/sh_FragmentShader.h"), false) + "\n";
 
-                    internalIncludes += loadFile(manager.LoadRaw("sh_GlobalUniforms.h"), false) + "\n";
+                    internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
 
                     code = internalIncludes + code;
 
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     {
                         string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+                        string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Backbuffer.h"), false);
 
                         backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
                         code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';

@@ -40,6 +40,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
@@ -324,7 +325,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new GLCoreRenderer();
+        protected virtual IRenderer CreateRenderer() => new VeldridRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
