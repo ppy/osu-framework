@@ -1,6 +1,6 @@
 // This file is automatically included in every shader.
 
-layout (std140) uniform g_GlobalUniforms
+layout(std140) uniform g_GlobalUniforms
 {
     bool g_GammaCorrection;
 

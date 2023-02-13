@@ -1,5 +1,6 @@
 // This file is automatically included in every shader
-#extension GL_ARB_uniform_buffer_object : require
+#version 330 core
+#extension GL_ARB_uniform_buffer_object : enable
 
 #ifndef GL_ES
     #define lowp
