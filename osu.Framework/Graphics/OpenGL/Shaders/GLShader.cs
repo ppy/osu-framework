@@ -160,6 +160,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             GL.GetActiveUniforms(this, uniformCount, uniformIndices, ActiveUniformParameter.UniformBlockIndex, blockIndices);
 
             int blockBindingIndex = 0;
+            int textureIndex = 0;
 
             for (int i = 0; i < uniformCount; i++)
             {
@@ -221,6 +222,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                         case ActiveUniformType.Sampler2D:
                             uniform = createUniform<int>(uniformName);
+                            ((Uniform<int>)uniform).Value = textureIndex++;
                             break;
 
                         default:
