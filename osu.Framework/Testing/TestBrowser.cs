@@ -86,7 +86,7 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any() && t.IsSupportedOnCurrentOSPlatform();
 
         private void updateList(ValueChangedEvent<Assembly> args)
         {
