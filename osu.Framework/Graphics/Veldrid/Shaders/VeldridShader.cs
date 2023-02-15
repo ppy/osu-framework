@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     CrossCompileTarget.GLSL,
                     new CrossCompileOptions
                     {
-                        FixClipSpaceZ = !renderer.Device.IsDepthRangeZeroToOne,
+                        FixClipSpaceZ = renderer.Device.IsDepthRangeZeroToOne,
                         InvertVertexOutputY = renderer.Device.IsClipSpaceYInverted,
                     });
 
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                             target,
                             new CrossCompileOptions
                             {
-                                FixClipSpaceZ = !renderer.Device.IsDepthRangeZeroToOne,
+                                FixClipSpaceZ = renderer.Device.IsDepthRangeZeroToOne,
                                 InvertVertexOutputY = renderer.Device.IsClipSpaceYInverted,
                             });
                     }
