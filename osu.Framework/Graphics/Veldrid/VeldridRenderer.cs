@@ -171,6 +171,12 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.Begin();
 
             base.BeginFrame(windowSize);
+
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
+            {
+                IsDepthRangeZeroToOne = Device.IsDepthRangeZeroToOne,
+                IsClipSpaceYInverted = Device.IsClipSpaceYInverted
+            };
         }
 
         protected internal override void FinishFrame()

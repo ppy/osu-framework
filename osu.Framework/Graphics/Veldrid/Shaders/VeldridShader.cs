@@ -116,12 +116,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
                     Encoding.UTF8.GetBytes(vertex.Data),
                     Encoding.UTF8.GetBytes(fragment.Data),
-                    CrossCompileTarget.GLSL,
-                    new CrossCompileOptions
-                    {
-                        FixClipSpaceZ = renderer.Device.IsDepthRangeZeroToOne,
-                        InvertVertexOutputY = renderer.Device.IsClipSpaceYInverted,
-                    });
+                    CrossCompileTarget.GLSL);
 
                 if (renderer.SurfaceType == GraphicsSurfaceType.Vulkan)
                 {
@@ -145,12 +140,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                         platformCrossCompileResult = SpirvCompilation.CompileVertexFragment(
                             Encoding.UTF8.GetBytes(vertex.Data),
                             Encoding.UTF8.GetBytes(fragment.Data),
-                            target,
-                            new CrossCompileOptions
-                            {
-                                FixClipSpaceZ = renderer.Device.IsDepthRangeZeroToOne,
-                                InvertVertexOutputY = renderer.Device.IsClipSpaceYInverted,
-                            });
+                            target);
                     }
 
                     vertexShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCrossCompileResult.VertexShader);
