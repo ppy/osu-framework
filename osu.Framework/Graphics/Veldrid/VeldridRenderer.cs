@@ -296,7 +296,7 @@ namespace osu.Framework.Graphics.Veldrid
         {
             if (!pipelineCache.TryGetValue(pipeline, out var instance))
             {
-                pipelineCache[pipeline] = instance = Factory.CreateGraphicsPipeline(ref pipeline);
+                pipelineCache[pipeline.Clone()] = instance = Factory.CreateGraphicsPipeline(ref pipeline);
                 stat_graphics_pipeline_created.Value++;
             }
 
