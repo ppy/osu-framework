@@ -77,6 +77,10 @@ namespace osu.Framework.Platform
         {
         }
 
+        public void Raise()
+        {
+        }
+
         public abstract bool Focused { get; }
 
         public abstract IBindable<bool> IsActive { get; }

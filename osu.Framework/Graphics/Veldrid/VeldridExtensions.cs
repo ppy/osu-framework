@@ -330,6 +330,22 @@ namespace osu.Framework.Graphics.Veldrid
             }
         }
 
+        public static GraphicsPipelineDescription Clone(this GraphicsPipelineDescription pipeline)
+        {
+            pipeline.BlendState.AttachmentStates = (BlendAttachmentDescription[])pipeline.BlendState.AttachmentStates.Clone();
+            pipeline.ShaderSet.Shaders = (Shader[])pipeline.ShaderSet.Shaders.Clone();
+            pipeline.ShaderSet.VertexLayouts = (VertexLayoutDescription[])pipeline.ShaderSet.VertexLayouts.Clone();
+
+            for (int i = 0; i < pipeline.ShaderSet.VertexLayouts.Length; i++)
+                pipeline.ShaderSet.VertexLayouts[i].Elements = (VertexElementDescription[])pipeline.ShaderSet.VertexLayouts[i].Elements.Clone();
+
+            pipeline.ShaderSet.Specializations = (SpecializationConstant[]?)pipeline.ShaderSet.Specializations?.Clone();
+            pipeline.ResourceLayouts = (ResourceLayout[])pipeline.ResourceLayouts.Clone();
+            pipeline.Outputs.ColorAttachments = (OutputAttachmentDescription[])pipeline.Outputs.ColorAttachments.Clone();
+
+            return pipeline;
+        }
+
         public static void LogD3D11(this GraphicsDevice device, out int maxTextureSize)
         {
             Debug.Assert(device.BackendType == GraphicsBackend.Direct3D11);

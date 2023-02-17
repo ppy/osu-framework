@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Bindables
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
 
-            Assert.Throws<InvalidOperationException>(() => bindable1.BindTo(bindable2));
+            Assert.Throws<ArgumentException>(() => bindable1.BindTo(bindable2));
         }
 
         [Test]
