@@ -69,10 +69,12 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
+                        GL Extensions:              {GetExtensions()}");
 
             openGLSurface.ClearCurrent();
         }
+
+        protected virtual string GetExtensions() => GL.GetString(StringName.Extensions);
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {

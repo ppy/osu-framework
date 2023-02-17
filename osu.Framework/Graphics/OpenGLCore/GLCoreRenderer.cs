@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Text;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGLCore.Batches;
 using osu.Framework.Graphics.Rendering;
@@ -13,6 +14,20 @@ namespace osu.Framework.Graphics.OpenGLCore
     internal class GLCoreRenderer : GLRenderer
     {
         private int lastBoundVertexArray;
+
+#pragma warning disable CS0618
+        protected override string GetExtensions()
+        {
+            GL.GetInteger(All.NumExtensions, out int numExtensions);
+
+            var extensionsBuilder = new StringBuilder();
+
+            for (int i = 0; i < numExtensions; i++)
+                extensionsBuilder.Append($"{GL.GetString(StringNameIndexed.Extensions, i)} ");
+
+            return extensionsBuilder.ToString().TrimEnd();
+        }
+#pragma warning restore CS0618
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
