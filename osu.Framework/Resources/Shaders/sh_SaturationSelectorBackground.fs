@@ -3,14 +3,14 @@
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 
-IN_VAR(2) highp vec2 v_TexCoord;
+IN(2) highp vec2 v_TexCoord;
 
 UNIFORM_BLOCK(0, m_HueData)
 {
     mediump float hue;
 };
 
-OUT_VAR(0) vec4 o_Colour;
+OUT(0) vec4 o_Colour;
 
 void main(void)
 {

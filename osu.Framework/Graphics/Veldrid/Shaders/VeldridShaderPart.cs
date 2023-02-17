@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public ShaderPartType Type { get; }
 
         private static readonly Regex include_regex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private static readonly Regex shader_attribute_location_regex = new Regex(@"(IN_VAR\()(\s*-?\d+\s*)(\).*$)", RegexOptions.Multiline);
+        private static readonly Regex shader_attribute_location_regex = new Regex(@"(IN\()(\s*-?\d+\s*)(\).*$)", RegexOptions.Multiline);
 
         public VeldridShaderPart(ShaderManager shaders, byte[]? rawData, ShaderPartType type)
         {

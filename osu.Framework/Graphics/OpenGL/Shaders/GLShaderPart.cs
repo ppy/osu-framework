@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShaderPart : IShaderPart
     {
-        public static readonly Regex SHADER_INPUT_REGEX = new Regex(@"^\s*(?>IN_VAR\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)");
+        public static readonly Regex SHADER_INPUT_REGEX = new Regex(@"^\s*(?>IN\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)");
         private static readonly Regex include_regex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();

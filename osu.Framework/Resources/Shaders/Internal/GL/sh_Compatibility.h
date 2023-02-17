@@ -4,9 +4,9 @@
 
 #extension GL_ARB_uniform_buffer_object : enable
 
-#define TEXTURE_TYPE float
+#define TEXTURE float
 
-#define SAMPLER_TYPE sampler2D
+#define SAMPLER sampler2D
 
 /**
 * \brief Retrieves the set number for a uniform layout, offset by any internal framework layouts.
@@ -27,17 +27,17 @@
  * \param set_num The desired set number.
  */
 #define UNIFORM_TEXTURE(set_num, texture_name, sampler_name) \
-uniform lowp TEXTURE_TYPE texture_name; \
-uniform lowp SAMPLER_TYPE sampler_name
+uniform lowp TEXTURE texture_name; \
+uniform lowp SAMPLER sampler_name
 
 /**
  * \brief Creates an "in" layout definition bound to the given location.
  * \param loc_num The location.
  */
-#define IN_VAR(loc_num) in
+#define IN(loc_num) in
 
 /**
  * \brief Creates an "out" layout definition bound to the given location.
  * \param loc_num The location.
  */
-#define OUT_VAR(loc_num) out
+#define OUT(loc_num) out

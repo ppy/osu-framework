@@ -2,7 +2,7 @@
 
 #define INV_SQRT_2PI 0.39894
 
-IN_VAR(2) mediump vec2 v_TexCoord;
+IN(2) mediump vec2 v_TexCoord;
 
 UNIFORM_BLOCK(0, m_BlurParameters)
 {
@@ -14,7 +14,7 @@ UNIFORM_BLOCK(0, m_BlurParameters)
 
 UNIFORM_TEXTURE(1, m_Texture, m_Sampler);
 
-OUT_VAR(0) vec4 o_Colour;
+OUT(0) vec4 o_Colour;
 
 mediump float computeGauss(in mediump float x, in mediump float sigma)
 {

@@ -5,7 +5,7 @@
 #include "sh_TextureWrapping.h"
 #include "sh_CircularBlobUtils.h"
 
-IN_VAR(2) highp vec2 v_TexCoord;
+IN(2) highp vec2 v_TexCoord;
 
 UNIFORM_BLOCK(0, m_CircularBlobParameters)
 {
@@ -18,7 +18,7 @@ UNIFORM_BLOCK(0, m_CircularBlobParameters)
 
 UNIFORM_TEXTURE(1, m_Texture, m_Sampler);
 
-OUT_VAR(0) vec4 o_Colour;
+OUT(0) vec4 o_Colour;
 
 void main(void)
 {

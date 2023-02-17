@@ -21,28 +21,28 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestNonAttribute()
         {
-            const string test_string = "OUT_VAR(0) vec3 name;";
+            const string test_string = "OUT(0) vec3 name;";
             performInvalidAttributeTest(test_string);
         }
 
         [Test]
         public void TestValidAttribute()
         {
-            const string test_string = "IN_VAR(0) lowp float name;";
+            const string test_string = "IN(0) lowp float name;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestSpacedAttribute()
         {
-            const string test_string = "    IN_VAR(0)    float    name   ;";
+            const string test_string = "    IN(0)    float    name   ;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestNoPrecisionQualifier()
         {
-            const string test_string = "IN_VAR(0) float name;";
+            const string test_string = "IN(0) float name;";
             performValidAttributeTest(test_string);
         }
 

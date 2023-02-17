@@ -2,7 +2,7 @@
 
 // The -1 is a placeholder value to offset all vertex input members
 // of the actual vertex shader during inclusion of this header.
-IN_VAR(-1) highp float m_BackbufferDrawDepth;
+IN(-1) highp float m_BackbufferDrawDepth;
 
 void main()
 {

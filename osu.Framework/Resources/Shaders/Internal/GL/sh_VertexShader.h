@@ -1,4 +1,4 @@
-vec4 SampleTexture(TEXTURE_TYPE textureName, SAMPLER_TYPE samplerName, vec2 coord)
+vec4 SampleTexture(TEXTURE textureName, SAMPLER samplerName, vec2 coord)
 {
     return texture(samplerName, coord);
 }
