@@ -200,7 +200,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (didUpload && !manualMipmaps)
             {
-                GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
+                if (Renderer.IsEmbedded)
+                    GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
                 GL.GenerateMipmap(TextureTarget.Texture2D);
             }
 
