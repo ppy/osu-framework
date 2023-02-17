@@ -33,8 +33,6 @@ namespace osu.Framework.Graphics.Veldrid
             set => Device.SyncToVerticalBlank = value;
         }
 
-        public override string ShaderFilenameSuffix => @"-veldrid";
-
         public override bool IsUvOriginTopLeft => Device.IsUvOriginTopLeft;
 
         public GraphicsDevice Device { get; private set; } = null!;

@@ -65,12 +65,6 @@ namespace osu.Framework.Graphics.Rendering
         int MaxPixelsUploadedPerFrame { get; set; }
 
         /// <summary>
-        /// A suffix to apply to shader filenames during lookup,
-        /// for interacting with compatible shader formats.
-        /// </summary>
-        string ShaderFilenameSuffix { get; }
-
-        /// <summary>
         /// Whether the texture coordinates begin in the top-left of the texture. If <c>false</c>, (0, 0) corresponds to the bottom-left texel of the texture.
         /// </summary>
         bool IsUvOriginTopLeft { get; }
