@@ -82,9 +82,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 if (type == ShaderPartType.Vertex)
                     data = appendBackbuffer(data, shaders);
 
-                if (!data.StartsWith("#version", StringComparison.Ordinal))
-                    data = $"#version 450\n{data}";
-
                 return data;
             }
         }
