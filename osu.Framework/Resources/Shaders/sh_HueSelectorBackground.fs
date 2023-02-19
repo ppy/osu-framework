@@ -3,7 +3,7 @@
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 
-varying highp vec2 v_TexCoord;
+in highp vec2 v_TexCoord;
 
 void main(void)
 {

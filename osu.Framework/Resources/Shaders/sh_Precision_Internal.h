@@ -1,5 +1,7 @@
 // This file is automatically included in every shader
 
+#version 330 core
+
 #ifndef GL_ES
     #define lowp
     #define mediump

@@ -1,6 +1,6 @@
-attribute highp vec2 m_Position;
+in highp vec2 m_Position;
 
-varying highp vec2 v_Position;
+out highp vec2 v_Position;
 
 uniform highp mat4 g_ProjMatrix;
 

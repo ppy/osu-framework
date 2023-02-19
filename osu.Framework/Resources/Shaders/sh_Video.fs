@@ -2,7 +2,7 @@
 #include "sh_Masking.h"
 #include "sh_yuv2rgb.h"
 
-varying mediump vec2 v_TexCoord;
+in mediump vec2 v_TexCoord;
 
 void main(void) 
 {

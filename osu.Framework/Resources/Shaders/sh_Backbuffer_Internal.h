@@ -1,6 +1,6 @@
 // Automatically included for every vertex shader.
 
-attribute highp float m_BackbufferDrawDepth;
+in highp float m_BackbufferDrawDepth;
 
 // Whether the backbuffer is currently being drawn to
 uniform bool g_BackbufferDraw;

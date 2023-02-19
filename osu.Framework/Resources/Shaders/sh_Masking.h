@@ -1,13 +1,13 @@
-﻿varying highp vec2 v_MaskingPosition;
-varying lowp vec4 v_Colour;
+﻿in highp vec2 v_MaskingPosition;
+in lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
-	varying highp vec4 v_TexRect;
+	in highp vec4 v_TexRect;
 #else
-	varying mediump vec4 v_TexRect;
+	in mediump vec4 v_TexRect;
 #endif
 
-varying mediump vec2 v_BlendRange;
+in mediump vec2 v_BlendRange;
 
 uniform highp float g_CornerRadius;
 uniform highp float g_CornerExponent;

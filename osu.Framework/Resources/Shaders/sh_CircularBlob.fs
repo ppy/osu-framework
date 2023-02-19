@@ -5,7 +5,7 @@
 #include "sh_TextureWrapping.h"
 #include "sh_CircularBlobUtils.h"
 
-varying highp vec2 v_TexCoord;
+in highp vec2 v_TexCoord;
 
 uniform lowp sampler2D m_Sampler;
 uniform mediump float innerRadius;
