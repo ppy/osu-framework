@@ -15,8 +15,8 @@ lowp vec4 wrappedSamplerRgb(vec2 wrappedCoord, vec4 texRect, float lodBias)
         g_WrapModeT == 2 && (wrappedCoord.y < texRect[1] || wrappedCoord.y > texRect[3]))
         return vec4(0.0);
 
-    lowp float y = texture2D(m_SamplerY, wrappedCoord, lodBias).r;
-    lowp float u = texture2D(m_SamplerU, wrappedCoord, lodBias).r;
-    lowp float v = texture2D(m_SamplerV, wrappedCoord, lodBias).r;
+    lowp float y = texture(m_SamplerY, wrappedCoord, lodBias).r;
+    lowp float u = texture(m_SamplerU, wrappedCoord, lodBias).r;
+    lowp float v = texture(m_SamplerV, wrappedCoord, lodBias).r;
     return vec4(yuvCoeff * (vec3(y, u, v) + offsets), 1.0);
 }

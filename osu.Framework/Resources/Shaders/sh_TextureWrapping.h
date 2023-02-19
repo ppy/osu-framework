@@ -30,5 +30,5 @@ vec4 wrappedSampler(vec2 wrappedCoord, vec4 texRect, sampler2D sampler, float lo
     if (g_WrapModeS == 2 && (wrappedCoord.x < texRect[0] || wrappedCoord.x > texRect[2]) ||
         g_WrapModeT == 2 && (wrappedCoord.y < texRect[1] || wrappedCoord.y > texRect[3]))
         return vec4(0.0);
-    return texture2D(sampler, wrappedCoord, lodBias);
+    return texture(sampler, wrappedCoord, lodBias);
 }

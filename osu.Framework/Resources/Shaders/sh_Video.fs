@@ -4,8 +4,10 @@
 
 in mediump vec2 v_TexCoord;
 
+out vec4 o_Colour;
+
 void main(void) 
 {
     vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
-    gl_FragColor = getRoundedColor(toLinear(wrappedSamplerRgb(wrappedCoord, v_TexRect, 0.0)), wrappedCoord);
+    o_Colour = getRoundedColor(toLinear(wrappedSamplerRgb(wrappedCoord, v_TexRect, 0.0)), wrappedCoord);
 }
