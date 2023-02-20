@@ -27,16 +27,21 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             Cell(1).AddRange(new[]
             {
-                createLabel("Many tiny segments"),
+                createLabel("Middle few tiny segments"),
                 createPath(new[]
                 {
-                    new Vector2(150f),
-                    new Vector2(150f + 1e-6f),
-                    new Vector2(150f + 2e-6f),
-                    new Vector2(150f + 3e-6f),
-                    new Vector2(150f + 4e-6f),
-                    new Vector2(150f + 5e-6f),
-                })
+                    new Vector2(50f, 100f),
+                    new Vector2(100f),
+                    new Vector2(100f + 1e-6f),
+                    new Vector2(100f + 2e-6f),
+                    new Vector2(100f + 3e-6f),
+                    new Vector2(100f + 4e-6f),
+                    new Vector2(200f + 1e-6f),
+                    new Vector2(200f + 2e-6f),
+                    new Vector2(200f + 3e-6f),
+                    new Vector2(200f + 4e-6f),
+                    new Vector2(250f, 200f),
+                }),
             });
 
             Cell(2).AddRange(new[]
@@ -50,7 +55,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     new Vector2(100f + 3e-6f),
                     new Vector2(100f + 4e-6f),
                     new Vector2(200f),
-                })
+                }),
             });
 
             Cell(3).AddRange(new[]
@@ -77,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private static Path createPath(Vector2[] points) => new Path
         {
-            PathRadius = 2,
+            PathRadius = 50,
             Vertices = points,
         };
     }

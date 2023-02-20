@@ -20,7 +20,6 @@ namespace osu.Framework.Graphics.Lines
         private class PathDrawNode : DrawNode
         {
             private const int max_res = 24;
-            private const float min_segment_length = 1e-5f;
 
             protected new Path Source => (Path)base.Source;
 
@@ -182,33 +181,28 @@ namespace osu.Framework.Graphics.Lines
                 });
             }
 
-            private void addSegmentCaps(Line segmentLeft, Line segmentRight, Line prevSegmentLeft, Line prevSegmentRight, RectangleF texRect)
+            private void addSegmentCaps(float thetaDiff, Line segmentLeft, Line segmentRight, Line prevSegmentLeft, Line prevSegmentRight, RectangleF texRect)
             {
                 Debug.Assert(triangleBatch != null);
 
-                float thetaDiff = segmentLeft.Theta - prevSegmentLeft.Theta;
-                float thetaOffset = -Math.Sign(thetaDiff) * MathF.PI / 2;
-
                 if (Math.Abs(thetaDiff) > MathF.PI)
-                {
                     thetaDiff = -Math.Sign(thetaDiff) * 2 * MathF.PI + thetaDiff;
-                    thetaOffset = -thetaOffset;
-                }
 
-                if (thetaDiff == 0)
+                if (thetaDiff == 0f)
                     return;
-
-                float theta0 = prevSegmentLeft.Theta + thetaOffset;
-                float thetaStep = Math.Sign(thetaDiff) * MathF.PI / max_res;
-                int stepCount = (int)(thetaDiff / thetaStep) + 1;
 
                 Vector2 origin = (segmentLeft.StartPoint + segmentRight.StartPoint) / 2;
 
                 // Use segment end points instead of calculating start/end via theta to guarantee
                 // that the vertices have the exact same position as the quads, which prevents
                 // possible pixel gaps during rasterization.
-                Vector2 current = thetaDiff > 0 ? prevSegmentRight.EndPoint : prevSegmentLeft.EndPoint;
-                Vector2 end = thetaDiff > 0 ? segmentRight.StartPoint : segmentLeft.StartPoint;
+                Vector2 current = thetaDiff > 0f ? prevSegmentRight.EndPoint : prevSegmentLeft.EndPoint;
+                Vector2 end = thetaDiff > 0f ? segmentRight.StartPoint : segmentLeft.StartPoint;
+
+                Line start = thetaDiff > 0f ? new Line(prevSegmentLeft.EndPoint, prevSegmentRight.EndPoint) : new Line(prevSegmentRight.EndPoint, prevSegmentLeft.EndPoint);
+                float theta0 = start.Theta;
+                float thetaStep = Math.Sign(thetaDiff) * MathF.PI / max_res;
+                int stepCount = (int)MathF.Ceiling(thetaDiff / thetaStep);
 
                 Color4 originColour = colourAt(origin);
                 Color4 currentColour = colourAt(current);
@@ -246,82 +240,80 @@ namespace osu.Framework.Graphics.Lines
 
             private void updateVertexBuffer()
             {
+                // Explanation of the terms "left" and "right":
+                // "Left" and "right" are used here in terms of a typical (Cartesian) coordinate system.
+                // So "left" corresponds to positive angles (anti-clockwise), and "right" corresponds
+                // to negative angles (clockwise).
+                //
+                // Note that this is not the same as the actually used coordinate system, in which the
+                // y-axis is flipped. In this system, "left" corresponds to negative angles (clockwise)
+                // and "right" corresponds to positive angles (anti-clockwise).
+                //
+                // Using a Cartesian system makes the calculations more consistent with typical math,
+                // such as in angle<->coordinate conversions and ortho vectors. For example, the x-unit
+                // vector (1, 0) has the orthogonal y-unit vector (0, 1). This would be "left" in the
+                // Cartesian system. But in the actual system, it's "right" and clockwise. Where
+                // this becomes confusing is during debugging, because OpenGL uses a Cartesian system.
+                // So to make debugging a bit easier (i.e. w/ RenderDoc or Nsight), this code uses terms
+                // that make sense in the realm of OpenGL, rather than terms which  are technically
+                // accurate in the actually used "flipped" system.
+
                 Debug.Assert(texture != null);
                 Debug.Assert(segments.Count > 0);
 
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
-                // Segments with extremely small (i.e. 0) lengths can mess up angle calculations
-                int firstIndex = segments.FindIndex(l => l.Rho >= min_segment_length);
-
-                // If none of the segments meet the minimum length threshold, then simply draw a circle
-                if (firstIndex < 0)
-                {
-                    Vector2 center = segments[0].StartPoint;
-                    Vector2 left = center + radius * Vector2.UnitX;
-                    Vector2 right = center - radius * Vector2.UnitX;
-
-                    Line segmentLeft = new Line(left + Vector2.UnitY, left);
-                    Line segmentRight = new Line(right + Vector2.UnitY, right);
-                    Line flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
-                    Line flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
-
-                    addSegmentCaps(flippedLeft, flippedRight, segmentLeft, segmentRight, texRect);
-
-                    segmentLeft = new Line(left, left - Vector2.UnitY);
-                    segmentRight = new Line(right, right - Vector2.UnitY);
-                    flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
-                    flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
-
-                    addSegmentCaps(segmentLeft, segmentRight, flippedLeft, flippedRight, texRect);
-
-                    return;
-                }
-
-                int lastIndex = segments.FindLastIndex(l => l.Rho >= min_segment_length);
-
                 Line? prevSegmentLeft = null;
                 Line? prevSegmentRight = null;
 
-                for (int i = firstIndex; i <= lastIndex; i++)
+                for (int i = 0; i < segments.Count; i++)
                 {
-                    Line segment = segments[i];
+                    Line currSegment = segments[i];
 
-                    if (segment.Rho < min_segment_length)
-                        continue;
+                    Vector2 ortho = currSegment.OrthogonalDirection;
+                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
+                        ortho = Vector2.UnitY;
 
-                    Vector2 ortho = segment.OrthogonalDirection;
-                    Line segmentLeft = new Line(segment.StartPoint + ortho * radius, segment.EndPoint + ortho * radius);
-                    Line segmentRight = new Line(segment.StartPoint - ortho * radius, segment.EndPoint - ortho * radius);
+                    Line currSegmentLeft = new Line(currSegment.StartPoint + ortho * radius, currSegment.EndPoint + ortho * radius);
+                    Line currSegmentRight = new Line(currSegment.StartPoint - ortho * radius, currSegment.EndPoint - ortho * radius);
 
-                    addSegmentQuads(segment, segmentLeft, segmentRight, texRect);
+                    addSegmentQuads(currSegment, currSegmentLeft, currSegmentRight, texRect);
 
                     if (prevSegmentLeft is Line psLeft && prevSegmentRight is Line psRight)
                     {
+                        Debug.Assert(i > 0);
+
                         // Connection/filler caps between segment quads
-                        addSegmentCaps(segmentLeft, segmentRight, psLeft, psRight, texRect);
+                        float thetaDiff = currSegment.Theta - segments[i - 1].Theta;
+                        addSegmentCaps(thetaDiff, currSegmentLeft, currSegmentRight, psLeft, psRight, texRect);
                     }
 
-                    if (i == firstIndex)
+                    // Explanation of semi-circle caps:
+                    // Semi-circles are essentially 180 degree caps. So to create these caps, we
+                    // can simply "fake" a segment that's 180 degrees flipped. This works because
+                    // we are taking advantage of the fact that a path which makes a 180 degree
+                    // bend would have a semi-circle cap.
+
+                    if (i == 0)
                     {
-                        // Path start cap (semi-circle)
-                        Line flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
-                        Line flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
+                        // Path start cap (semi-circle);
+                        Line flippedLeft = new Line(currSegmentRight.EndPoint, currSegmentRight.StartPoint);
+                        Line flippedRight = new Line(currSegmentLeft.EndPoint, currSegmentLeft.StartPoint);
 
-                        addSegmentCaps(segmentLeft, segmentRight, flippedLeft, flippedRight, texRect);
+                        addSegmentCaps(MathF.PI, currSegmentLeft, currSegmentRight, flippedLeft, flippedRight, texRect);
                     }
 
-                    if (i == lastIndex)
+                    if (i == segments.Count - 1)
                     {
                         // Path end cap (semi-circle)
-                        Line flippedLeft = new Line(segmentRight.EndPoint, segmentRight.StartPoint);
-                        Line flippedRight = new Line(segmentLeft.EndPoint, segmentLeft.StartPoint);
+                        Line flippedLeft = new Line(currSegmentRight.EndPoint, currSegmentRight.StartPoint);
+                        Line flippedRight = new Line(currSegmentLeft.EndPoint, currSegmentLeft.StartPoint);
 
-                        addSegmentCaps(flippedLeft, flippedRight, segmentLeft, segmentRight, texRect);
+                        addSegmentCaps(MathF.PI, flippedLeft, flippedRight, currSegmentLeft, currSegmentRight, texRect);
                     }
 
-                    prevSegmentLeft = segmentLeft;
-                    prevSegmentRight = segmentRight;
+                    prevSegmentLeft = currSegmentLeft;
+                    prevSegmentRight = currSegmentRight;
                 }
             }
 
