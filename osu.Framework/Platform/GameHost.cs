@@ -27,6 +27,7 @@ using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGLCore;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
@@ -40,6 +41,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
@@ -324,7 +326,23 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new GLCoreRenderer();
+        protected virtual IRenderer CreateRenderer()
+        {
+            switch (Options.PreferredGraphicsSurface)
+            {
+                default:
+                case GraphicsSurfaceType.OpenGL:
+                    return new GLCoreRenderer();
+
+                case GraphicsSurfaceType.Metal:
+                case GraphicsSurfaceType.Vulkan:
+                case GraphicsSurfaceType.Direct3D11:
+                    return new VeldridRenderer();
+
+                case GraphicsSurfaceType.OpenGLCompat:
+                    return new GLRenderer();
+            }
+        }
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -703,7 +721,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow(GraphicsSurfaceType.OpenGL);
+                Window = CreateWindow(Options.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
 
                 populateInputHandlers();
 

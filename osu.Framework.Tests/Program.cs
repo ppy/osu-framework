@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests
@@ -16,8 +17,13 @@ namespace osu.Framework.Tests
         {
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
+            GraphicsSurfaceType? surfaceType = Enum.TryParse(args.GetNext("--surface"), out GraphicsSurfaceType type) ? type : null;
 
-            using (GameHost host = Host.GetSuitableDesktopHost(@"visual-tests", new HostOptions { PortableInstallation = portable }))
+            using (GameHost host = Host.GetSuitableDesktopHost(@"visual-tests", new HostOptions
+                   {
+                       PortableInstallation = portable,
+                       PreferredGraphicsSurface = surfaceType
+                   }))
             {
                 if (benchmark)
                     host.Run(new AutomatedVisualTestGame());

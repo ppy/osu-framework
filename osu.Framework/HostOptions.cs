@@ -30,5 +30,10 @@ namespace osu.Framework
         /// If the SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR environment variable is set, this property will have no effect.
         /// </remarks>
         public bool BypassCompositor { get; set; } = true;
+
+        /// <summary>
+        /// The preferred graphics surface.
+        /// </summary>
+        public GraphicsSurfaceType? PreferredGraphicsSurface { get; set; }
     }
 }
