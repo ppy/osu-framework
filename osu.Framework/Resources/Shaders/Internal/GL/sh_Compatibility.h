@@ -7,7 +7,7 @@
 #define SAMPLER sampler2D
 
 /**
-* \brief Retrieves the set number for a uniform layout, offset by any internal framework layouts.
+ * \brief Retrieves the set number for a uniform layout, offset by any internal framework layouts.
  * \param a The desired set number.
  */
 #define BASE_SET_OFFSET(a) (a + 1)
@@ -24,6 +24,4 @@
  *  This calls BASE_SET_OFFSET(set_num) internally.
  * \param set_num The desired set number.
  */
-#define UNIFORM_TEXTURE(set_num, texture_name, sampler_name) \
-uniform lowp TEXTURE texture_name; \
-uniform lowp SAMPLER sampler_name
+#define UNIFORM_TEXTURE(set_num, texture_name, sampler_name) uniform lowp TEXTURE texture_name; uniform lowp SAMPLER sampler_name

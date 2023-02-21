@@ -27,7 +27,6 @@ using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGLCore;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
@@ -325,7 +324,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new GLRenderer();
+        protected virtual IRenderer CreateRenderer() => new GLCoreRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -704,7 +703,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow(GraphicsSurfaceType.OpenGLCompat);
+                Window = CreateWindow(GraphicsSurfaceType.OpenGL);
 
                 populateInputHandlers();
 

@@ -78,6 +78,12 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
+                        shaderCodes.Insert(0, line);
+                        continue;
+                    }
+
+                    if (line.StartsWith("#extension", StringComparison.Ordinal))
+                    {
                         shaderCodes.Add(line);
                         continue;
                     }

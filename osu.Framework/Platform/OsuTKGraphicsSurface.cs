@@ -15,7 +15,7 @@ namespace osu.Framework.Platform
     {
         private readonly OsuTKWindow window;
 
-        public GraphicsSurfaceType Type => GraphicsSurfaceType.OpenGL;
+        public GraphicsSurfaceType Type => GraphicsSurfaceType.OpenGLCompat;
 
         public IntPtr WindowHandle => window.WindowInfo.Handle;
         public IntPtr DisplayHandle => throw new NotSupportedException($@"{nameof(DisplayHandle)} is not supported.");
