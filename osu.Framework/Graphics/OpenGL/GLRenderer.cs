@@ -8,6 +8,7 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Batches;
 using osu.Framework.Graphics.OpenGL.Shaders;
+using osu.Framework.Graphics.OpenGLCore;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -49,8 +50,11 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
-            if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
+            if (!graphicsSurface.Type.IsOpenGL())
                 throw new InvalidOperationException($"{nameof(GLRenderer)} only supports OpenGL graphics surfaces.");
+
+            if (this is not GLCoreRenderer && graphicsSurface.Type != GraphicsSurfaceType.OpenGLCompat)
+                throw new InvalidOperationException($"{nameof(GLRenderer)} only supports the OpenGL compatibility profile.");
 
             openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
             openGLSurface.MakeCurrent(openGLSurface.WindowContext);

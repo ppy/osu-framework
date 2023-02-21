@@ -40,6 +40,7 @@ namespace osu.Framework.Platform.Windows
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
+                case GraphicsSurfaceType.OpenGLCompat:
                 case GraphicsSurfaceType.Vulkan:
                     applyBorderlessWindowHack = true;
                     break;

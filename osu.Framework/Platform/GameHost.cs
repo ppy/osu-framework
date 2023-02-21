@@ -531,7 +531,7 @@ namespace osu.Framework.Platform
         {
             Renderer.SwapBuffers();
 
-            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type.IsOpenGL() && Renderer.VerticalSync)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();
@@ -704,7 +704,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow(GraphicsSurfaceType.OpenGL);
+                Window = CreateWindow(GraphicsSurfaceType.OpenGLCompat);
 
                 populateInputHandlers();
 

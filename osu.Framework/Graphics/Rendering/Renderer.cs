@@ -145,6 +145,7 @@ namespace osu.Framework.Graphics.Rendering
             switch (graphicsSurface.Type)
             {
                 case GraphicsSurfaceType.OpenGL:
+                case GraphicsSurfaceType.OpenGLCompat:
                     Trace.Assert(graphicsSurface is IOpenGLGraphicsSurface, $"Window must implement {nameof(IOpenGLGraphicsSurface)}.");
                     break;
 

@@ -8,6 +8,7 @@ using osu.Framework.Graphics.OpenGLCore.Batches;
 using osu.Framework.Graphics.OpenGLCore.Shaders;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
@@ -17,6 +18,14 @@ namespace osu.Framework.Graphics.OpenGLCore
     internal class GLCoreRenderer : GLRenderer
     {
         private int lastBoundVertexArray;
+
+        protected override void Initialise(IGraphicsSurface graphicsSurface)
+        {
+            if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
+                throw new InvalidOperationException($"{nameof(GLCoreRenderer)} only supports the OpenGL core profile.");
+
+            base.Initialise(graphicsSurface);
+        }
 
 #pragma warning disable CS0618
         protected override string GetExtensions()
