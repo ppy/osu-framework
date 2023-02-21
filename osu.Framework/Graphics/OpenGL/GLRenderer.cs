@@ -374,6 +374,9 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
+        public override IUniformBuffer<TData> CreateUniformBuffer<TData>()
+            => new GLUniformBuffer<TData>(this);
+
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)
         {

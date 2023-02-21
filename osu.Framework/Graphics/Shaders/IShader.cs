@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -40,5 +41,12 @@ namespace osu.Framework.Graphics.Shaders
         /// <returns>The retrieved uniform.</returns>
         Uniform<T> GetUniform<T>(string name)
             where T : unmanaged, IEquatable<T>;
+
+        /// <summary>
+        /// Assigns an <see cref="IUniformBuffer"/> as the binding for the uniform block of the given name.
+        /// </summary>
+        /// <param name="blockName">The uniform block name.</param>
+        /// <param name="buffer">The buffer to assign to the block.</param>
+        void AssignUniformBlock(string blockName, IUniformBuffer buffer);
     }
 }
