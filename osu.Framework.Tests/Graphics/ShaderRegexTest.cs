@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using osu.Framework.Graphics.OpenGL.Shaders;
 
@@ -12,8 +11,6 @@ namespace osu.Framework.Tests.Graphics
     [TestFixture]
     public class ShaderRegexTest
     {
-        private readonly Regex shaderAttributeRegex = new Regex(GLShaderPart.SHADER_ATTRIBUTE_PATTERN);
-
         [Test]
         public void TestComment()
         {
@@ -31,27 +28,27 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestValidAttribute()
         {
-            const string test_string = "attribute lowp float name;";
+            const string test_string = "IN(0) lowp float name;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestSpacedAttribute()
         {
-            const string test_string = "    attribute    float    name   ;";
+            const string test_string = "    IN(0)    float    name   ;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestNoPrecisionQualifier()
         {
-            const string test_string = "attribute float name;";
+            const string test_string = "IN(0) float name;";
             performValidAttributeTest(test_string);
         }
 
         private void performValidAttributeTest(string testString)
         {
-            var match = shaderAttributeRegex.Match(testString);
+            var match = GLShaderPart.VERTEX_SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsTrue(match.Success);
             Assert.AreEqual("name", match.Groups[1].Value.Trim());
@@ -59,7 +56,7 @@ namespace osu.Framework.Tests.Graphics
 
         private void performInvalidAttributeTest(string testString)
         {
-            var match = shaderAttributeRegex.Match(testString);
+            var match = GLShaderPart.VERTEX_SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsFalse(match.Success);
         }

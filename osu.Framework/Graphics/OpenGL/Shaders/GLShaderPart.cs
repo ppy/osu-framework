@@ -15,8 +15,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShaderPart : IShaderPart
     {
-        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>IN\\(\\s*-?\\d+\\s*\\))\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
-        private static Regex fragmentShaderOutputPattern = new Regex(@"^\s*(?>OUT\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)", RegexOptions.Multiline);
+        public static readonly Regex VERTEX_SHADER_INPUT_PATTERN = new Regex(@"^\s*(?>IN\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)");
+        private static readonly Regex fragment_shader_output_pattern = new Regex(@"^\s*(?>OUT\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)", RegexOptions.Multiline);
+        private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
@@ -36,9 +37,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private int lastShaderInputIndex;
 
         private readonly List<string> shaderCodes = new List<string>();
-
-        private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
 
         private readonly ShaderManager manager;
 
@@ -91,7 +89,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         continue;
                     }
 
-                    Match includeMatch = includeRegex.Match(line);
+                    Match includeMatch = include_pattern.Match(line);
 
                     if (includeMatch.Success)
                     {
@@ -109,7 +107,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
                     {
-                        Match inputMatch = shaderInputRegex.Match(line);
+                        Match inputMatch = VERTEX_SHADER_INPUT_PATTERN.Match(line);
 
                         if (inputMatch.Success)
                         {
@@ -153,7 +151,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                         if (!string.IsNullOrEmpty(outputCode))
                         {
-                            string tempVar = fragmentShaderOutputPattern.Match(code).Groups[1].Value;
+                            string tempVar = fragment_shader_output_pattern.Match(code).Groups[1].Value;
                             string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
                             outputCode = outputCode.Replace("{{ real_main }}", realMainName);
