@@ -1,10 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGLCore.Batches;
+using osu.Framework.Graphics.OpenGLCore.Shaders;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
@@ -45,6 +48,27 @@ namespace osu.Framework.Graphics.OpenGLCore
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
             return true;
+        }
+
+        protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        {
+            ShaderType glType;
+
+            switch (partType)
+            {
+                case ShaderPartType.Fragment:
+                    glType = ShaderType.FragmentShader;
+                    break;
+
+                case ShaderPartType.Vertex:
+                    glType = ShaderType.VertexShader;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unsupported shader part type: {partType}", nameof(partType));
+            }
+
+            return new GLCoreShaderPart(this, name, rawData, glType, manager);
         }
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)

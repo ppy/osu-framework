@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShaderPart : IShaderPart
     {
-        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
+        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>IN\\(\\s*-?\\d+\\s*\\))\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
@@ -25,6 +25,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         internal bool Compiled;
 
         internal ShaderType Type;
+
+        protected virtual string InternalResourceNamespace => "GL";
 
         private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
 
@@ -112,13 +114,22 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
+                    string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Precision.h"), false) + "\n";
+
+                    internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_Compatibility.h"), false) + "\n";
+
+                    if (isVertexShader)
+                        internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_VertexShader.h"), false) + "\n";
+                    else
+                        internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_FragmentShader.h"), false) + "\n";
+
+                    code = internalIncludes + code;
 
                     if (isVertexShader)
                     {
                         string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+                        string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Backbuffer.h"), false);
 
                         backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
                         code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
