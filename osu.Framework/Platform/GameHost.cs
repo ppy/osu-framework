@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -172,7 +171,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Creates the game window for the host. Should be implemented per-platform if required.
         /// </summary>
-        protected virtual IWindow CreateWindow() => null;
+        protected virtual IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
 
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
@@ -503,7 +502,7 @@ namespace osu.Framework.Platform
                 else
                 {
                     // Disable depth testing
-                    Renderer.PushDepthInfo(new DepthInfo());
+                    Renderer.PushDepthInfo(new DepthInfo(false, false));
                 }
 
                 // Back pass
@@ -514,9 +513,9 @@ namespace osu.Framework.Platform
                 Renderer.FinishFrame();
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                {
                     Swap();
-                }
+
+                Window.OnDraw();
             }
             finally
             {
@@ -529,12 +528,12 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            Window.SwapBuffers();
+            Renderer.SwapBuffers();
 
-            if (Window.VerticalSync)
-                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
+                // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
-                GL.Finish();
+                Renderer.WaitUntilIdle();
         }
 
         /// <summary>
@@ -553,10 +552,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is SDL2DesktopWindow win)
-                        win.MakeCurrent();
-                    else if (GraphicsContext.CurrentContext == null)
-                        throw new GraphicsContextMissingException();
+                    Renderer.MakeCurrent();
 
                     GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
@@ -659,7 +655,11 @@ namespace osu.Framework.Platform
                 Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
             }
 
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            if (RuntimeInfo.IsDesktop)
+            {
+                // Mono (netcore) throws for this property
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            }
 
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
@@ -703,7 +703,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow();
+                Window = CreateWindow(GraphicsSurfaceType.OpenGL);
 
                 populateInputHandlers();
 
@@ -717,6 +717,8 @@ namespace osu.Framework.Platform
 
                     Window.Create();
                     Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    Renderer.Initialise(Window.GraphicsSurface);
 
                     currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
                     currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
@@ -1101,7 +1103,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
+            DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         /// <summary>

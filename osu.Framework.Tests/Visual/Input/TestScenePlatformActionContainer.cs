@@ -17,7 +17,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestScenePlatformActionContainer : FrameworkTestScene
+    public partial class TestScenePlatformActionContainer : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load()
@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
         }
 
-        private class TestPlatformActionHandler : CompositeDrawable
+        private partial class TestPlatformActionHandler : CompositeDrawable
         {
             [BackgroundDependencyLoader]
             private void load()
@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class PlatformBindingBox : CompositeDrawable, IKeyBindingHandler<PlatformAction>
+        private partial class PlatformBindingBox : CompositeDrawable, IKeyBindingHandler<PlatformAction>
         {
             private readonly PlatformAction platformAction;
 

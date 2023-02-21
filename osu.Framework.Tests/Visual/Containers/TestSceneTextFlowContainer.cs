@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneTextFlowContainer : FrameworkTestScene
+    public partial class TestSceneTextFlowContainer : FrameworkTestScene
     {
         private const string default_text = "Default text\n\nnewline";
 

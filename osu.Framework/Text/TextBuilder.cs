@@ -165,28 +165,38 @@ namespace osu.Framework.Text
             currentPos.X += kerning;
 
             glyph.DrawRectangle = new RectangleF(new Vector2(currentPos.X + glyph.XOffset, currentPos.Y + glyph.YOffset), new Vector2(glyph.Width, glyph.Height));
+            glyph.LinePosition = currentPos.Y;
             glyph.OnNewLine = currentNewLine;
 
-            if (glyph.Baseline > currentLineBase)
+            if (!glyph.IsWhiteSpace())
             {
-                for (int i = Characters.Count - 1; i >= 0; --i)
+                if (glyph.Baseline > currentLineBase)
                 {
-                    var previous = Characters[i];
-                    previous.DrawRectangle = previous.DrawRectangle.Offset(0, glyph.Baseline - currentLineBase.Value);
-                    Characters[i] = previous;
+                    for (int i = Characters.Count - 1; i >= 0; --i)
+                    {
+                        var previous = Characters[i];
+                        previous.DrawRectangle = previous.DrawRectangle.Offset(0, glyph.Baseline - currentLineBase.Value);
+                        Characters[i] = previous;
 
-                    if (previous.OnNewLine)
-                        break;
+                        currentLineHeight = Math.Max(currentLineHeight, previous.DrawRectangle.Bottom - previous.LinePosition);
+
+                        if (previous.OnNewLine)
+                            break;
+                    }
                 }
+                else if (glyph.Baseline < currentLineBase)
+                {
+                    glyph.DrawRectangle = glyph.DrawRectangle.Offset(0, currentLineBase.Value - glyph.Baseline);
+                    currentLineHeight = Math.Max(currentLineHeight, glyph.DrawRectangle.Bottom - glyph.LinePosition);
+                }
+
+                currentLineHeight = Math.Max(currentLineHeight, useFontSizeAsHeight ? font.Size : glyph.Height);
+                currentLineBase = currentLineBase == null ? glyph.Baseline : Math.Max(currentLineBase.Value, glyph.Baseline);
             }
-            else if (glyph.Baseline < currentLineBase)
-                glyph.DrawRectangle = glyph.DrawRectangle.Offset(0, currentLineBase.Value - glyph.Baseline);
 
             Characters.Add(glyph);
 
             currentPos.X += glyph.XAdvance;
-            currentLineBase = currentLineBase == null ? glyph.Baseline : Math.Max(currentLineBase.Value, glyph.Baseline);
-            currentLineHeight = Math.Max(currentLineHeight, getGlyphHeight(ref glyph));
             currentNewLine = false;
 
             Bounds = Vector2.ComponentMax(Bounds, currentPos + new Vector2(0, currentLineHeight));
@@ -238,38 +248,31 @@ namespace osu.Framework.Text
             float? lastLineBase = currentLineBase;
 
             currentLineBase = null;
-            currentLineHeight = 0;
+            currentLineHeight = useFontSizeAsHeight ? font.Size : 0;
 
             // This is O(n^2) for removing all characters within a line, but is generally not used in such a case
             for (int i = Characters.Count - 1; i >= 0; i--)
             {
                 var character = Characters[i];
 
-                currentLineBase = currentLineBase == null ? character.Baseline : Math.Max(currentLineBase.Value, character.Baseline);
-                currentLineHeight = Math.Max(currentLineHeight, getGlyphHeight(ref character));
+                if (!character.IsWhiteSpace())
+                {
+                    currentLineBase = currentLineBase == null ? character.Baseline : Math.Max(currentLineBase.Value, character.Baseline);
+                    currentLineHeight = Math.Max(currentLineHeight, character.DrawRectangle.Bottom - character.LinePosition);
+                }
 
                 if (character.OnNewLine)
                     break;
             }
 
-            if (removedCharacter.OnNewLine)
+            if (removedCharacter.OnNewLine && previousCharacter != null)
             {
                 // Move up to the previous line
-                currentPos.Y -= currentLineHeight;
+                currentPos.Y = previousCharacter.Value.LinePosition;
 
-                // If this is the first line (ie. there are no characters remaining) we shouldn't be removing the spacing,
-                // as there is no spacing applied to the first line.
-                if (Characters.Count > 0)
-                    currentPos.Y -= spacing.Y;
-
-                currentPos.X = 0;
-
-                if (previousCharacter != null)
-                {
-                    // The character's draw rectangle is the only marker that keeps a constant state for the position, but it has the glyph's XOffset added into it
-                    // So the post-kerned position can be retrieved by taking the XOffset away, and the post-XAdvanced position is retrieved by adding the XAdvance back in
-                    currentPos.X = previousCharacter.Value.DrawRectangle.Left - previousCharacter.Value.XOffset + previousCharacter.Value.XAdvance;
-                }
+                // The character's draw rectangle is the only marker that keeps a constant state for the position, but it has the glyph's XOffset added into it
+                // So the post-kerned position can be retrieved by taking the XOffset away, and the post-XAdvanced position is retrieved by adding the XAdvance back in
+                currentPos.X = previousCharacter.Value.DrawRectangle.Left - previousCharacter.Value.XOffset + previousCharacter.Value.XAdvance;
             }
             else
             {
@@ -296,15 +299,13 @@ namespace osu.Framework.Text
 
             Bounds = Vector2.Zero;
 
-            for (int i = 0; i < Characters.Count; i++)
+            foreach (var character in Characters)
             {
+                float characterRightBound = character.DrawRectangle.Left - character.XOffset + character.XAdvance;
+                float characterBottomBound = useFontSizeAsHeight ? character.LinePosition + font.Size : character.DrawRectangle.Bottom;
+
                 // As above, the bounds are calculated through the character draw rectangles
-                Bounds = Vector2.ComponentMax(
-                    Bounds,
-                    new Vector2(
-                        Characters[i].DrawRectangle.Left - Characters[i].XOffset + Characters[i].XAdvance,
-                        Characters[i].DrawRectangle.Top - Characters[i].YOffset + currentLineHeight)
-                );
+                Bounds = Vector2.ComponentMax(Bounds, new Vector2(characterRightBound, characterBottomBound));
             }
 
             // The new line is removed when the first character on the line is removed, thus the current position is never on a new line
@@ -329,25 +330,6 @@ namespace osu.Framework.Text
         /// <param name="length">The space requested.</param>
         protected virtual bool HasAvailableSpace(float length) => currentPos.X + length <= maxWidth;
 
-        /// <summary>
-        /// Retrieves the height of a glyph.
-        /// </summary>
-        /// <param name="glyph">The glyph to retrieve the height of.</param>
-        /// <returns>The height of the glyph.</returns>
-        private float getGlyphHeight<T>(ref T glyph)
-            where T : ITexturedCharacterGlyph
-        {
-            if (useFontSizeAsHeight)
-                return font.Size;
-
-            // Space characters typically have heights that exceed the height of all other characters in the font
-            // Thus, the height is forced to 0 such that only non-whitespace character heights are considered
-            if (glyph.IsWhiteSpace())
-                return 0;
-
-            return glyph.YOffset + glyph.Height;
-        }
-
         private readonly Cached<float> constantWidthCache = new Cached<float>();
 
         private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph(fixedWidthReferenceCharacter)?.Width ?? 0;
@@ -364,9 +346,9 @@ namespace osu.Framework.Text
 
             // Array.IndexOf is used to avoid LINQ
             if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
-                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth());
+                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth(), useFontSizeAsHeight);
             else
-                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size);
+                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, useFontSizeAsHeight: useFontSizeAsHeight);
 
             return true;
         }

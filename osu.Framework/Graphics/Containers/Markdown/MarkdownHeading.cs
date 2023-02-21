@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
@@ -17,7 +15,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// ## H2
     /// ### H3
     /// </code>
-    public class MarkdownHeading : CompositeDrawable, IMarkdownTextFlowComponent
+    public partial class MarkdownHeading : CompositeDrawable, IMarkdownTextFlowComponent
     {
         private readonly HeadingBlock headingBlock;
 
@@ -64,7 +62,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        private class MarkdownHeadingTextFlowContainer : MarkdownTextFlowContainer
+        private partial class MarkdownHeadingTextFlowContainer : MarkdownTextFlowContainer
         {
             public float FontSize;
 

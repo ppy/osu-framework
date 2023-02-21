@@ -2,11 +2,11 @@ using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Tests.Visual
 {
-    public class FlappyDonTestScene : TestScene
+    public partial class FlappyDonTestScene : TestScene
     {
         protected override ITestSceneTestRunner CreateRunner() => new FlappyDonTestSceneTestRunner();
 
-        private class FlappyDonTestSceneTestRunner : FlappyDonGameBase, ITestSceneTestRunner
+        private partial class FlappyDonTestSceneTestRunner : FlappyDonGameBase, ITestSceneTestRunner
         {
             private TestSceneTestRunner.TestRunner runner;
 

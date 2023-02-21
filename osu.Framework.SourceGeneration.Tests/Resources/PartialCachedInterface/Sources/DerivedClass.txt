@@ -1,0 +1,8 @@
+public partial class DerivedClass : DefaultParameters, IDerivedClass
+{
+}
+
+[osu.Framework.Allocation.Cached]
+public interface IDerivedClass
+{
+}

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
@@ -586,9 +587,9 @@ namespace osu.Framework.Bindables
         /// <param name="them">The <see cref="BindableList{T}"/> to be bound to.</param>
         public void BindTo(BindableList<T> them)
         {
-            if (them == null)
-                throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) == true)
+            ArgumentNullException.ThrowIfNull(them);
+
+            if (bindings?.Contains(them.weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
@@ -655,5 +656,7 @@ namespace osu.Framework.Bindables
         }
 
         public bool IsDefault => Count == 0;
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }

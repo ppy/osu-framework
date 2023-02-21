@@ -15,7 +15,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class KeyboardInputTest : ManualInputManagerTestScene
+    public partial class KeyboardInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that if the hierarchy is changed while a key is held, the <see cref="Drawable.OnKeyUp"/> event is
@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.Input
             AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
         }
 
-        private class InputReceptor : Box
+        private partial class InputReceptor : Box
         {
             public bool DownReceived { get; set; }
             public bool UpReceived { get; set; }

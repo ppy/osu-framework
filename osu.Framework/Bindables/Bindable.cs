@@ -181,6 +181,17 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// Copies all values and value limitations of this bindable to another.
+        /// </summary>
+        /// <param name="them">The target to copy to.</param>
+        public virtual void CopyTo(Bindable<T> them)
+        {
+            them.Value = Value;
+            them.Default = Default;
+            them.Disabled = Disabled;
+        }
+
+        /// <summary>
         /// Binds this bindable to another such that bi-directional updates are propagated.
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
@@ -188,12 +199,10 @@ namespace osu.Framework.Bindables
         /// <exception cref="InvalidOperationException">Thrown when attempting to bind to an already bound object.</exception>
         public virtual void BindTo(Bindable<T> them)
         {
-            if (Bindings?.Contains(them) == true)
-                throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
+            if (Bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound bindable cannot be bound again.");
 
-            Value = them.Value;
-            Default = them.Default;
-            Disabled = them.Disabled;
+            them.CopyTo(this);
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
@@ -380,16 +389,18 @@ namespace osu.Framework.Bindables
 
         public string Description { get; set; }
 
-        public override string ToString() => value?.ToString() ?? string.Empty;
+        public sealed override string ToString() => ToString(null, CultureInfo.CurrentCulture);
+
+        public virtual string ToString(string format, IFormatProvider formatProvider) => string.Format(formatProvider, $"{{0:{format}}}", Value);
 
         /// <summary>
         /// Create an unbound clone of this bindable.
         /// </summary>
         public Bindable<T> GetUnboundCopy()
         {
-            var clone = GetBoundCopy();
-            clone.UnbindAll();
-            return clone;
+            var newBindable = CreateInstance();
+            CopyTo(newBindable);
+            return newBindable;
         }
 
         IBindable IBindable.CreateInstance() => CreateInstance();

@@ -1,0 +1,11 @@
+public partial class DefaultParameters : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Resolved]
+    public object ResolvedProperty1 { get; private set; }
+}
+
+public partial class DefaultParameters : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Resolved]
+    public object ResolvedProperty2 { get; private set; }
+}

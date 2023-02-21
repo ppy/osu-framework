@@ -20,7 +20,7 @@ namespace osu.Framework.Testing
     /// <summary>
     /// An abstract test case which is tested with manual input management.
     /// </summary>
-    public abstract class ManualInputManagerTestScene : TestScene
+    public abstract partial class ManualInputManagerTestScene : TestScene
     {
         protected override Container<Drawable> Content { get; } = new Container { RelativeSizeAxes = Axes.Both };
 

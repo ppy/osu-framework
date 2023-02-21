@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneModelBackedDrawableWithUnloading : FrameworkTestScene
+    public partial class TestSceneModelBackedDrawableWithUnloading : FrameworkTestScene
     {
         private TestUnloadingModelBackedDrawable backedDrawable;
         private Drawable initialDrawable;
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("new drawable alpha = 1", () => backedDrawable.DisplayedDrawable.Alpha == 1);
         }
 
-        private class TestUnloadingModelBackedDrawable : ModelBackedDrawable<int>
+        private partial class TestUnloadingModelBackedDrawable : ModelBackedDrawable<int>
         {
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 

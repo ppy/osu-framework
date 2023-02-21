@@ -13,7 +13,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("changing depth of child dynamically")]
-    public class TestSceneDynamicDepth : FrameworkTestScene
+    public partial class TestSceneDynamicDepth : FrameworkTestScene
     {
         private void addDepthSteps(DepthBox box, Container container)
         {
@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Containers
             addDepthSteps(purple, container);
         }
 
-        private class DepthBox : Container
+        private partial class DepthBox : Container
         {
             private readonly SpriteText depthText;
 

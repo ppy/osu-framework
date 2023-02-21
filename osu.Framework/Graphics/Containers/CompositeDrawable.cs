@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal Task LoadComponentAsync<TLoadable>([NotNull] TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
-            if (component == null) throw new ArgumentNullException(nameof(component));
+            ArgumentNullException.ThrowIfNull(component);
 
             return LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
         }
@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.Containers
         {
             hasCustomDrawNode = GetType().GetMethod(nameof(CreateDrawNode))?.DeclaringType != typeof(CompositeDrawable);
 
-            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -282,7 +282,7 @@ namespace osu.Framework.Graphics.Containers
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children added.");
+                    return;
 
                 child.Load(Clock, Dependencies, false);
 
@@ -367,7 +367,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed drawables may not have children set.");
+                    return;
 
                 ClearInternal();
                 AddInternal(value);
@@ -394,8 +394,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
         protected virtual int Compare(Drawable x, Drawable y)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-            if (y == null) throw new ArgumentNullException(nameof(y));
+            ArgumentNullException.ThrowIfNull(x);
+            ArgumentNullException.ThrowIfNull(y);
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
@@ -411,8 +411,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
         protected int CompareReverseChildID(Drawable x, Drawable y)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-            if (y == null) throw new ArgumentNullException(nameof(y));
+            ArgumentNullException.ThrowIfNull(x);
+            ArgumentNullException.ThrowIfNull(y);
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 ClearInternal();
                 AddRangeInternal(value);
@@ -492,8 +492,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 EnsureChildMutationAllowed();
 
-                if (drawable == null)
-                    throw new ArgumentNullException(nameof(drawable));
+                ArgumentNullException.ThrowIfNull(drawable);
 
                 int index = IndexOfInternal(drawable);
                 if (index < 0)
@@ -537,7 +536,7 @@ namespace osu.Framework.Graphics.Containers
             EnsureChildMutationAllowed();
 
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Children cannot be cleared on a disposed drawable.");
+                return;
 
             if (internalChildren.Count == 0) return;
 
@@ -573,12 +572,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
-        protected internal virtual void AddInternal(Drawable drawable)
+        protected virtual void AddInternal(Drawable drawable)
         {
             EnsureChildMutationAllowed();
 
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                return;
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");

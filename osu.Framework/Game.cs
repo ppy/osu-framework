@@ -26,7 +26,7 @@ using osuTK;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
+    public abstract partial class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -66,6 +66,8 @@ namespace osu.Framework
 
         private readonly Container content;
 
+        private readonly Container overlayContent;
+
         private DrawVisualiser drawVisualiser;
 
         private TextureVisualiser textureVisualiser;
@@ -104,16 +106,21 @@ namespace osu.Framework
         {
             RelativeSizeAxes = Axes.Both;
 
-            AddRangeInternal(new Drawable[]
+            base.AddInternal(content = new Container
             {
-                content = new Container
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+            });
+
+            base.AddInternal(overlayContent = new DrawSizePreservingFillContainer
+            {
+                TargetDrawSize = new Vector2(1280, 960),
+                RelativeSizeAxes = Axes.Both,
             });
         }
+
+        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
 
         /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
@@ -193,7 +200,7 @@ namespace osu.Framework
             dependencies.Cache(Fonts);
 
             Localisation = CreateLocalisationManager(config);
-            dependencies.Cache(Localisation);
+            dependencies.CacheAs(Localisation);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
@@ -209,7 +216,7 @@ namespace osu.Framework
                         LoadComponentAsync(logOverlay = new LogOverlay
                         {
                             Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
 
                     logOverlay.Show();
@@ -249,7 +256,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, AddInternal);
+            }, overlayContent.Add);
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
         }
@@ -263,6 +270,8 @@ namespace osu.Framework
         private Bindable<FrameSync> frameSyncMode;
 
         private Bindable<ExecutionMode> executionMode;
+
+        private float currentOverlayDepth;
 
         public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
@@ -296,12 +305,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
+                            State = { Value = Visibility.Visible },
+                            Depth = getNextFrontMostOverlayDepth(),
                             ToolPosition = getCascadeLocation(0),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(drawVisualiser);
 
-                    drawVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleGlobalStatistics:
@@ -310,12 +321,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
                         {
-                            Depth = float.MinValue / 2,
+                            State = { Value = Visibility.Visible },
                             Position = getCascadeLocation(1),
-                        }, AddInternal);
+                            Depth = getNextFrontMostOverlayDepth(),
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(globalStatistics);
 
-                    globalStatistics.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleAtlasVisualiser:
@@ -324,12 +337,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(textureVisualiser = new TextureVisualiser
                         {
+                            State = { Value = Visibility.Visible },
                             Position = getCascadeLocation(2),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
+                            Depth = getNextFrontMostOverlayDepth(),
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(textureVisualiser);
 
-                    textureVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleAudioMixerVisualiser:
@@ -337,12 +352,14 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
                         {
+                            State = { Value = Visibility.Visible },
                             Position = getCascadeLocation(3),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
+                            Depth = getNextFrontMostOverlayDepth(),
+                        }, overlayContent.Add);
                     }
+                    else
+                        toggleOverlay(audioMixerVisualiser);
 
-                    audioMixerVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
@@ -377,6 +394,16 @@ namespace osu.Framework
             static Vector2 getCascadeLocation(int index)
                 => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
+
+        private void toggleOverlay(OverlayContainer overlay)
+        {
+            overlay.ToggleVisibility();
+
+            if (overlay.State.Value == Visibility.Visible)
+                overlayContent.ChangeChildDepth(overlay, getNextFrontMostOverlayDepth());
+        }
+
+        private float getNextFrontMostOverlayDepth() => currentOverlayDepth -= 0.01f;
 
         public void OnReleased(KeyBindingReleaseEvent<FrameworkAction> e)
         {

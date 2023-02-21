@@ -43,7 +43,6 @@ namespace osu.Framework.Graphics.Sprites
         private ILocalisedBindableString localisedText;
 
         public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
 
         public SpriteText()
         {
@@ -68,7 +67,6 @@ namespace osu.Framework.Graphics.Sprites
             localisedText = localisation.GetLocalisedBindableString(text);
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (char character in localisedText.Value)

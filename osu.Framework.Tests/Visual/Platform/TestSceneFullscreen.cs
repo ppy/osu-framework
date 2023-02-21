@@ -22,7 +22,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneFullscreen : FrameworkTestScene
+    public partial class TestSceneFullscreen : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();

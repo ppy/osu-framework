@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Lists;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
@@ -31,6 +32,8 @@ namespace osu.Framework.Graphics.Rendering
         /// VBOs may remain unused for at most double this length before they are recycled.
         /// </summary>
         private const int vbo_free_check_interval = 300;
+
+        protected internal abstract bool VerticalSync { get; set; }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
@@ -56,6 +59,8 @@ namespace osu.Framework.Graphics.Rendering
         public float BackbufferDrawDepth { get; private set; }
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
+
+        public bool IsInitialised { get; private set; }
 
         protected ClearInfo CurrentClearInfo { get; private set; }
         protected BlendingParameters CurrentBlendingParameters { get; private set; }
@@ -111,8 +116,18 @@ namespace osu.Framework.Graphics.Rendering
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
-        private bool isInitialised;
         private int lastActiveTextureUnit;
+
+        private static readonly GlobalStatistic<int>[] flush_source_statistics;
+
+        static Renderer()
+        {
+            var sources = Enum.GetValues<FlushBatchSource>();
+
+            flush_source_statistics = new GlobalStatistic<int>[sources.Length];
+            foreach (FlushBatchSource source in sources)
+                flush_source_statistics[(int)source] = GlobalStatistics.Get<int>(nameof(FlushBatchSource), source.ToString());
+        }
 
         protected Renderer()
         {
@@ -125,14 +140,25 @@ namespace osu.Framework.Graphics.Rendering
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
         }
 
-        void IRenderer.Initialise()
+        void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
-            Initialise();
+            switch (graphicsSurface.Type)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                    Trace.Assert(graphicsSurface is IOpenGLGraphicsSurface, $"Window must implement {nameof(IOpenGLGraphicsSurface)}.");
+                    break;
+
+                case GraphicsSurfaceType.Metal:
+                    Trace.Assert(graphicsSurface is IMetalGraphicsSurface, $"Window graphics API must implement {nameof(IMetalGraphicsSurface)}.");
+                    break;
+            }
+
+            Initialise(graphicsSurface);
 
             defaultQuadBatch = CreateQuadBatch<TexturedVertex2D>(100, 1000);
             resetScheduler.AddDelayed(disposalQueue.CheckPendingDisposals, 0, true);
 
-            isInitialised = true;
+            IsInitialised = true;
         }
 
         /// <summary>
@@ -141,6 +167,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="windowSize">The full window size.</param>
         protected internal virtual void BeginFrame(Vector2 windowSize)
         {
+            foreach (var source in flush_source_statistics)
+                source.Value = 0;
+
             Debug.Assert(defaultQuadBatch != null);
 
             ResetId++;
@@ -245,18 +274,18 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         protected internal virtual void FinishFrame()
         {
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.FinishFrame);
         }
 
         public void ScheduleExpensiveOperation(ScheduledDelegate operation)
         {
-            if (isInitialised)
+            if (IsInitialised)
                 expensiveOperationQueue.Enqueue(operation);
         }
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
-            if (isInitialised)
+            if (IsInitialised)
                 disposalQueue.ScheduleDisposal(disposalAction, target);
             else
                 disposalAction.Invoke(target);
@@ -272,7 +301,32 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
         /// </summary>
-        protected abstract void Initialise();
+        protected abstract void Initialise(IGraphicsSurface graphicsSurface);
+
+        /// <summary>
+        /// Swaps the back buffer with the front buffer to display the new frame.
+        /// </summary>
+        protected internal abstract void SwapBuffers();
+
+        /// <summary>
+        /// Waits until all renderer commands have been fully executed GPU-side, as signaled by the graphics backend.
+        /// </summary>
+        /// <remarks>
+        /// This is equivalent to a <c>glFinish</c> call.
+        /// </remarks>
+        protected internal abstract void WaitUntilIdle();
+
+        /// <summary>
+        /// Invoked when the rendering thread is active and commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal abstract void MakeCurrent();
+
+        /// <summary>
+        /// Invoked when the rendering thread is suspended and no more commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal abstract void ClearCurrent();
 
         #region Clear
 
@@ -304,7 +358,7 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentBlendingParameters == blendingParameters)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetBlend);
             SetBlendImplementation(blendingParameters);
 
             CurrentBlendingParameters = blendingParameters;
@@ -315,7 +369,7 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentBlendingMask == blendingMask)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetBlendMask);
             SetBlendMaskImplementation(blendingMask);
 
             CurrentBlendingMask = blendingMask;
@@ -447,7 +501,7 @@ namespace osu.Framework.Graphics.Rendering
             if (Scissor == scissor)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetScissor);
             SetScissorImplementation(scissor);
             Scissor = scissor;
         }
@@ -457,7 +511,7 @@ namespace osu.Framework.Graphics.Rendering
             if (enabled == ScissorState)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetScissor);
             SetScissorStateImplementation(enabled);
             ScissorState = enabled;
         }
@@ -467,7 +521,7 @@ namespace osu.Framework.Graphics.Rendering
             if (ScissorOffset == offset)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetScissor);
             ScissorOffset = offset;
         }
 
@@ -506,7 +560,7 @@ namespace osu.Framework.Graphics.Rendering
             if (ProjectionMatrix == matrix)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetProjection);
 
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, matrix);
             ProjectionMatrix = matrix;
@@ -535,7 +589,9 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetMasking);
+
+            GlobalPropertyManager.Set(GlobalProperty.IsMasking, IsMaskingActive);
 
             GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
                 maskingInfo.MaskingRect.Left,
@@ -644,7 +700,7 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentDepthInfo.Equals(depthInfo))
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetDepthInfo);
             SetDepthInfoImplementation(depthInfo);
 
             CurrentDepthInfo = depthInfo;
@@ -655,7 +711,7 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentStencilInfo.Equals(stencilInfo))
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetStencilInfo);
             SetStencilInfoImplementation(stencilInfo);
 
             CurrentStencilInfo = stencilInfo;
@@ -704,7 +760,7 @@ namespace osu.Framework.Graphics.Rendering
 
             batchResetList.Add(batch);
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetActiveBatch);
 
             currentActiveBatch = batch;
         }
@@ -712,9 +768,11 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Flushes the currently active vertex batch.
         /// </summary>
-        protected void FlushCurrentBatch()
+        /// <param name="source">The source performing the flush, for profiling purposes.</param>
+        protected void FlushCurrentBatch(FlushBatchSource? source)
         {
-            currentActiveBatch?.Draw();
+            if (currentActiveBatch?.Draw() > 0 && source != null)
+                flush_source_statistics[(int)source].Value++;
         }
 
         private void freeUnusedVertexBuffers()
@@ -767,7 +825,7 @@ namespace osu.Framework.Graphics.Rendering
             if (lastActiveTextureUnit == unit && lastBoundTexture[unit] == texture)
                 return true;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.BindTexture);
 
             if (!SetTextureImplementation(texture, unit))
                 return false;
@@ -805,7 +863,7 @@ namespace osu.Framework.Graphics.Rendering
             if (lastBoundTexture[unit] == null)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.UnbindTexture);
             SetTextureImplementation(null, unit);
 
             lastBoundTexture[unit] = null;
@@ -818,7 +876,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="texture">The texture to be uploaded.</param>
         internal void EnqueueTextureUpload(INativeTexture texture)
         {
-            if (!isInitialised || textureUploadQueue.Contains(texture))
+            if (!IsInitialised || textureUploadQueue.Contains(texture))
                 return;
 
             textureUploadQueue.Enqueue(texture);
@@ -856,7 +914,7 @@ namespace osu.Framework.Graphics.Rendering
             if (frameBuffer == FrameBuffer && !force)
                 return;
 
-            FlushCurrentBatch();
+            FlushCurrentBatch(FlushBatchSource.SetFrameBuffer);
 
             SetFrameBufferImplementation(frameBuffer);
             GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
@@ -905,7 +963,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
 
-                FlushCurrentBatch();
+                FlushCurrentBatch(FlushBatchSource.SetShader);
                 SetShaderImplementation(shader);
 
                 // importantly, when a shader is unbound, it remains bound in the implementation.
@@ -918,7 +976,7 @@ namespace osu.Framework.Graphics.Rendering
             where T : unmanaged, IEquatable<T>
         {
             if (uniform.Owner == Shader)
-                FlushCurrentBatch();
+                FlushCurrentBatch(FlushBatchSource.SetUniform);
 
             SetUniformImplementation(uniform);
         }
@@ -999,9 +1057,19 @@ namespace osu.Framework.Graphics.Rendering
 
         #region IRenderer explicit implementation
 
+        bool IRenderer.VerticalSync
+        {
+            get => VerticalSync;
+            set => VerticalSync = value;
+        }
+
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
+        void IRenderer.SwapBuffers() => SwapBuffers();
+        void IRenderer.WaitUntilIdle() => WaitUntilIdle();
+        void IRenderer.MakeCurrent() => MakeCurrent();
+        void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
         void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);

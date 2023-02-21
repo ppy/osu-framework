@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
@@ -96,6 +94,29 @@ namespace osu.Framework.Graphics.Colour
         public readonly SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
+
+        /// <summary>
+        /// Interpolates this <see cref="ColourInfo"/> across a quad.
+        /// </summary>
+        /// <remarks>
+        /// This method is especially useful when working with multi-colour <see cref="ColourInfo"/>s.
+        /// When such a colour is interpolated across a quad that is a subset of the unit quad (0, 0, 1, 1),
+        /// the resulting colour can be thought of as the the original colour but "cropped" to the bounds of the subquad.
+        /// </remarks>
+        public readonly ColourInfo Interpolate(Quad quad)
+        {
+            if (HasSingleColour)
+                return this;
+
+            return new ColourInfo
+            {
+                TopLeft = Interpolate(quad.TopLeft),
+                TopRight = Interpolate(quad.TopRight),
+                BottomLeft = Interpolate(quad.BottomLeft),
+                BottomRight = Interpolate(quad.BottomRight),
+                HasSingleColour = false
+            };
+        }
 
         public void ApplyChild(ColourInfo childColour)
         {

@@ -13,14 +13,14 @@ namespace osu.Framework.Physics
     /// <summary>
     /// Applies rigid body simulation to all children.
     /// </summary>
-    public class RigidBodySimulation : RigidBodySimulation<Drawable>
+    public partial class RigidBodySimulation : RigidBodySimulation<Drawable>
     {
     }
 
     /// <summary>
     /// Applies rigid body simulation to all children.
     /// </summary>
-    public class RigidBodySimulation<T> : RigidBodyContainer<RigidBodyContainer<T>>
+    public partial class RigidBodySimulation<T> : RigidBodyContainer<RigidBodyContainer<T>>
         where T : Drawable
     {
         public RigidBodySimulation()

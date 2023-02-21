@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// This is currently used as a marker for cases where nothing more than load, update, lifetime support and hierarchy presence are required.
     /// Eventually this will be fleshed out (and the inheritance will be reversed to Drawable : Component).
     /// </summary>
-    public abstract class CompositeComponent : CompositeDrawable
+    public abstract partial class CompositeComponent : CompositeDrawable
     {
         protected override bool RequiresChildrenUpdate => true;
     }

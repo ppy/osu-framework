@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
+    public partial class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
     {
         public Drawable ActiveCursor { get; protected set; }
 
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Cursor
             Alpha = 0;
         }
 
-        private class Cursor : CircularContainer
+        private partial class Cursor : CircularContainer
         {
             public Cursor()
             {

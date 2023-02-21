@@ -17,7 +17,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("potentially challenging size calculations")]
-    public class TestSceneSizing : FrameworkTestScene
+    public partial class TestSceneSizing : FrameworkTestScene
     {
         private Container testContainer;
 
@@ -1063,7 +1063,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
-        private class NegativeSizingContainer : Container
+        private partial class NegativeSizingContainer : Container
         {
             private const float size = 200;
 
@@ -1117,7 +1117,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
     }
 
-    internal class InfofulBoxAutoSize : Container
+    internal partial class InfofulBoxAutoSize : Container
     {
         protected override Container<Drawable> Content { get; }
 
@@ -1153,7 +1153,7 @@ namespace osu.Framework.Tests.Visual.Containers
         protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
     }
 
-    internal class InfofulBox : Container
+    internal partial class InfofulBox : Container
     {
         public bool AllowDrag = true;
 

@@ -12,7 +12,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class GameExitTest
+    public partial class GameExitTest
     {
         private TestTestGame game;
         private ManualExitHeadlessGameHost host;
@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Platform
             public void RequestExit() => OnExitRequested();
         }
 
-        private class TestTestGame : TestGame
+        private partial class TestTestGame : TestGame
         {
             public readonly ManualResetEventSlim BecameAlive = new ManualResetEventSlim();
             public readonly ManualResetEventSlim ExitRequested = new ManualResetEventSlim();

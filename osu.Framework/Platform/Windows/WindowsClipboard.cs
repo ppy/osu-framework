@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
@@ -66,7 +64,7 @@ namespace osu.Framework.Platform.Windows
 
         private static readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
-        public override string GetText()
+        public override string? GetText()
         {
             return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
         }
@@ -79,7 +77,7 @@ namespace osu.Framework.Platform.Windows
             setClipboard(source, bytes, cf_unicodetext);
         }
 
-        public override Image<TPixel> GetImage<TPixel>()
+        public override Image<TPixel>? GetImage<TPixel>()
         {
             return getClipboard(cf_dib, bytes =>
             {
@@ -165,7 +163,7 @@ namespace osu.Framework.Platform.Windows
             return success;
         }
 
-        private static T getClipboard<T>(uint format, Func<byte[], T> transform)
+        private static T? getClipboard<T>(uint format, Func<byte[], T> transform)
         {
             if (!IsClipboardFormatAvailable(format))
                 return default;

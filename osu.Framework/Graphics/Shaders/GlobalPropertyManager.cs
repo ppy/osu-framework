@@ -17,11 +17,12 @@ namespace osu.Framework.Graphics.Shaders
 
         static GlobalPropertyManager()
         {
-            var values = Enum.GetValues(typeof(GlobalProperty)).OfType<GlobalProperty>().ToArray();
+            var values = Enum.GetValues<GlobalProperty>();
 
             global_properties = new IUniformMapping[values.Length];
 
             global_properties[(int)GlobalProperty.ProjMatrix] = new UniformMapping<Matrix4>("g_ProjMatrix");
+            global_properties[(int)GlobalProperty.IsMasking] = new UniformMapping<bool>("g_IsMasking");
             global_properties[(int)GlobalProperty.MaskingRect] = new UniformMapping<Vector4>("g_MaskingRect");
             global_properties[(int)GlobalProperty.ToMaskingSpace] = new UniformMapping<Matrix3>("g_ToMaskingSpace");
             global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");

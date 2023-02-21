@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
+using System.Runtime.Versioning;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
@@ -20,12 +19,13 @@ namespace osu.Framework.Platform.Windows
     /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     internal unsafe class WindowsMouseHandler : MouseHandler
     {
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL.SDL_WindowsMessageHook callback;
-        private WindowsWindow window;
+        private SDL.SDL_WindowsMessageHook callback = null!;
+        private WindowsWindow window = null!;
 
         public override bool IsActive => Enabled.Value;
 

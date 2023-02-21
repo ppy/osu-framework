@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class HSVColourPicker
     {
-        public abstract class HueSelector : CompositeDrawable
+        public abstract partial class HueSelector : CompositeDrawable
         {
             public Bindable<float> Hue { get; } = new BindableFloat
             {
@@ -94,16 +94,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Hue.Value = localSpacePosition.X / DrawWidth;
             }
 
-            private class HueSelectorBackground : Box, ITexturedShaderDrawable
+            private partial class HueSelectorBackground : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
 
                 [BackgroundDependencyLoader]
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "HueSelectorBackgroundRounded");
                 }
             }
         }

@@ -15,7 +15,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneFocusedOverlayContainer : ManualInputManagerTestScene
+    public partial class TestSceneFocusedOverlayContainer : ManualInputManagerTestScene
     {
         private TestFocusedOverlayContainer overlayContainer;
 
@@ -149,7 +149,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("scroll received by parent", () => parentContainer.ScrollReceived == ++initialScrollCount);
         }
 
-        private class TestFocusedOverlayContainer : FocusedOverlayContainer
+        private partial class TestFocusedOverlayContainer : FocusedOverlayContainer
         {
             protected override bool StartHidden { get; }
 
@@ -217,7 +217,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
     }
 
-    public class ParentContainer : Container
+    public partial class ParentContainer : Container
     {
         public int HoverReceived;
         public int MouseMoveReceived;

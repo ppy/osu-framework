@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneBlending : FrameworkTestScene
+    public partial class TestSceneBlending : FrameworkTestScene
     {
         [Test]
         public void TestBlendSelf()

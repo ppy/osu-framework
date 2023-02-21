@@ -17,7 +17,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class GameHostSuspendTest
+    public partial class GameHostSuspendTest
     {
         private TestTestGame game;
         private HeadlessGameHost host;
@@ -101,7 +101,7 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        private class TestTestGame : TestGame
+        private partial class TestTestGame : TestGame
         {
             public readonly ManualResetEventSlim BecameAlive = new ManualResetEventSlim();
 

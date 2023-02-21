@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
     /// If all children are of a specific non-<see cref="Drawable"/> type, use the
     /// generic version <see cref="Container{T}"/>.
     /// </summary>
-    public class Container : Container<Drawable>
+    public partial class Container : Container<Drawable>
     {
     }
 
@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
+    public partial class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
         /// <summary>
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 Clear();
                 AddRange(value);
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 Clear();
                 Add(value);
@@ -214,8 +214,7 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == Content)
                 throw new InvalidOperationException("Content may not be added to itself.");
 
-            if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable));
+            ArgumentNullException.ThrowIfNull(drawable);
 
             if (drawable.IsDisposed)
                 throw new ObjectDisposedException(nameof(drawable));
@@ -242,7 +241,7 @@ namespace osu.Framework.Graphics.Containers
                 Add(d);
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             if (Content == this && drawable != null && !(drawable is T))
             {
