@@ -74,17 +74,20 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     string line = sr.ReadLine();
 
                     if (string.IsNullOrEmpty(line))
+                    {
+                        code += line + '\n';
                         continue;
+                    }
 
                     if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
-                        shaderCodes.Insert(0, line);
+                        shaderCodes.Insert(0, line + '\n');
                         continue;
                     }
 
                     if (line.StartsWith("#extension", StringComparison.Ordinal))
                     {
-                        shaderCodes.Add(line);
+                        shaderCodes.Add(line + '\n');
                         continue;
                     }
 
@@ -134,24 +137,30 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (isVertexShader)
                     {
-                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
-
                         string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Vertex_Output.h"), false);
 
-                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                        if (!string.IsNullOrEmpty(backbufferCode))
+                        {
+                            string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+
+                            backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                        }
                     }
                     else
                     {
-                        string tempVar = fragmentShaderOutputPattern.Match(code).Groups[1].Value;
-
-                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
                         string outputCode = loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_Fragment_Output.h"), false);
 
-                        outputCode = outputCode.Replace("{{ real_main }}", realMainName);
-                        outputCode = outputCode.Replace("{{ temp_variable }}", tempVar);
+                        if (!string.IsNullOrEmpty(outputCode))
+                        {
+                            string tempVar = fragmentShaderOutputPattern.Match(code).Groups[1].Value;
+                            string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
+                            outputCode = outputCode.Replace("{{ real_main }}", realMainName);
+                            outputCode = outputCode.Replace("{{ temp_variable }}", tempVar);
+
+                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
+                        }
                     }
                 }
 
