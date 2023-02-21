@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
@@ -26,10 +27,17 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
+        private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
+
         /// <summary>
         /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
         /// </summary>
-        private IUniform[] uniformsValues;
+        private List<IUniform> uniformsValues;
+
+        /// <summary>
+        /// Holds all <see cref="uniformBlocks"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
+        /// </summary>
+        private List<GLUniformBlock> uniformBlocksValues;
 
         public bool IsLoaded { get; private set; }
 
@@ -93,6 +101,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             foreach (var uniform in uniformsValues)
                 uniform?.Update();
 
+            foreach (var block in uniformBlocksValues)
+                block?.Bind();
+
             IsBound = true;
         }
 
@@ -116,6 +127,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             return (Uniform<T>)Uniforms[name];
         }
+
+        public void AssignUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
 
         private protected virtual bool CompileInternal()
         {
@@ -141,67 +154,92 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         {
             GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
 
-            uniformsValues = new IUniform[uniformCount];
+            uniformsValues = new List<IUniform>(uniformCount);
+            uniformBlocksValues = new List<GLUniformBlock>(uniformCount);
+
+            int[] uniformIndices = Enumerable.Range(0, uniformCount).ToArray();
+            int[] blockIndices = new int[uniformCount];
+            GL.GetActiveUniforms(this, uniformCount, uniformIndices, ActiveUniformParameter.UniformBlockIndex, blockIndices);
+
+            int blockBindingIndex = 0;
+            int textureIndex = 0;
 
             for (int i = 0; i < uniformCount; i++)
             {
-                GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
+                int blockIndex = blockIndices[i];
+                string uniformName;
 
-                IUniform uniform;
-
-                switch (type)
+                // Block index of -1 indicates a uniform that isn't part of a block and is instead a free-floating uniform.
+                if (blockIndex >= 0)
                 {
-                    case ActiveUniformType.Bool:
-                        uniform = createUniform<bool>(uniformName);
-                        break;
+                    GL.GetActiveUniformBlockName(this, blockIndex, 100, out _, out uniformName);
 
-                    case ActiveUniformType.Float:
-                        uniform = createUniform<float>(uniformName);
-                        break;
-
-                    case ActiveUniformType.Int:
-                        uniform = createUniform<int>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatMat3:
-                        uniform = createUniform<Matrix3>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatMat4:
-                        uniform = createUniform<Matrix4>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatVec2:
-                        uniform = createUniform<Vector2>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatVec3:
-                        uniform = createUniform<Vector3>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatVec4:
-                        uniform = createUniform<Vector4>(uniformName);
-                        break;
-
-                    case ActiveUniformType.Sampler2D:
-                        uniform = createUniform<int>(uniformName);
-                        break;
-
-                    default:
+                    // The block may have been seen before since we're iterating over all uniform members in the composite.
+                    if (uniformBlocks.ContainsKey(uniformName))
                         continue;
-                }
 
-                Uniforms.Add(uniformName, uniform);
-                uniformsValues[i] = uniform;
+                    var block = new GLUniformBlock(this, blockIndex, blockBindingIndex++);
+                    uniformBlocks[uniformName] = block;
+                    uniformBlocksValues.Add(block);
+                }
+                else
+                {
+                    GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out uniformName);
+
+                    IUniform uniform;
+
+                    switch (type)
+                    {
+                        case ActiveUniformType.Bool:
+                            uniform = createUniform<bool>(uniformName);
+                            break;
+
+                        case ActiveUniformType.Float:
+                            uniform = createUniform<float>(uniformName);
+                            break;
+
+                        case ActiveUniformType.Int:
+                            uniform = createUniform<int>(uniformName);
+                            break;
+
+                        case ActiveUniformType.FloatMat3:
+                            uniform = createUniform<Matrix3>(uniformName);
+                            break;
+
+                        case ActiveUniformType.FloatMat4:
+                            uniform = createUniform<Matrix4>(uniformName);
+                            break;
+
+                        case ActiveUniformType.FloatVec2:
+                            uniform = createUniform<Vector2>(uniformName);
+                            break;
+
+                        case ActiveUniformType.FloatVec3:
+                            uniform = createUniform<Vector3>(uniformName);
+                            break;
+
+                        case ActiveUniformType.FloatVec4:
+                            uniform = createUniform<Vector4>(uniformName);
+                            break;
+
+                        case ActiveUniformType.Sampler2D:
+                            uniform = createUniform<int>(uniformName);
+                            ((Uniform<int>)uniform).Value = textureIndex++;
+                            break;
+
+                        default:
+                            continue;
+                    }
+
+                    Uniforms[uniformName] = uniform;
+                    uniformsValues.Add(uniform);
+                }
             }
 
             IUniform createUniform<T>(string name)
                 where T : unmanaged, IEquatable<T>
             {
                 int location = GL.GetUniformLocation(this, name);
-
-                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(renderer, this, name, location);
-
                 return new Uniform<T>(renderer, this, name, location);
             }
         }

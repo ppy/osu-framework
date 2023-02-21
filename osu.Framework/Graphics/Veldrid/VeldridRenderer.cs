@@ -318,6 +318,9 @@ namespace osu.Framework.Graphics.Veldrid
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)
             => new VeldridQuadBatch<TVertex>(this, size, maxBuffers);
 
+        public override IUniformBuffer<TData> CreateUniformBuffer<TData>()
+            => new DummyUniformBuffer<TData>();
+
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)
             => new DummyNativeTexture(this);
