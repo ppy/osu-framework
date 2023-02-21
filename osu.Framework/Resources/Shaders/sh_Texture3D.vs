@@ -1,14 +1,14 @@
 #include "sh_Utils.h"
 
-in highp vec3 m_Position;
-in lowp vec4 m_Colour;
-in highp vec2 m_TexCoord;
+IN(0) highp vec3 m_Position;
+IN(1) lowp vec4 m_Colour;
+IN(2) highp vec2 m_TexCoord;
 
-out highp vec2 v_MaskingPosition;
-out lowp vec4 v_Colour;
-out highp vec2 v_TexCoord;
-out highp vec4 v_TexRect;
-out mediump vec2 v_BlendRange;
+OUT(0) highp vec2 v_MaskingPosition;
+OUT(1) lowp vec4 v_Colour;
+OUT(2) highp vec2 v_TexCoord;
+OUT(3) highp vec4 v_TexRect;
+OUT(4) mediump vec2 v_BlendRange;
 
 uniform mat4 g_ProjMatrix;
 uniform mat3 g_ToMaskingSpace;

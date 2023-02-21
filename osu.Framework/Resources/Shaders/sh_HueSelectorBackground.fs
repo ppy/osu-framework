@@ -3,9 +3,9 @@
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 
-in highp vec2 v_TexCoord;
+IN(2) highp vec2 v_TexCoord;
 
-out vec4 o_Colour;
+OUT(0) vec4 o_Colour;
 
 void main(void)
 {

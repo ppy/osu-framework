@@ -1,3 +1,5 @@
+// Automatically included for every vertex shader.
+
 /**
 * \brief Creates an "in" layout definition bound to the given location.
  * \param loc_num The location.

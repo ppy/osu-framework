@@ -2,9 +2,9 @@
 #include "sh_Masking.h"
 #include "sh_yuv2rgb.h"
 
-in mediump vec2 v_TexCoord;
+IN(2) mediump vec2 v_TexCoord;
 
-out vec4 o_Colour;
+OUT(0) vec4 o_Colour;
 
 void main(void) 
 {
