@@ -753,11 +753,6 @@ namespace osu.Framework.Input
         private bool validForLongPress;
 
         /// <summary>
-        /// Whether a pressed left mouse button from touch should ignore click on release (i.e. "cancelled").
-        /// </summary>
-        private bool cancelLeftFromTouchOnRelease;
-
-        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -794,12 +789,7 @@ namespace osu.Framework.Input
             if (mouseMappedTouchesDown.Count > 0)
                 new MouseButtonInputFromTouch(MouseButton.Left, true, e).Apply(CurrentState, this);
             else
-            {
-                var manager = GetButtonEventManagerFor(MouseButton.Left);
-                manager.IgnoreClick = cancelLeftFromTouchOnRelease;
                 new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
-                manager.IgnoreClick = cancelLeftFromTouchOnRelease = false;
-            }
         }
 
         private void updateTouchMouseRight(TouchStateChangeEvent e)
@@ -842,7 +832,8 @@ namespace osu.Framework.Input
                 new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
                 new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
 
-                cancelLeftFromTouchOnRelease = true;
+                // the touch actuated a long-press, releasing it should not perform a click.
+                GetButtonEventManagerFor(MouseButton.Left).BlockNextClick = true;
 
                 touchLongPressDelegate = null;
                 validForLongPress = false;

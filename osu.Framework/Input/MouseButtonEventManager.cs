@@ -48,11 +48,10 @@ namespace osu.Framework.Input
         public abstract bool ChangeFocusOnClick { get; }
 
         /// <summary>
-        /// Whether click and double click should be temporarily ignored if enabled in this manager.
-        /// This is required for mouse-from-touch logic to ensure no left click is fired upon producing right click.
-        /// todo: there should be a cancelled button state that doesn't fire clicks, but this will do for now.
+        /// Whether the next click should temporarily be ignored if enabled in this manager.
+        /// This is required for double-click and touch long-press logic.
         /// </summary>
-        internal bool IgnoreClick;
+        internal bool BlockNextClick;
 
         protected MouseButtonEventManager(MouseButton button)
             : base(button)
@@ -139,7 +138,7 @@ namespace osu.Framework.Input
             if (targets != null)
                 PropagateButtonEvent(targets, new MouseUpEvent(state, Button, MouseDownPosition));
 
-            if (EnableClick && DraggedDrawable?.DragBlocksClick != true && !IgnoreClick)
+            if (EnableClick && DraggedDrawable?.DragBlocksClick != true)
             {
                 if (!BlockNextClick)
                 {
@@ -155,8 +154,6 @@ namespace osu.Framework.Input
 
             MouseDownPosition = null;
         }
-
-        protected bool BlockNextClick;
 
         private void handleClick(InputState state, List<Drawable> targets)
         {
