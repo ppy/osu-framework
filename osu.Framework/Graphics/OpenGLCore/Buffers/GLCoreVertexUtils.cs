@@ -1,10 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-// ReSharper disable StaticMemberInGenericType
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,6 +22,7 @@ namespace osu.Framework.Graphics.OpenGLCore.Buffers
         /// </summary>
         public static readonly int STRIDE = Marshal.SizeOf(default(T));
 
+        // ReSharper disable StaticMemberInGenericType
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
 
         static GLCoreVertexUtils()
@@ -47,7 +44,7 @@ namespace osu.Framework.Graphics.OpenGLCore.Buffers
                 }
                 else if (field.IsDefined(typeof(VertexMemberAttribute), true))
                 {
-                    var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
+                    var attrib = (VertexMemberAttribute?)field.GetCustomAttribute(typeof(VertexMemberAttribute));
                     Debug.Assert(attrib != null);
 
                     // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
