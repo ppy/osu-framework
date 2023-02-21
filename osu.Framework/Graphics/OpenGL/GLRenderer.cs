@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.OpenGL
                 throw new InvalidOperationException($"{nameof(GLRenderer)} only supports OpenGL graphics surfaces.");
 
             if (this is not GLCoreRenderer && graphicsSurface.Type != GraphicsSurfaceType.OpenGLCompat)
-                throw new InvalidOperationException($"{nameof(GLRenderer)} only supports the OpenGL compatibility profile.");
+                throw new InvalidOperationException($"{GetType()} only supports the OpenGL compatibility profile.");
 
             openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
             openGLSurface.MakeCurrent(openGLSurface.WindowContext);

@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.OpenGLCore
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
             if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
-                throw new InvalidOperationException($"{nameof(GLCoreRenderer)} only supports the OpenGL core profile.");
+                throw new InvalidOperationException($"{GetType()} only supports the OpenGL core profile.");
 
             base.Initialise(graphicsSurface);
         }

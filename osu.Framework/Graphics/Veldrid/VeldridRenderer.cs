@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Veldrid
             Debug.Assert(!ThreadSafety.IsDrawThread, "Veldrid cannot be initialised on the draw thread.");
 
             if (graphicsSurface.Type == GraphicsSurfaceType.OpenGLCompat)
-                throw new InvalidOperationException($"{nameof(VeldridRenderer)} does not support the OpenGL compatibility profile.");
+                throw new InvalidOperationException($"{GetType()} does not support the OpenGL compatibility profile.");
 
             this.graphicsSurface = graphicsSurface;
 
