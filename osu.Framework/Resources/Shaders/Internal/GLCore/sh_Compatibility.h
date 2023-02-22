@@ -1,6 +1,6 @@
 // This file is automatically included in every shader.
 
-#version 330 core
+#version {{ glsl_version }}
 
 #extension GL_ARB_uniform_buffer_object : enable
 

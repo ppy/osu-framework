@@ -28,6 +28,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal ShaderType Type;
 
+        protected virtual string GLSLVersion => "100";
+
         protected virtual string InternalResourceNamespace => "GL";
 
         private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
@@ -79,6 +81,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
+                        line = line.Replace("{{ glsl_version }}", GLSLVersion);
+
                         shaderCodes.Insert(0, line + '\n');
                         continue;
                     }

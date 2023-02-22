@@ -332,7 +332,7 @@ namespace osu.Framework.Platform
             {
                 default:
                 case GraphicsSurfaceType.OpenGL:
-                    return new GLCoreRenderer();
+                    return RuntimeInfo.IsMobile ? new GLESRenderer() : new GLCoreRenderer();
 
                 case GraphicsSurfaceType.Metal:
                 case GraphicsSurfaceType.Vulkan:
