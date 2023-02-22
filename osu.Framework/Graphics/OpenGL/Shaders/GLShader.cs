@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     {
         private readonly GLRenderer renderer;
         private readonly string name;
+        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
         private readonly GLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
@@ -45,10 +46,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
-        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
         {
             this.renderer = renderer;
             this.name = name;
+            this.globalUniformBuffer = globalUniformBuffer;
             this.parts = parts.Where(p => p != null).ToArray();
 
             renderer.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
@@ -73,8 +75,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             IsLoaded = true;
 
             SetupUniforms();
-
-            GlobalPropertyManager.Register(this);
         }
 
         internal void EnsureShaderCompiled()
@@ -236,6 +236,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 }
             }
 
+            AssignUniformBlock("g_GlobalUniforms", globalUniformBuffer);
+
             IUniform createUniform<T>(string name)
                 where T : unmanaged, IEquatable<T>
             {
@@ -276,8 +278,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 IsDisposed = true;
 
                 shaderCompileDelegate?.Cancel();
-
-                GlobalPropertyManager.Unregister(this);
 
                 if (programID != -1)
                     DeleteProgram(this);

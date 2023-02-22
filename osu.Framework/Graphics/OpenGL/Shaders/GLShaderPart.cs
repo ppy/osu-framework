@@ -126,6 +126,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_Compatibility.h"), false) + "\n";
 
+                    internalIncludes += loadFile(manager.LoadRaw($"Internal/sh_GlobalUniforms.h"), false) + "\n";
+
                     if (isVertexShader)
                         internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_VertexShader.h"), false) + "\n";
                     else

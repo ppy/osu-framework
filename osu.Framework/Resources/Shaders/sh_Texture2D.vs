@@ -12,9 +12,6 @@ OUT(2) highp vec2 v_TexCoord;
 OUT(3) highp vec4 v_TexRect;
 OUT(4) mediump vec2 v_BlendRange;
 
-uniform highp mat4 g_ProjMatrix;
-uniform highp mat3 g_ToMaskingSpace;
-
 void main(void)
 {
 	// Transform from screen space to masking space.

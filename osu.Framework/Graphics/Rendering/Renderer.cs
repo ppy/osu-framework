@@ -113,6 +113,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Lazy<TextureWhitePixel> whitePixel;
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
 
+        protected IUniformBuffer<GlobalUniformData>? GlobalUniformBuffer { get; private set; }
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
@@ -170,6 +171,8 @@ namespace osu.Framework.Graphics.Rendering
         {
             foreach (var source in flush_source_statistics)
                 source.Value = 0;
+
+            GlobalUniformBuffer ??= CreateUniformBuffer<GlobalUniformData>();
 
             Debug.Assert(defaultQuadBatch != null);
 
@@ -563,7 +566,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetProjection);
 
-            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, matrix);
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { ProjMatrix = matrix };
             ProjectionMatrix = matrix;
         }
 
@@ -592,54 +595,49 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
-            GlobalPropertyManager.Set(GlobalProperty.IsMasking, IsMaskingActive);
-
-            GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
-                maskingInfo.MaskingRect.Left,
-                maskingInfo.MaskingRect.Top,
-                maskingInfo.MaskingRect.Right,
-                maskingInfo.MaskingRect.Bottom));
-
-            GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
-
-            GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
-            GlobalPropertyManager.Set(GlobalProperty.CornerExponent, maskingInfo.CornerExponent);
-
-            GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
-
-            if (maskingInfo.BorderThickness > 0)
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
             {
-                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Matrix4(
-                    // TopLeft
-                    maskingInfo.BorderColour.TopLeft.Linear.R,
-                    maskingInfo.BorderColour.TopLeft.Linear.G,
-                    maskingInfo.BorderColour.TopLeft.Linear.B,
-                    maskingInfo.BorderColour.TopLeft.Linear.A,
-                    // BottomLeft
-                    maskingInfo.BorderColour.BottomLeft.Linear.R,
-                    maskingInfo.BorderColour.BottomLeft.Linear.G,
-                    maskingInfo.BorderColour.BottomLeft.Linear.B,
-                    maskingInfo.BorderColour.BottomLeft.Linear.A,
-                    // TopRight
-                    maskingInfo.BorderColour.TopRight.Linear.R,
-                    maskingInfo.BorderColour.TopRight.Linear.G,
-                    maskingInfo.BorderColour.TopRight.Linear.B,
-                    maskingInfo.BorderColour.TopRight.Linear.A,
-                    // BottomRight
-                    maskingInfo.BorderColour.BottomRight.Linear.R,
-                    maskingInfo.BorderColour.BottomRight.Linear.G,
-                    maskingInfo.BorderColour.BottomRight.Linear.B,
-                    maskingInfo.BorderColour.BottomRight.Linear.A));
-            }
-
-            GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
-            GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
-
-            GlobalPropertyManager.Set(GlobalProperty.EdgeOffset, maskingInfo.EdgeOffset);
-
-            GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
-            if (maskingInfo.Hollow)
-                GlobalPropertyManager.Set(GlobalProperty.InnerCornerRadius, maskingInfo.HollowCornerRadius);
+                IsMasking = IsMaskingActive,
+                MaskingRect = new Vector4(
+                    maskingInfo.MaskingRect.Left,
+                    maskingInfo.MaskingRect.Top,
+                    maskingInfo.MaskingRect.Right,
+                    maskingInfo.MaskingRect.Bottom),
+                ToMaskingSpace = maskingInfo.ToMaskingSpace,
+                CornerRadius = maskingInfo.CornerRadius,
+                CornerExponent = maskingInfo.CornerExponent,
+                BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
+                BorderColour = maskingInfo.BorderThickness > 0
+                    ? new Matrix4(
+                        // TopLeft
+                        maskingInfo.BorderColour.TopLeft.Linear.R,
+                        maskingInfo.BorderColour.TopLeft.Linear.G,
+                        maskingInfo.BorderColour.TopLeft.Linear.B,
+                        maskingInfo.BorderColour.TopLeft.Linear.A,
+                        // BottomLeft
+                        maskingInfo.BorderColour.BottomLeft.Linear.R,
+                        maskingInfo.BorderColour.BottomLeft.Linear.G,
+                        maskingInfo.BorderColour.BottomLeft.Linear.B,
+                        maskingInfo.BorderColour.BottomLeft.Linear.A,
+                        // TopRight
+                        maskingInfo.BorderColour.TopRight.Linear.R,
+                        maskingInfo.BorderColour.TopRight.Linear.G,
+                        maskingInfo.BorderColour.TopRight.Linear.B,
+                        maskingInfo.BorderColour.TopRight.Linear.A,
+                        // BottomRight
+                        maskingInfo.BorderColour.BottomRight.Linear.R,
+                        maskingInfo.BorderColour.BottomRight.Linear.G,
+                        maskingInfo.BorderColour.BottomRight.Linear.B,
+                        maskingInfo.BorderColour.BottomRight.Linear.A)
+                    : GlobalUniformBuffer.Data.BorderColour,
+                MaskingBlendRange = maskingInfo.BlendRange,
+                AlphaExponent = maskingInfo.AlphaExponent,
+                EdgeOffset = maskingInfo.EdgeOffset,
+                DiscardInner = maskingInfo.Hollow,
+                InnerCornerRadius = maskingInfo.Hollow
+                    ? maskingInfo.HollowCornerRadius
+                    : GlobalUniformBuffer.Data.InnerCornerRadius
+            };
 
             if (isPushing)
             {
@@ -834,14 +832,14 @@ namespace osu.Framework.Graphics.Rendering
             if (wrapModeS != CurrentWrapModeS)
             {
                 // Will flush the current batch internally.
-                GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
+                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
                 // Will flush the current batch internally.
-                GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
+                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
                 CurrentWrapModeT = wrapModeT;
             }
 
@@ -918,8 +916,12 @@ namespace osu.Framework.Graphics.Rendering
             FlushCurrentBatch(FlushBatchSource.SetFrameBuffer);
 
             SetFrameBufferImplementation(frameBuffer);
-            GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
-            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
+            {
+                BackbufferDraw = UsingBackbuffer,
+                GammaCorrection = UsingBackbuffer
+            };
 
             FrameBuffer = frameBuffer;
         }

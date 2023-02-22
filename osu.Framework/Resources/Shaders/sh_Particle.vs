@@ -6,7 +6,6 @@ IN(3) vec2 m_Direction;
 OUT(1) vec4 v_Colour;
 OUT(2) vec2 v_TexCoord;
 
-uniform mat4 g_ProjMatrix;
 uniform float g_FadeClock;
 uniform float g_Gravity;
 
