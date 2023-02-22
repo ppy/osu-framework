@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Items = new[]
                         {
                             new MenuItem("Sub-item #1"),
-                            new MenuItem("Sub-item #2"),
+                            new MenuItem("Sub-item #2", () => { }),
                         }
                     },
                     new MenuItem("Item #2")
@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Items = new[]
                         {
                             new MenuItem("Sub-item #1"),
-                            new MenuItem("Sub-item #2"),
+                            new MenuItem("Sub-item #2", () => { }),
                         }
                     },
                 }
@@ -46,10 +46,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestClickItemClosesMenus()
+        public void TestClickItemWithActionClosesMenus()
         {
             AddStep("click item", () => ClickItem(0, 0));
             AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("no menus closed", () =>
+            {
+                for (int i = 1; i >= 0; --i)
+                {
+                    if (Menus.GetSubMenu(i).State == MenuState.Closed)
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestClickItemWithoutActionDoesNotCloseMenus()
+        {
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("click item", () => ClickItem(1, 1));
             AddAssert("all menus closed", () =>
             {
                 for (int i = 1; i >= 0; --i)
