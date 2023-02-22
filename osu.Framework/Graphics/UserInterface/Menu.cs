@@ -818,11 +818,16 @@ namespace osu.Framework.Graphics.UserInterface
             public float ContentDrawHeight => Content.DrawHeight;
 
             /// <summary>
+            /// Whether the underlying <see cref="Item"/> has an assigned action, and is not in a disabled state.
+            /// </summary>
+            protected bool IsActionable => !Item.Action.Disabled && Item.Action.Value != null;
+
+            /// <summary>
             /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
             /// </summary>
             protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(IsHovered ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered && IsActionable ? BackgroundColourHover : BackgroundColour);
             }
 
             /// <summary>
@@ -830,7 +835,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(IsHovered ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered && IsActionable ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
