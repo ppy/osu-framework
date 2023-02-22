@@ -826,7 +826,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(IsHovered && (IsActionable || hasSubmenu) ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered && (IsActionable || HasSubmenu) ? BackgroundColourHover : BackgroundColour);
             }
 
             /// <summary>
@@ -834,7 +834,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(IsHovered && (IsActionable || hasSubmenu) ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered && (IsActionable || HasSubmenu) ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
@@ -866,11 +866,11 @@ namespace osu.Framework.Graphics.UserInterface
                 base.OnHoverLost(e);
             }
 
-            private bool hasSubmenu => Item.Items?.Count > 0;
+            protected bool HasSubmenu => Item.Items?.Count > 0;
 
             protected override bool OnClick(ClickEvent e)
             {
-                if (hasSubmenu)
+                if (HasSubmenu)
                 {
                     Clicked?.Invoke(this);
                     return true;
