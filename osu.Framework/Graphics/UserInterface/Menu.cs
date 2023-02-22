@@ -826,7 +826,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(IsHovered && IsActionable ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered && (IsActionable || hasSubmenu) ? BackgroundColourHover : BackgroundColour);
             }
 
             /// <summary>
@@ -834,7 +834,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(IsHovered && IsActionable ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered && (IsActionable || hasSubmenu) ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
