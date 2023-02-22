@@ -1,10 +1,10 @@
-in vec2 m_Position;
-in vec2 m_TexCoord;
-in float m_Time;
-in vec2 m_Direction;
+IN(0) vec2 m_Position;
+IN(1) vec2 m_TexCoord;
+IN(2) float m_Time;
+IN(3) vec2 m_Direction;
 
-out vec4 v_Colour;
-out vec2 v_TexCoord;
+OUT(1) vec4 v_Colour;
+OUT(2) vec2 v_TexCoord;
 
 uniform mat4 g_ProjMatrix;
 uniform float g_FadeClock;

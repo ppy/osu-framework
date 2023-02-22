@@ -1,6 +1,6 @@
-in highp vec2 m_Position;
+IN(0) highp vec2 m_Position;
 
-out highp vec2 v_Position;
+OUT(0) highp vec2 v_Position;
 
 uniform highp mat4 g_ProjMatrix;
 
