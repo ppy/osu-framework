@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Shaders
                 private readonly GLRenderer renderer;
 
                 internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
-                    : base(renderer, name, parts)
+                    : base(renderer, name, parts, null)
                 {
                     this.renderer = renderer;
                 }

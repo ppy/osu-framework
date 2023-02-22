@@ -344,7 +344,7 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, manager);
         }
 
-        protected override IShader CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
+        protected override IShader CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), GlobalUniformBuffer);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {

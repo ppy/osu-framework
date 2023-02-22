@@ -9,22 +9,6 @@ IN(1) lowp vec4 v_Colour;
 
 IN(4) mediump vec2 v_BlendRange;
 
-uniform highp float g_CornerRadius;
-uniform highp float g_CornerExponent;
-uniform bool g_IsMasking;
-uniform highp vec4 g_MaskingRect;
-uniform highp float g_BorderThickness;
-uniform lowp mat4 g_BorderColour;
-
-uniform mediump float g_MaskingBlendRange;
-
-uniform lowp float g_AlphaExponent;
-
-uniform highp vec2 g_EdgeOffset;
-
-uniform bool g_DiscardInner;
-uniform highp float g_InnerCornerRadius;
-
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
 	highp vec2 maskingPosition = v_MaskingPosition + offset;
