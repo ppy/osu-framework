@@ -88,7 +88,15 @@ namespace osu.Framework.Platform.SDL2
 
         private void initialiseOpenGL()
         {
-            if (Type == GraphicsSurfaceType.OpenGL)
+            if (RuntimeInfo.IsMobile)
+            {
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
+
+                // Minimum OpenGL version for ES profile:
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+            }
+            else
             {
                 SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
 
@@ -164,7 +172,11 @@ namespace osu.Framework.Platform.SDL2
         bool IOpenGLGraphicsSurface.VerticalSync
         {
             get => SDL.SDL_GL_GetSwapInterval() != 0;
-            set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+            set
+            {
+                if (RuntimeInfo.IsDesktop)
+                    SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+            }
         }
 
         IntPtr IOpenGLGraphicsSurface.WindowContext => context;
