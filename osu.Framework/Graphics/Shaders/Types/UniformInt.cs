@@ -13,6 +13,7 @@ namespace osu.Framework.Graphics.Shaders.Types
     {
         public int Value;
 
+        public static implicit operator int(UniformInt value) => value.Value;
         public static implicit operator UniformInt(int value) => new UniformInt { Value = value };
     }
 }

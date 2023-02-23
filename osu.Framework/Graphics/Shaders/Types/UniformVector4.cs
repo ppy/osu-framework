@@ -17,6 +17,14 @@ namespace osu.Framework.Graphics.Shaders.Types
         public UniformFloat Z;
         public UniformFloat W;
 
+        public static implicit operator Vector4(UniformVector4 value) => new Vector4
+        {
+            X = value.X,
+            Y = value.Y,
+            Z = value.Z,
+            W = value.W
+        };
+
         public static implicit operator UniformVector4(Vector4 value) => new UniformVector4
         {
             X = value.X,

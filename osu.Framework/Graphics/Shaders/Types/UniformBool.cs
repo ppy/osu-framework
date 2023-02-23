@@ -13,6 +13,7 @@ namespace osu.Framework.Graphics.Shaders.Types
     {
         public bool Value;
 
+        public static implicit operator bool(UniformBool value) => value.Value;
         public static implicit operator UniformBool(bool value) => new UniformBool { Value = value };
     }
 }
