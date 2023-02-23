@@ -43,10 +43,10 @@ namespace osu.Framework.Graphics.Shaders
             where T : unmanaged, IEquatable<T>;
 
         /// <summary>
-        /// Assigns an <see cref="IUniformBuffer"/> as the binding for the uniform block of the given name.
+        /// Binds an <see cref="IUniformBuffer"/> to a uniform block of the given name.
         /// </summary>
         /// <param name="blockName">The uniform block name.</param>
-        /// <param name="buffer">The buffer to assign to the block.</param>
-        void AssignUniformBlock(string blockName, IUniformBuffer buffer);
+        /// <param name="buffer">The buffer to bind to the block.</param>
+        void BindUniformBlock(string blockName, IUniformBuffer buffer);
     }
 }

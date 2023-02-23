@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
-        public void AssignUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
+        public void BindUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
 
         private protected virtual bool CompileInternal()
         {
@@ -236,7 +236,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 }
             }
 
-            AssignUniformBlock("g_GlobalUniforms", globalUniformBuffer);
+            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
 
             IUniform createUniform<T>(string name)
                 where T : unmanaged, IEquatable<T>

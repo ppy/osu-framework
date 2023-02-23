@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
-        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts)
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts)
             => new DummyShader(this);
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
