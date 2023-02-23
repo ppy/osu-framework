@@ -767,7 +767,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Flushes the currently active vertex batch.
         /// </summary>
         /// <param name="source">The source performing the flush, for profiling purposes.</param>
-        protected void FlushCurrentBatch(FlushBatchSource? source)
+        protected internal void FlushCurrentBatch(FlushBatchSource? source)
         {
             if (currentActiveBatch?.Draw() > 0 && source != null)
                 flush_source_statistics[(int)source].Value++;

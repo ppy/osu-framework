@@ -178,7 +178,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     if (uniformBlocks.ContainsKey(uniformName))
                         continue;
 
-                    var block = new GLUniformBlock(this, blockIndex, blockBindingIndex++);
+                    var block = new GLUniformBlock(renderer, this, blockIndex, blockBindingIndex++);
                     uniformBlocks[uniformName] = block;
                     uniformBlocksValues.Add(block);
                 }
