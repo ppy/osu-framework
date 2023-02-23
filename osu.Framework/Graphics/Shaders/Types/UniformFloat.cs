@@ -13,6 +13,7 @@ namespace osu.Framework.Graphics.Shaders.Types
     {
         public float Value;
 
+        public static implicit operator float(UniformFloat value) => value.Value;
         public static implicit operator UniformFloat(float value) => new UniformFloat { Value = value };
     }
 }

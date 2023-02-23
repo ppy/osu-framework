@@ -17,6 +17,14 @@ namespace osu.Framework.Graphics.Shaders.Types
         public UniformVector4 Row2;
         public UniformVector4 Row3;
 
+        public static implicit operator Matrix4(UniformMatrix4 matrix) => new Matrix4
+        {
+            Row0 = matrix.Row0,
+            Row1 = matrix.Row1,
+            Row2 = matrix.Row2,
+            Row3 = matrix.Row3
+        };
+
         public static implicit operator UniformMatrix4(Matrix4 matrix) => new UniformMatrix4
         {
             Row0 = matrix.Row0,

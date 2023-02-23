@@ -9,5 +9,5 @@ namespace osu.Framework.Graphics.Shaders.Types
     /// A single 4-byte padding to be used for uniform block definitions.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Size = 4)]
-    public record struct UniformPadding;
+    public record struct UniformPadding4;
 }
