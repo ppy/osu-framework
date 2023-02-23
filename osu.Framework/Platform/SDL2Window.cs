@@ -181,13 +181,7 @@ namespace osu.Framework.Platform
             }
 
             SDL.SDL_LogSetPriority((int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
-            SDL.SDL_LogSetOutputFunction(logOutputDelegate = (_, categoryInt, priority, messagePtr) =>
-            {
-                var category = (SDL.SDL_LogCategory)categoryInt;
-                string? message = Marshal.PtrToStringUTF8(messagePtr);
-
-                Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
-            }, IntPtr.Zero);
+            SDL.SDL_LogSetOutputFunction(logOutputDelegate = logOutput, IntPtr.Zero);
 
             graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
             SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
@@ -199,6 +193,15 @@ namespace osu.Framework.Platform
             };
 
             populateJoysticks();
+        }
+
+        [MonoPInvokeCallback(typeof(SDL.SDL_LogOutputFunction))]
+        private static void logOutput(IntPtr _, int categoryInt, SDL.SDL_LogPriority priority, IntPtr messagePtr)
+        {
+            var category = (SDL.SDL_LogCategory)categoryInt;
+            string? message = Marshal.PtrToStringUTF8(messagePtr);
+
+            Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
         }
 
         public void SetupWindow(FrameworkConfigManager config)
@@ -243,13 +246,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            SDL.SDL_SetEventFilter(eventFilterDelegate = (_, eventPtr) =>
-            {
-                var e = Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr);
-                OnSDLEvent?.Invoke(e);
-
-                return 1;
-            }, IntPtr.Zero);
+            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, IntPtr.Zero);
 
             // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
             OnSDLEvent += e =>
@@ -285,6 +282,15 @@ namespace osu.Framework.Platform
 
             Close();
             SDL.SDL_Quit();
+        }
+
+        [MonoPInvokeCallback(typeof(SDL.SDL_EventFilter))]
+        private static int eventFilter(IntPtr _, IntPtr eventPtr)
+        {
+            // var e = Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr);
+            // OnSDLEvent?.Invoke(e);
+
+            return 1;
         }
 
         private bool firstDraw = true;
