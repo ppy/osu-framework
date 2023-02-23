@@ -11,14 +11,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     internal interface IGLUniformBuffer
     {
         int Id { get; }
-
-        int Size { get; }
     }
 
     internal class GLUniformBuffer<TData> : IUniformBuffer<TData>, IGLUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
         private readonly GLRenderer renderer;
+        private readonly int size;
 
         private TData data;
         private int uboId;
@@ -27,7 +26,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             this.renderer = renderer;
 
-            Size = Marshal.SizeOf(default(TData));
+            size = Marshal.SizeOf(default(TData));
 
             GL.GenBuffers(1, out uboId);
         }
@@ -43,7 +42,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 data = value;
 
                 GL.BindBuffer(BufferTarget.UniformBuffer, uboId);
-                GL.BufferData(BufferTarget.UniformBuffer, Size, ref value, BufferUsageHint.DynamicDraw);
+                GL.BufferData(BufferTarget.UniformBuffer, size, ref value, BufferUsageHint.DynamicDraw);
                 GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             }
         }
@@ -73,6 +72,5 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         #endregion
 
         public int Id => uboId;
-        public int Size { get; }
     }
 }

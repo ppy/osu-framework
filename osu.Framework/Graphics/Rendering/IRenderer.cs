@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="name">The name of the shader.</param>
         /// <param name="parts">The <see cref="IShaderPart"/>s associated with this shader.</param>
         /// <returns>The <see cref="IShader"/>.</returns>
-        protected internal IShader CreateShader(string name, params IShaderPart[] parts);
+        protected internal IShader CreateShader(string name, IShaderPart[] parts);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
