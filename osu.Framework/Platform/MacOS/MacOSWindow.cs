@@ -10,9 +10,9 @@ using osuTK;
 namespace osu.Framework.Platform.MacOS
 {
     /// <summary>
-    /// macOS-specific subclass of <see cref="SDL2DesktopWindow"/>.
+    /// macOS-specific subclass of <see cref="SDL2Window"/>.
     /// </summary>
-    public class MacOSWindow : SDL2DesktopWindow
+    public class MacOSWindow : SDL2Window
     {
         private static readonly IntPtr sel_hasprecisescrollingdeltas = Selector.Get("hasPreciseScrollingDeltas");
         private static readonly IntPtr sel_scrollingdeltax = Selector.Get("scrollingDeltaX");

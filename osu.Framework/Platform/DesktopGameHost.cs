@@ -79,7 +79,7 @@ namespace osu.Framework.Platform
 
         public bool IsPortableInstallation { get; }
 
-        public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
+        public override bool CapsLockEnabled => (Window as SDL2Window)?.CapsLockPressed == true;
 
         public override bool OpenFileExternally(string filename)
         {
@@ -110,8 +110,8 @@ namespace osu.Framework.Platform
 
         protected override TextInputSource CreateTextInput()
         {
-            if (Window is SDL2DesktopWindow desktopWindow)
-                return new SDL2DesktopWindowTextInput(desktopWindow);
+            if (Window is SDL2Window desktopWindow)
+                return new SDL2WindowTextInput(desktopWindow);
 
             return base.CreateTextInput();
         }

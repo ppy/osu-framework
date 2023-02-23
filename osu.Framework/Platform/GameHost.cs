@@ -758,7 +758,7 @@ namespace osu.Framework.Platform
                     {
                         switch (Window)
                         {
-                            case SDL2DesktopWindow window:
+                            case SDL2Window window:
                                 window.Update += windowUpdate;
                                 break;
 

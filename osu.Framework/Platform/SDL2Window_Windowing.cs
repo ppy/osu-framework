@@ -17,7 +17,7 @@ using SDL2;
 
 namespace osu.Framework.Platform
 {
-    public partial class SDL2DesktopWindow
+    public partial class SDL2Window
     {
         private void setupWindowing(FrameworkConfigManager config)
         {

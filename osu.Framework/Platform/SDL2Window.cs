@@ -21,9 +21,9 @@ using Point = System.Drawing.Point;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Default implementation of a desktop window, using SDL for windowing and graphics support.
+    /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    public partial class SDL2DesktopWindow : IWindow
+    public partial class SDL2Window : IWindow
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
@@ -173,7 +173,7 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
-        public SDL2DesktopWindow(GraphicsSurfaceType surfaceType)
+        public SDL2Window(GraphicsSurfaceType surfaceType)
         {
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {

@@ -15,7 +15,7 @@ namespace osu.Framework.Platform.SDL2
 {
     public class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
-        private readonly SDL2DesktopWindow window;
+        private readonly SDL2Window window;
 
         private IntPtr context;
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Platform.SDL2
 
         public GraphicsSurfaceType Type { get; }
 
-        public SDL2GraphicsSurface(SDL2DesktopWindow window, GraphicsSurfaceType surfaceType)
+        public SDL2GraphicsSurface(SDL2Window window, GraphicsSurfaceType surfaceType)
         {
             this.window = window;
             Type = surfaceType;

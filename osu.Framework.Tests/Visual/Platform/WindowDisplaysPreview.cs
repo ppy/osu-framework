@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
 
-        private SDL2DesktopWindow? window;
+        private SDL2Window? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
 
@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as SDL2DesktopWindow;
+            window = host.Window as SDL2Window;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             if (window != null)

@@ -25,12 +25,12 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
-        private SDL2DesktopWindow sdlWindow;
+        private SDL2Window sdlWindow;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (SDL2DesktopWindow)host.Window;
+            sdlWindow = (SDL2Window)host.Window;
         }
 
         [SetUp]
