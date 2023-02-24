@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+            GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
 
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
