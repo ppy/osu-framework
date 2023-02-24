@@ -6,11 +6,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics.ES30;
+using Veldrid.SPIRV;
 using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
@@ -132,9 +134,20 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private protected virtual bool CompileInternal()
         {
+            GLShaderPart vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
+            GLShaderPart fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
+
+            // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
+            VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
+                Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
+                Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                CrossCompileTarget.GLSL);
+
+            vertexPart.Compile(crossCompileResult.VertexShader);
+            fragmentPart.Compile(crossCompileResult.FragmentShader);
+
             foreach (GLShaderPart p in parts)
             {
-                if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
 
                 foreach (ShaderInputInfo input in p.ShaderInputs)

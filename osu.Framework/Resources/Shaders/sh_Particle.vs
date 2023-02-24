@@ -1,10 +1,10 @@
-IN(0) vec2 m_Position;
-IN(1) vec2 m_TexCoord;
-IN(2) float m_Time;
-IN(3) vec2 m_Direction;
+layout(location = 0) in vec2 m_Position;
+layout(location = 1) in vec2 m_TexCoord;
+layout(location = 2) in float m_Time;
+layout(location = 3) in vec2 m_Direction;
 
-OUT(1) vec4 v_Colour;
-OUT(2) vec2 v_TexCoord;
+layout(location = 1) out vec4 v_Colour;
+layout(location = 2) out vec2 v_TexCoord;
 
 uniform float g_FadeClock;
 uniform float g_Gravity;

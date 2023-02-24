@@ -1,8 +1,11 @@
 #include "sh_TextureWrapping.h"
 
-UNIFORM_TEXTURE(0, m_TextureY, m_SamplerY);
-UNIFORM_TEXTURE(1, m_TextureU, m_SamplerU);
-UNIFORM_TEXTURE(2, m_TextureV, m_SamplerV);
+layout(set = 0, binding = 0) uniform lowp texture2D m_TextureY;
+layout(set = 0, binding = 1) uniform lowp sampler m_SamplerY;
+layout(set = 1, binding = 0) uniform lowp texture2D m_TextureU;
+layout(set = 1, binding = 1) uniform lowp sampler m_SamplerU;
+layout(set = 2, binding = 0) uniform lowp texture2D m_TextureV;
+layout(set = 2, binding = 1) uniform lowp sampler m_SamplerV;
 
 uniform mediump mat3 yuvCoeff;
 
@@ -15,8 +18,8 @@ lowp vec4 wrappedSamplerRgb(vec2 wrappedCoord, vec4 texRect, float lodBias)
         g_WrapModeT == 2 && (wrappedCoord.y < texRect[1] || wrappedCoord.y > texRect[3]))
         return vec4(0.0);
 
-    lowp float y = SampleTexture(m_TextureY, m_SamplerY, wrappedCoord, lodBias).r;
-    lowp float u = SampleTexture(m_TextureU, m_SamplerU, wrappedCoord, lodBias).r;
-    lowp float v = SampleTexture(m_TextureV, m_SamplerV, wrappedCoord, lodBias).r;
+    lowp float y = texture(sampler2D(m_TextureY, m_SamplerY), wrappedCoord, lodBias).r;
+    lowp float u = texture(sampler2D(m_TextureU, m_SamplerU), wrappedCoord, lodBias).r;
+    lowp float v = texture(sampler2D(m_TextureV, m_SamplerV), wrappedCoord, lodBias).r;
     return vec4(yuvCoeff * (vec3(y, u, v) + offsets), 1.0);
 }

@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Graphics
 
         private void performValidAttributeTest(string testString)
         {
-            var match = GLShaderPart.VERTEX_SHADER_INPUT_PATTERN.Match(testString);
+            var match = GLShaderPart.SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsTrue(match.Success);
             Assert.AreEqual("name", match.Groups[1].Value.Trim());
@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Graphics
 
         private void performInvalidAttributeTest(string testString)
         {
-            var match = GLShaderPart.VERTEX_SHADER_INPUT_PATTERN.Match(testString);
+            var match = GLShaderPart.SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsFalse(match.Success);
         }

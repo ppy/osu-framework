@@ -15,44 +15,53 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShaderPart : IShaderPart
     {
-        public static readonly Regex VERTEX_SHADER_INPUT_PATTERN = new Regex(@"^\s*(?>IN\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)");
-        private static readonly Regex fragment_shader_output_pattern = new Regex(@"^\s*(?>OUT\(\s*-?\d+\s*\))\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)", RegexOptions.Multiline);
+        public static readonly Regex SHADER_INPUT_PATTERN = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*(in\s+(?:lowp|mediump|highp)?\s+\w+\s+(\w+)\s*;)", RegexOptions.Multiline);
+        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*uniform)", RegexOptions.Multiline);
         private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
-        internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
+        internal bool Compiled { get; private set; }
+
+        public readonly List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
+
+        public readonly string Name;
+        public readonly ShaderType Type;
 
         private readonly IRenderer renderer;
-        internal string Name;
-        internal bool HasCode;
-        internal bool Compiled;
-
-        internal ShaderType Type;
-
-        private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
-
-        private int partID = -1;
-
-        private int lastShaderInputIndex;
-
         private readonly List<string> shaderCodes = new List<string>();
-
         private readonly ShaderManager manager;
 
-        internal GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
+        private int partID = -1;
+        private int lastShaderInputIndex;
+
+        public GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
         {
             this.renderer = renderer;
+            this.manager = manager;
+
             Name = name;
             Type = type;
 
-            this.manager = manager;
-
+            // Load the shader files.
             shaderCodes.Add(loadFile(data, true));
-            shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
-            if (shaderCodes.Count == 0)
-                return;
+            int lastInputIndex = 0;
 
-            HasCode = true;
+            // Parse all shader inputs to find the last input index.
+            for (int i = 0; i < shaderCodes.Count; i++)
+            {
+                foreach (Match m in SHADER_INPUT_PATTERN.Matches(shaderCodes[i]))
+                    lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value));
+            }
+
+            // Update the location of the m_BackbufferDrawDepth input to be placed after all other inputs.
+            for (int i = 0; i < shaderCodes.Count; i++)
+                shaderCodes[i] = shaderCodes[i].Replace("layout(location = -1)", $"layout(location = {lastInputIndex + 1})");
+
+            // Increment the binding set of all uniform blocks.
+            // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
+            // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
+            for (int i = 0; i < shaderCodes.Count; i++)
+                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value) + 1}{match.Groups[3].Value}");
         }
 
         private string loadFile(byte[] bytes, bool mainFile)
@@ -105,14 +114,14 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
                     {
-                        Match inputMatch = VERTEX_SHADER_INPUT_PATTERN.Match(line);
+                        Match inputMatch = SHADER_INPUT_PATTERN.Match(line);
 
                         if (inputMatch.Success)
                         {
                             ShaderInputs.Add(new ShaderInputInfo
                             {
                                 Location = lastShaderInputIndex++,
-                                Name = inputMatch.Groups[1].Value.Trim()
+                                Name = inputMatch.Groups[3].Value.Trim()
                             });
                         }
                     }
@@ -121,19 +130,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 if (mainFile)
                 {
                     string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Precision.h"), false) + "\n";
-
-                    internalIncludes += loadFile(manager.LoadRaw($"Internal/GLCore/sh_Compatibility.h"), false) + "\n";
-
-                    internalIncludes += loadFile(manager.LoadRaw($"Internal/sh_GlobalUniforms.h"), false) + "\n";
-
-                    if (isVertexShader)
-                        internalIncludes += loadFile(manager.LoadRaw($"Internal/GLCore/sh_VertexShader.h"), false) + "\n";
-                    else
-                        internalIncludes += loadFile(manager.LoadRaw($"Internal/GLCore/sh_FragmentShader.h"), false) + "\n";
-
+                    internalIncludes += loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
+                    internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     code = internalIncludes + code;
 
-                    if (isVertexShader)
+                    if (Type == ShaderType.VertexShader)
                     {
                         string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Vertex_Output.h"), false);
 
@@ -145,49 +146,29 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                             code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
                         }
                     }
-                    else
-                    {
-                        string outputCode = loadFile(manager.LoadRaw($"Internal/GLCore/sh_Fragment_Output.h"), false);
-
-                        if (!string.IsNullOrEmpty(outputCode))
-                        {
-                            string tempVar = fragment_shader_output_pattern.Match(code).Groups[1].Value;
-                            string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
-
-                            outputCode = outputCode.Replace("{{ real_main }}", realMainName);
-                            outputCode = outputCode.Replace("{{ temp_variable }}", tempVar);
-
-                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
-                        }
-                    }
                 }
 
                 return code;
             }
         }
 
-        internal bool Compile()
+        public string GetRawText() => string.Join('\n', shaderCodes);
+
+        public void Compile(string crossCompileOutput)
         {
-            if (!HasCode)
-                return false;
+            if (Compiled)
+                return;
 
-            if (partID == -1)
-                partID = GL.CreateShader(Type);
+            partID = GL.CreateShader(Type);
 
-            int[] codeLengths = new int[shaderCodes.Count];
-            for (int i = 0; i < shaderCodes.Count; i++)
-                codeLengths[i] = shaderCodes[i].Length;
-
-            GL.ShaderSource(this, shaderCodes.Count, shaderCodes.ToArray(), codeLengths);
+            GL.ShaderSource(this, crossCompileOutput);
             GL.CompileShader(this);
-
             GL.GetShader(this, ShaderParameter.CompileStatus, out int compileResult);
+
             Compiled = compileResult == 1;
 
             if (!Compiled)
                 throw new GLShader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
-
-            return Compiled;
         }
 
         public static implicit operator int(GLShaderPart program) => program.partID;

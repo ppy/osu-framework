@@ -1,16 +1,16 @@
 #include "sh_Utils.h"
 
-IN(0) highp vec2 m_Position;
-IN(1) lowp vec4 m_Colour;
-IN(2) highp vec2 m_TexCoord;
-IN(3) highp vec4 m_TexRect;
-IN(4) mediump vec2 m_BlendRange;
+layout(location = 0)in highp vec2 m_Position;
+layout(location = 1) in lowp vec4 m_Colour;
+layout(location = 2) in highp vec2 m_TexCoord;
+layout(location = 3) in highp vec4 m_TexRect;
+layout(location = 4) in mediump vec2 m_BlendRange;
 
-OUT(0) highp vec2 v_MaskingPosition;
-OUT(1) lowp vec4 v_Colour;
-OUT(2) highp vec2 v_TexCoord;
-OUT(3) highp vec4 v_TexRect;
-OUT(4) mediump vec2 v_BlendRange;
+layout(location = 0) out highp vec2 v_MaskingPosition;
+layout(location = 1) out lowp vec4 v_Colour;
+layout(location = 2) out highp vec2 v_TexCoord;
+layout(location = 3) out highp vec4 v_TexRect;
+layout(location = 4) out mediump vec2 v_BlendRange;
 
 void main(void)
 {

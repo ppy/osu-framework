@@ -1,6 +1,6 @@
-IN(0) highp vec2 m_Position;
+layout(location = 0) in highp vec2 m_Position;
 
-OUT(0) highp vec2 v_Position;
+layout(location = 0) out highp vec2 v_Position;
 
 void main(void)
 {

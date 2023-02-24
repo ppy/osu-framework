@@ -1,13 +1,13 @@
-﻿IN(0) highp vec2 v_MaskingPosition;
-IN(1) lowp vec4 v_Colour;
+﻿layout(location = 0) in highp vec2 v_MaskingPosition;
+layout(location = 1) in lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
-	IN(3) highp vec4 v_TexRect;
+	layout(location = 3) in highp vec4 v_TexRect;
 #else
-	IN(3) mediump vec4 v_TexRect;
+	layout(location = 3) in mediump vec4 v_TexRect;
 #endif
 
-IN(4) mediump vec2 v_BlendRange;
+layout(location = 4) in mediump vec2 v_BlendRange;
 
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
