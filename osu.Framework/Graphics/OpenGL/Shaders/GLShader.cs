@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 crossCompileResult = SpirvCompilation.CompileVertexFragment(
                     Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
                     Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
-                    CrossCompileTarget.GLSL);
+                    renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
             }
             catch (Exception e)
             {
