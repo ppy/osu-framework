@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.Rendering;
@@ -47,7 +48,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             for (int i = 0; i < shaderCodes.Count; i++)
             {
                 foreach (Match m in SHADER_INPUT_PATTERN.Matches(shaderCodes[i]))
-                    lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value));
+                    lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
             }
 
             // Update the location of the m_BackbufferDrawDepth input to be placed after all other inputs.
@@ -58,7 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
             // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
             for (int i = 0; i < shaderCodes.Count; i++)
-                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value) + 1}{match.Groups[3].Value}");
+                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
         }
 
         private string loadFile(byte[] bytes, bool mainFile)
