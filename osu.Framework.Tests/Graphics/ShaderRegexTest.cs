@@ -21,28 +21,28 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestNonAttribute()
         {
-            const string test_string = "varying vec3 name;";
+            const string test_string = "wangs vec3 name;";
             performInvalidAttributeTest(test_string);
         }
 
         [Test]
         public void TestValidAttribute()
         {
-            const string test_string = "IN(0) lowp float name;";
+            const string test_string = "layout(location = 0) in lowp float name;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestSpacedAttribute()
         {
-            const string test_string = "    IN(0)    float    name   ;";
+            const string test_string = "    layout(  location   =0   )in    float    name   ;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestNoPrecisionQualifier()
         {
-            const string test_string = "IN(0) float name;";
+            const string test_string = "layout(location = 0) in float name;";
             performValidAttributeTest(test_string);
         }
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Graphics
             var match = GLShaderPart.SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsTrue(match.Success);
-            Assert.AreEqual("name", match.Groups[1].Value.Trim());
+            Assert.AreEqual("name", match.Groups[3].Value.Trim());
         }
 
         private void performInvalidAttributeTest(string testString)
