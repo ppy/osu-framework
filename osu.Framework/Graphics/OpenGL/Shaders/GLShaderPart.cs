@@ -28,8 +28,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal ShaderType Type;
 
-        protected virtual string InternalResourceNamespace => "GL";
-
         private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
 
         private int partID = -1;
@@ -124,12 +122,12 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 {
                     string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Precision.h"), false) + "\n";
 
-                    internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_Compatibility.h"), false) + "\n";
+                    internalIncludes += loadFile(manager.LoadRaw($"Internal/GLCore/sh_Compatibility.h"), false) + "\n";
 
                     if (isVertexShader)
-                        internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_VertexShader.h"), false) + "\n";
+                        internalIncludes += loadFile(manager.LoadRaw($"Internal/GLCore/sh_VertexShader.h"), false) + "\n";
                     else
-                        internalIncludes += loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_FragmentShader.h"), false) + "\n";
+                        internalIncludes += loadFile(manager.LoadRaw($"Internal/GLCore/sh_FragmentShader.h"), false) + "\n";
 
                     code = internalIncludes + code;
 
@@ -147,7 +145,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     }
                     else
                     {
-                        string outputCode = loadFile(manager.LoadRaw($"Internal/{InternalResourceNamespace}/sh_Fragment_Output.h"), false);
+                        string outputCode = loadFile(manager.LoadRaw($"Internal/GLCore/sh_Fragment_Output.h"), false);
 
                         if (!string.IsNullOrEmpty(outputCode))
                         {

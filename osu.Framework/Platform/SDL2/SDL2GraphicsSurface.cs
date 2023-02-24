@@ -32,7 +32,6 @@ namespace osu.Framework.Platform.SDL2
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
-                case GraphicsSurfaceType.OpenGLCompat:
                     SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_RED_SIZE, 8);
                     SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
                     SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
@@ -53,7 +52,7 @@ namespace osu.Framework.Platform.SDL2
 
         public void Initialise()
         {
-            if (Type.IsOpenGL())
+            if (Type == GraphicsSurfaceType.OpenGL)
                 initialiseOpenGL();
         }
 
@@ -64,7 +63,6 @@ namespace osu.Framework.Platform.SDL2
             switch (Type)
             {
                 case GraphicsSurfaceType.OpenGL:
-                case GraphicsSurfaceType.OpenGLCompat:
                 default:
                     SDL.SDL_GL_GetDrawableSize(window.SDLWindowHandle, out width, out height);
                     break;
@@ -90,19 +88,13 @@ namespace osu.Framework.Platform.SDL2
 
         private void initialiseOpenGL()
         {
-            switch (Type)
+            if (Type == GraphicsSurfaceType.OpenGL)
             {
-                case GraphicsSurfaceType.OpenGL:
-                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
 
-                    // Minimum OpenGL version for core profile:
-                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
-                    break;
-
-                case GraphicsSurfaceType.OpenGLCompat:
-                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-                    break;
+                // Minimum OpenGL version for core profile:
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
             }
 
             context = SDL.SDL_GL_CreateContext(window.SDLWindowHandle);

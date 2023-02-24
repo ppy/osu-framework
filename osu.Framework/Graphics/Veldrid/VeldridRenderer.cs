@@ -66,9 +66,6 @@ namespace osu.Framework.Graphics.Veldrid
             // Otherwise the window may not render anything on some platforms (macOS at least).
             Debug.Assert(!ThreadSafety.IsDrawThread, "Veldrid cannot be initialised on the draw thread.");
 
-            if (graphicsSurface.Type == GraphicsSurfaceType.OpenGLCompat)
-                throw new InvalidOperationException($"{GetType()} does not support the OpenGL compatibility profile.");
-
             this.graphicsSurface = graphicsSurface;
 
             var options = new GraphicsDeviceOptions
@@ -187,7 +184,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void MakeCurrent()
         {
-            if (graphicsSurface.Type.IsOpenGL())
+            if (graphicsSurface.Type == GraphicsSurfaceType.OpenGL)
             {
                 var openGLGraphics = (IOpenGLGraphicsSurface)graphicsSurface;
                 openGLGraphics.MakeCurrent(openGLGraphics.WindowContext);
@@ -196,7 +193,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void ClearCurrent()
         {
-            if (graphicsSurface.Type.IsOpenGL())
+            if (graphicsSurface.Type == GraphicsSurfaceType.OpenGL)
             {
                 var openGLGraphics = (IOpenGLGraphicsSurface)graphicsSurface;
                 openGLGraphics.ClearCurrent();

@@ -28,7 +28,6 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGLCore;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -332,15 +331,12 @@ namespace osu.Framework.Platform
             {
                 default:
                 case GraphicsSurfaceType.OpenGL:
-                    return new GLCoreRenderer();
+                    return new GLRenderer();
 
                 case GraphicsSurfaceType.Metal:
                 case GraphicsSurfaceType.Vulkan:
                 case GraphicsSurfaceType.Direct3D11:
                     return new VeldridRenderer();
-
-                case GraphicsSurfaceType.OpenGLCompat:
-                    return new GLRenderer();
             }
         }
 
@@ -548,7 +544,7 @@ namespace osu.Framework.Platform
         {
             Renderer.SwapBuffers();
 
-            if (Window.GraphicsSurface.Type.IsOpenGL() && Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();

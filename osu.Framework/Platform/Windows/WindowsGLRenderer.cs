@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.OpenGLCore;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Platform.Windows
 {
-    internal class WindowsGLRenderer : GLCoreRenderer, IWindowsRenderer
+    internal class WindowsGLRenderer : GLRenderer, IWindowsRenderer
     {
         public IBindable<FullscreenCapability> FullscreenCapability => fullscreenCapability;
         private readonly Bindable<FullscreenCapability> fullscreenCapability = new Bindable<FullscreenCapability>();

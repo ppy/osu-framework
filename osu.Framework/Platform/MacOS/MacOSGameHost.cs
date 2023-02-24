@@ -50,7 +50,7 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (Window.GraphicsSurface.Type.IsOpenGL() && !Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && !Renderer.VerticalSync)
                 Renderer.WaitUntilIdle();
         }
 

@@ -908,7 +908,6 @@ namespace osu.Framework.Platform.SDL2
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
-                case GraphicsSurfaceType.OpenGLCompat:
                     return SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
 
                 case GraphicsSurfaceType.Vulkan when !RuntimeInfo.IsApple:

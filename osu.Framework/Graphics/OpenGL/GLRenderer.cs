@@ -3,12 +3,12 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Batches;
 using osu.Framework.Graphics.OpenGL.Shaders;
-using osu.Framework.Graphics.OpenGLCore;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -47,14 +47,12 @@ namespace osu.Framework.Graphics.OpenGL
         private readonly int[] lastBoundBuffers = new int[2];
 
         private bool? lastBlendingEnabledState;
+        private int lastBoundVertexArray;
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
-            if (!graphicsSurface.Type.IsOpenGL())
+            if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
                 throw new InvalidOperationException($"{nameof(GLRenderer)} only supports OpenGL graphics surfaces.");
-
-            if (this is not GLCoreRenderer && graphicsSurface.Type != GraphicsSurfaceType.OpenGLCompat)
-                throw new InvalidOperationException($"{GetType()} only supports the OpenGL compatibility profile.");
 
             openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
             openGLSurface.MakeCurrent(openGLSurface.WindowContext);
@@ -79,12 +77,25 @@ namespace osu.Framework.Graphics.OpenGL
             openGLSurface.ClearCurrent();
         }
 
-        protected virtual string GetExtensions() => GL.GetString(StringName.Extensions);
+        protected virtual string GetExtensions()
+        {
+#pragma warning disable CS0618
+            GL.GetInteger(All.NumExtensions, out int numExtensions);
+#pragma warning restore CS0618
+
+            var extensionsBuilder = new StringBuilder();
+
+            for (int i = 0; i < numExtensions; i++)
+                extensionsBuilder.Append($"{GL.GetString(StringNameIndexed.Extensions, i)} ");
+
+            return extensionsBuilder.ToString().TrimEnd();
+        }
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
+            lastBoundVertexArray = 0;
 
             GL.UseProgram(0);
 
@@ -95,6 +106,18 @@ namespace osu.Framework.Graphics.OpenGL
         protected internal override void ClearCurrent() => openGLSurface.ClearCurrent();
         protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
         protected internal override void WaitUntilIdle() => GL.Finish();
+
+        public bool BindVertexArray(int vaoId)
+        {
+            if (lastBoundVertexArray == vaoId)
+                return false;
+
+            lastBoundVertexArray = vaoId;
+            GL.BindVertexArray(vaoId);
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+            return true;
+        }
 
         public bool BindBuffer(BufferTarget target, int buffer)
         {

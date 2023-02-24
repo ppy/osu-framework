@@ -17,15 +17,6 @@ namespace osu.Framework.Platform
         OpenGL,
 
         /// <summary>
-        /// An OpenGL graphics surface with the compatibility profile. The window must implement <see cref="IOpenGLGraphicsSurface"/>.
-        /// </summary>
-        /// <remarks>
-        /// This may be removed in the future.
-        /// </remarks>
-        [Description("OpenGL (compatibility profile)")]
-        OpenGLCompat,
-
-        /// <summary>
         /// A Metal graphics surface. The window must implement <see cref="IMetalGraphicsSurface"/>.
         /// </summary>
         [Description("Metal")]
@@ -42,10 +33,5 @@ namespace osu.Framework.Platform
         /// </summary>
         [Description("Direct3D 11")]
         Direct3D11,
-    }
-
-    public static class GraphicsSurfaceTypeExtensions
-    {
-        public static bool IsOpenGL(this GraphicsSurfaceType type) => type == GraphicsSurfaceType.OpenGL || type == GraphicsSurfaceType.OpenGLCompat;
     }
 }
