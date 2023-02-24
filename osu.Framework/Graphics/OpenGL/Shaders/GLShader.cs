@@ -137,11 +137,20 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             GLShaderPart vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
             GLShaderPart fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
 
-            // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
-            VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
-                Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
-                CrossCompileTarget.GLSL);
+            VertexFragmentCompilationResult crossCompileResult;
+
+            try
+            {
+                // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
+                crossCompileResult = SpirvCompilation.CompileVertexFragment(
+                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
+                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                    CrossCompileTarget.GLSL);
+            }
+            catch (Exception e)
+            {
+                throw new ProgramLinkingFailedException(name, e.ToString());
+            }
 
             vertexPart.Compile(crossCompileResult.VertexShader);
             fragmentPart.Compile(crossCompileResult.FragmentShader);
