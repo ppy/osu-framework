@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
@@ -306,8 +307,11 @@ namespace osu.Framework.Platform
         private void assertDisplaysMatchSDL()
         {
             var actualDisplays = getSDLDisplays();
-            // Debug.Assert(actualDisplays.SequenceEqual(Displays), $"Stored {nameof(Displays)} don't match actual displays",
-            //     $"Stored displays:\n  {string.Join("\n  ", Displays)}\n\nActual displays:\n  {string.Join("\n  ", actualDisplays)}");
+
+            const string message = $"Stored {nameof(Displays)} don't match actual displays";
+            string detailedMessage = $"Stored displays:\n  {string.Join("\n  ", Displays)}\n\nActual displays:\n  {string.Join("\n  ", actualDisplays)}";
+
+            Debug.Assert(actualDisplays.SequenceEqual(Displays), message, detailedMessage);
         }
 
         private static IEnumerable<Display> getSDLDisplays()
