@@ -156,12 +156,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             fragmentPart.Compile(crossCompileResult.FragmentShader);
 
             foreach (GLShaderPart p in parts)
-            {
                 GL.AttachShader(this, p);
-
-                foreach (ShaderInputInfo input in p.ShaderInputs)
-                    GL.BindAttribLocation(this, input.Location, input.Name);
-            }
 
             GL.LinkProgram(this);
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out int linkResult);

@@ -21,8 +21,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal bool Compiled { get; private set; }
 
-        public readonly List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
-
         public readonly string Name;
         public readonly ShaderType Type;
 
@@ -31,7 +29,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private readonly ShaderManager manager;
 
         private int partID = -1;
-        private int lastShaderInputIndex;
 
         public GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
         {
@@ -111,20 +108,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     }
                     else
                         code += line + '\n';
-
-                    if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
-                    {
-                        Match inputMatch = SHADER_INPUT_PATTERN.Match(line);
-
-                        if (inputMatch.Success)
-                        {
-                            ShaderInputs.Add(new ShaderInputInfo
-                            {
-                                Location = lastShaderInputIndex++,
-                                Name = inputMatch.Groups[3].Value.Trim()
-                            });
-                        }
-                    }
                 }
 
                 if (mainFile)
