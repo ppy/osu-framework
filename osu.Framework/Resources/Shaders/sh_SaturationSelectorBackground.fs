@@ -5,7 +5,10 @@
 
 layout(location = 2) in highp vec2 v_TexCoord;
 
-uniform mediump float hue;
+layout(std140, set = 0, binding = 0) uniform m_HueData
+{
+    mediump float hue;
+};
 
 layout(location = 0) out vec4 o_Colour;
 

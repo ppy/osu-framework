@@ -7,10 +7,13 @@
 
 layout(location = 2) in highp vec2 v_TexCoord;
 
-uniform mediump float progress;
-uniform mediump float innerRadius;
-uniform highp float texelSize;
-uniform bool roundedCaps;
+layout(std140, set = 0, binding = 0) uniform m_CircularProgressParameters
+{
+    mediump float innerRadius;
+    mediump float progress;
+    highp float texelSize;
+    bool roundedCaps;
+};
 
 layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
 layout(set = 1, binding = 1) uniform lowp sampler m_Sampler;

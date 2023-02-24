@@ -7,7 +7,10 @@ layout(set = 1, binding = 1) uniform lowp sampler m_SamplerU;
 layout(set = 2, binding = 0) uniform lowp texture2D m_TextureV;
 layout(set = 2, binding = 1) uniform lowp sampler m_SamplerV;
 
-uniform mediump mat3 yuvCoeff;
+layout(std140, set = 3, binding = 0) uniform m_yuvData
+{
+    mediump mat3 yuvCoeff;
+};
 
 // Y - 16, Cb - 128, Cr - 128
 const mediump vec3 offsets = vec3(-0.0625, -0.5, -0.5);

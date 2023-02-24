@@ -7,11 +7,14 @@
 
 layout(location = 2) in highp vec2 v_TexCoord;
 
-uniform mediump float innerRadius;
-uniform mediump float frequency;
-uniform mediump float amplitude;
-uniform highp vec2 noisePosition;
-uniform highp float texelSize;
+layout(std140, set = 0, binding = 0) uniform m_CircularBlobParameters
+{
+    mediump float innerRadius;
+    highp float texelSize;
+    mediump float frequency;
+    mediump float amplitude;
+    highp vec2 noisePosition;
+};
 
 layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
 layout(set = 1, binding = 1) uniform lowp sampler m_Sampler;

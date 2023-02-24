@@ -6,8 +6,11 @@ layout(location = 3) in vec2 m_Direction;
 layout(location = 1) out vec4 v_Colour;
 layout(location = 2) out vec2 v_TexCoord;
 
-uniform float g_FadeClock;
-uniform float g_Gravity;
+layout(std140, set = 0, binding = 0) uniform m_ParticleParameters
+{
+    float g_FadeClock;
+    float g_Gravity;
+};
 
 void main(void)
 {

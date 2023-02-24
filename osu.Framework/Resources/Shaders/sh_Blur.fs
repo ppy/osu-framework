@@ -4,10 +4,13 @@
 
 layout(location = 2) in mediump vec2 v_TexCoord;
 
-uniform mediump vec2 g_TexSize;
-uniform int g_Radius;
-uniform mediump float g_Sigma;
-uniform highp vec2 g_BlurDirection;
+layout(std140, set = 0, binding = 0) uniform m_BlurParameters
+{
+	mediump vec2 g_TexSize;
+	int g_Radius;
+	mediump float g_Sigma;
+	highp vec2 g_BlurDirection;
+};
 
 layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
 layout(set = 1, binding = 1) uniform lowp sampler m_Sampler;
