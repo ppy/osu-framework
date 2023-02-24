@@ -138,6 +138,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected internal override bool CanDrawOpaqueInterior => false;
 
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                parametersBuffer?.Dispose();
+            }
+
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct CircularProgressParameters
             {

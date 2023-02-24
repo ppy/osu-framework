@@ -132,6 +132,12 @@ namespace osu.Framework.Graphics.Containers
 
             public bool AddChildDrawNodes => RequiresRedraw;
 
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                blurParametersBuffer?.Dispose();
+            }
+
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct BlurParameters
             {

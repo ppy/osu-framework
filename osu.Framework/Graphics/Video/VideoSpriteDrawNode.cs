@@ -33,6 +33,12 @@ namespace osu.Framework.Graphics.Video
             base.Draw(renderer);
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            yuvDataBuffer?.Dispose();
+        }
+
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private record struct YuvData
         {

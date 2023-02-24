@@ -267,6 +267,12 @@ namespace osu.Framework.Graphics.UserInterface
                         base.Blit(renderer);
                     }
 
+                    protected override void Dispose(bool isDisposing)
+                    {
+                        base.Dispose(isDisposing);
+                        hueDataBuffer?.Dispose();
+                    }
+
                     [StructLayout(LayoutKind.Sequential, Pack = 1)]
                     private record struct HueData
                     {
