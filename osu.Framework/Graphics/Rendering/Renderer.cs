@@ -6,10 +6,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
@@ -172,7 +175,7 @@ namespace osu.Framework.Graphics.Rendering
             foreach (var source in flush_source_statistics)
                 source.Value = 0;
 
-            globalUniformBuffer ??= CreateUniformBuffer<GlobalUniformData>();
+            globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
 
             Debug.Assert(defaultQuadBatch != null);
 
@@ -1015,7 +1018,7 @@ namespace osu.Framework.Graphics.Rendering
         protected abstract IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
         /// <inheritdoc cref="IRenderer.CreateUniformBuffer{TData}"/>
-        public abstract IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
+        protected abstract IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/>.
@@ -1109,6 +1112,90 @@ namespace osu.Framework.Graphics.Rendering
                 throw new ArgumentException("Maximum number of buffers must be > 0.", nameof(maxBuffers));
 
             return CreateQuadBatch<TVertex>(size, maxBuffers);
+        }
+
+        private readonly HashSet<Type> validUboTypes = new HashSet<Type>();
+
+        IUniformBuffer<TData> IRenderer.CreateUniformBuffer<TData>()
+        {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
+            if (validUboTypes.Contains(typeof(TData)))
+                return CreateUniformBuffer<TData>();
+
+            if (typeof(TData).StructLayoutAttribute?.Pack != 1)
+                throw new ArgumentException($"{typeof(TData)} requires a packing size of 1.");
+
+            int offset = 0;
+
+            foreach (var field in typeof(TData).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                checkValidType(field);
+
+                if (field.FieldType == typeof(UniformMatrix3)
+                    || field.FieldType == typeof(UniformMatrix4)
+                    || field.FieldType == typeof(UniformVector3)
+                    || field.FieldType == typeof(UniformVector4))
+                {
+                    checkAlignment(field, offset, 16);
+                }
+
+                if (field.FieldType == typeof(UniformVector2))
+                    checkAlignment(field, offset, 8);
+
+                offset += Marshal.SizeOf(field.FieldType);
+            }
+
+            Type? finalPadding = suggestPadding(offset, 16);
+            if (finalPadding != null)
+                throw new ArgumentException($"{typeof(TData)} alignment requires a {finalPadding} to be added at the end.");
+
+            validUboTypes.Add(typeof(TData));
+            return CreateUniformBuffer<TData>();
+
+            static void checkValidType(FieldInfo field)
+            {
+                if (field.FieldType == typeof(UniformBool)
+                    || field.FieldType == typeof(UniformFloat)
+                    || field.FieldType == typeof(UniformInt)
+                    || field.FieldType == typeof(UniformMatrix3)
+                    || field.FieldType == typeof(UniformMatrix4)
+                    || field.FieldType == typeof(UniformPadding4)
+                    || field.FieldType == typeof(UniformPadding8)
+                    || field.FieldType == typeof(UniformPadding12)
+                    || field.FieldType == typeof(UniformVector2)
+                    || field.FieldType == typeof(UniformVector4)
+                    || field.FieldType == typeof(UniformVector4))
+                {
+                    return;
+                }
+
+                throw new ArgumentException($"{typeof(TData)} has unsupported field {field.Name} of type {field.FieldType}.");
+            }
+
+            static void checkAlignment(FieldInfo field, int offset, int expectedAlignment)
+            {
+                Type? suggestedPadding = suggestPadding(offset, expectedAlignment);
+                if (suggestedPadding != null)
+                    throw new ArgumentException($"{typeof(TData)} alignment requires a {suggestedPadding} to be inserted before \"{field.Name}\".");
+            }
+
+            static Type? suggestPadding(int offset, int expectedAlignment)
+            {
+                int currentAlignment = offset % expectedAlignment;
+                int paddingRequired = expectedAlignment - currentAlignment;
+
+                if (currentAlignment == 0)
+                    return null;
+
+                return paddingRequired switch
+                {
+                    4 => typeof(UniformPadding4),
+                    8 => typeof(UniformPadding8),
+                    12 => typeof(UniformPadding12),
+                    _ => null
+                };
+            }
         }
 
         #endregion
