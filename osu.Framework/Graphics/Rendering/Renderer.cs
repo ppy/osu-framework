@@ -1169,7 +1169,7 @@ namespace osu.Framework.Graphics.Rendering
                     return;
                 }
 
-                throw new ArgumentException($"{typeof(TData)} has unsupported field {field.Name} of type {field.FieldType}.");
+                throw new ArgumentException($"{typeof(TData)} has an unsupported type of {field.FieldType} for field \"{field.Name}\".");
             }
 
             static void checkAlignment(FieldInfo field, int offset, int expectedAlignment)
