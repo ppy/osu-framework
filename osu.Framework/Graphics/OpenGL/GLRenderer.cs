@@ -344,7 +344,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, manager);
         }
 
-        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer);
+        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -398,8 +399,7 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        public override IUniformBuffer<TData> CreateUniformBuffer<TData>()
-            => new GLUniformBuffer<TData>(this);
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)
