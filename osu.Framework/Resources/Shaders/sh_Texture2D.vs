@@ -1,6 +1,6 @@
 #include "sh_Utils.h"
 
-layout(location = 0)in highp vec2 m_Position;
+layout(location = 0) in highp vec2 m_Position;
 layout(location = 1) in lowp vec4 m_Colour;
 layout(location = 2) in highp vec2 m_TexCoord;
 layout(location = 3) in highp vec4 m_TexRect;
