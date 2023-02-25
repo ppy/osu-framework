@@ -169,6 +169,25 @@ namespace osu.Framework.Platform.SDL2
             return ret;
         }
 
+        int? IOpenGLGraphicsSurface.BackbufferFramebuffer
+        {
+            get
+            {
+                if (window.SDLWindowHandle == IntPtr.Zero)
+                    return null;
+
+                var wmInfo = window.GetWindowSystemInformation();
+
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
+                        return (int)wmInfo.info.uikit.framebuffer;
+                }
+
+                return null;
+            }
+        }
+
         bool IOpenGLGraphicsSurface.VerticalSync
         {
             get => SDL.SDL_GL_GetSwapInterval() != 0;

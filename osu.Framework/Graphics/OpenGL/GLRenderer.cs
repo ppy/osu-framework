@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public bool IsEmbedded { get; private set; }
 
-        protected virtual int BackbufferFramebuffer => 0;
+        private int backbufferFramebuffer;
 
         protected override bool GammaCorrection => base.GammaCorrection || !IsEmbedded;
 
@@ -62,6 +62,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
             openGLSurface.MakeCurrent(openGLSurface.WindowContext);
+
+            backbufferFramebuffer = openGLSurface.BackbufferFramebuffer ?? 0;
 
             string version = GL.GetString(StringName.Version);
             IsEmbedded = version.Contains("OpenGL ES"); // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
@@ -221,7 +223,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? backbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.

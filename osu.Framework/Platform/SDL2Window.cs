@@ -82,7 +82,7 @@ namespace osu.Framework.Platform
                 if (SDLWindowHandle == IntPtr.Zero)
                     return false;
 
-                return getWindowWMInfo().subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND;
+                return GetWindowSystemInformation().subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND;
             }
         }
 
@@ -96,7 +96,7 @@ namespace osu.Framework.Platform
                 if (SDLWindowHandle == IntPtr.Zero)
                     return IntPtr.Zero;
 
-                var wmInfo = getWindowWMInfo();
+                var wmInfo = GetWindowSystemInformation();
 
                 // Window handle is selected per subsystem as defined at:
                 // https://wiki.libsdl.org/SDL_SysWMinfo
@@ -136,7 +136,7 @@ namespace osu.Framework.Platform
                 if (SDLWindowHandle == IntPtr.Zero)
                     return IntPtr.Zero;
 
-                var wmInfo = getWindowWMInfo();
+                var wmInfo = GetWindowSystemInformation();
 
                 switch (wmInfo.subsystem)
                 {
@@ -152,7 +152,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private SDL.SDL_SysWMinfo getWindowWMInfo()
+        internal SDL.SDL_SysWMinfo GetWindowSystemInformation()
         {
             if (SDLWindowHandle == IntPtr.Zero)
                 return default;
