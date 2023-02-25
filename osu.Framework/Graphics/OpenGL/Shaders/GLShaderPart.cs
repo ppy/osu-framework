@@ -113,8 +113,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Precision.h"), false) + "\n";
-                    internalIncludes += loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
+                    string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
                     internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     code = internalIncludes + code;
 
