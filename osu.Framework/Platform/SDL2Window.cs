@@ -376,11 +376,14 @@ namespace osu.Framework.Platform
             {
                 eventsRead = SDL.SDL_PeepEvents(events, events_per_peep, SDL.SDL_eventaction.SDL_GETEVENT, SDL.SDL_EventType.SDL_FIRSTEVENT, SDL.SDL_EventType.SDL_LASTEVENT);
                 for (int i = 0; i < eventsRead; i++)
-                    handleSDLEvent(events[i]);
+                    HandleEvent(events[i]);
             } while (eventsRead == events_per_peep);
         }
 
-        private void handleSDLEvent(SDL.SDL_Event e)
+        /// <summary>
+        /// Handles <see cref="SDL.SDL_Event"/>s polled on the main thread.
+        /// </summary>
+        protected virtual void HandleEvent(SDL.SDL_Event e)
         {
             switch (e.type)
             {

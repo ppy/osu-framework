@@ -9,23 +9,21 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
+    // todo: check whether invoking on main thread is required, and whether we could just replace this with SDL clipboard implementation.
     public class IOSClipboard : Clipboard
     {
-        private readonly IOSGameView gameView;
-
-        internal IOSClipboard(IOSGameView gameView)
+        internal IOSClipboard()
         {
-            this.gameView = gameView;
         }
 
         public override string GetText()
         {
             string text = "";
-            gameView.InvokeOnMainThread(() => text = UIPasteboard.General.String);
+            text = UIPasteboard.General.String;
             return text;
         }
 
-        public override void SetText(string selectedText) => gameView.InvokeOnMainThread(() => UIPasteboard.General.String = selectedText);
+        public override void SetText(string selectedText) => UIPasteboard.General.String = selectedText;
 
         public override Image<TPixel> GetImage<TPixel>()
         {
