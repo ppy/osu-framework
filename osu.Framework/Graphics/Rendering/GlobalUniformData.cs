@@ -35,6 +35,7 @@ namespace osu.Framework.Graphics.Rendering
         public UniformInt WrapModeT;
 
         public UniformBool IsDepthRangeZeroToOne;
-        private readonly UniformPadding12 pad4;
+        public UniformBool IsClipSpaceYInverted;
+        private readonly UniformPadding8 pad4;
     }
 }

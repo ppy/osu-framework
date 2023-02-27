@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         public override bool IsDepthRangeZeroToOne => false;
+        public override bool IsUvOriginTopLeft => false;
+        public override bool IsClipSpaceYInverted => false;
 
         /// <summary>
         /// The maximum allowed render buffer size.

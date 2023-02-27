@@ -46,6 +46,8 @@ namespace osu.Framework.Graphics.Rendering
         public int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
 
         public abstract bool IsDepthRangeZeroToOne { get; }
+        public abstract bool IsUvOriginTopLeft { get; }
+        public abstract bool IsClipSpaceYInverted { get; }
 
         /// <summary>
         /// The current reset index.
@@ -187,7 +189,8 @@ namespace osu.Framework.Graphics.Rendering
             globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
             globalUniformBuffer.Data = globalUniformBuffer.Data with
             {
-                IsDepthRangeZeroToOne = IsDepthRangeZeroToOne
+                IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
+                IsClipSpaceYInverted = IsClipSpaceYInverted
             };
 
             Debug.Assert(defaultQuadBatch != null);
