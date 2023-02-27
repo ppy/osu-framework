@@ -25,6 +25,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -720,7 +721,12 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow(Options.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
+                GraphicsSurfaceType surfaceType = Options.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
+
+                Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
+                Logger.Log("Using graphics surface: " + surfaceType);
+
+                Window = CreateWindow(surfaceType);
 
                 populateInputHandlers();
 
