@@ -17,7 +17,7 @@ namespace osu.Framework.Tests
         {
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
-            GraphicsSurfaceType? surfaceType = Enum.TryParse(args.GetNext("--surface"), out GraphicsSurfaceType type) ? type : null;
+            GraphicsSurfaceType? surfaceType = Enum.TryParse(args.GetNext("--surface"), true, out GraphicsSurfaceType type) ? type : null;
 
             HostOptions options = new HostOptions
             {
