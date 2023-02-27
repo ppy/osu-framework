@@ -230,15 +230,7 @@ namespace osu.Framework.Graphics.Rendering
         public static void DrawFrameBuffer(this IRenderer renderer, IFrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D>? vertexAction = null,
                                            Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
-            RectangleF textureRect = new RectangleF(0, 0, frameBuffer.Texture.Width, frameBuffer.Texture.Height);
-
-            if (!renderer.IsUvOriginTopLeft)
-            {
-                textureRect.Y = frameBuffer.Texture.Height;
-                textureRect.Height = -frameBuffer.Texture.Height;
-            }
-
-            renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            renderer.DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, null, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         /// <summary>

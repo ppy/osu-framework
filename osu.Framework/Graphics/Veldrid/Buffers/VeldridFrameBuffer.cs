@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             this.renderer = renderer;
             this.formats = formats ?? Array.Empty<PixelFormat>();
 
-            Texture = renderer.CreateTexture(veldridTexture = new FrameBufferTexture(renderer, filteringMode));
+            Texture = renderer.CreateFrameBufferTexture(veldridTexture = new FrameBufferTexture(renderer, filteringMode));
 
             initialiseFramebuffer();
             Debug.Assert(Framebuffer != null);

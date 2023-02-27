@@ -1069,13 +1069,21 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>The <see cref="Texture"/>.</returns>
         internal Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            => registerTexture(new Texture(nativeTexture, wrapModeS, wrapModeT));
+
+        /// <summary>
+        /// Creates a special <see cref="Texture"/> which responds to any UV-coordinate space requirements for use in framebuffers.
+        /// </summary>
+        /// <param name="nativeTexture">The framebuffer's native texture.</param>
+        /// <returns>The <see cref="Texture"/>.</returns>
+        internal Texture CreateFrameBufferTexture(INativeTexture nativeTexture)
+            => registerTexture(new ClipSpaceAdjustedTexture(nativeTexture, WrapMode.None, WrapMode.None));
+
+        private Texture registerTexture(Texture texture)
         {
-            var tex = new Texture(nativeTexture, wrapModeS, wrapModeT);
-
-            allTextures.Add(tex);
-            TextureCreated?.Invoke(tex);
-
-            return tex;
+            allTextures.Add(texture);
+            TextureCreated?.Invoke(texture);
+            return texture;
         }
 
         #endregion
@@ -1245,6 +1253,33 @@ namespace osu.Framework.Graphics.Rendering
 
                 case "veldrid":
                     return new VeldridRenderer();
+            }
+        }
+
+        /// <summary>
+        /// A special <see cref="Texture"/> which applies adjustments necessary for the current renderer
+        /// to ensure that (0, 0) is the top-left texel of the texture.
+        /// </summary>
+        /// <remarks>
+        /// This is used for framebuffers where the texture can't be pre-adjusted from the time of creation.
+        /// </remarks>
+        private class ClipSpaceAdjustedTexture : Texture
+        {
+            public ClipSpaceAdjustedTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
+                : base(nativeTexture, wrapModeS, wrapModeT)
+            {
+            }
+
+            public ClipSpaceAdjustedTexture(Texture parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+                : base(parent, wrapModeS, wrapModeT)
+            {
+            }
+
+            public override RectangleF GetTextureRect(RectangleF? area = null)
+            {
+                return base.NativeTexture.Renderer.IsUvOriginTopLeft
+                    ? base.GetTextureRect(area)
+                    : base.GetTextureRect(area).Inflate(new Vector2(0, -1));
             }
         }
 
