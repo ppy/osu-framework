@@ -18,11 +18,13 @@ namespace osu.Framework.Tests
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
             GraphicsSurfaceType? surfaceType = Enum.TryParse(args.GetNext("--surface"), out GraphicsSurfaceType type) ? type : null;
+            string rendererType = args.GetNext("--renderer");
 
             HostOptions options = new HostOptions
             {
                 PortableInstallation = portable,
-                PreferredGraphicsSurface = surfaceType
+                PreferredGraphicsSurface = surfaceType,
+                PreferredRendererType = rendererType
             };
 
             using (GameHost host = Host.GetSuitableDesktopHost(@"visual-tests", options))

@@ -327,6 +327,9 @@ namespace osu.Framework.Platform
 
         protected virtual IRenderer CreateRenderer()
         {
+            if (Options.PreferredRendererType != null)
+                return Graphics.Rendering.Renderer.ParseRendererType(Options.PreferredRendererType);
+
             switch (Options.PreferredGraphicsSurface)
             {
                 default:

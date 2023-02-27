@@ -9,11 +9,13 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -1219,6 +1221,23 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
+
+        #endregion
+
+        #region Utils
+
+        public static IRenderer ParseRendererType(string? type)
+        {
+            switch (type?.ToLowerInvariant())
+            {
+                default:
+                case "glrenderer":
+                    return new GLRenderer();
+
+                case "veldrid":
+                    return new VeldridRenderer();
+            }
+        }
 
         #endregion
     }

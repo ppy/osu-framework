@@ -35,5 +35,13 @@ namespace osu.Framework
         /// The preferred graphics surface.
         /// </summary>
         public GraphicsSurfaceType? PreferredGraphicsSurface { get; set; }
+
+        /// <summary>
+        /// The preferred graphics renderer.
+        /// </summary>
+        /// <remarks>
+        /// Overrides <see cref="PreferredGraphicsSurface"/> for selecting the renderer, but not for selecting the type of surface (metal/gl/vulkan/etc).
+        /// </remarks>
+        public string? PreferredRendererType { get; set; }
     }
 }
