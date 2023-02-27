@@ -223,9 +223,17 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             {
                 for (int i = 0; i < Shaders.Length; i++)
                     Shaders[i].Dispose();
-
-                Shaders = null;
             }
+
+            foreach (var (_, layout) in uniformLayouts)
+                layout.Dispose();
+
+            foreach (var layout in textureLayouts)
+                layout.Dispose();
+
+            uniformLayouts.Clear();
+            textureLayouts.Clear();
+            Shaders = null;
         }
     }
 }
