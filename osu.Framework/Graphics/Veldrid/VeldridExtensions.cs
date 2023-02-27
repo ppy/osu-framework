@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using SharpGen.Runtime;
@@ -112,6 +113,21 @@ namespace osu.Framework.Graphics.Veldrid
             if (mask.HasFlagFast(BlendingMask.Alpha)) writeMask |= ColorWriteMask.Alpha;
 
             return writeMask;
+        }
+
+        public static SamplerFilter ToSamplerFilter(this TextureFilteringMode mode)
+        {
+            switch (mode)
+            {
+                case TextureFilteringMode.Linear:
+                    return SamplerFilter.MinLinear_MagLinear_MipLinear;
+
+                case TextureFilteringMode.Nearest:
+                    return SamplerFilter.MinPoint_MagPoint_MipPoint;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode));
+            }
         }
 
         public static ComparisonKind ToComparisonKind(this BufferTestFunction function)
