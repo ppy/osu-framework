@@ -9,10 +9,19 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
     /// <summary>
     /// Describes the layout of a uniform set in a Veldrid shader.
     /// </summary>
-    /// <param name="Set">The described set.</param>
-    /// <param name="Layout">The layout of the set.</param>
-    internal record VeldridUniformLayout(int Set, ResourceLayout Layout) : IDisposable
+    internal class VeldridUniformLayout : IDisposable
     {
+        public readonly int Set;
+        public readonly ResourceLayout Layout;
+
+        /// <param name="set">The described set.</param>
+        /// <param name="layout">The layout of the set.</param>
+        public VeldridUniformLayout(int set, ResourceLayout layout)
+        {
+            Set = set;
+            Layout = layout;
+        }
+
         public void Dispose()
         {
             Layout.Dispose();
