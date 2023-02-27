@@ -33,5 +33,8 @@ namespace osu.Framework.Graphics.Rendering
         public UniformFloat InnerCornerRadius;
         public UniformInt WrapModeS;
         public UniformInt WrapModeT;
+
+        public UniformBool IsDepthRangeZeroToOne;
+        private readonly UniformPadding12 pad4;
     }
 }

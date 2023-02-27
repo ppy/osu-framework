@@ -18,7 +18,6 @@ using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
 using osuTK;
-using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using Veldrid.OpenGL;
@@ -36,6 +35,8 @@ namespace osu.Framework.Graphics.Veldrid
             get => Device.SyncToVerticalBlank;
             set => Device.SyncToVerticalBlank = value;
         }
+
+        public override bool IsDepthRangeZeroToOne => Device.IsDepthRangeZeroToOne;
 
         public GraphicsDevice Device { get; private set; } = null!;
 

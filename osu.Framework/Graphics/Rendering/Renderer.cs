@@ -45,6 +45,8 @@ namespace osu.Framework.Graphics.Rendering
         public int MaxTexturesUploadedPerFrame { get; set; } = 32;
         public int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
 
+        public abstract bool IsDepthRangeZeroToOne { get; }
+
         /// <summary>
         /// The current reset index.
         /// </summary>
@@ -183,6 +185,10 @@ namespace osu.Framework.Graphics.Rendering
                 source.Value = 0;
 
             globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
+            globalUniformBuffer.Data = globalUniformBuffer.Data with
+            {
+                IsDepthRangeZeroToOne = IsDepthRangeZeroToOne
+            };
 
             Debug.Assert(defaultQuadBatch != null);
 
