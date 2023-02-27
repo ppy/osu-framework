@@ -83,8 +83,6 @@ namespace osu.Framework.Graphics.Veldrid
                 // todo: we may want to use this over our shader-based toLinear/toSRGB correction functions.
                 // SwapchainSrgbFormat = true,
                 SyncToVerticalBlank = true,
-                PreferDepthRangeZeroToOne = true,
-                PreferStandardClipSpaceYDirection = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
             };
 
