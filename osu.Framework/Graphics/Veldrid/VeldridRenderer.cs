@@ -156,7 +156,6 @@ namespace osu.Framework.Graphics.Veldrid
 
             Commands = Factory.CreateCommandList();
 
-            pipeline.ResourceLayouts = new ResourceLayout[2];
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
 
@@ -173,8 +172,6 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.Begin();
 
             base.BeginFrame(windowSize);
-
-            Clear(new ClearInfo(Color4.FromHsv(new Vector4(ResetId % 360 / 360f, 0.5f, 0.5f, 1f))));
         }
 
         protected internal override void FinishFrame()
@@ -391,6 +388,8 @@ namespace osu.Framework.Graphics.Veldrid
 
                 Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout));
             }
+
+            Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
 
         private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();
