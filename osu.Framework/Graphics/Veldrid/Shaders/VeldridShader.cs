@@ -33,6 +33,9 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public bool IsBound { get; private set; }
 
+        private ShaderDescription vertexShaderDescription;
+        private ShaderDescription fragmentShaderDescription;
+
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => throw new NotSupportedException();
         public int LayoutCount => uniformLayouts.Count + textureLayouts.Count;
 
@@ -46,7 +49,12 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             this.globalUniformBuffer = globalUniformBuffer;
             this.renderer = renderer;
 
-            renderer.ScheduleExpensiveOperation(shaderInitialiseDelegate = new ScheduledDelegate(initialise));
+            // This part of the compilation is quite CPU expensive.
+            // Running it in the constructor will ensure that BDL usages can correctly offload this as an async operation.
+            compile();
+
+            // Final GPU level load/compilation needs to be run on the draw thread.
+            renderer.ScheduleExpensiveOperation(shaderInitialiseDelegate = new ScheduledDelegate(loadToGpu));
         }
 
         internal void EnsureShaderInitialised()
@@ -93,7 +101,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public VeldridUniformLayout? GetUniformBufferLayout(string name) => uniformLayouts.GetValueOrDefault(name);
 
-        private void initialise()
+        private void compile()
         {
             Debug.Assert(parts.Length == 2);
 
@@ -102,12 +110,12 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             try
             {
-                ShaderDescription vertexShaderDescription = new ShaderDescription(
+                vertexShaderDescription = new ShaderDescription(
                     ShaderStages.Vertex,
                     Array.Empty<byte>(),
                     renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
-                ShaderDescription fragmentShaderDescription = new ShaderDescription(
+                fragmentShaderDescription = new ShaderDescription(
                     ShaderStages.Fragment,
                     Array.Empty<byte>(),
                     renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
@@ -147,11 +155,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     fragmentShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCrossCompileResult.FragmentShader);
                 }
 
-                Shader vertexShader = renderer.Factory.CreateShader(vertexShaderDescription);
-                Shader fragmentShader = renderer.Factory.CreateShader(fragmentShaderDescription);
-
-                Shaders = new[] { vertexShader, fragmentShader };
-
                 for (int set = 0; set < crossCompileResult.Reflection.ResourceLayouts.Length; set++)
                 {
                     ResourceLayoutDescription layout = crossCompileResult.Reflection.ResourceLayouts[set];
@@ -190,13 +193,22 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                                         ShaderStages.Fragment | ShaderStages.Vertex))));
                     }
                 }
-
-                BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
             }
             catch (SpirvCompilationException e)
             {
                 Logger.Error(e, $"Failed to initialise shader \"{name}\"");
             }
+        }
+
+        private void loadToGpu()
+        {
+            Shaders = new[]
+            {
+                renderer.Factory.CreateShader(vertexShaderDescription),
+                renderer.Factory.CreateShader(fragmentShaderDescription)
+            };
+
+            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
         }
 
         private bool isDisposed;
