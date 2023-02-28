@@ -18,10 +18,19 @@ namespace osu.Framework.Bindables
 
         public override void Parse(object input)
         {
-            if (input is string hex && Colour4.TryParseHex(hex, out Colour4 colour))
-                Value = colour;
-            else
-                base.Parse(input);
+            switch (input)
+            {
+                case string str:
+                    if (!Colour4.TryParseHex(str, out Colour4 colour))
+                        throw new ArgumentException($"Input string was in wrong format! (expected valid hex colour, actual: '{str}')");
+
+                    Value = colour;
+                    break;
+
+                default:
+                    base.Parse(input);
+                    break;
+            }
         }
 
         protected override Bindable<Colour4> CreateInstance() => new BindableColour4();
