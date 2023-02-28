@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -48,6 +49,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
+        private readonly GLShaderPart vertexPart;
+        private readonly GLShaderPart fragmentPart;
+        private readonly VertexFragmentCompilationResult crossCompileResult;
+
         internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
         {
             this.renderer = renderer;
@@ -55,6 +60,25 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             this.globalUniformBuffer = globalUniformBuffer;
             this.parts = parts.Where(p => p != null).ToArray();
 
+            vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
+            fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
+
+            // This part of the compilation is quite CPU expensive.
+            // Running it in the constructor will ensure that BDL usages can correctly offload this as an async operation.
+            try
+            {
+                // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
+                crossCompileResult = SpirvCompilation.CompileVertexFragment(
+                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
+                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                    renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
+            }
+            catch (Exception e)
+            {
+                throw new ProgramLinkingFailedException(name, e.ToString());
+            }
+
+            // Final GPU level compilation needs to be run on the draw thread.
             renderer.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
 
@@ -134,24 +158,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private protected virtual bool CompileInternal()
         {
-            GLShaderPart vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
-            GLShaderPart fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
-
-            VertexFragmentCompilationResult crossCompileResult;
-
-            try
-            {
-                // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
-                crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
-                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
-                    renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
-            }
-            catch (Exception e)
-            {
-                throw new ProgramLinkingFailedException(name, e.ToString());
-            }
-
             vertexPart.Compile(crossCompileResult.VertexShader);
             fragmentPart.Compile(crossCompileResult.FragmentShader);
 
