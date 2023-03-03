@@ -399,6 +399,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }));
         }
 
+        [Test]
+        public void TestScrollWhenHoveringFirstVisibleItem()
+        {
+            toggleDropdownViaClick(testDropdownMenu);
+            assertDropdownIsOpen(testDropdownMenu);
+
+            AddStep("hover item 0", () => InputManager.MoveMouseTo(testDropdownMenu.Menu.Children[0]));
+
+            AddStep("user scroll down by 1", () => InputManager.ScrollVerticalBy(-1));
+            AddUntilStep("item 3 is hovered", () => testDropdownMenu.Menu.Children[3].IsHovered);
+
+            AddStep("user scroll up by 1", () => InputManager.ScrollVerticalBy(1));
+            AddUntilStep("item 0 is hovered", () => testDropdownMenu.Menu.Children[0].IsHovered);
+
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+        }
+
+        [Test]
+        public void TestScrollWhenHoveringLastVisibleItem()
+        {
+            toggleDropdownViaClick(testDropdownMenu);
+            assertDropdownIsOpen(testDropdownMenu);
+
+            AddStep("hover item 3", () => InputManager.MoveMouseTo(testDropdownMenu.Menu.Children[3]));
+
+            AddStep("user scroll down by 1", () => InputManager.ScrollVerticalBy(-1));
+            AddUntilStep("item 6 is hovered", () => testDropdownMenu.Menu.Children[6].IsHovered);
+
+            AddStep("user scroll up by 1", () => InputManager.ScrollVerticalBy(1));
+            AddUntilStep("item 3 is hovered", () => testDropdownMenu.Menu.Children[3].IsHovered);
+
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
