@@ -410,12 +410,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// Preselects an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to select.</param>
-            protected void PreselectItem(MenuItem item)
+            /// <param name="scrollToItem">Whether to scroll to the preselected item.</param>
+            protected void PreselectItem(MenuItem item, bool scrollToItem = true)
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
                     c.IsPreSelected = compareItemEquality(item, c.Item);
-                    if (c.IsPreSelected)
+                    if (c.IsPreSelected && scrollToItem)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
@@ -436,7 +437,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             public abstract partial class DrawableDropdownMenuItem : DrawableMenuItem
             {
-                public event Action<DropdownMenuItem<T>> PreselectionRequested;
+                public event Action<DropdownMenuItem<T>, bool> PreselectionRequested;
 
                 protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
@@ -521,7 +522,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override bool OnHover(HoverEvent e)
                 {
-                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
+                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>, false);
                     return base.OnHover(e);
                 }
             }
