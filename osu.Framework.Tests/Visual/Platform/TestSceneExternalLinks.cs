@@ -35,6 +35,12 @@ namespace osu.Framework.Tests.Visual.Platform
                     },
                     new BasicButton
                     {
+                        Action = () => host.OpenUrlExternally("mailto:privacy@ppy.sh"),
+                        Size = new Vector2(150, 30),
+                        Text = "Mail to privacy email",
+                    },
+                    new BasicButton
+                    {
                         Action = () => host.OpenUrlExternally("this is a bad link that shouldn't crash the app"),
                         Size = new Vector2(150, 30),
                         Text = "Open bad link",
