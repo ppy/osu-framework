@@ -21,22 +21,22 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);
 
-        private float innerRadius = 0.2f;
+        private float fill = 0.2f;
 
         /// <summary>
         /// The inner fill radius, relative to the <see cref="Drawable.DrawSize"/> of the <see cref="CircularBlob"/>.
         /// The value range is 0 to 1 where 0 is invisible and 1 is completely filled.
-        /// The entire texture still fills the disk without cropping it.
+        /// The entire texture still fills the blob without cropping it.
         /// </summary>
-        public float InnerRadius
+        public float Fill
         {
-            get => innerRadius;
+            get => fill;
             set
             {
                 if (!float.IsFinite(value))
-                    throw new ArgumentException($"{nameof(InnerRadius)} must be finite, but is {value}.");
+                    throw new ArgumentException($"{nameof(Fill)} must be finite, but is {value}.");
 
-                innerRadius = Math.Clamp(value, 0, 1);
+                fill = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -56,17 +56,14 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private float frequency = 1.5f;
+        private int pointCount = 10;
 
-        public float Frequency
+        public int PointCount
         {
-            get => frequency;
+            get => pointCount;
             set
             {
-                if (!float.IsFinite(value))
-                    throw new ArgumentException($"{nameof(Frequency)} must be finite, but is {value}.");
-
-                frequency = value;
+                pointCount = Math.Max(value, 3);
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -92,9 +89,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
             }
 
-            private float innerRadius;
+            private float pathRadius;
             private float texelSize;
-            private float frequency;
+            private int pointCount;
             private float amplitude;
             private Vector2 noisePosition;
             private int seed = -1;
@@ -103,8 +100,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.ApplyState();
 
-                innerRadius = Source.innerRadius;
-                frequency = Source.frequency;
+                pathRadius = Source.fill * 0.5f;
+                pointCount = Source.pointCount;
                 amplitude = Source.amplitude;
 
                 int newSeed = Source.seed;
@@ -117,19 +114,19 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
-                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                texelSize = 2.0f / Math.Min(ScreenSpaceDrawQuad.Width, ScreenSpaceDrawQuad.Height);
             }
 
             protected override void Blit(IRenderer renderer)
             {
-                if (innerRadius == 0)
+                if (pathRadius == 0)
                     return;
 
                 var shader = TextureShader;
 
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
+                shader.GetUniform<float>("pathRadius").UpdateValue(ref pathRadius);
                 shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
-                shader.GetUniform<float>("frequency").UpdateValue(ref frequency);
+                shader.GetUniform<int>("pointCount").UpdateValue(ref pointCount);
                 shader.GetUniform<float>("amplitude").UpdateValue(ref amplitude);
                 shader.GetUniform<Vector2>("noisePosition").UpdateValue(ref noisePosition);
 
