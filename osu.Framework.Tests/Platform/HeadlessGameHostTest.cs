@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -86,8 +84,11 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        [Test]
-        public void TestIpc()
+        private const int timeout = 10000;
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestIpc(bool sendResponse)
         {
             using (var server = new BackgroundGameHeadlessGameHost(@"server", new HostOptions { BindIPC = true }))
             using (var client = new HeadlessGameHost(@"client", new HostOptions { BindIPC = true }))
@@ -107,23 +108,31 @@ namespace osu.Framework.Tests.Platform
                             Assert.AreEqual("example", message.Bar);
                             // ReSharper disable once AccessToDisposedClosure
                             received.Release();
-                            return null;
+                            return sendResponse ? new Foobar { Bar = "response" } : null;
                         };
 
-                        await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
+                        if (sendResponse)
+                        {
+                            var response = await clientChannel.SendMessageWithResponseAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
+                            Assert.AreEqual("response", response?.Bar);
+                        }
+                        else
+                        {
+                            await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
+                        }
 
-                        if (!await received.WaitAsync(10000).ConfigureAwait(false))
+                        if (!await received.WaitAsync(timeout).ConfigureAwait(false))
                             throw new TimeoutException("Message was not received in a timely fashion");
                     }
                 }
 
-                Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
+                Assert.IsTrue(Task.Run(waitAction).Wait(timeout), @"Message was not received in a timely fashion");
             }
         }
 
         private class Foobar
         {
-            public string Bar;
+            public string? Bar;
         }
 
         public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost
