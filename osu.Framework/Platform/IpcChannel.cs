@@ -18,11 +18,23 @@ namespace osu.Framework.Platform
             this.host.MessageReceived += handleMessage;
         }
 
-        public Task SendMessageAsync(T message) => host.SendMessageAsync(new IpcMessage
+        public Task SendMessageAsync(T message) => host.SendMessageAsync(makeMessage(message));
+
+        public async Task<T?> SendMessageWithResponseAsync(T message)
+        {
+            var response = await host.SendMessageWithResponseAsync(makeMessage(message)).ConfigureAwait(false);
+
+            if (response == null || response.Type != typeof(T).AssemblyQualifiedName)
+                return null;
+
+            return (T)response.Value;
+        }
+
+        private IpcMessage makeMessage(T message) => new IpcMessage
         {
             Type = typeof(T).AssemblyQualifiedName,
             Value = message,
-        });
+        };
 
         private IpcMessage? handleMessage(IpcMessage message)
         {

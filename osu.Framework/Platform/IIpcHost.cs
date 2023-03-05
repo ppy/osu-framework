@@ -19,5 +19,12 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="ipcMessage">The message to send.</param>
         Task SendMessageAsync(IpcMessage ipcMessage);
+
+        /// <summary>
+        /// Send a message to the IPC server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The response from the server.</returns>
+        public Task<IpcMessage?> SendMessageWithResponseAsync(IpcMessage message);
     }
 }
