@@ -10,7 +10,7 @@ namespace osu.Framework.Platform
         where T : class
     {
         private readonly IIpcHost host;
-        public event Func<T, IpcMessage?>? MessageReceived;
+        public event Func<T, T?>? MessageReceived;
 
         public IpcChannel(IIpcHost host)
         {
@@ -41,7 +41,12 @@ namespace osu.Framework.Platform
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return null;
 
-            return MessageReceived?.Invoke((T)message.Value);
+            var response = MessageReceived?.Invoke((T)message.Value);
+
+            if (response == null)
+                return null;
+
+            return makeMessage(response);
         }
 
         public void Dispose()
