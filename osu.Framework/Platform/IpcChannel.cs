@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace osu.Framework.Platform
 {
     public class IpcChannel<T> : IDisposable
+        where T : class
     {
         private readonly IIpcHost host;
         public event Func<T, IpcMessage?>? MessageReceived;
