@@ -30,18 +30,5 @@ namespace osu.Framework
         /// If the SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR environment variable is set, this property will have no effect.
         /// </remarks>
         public bool BypassCompositor { get; set; } = true;
-
-        /// <summary>
-        /// The preferred graphics surface.
-        /// </summary>
-        public GraphicsSurfaceType? PreferredGraphicsSurface { get; set; }
-
-        /// <summary>
-        /// The preferred graphics renderer.
-        /// </summary>
-        /// <remarks>
-        /// Overrides <see cref="PreferredGraphicsSurface"/> for selecting the renderer, but not for selecting the type of surface (metal/gl/vulkan/etc).
-        /// </remarks>
-        public string? PreferredRendererType { get; set; }
     }
 }

@@ -328,19 +328,15 @@ namespace osu.Framework.Platform
 
         protected virtual IRenderer CreateRenderer()
         {
-            if (Options.PreferredRendererType != null)
-                return Graphics.Rendering.Renderer.ParseRendererType(Options.PreferredRendererType);
-
-            switch (Options.PreferredGraphicsSurface)
+            switch (FrameworkEnvironment.PREFERRED_GRAPHICS_RENDERER)
             {
-                default:
-                case GraphicsSurfaceType.OpenGL:
-                    return new GLRenderer();
-
-                case GraphicsSurfaceType.Metal:
-                case GraphicsSurfaceType.Vulkan:
-                case GraphicsSurfaceType.Direct3D11:
+                case "veldrid":
                     return new VeldridRenderer();
+
+                default:
+                case "gl":
+                case "opengl":
+                    return new GLRenderer();
             }
         }
 
@@ -721,7 +717,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                GraphicsSurfaceType surfaceType = Options.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
+                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PREFERRED_GRAPHICS_SURFACE ?? GraphicsSurfaceType.OpenGL;
 
                 Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
                 Logger.Log("Using graphics surface: " + surfaceType);
