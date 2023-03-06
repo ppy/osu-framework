@@ -54,7 +54,7 @@ namespace osu.Framework.Platform
 
             if (FrameworkEnvironment.STARTUP_EXECUTION_MODE != null)
             {
-                Config.SetValue(FrameworkSetting.ExecutionMode, FrameworkEnvironment.STARTUP_EXECUTION_MODE);
+                Config.SetValue(FrameworkSetting.ExecutionMode, FrameworkEnvironment.STARTUP_EXECUTION_MODE.Value);
                 Logger.Log($"Startup execution mode set to {FrameworkEnvironment.STARTUP_EXECUTION_MODE} from envvar");
             }
         }
