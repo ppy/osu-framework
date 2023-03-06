@@ -35,9 +35,9 @@ namespace osu.Framework.Tests.Visual.Platform
                     },
                     new BasicButton
                     {
-                        Action = () => host.OpenUrlExternally("mailto:privacy@ppy.sh"),
+                        Action = () => host.OpenUrlExternally("mailto:contact@ppy.sh"),
                         Size = new Vector2(150, 30),
-                        Text = "Mail to privacy email",
+                        Text = "Mail to contact email",
                     },
                     new BasicButton
                     {
