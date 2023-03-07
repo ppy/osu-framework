@@ -65,9 +65,10 @@ namespace osu.Framework.Tests.Primitives
             Assert.That(quad.Contains(quad.BottomRight + new Vector2(0, 1)), Is.False);
             Assert.That(quad.Contains(quad.BottomRight + new Vector2(1)), Is.False);
 
-            Assert.That(quad.Contains(quad.Centre + new Vector2(quad.Width / 2, 0)), Is.True);
-            Assert.That(quad.Contains(quad.Centre + new Vector2(quad.Height / 2, 0)), Is.True);
-            Assert.That(quad.Contains(quad.Centre + quad.Size / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopLeft + quad.TopRight) / 2), Is.True);
+            Assert.That(quad.Contains((quad.BottomLeft + quad.BottomRight) / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopLeft + quad.BottomLeft) / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopRight + quad.BottomRight) / 2), Is.True);
         }
 
         private class AreaTestData
