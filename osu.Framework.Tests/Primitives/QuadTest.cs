@@ -23,6 +23,13 @@ namespace osu.Framework.Tests.Primitives
                 new Vector2(1679.6332f, 695.51416f),
                 new Vector2(1513.5333f, 861.614f),
                 new Vector2(1679.6332f, 861.614f)
+            ),
+            // Arbitrary convex quad
+            new Quad(
+                new Vector2(3, 0),
+                new Vector2(5, 1),
+                new Vector2(0, 5),
+                new Vector2(7, 7)
             )
         };
 
