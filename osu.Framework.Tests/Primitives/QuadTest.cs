@@ -18,13 +18,12 @@ namespace osu.Framework.Tests.Primitives
         {
             new Quad(0, 0, 10, 10),
             // Test potential precision edge cases using the precise centre point.
-            // TODO: currently failing, needs fix.
-            // new Quad(
-            //     new Vector2(1513.5333f, 695.51416f),
-            //     new Vector2(1679.6332f, 695.51416f),
-            //     new Vector2(1513.5333f, 861.614f),
-            //     new Vector2(1679.6332f, 861.614f)
-            // )
+            new Quad(
+                new Vector2(1513.5333f, 695.51416f),
+                new Vector2(1679.6332f, 695.51416f),
+                new Vector2(1513.5333f, 861.614f),
+                new Vector2(1679.6332f, 861.614f)
+            )
         };
 
         [TestCaseSource(typeof(AreaTestData), nameof(AreaTestData.TestCases))]
