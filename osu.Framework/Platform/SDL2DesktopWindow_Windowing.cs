@@ -347,12 +347,14 @@ namespace osu.Framework.Platform
 
             int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
 
-            if (numModes <= 0)
+            if (numModes < 0)
             {
                 Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
                 display = null;
                 return false;
             }
+
+            if (numModes == 0) Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
 
             var displayModes = Enumerable.Range(0, numModes)
                                          .Select(modeIndex =>
