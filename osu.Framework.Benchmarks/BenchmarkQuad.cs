@@ -16,8 +16,8 @@ namespace osu.Framework.Benchmarks
         [Params(10, 100, 1000)]
         public int NumPoints;
 
-        private Vector2[] points;
-        private bool[] results;
+        private Vector2[] points = null!;
+        private bool[] results = null!;
 
         [GlobalSetup]
         public void GlobalSetup()
