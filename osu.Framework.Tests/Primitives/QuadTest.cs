@@ -18,13 +18,19 @@ namespace osu.Framework.Tests.Primitives
         {
             new Quad(0, 0, 10, 10),
             // Test potential precision edge cases using the precise centre point.
-            // TODO: currently failing, needs fix.
-            // new Quad(
-            //     new Vector2(1513.5333f, 695.51416f),
-            //     new Vector2(1679.6332f, 695.51416f),
-            //     new Vector2(1513.5333f, 861.614f),
-            //     new Vector2(1679.6332f, 861.614f)
-            // )
+            new Quad(
+                new Vector2(1513.5333f, 695.51416f),
+                new Vector2(1679.6332f, 695.51416f),
+                new Vector2(1513.5333f, 861.614f),
+                new Vector2(1679.6332f, 861.614f)
+            ),
+            // Arbitrary convex quad
+            new Quad(
+                new Vector2(3, 0),
+                new Vector2(5, 1),
+                new Vector2(0, 5),
+                new Vector2(7, 7)
+            )
         };
 
         [TestCaseSource(typeof(AreaTestData), nameof(AreaTestData.TestCases))]
@@ -59,9 +65,10 @@ namespace osu.Framework.Tests.Primitives
             Assert.That(quad.Contains(quad.BottomRight + new Vector2(0, 1)), Is.False);
             Assert.That(quad.Contains(quad.BottomRight + new Vector2(1)), Is.False);
 
-            Assert.That(quad.Contains(quad.Centre + new Vector2(quad.Width / 2, 0)), Is.True);
-            Assert.That(quad.Contains(quad.Centre + new Vector2(quad.Height / 2, 0)), Is.True);
-            Assert.That(quad.Contains(quad.Centre + quad.Size / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopLeft + quad.TopRight) / 2), Is.True);
+            Assert.That(quad.Contains((quad.BottomLeft + quad.BottomRight) / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopLeft + quad.BottomLeft) / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopRight + quad.BottomRight) / 2), Is.True);
         }
 
         private class AreaTestData
