@@ -88,6 +88,20 @@ namespace osu.Framework.SourceGeneration
                                         })));
         }
 
+        public static InvocationExpressionSyntax CreateWaitSafelyInvocation(ExpressionSyntax target)
+        {
+            return SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.ParseTypeName("global::osu.Framework.Extensions.TaskExtensions"),
+                                        SyntaxFactory.IdentifierName("WaitSafely")))
+                                .WithArgumentList(SyntaxFactory.ArgumentList(
+                                    SyntaxFactory.SeparatedList(new[]
+                                    {
+                                        SyntaxFactory.Argument(target)
+                                    })));
+        }
+
         public static TypeOfExpressionSyntax TypeOf(string typeName)
             => SyntaxFactory.TypeOfExpression(SyntaxFactory.ParseTypeName(typeName));
 

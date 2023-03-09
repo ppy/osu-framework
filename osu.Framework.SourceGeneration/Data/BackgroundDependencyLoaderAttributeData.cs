@@ -11,12 +11,14 @@ namespace osu.Framework.SourceGeneration.Data
     {
         public readonly string MethodName;
         public readonly bool CanBeNull;
+        public readonly bool IsAsync;
         public readonly ImmutableArray<BackgroundDependencyLoaderParameterData> Parameters;
 
-        public BackgroundDependencyLoaderAttributeData(string methodName, bool canBeNull, ImmutableArray<BackgroundDependencyLoaderParameterData> parameters)
+        public BackgroundDependencyLoaderAttributeData(string methodName, bool canBeNull, bool isAsync, ImmutableArray<BackgroundDependencyLoaderParameterData> parameters)
         {
             MethodName = methodName;
             CanBeNull = canBeNull;
+            IsAsync = isAsync;
             Parameters = parameters;
         }
 
@@ -32,7 +34,7 @@ namespace osu.Framework.SourceGeneration.Data
             foreach (var parameter in method.Parameters)
                 parameterBuilder.Add(BackgroundDependencyLoaderParameterData.FromParameter(parameter));
 
-            return new BackgroundDependencyLoaderAttributeData(method.Name, canBeNull, parameterBuilder.MoveToImmutable());
+            return new BackgroundDependencyLoaderAttributeData(method.Name, canBeNull, method.IsAsync, parameterBuilder.MoveToImmutable());
         }
     }
 }
