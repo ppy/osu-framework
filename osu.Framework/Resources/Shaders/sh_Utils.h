@@ -55,3 +55,15 @@ vec4 hsv2rgb(vec4 c)
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return vec4(c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y), c.w);
 }
+
+highp float dstToLine(highp vec2 lineStart, highp vec2 lineEnd, highp vec2 pos)
+{
+    highp float lineLength = distance(lineEnd, lineStart);
+
+    if (lineLength < 0.0001)
+        return distance(pos, lineStart);
+
+    highp vec2 a = (lineEnd - lineStart) / lineLength;
+    highp vec2 closest = clamp(dot(a, pos - lineStart), 0.0, lineLength) * a + lineStart; // closest point on a line from given position
+    return distance(closest, pos);
+}
