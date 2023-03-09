@@ -67,7 +67,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override IRenderer CreateRenderer()
         {
-            if (FrameworkEnvironment.PREFERRED_GRAPHICS_RENDERER != null || FrameworkEnvironment.PREFERRED_GRAPHICS_SURFACE != null)
+            if (FrameworkEnvironment.PreferredGraphicsRenderer != null || FrameworkEnvironment.PreferredGraphicsSurface != null)
                 return base.CreateRenderer();
 
             return new WindowsGLRenderer(this);
