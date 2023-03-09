@@ -39,8 +39,6 @@ namespace osu.Framework.iOS
                 true);
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface, this);
-
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
