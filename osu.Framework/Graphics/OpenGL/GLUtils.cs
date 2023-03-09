@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics.ES30;
+using BufferUsageHint = osuTK.Graphics.ES30.BufferUsageHint;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -129,6 +130,57 @@ namespace osu.Framework.Graphics.OpenGL
 
                 default:
                     throw new ArgumentException($"Unsupported stencil operation: {operation}.", nameof(operation));
+            }
+        }
+
+        public static BufferUsageHint ToBufferUsageHint(Rendering.BufferUsageHint hint)
+        {
+            switch (hint)
+            {
+                case Rendering.BufferUsageHint.StreamDraw:
+                    return BufferUsageHint.StreamDraw;
+
+                case Rendering.BufferUsageHint.StreamRead:
+                    return BufferUsageHint.StreamRead;
+
+                case Rendering.BufferUsageHint.StreamCopy:
+                    return BufferUsageHint.StreamCopy;
+
+                case Rendering.BufferUsageHint.StaticDraw:
+                    return BufferUsageHint.StaticDraw;
+
+                case Rendering.BufferUsageHint.StaticRead:
+                    return BufferUsageHint.StaticRead;
+
+                case Rendering.BufferUsageHint.StaticCopy:
+                    return BufferUsageHint.StaticCopy;
+
+                case Rendering.BufferUsageHint.DynamicDraw:
+                    return BufferUsageHint.DynamicDraw;
+
+                case Rendering.BufferUsageHint.DynamicRead:
+                    return BufferUsageHint.DynamicRead;
+
+                case Rendering.BufferUsageHint.DynamicCopy:
+                    return BufferUsageHint.DynamicCopy;
+
+                default:
+                    throw new ArgumentException($"Unsupported buffer usage hint: {hint}", nameof(hint));
+            }
+        }
+
+        public static DrawElementsType ToDrawElementsType(IndexType index)
+        {
+            switch (index)
+            {
+                case IndexType.UnsignedShort:
+                    return DrawElementsType.UnsignedShort;
+
+                case IndexType.UnsignedInt:
+                    return DrawElementsType.UnsignedInt;
+
+                default:
+                    throw new ArgumentException($"Unsupported index type: {index}.", nameof(index));
             }
         }
     }

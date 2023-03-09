@@ -71,6 +71,11 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
+            ImplicitStateArray = new GLStateArray(this, StateArrayFlags.All);
+            GL.BindVertexArray(ImplicitStateArray.VAOHandle);
+            GLStateArray.BoundArray = ImplicitStateArray;
+            GLStateArray.VAOBoundArray = ImplicitStateArray;
+
             openGLSurface.ClearCurrent();
         }
 
@@ -79,9 +84,17 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
 
+            ImplicitStateArray.Bind();
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
+        }
+
+        protected internal override void FinishFrame()
+        {
+            GLStateArray.BoundArray.Unbind();
+
+            base.FinishFrame();
         }
 
         protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);
@@ -89,6 +102,16 @@ namespace osu.Framework.Graphics.OpenGL
         protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
         protected internal override void WaitUntilIdle() => GL.Finish();
 
+        public int GetBoundBuffer(BufferTarget target)
+        {
+            int bufferIndex = target - BufferTarget.ArrayBuffer;
+            return lastBoundBuffers[bufferIndex];
+        }
+        public void ResetBoundBuffer(BufferTarget target, int buffer)
+        {
+            int bufferIndex = target - BufferTarget.ArrayBuffer;
+            lastBoundBuffers[bufferIndex] = buffer;
+        }
         public bool BindBuffer(BufferTarget target, int buffer)
         {
             int bufferIndex = target - BufferTarget.ArrayBuffer;
@@ -396,5 +419,15 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
+
+        public override GLRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>()
+            => new GLRawVertexBuffer<TVertex>(this);
+
+        public override GLRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>()
+            => new GLRawIndexBuffer<TIndex>(this);
+
+        public GLStateArray ImplicitStateArray = null!;
+        public override IRenderStateArray CreateRenderStateArray(StateArrayFlags flags)
+            => new GLStateArray(this, flags);
     }
 }

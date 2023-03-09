@@ -791,6 +791,14 @@ namespace osu.Framework.Graphics.Rendering
 
         #endregion
 
+        #region Buffers
+
+        public abstract IRawVertexBuffer<TVertex> CreateRawVertexBuffer<TVertex>() where TVertex : unmanaged, IVertex;
+        public abstract IRawIndexBuffer<TIndex> CreateRawIndexBuffer<TIndex>() where TIndex : unmanaged, IConvertible;
+        public abstract IRenderStateArray CreateRenderStateArray(StateArrayFlags flags);
+
+        #endregion
+
         #region Textures
 
         public bool BindTexture(Texture texture, int unit, WrapMode? wrapModeS, WrapMode? wrapModeT)
