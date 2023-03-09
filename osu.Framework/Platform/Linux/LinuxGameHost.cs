@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using SDL2;
 using osu.Framework.Input;
-using osu.Framework.Platform.Linux.SDL2;
+using osu.Framework.Platform.SDL2;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -35,8 +35,6 @@ namespace osu.Framework.Platform.Linux
             base.SetupForRun();
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2Window(preferredSurface);
-
         public override IEnumerable<string> UserStoragePaths
         {
             get
@@ -52,8 +50,6 @@ namespace osu.Framework.Platform.Linux
                     yield return path;
             }
         }
-
-        public override Clipboard GetClipboard() => new SDL2Clipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
     }

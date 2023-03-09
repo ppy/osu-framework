@@ -4,24 +4,15 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
-using osu.Framework.Input;
-using osu.Framework.Input.Handlers;
-using osu.Framework.Input.Handlers.Joystick;
-using osu.Framework.Input.Handlers.Keyboard;
-using osu.Framework.Input.Handlers.Midi;
-using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Input.Handlers.Tablet;
-using osu.Framework.Input.Handlers.Touch;
 
 namespace osu.Framework.Platform
 {
-    public abstract class DesktopGameHost : GameHost
+    public abstract class DesktopGameHost : SDL2GameHost
     {
         public const int IPC_PORT = 45356;
 
@@ -79,8 +70,6 @@ namespace osu.Framework.Platform
 
         public bool IsPortableInstallation { get; }
 
-        public override bool CapsLockEnabled => (Window as SDL2Window)?.CapsLockPressed == true;
-
         public override bool OpenFileExternally(string filename)
         {
             openUsingShellExecute(filename);
@@ -107,26 +96,6 @@ namespace osu.Framework.Platform
             FileName = path,
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
         });
-
-        protected override TextInputSource CreateTextInput()
-        {
-            if (Window is SDL2Window desktopWindow)
-                return new SDL2WindowTextInput(desktopWindow);
-
-            return base.CreateTextInput();
-        }
-
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[]
-            {
-                new KeyboardHandler(),
-                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
-                new OpenTabletDriverHandler(),
-                new MouseHandler(),
-                new TouchHandler(),
-                new JoystickHandler(),
-                new MidiHandler(),
-            };
 
         public override Task SendMessageAsync(IpcMessage message)
         {
