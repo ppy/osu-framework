@@ -130,12 +130,21 @@ namespace osu.Framework.Platform
             }
         }
 
-        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
+        public WindowMode DefaultWindowMode => RuntimeInfo.IsMobile ? Configuration.WindowMode.Fullscreen : Configuration.WindowMode.Windowed;
 
         /// <summary>
         /// Returns the window modes that the platform should support by default.
         /// </summary>
-        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues<WindowMode>();
+        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes
+        {
+            get
+            {
+                if (RuntimeInfo.IsMobile)
+                    return new[] { Configuration.WindowMode.Fullscreen };
+
+                return Enum.GetValues<WindowMode>();
+            }
+        }
 
         private Point position;
 
