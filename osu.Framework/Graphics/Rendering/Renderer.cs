@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
@@ -1129,7 +1130,7 @@ namespace osu.Framework.Graphics.Rendering
                 return CreateUniformBuffer<TData>();
 
             if (typeof(TData).StructLayoutAttribute?.Pack != 1)
-                throw new ArgumentException($"{typeof(TData)} requires a packing size of 1.");
+                throw new ArgumentException($"{typeof(TData).ReadableName()} requires a packing size of 1.");
 
             int offset = 0;
 
@@ -1153,7 +1154,7 @@ namespace osu.Framework.Graphics.Rendering
 
             Type? finalPadding = suggestPadding(offset, 16);
             if (finalPadding != null)
-                throw new ArgumentException($"{typeof(TData)} alignment requires a {finalPadding} to be added at the end.");
+                throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {finalPadding} to be added at the end.");
 
             validUboTypes.Add(typeof(TData));
             return CreateUniformBuffer<TData>();
@@ -1175,14 +1176,14 @@ namespace osu.Framework.Graphics.Rendering
                     return;
                 }
 
-                throw new ArgumentException($"{typeof(TData)} has an unsupported type of {field.FieldType} for field \"{field.Name}\".");
+                throw new ArgumentException($"{typeof(TData).ReadableName()} has an unsupported type of {field.FieldType} for field \"{field.Name}\".");
             }
 
             static void checkAlignment(FieldInfo field, int offset, int expectedAlignment)
             {
                 Type? suggestedPadding = suggestPadding(offset, expectedAlignment);
                 if (suggestedPadding != null)
-                    throw new ArgumentException($"{typeof(TData)} alignment requires a {suggestedPadding} to be inserted before \"{field.Name}\".");
+                    throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {suggestedPadding} to be inserted before \"{field.Name}\".");
             }
 
             static Type? suggestPadding(int offset, int expectedAlignment)
