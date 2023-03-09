@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
@@ -173,8 +174,12 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
+        private ObjectHandle<SDL2Window> objectHandle;
+
         public SDL2Window(GraphicsSurfaceType surfaceType)
         {
+            objectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
+
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
@@ -246,16 +251,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, IntPtr.Zero);
-
-            // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
-            OnSDLEvent += e =>
-            {
-                if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
-                {
-                    fetchWindowSize();
-                }
-            };
+            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, objectHandle.Handle);
 
             while (Exists)
             {
@@ -284,11 +280,25 @@ namespace osu.Framework.Platform
             SDL.SDL_Quit();
         }
 
-        [MonoPInvokeCallback(typeof(SDL.SDL_EventFilter))]
-        private static int eventFilter(IntPtr _, IntPtr eventPtr)
+        protected virtual void HandleEventFromFilter(SDL.SDL_Event evt)
         {
-            // var e = Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr);
-            // OnSDLEvent?.Invoke(e);
+            switch (evt.type)
+            {
+                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                    // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
+                    if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                        fetchWindowSize();
+
+                    break;
+            }
+        }
+
+        [MonoPInvokeCallback(typeof(SDL.SDL_EventFilter))]
+        private static int eventFilter(IntPtr userdata, IntPtr eventPtr)
+        {
+            var handle = new ObjectHandle<SDL2Window>(userdata);
+            if (handle.GetTarget(out SDL2Window window))
+                window.HandleEventFromFilter(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
 
             return 1;
         }
@@ -543,17 +553,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<string>? DragDrop;
 
-        /// <summary>
-        /// Invoked on every SDL event before it's posted to the event queue.
-        /// </summary>
-        protected event Action<SDL.SDL_Event>? OnSDLEvent;
-
         #endregion
 
         public void Dispose()
         {
             Close();
             SDL.SDL_Quit();
+
+            objectHandle.Dispose();
         }
     }
 }
