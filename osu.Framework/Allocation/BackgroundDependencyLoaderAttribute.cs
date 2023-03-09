@@ -8,7 +8,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Statistics;
 
@@ -76,7 +78,8 @@ namespace osu.Framework.Allocation
                             for (int i = 0; i < parameterGetters.Length; i++)
                                 parameterArray[i] = parameterGetters[i](dc);
 
-                            method.Invoke(target, parameterArray);
+                            if (method.Invoke(target, parameterArray) is Task task)
+                                task.WaitSafely();
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {
