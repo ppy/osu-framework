@@ -13,7 +13,9 @@ namespace osu.Framework.SourceGeneration.Analysers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DrawableAnalyser : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticRules.MAKE_DI_CLASS_PARTIAL);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticRules.MAKE_DI_CLASS_PARTIAL,
+            DiagnosticRules.ASYNC_BDL_MUST_RETURN_TASK);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -21,6 +23,7 @@ namespace osu.Framework.SourceGeneration.Analysers
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(analyseClass, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(analyseMethod, SyntaxKind.MethodDeclaration);
         }
 
         /// <summary>
@@ -37,6 +40,25 @@ namespace osu.Framework.SourceGeneration.Analysers
 
             if (type?.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface) == true)
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticRules.MAKE_DI_CLASS_PARTIAL, context.Node.GetLocation(), context.Node));
+        }
+
+        private void analyseMethod(SyntaxNodeAnalysisContext context)
+        {
+            var methodSyntax = (MethodDeclarationSyntax)context.Node;
+
+            // Filter out methods that aren't async.
+            if (methodSyntax.Modifiers.All(m => !m.IsKind(SyntaxKind.AsyncKeyword)))
+                return;
+
+            // Filter out methods that don't return void.
+            if (methodSyntax.ReturnType.ToString() != "void")
+                return;
+
+            // We expect the number of async void-returning methods to be pretty minimal, so retrieving symbols shouldn't be too expensive...
+            IMethodSymbol? method = context.SemanticModel.GetDeclaredSymbol(methodSyntax);
+
+            if (method?.GetAttributes().Any(SyntaxHelpers.IsBackgroundDependencyLoaderAttribute) == true)
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticRules.ASYNC_BDL_MUST_RETURN_TASK, context.Node.GetLocation()));
         }
     }
 }
