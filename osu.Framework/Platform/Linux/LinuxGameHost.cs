@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using SDL2;
 using osu.Framework.Input;
-using osu.Framework.Platform.SDL2;
 
 namespace osu.Framework.Platform.Linux
 {

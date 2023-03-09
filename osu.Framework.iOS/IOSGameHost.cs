@@ -13,15 +13,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.Handlers;
-using osu.Framework.Input.Handlers.Joystick;
-using osu.Framework.Input.Handlers.Keyboard;
-using osu.Framework.Input.Handlers.Midi;
-using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Input.Handlers.Tablet;
-using osu.Framework.Input.Handlers.Touch;
 using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
@@ -31,7 +23,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : GameHost
+    public class IOSGameHost : SDL2GameHost
     {
         public IOSGameHost()
             : base(string.Empty)
@@ -63,21 +55,6 @@ namespace osu.Framework.iOS
 
         public override bool CanExit => false;
 
-        protected override TextInputSource CreateTextInput() => new SDL2WindowTextInput((SDL2Window)Window);
-
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            // todo: maybe time for SDL2GameHost?
-            new InputHandler[]
-            {
-                new KeyboardHandler(),
-                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
-                new OpenTabletDriverHandler(),
-                new MouseHandler(),
-                new TouchHandler(),
-                new JoystickHandler(),
-                new MidiHandler(),
-            };
-
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
         public override bool OpenFileExternally(string filename) => false;
@@ -96,8 +73,6 @@ namespace osu.Framework.iOS
                     UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
             });
         }
-
-        public override Clipboard GetClipboard() => new IOSClipboard();
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
