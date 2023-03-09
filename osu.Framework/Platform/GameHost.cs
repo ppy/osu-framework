@@ -767,6 +767,10 @@ namespace osu.Framework.Platform
                                 break;
                         }
 
+                        Window.Suspended += Suspend;
+                        Window.Resumed += Resume;
+                        Window.LowOnMemory += Collect;
+
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
                         Window.KeymapChanged += readableKeyCombinationProvider.OnKeymapChanged;

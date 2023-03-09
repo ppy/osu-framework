@@ -280,10 +280,33 @@ namespace osu.Framework.Platform
             SDL.SDL_Quit();
         }
 
+        /// <summary>
+        /// Handles <see cref="SDL.SDL_Event"/>s fired from the SDL event filter.
+        /// </summary>
+        /// <remarks>
+        /// As per SDL's recommendation, application events should always be handled via the event filter.
+        /// See: https://wiki.libsdl.org/SDL2/SDL_EventType#android_ios_and_winrt_events
+        /// </remarks>
         protected virtual void HandleEventFromFilter(SDL.SDL_Event evt)
         {
             switch (evt.type)
             {
+                case SDL.SDL_EventType.SDL_APP_TERMINATING:
+                    handleQuitEvent(evt.quit);
+                    break;
+
+                case SDL.SDL_EventType.SDL_APP_DIDENTERBACKGROUND:
+                    Suspended?.Invoke();
+                    break;
+
+                case SDL.SDL_EventType.SDL_APP_WILLENTERFOREGROUND:
+                    Resumed?.Invoke();
+                    break;
+
+                case SDL.SDL_EventType.SDL_APP_LOWMEMORY:
+                    LowOnMemory?.Invoke();
+                    break;
+
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
                     if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
@@ -404,7 +427,6 @@ namespace osu.Framework.Platform
             switch (e.type)
             {
                 case SDL.SDL_EventType.SDL_QUIT:
-                case SDL.SDL_EventType.SDL_APP_TERMINATING:
                     handleQuitEvent(e.quit);
                     break;
 
@@ -537,6 +559,21 @@ namespace osu.Framework.Platform
         /// Invoked once every window event loop.
         /// </summary>
         public event Action? Update;
+
+        /// <summary>
+        /// Invoked when the application associated with this <see cref="IWindow"/> has been suspended.
+        /// </summary>
+        public event Action? Suspended;
+
+        /// <summary>
+        /// Invoked when the application associated with this <see cref="IWindow"/> has been resumed from suspension.
+        /// </summary>
+        public event Action? Resumed;
+
+        /// <summary>
+        /// Invoked when the operating system is low on memory, in order for the application to free some.
+        /// </summary>
+        public event Action? LowOnMemory;
 
         /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
