@@ -10,9 +10,9 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Statistics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Allocation
 {
@@ -78,8 +78,9 @@ namespace osu.Framework.Allocation
                             for (int i = 0; i < parameterGetters.Length; i++)
                                 parameterArray[i] = parameterGetters[i](dc);
 
-                            if (method.Invoke(target, parameterArray) is Task task)
-                                task.WaitSafely();
+                            SourceGeneratorUtils.CreateBackgroundDependencyLoaderContext()
+                                                .WaitFor(method.Invoke(target, parameterArray) as Task)
+                                                .Release();
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {

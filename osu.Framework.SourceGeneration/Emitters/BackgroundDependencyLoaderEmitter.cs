@@ -41,7 +41,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                                         false))))));
 
             if (data.IsAsync)
-                loadExpression = SyntaxHelpers.CreateWaitSafelyInvocation(loadExpression);
+                loadExpression = SyntaxHelpers.WrapAsyncBackgroundDependencyLoaderInvocation(loadExpression);
 
             yield return SyntaxFactory.ExpressionStatement(loadExpression);
         }

@@ -2,10 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Utils
 {
@@ -72,6 +76,64 @@ namespace osu.Framework.Utils
 
             // `(int)(object)null` throws a NRE, so `default` is used instead.
             return val == null ? default! : (T)val;
+        }
+
+        public static IBackgroundDependencyLoaderContext CreateBackgroundDependencyLoaderContext() => new BackgroundDependencyLoaderSynchronizationContext();
+
+        public interface IBackgroundDependencyLoaderContext
+        {
+            IBackgroundDependencyLoaderContext WaitFor(Task? task);
+            void Release();
+        }
+
+        private class BackgroundDependencyLoaderSynchronizationContext : SynchronizationContext, IBackgroundDependencyLoaderContext
+        {
+            private readonly SynchronizationContext? lastContext;
+            private readonly Scheduler scheduler;
+            private readonly ManualResetEventSlim ready = new ManualResetEventSlim();
+
+            public BackgroundDependencyLoaderSynchronizationContext()
+            {
+                scheduler = new Scheduler();
+                lastContext = Current;
+
+                SetSynchronizationContext(this);
+            }
+
+            public override void Send(SendOrPostCallback d, object? state)
+            {
+                d(state);
+            }
+
+            public override void Post(SendOrPostCallback d, object? state)
+            {
+                scheduler.Add(() => d(state));
+                ready.Set();
+            }
+
+#pragma warning disable RS0030
+            public IBackgroundDependencyLoaderContext WaitFor(Task? task)
+            {
+                if (task == null)
+                    return this;
+
+                TaskAwaiter awaiter = task.GetAwaiter();
+                awaiter.OnCompleted(() => ready.Set());
+
+                while (!awaiter.IsCompleted)
+                {
+                    ready.Wait();
+                    scheduler.Update();
+                }
+
+                return this;
+            }
+#pragma warning restore RS0030
+
+            public void Release()
+            {
+                SetSynchronizationContext(lastContext);
+            }
         }
     }
 }
