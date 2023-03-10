@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             if (formats.Length > 0)
             {
-                TextureDescription depthDescription = TextureDescription.Texture2D((uint)Size.X, (uint)Size.Y, 1, 1, formats[0], TextureUsage.DepthStencil);
+                TextureDescription depthDescription = TextureDescription.Texture2D((uint)veldridTexture.Width, (uint)veldridTexture.Height, 1, 1, formats[0], TextureUsage.DepthStencil);
                 description.DepthTarget = new FramebufferAttachmentDescription(renderer.Factory.CreateTexture(ref depthDescription), 0);
             }
 
