@@ -107,9 +107,25 @@ namespace osu.Framework.Graphics.Primitives
 
         public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in TopLeft), 4);
 
+        /// <summary>
+        /// Checks whether <paramref name="pos"/> is inside of this quad.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method assumes a convex quad. The convexity of the quad is not checked.
+        /// </para>
+        /// <para>
+        /// The method works by checking whether the point lies on the same side of all four sides of the quad.
+        /// Note that the quad vertices are *not* using the standard Cartesian coordinates, but rather a Y-inverted version of them
+        /// (as in higher Y is *down*),
+        /// which is why the sign of the perpendicular dot product is opposite to what would be normally expected on the Cartesian plane.
+        /// </para>
+        /// </remarks>
         public bool Contains(Vector2 pos) =>
-            new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
-            new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
+            Vector2.PerpDot(BottomLeft - TopLeft, pos - TopLeft) <= 0
+            && Vector2.PerpDot(BottomRight - BottomLeft, pos - BottomLeft) <= 0
+            && Vector2.PerpDot(TopRight - BottomRight, pos - BottomRight) <= 0
+            && Vector2.PerpDot(TopLeft - TopRight, pos - TopRight) <= 0;
 
         /// <summary>
         /// Computes the area of this <see cref="Quad"/>.
