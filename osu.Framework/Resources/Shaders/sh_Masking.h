@@ -1,29 +1,13 @@
-﻿varying highp vec2 v_MaskingPosition;
-varying lowp vec4 v_Colour;
+﻿layout(location = 0) in highp vec2 v_MaskingPosition;
+layout(location = 1) in lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
-	varying highp vec4 v_TexRect;
+	layout(location = 3) in highp vec4 v_TexRect;
 #else
-	varying mediump vec4 v_TexRect;
+	layout(location = 3) in mediump vec4 v_TexRect;
 #endif
 
-varying mediump vec2 v_BlendRange;
-
-uniform highp float g_CornerRadius;
-uniform highp float g_CornerExponent;
-uniform bool g_IsMasking;
-uniform highp vec4 g_MaskingRect;
-uniform highp float g_BorderThickness;
-uniform lowp mat4 g_BorderColour;
-
-uniform mediump float g_MaskingBlendRange;
-
-uniform lowp float g_AlphaExponent;
-
-uniform highp vec2 g_EdgeOffset;
-
-uniform bool g_DiscardInner;
-uniform highp float g_InnerCornerRadius;
+layout(location = 4) in mediump vec2 v_BlendRange;
 
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {

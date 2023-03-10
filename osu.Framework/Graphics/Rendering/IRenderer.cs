@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="name">The name of the shader.</param>
         /// <param name="parts">The <see cref="IShaderPart"/>s associated with this shader.</param>
         /// <returns>The <see cref="IShader"/>.</returns>
-        protected internal IShader CreateShader(string name, params IShaderPart[] parts);
+        protected internal IShader CreateShader(string name, IShaderPart[] parts);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
@@ -356,6 +356,12 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="size">Number of quads.</param>
         /// <param name="maxBuffers">Maximum number of vertex buffers.</param>
         IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
+
+        /// <summary>
+        /// Creates a buffer that stores data for a uniform block of a <see cref="IShader"/>.
+        /// </summary>
+        /// <typeparam name="TData">The type of data in the buffer.</typeparam>
+        IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
         /// Sets the value of a uniform.

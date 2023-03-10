@@ -25,6 +25,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -40,6 +41,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
@@ -324,7 +326,19 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new GLRenderer();
+        protected virtual IRenderer CreateRenderer()
+        {
+            switch (FrameworkEnvironment.PreferredGraphicsRenderer)
+            {
+                case "veldrid":
+                    return new VeldridRenderer();
+
+                default:
+                case "gl":
+                case "opengl":
+                    return new GLRenderer();
+            }
+        }
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -703,7 +717,12 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                Window = CreateWindow(GraphicsSurfaceType.OpenGL);
+                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
+
+                Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
+                Logger.Log("Using graphics surface: " + surfaceType);
+
+                Window = CreateWindow(surfaceType);
 
                 populateInputHandlers();
 

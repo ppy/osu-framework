@@ -470,7 +470,7 @@ namespace osu.Framework.Testing
             runner.RunTestBlocking(this);
             checkForErrors();
 
-            if (Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1")
+            if (FrameworkEnvironment.ForceTestGC)
             {
                 // Force any unobserved exceptions to fire against the current test run.
                 // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.

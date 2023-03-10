@@ -65,7 +65,13 @@ namespace osu.Framework.Platform.Windows
                        .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
 
-        protected override IRenderer CreateRenderer() => new WindowsGLRenderer(this);
+        protected override IRenderer CreateRenderer()
+        {
+            if (FrameworkEnvironment.PreferredGraphicsRenderer != null || FrameworkEnvironment.PreferredGraphicsSurface != null)
+                return base.CreateRenderer();
+
+            return new WindowsGLRenderer(this);
+        }
 
         protected override void SetupForRun()
         {

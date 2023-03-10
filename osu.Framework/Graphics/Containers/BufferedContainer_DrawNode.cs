@@ -9,8 +9,10 @@ using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
@@ -92,8 +94,12 @@ namespace osu.Framework.Graphics.Containers
                     base.DrawContents(renderer);
             }
 
+            private IUniformBuffer<BlurParameters> blurParametersBuffer;
+
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
             {
+                blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
+
                 IFrameBuffer current = SharedData.CurrentEffectBuffer;
                 IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
@@ -101,16 +107,17 @@ namespace osu.Framework.Graphics.Containers
 
                 using (BindFrameBuffer(target))
                 {
-                    blurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
-                    blurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
-
-                    Vector2 size = current.Size;
-                    blurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
-
                     float radians = -MathUtils.DegreesToRadians(blurRotation);
-                    Vector2 blur = new Vector2(MathF.Cos(radians), MathF.Sin(radians));
-                    blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
+                    blurParametersBuffer.Data = blurParametersBuffer.Data with
+                    {
+                        Radius = kernelRadius,
+                        Sigma = sigma,
+                        TexSize = current.Size,
+                        Direction = new Vector2(MathF.Cos(radians), MathF.Sin(radians))
+                    };
+
+                    blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
                     blurShader.Bind();
                     renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
                     blurShader.Unbind();
@@ -124,6 +131,22 @@ namespace osu.Framework.Graphics.Containers
             }
 
             public bool AddChildDrawNodes => RequiresRedraw;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                blurParametersBuffer?.Dispose();
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct BlurParameters
+            {
+                public UniformVector2 TexSize;
+                public UniformInt Radius;
+                public UniformFloat Sigma;
+                public UniformVector2 Direction;
+                private readonly UniformPadding8 pad1;
+            }
         }
 
         private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData

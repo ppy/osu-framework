@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
+using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osuTK;
 
 namespace osu.Framework.Platform
@@ -17,10 +18,14 @@ namespace osu.Framework.Platform
             toolkit = Toolkit.Init();
         }
 
+        protected override IRenderer CreateRenderer() => new GLRenderer();
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            toolkit?.Dispose();
+
+            if (toolkit.IsNotNull())
+                toolkit.Dispose();
         }
     }
 }

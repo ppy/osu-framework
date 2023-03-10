@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -43,9 +44,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected virtual int BackbufferFramebuffer => 0;
 
+        protected override bool GammaCorrection => base.GammaCorrection || !IsEmbedded;
+
         private readonly int[] lastBoundBuffers = new int[2];
 
         private bool? lastBlendingEnabledState;
+        private int lastBoundVertexArray;
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
@@ -63,21 +67,37 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+            GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
 
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
+                        GL Extensions:              {GetExtensions()}");
 
             openGLSurface.ClearCurrent();
+        }
+
+        protected virtual string GetExtensions()
+        {
+#pragma warning disable CS0618
+            GL.GetInteger(All.NumExtensions, out int numExtensions);
+#pragma warning restore CS0618
+
+            var extensionsBuilder = new StringBuilder();
+
+            for (int i = 0; i < numExtensions; i++)
+                extensionsBuilder.Append($"{GL.GetString(StringNameIndexed.Extensions, i)} ");
+
+            return extensionsBuilder.ToString().TrimEnd();
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
+            lastBoundVertexArray = 0;
 
             GL.UseProgram(0);
 
@@ -88,6 +108,18 @@ namespace osu.Framework.Graphics.OpenGL
         protected internal override void ClearCurrent() => openGLSurface.ClearCurrent();
         protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
         protected internal override void WaitUntilIdle() => GL.Finish();
+
+        public bool BindVertexArray(int vaoId)
+        {
+            if (lastBoundVertexArray == vaoId)
+                return false;
+
+            lastBoundVertexArray = vaoId;
+            GL.BindVertexArray(vaoId);
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+            return true;
+        }
 
         public bool BindBuffer(BufferTarget target, int buffer)
         {
@@ -314,7 +346,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, manager);
         }
 
-        protected override IShader CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
+        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -367,6 +400,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
+
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Rgba32 initialisationColour = default)

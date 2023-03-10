@@ -4,10 +4,12 @@
 #nullable disable
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 
@@ -113,22 +115,43 @@ namespace osu.Framework.Graphics.UserInterface
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
+            private IUniformBuffer<CircularProgressParameters> parametersBuffer;
+
             protected override void Blit(IRenderer renderer)
             {
                 if (innerRadius == 0 || (!roundedCaps && progress == 0))
                     return;
 
-                var shader = TextureShader;
+                parametersBuffer ??= renderer.CreateUniformBuffer<CircularProgressParameters>();
+                parametersBuffer.Data = new CircularProgressParameters
+                {
+                    InnerRadius = innerRadius,
+                    Progress = progress,
+                    TexelSize = texelSize,
+                    RoundedCaps = roundedCaps,
+                };
 
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
-                shader.GetUniform<float>("progress").UpdateValue(ref progress);
-                shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
-                shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
+                TextureShader.BindUniformBlock("m_CircularProgressParameters", parametersBuffer);
 
                 base.Blit(renderer);
             }
 
             protected internal override bool CanDrawOpaqueInterior => false;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                parametersBuffer?.Dispose();
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct CircularProgressParameters
+            {
+                public UniformFloat InnerRadius;
+                public UniformFloat Progress;
+                public UniformFloat TexelSize;
+                public UniformBool RoundedCaps;
+            }
         }
     }
 

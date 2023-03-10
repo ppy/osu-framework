@@ -16,6 +16,7 @@ using ManagedBass.Mix;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using UIKit;
+using Veldrid.SPIRV;
 
 namespace osu.Framework.iOS
 {
@@ -37,6 +38,7 @@ namespace osu.Framework.iOS
             NativeLibrary.SetDllImportResolver(typeof(Bass).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass.framework/bass", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassFx).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass_fx.framework/bass_fx", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassMix).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bassmix.framework/bassmix", assembly, path));
+            NativeLibrary.SetDllImportResolver(typeof(SpirvCompilation).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/veldrid-spirv.framework/veldrid-spirv", assembly, path));
 
             Window = new UIWindow(UIScreen.MainScreen.Bounds);
 

@@ -283,7 +283,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat<Action>(() => { }, actionCount).ToArray());
+        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat(() => { }, actionCount).ToArray());
 
         private void addBoxStep(Action<Drawable> boxFunc, params Action[] actions)
         {
