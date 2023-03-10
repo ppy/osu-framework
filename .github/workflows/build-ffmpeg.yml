@@ -160,7 +160,7 @@ jobs:
           name: win-x86
           path: osu.Framework.NativeLibs/runtimes/win-x86/native
 
-      - uses: peter-evans/create-pull-request@v2
+      - uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Update FFmpeg binaries
           title: Update FFmpeg binaries
