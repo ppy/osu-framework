@@ -568,7 +568,9 @@ namespace osu.Framework.Platform
                 {
                     Renderer.MakeCurrent();
 
-                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
+                    // todo: add proper renderer API for screenshots and veldrid support
+                    if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL)
+                        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
