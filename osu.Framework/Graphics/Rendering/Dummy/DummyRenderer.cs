@@ -22,6 +22,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public int MaxTexturesUploadedPerFrame { get; set; } = int.MaxValue;
         public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
 
+        public bool IsDepthRangeZeroToOne => true;
+        public bool IsUvOriginTopLeft => true;
+        public bool IsClipSpaceYInverted => true;
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
 
