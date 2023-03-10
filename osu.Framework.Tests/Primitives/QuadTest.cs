@@ -14,9 +14,62 @@ namespace osu.Framework.Tests.Primitives
     [TestFixture]
     public class QuadTest
     {
+        private static readonly object[] test_quads =
+        {
+            new Quad(0, 0, 10, 10),
+            // Test potential precision edge cases using the precise centre point.
+            new Quad(
+                new Vector2(1513.5333f, 695.51416f),
+                new Vector2(1679.6332f, 695.51416f),
+                new Vector2(1513.5333f, 861.614f),
+                new Vector2(1679.6332f, 861.614f)
+            ),
+            // Arbitrary convex quad
+            new Quad(
+                new Vector2(3, 0),
+                new Vector2(5, 1),
+                new Vector2(0, 5),
+                new Vector2(7, 7)
+            )
+        };
+
         [TestCaseSource(typeof(AreaTestData), nameof(AreaTestData.TestCases))]
         [DefaultFloatingPointTolerance(0.1f)]
         public float TestArea(Quad testQuad) => testQuad.Area;
+
+        [TestCaseSource(nameof(test_quads))]
+        public void TestContains(Quad quad)
+        {
+            Assert.That(quad.Contains(new Vector2(float.MinValue)), Is.False);
+            Assert.That(quad.Contains(new Vector2(float.MaxValue)), Is.False);
+
+            Assert.That(quad.Contains(quad.TopLeft), Is.True);
+            Assert.That(quad.Contains(quad.TopRight), Is.True);
+            Assert.That(quad.Contains(quad.BottomLeft), Is.True);
+            Assert.That(quad.Contains(quad.BottomRight), Is.True);
+            Assert.That(quad.Contains(quad.Centre), Is.True);
+
+            Assert.That(quad.Contains(quad.TopLeft + new Vector2(-1, 0)), Is.False);
+            Assert.That(quad.Contains(quad.TopLeft + new Vector2(0, -1)), Is.False);
+            Assert.That(quad.Contains(quad.TopLeft + new Vector2(-1, -1)), Is.False);
+
+            Assert.That(quad.Contains(quad.TopRight + new Vector2(1, 0)), Is.False);
+            Assert.That(quad.Contains(quad.TopRight + new Vector2(0, -1)), Is.False);
+            Assert.That(quad.Contains(quad.TopRight + new Vector2(1, -1)), Is.False);
+
+            Assert.That(quad.Contains(quad.BottomLeft + new Vector2(-1, 0)), Is.False);
+            Assert.That(quad.Contains(quad.BottomLeft + new Vector2(0, 1)), Is.False);
+            Assert.That(quad.Contains(quad.BottomLeft + new Vector2(-1, 1)), Is.False);
+
+            Assert.That(quad.Contains(quad.BottomRight + new Vector2(1, 0)), Is.False);
+            Assert.That(quad.Contains(quad.BottomRight + new Vector2(0, 1)), Is.False);
+            Assert.That(quad.Contains(quad.BottomRight + new Vector2(1)), Is.False);
+
+            Assert.That(quad.Contains((quad.TopLeft + quad.TopRight) / 2), Is.True);
+            Assert.That(quad.Contains((quad.BottomLeft + quad.BottomRight) / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopLeft + quad.BottomLeft) / 2), Is.True);
+            Assert.That(quad.Contains((quad.TopRight + quad.BottomRight) / 2), Is.True);
+        }
 
         private class AreaTestData
         {

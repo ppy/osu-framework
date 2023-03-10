@@ -328,7 +328,7 @@ namespace osu.Framework.Platform
 
         protected virtual IRenderer CreateRenderer()
         {
-            switch (FrameworkEnvironment.PREFERRED_GRAPHICS_RENDERER)
+            switch (FrameworkEnvironment.PreferredGraphicsRenderer)
             {
                 case "veldrid":
                     return new VeldridRenderer();
@@ -717,7 +717,7 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PREFERRED_GRAPHICS_SURFACE ?? GraphicsSurfaceType.OpenGL;
+                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
 
                 Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
                 Logger.Log("Using graphics surface: " + surfaceType);
