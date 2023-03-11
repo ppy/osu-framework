@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             size = Marshal.SizeOf(default(TData));
 
             GL.GenBuffers(1, out uboId);
+
+            // Initialise the buffer with the default data.
+            setData(ref data);
         }
 
         public TData Data
@@ -39,12 +42,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 if (value.Equals(data))
                     return;
 
-                data = value;
-
-                GL.BindBuffer(BufferTarget.UniformBuffer, uboId);
-                GL.BufferData(BufferTarget.UniformBuffer, size, ref value, BufferUsageHint.DynamicDraw);
-                GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+                setData(ref value);
             }
+        }
+
+        private void setData(ref TData data)
+        {
+            this.data = data;
+
+            GL.BindBuffer(BufferTarget.UniformBuffer, uboId);
+            GL.BufferData(BufferTarget.UniformBuffer, size, ref data, BufferUsageHint.DynamicDraw);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
 
         #region Disposal
