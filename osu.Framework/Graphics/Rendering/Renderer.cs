@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
@@ -42,6 +43,10 @@ namespace osu.Framework.Graphics.Rendering
 
         public int MaxTexturesUploadedPerFrame { get; set; } = 32;
         public int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
+
+        public abstract bool IsDepthRangeZeroToOne { get; }
+        public abstract bool IsUvOriginTopLeft { get; }
+        public abstract bool IsClipSpaceYInverted { get; }
 
         /// <summary>
         /// The current reset index.
@@ -181,6 +186,11 @@ namespace osu.Framework.Graphics.Rendering
                 source.Value = 0;
 
             globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
+            globalUniformBuffer.Data = globalUniformBuffer.Data with
+            {
+                IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
+                IsClipSpaceYInverted = IsClipSpaceYInverted
+            };
 
             Debug.Assert(defaultQuadBatch != null);
 
@@ -1058,13 +1068,21 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>The <see cref="Texture"/>.</returns>
         internal Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            => registerTexture(new Texture(nativeTexture, wrapModeS, wrapModeT));
+
+        /// <summary>
+        /// Creates a special <see cref="Texture"/> which responds to any UV-coordinate space requirements for use in framebuffers.
+        /// </summary>
+        /// <param name="nativeTexture">The framebuffer's native texture.</param>
+        /// <returns>The <see cref="Texture"/>.</returns>
+        internal Texture CreateFrameBufferTexture(INativeTexture nativeTexture)
+            => registerTexture(new ClipSpaceAdjustedTexture(nativeTexture, WrapMode.None, WrapMode.None));
+
+        private Texture registerTexture(Texture texture)
         {
-            var tex = new Texture(nativeTexture, wrapModeS, wrapModeT);
-
-            allTextures.Add(tex);
-            TextureCreated?.Invoke(tex);
-
-            return tex;
+            allTextures.Add(texture);
+            TextureCreated?.Invoke(texture);
+            return texture;
         }
 
         #endregion
@@ -1129,7 +1147,7 @@ namespace osu.Framework.Graphics.Rendering
                 return CreateUniformBuffer<TData>();
 
             if (typeof(TData).StructLayoutAttribute?.Pack != 1)
-                throw new ArgumentException($"{typeof(TData)} requires a packing size of 1.");
+                throw new ArgumentException($"{typeof(TData).ReadableName()} requires a packing size of 1.");
 
             int offset = 0;
 
@@ -1153,7 +1171,7 @@ namespace osu.Framework.Graphics.Rendering
 
             Type? finalPadding = suggestPadding(offset, 16);
             if (finalPadding != null)
-                throw new ArgumentException($"{typeof(TData)} alignment requires a {finalPadding} to be added at the end.");
+                throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {finalPadding} to be added at the end.");
 
             validUboTypes.Add(typeof(TData));
             return CreateUniformBuffer<TData>();
@@ -1175,14 +1193,14 @@ namespace osu.Framework.Graphics.Rendering
                     return;
                 }
 
-                throw new ArgumentException($"{typeof(TData)} has an unsupported type of {field.FieldType} for field \"{field.Name}\".");
+                throw new ArgumentException($"{typeof(TData).ReadableName()} has an unsupported type of {field.FieldType} for field \"{field.Name}\".");
             }
 
             static void checkAlignment(FieldInfo field, int offset, int expectedAlignment)
             {
                 Type? suggestedPadding = suggestPadding(offset, expectedAlignment);
                 if (suggestedPadding != null)
-                    throw new ArgumentException($"{typeof(TData)} alignment requires a {suggestedPadding} to be inserted before \"{field.Name}\".");
+                    throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {suggestedPadding} to be inserted before \"{field.Name}\".");
             }
 
             static Type? suggestPadding(int offset, int expectedAlignment)
@@ -1219,6 +1237,37 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
+
+        #endregion
+
+        #region Utils
+
+        /// <summary>
+        /// A special <see cref="Texture"/> which applies adjustments necessary for the current renderer
+        /// to ensure that (0, 0) is the top-left texel of the texture.
+        /// </summary>
+        /// <remarks>
+        /// This is used for framebuffers where the texture can't be pre-adjusted from the time of creation.
+        /// </remarks>
+        private class ClipSpaceAdjustedTexture : Texture
+        {
+            public ClipSpaceAdjustedTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
+                : base(nativeTexture, wrapModeS, wrapModeT)
+            {
+            }
+
+            public ClipSpaceAdjustedTexture(Texture parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+                : base(parent, wrapModeS, wrapModeT)
+            {
+            }
+
+            public override RectangleF GetTextureRect(RectangleF? area = null)
+            {
+                return base.NativeTexture.Renderer.IsUvOriginTopLeft
+                    ? base.GetTextureRect(area)
+                    : base.GetTextureRect(area).Inflate(new Vector2(0, -1));
+            }
+        }
 
         #endregion
     }

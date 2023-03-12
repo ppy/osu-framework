@@ -52,10 +52,10 @@ namespace osu.Framework.Platform
 
             base.SetupConfig(defaultOverrides);
 
-            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            if (FrameworkEnvironment.StartupExecutionMode != null)
             {
-                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
-                Logger.Log($"Startup execution mode set to {mode} from envvar");
+                Config.SetValue(FrameworkSetting.ExecutionMode, FrameworkEnvironment.StartupExecutionMode.Value);
+                Logger.Log($"Startup execution mode set to {FrameworkEnvironment.StartupExecutionMode} from envvar");
             }
         }
 

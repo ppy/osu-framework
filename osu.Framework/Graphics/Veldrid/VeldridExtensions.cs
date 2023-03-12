@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using SharpGen.Runtime;
@@ -98,7 +99,7 @@ namespace osu.Framework.Graphics.Veldrid
                     return BlendFunction.Maximum;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(equation));
+                    return default;
             }
         }
 
@@ -112,6 +113,53 @@ namespace osu.Framework.Graphics.Veldrid
             if (mask.HasFlagFast(BlendingMask.Alpha)) writeMask |= ColorWriteMask.Alpha;
 
             return writeMask;
+        }
+
+        public static PixelFormat[] ToPixelFormats(this RenderBufferFormat[] renderBufferFormats)
+        {
+            var pixelFormats = new PixelFormat[renderBufferFormats.Length];
+
+            for (int i = 0; i < pixelFormats.Length; i++)
+            {
+                switch (renderBufferFormats[i])
+                {
+                    case RenderBufferFormat.D16:
+                        pixelFormats[i] = PixelFormat.R16_UNorm;
+                        break;
+
+                    case RenderBufferFormat.D32:
+                        pixelFormats[i] = PixelFormat.R32_Float;
+                        break;
+
+                    case RenderBufferFormat.D24S8:
+                        pixelFormats[i] = PixelFormat.D24_UNorm_S8_UInt;
+                        break;
+
+                    case RenderBufferFormat.D32S8:
+                        pixelFormats[i] = PixelFormat.D32_Float_S8_UInt;
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Unsupported render buffer format: {renderBufferFormats[i]}", nameof(renderBufferFormats));
+                }
+            }
+
+            return pixelFormats;
+        }
+
+        public static SamplerFilter ToSamplerFilter(this TextureFilteringMode mode)
+        {
+            switch (mode)
+            {
+                case TextureFilteringMode.Linear:
+                    return SamplerFilter.MinLinear_MagLinear_MipLinear;
+
+                case TextureFilteringMode.Nearest:
+                    return SamplerFilter.MinPoint_MagPoint_MipPoint;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode));
+            }
         }
 
         public static ComparisonKind ToComparisonKind(this BufferTestFunction function)

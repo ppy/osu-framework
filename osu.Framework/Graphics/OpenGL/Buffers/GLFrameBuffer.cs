@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.renderer = renderer;
             FrameBuffer = GL.GenFramebuffer();
 
-            Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, filteringMode));
+            Texture = renderer.CreateFrameBufferTexture(glTexture = new FrameBufferTexture(renderer, filteringMode));
 
             renderer.BindFrameBuffer(this);
 

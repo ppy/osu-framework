@@ -328,16 +328,15 @@ namespace osu.Framework.Platform
 
         protected virtual IRenderer CreateRenderer()
         {
-            switch (Options.PreferredGraphicsSurface)
+            switch (FrameworkEnvironment.PreferredGraphicsRenderer)
             {
-                default:
-                case GraphicsSurfaceType.OpenGL:
-                    return new GLRenderer();
-
-                case GraphicsSurfaceType.Metal:
-                case GraphicsSurfaceType.Vulkan:
-                case GraphicsSurfaceType.Direct3D11:
+                case "veldrid":
                     return new VeldridRenderer();
+
+                default:
+                case "gl":
+                case "opengl":
+                    return new GLRenderer();
             }
         }
 
@@ -569,7 +568,9 @@ namespace osu.Framework.Platform
                 {
                     Renderer.MakeCurrent();
 
-                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
+                    // todo: add proper renderer API for screenshots and veldrid support
+                    if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL)
+                        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
@@ -700,7 +701,7 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                GraphicsSurfaceType surfaceType = Options.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
+                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
 
                 Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
                 Logger.Log("Using graphics surface: " + surfaceType);

@@ -65,6 +65,21 @@ namespace osu.Framework.Graphics.Rendering
         int MaxPixelsUploadedPerFrame { get; set; }
 
         /// <summary>
+        /// Whether the depth is in the range [0, 1] (i.e. Reversed-Z). If <c>false</c>, depth is in the range [-1, 1].
+        /// </summary>
+        bool IsDepthRangeZeroToOne { get; }
+
+        /// <summary>
+        /// Whether the texture coordinates begin in the top-left of the texture. If <c>false</c>, (0, 0) corresponds to the bottom-left texel of the texture.
+        /// </summary>
+        bool IsUvOriginTopLeft { get; }
+
+        /// <summary>
+        /// Whether the y-coordinate ranges from -1 (top) to 1 (bottom). If <c>false</c>, the y-coordinate ranges from -1 (bottom) to 1 (top).
+        /// </summary>
+        bool IsClipSpaceYInverted { get; }
+
+        /// <summary>
         /// The current masking parameters.
         /// </summary>
         ref readonly MaskingInfo CurrentMaskingInfo { get; }

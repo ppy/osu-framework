@@ -149,7 +149,15 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
-        public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer) => uniformBlocks[blockName].Assign(buffer);
+        public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+
+            EnsureShaderCompiled();
+
+            uniformBlocks[blockName].Assign(buffer);
+        }
 
         private protected virtual bool CompileInternal()
         {

@@ -135,6 +135,7 @@ namespace osu.Framework.Graphics.Shaders
         public const string TEXTURE_2 = "Texture2D";
         public const string TEXTURE_3 = "Texture3D";
         public const string POSITION = "Position";
+        public const string BLUR = "Blur";
     }
 
     public static class FragmentShaderDescriptor
