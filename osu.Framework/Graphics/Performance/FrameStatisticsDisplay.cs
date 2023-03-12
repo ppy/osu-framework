@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarX => currentX % WIDTH;
 
         private readonly Container overlayContainer;
-        private readonly Drawable labelText;
+        private readonly SpriteText labelText;
         private readonly Sprite counterBarBackground;
 
         private readonly Container mainContainer;
@@ -87,6 +87,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
+                        labelText.Text = Name;
                         break;
 
                     case FrameStatisticsMode.Full:
@@ -97,6 +98,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.BottomCentre;
                         labelText.Rotation = -90;
+                        labelText.Text = Name.Split(' ').First();
                         break;
                 }
 
@@ -133,7 +135,7 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.TopRight,
                         AutoSizeAxes = Axes.X,
                         RelativeSizeAxes = Axes.Y,
-                        Children = new[]
+                        Children = new Drawable[]
                         {
                             labelText = new SpriteText
                             {

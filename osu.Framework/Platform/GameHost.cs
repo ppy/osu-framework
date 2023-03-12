@@ -701,7 +701,12 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
+                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
+
+                Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
+                Logger.Log("Using graphics surface: " + surfaceType);
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {surfaceType}"));
 
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
@@ -718,11 +723,6 @@ namespace osu.Framework.Platform
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
-
-                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
-
-                Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
-                Logger.Log("Using graphics surface: " + surfaceType);
 
                 Window = CreateWindow(surfaceType);
 
