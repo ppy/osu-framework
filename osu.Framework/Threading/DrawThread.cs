@@ -14,8 +14,8 @@ namespace osu.Framework.Threading
     {
         private readonly GameHost host;
 
-        public DrawThread(Action onNewFrame, GameHost host)
-            : base(onNewFrame, "Draw")
+        public DrawThread(Action onNewFrame, GameHost host, string? rendererInfo = "unknown")
+            : base(onNewFrame, $"Draw ({rendererInfo})")
         {
             this.host = host;
         }
