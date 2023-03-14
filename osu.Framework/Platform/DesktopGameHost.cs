@@ -18,6 +18,7 @@ using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Platform
 {
@@ -44,6 +45,11 @@ namespace osu.Framework.Platform
         }
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
+        public sealed override KeyboardUtils GetKeyboardUtils() => new DeskopKeyboardUtils();
+
+        private class DeskopKeyboardUtils : KeyboardUtils
+        {
+        }
 
         public override bool IsPrimaryInstance
         {

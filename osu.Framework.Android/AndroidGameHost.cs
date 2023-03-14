@@ -19,6 +19,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using osu.Framework.Utils;
 using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
@@ -63,6 +64,8 @@ namespace osu.Framework.Android
         public override string InitialFileSelectorPath => @"/sdcard";
 
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
+
+        public override KeyboardUtils GetKeyboardUtils() => new AndroidKeyboardUtils();
 
         public override IEnumerable<string> UserStoragePaths => new[]
         {
