@@ -129,6 +129,13 @@ namespace osu.Framework.Graphics.UserInterface
                 if (innerRadius == 0)
                     return;
 
+                base.Blit(renderer);
+            }
+
+            protected override void BindUniformResources(IShader shader, IRenderer renderer)
+            {
+                base.BindUniformResources(shader, renderer);
+
                 parametersBuffer ??= renderer.CreateUniformBuffer<CircularBlobParameters>();
                 parametersBuffer.Data = new CircularBlobParameters
                 {
@@ -139,9 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
                     NoisePosition = noisePosition,
                 };
 
-                TextureShader.BindUniformBlock("m_CircularBlobParameters", parametersBuffer);
-
-                base.Blit(renderer);
+                shader.BindUniformBlock("m_CircularBlobParameters", parametersBuffer);
             }
 
             protected internal override bool CanDrawOpaqueInterior => false;
