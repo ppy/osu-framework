@@ -3,10 +3,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Foundation;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -47,7 +49,7 @@ namespace osu.Framework.iOS
                 true);
         }
 
-        protected override IWindow CreateWindow() => new IOSGameWindow(gameView);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSGameWindow(gameView);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
@@ -83,6 +85,9 @@ namespace osu.Framework.iOS
 
         public override void OpenUrlExternally(string url)
         {
+            if (!url.CheckIsValidUrl())
+                throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
+
             UIApplication.SharedApplication.InvokeOnMainThread(() =>
             {
                 NSUrl nsurl = NSUrl.FromString(url);

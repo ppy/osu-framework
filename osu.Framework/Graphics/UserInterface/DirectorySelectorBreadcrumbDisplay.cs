@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectorySelectorBreadcrumbDisplay : CompositeDrawable
+    public abstract partial class DirectorySelectorBreadcrumbDisplay : CompositeDrawable
     {
         /// <summary>
         /// Creates a caption to be displayed in front of the breadcrumb items.
@@ -40,6 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load()
         {
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
+
             InternalChild = flow = new FillFlowContainer
             {
                 Anchor = Anchor.Centre,
@@ -47,7 +50,7 @@ namespace osu.Framework.Graphics.UserInterface
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
                 Spacing = new Vector2(5),
-                Direction = FillDirection.Horizontal,
+                Direction = FillDirection.Full,
             };
 
             currentDirectory.BindValueChanged(updateDisplay, true);

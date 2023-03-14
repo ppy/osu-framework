@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestScenePathApproximator : GridTestScene
+    public partial class TestScenePathApproximator : GridTestScene
     {
         public TestScenePathApproximator()
             : base(2, 2)
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             Colour = Color4.White,
         };
 
-        private class ApproximatedPathTest : SmoothPath
+        private partial class ApproximatedPathTest : SmoothPath
         {
             public delegate List<Vector2> ApproximatorFunc(ReadOnlySpan<Vector2> controlPoints);
 

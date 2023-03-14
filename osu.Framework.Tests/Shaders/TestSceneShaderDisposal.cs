@@ -17,7 +17,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Shaders
 {
     [HeadlessTest]
-    public class TestSceneShaderDisposal : FrameworkTestScene
+    public partial class TestSceneShaderDisposal : FrameworkTestScene
     {
         private ShaderManager manager;
         private GLShader shader;
@@ -70,21 +70,17 @@ namespace osu.Framework.Tests.Shaders
 
             private class TestGLShader : GLShader
             {
-                private readonly GLRenderer renderer;
-
                 internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
-                    : base(renderer, name, parts)
+                    : base(renderer, name, parts, null)
                 {
-                    this.renderer = renderer;
                 }
 
                 private protected override int CreateProgram() => 1337;
 
                 private protected override bool CompileInternal() => true;
 
-                private protected override void SetupUniforms()
+                public override void BindUniformBlock(string blockName, IUniformBuffer buffer)
                 {
-                    Uniforms.Add("test", new Uniform<int>(renderer, this, "test", 1));
                 }
 
                 private protected override string GetProgramLog() => string.Empty;

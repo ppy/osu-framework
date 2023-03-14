@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Allocation
 {
@@ -20,6 +21,8 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Method)]
     public class BackgroundDependencyLoaderAttribute : Attribute
     {
+        private static readonly GlobalStatistic<int> count_reflection_attributes = GlobalStatistics.Get<int>("Dependencies", "Reflected [BackgroundDependencyLoader]s");
+
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         private bool permitNulls { get; }
@@ -42,6 +45,8 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
+            count_reflection_attributes.Value++;
+
             var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
 
             switch (loaderMethods.Length)

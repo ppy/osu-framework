@@ -72,8 +72,7 @@ namespace osu.Framework.Lists
         /// <returns>The index of the item within this list.</returns>
         private int addInternal(T value)
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
 
             int index = list.BinarySearch(value, Comparer);
             if (index < 0)

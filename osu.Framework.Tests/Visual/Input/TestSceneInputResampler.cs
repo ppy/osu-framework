@@ -21,7 +21,7 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace osu.Framework.Tests.Visual.Input
 {
     [System.ComponentModel.Description("live path optimiastion")]
-    public class TestSceneInputResampler : GridTestScene
+    public partial class TestSceneInputResampler : GridTestScene
     {
         public TestSceneInputResampler()
             : base(3, 3)
@@ -127,7 +127,7 @@ namespace osu.Framework.Tests.Visual.Input
             Colour = Color4.White,
         };
 
-        private class SmoothedPath : TexturedPath
+        private partial class SmoothedPath : TexturedPath
         {
             protected SmoothedPath()
             {
@@ -163,7 +163,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class ArcPath : SmoothedPath
+        private partial class ArcPath : SmoothedPath
         {
             public ArcPath(bool raw, bool keepFraction, InputResampler inputResampler, Texture texture, Color4 colour, SpriteText output)
             {
@@ -191,7 +191,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class UserDrawnPath : SmoothedPath
+        private partial class UserDrawnPath : SmoothedPath
         {
             public SpriteText DrawText;
 
@@ -218,7 +218,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class SmoothedUserDrawnPath : UserDrawnPath
+        private partial class SmoothedUserDrawnPath : UserDrawnPath
         {
             protected override void AddUserVertex(Vector2 v) => AddSmoothedVertex(v);
         }

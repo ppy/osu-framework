@@ -1,12 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -18,6 +15,11 @@ namespace osu.Framework.Platform
     /// </summary>
     public interface IWindow : IDisposable
     {
+        /// <summary>
+        /// The graphics API for this window.
+        /// </summary>
+        internal IGraphicsSurface GraphicsSurface { get; }
+
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.
         /// </summary>
@@ -37,25 +39,22 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        [CanBeNull]
-        event Action ExitRequested;
+        event Action? ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> has closed.
         /// </summary>
-        [CanBeNull]
-        event Action Exited;
+        event Action? Exited;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> client size has changed.
         /// </summary>
-        [CanBeNull]
-        event Action Resized;
+        event Action? Resized;
 
         /// <summary>
         /// Invoked when the system keyboard layout has changed.
         /// </summary>
-        event Action KeymapChanged;
+        event Action? KeymapChanged;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -81,11 +80,6 @@ namespace osu.Framework.Platform
         /// Controls the state of the window.
         /// </summary>
         WindowState WindowState { get; set; }
-
-        /// <summary>
-        /// Controls the vertical sync mode of the screen.
-        /// </summary>
-        bool VerticalSync { get; set; }
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
@@ -123,8 +117,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when <see cref="Displays"/> has changed.
         /// </summary>
-        [CanBeNull]
-        event Action<IEnumerable<Display>> DisplaysChanged;
+        event Action<IEnumerable<Display>>? DisplaysChanged;
 
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
@@ -142,19 +135,14 @@ namespace osu.Framework.Platform
         IBindable<DisplayMode> CurrentDisplayMode { get; }
 
         /// <summary>
-        /// Makes this window the current graphics context, if appropriate for the driver.
-        /// </summary>
-        void MakeCurrent();
-
-        /// <summary>
-        /// Clears the current graphics context, if appropriate for the driver.
-        /// </summary>
-        void ClearCurrent();
-
-        /// <summary>
         /// Forcefully closes the window.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Attempts to raise the window, bringing it above other windows and requesting input focus.
+        /// </summary>
+        void Raise();
 
         /// <summary>
         /// Start the window's run loop.
@@ -163,9 +151,9 @@ namespace osu.Framework.Platform
         void Run();
 
         /// <summary>
-        /// Requests that the graphics backend perform a buffer swap.
+        /// Invoked once a draw session has finished.
         /// </summary>
-        void SwapBuffers();
+        void OnDraw();
 
         /// <summary>
         /// Whether the window currently has focus.

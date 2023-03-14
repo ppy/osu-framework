@@ -21,7 +21,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneMouseStates : ManualInputManagerTestScene
+    public partial class TestSceneMouseStates : ManualInputManagerTestScene
     {
         private readonly Box marginBox, outerMarginBox;
         private readonly Container actionContainer;
@@ -414,7 +414,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void checkIsDragged(bool isDragged) => AddAssert(isDragged ? "dragged" : "not dragged", () => s2.IsDragged == isDragged);
 
-        public class StateTracker : Container
+        public partial class StateTracker : Container
         {
             private readonly SpriteText keyboard;
             private readonly SpriteText mouse;
@@ -510,7 +510,7 @@ namespace osu.Framework.Tests.Visual.Input
                 }
             }
 
-            public class SmallText : SpriteText
+            public partial class SmallText : SpriteText
             {
                 public SmallText()
                 {
@@ -518,7 +518,7 @@ namespace osu.Framework.Tests.Visual.Input
                 }
             }
 
-            public class EventCounter : CompositeDrawable
+            public partial class EventCounter : CompositeDrawable
             {
                 private int count;
                 private readonly SpriteText text;
@@ -549,7 +549,7 @@ namespace osu.Framework.Tests.Visual.Input
                 }
             }
 
-            public class BoundedCursorContainer : Container
+            public partial class BoundedCursorContainer : Container
             {
                 private readonly Circle circle;
 
@@ -615,7 +615,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class DraggableStateTracker : StateTracker
+        public partial class DraggableStateTracker : StateTracker
         {
             private readonly SmallText dragStatus;
 

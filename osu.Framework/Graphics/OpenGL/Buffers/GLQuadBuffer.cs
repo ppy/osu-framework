@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Rendering;
@@ -38,6 +36,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             base.Initialise();
 
+            // Must be outside the conditional below as it needs to be added to the VAO
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, GLQuadIndexData.EBO_ID);
+
             if (amountIndices > GLQuadIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountIndices];
@@ -52,19 +53,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     indices[j + 5] = (ushort)(i + 1);
                 }
 
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLQuadIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountIndices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 GLQuadIndexData.MaxAmountIndices = amountIndices;
             }
-        }
-
-        public override void Bind(bool forRendering)
-        {
-            base.Bind(forRendering);
-
-            if (forRendering)
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLQuadIndexData.EBO_ID);
         }
 
         protected override int ToElements(int vertices) => 3 * vertices / 2;

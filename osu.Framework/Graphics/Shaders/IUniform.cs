@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 namespace osu.Framework.Graphics.Shaders
 {
     /// <summary>
@@ -14,11 +12,6 @@ namespace osu.Framework.Graphics.Shaders
         /// The shader which this uniform was declared in.
         /// </summary>
         IShader Owner { get; }
-
-        /// <summary>
-        /// The name of this uniform as declared by the shader, or <see cref="GlobalPropertyManager"/> for global uniforms.
-        /// </summary>
-        string Name { get; }
 
         /// <summary>
         /// The location of this uniform in relation to all other uniforms in the shader.

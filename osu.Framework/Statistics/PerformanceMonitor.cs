@@ -107,7 +107,7 @@ namespace osu.Framework.Statistics
             {
                 PerformanceCollectionType t = currentCollectionTypeStack.Peek();
 
-                if (!currentFrame.CollectedTimes.ContainsKey(t)) currentFrame.CollectedTimes[t] = 0;
+                currentFrame.CollectedTimes.TryAdd(t, 0);
                 currentFrame.CollectedTimes[t] += consumeStopwatchElapsedTime();
             }
 
@@ -124,7 +124,7 @@ namespace osu.Framework.Statistics
         {
             currentCollectionTypeStack.Pop();
 
-            if (!currentFrame.CollectedTimes.ContainsKey(type)) currentFrame.CollectedTimes[type] = 0;
+            currentFrame.CollectedTimes.TryAdd(type, 0);
             currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
         }
 
@@ -153,6 +153,7 @@ namespace osu.Framework.Statistics
                     global.Value = count;
                     currentFrame.Counts[type] = count;
                     currentFrame.FramesPerSecond = Clock.FramesPerSecond;
+                    currentFrame.Jitter = Clock.Jitter;
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }

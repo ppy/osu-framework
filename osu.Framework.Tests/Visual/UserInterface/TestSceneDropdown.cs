@@ -6,17 +6,21 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDropdown : ManualInputManagerTestScene
+    public partial class TestSceneDropdown : ManualInputManagerTestScene
     {
         private const int items_to_add = 10;
         private const float explicit_height = 100;
@@ -158,19 +162,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
             AddAssert("item 2 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(2)));
-
-            AddStep("clear bindable list", () => bindableList.Clear());
-            toggleDropdownViaClick(bindableDropdown, "dropdown3");
-            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
-
-            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
-            AddStep("select three", () => bindableDropdown.Current.Value = "three");
-            AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
-            AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
-            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier == "three");
-
-            AddStep("remove three", () => bindableList.Remove("three"));
-            AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
 
             AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
@@ -356,6 +347,58 @@ namespace osu.Framework.Tests.Visual.UserInterface
             void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value.Equals(originalValue));
         }
 
+        /// <summary>
+        /// Basic test for a <see cref="Dropdown{T}"/> that has it's <see cref="Dropdown{T}.ItemSource"/> bound to a <see cref="BindableList{T}"/>.
+        /// </summary>
+        [Test]
+        public void TestItemSource()
+        {
+            AddStep("clear bindable list", () => bindableList.Clear());
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
+            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("select three", () => bindableDropdown.Current.Value = "three");
+            AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
+            AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
+            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier == "three");
+
+            AddStep("remove three", () => bindableList.Remove("three"));
+            AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
+
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+        }
+
+        [Test]
+        public void TestReplaceItemsInItemSource()
+        {
+            AddStep("clear bindable list", () => bindableList.Clear());
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
+            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("select three", () => bindableDropdown.Current.Value = "three");
+
+            AddStep("remove and then add items to bindable", () =>
+            {
+                bindableList.Clear();
+                bindableList.AddRange(new[] { "four", "three" }.Select(s => new TestModel(s)));
+            });
+
+            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier, () => Is.EqualTo("three"));
+        }
+
+        [Test]
+        public void TestAccessBdlInGenerateItemText()
+        {
+            AddStep("add dropdown that uses BDL", () => Add(new BdlDropdown
+            {
+                Width = 150,
+                Position = new Vector2(250, 350),
+                Items = new TestModel("test").Yield()
+            }));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
@@ -388,12 +431,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public static implicit operator TestModel(string str) => new TestModel(str);
         }
 
-        private class TestDropdown : BasicDropdown<TestModel>
+        private partial class TestDropdown : BasicDropdown<TestModel>
         {
             internal new DropdownMenuItem<TestModel> SelectedItem => base.SelectedItem;
 
             public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
             public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
+        }
+
+        /// <summary>
+        /// Dropdown that will access <see cref="ResolvedAttribute"/> properties in <see cref="GenerateItemText"/>.
+        /// </summary>
+        private partial class BdlDropdown : TestDropdown
+        {
+            [Resolved]
+            private GameHost host { get; set; }
+
+            protected override LocalisableString GenerateItemText(TestModel item) => $"{host.Name}: {base.GenerateItemText(item)}";
         }
     }
 }

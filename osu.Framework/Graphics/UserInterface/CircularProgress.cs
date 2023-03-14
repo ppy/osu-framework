@@ -4,16 +4,18 @@
 #nullable disable
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Sprite, IHasCurrentValue<double>
+    public partial class CircularProgress : Sprite, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
@@ -28,7 +30,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressRounded");
         }
 
         protected override void LoadComplete()
@@ -99,6 +100,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private float innerRadius;
             private float progress;
+            private float texelSize;
             private bool roundedCaps;
 
             public override void ApplyState()
@@ -108,20 +110,48 @@ namespace osu.Framework.Graphics.UserInterface
                 innerRadius = Source.innerRadius;
                 progress = Math.Abs((float)Source.current.Value);
                 roundedCaps = Source.roundedCaps;
+
+                // smoothstep looks too sharp with 1px, let's give it a bit more
+                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
+
+            private IUniformBuffer<CircularProgressParameters> parametersBuffer;
 
             protected override void Blit(IRenderer renderer)
             {
-                var shader = GetAppropriateShader(renderer);
+                if (innerRadius == 0 || (!roundedCaps && progress == 0))
+                    return;
 
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
-                shader.GetUniform<float>("progress").UpdateValue(ref progress);
-                shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
+                parametersBuffer ??= renderer.CreateUniformBuffer<CircularProgressParameters>();
+                parametersBuffer.Data = new CircularProgressParameters
+                {
+                    InnerRadius = innerRadius,
+                    Progress = progress,
+                    TexelSize = texelSize,
+                    RoundedCaps = roundedCaps,
+                };
+
+                TextureShader.BindUniformBlock("m_CircularProgressParameters", parametersBuffer);
 
                 base.Blit(renderer);
             }
 
             protected internal override bool CanDrawOpaqueInterior => false;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                parametersBuffer?.Dispose();
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct CircularProgressParameters
+            {
+                public UniformFloat InnerRadius;
+                public UniformFloat Progress;
+                public UniformFloat TexelSize;
+                public UniformBool RoundedCaps;
+            }
         }
     }
 

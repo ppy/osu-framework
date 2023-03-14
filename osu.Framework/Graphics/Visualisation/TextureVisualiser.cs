@@ -20,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class TextureVisualiser : ToolWindow
+    internal partial class TextureVisualiser : ToolWindow
     {
         private readonly FillFlowContainer<TexturePanel> atlasFlow;
         private readonly FillFlowContainer<TexturePanel> textureFlow;
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Visualisation
             target.Add(new TexturePanel(texture));
         });
 
-        private class TexturePanel : CompositeDrawable
+        private partial class TexturePanel : CompositeDrawable
         {
             private readonly WeakReference<Texture> textureReference;
 
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        private class UsageBackground : Box, IHasTooltip
+        private partial class UsageBackground : Box, IHasTooltip
         {
             private readonly WeakReference<Texture> textureReference;
 
@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!texture.Available)
                         return;
 
-                    ulong delta = renderer.GetTextureBindCount(texture) - Source.lastBindCount;
+                    ulong delta = texture.NativeTexture.TotalBindCount - Source.lastBindCount;
 
                     Source.AverageUsagesPerFrame = Source.AverageUsagesPerFrame * 0.9f + delta * 0.1f;
 
@@ -228,7 +228,7 @@ namespace osu.Framework.Graphics.Visualisation
                     base.Draw(renderer);
 
                     // intentionally after draw to avoid counting our own bind.
-                    Source.lastBindCount = renderer.GetTextureBindCount(texture);
+                    Source.lastBindCount = texture.NativeTexture.TotalBindCount;
                 }
 
                 protected override void Blit(IRenderer renderer)

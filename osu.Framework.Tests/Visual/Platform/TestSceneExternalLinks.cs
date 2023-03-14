@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneExternalLinks : FrameworkTestScene
+    public partial class TestSceneExternalLinks : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
@@ -32,6 +32,12 @@ namespace osu.Framework.Tests.Visual.Platform
                         Action = () => host.OpenUrlExternally("https://osu.ppy.sh"),
                         Size = new Vector2(150, 30),
                         Text = "Open osu! site",
+                    },
+                    new BasicButton
+                    {
+                        Action = () => host.OpenUrlExternally("mailto:contact@ppy.sh"),
+                        Size = new Vector2(150, 30),
+                        Text = "Mail to contact email",
                     },
                     new BasicButton
                     {

@@ -15,7 +15,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
-    public class TestSceneBorderless : FrameworkTestScene
+    public partial class TestSceneBorderless : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddStep($"move window to display {display.Index}", () => window.CurrentDisplayBindable.Value = window.Displays.ElementAt(display.Index));
-                AddStep("set client size to 1280x720", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(1280, 720)));
+                AddStep("set window size to 1280x720", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(1280, 720)));
                 AddStep("store window position", () => originalWindowPosition = window.Position);
 
                 // borderless alignment tests

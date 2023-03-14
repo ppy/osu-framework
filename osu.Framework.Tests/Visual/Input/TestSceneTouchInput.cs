@@ -23,7 +23,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneTouchInput : ManualInputManagerTestScene
+    public partial class TestSceneTouchInput : ManualInputManagerTestScene
     {
         private static readonly TouchSource[] touch_sources = (TouchSource[])Enum.GetValues(typeof(TouchSource));
 
@@ -413,7 +413,7 @@ namespace osu.Framework.Tests.Visual.Input
                 primaryReceptor.MouseEvents.Count == 0);
         }
 
-        private class InputReceptor : Container
+        private partial class InputReceptor : Container
         {
             public readonly TouchSource AssociatedSource;
 

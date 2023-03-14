@@ -19,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class WindowDisplaysPreview : Container
+    public partial class WindowDisplaysPreview : Container
     {
         public const float FONT_SIZE = 120f;
 
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Visual.Platform
                         RelativeSizeAxes = Axes.Both,
                         Text = $"{display.Name}\n"
                                + $"{display.Bounds.Width}x{display.Bounds.Height}\n"
-                               + $"Mode: {modeName(display.DisplayModes.First())}",
+                               + $"Mode: {modeName(display.DisplayModes.FirstOrDefault())}",
                         Padding = new MarginPadding(50),
                     }
                 }

@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkDrawableAudioWrapper : GameBenchmark
+    public partial class BenchmarkDrawableAudioWrapper : GameBenchmark
     {
         [Test]
         [Benchmark]
@@ -28,7 +28,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             public readonly AudioContainer Container1 = new AudioContainer { RelativeSizeAxes = Axes.Both };
             public readonly AudioContainer Container2 = new AudioContainer { RelativeSizeAxes = Axes.Both };

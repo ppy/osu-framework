@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.ShouldBeAlive"/> is not overrided.
     /// Also, <see cref="Drawable.RemoveWhenNotAlive"/> should be false.
     /// </remarks>
-    public class LifetimeManagementContainer : CompositeDrawable
+    public partial class LifetimeManagementContainer : CompositeDrawable
     {
         private readonly LifetimeEntryManager manager = new LifetimeEntryManager();
         private readonly Dictionary<Drawable, DrawableLifetimeEntry> drawableMap = new Dictionary<Drawable, DrawableLifetimeEntry>();
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
             manager.EntryCrossedBoundary += entryCrossedBoundary;
         }
 
-        protected internal override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
+        protected override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
 
         /// <summary>
         /// Adds a <see cref="Drawable"/> to this <see cref="LifetimeManagementContainer"/>.

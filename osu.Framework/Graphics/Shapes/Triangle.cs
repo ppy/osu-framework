@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
@@ -14,7 +12,7 @@ namespace osu.Framework.Graphics.Shapes
     /// <summary>
     /// Represents a sprite that is drawn in a triangle shape, instead of a rectangle shape.
     /// </summary>
-    public class Triangle : Sprite
+    public partial class Triangle : Sprite
     {
         /// <summary>
         /// Creates a new triangle with a white pixel as texture.

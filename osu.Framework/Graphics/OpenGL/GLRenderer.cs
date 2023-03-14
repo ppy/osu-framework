@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -12,6 +13,8 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
@@ -21,6 +24,18 @@ namespace osu.Framework.Graphics.OpenGL
 {
     internal class GLRenderer : Renderer
     {
+        private IOpenGLGraphicsSurface openGLSurface = null!;
+
+        protected internal override bool VerticalSync
+        {
+            get => openGLSurface.VerticalSync;
+            set => openGLSurface.VerticalSync = value;
+        }
+
+        public override bool IsDepthRangeZeroToOne => false;
+        public override bool IsUvOriginTopLeft => false;
+        public override bool IsClipSpaceYInverted => false;
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>
@@ -33,12 +48,21 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected virtual int BackbufferFramebuffer => 0;
 
+        protected override bool GammaCorrection => base.GammaCorrection || !IsEmbedded;
+
         private readonly int[] lastBoundBuffers = new int[2];
 
         private bool? lastBlendingEnabledState;
+        private int lastBoundVertexArray;
 
-        protected override void Initialise()
+        protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
+            if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
+                throw new InvalidOperationException($"{nameof(GLRenderer)} only supports OpenGL graphics surfaces.");
+
+            openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
+            openGLSurface.MakeCurrent(openGLSurface.WindowContext);
+
             string version = GL.GetString(StringName.Version);
             IsEmbedded = version.Contains("OpenGL ES"); // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
 
@@ -47,16 +71,58 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+            GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
+
+            Logger.Log($@"GL Initialized
+                        GL Version:                 {GL.GetString(StringName.Version)}
+                        GL Renderer:                {GL.GetString(StringName.Renderer)}
+                        GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
+                        GL Vendor:                  {GL.GetString(StringName.Vendor)}
+                        GL Extensions:              {GetExtensions()}");
+
+            openGLSurface.ClearCurrent();
+        }
+
+        protected virtual string GetExtensions()
+        {
+#pragma warning disable CS0618
+            GL.GetInteger(All.NumExtensions, out int numExtensions);
+#pragma warning restore CS0618
+
+            var extensionsBuilder = new StringBuilder();
+
+            for (int i = 0; i < numExtensions; i++)
+                extensionsBuilder.Append($"{GL.GetString(StringNameIndexed.Extensions, i)} ");
+
+            return extensionsBuilder.ToString().TrimEnd();
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
+            lastBoundVertexArray = 0;
 
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
+        }
+
+        protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);
+        protected internal override void ClearCurrent() => openGLSurface.ClearCurrent();
+        protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
+        protected internal override void WaitUntilIdle() => GL.Finish();
+
+        public bool BindVertexArray(int vaoId)
+        {
+            if (lastBoundVertexArray == vaoId)
+                return false;
+
+            lastBoundVertexArray = vaoId;
+            GL.BindVertexArray(vaoId);
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+            return true;
         }
 
         public bool BindBuffer(BufferTarget target, int buffer)
@@ -151,7 +217,8 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) => GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -283,7 +350,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, manager);
         }
 
-        protected override IShader CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
+        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -337,7 +405,10 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Rgba32 initialisationColour = default)
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
+
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Rgba32 initialisationColour = default)
         {
             All glFilteringMode;
 

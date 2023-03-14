@@ -67,8 +67,7 @@ namespace osu.Framework.Threading
 
         public void UpdateClock(IClock newClock)
         {
-            if (newClock == null)
-                throw new ArgumentNullException(nameof(newClock));
+            ArgumentNullException.ThrowIfNull(newClock);
 
             if (newClock == clock)
                 return;

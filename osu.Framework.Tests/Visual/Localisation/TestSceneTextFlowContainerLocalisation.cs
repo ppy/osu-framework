@@ -3,16 +3,10 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -23,23 +17,8 @@ using osu.Framework.Localisation;
 namespace osu.Framework.Tests.Visual.Localisation
 {
     [TestFixture]
-    public class TestSceneTextFlowContainerLocalisation : FrameworkTestScene
+    public partial class TestSceneTextFlowContainerLocalisation : LocalisationTestScene
     {
-        private FrameworkConfigManager configManager { get; set; }
-
-        [Cached]
-        private LocalisationManager manager;
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-        {
-            var dependencies = new DependencyContainer(parent);
-
-            configManager = parent.Get<FrameworkConfigManager>();
-            dependencies.Cache(manager = new LocalisationManager(configManager));
-
-            return dependencies;
-        }
-
         private const string rank = "rank";
         private const string rank_lost = "rank_lost";
 
@@ -52,32 +31,26 @@ namespace osu.Framework.Tests.Visual.Localisation
         private void load()
         {
             // strings sourced from osu-web crowdin (https://crowdin.com/translate/osu-web/)
-            manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
+            Manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
             {
                 [rank] = rank_default,
                 [rank_lost] = rank_lost_default,
                 [simple] = "simple english",
             }));
 
-            manager.AddLanguage("fr", new TestLocalisationStore("fr", new Dictionary<string, string>
+            Manager.AddLanguage("fr", new TestLocalisationStore("fr", new Dictionary<string, string>
             {
                 [rank] = "{0} a atteint le rang #{1} sur {2} ({3})",
                 [rank_lost] = "{0} a perdu la première place sur {1} ({2})",
                 [simple] = "simple french",
             }));
 
-            manager.AddLanguage("tr", new TestLocalisationStore("tr", new Dictionary<string, string>
+            Manager.AddLanguage("tr", new TestLocalisationStore("tr", new Dictionary<string, string>
             {
                 [rank] = "{0} {2} ({3}) beatmapinde #{1} sıralamaya ulaştı",
                 [rank_lost] = "{0} {1} ({2}) beatmapinde birinciliği kaybetti",
                 [simple] = "simple turkish",
             }));
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            manager?.Dispose();
-            base.Dispose(isDisposing);
         }
 
         [Test]
@@ -126,11 +99,11 @@ namespace osu.Framework.Tests.Visual.Localisation
                 });
             });
 
-            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
-            AddStep("change locale to fr", () => configManager.SetValue(FrameworkSetting.Locale, "fr"));
-            AddStep("change locale to tr", () => configManager.SetValue(FrameworkSetting.Locale, "tr"));
+            SetLocale("en");
+            SetLocale("fr");
+            SetLocale("tr");
 
-            AddToggleStep("toggle romanisation", romanised => configManager.SetValue(FrameworkSetting.ShowUnicode, romanised));
+            AddToggleStep("toggle romanisation", romanised => ShowUnicode.Value = romanised);
 
             AddSliderStep("change text flow width", 0, 1f, 1f, width =>
             {
@@ -142,7 +115,7 @@ namespace osu.Framework.Tests.Visual.Localisation
         [Test]
         public void TestChangeLocalisationBeforeAsyncLoad()
         {
-            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+            SetLocale("en");
 
             TextFlowContainer textFlowContainer = null;
             ITextPart textPart = null;
@@ -171,7 +144,7 @@ namespace osu.Framework.Tests.Visual.Localisation
         [Test]
         public void TestChangeLocalisationAfterAsyncLoad()
         {
-            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+            SetLocale("en");
 
             TextFlowContainer textFlowContainer = null;
             ITextPart textPart = null;
@@ -196,7 +169,7 @@ namespace osu.Framework.Tests.Visual.Localisation
                 textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
                 textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "english");
 
-            AddStep("change locale to fr", () => configManager.SetValue(FrameworkSetting.Locale, "fr"));
+            SetLocale("fr");
 
             AddStep("Add text flow to hierarchy", () => Child = textFlowContainer);
 
@@ -209,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Localisation
         [Test]
         public void TestChangeLocalisationBeforeAfterLoadComplete()
         {
-            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+            SetLocale("en");
 
             TextFlowContainer textFlowContainer = null;
             ITextPart textPart = null;
@@ -234,38 +207,12 @@ namespace osu.Framework.Tests.Visual.Localisation
                 textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
                 textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "english");
 
-            AddStep("change locale to fr", () => configManager.SetValue(FrameworkSetting.Locale, "fr"));
+            SetLocale("fr");
 
             AddAssert("Ensure parts are correct", () =>
                 textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
                 textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "french"
             );
-        }
-
-        private class TestLocalisationStore : ILocalisationStore
-        {
-            public CultureInfo EffectiveCulture { get; }
-
-            private readonly IDictionary<string, string> translations;
-
-            public TestLocalisationStore(string locale, IDictionary<string, string> translations)
-            {
-                EffectiveCulture = new CultureInfo(locale);
-
-                this.translations = translations;
-            }
-
-            public string Get(string key) => translations.TryGetValue(key, out string value) ? value : null;
-
-            public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult(Get(key));
-
-            public Stream GetStream(string name) => throw new NotSupportedException();
-
-            public IEnumerable<string> GetAvailableResources() => Array.Empty<string>();
-
-            public void Dispose()
-            {
-            }
         }
     }
 }

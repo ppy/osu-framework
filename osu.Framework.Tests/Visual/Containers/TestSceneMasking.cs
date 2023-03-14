@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneMasking : FrameworkTestScene
+    public partial class TestSceneMasking : FrameworkTestScene
     {
         protected Container TestContainer;
         protected int CurrentTest;
@@ -533,7 +533,7 @@ namespace osu.Framework.Tests.Visual.Containers
 #endif
         }
 
-        private class CircularContainerWithInput : CircularContainer
+        private partial class CircularContainerWithInput : CircularContainer
         {
             protected override bool OnHover(HoverEvent e)
             {

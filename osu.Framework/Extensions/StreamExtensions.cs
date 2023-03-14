@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Threading;
@@ -26,8 +24,7 @@ namespace osu.Framework.Extensions
             if (!stream.CanSeek)
                 throw new ArgumentException($"Stream must be seekable to use this function. Consider using {nameof(ReadAllRemainingBytesToArray)} instead.", nameof(stream));
 
-            // Use Array.MaxLength when lowest target is net6.0
-            if (stream.Length >= int.MaxValue)
+            if (stream.Length >= Array.MaxLength)
                 throw new ArgumentException("The stream is too long for an array.", nameof(stream));
 
             stream.Seek(0, SeekOrigin.Begin);
@@ -49,8 +46,7 @@ namespace osu.Framework.Extensions
             if (!stream.CanSeek)
                 throw new ArgumentException($"Stream must be seekable to use this function. Consider using {nameof(ReadAllRemainingBytesToArray)} instead.", nameof(stream));
 
-            // Use Array.MaxLength when lowest target is net6.0
-            if (stream.Length >= int.MaxValue)
+            if (stream.Length >= Array.MaxLength)
                 throw new ArgumentException("The stream is too long for an array.", nameof(stream));
 
             stream.Seek(0, SeekOrigin.Begin);

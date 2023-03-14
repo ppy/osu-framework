@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using osu.Framework.Graphics;
@@ -18,8 +16,6 @@ namespace osu.Framework.Bindables
             : base(defaultValue)
         {
         }
-
-        public override string ToString() => Value.ToString();
 
         public override void Parse(object input)
         {

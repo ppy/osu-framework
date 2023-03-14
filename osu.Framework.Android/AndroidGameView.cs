@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.Versioning;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
@@ -45,7 +46,7 @@ namespace osu.Framework.Android
             get => pointerCaptured;
             set
             {
-                if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+                if (!OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     Logger.Log($"Tried to set {nameof(PointerCapture)} on an unsupported Android version.", level: LogLevel.Important);
                     return;
@@ -100,7 +101,7 @@ namespace osu.Framework.Android
             Focusable = true;
             FocusableInTouchMode = true;
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
             {
                 // disable ugly green border when view is focused via hardware keyboard/mouse.
                 DefaultFocusHighlightEnabled = false;
@@ -170,6 +171,7 @@ namespace osu.Framework.Android
             return true;
         }
 
+        [SupportedOSPlatform("android26.0")]
         public override void OnPointerCaptureChange(bool hasCapture)
         {
             base.OnPointerCaptureChange(hasCapture);
@@ -219,11 +221,13 @@ namespace osu.Framework.Android
             // compute the usable screen area.
 
             var screenSize = new Point();
+#pragma warning disable 618 // GetRealSize is deprecated
             Display.AsNonNull().GetRealSize(screenSize);
+#pragma warning restore 618
             var screenArea = new RectangleI(0, 0, screenSize.X, screenSize.Y);
             var usableScreenArea = screenArea;
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
                 var cutout = RootWindowInsets?.DisplayCutout;
 
@@ -231,13 +235,15 @@ namespace osu.Framework.Android
                     usableScreenArea = usableScreenArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
             }
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.N && Activity.IsInMultiWindowMode)
+            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode)
             {
                 // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
                 // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.
 
                 // `SystemWindowInsetTop` should be the correct inset here, but it doesn't correctly work (gives `0` even if the view is obstructed).
+#pragma warning disable 618 // StableInsetTop is deprecated
                 int statusBarHeight = RootWindowInsets?.StableInsetTop ?? 0;
+#pragma warning restore 618 //
                 usableScreenArea = usableScreenArea.Intersect(screenArea.Shrink(0, 0, statusBarHeight, 0));
             }
 
@@ -267,7 +273,7 @@ namespace osu.Framework.Android
         /// <returns><c>null</c> to disable input methods</returns>
         public override IInputConnection? OnCreateInputConnection(EditorInfo? outAttrs)
         {
-            if (outAttrs == null) throw new ArgumentNullException(nameof(outAttrs));
+            ArgumentNullException.ThrowIfNull(outAttrs);
 
             // Properly disable native input methods so that the software keyboard doesn't unexpectedly open.
             // Eg. when pressing keys on a hardware keyboard.

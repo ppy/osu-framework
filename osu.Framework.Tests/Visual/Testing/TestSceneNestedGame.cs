@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneNestedGame : FrameworkTestScene
+    public partial class TestSceneNestedGame : FrameworkTestScene
     {
         private bool hostWasRunningAfterNestedExit;
 
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Testing
             Assert.IsTrue(hostWasRunningAfterNestedExit);
         }
 
-        internal class NestedTestGame : TestGame
+        internal partial class NestedTestGame : TestGame
         {
             private Box box;
 

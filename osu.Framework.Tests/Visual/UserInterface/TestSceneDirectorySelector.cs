@@ -9,7 +9,7 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDirectorySelector : FrameworkTestScene
+    public partial class TestSceneDirectorySelector : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load()

@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Rendering
@@ -42,6 +43,11 @@ namespace osu.Framework.Graphics.Rendering
         public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
+        /// Enables or disables vertical sync.
+        /// </summary>
+        protected internal bool VerticalSync { get; set; }
+
+        /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
         int MaxTextureSize { get; }
@@ -57,6 +63,21 @@ namespace osu.Framework.Graphics.Rendering
         /// Defaults to 2 megapixels (8mb alloc).
         /// </summary>
         int MaxPixelsUploadedPerFrame { get; set; }
+
+        /// <summary>
+        /// Whether the depth is in the range [0, 1] (i.e. Reversed-Z). If <c>false</c>, depth is in the range [-1, 1].
+        /// </summary>
+        bool IsDepthRangeZeroToOne { get; }
+
+        /// <summary>
+        /// Whether the texture coordinates begin in the top-left of the texture. If <c>false</c>, (0, 0) corresponds to the bottom-left texel of the texture.
+        /// </summary>
+        bool IsUvOriginTopLeft { get; }
+
+        /// <summary>
+        /// Whether the y-coordinate ranges from -1 (top) to 1 (bottom). If <c>false</c>, the y-coordinate ranges from -1 (bottom) to 1 (top).
+        /// </summary>
+        bool IsClipSpaceYInverted { get; }
 
         /// <summary>
         /// The current masking parameters.
@@ -124,20 +145,50 @@ namespace osu.Framework.Graphics.Rendering
         Texture WhitePixel { get; }
 
         /// <summary>
+        /// Whether this <see cref="IRenderer"/> has been initialised using <see cref="Initialise"/>.
+        /// </summary>
+        bool IsInitialised { get; }
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="IRenderer"/>.
         /// </summary>
-        internal void Initialise();
+        protected internal void Initialise(IGraphicsSurface graphicsSurface);
 
         /// <summary>
         /// Resets any states to prepare for drawing a new frame.
         /// </summary>
         /// <param name="windowSize">The full window size.</param>
-        internal void BeginFrame(Vector2 windowSize);
+        protected internal void BeginFrame(Vector2 windowSize);
 
         /// <summary>
         /// Performs any last actions before a frame ends.
         /// </summary>
-        internal void FinishFrame();
+        protected internal void FinishFrame();
+
+        /// <summary>
+        /// Swaps the back buffer with the front buffer to display the new frame.
+        /// </summary>
+        protected internal void SwapBuffers();
+
+        /// <summary>
+        /// Waits until all renderer commands have been fully executed GPU-side, as signaled by the graphics backend.
+        /// </summary>
+        /// <remarks>
+        /// This is equivalent to a <c>glFinish</c> call.
+        /// </remarks>
+        protected internal void WaitUntilIdle();
+
+        /// <summary>
+        /// Invoked when the rendering thread is active and commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal void MakeCurrent();
+
+        /// <summary>
+        /// Invoked when the rendering thread is suspended and no more commands will be enqueued.
+        /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
+        /// </summary>
+        protected internal void ClearCurrent();
 
         /// <summary>
         /// Binds a texture.
@@ -285,7 +336,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="name">The name of the shader.</param>
         /// <param name="parts">The <see cref="IShaderPart"/>s associated with this shader.</param>
         /// <returns>The <see cref="IShader"/>.</returns>
-        protected internal IShader CreateShader(string name, params IShaderPart[] parts);
+        protected internal IShader CreateShader(string name, IShaderPart[] parts);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
@@ -322,6 +373,12 @@ namespace osu.Framework.Graphics.Rendering
         IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
 
         /// <summary>
+        /// Creates a buffer that stores data for a uniform block of a <see cref="IShader"/>.
+        /// </summary>
+        /// <typeparam name="TData">The type of data in the buffer.</typeparam>
+        IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
+
+        /// <summary>
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
@@ -351,11 +408,6 @@ namespace osu.Framework.Graphics.Rendering
         /// Retrieves all <see cref="Texture"/>s that have been created.
         /// </summary>
         internal Texture[] GetAllTextures();
-
-        /// <summary>
-        /// Returns the total amount of times the texture has ever been bound.
-        /// </summary>
-        internal ulong GetTextureBindCount(Texture texture);
 
         #endregion
     }

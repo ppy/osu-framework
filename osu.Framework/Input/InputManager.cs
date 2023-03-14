@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -30,7 +29,7 @@ using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container, IInputStateChangeHandler
+    public abstract partial class InputManager : Container, IInputStateChangeHandler
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -152,7 +151,7 @@ namespace osu.Framework.Input
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
-            foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
+            foreach (var button in Enum.GetValues<MouseButton>())
             {
                 var manager = CreateButtonEventManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;

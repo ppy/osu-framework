@@ -15,10 +15,12 @@ namespace osu.Framework.Statistics
         internal readonly List<int> GarbageCollections = new List<int>();
         public double FramesPerSecond { get; set; }
 
-        internal static readonly int NUM_STATISTICS_COUNTER_TYPES = Enum.GetValues(typeof(StatisticsCounterType)).Length;
-        internal static readonly int NUM_PERFORMANCE_COLLECTION_TYPES = Enum.GetValues(typeof(PerformanceCollectionType)).Length;
+        internal static readonly int NUM_STATISTICS_COUNTER_TYPES = Enum.GetValues<StatisticsCounterType>().Length;
+        internal static readonly int NUM_PERFORMANCE_COLLECTION_TYPES = Enum.GetValues<PerformanceCollectionType>().Length;
 
         internal static readonly long[] COUNTERS = new long[NUM_STATISTICS_COUNTER_TYPES];
+
+        public double Jitter;
 
         internal void Clear()
         {
@@ -26,6 +28,7 @@ namespace osu.Framework.Statistics
             GarbageCollections.Clear();
             Counts.Clear();
             FramesPerSecond = 0;
+            Jitter = 0;
         }
 
         internal static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];

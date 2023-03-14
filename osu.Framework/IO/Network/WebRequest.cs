@@ -3,15 +3,13 @@
 
 #nullable disable
 
-#if NET6_0_OR_GREATER
-using System.Net.Sockets;
-#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -151,21 +149,21 @@ namespace osu.Framework.IO.Network
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         private static readonly HttpClient client = new HttpClient(
-#if NET6_0_OR_GREATER
-            new SocketsHttpHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
-                Credentials = CredentialCache.DefaultCredentials,
-                ConnectCallback = onConnect,
-            }
-#else
-            new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                Credentials = CredentialCache.DefaultCredentials,
-            }
-#endif
+            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
+            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
+            RuntimeInfo.OS == RuntimeInfo.Platform.Android
+                ? new HttpClientHandler
+                {
+                    Credentials = CredentialCache.DefaultCredentials,
+                    AutomaticDecompression = DecompressionMethods.All
+                }
+                : new SocketsHttpHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.All,
+                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                    Credentials = CredentialCache.DefaultCredentials,
+                    ConnectCallback = onConnect,
+                }
         )
         {
             // Timeout is controlled manually through cancellation tokens because
@@ -333,11 +331,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET6_0_OR_GREATER
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
-#else
-                            postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
                         }
 
                         if (postContent != null)
@@ -441,15 +435,9 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET6_0_OR_GREATER
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
-#else
-            using (var responseStream = await response.Content
-                                                      .ReadAsStreamAsync()
-                                                      .ConfigureAwait(false))
-#endif
             {
                 reportForwardProgress();
                 Started?.Invoke();
@@ -643,7 +631,7 @@ namespace osu.Framework.IO.Network
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream);
 
             rawContent ??= new MemoryStream();
 
@@ -658,8 +646,8 @@ namespace osu.Framework.IO.Network
         /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(data);
 
             files[name] = data;
         }
@@ -697,8 +685,8 @@ namespace osu.Framework.IO.Network
         /// <param name="type">The type of the request parameter.</param>
         public void AddParameter(string name, string value, RequestParameterType type)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(value);
 
             switch (type)
             {
@@ -728,8 +716,8 @@ namespace osu.Framework.IO.Network
         /// <param name="value">The header value.</param>
         public void AddHeader(string name, string value)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(value);
 
             headers[name] = value;
         }
@@ -777,7 +765,6 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET6_0_OR_GREATER
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>
@@ -852,7 +839,6 @@ namespace osu.Framework.IO.Network
                 throw;
             }
         }
-#endif
 
         #endregion
 

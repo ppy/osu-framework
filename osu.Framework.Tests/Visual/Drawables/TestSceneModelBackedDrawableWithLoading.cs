@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneModelBackedDrawableWithLoading : FrameworkTestScene
+    public partial class TestSceneModelBackedDrawableWithLoading : FrameworkTestScene
     {
         private TestModelBackedDrawable backedDrawable;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("finish load", () => drawableModel.AllowLoad.Set());
         }
 
-        private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
+        private partial class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
             public new TestModel Model
             {
@@ -125,7 +125,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestDrawableModel : CompositeDrawable
+        private partial class TestDrawableModel : CompositeDrawable
         {
             private static int id = 1;
 
@@ -183,7 +183,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class LoadingSpinner : CompositeDrawable
+        private partial class LoadingSpinner : CompositeDrawable
         {
             private readonly SpriteIcon icon;
 

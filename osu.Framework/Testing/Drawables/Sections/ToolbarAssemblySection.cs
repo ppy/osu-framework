@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
-    public class ToolbarAssemblySection : ToolbarSection
+    public partial class ToolbarAssemblySection : ToolbarSection
     {
         private AssemblyDropdown assemblyDropdown;
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);
 
-        private class AssemblyDropdown : BasicDropdown<Assembly>
+        private partial class AssemblyDropdown : BasicDropdown<Assembly>
         {
             public void AddAssembly(string name, Assembly assembly)
             {

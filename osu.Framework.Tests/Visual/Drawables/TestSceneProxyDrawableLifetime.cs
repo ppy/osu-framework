@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneProxyDrawableLifetime : FrameworkTestScene
+    public partial class TestSceneProxyDrawableLifetime : FrameworkTestScene
     {
         [SetUp]
         public void Setup() => Schedule(Clear);

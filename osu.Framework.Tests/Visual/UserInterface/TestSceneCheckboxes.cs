@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCheckboxes : FrameworkTestScene
+    public partial class TestSceneCheckboxes : FrameworkTestScene
     {
         private readonly BasicCheckbox basic;
 
