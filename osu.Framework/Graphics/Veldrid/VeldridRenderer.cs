@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Veldrid
         public ResourceFactory Factory => Device.ResourceFactory;
 
         public CommandList Commands { get; private set; } = null!;
+        public CommandList BufferUpdateCommands { get; private set; } = null!;
 
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
@@ -161,6 +162,7 @@ namespace osu.Framework.Graphics.Veldrid
             MaxTextureSize = maxTextureSize;
 
             Commands = Factory.CreateCommandList();
+            BufferUpdateCommands = Factory.CreateCommandList();
 
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
@@ -176,6 +178,7 @@ namespace osu.Framework.Graphics.Veldrid
             }
 
             Commands.Begin();
+            BufferUpdateCommands.Begin();
 
             base.BeginFrame(windowSize);
         }
@@ -183,6 +186,9 @@ namespace osu.Framework.Graphics.Veldrid
         protected internal override void FinishFrame()
         {
             base.FinishFrame();
+
+            BufferUpdateCommands.End();
+            Device.SubmitCommands(BufferUpdateCommands);
 
             Commands.End();
             Device.SubmitCommands(Commands);
