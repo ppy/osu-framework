@@ -49,6 +49,7 @@ namespace osu.Framework.Graphics.Veldrid
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
+        private readonly List<IVeldridUniformBuffer> uniformBufferResetList = new List<IVeldridUniformBuffer>();
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
         private readonly Dictionary<string, IVeldridUniformBuffer> boundUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
         private IGraphicsSurface graphicsSurface = null!;
@@ -176,6 +177,10 @@ namespace osu.Framework.Graphics.Veldrid
                 Device.ResizeMainWindow((uint)windowSize.X, (uint)windowSize.Y);
                 currentSize = windowSize;
             }
+
+            foreach (var ubo in uniformBufferResetList)
+                ubo.Reset();
+            uniformBufferResetList.Clear();
 
             Commands.Begin();
             BufferUpdateCommands.Begin();
@@ -466,6 +471,11 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
+        }
+
+        public void TrackUniformBufferForReset(IVeldridUniformBuffer buffer)
+        {
+            uniformBufferResetList.Add(buffer);
         }
     }
 }

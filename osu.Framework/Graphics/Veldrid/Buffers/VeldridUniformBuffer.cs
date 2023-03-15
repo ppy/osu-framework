@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using osu.Framework.Graphics.Rendering;
 using Veldrid;
 
@@ -11,43 +11,50 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     internal interface IVeldridUniformBuffer : IDisposable
     {
         ResourceSet GetResourceSet(ResourceLayout layout);
+
+        void Reset();
     }
 
     internal class VeldridUniformBuffer<TData> : IUniformBuffer<TData>, IVeldridUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
-        private readonly VeldridRenderer renderer;
-        private readonly DeviceBuffer buffer;
+        private readonly List<VeldridUniformBufferStorage<TData>> storages = new List<VeldridUniformBufferStorage<TData>>();
+        private int currentStorageIndex;
 
-        private ResourceSet? set;
-        private TData data;
+        private readonly VeldridRenderer renderer;
 
         public VeldridUniformBuffer(VeldridRenderer renderer)
         {
             this.renderer = renderer;
-            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
+            storages.Add(new VeldridUniformBufferStorage<TData>(this.renderer));
         }
 
         public TData Data
         {
-            get => data;
+            get => storages[currentStorageIndex].Data;
             set
             {
-                if (value.Equals(data))
-                    return;
+                renderer.TrackUniformBufferForReset(this);
 
-                data = value;
+                ++currentStorageIndex;
+                while (currentStorageIndex >= storages.Count)
+                    storages.Add(new VeldridUniformBufferStorage<TData>(renderer));
 
-                renderer.Commands.UpdateBuffer(buffer, 0, ref data);
+                storages[currentStorageIndex].Data = value;
             }
         }
 
-        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+        public ResourceSet GetResourceSet(ResourceLayout layout) => storages[currentStorageIndex].GetResourceSet(layout);
+
+        public void Reset()
+        {
+            currentStorageIndex = 0;
+        }
 
         public void Dispose()
         {
-            buffer.Dispose();
-            set?.Dispose();
+            foreach (var s in storages)
+                s.Dispose();
         }
     }
 }
