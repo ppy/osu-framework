@@ -437,10 +437,16 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
-            => new VeldridLinearBatch<TVertex>(this, size, maxBuffers, primitiveType.ToPrimitiveTopology());
+        {
+            // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
+            return new VeldridLinearBatch<TVertex>(this, size, primitiveType.ToPrimitiveTopology());
+        }
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)
-            => new VeldridQuadBatch<TVertex>(this, size, maxBuffers);
+        {
+            // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
+            return new VeldridQuadBatch<TVertex>(this, size);
+        }
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
             => new VeldridUniformBuffer<TData>(this);
