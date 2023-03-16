@@ -34,13 +34,15 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             get => storages[currentStorageIndex].Data;
             set
             {
-                renderer.TrackUniformBufferForReset(this);
+                renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
 
                 ++currentStorageIndex;
                 while (currentStorageIndex >= storages.Count)
                     storages.Add(new VeldridUniformBufferStorage<TData>(renderer));
 
                 storages[currentStorageIndex].Data = value;
+
+                renderer.RegisterUniformBufferForReset(this);
             }
         }
 

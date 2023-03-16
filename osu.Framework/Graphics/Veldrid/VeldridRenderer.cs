@@ -473,7 +473,7 @@ namespace osu.Framework.Graphics.Veldrid
         {
         }
 
-        public void TrackUniformBufferForReset(IVeldridUniformBuffer buffer)
+        public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
         {
             uniformBufferResetList.Add(buffer);
         }
