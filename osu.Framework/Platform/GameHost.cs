@@ -908,6 +908,9 @@ namespace osu.Framework.Platform
             {
                 Logger.Log("🖼️ Renderer initialisation failed with:");
                 Logger.Log(e.ToString());
+
+                Window?.Close();
+                Window = null;
                 throw;
             }
         }

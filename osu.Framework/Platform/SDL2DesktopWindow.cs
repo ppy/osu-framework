@@ -303,7 +303,11 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Forcefully closes the window.
         /// </summary>
-        public void Close() => ScheduleCommand(() => Exists = false);
+        public void Close() => ScheduleCommand(() =>
+        {
+            SDL.SDL_DestroyWindow(SDLWindowHandle);
+            Exists = false;
+        });
 
         public void Raise() => ScheduleCommand(() =>
         {
