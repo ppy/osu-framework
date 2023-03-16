@@ -25,8 +25,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     internal class VeldridUniformBuffer<TData> : IUniformBuffer<TData>, IVeldridUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
+        private VeldridUniformBufferStorage<TData> currentStorage => storages[currentStorageIndex];
+
         private readonly List<VeldridUniformBufferStorage<TData>> storages = new List<VeldridUniformBufferStorage<TData>>();
         private int currentStorageIndex;
+        private TData? pendingData;
 
         private readonly VeldridRenderer renderer;
 
@@ -38,22 +41,43 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public TData Data
         {
-            get => storages[currentStorageIndex].Data;
+            get => pendingData ?? currentStorage.Data;
             set
             {
+                if (value.Equals(Data))
+                    return;
+
+                // Immediately flush the current draw call, since we'll be changing the contents of this UBO.
                 renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
 
-                ++currentStorageIndex;
-                while (currentStorageIndex >= storages.Count)
-                    storages.Add(new VeldridUniformBufferStorage<TData>(renderer));
-
-                storages[currentStorageIndex].Data = value;
-
-                renderer.RegisterUniformBufferForReset(this);
+                pendingData = value;
             }
         }
 
-        public ResourceSet GetResourceSet(ResourceLayout layout) => storages[currentStorageIndex].GetResourceSet(layout);
+        public ResourceSet GetResourceSet(ResourceLayout layout)
+        {
+            flushPendingData();
+            return currentStorage.GetResourceSet(layout);
+        }
+
+        private void flushPendingData()
+        {
+            if (pendingData is not TData pending)
+                return;
+
+            // Advance the storage index with every new data. Each draw call effectively has a unique UBO.
+            if (++currentStorageIndex == storages.Count)
+                storages.Add(new VeldridUniformBufferStorage<TData>(renderer));
+
+            // Register this UBO to be reset in the next draw call, but only the first time it receives new data.
+            // This prevents usages like the global UBO from being registered multiple times.
+            if (currentStorageIndex == 1)
+                renderer.RegisterUniformBufferForReset(this);
+
+            // Upload the data.
+            currentStorage.Data = pending;
+            pendingData = null;
+        }
 
         public void ResetCounters()
         {

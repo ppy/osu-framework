@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Platform;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
@@ -12,6 +13,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     {
         private readonly VeldridRenderer renderer;
         private readonly DeviceBuffer buffer;
+        private readonly NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         private ResourceSet? set;
         private TData data;
@@ -19,7 +21,9 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public VeldridUniformBufferStorage(VeldridRenderer renderer)
         {
             this.renderer = renderer;
+
             buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
+            memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
         }
 
         public TData Data
@@ -27,11 +31,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             get => data;
             set
             {
-                if (value.Equals(data))
-                    return;
-
                 data = value;
-
                 renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, ref data);
             }
         }
@@ -41,6 +41,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public void Dispose()
         {
             buffer.Dispose();
+            memoryLease.Dispose();
             set?.Dispose();
         }
     }
