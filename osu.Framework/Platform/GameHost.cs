@@ -326,19 +326,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer()
-        {
-            switch (FrameworkEnvironment.PreferredGraphicsRenderer)
-            {
-                case "veldrid":
-                    return new VeldridRenderer();
-
-                default:
-                case "gl":
-                case "opengl":
-                    return new GLRenderer();
-            }
-        }
+        protected virtual IRenderer CreateGLRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
