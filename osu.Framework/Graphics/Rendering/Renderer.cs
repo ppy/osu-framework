@@ -211,6 +211,7 @@ namespace osu.Framework.Graphics.Rendering
 
             currentActiveBatch = null;
             CurrentBlendingParameters = new BlendingParameters();
+            currentMaskingInfo = default;
 
             foreach (var b in batchResetList)
                 b.ResetCounters();
