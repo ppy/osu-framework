@@ -749,7 +749,16 @@ namespace osu.Framework.Platform
                             break;
                     }
 
-                    setupRendererAndWindow(renderer, surfaceType);
+                    try
+                    {
+                        setupRendererAndWindow(renderer, surfaceType);
+                    }
+                    catch
+                    {
+                        // fallback to legacy renderer.
+                        setupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                        Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.Legacy);
+                    }
                 }
 
                 // Prepare renderer (requires config).
