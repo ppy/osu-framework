@@ -28,11 +28,11 @@ namespace osu.Framework.SourceGeneration.Analysers
             SyntaxNode? node = root?.FindToken(diagnosticSpan.Start).Parent;
 
             if (node == null)
-                throw new InvalidOperationException($"Making class partial failed (null syntax) at: {diagnostic.Location}");
+                throw new InvalidOperationException($"Making BDL method return task failed (null syntax) at: {diagnostic.Location}");
 
             MethodDeclarationSyntax? methodSyntax = node.FirstAncestorOrSelf<MethodDeclarationSyntax>();
             if (methodSyntax == null)
-                throw new InvalidOperationException($"Making class partial failed (non-matching node) at: {diagnostic.Location} ({node.GetType()})");
+                throw new InvalidOperationException($"Making BDL method return task failed (non-matching node) at: {diagnostic.Location} ({node.GetType()})");
 
             context.RegisterCodeFix(
                 CodeAction.Create(
