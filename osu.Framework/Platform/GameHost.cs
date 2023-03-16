@@ -832,7 +832,7 @@ namespace osu.Framework.Platform
                     attemptSurfaceTypes.Add(GraphicsSurfaceType.OpenGL);
                     break;
 
-                case Configuration.Renderer.Legacy:
+                case Configuration.Renderer.OpenGLLegacy:
                     attemptOperatingSystemSpecificFallbacks = false;
                     break;
             }
@@ -883,7 +883,7 @@ namespace osu.Framework.Platform
 
             // fallback to legacy renderer. this is basically guaranteed to support all platforms.
             setupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-            Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.Legacy);
+            Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.OpenGLLegacy);
         }
 
         private void setupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)

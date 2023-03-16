@@ -23,6 +23,6 @@ namespace osu.Framework.Configuration
         OpenGL,
 
         [Description("OpenGL (Legacy)")]
-        Legacy,
+        OpenGLLegacy,
     }
 }
