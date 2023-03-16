@@ -706,60 +706,7 @@ namespace osu.Framework.Platform
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
-                // Always give preference to environment variables.
-                if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
-                {
-                    // And allow this to hard fail with no fallbacks.
-                    setupRendererAndWindow(
-                        FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
-                        FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
-                }
-                else
-                {
-                    string renderer;
-                    GraphicsSurfaceType surfaceType;
-
-                    switch (Config.Get<Configuration.Renderer>(FrameworkSetting.Renderer))
-                    {
-                        case Configuration.Renderer.Metal:
-                            renderer = "veldrid";
-                            surfaceType = GraphicsSurfaceType.Metal;
-                            break;
-
-                        case Configuration.Renderer.Vulkan:
-                            renderer = "veldrid";
-                            surfaceType = GraphicsSurfaceType.Vulkan;
-                            break;
-
-                        case Configuration.Renderer.Direct3D11:
-                            renderer = "veldrid";
-                            surfaceType = GraphicsSurfaceType.Direct3D11;
-                            break;
-
-                        case Configuration.Renderer.OpenGL:
-                            renderer = "veldrid";
-                            surfaceType = GraphicsSurfaceType.OpenGL;
-                            break;
-
-                        default:
-                        case Configuration.Renderer.Automatic:
-                        case Configuration.Renderer.Legacy:
-                            renderer = "gl";
-                            surfaceType = GraphicsSurfaceType.OpenGL;
-                            break;
-                    }
-
-                    try
-                    {
-                        setupRendererAndWindow(renderer, surfaceType);
-                    }
-                    catch
-                    {
-                        // fallback to legacy renderer.
-                        setupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-                        Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.Legacy);
-                    }
-                }
+                chooseAndSetupRenderer();
 
                 // Prepare renderer (requires config).
                 Dependencies.CacheAs(Renderer);
@@ -833,14 +780,93 @@ namespace osu.Framework.Platform
             }
         }
 
+        private void chooseAndSetupRenderer()
+        {
+            // Always give preference to environment variables.
+            if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
+            {
+                // And allow this to hard fail with no fallbacks.
+                setupRendererAndWindow(
+                    FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
+                    FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
+            }
+            else
+            {
+                List<GraphicsSurfaceType> attemptSurfaceTypes = new List<GraphicsSurfaceType>();
+                bool attemptOperatingSystemSpecificFallbacks = true;
+
+                switch (Config.Get<Configuration.Renderer>(FrameworkSetting.Renderer))
+                {
+                    case Configuration.Renderer.Metal:
+                        attemptSurfaceTypes.Add(GraphicsSurfaceType.Metal);
+                        break;
+
+                    case Configuration.Renderer.Vulkan:
+                        attemptSurfaceTypes.Add(GraphicsSurfaceType.Vulkan);
+                        break;
+
+                    case Configuration.Renderer.Direct3D11:
+                        attemptSurfaceTypes.Add(GraphicsSurfaceType.Direct3D11);
+                        break;
+
+                    case Configuration.Renderer.OpenGL:
+                        attemptSurfaceTypes.Add(GraphicsSurfaceType.OpenGL);
+                        break;
+
+                    case Configuration.Renderer.Legacy:
+                        attemptOperatingSystemSpecificFallbacks = false;
+                        break;
+                }
+
+                if (attemptOperatingSystemSpecificFallbacks)
+                {
+                    // Best case, we can make use of veldrid with a new graphics API.
+                    switch (RuntimeInfo.OS)
+                    {
+                        case RuntimeInfo.Platform.Windows:
+                            attemptSurfaceTypes.Add(GraphicsSurfaceType.Vulkan);
+                            attemptSurfaceTypes.Add(GraphicsSurfaceType.Direct3D11);
+                            break;
+
+                        case RuntimeInfo.Platform.Linux:
+                        case RuntimeInfo.Platform.Android:
+                            attemptSurfaceTypes.Add(GraphicsSurfaceType.Vulkan);
+                            break;
+
+                        case RuntimeInfo.Platform.macOS:
+                        case RuntimeInfo.Platform.iOS:
+                            attemptSurfaceTypes.Add(GraphicsSurfaceType.Metal);
+                            break;
+                    }
+                }
+
+                foreach (var attemptSurfaceType in attemptSurfaceTypes)
+                {
+                    try
+                    {
+                        setupRendererAndWindow("veldrid", attemptSurfaceType);
+                        return;
+                    }
+                    catch
+                    {
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.Automatic);
+                    }
+                }
+
+                // fallback to legacy renderer. this is basically guaranteed to support all platforms.
+                setupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.Legacy);
+            }
+        }
+
         private void setupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
         {
+            Logger.Log($"Attempting initialisation using renderer: {renderer} surface: {surfaceType}");
+
             Renderer = renderer == "veldrid"
                 ? new VeldridRenderer()
-                : CreateLegacyRenderer();
-
-            Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
-            Logger.Log("Using graphics surface: " + surfaceType);
+                : CreateGLRenderer();
 
             // Prepare window
             Window = CreateWindow(surfaceType);
