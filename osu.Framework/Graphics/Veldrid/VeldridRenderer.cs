@@ -179,7 +179,7 @@ namespace osu.Framework.Graphics.Veldrid
             }
 
             foreach (var ubo in uniformBufferResetList)
-                ubo.Reset();
+                ubo.ResetCounters();
             uniformBufferResetList.Clear();
 
             Commands.Begin();

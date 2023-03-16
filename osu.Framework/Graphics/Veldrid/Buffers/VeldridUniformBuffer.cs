@@ -10,9 +10,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 {
     internal interface IVeldridUniformBuffer : IDisposable
     {
+        /// <summary>
+        /// Gets the <see cref="ResourceSet"/> containing the buffer attached to the given layout.
+        /// </summary>
+        /// <param name="layout">The <see cref="ResourceLayout"/> which the buffer should be attached to.</param>
         ResourceSet GetResourceSet(ResourceLayout layout);
 
-        void Reset();
+        /// <summary>
+        /// Resets this <see cref="IVeldridUniformBuffer"/>, bringing it to the initial state.
+        /// </summary>
+        void ResetCounters();
     }
 
     internal class VeldridUniformBuffer<TData> : IUniformBuffer<TData>, IVeldridUniformBuffer
@@ -48,7 +55,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public ResourceSet GetResourceSet(ResourceLayout layout) => storages[currentStorageIndex].GetResourceSet(layout);
 
-        public void Reset()
+        public void ResetCounters()
         {
             currentStorageIndex = 0;
         }
