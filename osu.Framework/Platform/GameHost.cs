@@ -275,8 +275,15 @@ namespace osu.Framework.Platform
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
-            set => DrawThread.ActiveHz = maximumDrawHz = value;
+            set
+            {
+                maximumDrawHz = value;
+                if (DrawThread != null)
+                    DrawThread.ActiveHz = maximumDrawHz;
+            }
         }
+
+        private double maximumInactiveHz;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -287,11 +294,12 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumInactiveHz
         {
-            get => DrawThread.InactiveHz;
+            get => maximumInactiveHz;
             set
             {
-                DrawThread.InactiveHz = value;
-                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
+                maximumInactiveHz = threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
+                if (DrawThread != null)
+                    DrawThread.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -713,7 +721,11 @@ namespace osu.Framework.Platform
                 // Prepare renderer (requires config).
                 Dependencies.CacheAs(Renderer);
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {Window.GraphicsSurface.Type}"));
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}")
+                {
+                    ActiveHz = maximumDrawHz,
+                    InactiveHz = MaximumInactiveHz,
+                });
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
