@@ -714,7 +714,7 @@ namespace osu.Framework.Platform
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
-                chooseAndSetupRenderer();
+                ChooseAndSetupRenderer();
 
                 initialiseInputHandlers();
 
@@ -794,7 +794,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void chooseAndSetupRenderer()
+        protected virtual void ChooseAndSetupRenderer()
         {
             // Always give preference to environment variables.
             if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
@@ -802,7 +802,7 @@ namespace osu.Framework.Platform
                 Logger.Log("🖼️ Using environment variables for renderer and surface selection.", level: LogLevel.Important);
 
                 // And allow this to hard fail with no fallbacks.
-                setupRendererAndWindow(
+                SetupRendererAndWindow(
                     FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
                     FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
                 return;
@@ -871,7 +871,7 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    setupRendererAndWindow("veldrid", attemptSurfaceType);
+                    SetupRendererAndWindow("veldrid", attemptSurfaceType);
                     return;
                 }
                 catch
@@ -882,11 +882,11 @@ namespace osu.Framework.Platform
             }
 
             // fallback to legacy renderer. this is basically guaranteed to support all platforms.
-            setupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+            SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
             Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.OpenGLLegacy);
         }
 
-        private void setupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
+        protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
         {
             Logger.Log($"🖼️ Attempting initialisation using renderer: {renderer} surface: {surfaceType}");
 
