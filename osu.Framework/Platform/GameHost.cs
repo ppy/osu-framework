@@ -668,8 +668,6 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
-            Renderer = CreateRenderer();
-
             try
             {
                 if (!host_running_mutex.Wait(10000))
@@ -689,13 +687,6 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
-
-                Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
-                Logger.Log("Using graphics surface: " + surfaceType);
-
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {surfaceType}"));
-
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
@@ -706,34 +697,65 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
-                Dependencies.CacheAs(Renderer);
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
 
-                Window = CreateWindow(surfaceType);
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
-                initialiseInputHandlers();
-
-                if (Window != null)
+                // Always give preference to environment variables.
+                if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
                 {
-                    Window.SetupWindow(Config);
-
-                    Window.Create();
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
-
-                    Renderer.Initialise(Window.GraphicsSurface);
-
-                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
-                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
-
-                    IsActive.BindTo(Window.IsActive);
+                    // And allow this to hard fail with no fallbacks.
+                    setupRendererAndWindow(
+                        FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
+                        FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
                 }
+                else
+                {
+                    string renderer;
+                    GraphicsSurfaceType surfaceType;
+
+                    switch (Config.Get<Configuration.Renderer>(FrameworkSetting.Renderer))
+                    {
+                        case Configuration.Renderer.Metal:
+                            renderer = "veldrid";
+                            surfaceType = GraphicsSurfaceType.Metal;
+                            break;
+
+                        case Configuration.Renderer.Vulkan:
+                            renderer = "veldrid";
+                            surfaceType = GraphicsSurfaceType.Vulkan;
+                            break;
+
+                        case Configuration.Renderer.Direct3D11:
+                            renderer = "veldrid";
+                            surfaceType = GraphicsSurfaceType.Direct3D11;
+                            break;
+
+                        case Configuration.Renderer.OpenGL:
+                            renderer = "veldrid";
+                            surfaceType = GraphicsSurfaceType.OpenGL;
+                            break;
+
+                        default:
+                        case Configuration.Renderer.Automatic:
+                        case Configuration.Renderer.Legacy:
+                            renderer = "gl";
+                            surfaceType = GraphicsSurfaceType.OpenGL;
+                            break;
+                    }
+
+                    setupRendererAndWindow(renderer, surfaceType);
+                }
+
+                // Prepare renderer (requires config).
+                Dependencies.CacheAs(Renderer);
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {Window.GraphicsSurface.Type}"));
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
@@ -799,6 +821,36 @@ namespace osu.Framework.Platform
 
                     host_running_mutex.Release();
                 }
+            }
+        }
+
+        private void setupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
+        {
+            Renderer = renderer == "veldrid"
+                ? new VeldridRenderer()
+                : CreateLegacyRenderer();
+
+            Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
+            Logger.Log("Using graphics surface: " + surfaceType);
+
+            // Prepare window
+            Window = CreateWindow(surfaceType);
+
+            initialiseInputHandlers();
+
+            if (Window != null)
+            {
+                Window.SetupWindow(Config);
+
+                Window.Create();
+                Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                Renderer.Initialise(Window.GraphicsSurface);
+
+                currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+                currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+                IsActive.BindTo(Window.IsActive);
             }
         }
 
