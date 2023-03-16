@@ -708,6 +708,8 @@ namespace osu.Framework.Platform
 
                 chooseAndSetupRenderer();
 
+                initialiseInputHandlers();
+
                 // Prepare renderer (requires config).
                 Dependencies.CacheAs(Renderer);
 
@@ -884,8 +886,6 @@ namespace osu.Framework.Platform
 
                 // Prepare window
                 Window = CreateWindow(surfaceType);
-
-                initialiseInputHandlers();
 
                 if (Window != null)
                 {
