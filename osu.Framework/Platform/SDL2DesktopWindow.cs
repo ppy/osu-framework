@@ -282,11 +282,6 @@ namespace osu.Framework.Platform
             }
 
             Exited?.Invoke();
-
-            if (SDLWindowHandle != IntPtr.Zero)
-                SDL.SDL_DestroyWindow(SDLWindowHandle);
-
-            SDL.SDL_Quit();
         }
 
         private bool firstDraw = true;
@@ -303,11 +298,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Forcefully closes the window.
         /// </summary>
-        public void Close() => ScheduleCommand(() =>
-        {
-            SDL.SDL_DestroyWindow(SDLWindowHandle);
-            Exists = false;
-        });
+        public void Close() => ScheduleCommand(() => Exists = false);
 
         public void Raise() => ScheduleCommand(() =>
         {
@@ -534,6 +525,10 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
+            if (SDLWindowHandle != IntPtr.Zero)
+                SDL.SDL_DestroyWindow(SDLWindowHandle);
+
+            SDL.SDL_Quit();
         }
     }
 }

@@ -934,6 +934,7 @@ namespace osu.Framework.Platform
                 Logger.Log(e.ToString());
 
                 Window?.Close();
+                Window?.Dispose();
                 Window = null;
 
                 Renderer = null;
