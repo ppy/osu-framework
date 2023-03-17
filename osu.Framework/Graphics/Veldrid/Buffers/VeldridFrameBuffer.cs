@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
 using Veldrid;
+using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
@@ -24,7 +25,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly PixelFormat? depthFormat;
 
         private VeldridTexture colourTarget;
-        private global::Veldrid.Texture? depthTarget;
+        private Texture? depthTarget;
 
         private Vector2 size = Vector2.One;
 
