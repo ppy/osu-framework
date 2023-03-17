@@ -905,27 +905,25 @@ namespace osu.Framework.Platform
         {
             Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
 
+            Renderer = renderer;
+
+            // Prepare window
+            Window = CreateWindow(surfaceType);
+
+            if (Window == null)
+            {
+                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
+                return;
+            }
+
+            Window.SetupWindow(Config);
+
             try
             {
-                Renderer = renderer;
+                Window.Create();
+                Window.Title = $@"osu!framework (running ""{Name}"")";
 
-                // Prepare window
-                Window = CreateWindow(surfaceType);
-
-                if (Window != null)
-                {
-                    Window.SetupWindow(Config);
-
-                    Window.Create();
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
-
-                    Renderer.Initialise(Window.GraphicsSurface);
-
-                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
-                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
-
-                    IsActive.BindTo(Window.IsActive);
-                }
+                Renderer.Initialise(Window.GraphicsSurface);
 
                 Logger.Log("🖼️ Renderer initialised!");
             }
@@ -936,8 +934,15 @@ namespace osu.Framework.Platform
 
                 Window?.Close();
                 Window = null;
+
+                Renderer = null;
                 throw;
             }
+
+            currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+            currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+            IsActive.BindTo(Window.IsActive);
         }
 
         /// <summary>
