@@ -903,7 +903,7 @@ namespace osu.Framework.Platform
 
         protected void SetupRendererAndWindow(IRenderer renderer, GraphicsSurfaceType surfaceType)
         {
-            Logger.Log($"🖼️ Attempting initialisation using renderer: {renderer} surface: {surfaceType}");
+            Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
 
             try
             {
