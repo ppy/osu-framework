@@ -251,7 +251,7 @@ namespace osu.Framework.Platform
         public InputThread InputThread { get; private set; }
         public AudioThread AudioThread { get; private set; }
 
-        private double maximumUpdateHz;
+        private double maximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of update frames per second when the game window is active.
@@ -265,7 +265,7 @@ namespace osu.Framework.Platform
             set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
-        private double maximumDrawHz;
+        private double maximumDrawHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of draw frames per second when the game window is active.
@@ -284,7 +284,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private double maximumInactiveHz;
+        private double maximumInactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -298,7 +298,7 @@ namespace osu.Framework.Platform
             get => maximumInactiveHz;
             set
             {
-                maximumInactiveHz = threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
                 if (DrawThread != null)
                     DrawThread.InactiveHz = maximumInactiveHz;
             }
@@ -724,7 +724,7 @@ namespace osu.Framework.Platform
 
                 RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}")
                 {
-                    ActiveHz = maximumDrawHz,
+                    ActiveHz = MaximumDrawHz,
                     InactiveHz = MaximumInactiveHz,
                 });
 
