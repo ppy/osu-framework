@@ -21,7 +21,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public Framebuffer Framebuffer { get; private set; }
 
         private readonly VeldridRenderer renderer;
-        private readonly SamplerFilter filteringMode;
         private readonly PixelFormat? depthFormat;
 
         private readonly VeldridTexture colourTarget;
@@ -55,7 +54,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 throw new ArgumentException("Veldrid framebuffer cannot contain more than one depth target.");
 
             this.renderer = renderer;
-            this.filteringMode = filteringMode;
+
             depthFormat = formats?[0];
 
             colourTarget = new FrameBufferTexture(renderer, filteringMode);
