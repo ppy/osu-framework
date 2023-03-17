@@ -888,13 +888,26 @@ namespace osu.Framework.Platform
 
         protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
         {
+            switch (renderer)
+            {
+                case "veldrid":
+                    SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                default:
+                case "gl":
+                    SetupRendererAndWindow(CreateGLRenderer(), surfaceType);
+                    break;
+            }
+        }
+
+        protected void SetupRendererAndWindow(IRenderer renderer, GraphicsSurfaceType surfaceType)
+        {
             Logger.Log($"🖼️ Attempting initialisation using renderer: {renderer} surface: {surfaceType}");
 
             try
             {
-                Renderer = renderer == "veldrid"
-                    ? new VeldridRenderer()
-                    : CreateGLRenderer();
+                Renderer = renderer;
 
                 // Prepare window
                 Window = CreateWindow(surfaceType);
