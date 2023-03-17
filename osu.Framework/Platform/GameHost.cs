@@ -812,10 +812,10 @@ namespace osu.Framework.Platform
             List<GraphicsSurfaceType> attemptSurfaceTypes = new List<GraphicsSurfaceType>();
             bool attemptOperatingSystemSpecificFallbacks = true;
 
-            var configRenderer = Config.Get<RendererType>(FrameworkSetting.Renderer);
+            var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
-            switch (configRenderer)
+            switch (configRenderer.Value)
             {
                 case RendererType.Metal:
                     attemptSurfaceTypes.Add(GraphicsSurfaceType.Metal);
@@ -877,8 +877,13 @@ namespace osu.Framework.Platform
                 }
                 catch
                 {
-                    // If we fail, assume the user may have had a custom setting and switch it back to automatic.
-                    Config.SetValue(FrameworkSetting.Renderer, RendererType.Automatic);
+                    if (configRenderer.Value != RendererType.Automatic)
+                    {
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                            level: LogLevel.Important);
+                        configRenderer.Value = RendererType.Automatic;
+                    }
                 }
             }
 
