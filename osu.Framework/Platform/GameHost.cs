@@ -795,6 +795,50 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// The renderer which the game host is currently running with.
+        /// </summary>
+        public RendererType ResolvedRenderer { get; private set; }
+
+        /// <summary>
+        /// All valid <see cref="RendererType"/>s for the current platform.
+        /// </summary>
+        public IEnumerable<RendererType> GetValidRenderersForCurrentPlatform() =>
+            GetPreferredRenderersForCurrentPlatform()
+                .Append(RendererType.OpenGL)
+                .Append(RendererType.OpenGLLegacy);
+
+        /// <summary>
+        /// All preferred <see cref="RendererType"/>s for the current platform.
+        /// These are used in order of appearance when <see cref="RendererType.Automatic"/> is used, or when the user preference fails to initialise.
+        /// </summary>
+        public IEnumerable<RendererType> GetPreferredRenderersForCurrentPlatform()
+        {
+            yield return RendererType.Automatic;
+
+            // Best case, we can make use of veldrid with a new graphics API.
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.Windows:
+                    yield return RendererType.Vulkan;
+                    yield return RendererType.Direct3D11;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                case RuntimeInfo.Platform.Android:
+                    yield return RendererType.Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.macOS:
+                case RuntimeInfo.Platform.iOS:
+                    yield return RendererType.Metal;
+
+                    break;
+            }
+        }
+
         protected virtual void ChooseAndSetupRenderer()
         {
             // Always give preference to environment variables.
@@ -809,86 +853,77 @@ namespace osu.Framework.Platform
                 return;
             }
 
-            List<GraphicsSurfaceType> attemptSurfaceTypes = new List<GraphicsSurfaceType>();
-            bool attemptOperatingSystemSpecificFallbacks = true;
-
             var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
-            switch (configRenderer.Value)
+            // Attempt to initialise various veldrid surface types.
+            // If legacy GL was requested we can skip this and fallback to the final logic below.
+            if (configRenderer.Value != RendererType.OpenGLLegacy)
             {
-                case RendererType.Metal:
-                    attemptSurfaceTypes.Add(GraphicsSurfaceType.Metal);
-                    break;
+                var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
 
-                case RendererType.Vulkan:
-                    attemptSurfaceTypes.Add(GraphicsSurfaceType.Vulkan);
-                    break;
+                Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()).Append("OpenGL (Legacy)"))} ]");
 
-                case RendererType.Direct3D11:
-                    attemptSurfaceTypes.Add(GraphicsSurfaceType.Direct3D11);
-                    break;
+                // Move user's preference to the start of the attempts.
+                rendererTypes.Remove(configRenderer.Value);
+                rendererTypes.Insert(0, configRenderer.Value);
 
-                case RendererType.OpenGL:
-                    attemptSurfaceTypes.Add(GraphicsSurfaceType.OpenGL);
-                    break;
-
-                case RendererType.OpenGLLegacy:
-                    attemptOperatingSystemSpecificFallbacks = false;
-                    break;
-            }
-
-            if (attemptOperatingSystemSpecificFallbacks)
-            {
-                // Best case, we can make use of veldrid with a new graphics API.
-                switch (RuntimeInfo.OS)
+                foreach (RendererType type in rendererTypes)
                 {
-                    case RuntimeInfo.Platform.Windows:
-                        addFallback(GraphicsSurfaceType.Vulkan);
-                        addFallback(GraphicsSurfaceType.Direct3D11);
-                        break;
+                    if (type == RendererType.Automatic)
+                        continue;
 
-                    case RuntimeInfo.Platform.Linux:
-                    case RuntimeInfo.Platform.Android:
-                        addFallback(GraphicsSurfaceType.Vulkan);
-                        break;
-
-                    case RuntimeInfo.Platform.macOS:
-                    case RuntimeInfo.Platform.iOS:
-                        addFallback(GraphicsSurfaceType.Metal);
-                        break;
-                }
-
-                void addFallback(GraphicsSurfaceType surface)
-                {
-                    if (!attemptSurfaceTypes.Contains(surface))
-                        attemptSurfaceTypes.Add(surface);
-                }
-            }
-
-            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", attemptSurfaceTypes.Select(e => e.GetDescription()).Append("OpenGL (Legacy)"))} ]");
-
-            foreach (var attemptSurfaceType in attemptSurfaceTypes)
-            {
-                try
-                {
-                    SetupRendererAndWindow("veldrid", attemptSurfaceType);
-                    return;
-                }
-                catch
-                {
-                    if (configRenderer.Value != RendererType.Automatic)
+                    try
                     {
-                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
-                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
-                            level: LogLevel.Important);
-                        configRenderer.Value = RendererType.Automatic;
+                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
+                        ResolvedRenderer = type;
+                        return;
+                    }
+                    catch
+                    {
+                        if (configRenderer.Value != RendererType.Automatic)
+                        {
+                            // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                            Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                                level: LogLevel.Important);
+                            configRenderer.Value = RendererType.Automatic;
+                        }
                     }
                 }
             }
 
             // fallback to legacy renderer. this is basically guaranteed to support all platforms.
             SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+            ResolvedRenderer = RendererType.OpenGLLegacy;
+        }
+
+        private static GraphicsSurfaceType rendererToGraphicsSurfaceType(RendererType renderer)
+        {
+            GraphicsSurfaceType surface;
+
+            switch (renderer)
+            {
+                case RendererType.Metal:
+                    surface = GraphicsSurfaceType.Metal;
+                    break;
+
+                case RendererType.Vulkan:
+                    surface = GraphicsSurfaceType.Vulkan;
+                    break;
+
+                case RendererType.Direct3D11:
+                    surface = GraphicsSurfaceType.Direct3D11;
+                    break;
+
+                case RendererType.OpenGL:
+                    surface = GraphicsSurfaceType.OpenGL;
+                    break;
+
+                default:
+                    throw new ArgumentException("Provided renderer cannot be mapped to a veldrid surface");
+            }
+
+            return surface;
         }
 
         protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
@@ -1267,9 +1302,14 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Construct all input handlers for this host. The order here decides the priority given to handlers, with the earliest occurring having higher priority.
         /// </summary>
-        protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
+        protected abstract IEnumerable<InputHandler>
+            CreateAvailableInputHandlers();
 
-        public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
+        public ImmutableArray<InputHandler> AvailableInputHandlers
+        {
+            get;
+            private set;
+        }
 
         protected virtual TextInputSource CreateTextInput() => new TextInputSource();
 
