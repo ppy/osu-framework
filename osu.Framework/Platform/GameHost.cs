@@ -889,7 +889,6 @@ namespace osu.Framework.Platform
 
             // fallback to legacy renderer. this is basically guaranteed to support all platforms.
             SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-            Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGLLegacy);
         }
 
         protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
