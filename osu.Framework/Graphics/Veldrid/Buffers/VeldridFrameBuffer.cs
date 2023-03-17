@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 {
     internal class VeldridFrameBuffer : IFrameBuffer
     {
-        public osu.Framework.Graphics.Textures.Texture Texture { get; private set; }
+        public osu.Framework.Graphics.Textures.Texture Texture { get; }
 
         public Framebuffer Framebuffer { get; private set; }
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly SamplerFilter filteringMode;
         private readonly PixelFormat? depthFormat;
 
-        private VeldridTexture colourTarget;
+        private readonly VeldridTexture colourTarget;
         private Texture? depthTarget;
 
         private Vector2 size = Vector2.One;
@@ -58,21 +58,21 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             this.filteringMode = filteringMode;
             depthFormat = formats?[0];
 
+            colourTarget = new FrameBufferTexture(renderer, filteringMode);
+            Texture = renderer.CreateFrameBufferTexture(colourTarget);
+
             recreateResources();
         }
 
-        [MemberNotNull(nameof(Framebuffer), nameof(colourTarget), nameof(Texture))]
+        [MemberNotNull(nameof(Framebuffer))]
         private void recreateResources()
         {
             // The texture is created once and resized internally, so it should not be deleted.
             DeleteResources(false);
 
-            colourTarget ??= new FrameBufferTexture(renderer, filteringMode);
-            Texture ??= renderer.CreateFrameBufferTexture(colourTarget);
-
             if (depthFormat is PixelFormat depth)
             {
-                TextureDescription depthDescription = TextureDescription.Texture2D((uint)colourTarget.Width, (uint)colourTarget.Height, 1, 1, depth, TextureUsage.DepthStencil);
+                var depthDescription = TextureDescription.Texture2D((uint)colourTarget.Width, (uint)colourTarget.Height, 1, 1, depth, TextureUsage.DepthStencil);
                 depthTarget = renderer.Factory.CreateTexture(ref depthDescription);
             }
 
