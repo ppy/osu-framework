@@ -811,28 +811,28 @@ namespace osu.Framework.Platform
             List<GraphicsSurfaceType> attemptSurfaceTypes = new List<GraphicsSurfaceType>();
             bool attemptOperatingSystemSpecificFallbacks = true;
 
-            var configRenderer = Config.Get<Configuration.Renderer>(FrameworkSetting.Renderer);
+            var configRenderer = Config.Get<RendererType>(FrameworkSetting.Renderer);
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
             switch (configRenderer)
             {
-                case Configuration.Renderer.Metal:
+                case RendererType.Metal:
                     attemptSurfaceTypes.Add(GraphicsSurfaceType.Metal);
                     break;
 
-                case Configuration.Renderer.Vulkan:
+                case RendererType.Vulkan:
                     attemptSurfaceTypes.Add(GraphicsSurfaceType.Vulkan);
                     break;
 
-                case Configuration.Renderer.Direct3D11:
+                case RendererType.Direct3D11:
                     attemptSurfaceTypes.Add(GraphicsSurfaceType.Direct3D11);
                     break;
 
-                case Configuration.Renderer.OpenGL:
+                case RendererType.OpenGL:
                     attemptSurfaceTypes.Add(GraphicsSurfaceType.OpenGL);
                     break;
 
-                case Configuration.Renderer.OpenGLLegacy:
+                case RendererType.OpenGLLegacy:
                     attemptOperatingSystemSpecificFallbacks = false;
                     break;
             }
@@ -877,13 +877,13 @@ namespace osu.Framework.Platform
                 catch
                 {
                     // If we fail, assume the user may have had a custom setting and switch it back to automatic.
-                    Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.Automatic);
+                    Config.SetValue(FrameworkSetting.Renderer, RendererType.Automatic);
                 }
             }
 
             // fallback to legacy renderer. this is basically guaranteed to support all platforms.
             SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-            Config.SetValue(FrameworkSetting.Renderer, Configuration.Renderer.OpenGLLegacy);
+            Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGLLegacy);
         }
 
         protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)

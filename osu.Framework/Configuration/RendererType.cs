@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace osu.Framework.Configuration
 {
-    public enum Renderer
+    public enum RendererType
     {
         [Description("Automatic")]
         Automatic,
