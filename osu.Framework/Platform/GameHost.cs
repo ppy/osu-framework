@@ -23,6 +23,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -865,7 +866,7 @@ namespace osu.Framework.Platform
                 }
             }
 
-            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", attemptSurfaceTypes.Select(e => e.ToString()).Append("Legacy"))} ]");
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", attemptSurfaceTypes.Select(e => e.GetDescription()).Append("OpenGL (Legacy)"))} ]");
 
             foreach (var attemptSurfaceType in attemptSurfaceTypes)
             {
