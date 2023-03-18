@@ -2,7 +2,7 @@
 
 #define INV_SQRT_2PI 0.39894
 
-layout(location = 0) in mediump vec2 v_TexCoord;
+layout(location = 2) in mediump vec2 v_TexCoord;
 
 layout(std140, set = 0, binding = 0) uniform m_BlurParameters
 {
