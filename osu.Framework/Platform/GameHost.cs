@@ -820,14 +820,14 @@ namespace osu.Framework.Platform
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
-                    yield return RendererType.Vulkan;
+                    // yield return RendererType.Vulkan;
                     yield return RendererType.Direct3D11;
 
                     break;
 
                 case RuntimeInfo.Platform.Linux:
                 case RuntimeInfo.Platform.Android:
-                    yield return RendererType.Vulkan;
+                    // yield return RendererType.Vulkan;
 
                     break;
 
