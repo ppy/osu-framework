@@ -803,10 +803,34 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid <see cref="RendererType"/>s for the current platform.
         /// </summary>
-        public IEnumerable<RendererType> GetValidRenderersForCurrentPlatform() =>
-            GetPreferredRenderersForCurrentPlatform()
-                .Append(RendererType.OpenGL)
-                .Append(RendererType.OpenGLLegacy);
+        public IEnumerable<RendererType> GetValidRenderersForCurrentPlatform()
+        {
+            yield return RendererType.Automatic;
+
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.Windows:
+                    yield return RendererType.Direct3D11;
+                    yield return RendererType.Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                case RuntimeInfo.Platform.Android:
+                    yield return RendererType.Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.macOS:
+                case RuntimeInfo.Platform.iOS:
+                    yield return RendererType.Metal;
+
+                    break;
+            }
+
+            yield return RendererType.OpenGL;
+            yield return RendererType.OpenGLLegacy;
+        }
 
         /// <summary>
         /// All preferred <see cref="RendererType"/>s for the current platform.
