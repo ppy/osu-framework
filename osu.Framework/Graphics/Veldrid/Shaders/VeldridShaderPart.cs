@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             string fragmentOutputCode = code;
 
-            int fragmentOutputLayoutIndex = shader_output_pattern.Matches(fragmentOutputCode).Count;
+            int fragmentOutputLayoutIndex = Output.Max(m => m.Location) + 1;
 
             var fragmentOutputLayout = new StringBuilder();
             var fragmentOutputAssignment = new StringBuilder();
@@ -188,5 +188,5 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         #endregion
     }
 
-    public record struct VeldridShaderAttribute(string Location, string Type, string Name);
+    public record struct VeldridShaderAttribute(int Location, string Type, string Name);
 }
