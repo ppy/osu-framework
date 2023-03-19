@@ -5,7 +5,6 @@ using System;
 using System.Buffers;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
-using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
