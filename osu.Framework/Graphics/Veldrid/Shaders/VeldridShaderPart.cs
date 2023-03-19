@@ -169,11 +169,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                 fragmentOutputLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
                 fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {attribute.Type} o_{name};");
-                fragmentOutputAssignment.AppendLine($"o_{attribute.Name} = {attribute.Name};");
+                fragmentOutputAssignment.Append($"o_{name} = {name};\n    ");
             }
 
-            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString());
-            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString());
+            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString().Trim());
+            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString().Trim());
 
             return new VeldridShaderPart(fragmentOutputCode, header, Type, manager) { Input = Input, Output = Output };
         }
