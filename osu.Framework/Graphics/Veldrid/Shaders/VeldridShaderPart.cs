@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -13,7 +15,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 {
     internal class VeldridShaderPart : IShaderPart
     {
-        public static readonly Regex SHADER_INPUT_PATTERN = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*(in\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*;)", RegexOptions.Multiline);
+        private static readonly Regex shader_input_pattern = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*in\s+((?:(?:lowp|mediump|highp)\s+)?\w+)\s+(\w+)\s*;", RegexOptions.Multiline);
+        private static readonly Regex shader_output_pattern = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*out\s+((?:(?:lowp|mediump|highp)\s+)?\w+)\s+(\w+)\s*;", RegexOptions.Multiline);
         private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*uniform)", RegexOptions.Multiline);
         private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
@@ -36,7 +39,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             // Parse all shader inputs to find the last input index.
             for (int i = 0; i < shaderCodes.Count; i++)
             {
-                foreach (Match m in SHADER_INPUT_PATTERN.Matches(shaderCodes[i]))
+                foreach (Match m in shader_input_pattern.Matches(shaderCodes[i]))
                     lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
             }
 
@@ -109,16 +112,32 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     code = internalIncludes + code;
 
-                    if (Type == ShaderPartType.Vertex)
+                    string outputCode = loadFile(manager.LoadRaw($"Internal/sh_{Type}_Output.h"), false);
+
+                    if (!string.IsNullOrEmpty(outputCode))
                     {
-                        string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Vertex_Output.h"), false);
+                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                        if (!string.IsNullOrEmpty(backbufferCode))
+                        outputCode = outputCode.Replace("{{ real_main }}", realMainName);
+                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
+
+                        // In D3D11, unused fragment inputs cull their corresponding vertex output, which affects the vertex input/output structure leading to seemingly undefined behaviour.
+                        // To prevent this from happening, make sure all fragment inputs are sent in the output so that D3D11 doesn't consider them "unused".
+                        if (Type == ShaderPartType.Fragment)
                         {
-                            string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                            int fragmentOutputLayoutIndex = shader_output_pattern.Matches(code).Count;
 
-                            backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                            var fragmentOutputLayout = new StringBuilder();
+                            var fragmentOutputAssignment = new StringBuilder();
+
+                            foreach (Match m in shader_input_pattern.Matches(code).DistinctBy(m => m.Groups[3].Value))
+                            {
+                                fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {m.Groups[2].Value} o_{m.Groups[3].Value};");
+                                fragmentOutputAssignment.AppendLine($"o_{m.Groups[3].Value} = {m.Groups[3].Value};");
+                            }
+
+                            code = code.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString());
+                            code = code.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString());
                         }
                     }
                 }
