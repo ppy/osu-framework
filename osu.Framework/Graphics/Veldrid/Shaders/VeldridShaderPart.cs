@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -22,8 +23,13 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public readonly ShaderPartType Type;
 
-        private readonly List<string> shaderCodes = new List<string>();
+        private string header;
+        private string code;
+
         private readonly ShaderManager manager;
+
+        public IReadOnlyList<VeldridShaderAttribute> Input { get; private set; }
+        public IReadOnlyList<VeldridShaderAttribute> Output { get; private set; }
 
         public VeldridShaderPart(byte[]? data, ShaderPartType type, ShaderManager manager)
         {
@@ -32,29 +38,30 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             Type = type;
 
             // Load the shader files.
-            shaderCodes.Add(loadFile(data, true));
+            code = loadFile(data, true);
 
             int lastInputIndex = 0;
 
             // Parse all shader inputs to find the last input index.
-            for (int i = 0; i < shaderCodes.Count; i++)
-            {
-                foreach (Match m in shader_input_pattern.Matches(shaderCodes[i]))
-                    lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
-            }
+            foreach (Match m in shader_input_pattern.Matches(code))
+                lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
 
             // Update the location of the m_BackbufferDrawDepth input to be placed after all other inputs.
-            for (int i = 0; i < shaderCodes.Count; i++)
-                shaderCodes[i] = shaderCodes[i].Replace("layout(location = -1)", $"layout(location = {lastInputIndex + 1})");
+            code = code.Replace("layout(location = -1)", $"layout(location = {lastInputIndex + 1})");
 
             // Increment the binding set of all uniform blocks.
             // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
             // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
-            for (int i = 0; i < shaderCodes.Count; i++)
-            {
-                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i],
-                    match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
-            }
+            code = uniform_pattern.Replace(code, match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
+        }
+
+        private VeldridShaderPart(string code, string header, ShaderPartType type, ShaderManager manager)
+        {
+            this.code = code;
+            this.header = header;
+            this.manager = manager;
+
+            Type = type;
         }
 
         private string loadFile(byte[]? bytes, bool mainFile)
@@ -79,13 +86,13 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                     if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
-                        shaderCodes.Insert(0, line + '\n');
+                        header = line + '\n' + header;
                         continue;
                     }
 
                     if (line.StartsWith("#extension", StringComparison.Ordinal))
                     {
-                        shaderCodes.Add(line + '\n');
+                        header += line + '\n';
                         continue;
                     }
 
@@ -112,6 +119,9 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     code = internalIncludes + code;
 
+                    Input = shader_input_pattern.Matches(code).Select(m => new VeldridShaderAttribute(m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value)).ToList();
+                    Output = shader_output_pattern.Matches(code).Select(m => new VeldridShaderAttribute(m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value)).ToList();
+
                     string outputCode = loadFile(manager.LoadRaw($"Internal/sh_{Type}_Output.h"), false);
 
                     if (!string.IsNullOrEmpty(outputCode))
@@ -120,25 +130,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                         outputCode = outputCode.Replace("{{ real_main }}", realMainName);
                         code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
-
-                        // In D3D11, unused fragment inputs cull their corresponding vertex output, which affects the vertex input/output structure leading to seemingly undefined behaviour.
-                        // To prevent this from happening, make sure all fragment inputs are sent in the output so that D3D11 doesn't consider them "unused".
-                        if (Type == ShaderPartType.Fragment)
-                        {
-                            int fragmentOutputLayoutIndex = shader_output_pattern.Matches(code).Count;
-
-                            var fragmentOutputLayout = new StringBuilder();
-                            var fragmentOutputAssignment = new StringBuilder();
-
-                            foreach (Match m in shader_input_pattern.Matches(code).DistinctBy(m => m.Groups[3].Value))
-                            {
-                                fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {m.Groups[2].Value} o_{m.Groups[3].Value};");
-                                fragmentOutputAssignment.AppendLine($"o_{m.Groups[3].Value} = {m.Groups[3].Value};");
-                            }
-
-                            code = code.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString());
-                            code = code.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString());
-                        }
                     }
                 }
 
@@ -146,7 +137,47 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             }
         }
 
-        public string GetRawText() => string.Join('\n', shaderCodes);
+        /// <summary>
+        /// Creates a <see cref="VeldridShaderPart"/> with a completed fragment input/output structure included based on the specified vertex output list.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In D3D11, unused fragment inputs cull their corresponding vertex output, which affects the vertex input/output structure leading to seemingly undefined behaviour.
+        /// To prevent this from happening, make sure all unused vertex output are used and sent in the fragment output so that D3D11 doesn't omit them.
+        /// </para>
+        /// <para>
+        /// This creates a new <see cref="VeldridShaderPart"/> rather than altering this existing instance since this is cached at a <see cref="ShaderManager"/> level and should remain immutable.
+        /// </para>
+        /// </remarks>
+        /// <param name="vertexOutput">The list of vertex output members.</param>
+        public VeldridShaderPart WithFragmentOutput(IEnumerable<VeldridShaderAttribute> vertexOutput)
+        {
+            Debug.Assert(Type == ShaderPartType.Fragment);
+
+            string fragmentOutputCode = code;
+
+            int fragmentOutputLayoutIndex = shader_output_pattern.Matches(fragmentOutputCode).Count;
+
+            var fragmentOutputLayout = new StringBuilder();
+            var fragmentOutputAssignment = new StringBuilder();
+
+            var unusedFragmentInput = vertexOutput.Where(a => !fragmentOutputCode.Contains(a.Name)).ToList();
+
+            foreach (VeldridShaderAttribute attribute in unusedFragmentInput)
+            {
+                fragmentOutputLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {attribute.Name};");
+                fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {attribute.Type} o_{attribute.Name};");
+
+                fragmentOutputAssignment.AppendLine($"o_{attribute.Name} = {attribute.Name};");
+            }
+
+            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString());
+            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString());
+
+            return new VeldridShaderPart(fragmentOutputCode, header, Type, manager) { Input = Input, Output = Output };
+        }
+
+        public string GetRawText() => header + '\n' + code;
 
         #region IDisposable Support
 
@@ -156,4 +187,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         #endregion
     }
+
+    public record struct VeldridShaderAttribute(string Location, string Type, string Name);
 }

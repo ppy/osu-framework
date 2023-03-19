@@ -113,6 +113,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             VeldridShaderPart vertex = parts.Single(p => p.Type == ShaderPartType.Vertex);
             VeldridShaderPart fragment = parts.Single(p => p.Type == ShaderPartType.Fragment);
 
+            fragment = fragment.WithFragmentOutput(vertex.Output);
+
             try
             {
                 vertexShaderDescription = new ShaderDescription(
