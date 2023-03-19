@@ -72,13 +72,15 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             using (MemoryStream ms = new MemoryStream(bytes))
             using (StreamReader sr = new StreamReader(ms))
             {
+                string result = string.Empty;
+
                 while (sr.Peek() != -1)
                 {
                     string? line = sr.ReadLine();
 
                     if (string.IsNullOrEmpty(line))
                     {
-                        code += line + '\n';
+                        result += line + '\n';
                         continue;
                     }
 
@@ -105,20 +107,20 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
+                        result += loadFile(manager.LoadRaw(includeName), false) + '\n';
                     }
                     else
-                        code += line + '\n';
+                        result += line + '\n';
                 }
 
                 if (mainFile)
                 {
                     string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
                     internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
-                    code = internalIncludes + code;
+                    result = internalIncludes + result;
 
-                    Input = shader_input_pattern.Matches(code).Select(m => new VeldridShaderAttribute(m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value)).ToList();
-                    Output = shader_output_pattern.Matches(code).Select(m => new VeldridShaderAttribute(m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value)).ToList();
+                    Input = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
+                    Output = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
 
                     string outputCode = loadFile(manager.LoadRaw($"Internal/sh_{Type}_Output.h"), false);
 
@@ -127,11 +129,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                         string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
                         outputCode = outputCode.Replace("{{ real_main }}", realMainName);
-                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
+                        result = Regex.Replace(result, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
                     }
                 }
 
-                return code;
+                return result;
             }
         }
 
