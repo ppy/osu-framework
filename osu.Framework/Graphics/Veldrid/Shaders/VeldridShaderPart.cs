@@ -23,13 +23,13 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public readonly ShaderPartType Type;
 
-        private string header;
+        private string header = string.Empty;
         private string code;
 
         private readonly ShaderManager manager;
 
-        public IReadOnlyList<VeldridShaderAttribute> Input { get; private set; }
-        public IReadOnlyList<VeldridShaderAttribute> Output { get; private set; }
+        public IReadOnlyList<VeldridShaderAttribute> Input { get; private set; } = new List<VeldridShaderAttribute>();
+        public IReadOnlyList<VeldridShaderAttribute> Output { get; private set; } = new List<VeldridShaderAttribute>();
 
         public VeldridShaderPart(byte[]? data, ShaderPartType type, ShaderManager manager)
         {
@@ -72,8 +72,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             using (MemoryStream ms = new MemoryStream(bytes))
             using (StreamReader sr = new StreamReader(ms))
             {
-                string code = string.Empty;
-
                 while (sr.Peek() != -1)
                 {
                     string? line = sr.ReadLine();
