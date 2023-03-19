@@ -165,9 +165,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             foreach (VeldridShaderAttribute attribute in unusedFragmentInput)
             {
-                fragmentOutputLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {attribute.Name};");
-                fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {attribute.Type} o_{attribute.Name};");
+                string name = $"unused_input_{Guid.NewGuid().ToString("N")}";
 
+                fragmentOutputLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
+                fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {attribute.Type} o_{name};");
                 fragmentOutputAssignment.AppendLine($"o_{attribute.Name} = {attribute.Name};");
             }
 
