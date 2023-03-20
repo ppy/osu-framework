@@ -850,19 +850,19 @@ namespace osu.Framework.Platform
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
             // Attempt to initialise various veldrid surface types (and legacy GL).
-            var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
+            var rendererTypes = GetPreferredRenderersForCurrentPlatform().Where(r => r != RendererType.Automatic).ToList();
 
             // Move user's preference to the start of the attempts.
-            rendererTypes.Remove(configRenderer.Value);
-            rendererTypes.Insert(0, configRenderer.Value);
+            if (!configRenderer.IsDefault)
+            {
+                rendererTypes.Remove(configRenderer.Value);
+                rendererTypes.Insert(0, configRenderer.Value);
+            }
 
             Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
 
             foreach (RendererType type in rendererTypes)
             {
-                if (type == RendererType.Automatic)
-                    continue;
-
                 try
                 {
                     if (type == RendererType.OpenGLLegacy)
