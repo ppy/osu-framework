@@ -1326,14 +1326,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Construct all input handlers for this host. The order here decides the priority given to handlers, with the earliest occurring having higher priority.
         /// </summary>
-        protected abstract IEnumerable<InputHandler>
-            CreateAvailableInputHandlers();
+        protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
-        public ImmutableArray<InputHandler> AvailableInputHandlers
-        {
-            get;
-            private set;
-        }
+        public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
         protected virtual TextInputSource CreateTextInput() => new TextInputSource();
 
