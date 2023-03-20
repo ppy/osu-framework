@@ -851,47 +851,43 @@ namespace osu.Framework.Platform
 
             // Attempt to initialise various veldrid surface types (and legacy GL).
             // If legacy GL was requested we can skip this and fallback to the final logic below.
-            if (configRenderer.Value != RendererType.OpenGLLegacy)
+            var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
+
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
+
+            // Move user's preference to the start of the attempts.
+            rendererTypes.Remove(configRenderer.Value);
+            rendererTypes.Insert(0, configRenderer.Value);
+
+            foreach (RendererType type in rendererTypes)
             {
-                var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
+                if (type == RendererType.Automatic)
+                    continue;
 
-                Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
-
-                // Move user's preference to the start of the attempts.
-                rendererTypes.Remove(configRenderer.Value);
-                rendererTypes.Insert(0, configRenderer.Value);
-
-                foreach (RendererType type in rendererTypes)
+                try
                 {
-                    if (type == RendererType.Automatic)
-                        continue;
-
-                    // Handled below as final non-veldrid fallback.
                     if (type == RendererType.OpenGLLegacy)
-                        break;
-
-                    try
-                    {
+                        // the legacy renderer. this is basically guaranteed to support all platforms.
+                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                    else
                         SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
-                        ResolvedRenderer = type;
-                        return;
-                    }
-                    catch
+
+                    ResolvedRenderer = type;
+                    return;
+                }
+                catch
+                {
+                    if (configRenderer.Value != RendererType.Automatic)
                     {
-                        if (configRenderer.Value != RendererType.Automatic)
-                        {
-                            // If we fail, assume the user may have had a custom setting and switch it back to automatic.
-                            Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
-                                level: LogLevel.Important);
-                            configRenderer.Value = RendererType.Automatic;
-                        }
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                            level: LogLevel.Important);
+                        configRenderer.Value = RendererType.Automatic;
                     }
                 }
             }
 
-            // fallback to legacy renderer. this is basically guaranteed to support all platforms.
-            SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-            ResolvedRenderer = RendererType.OpenGLLegacy;
+            Logger.Log("No usable renderer was found!", level: LogLevel.Error);
         }
 
         private static GraphicsSurfaceType rendererToGraphicsSurfaceType(RendererType renderer)
