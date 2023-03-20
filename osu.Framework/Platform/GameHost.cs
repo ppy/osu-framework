@@ -801,57 +801,17 @@ namespace osu.Framework.Platform
         public RendererType ResolvedRenderer { get; private set; }
 
         /// <summary>
-        /// All valid <see cref="RendererType"/>s for the current platform.
-        /// </summary>
-        public IEnumerable<RendererType> GetValidRenderersForCurrentPlatform()
-        {
-            yield return RendererType.Automatic;
-
-            switch (RuntimeInfo.OS)
-            {
-                case RuntimeInfo.Platform.Windows:
-                    yield return RendererType.Direct3D11;
-                    yield return RendererType.Vulkan;
-
-                    break;
-
-                case RuntimeInfo.Platform.Linux:
-                case RuntimeInfo.Platform.Android:
-                    yield return RendererType.Vulkan;
-
-                    break;
-
-                case RuntimeInfo.Platform.macOS:
-                case RuntimeInfo.Platform.iOS:
-                    yield return RendererType.Metal;
-
-                    break;
-            }
-
-            yield return RendererType.OpenGL;
-            yield return RendererType.OpenGLLegacy;
-        }
-
-        /// <summary>
-        /// All preferred <see cref="RendererType"/>s for the current platform.
-        /// These are used in order of appearance when <see cref="RendererType.Automatic"/> is used, or when the user preference fails to initialise.
+        /// All valid <see cref="RendererType"/>s for the current platform, in order of how stable and performant they are deemed to be.
         /// </summary>
         public IEnumerable<RendererType> GetPreferredRenderersForCurrentPlatform()
         {
             yield return RendererType.Automatic;
 
-            // Best case, we can make use of veldrid with a new graphics API.
+            // Preferred per-platform renderers
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
-                    // yield return RendererType.Vulkan;
                     yield return RendererType.Direct3D11;
-
-                    break;
-
-                case RuntimeInfo.Platform.Linux:
-                case RuntimeInfo.Platform.Android:
-                    // yield return RendererType.Vulkan;
 
                     break;
 
@@ -862,7 +822,14 @@ namespace osu.Framework.Platform
                     break;
             }
 
+            // Non-veldrid "known-to-work".
             yield return RendererType.OpenGLLegacy;
+
+            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
+            // but will never be preferred as OpenGLLegacy will always work.
+            yield return RendererType.OpenGL;
+
+            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -882,13 +849,13 @@ namespace osu.Framework.Platform
             var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
-            // Attempt to initialise various veldrid surface types.
+            // Attempt to initialise various veldrid surface types (and legacy GL).
             // If legacy GL was requested we can skip this and fallback to the final logic below.
             if (configRenderer.Value != RendererType.OpenGLLegacy)
             {
                 var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
 
-                Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()).Append("OpenGL (Legacy)"))} ]");
+                Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
 
                 // Move user's preference to the start of the attempts.
                 rendererTypes.Remove(configRenderer.Value);
@@ -901,7 +868,7 @@ namespace osu.Framework.Platform
 
                     // Handled below as final non-veldrid fallback.
                     if (type == RendererType.OpenGLLegacy)
-                        continue;
+                        break;
 
                     try
                     {
