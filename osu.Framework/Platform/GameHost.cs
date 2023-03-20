@@ -861,6 +861,8 @@ namespace osu.Framework.Platform
 
                     break;
             }
+
+            yield return RendererType.OpenGLLegacy;
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -895,6 +897,10 @@ namespace osu.Framework.Platform
                 foreach (RendererType type in rendererTypes)
                 {
                     if (type == RendererType.Automatic)
+                        continue;
+
+                    // Handled below as final non-veldrid fallback.
+                    if (type == RendererType.OpenGLLegacy)
                         continue;
 
                     try
