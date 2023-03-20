@@ -853,11 +853,11 @@ namespace osu.Framework.Platform
             // If legacy GL was requested we can skip this and fallback to the final logic below.
             var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
 
-            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
-
             // Move user's preference to the start of the attempts.
             rendererTypes.Remove(configRenderer.Value);
             rendererTypes.Insert(0, configRenderer.Value);
+
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
 
             foreach (RendererType type in rendererTypes)
             {
