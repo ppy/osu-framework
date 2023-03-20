@@ -12,6 +12,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
+    [Ignore("This test cannot be run in headless mode (a renderer is required).")]
     public partial class TestSceneRenderer : FrameworkTestScene
     {
         [Resolved]
