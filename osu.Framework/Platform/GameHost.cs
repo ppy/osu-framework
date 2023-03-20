@@ -850,7 +850,6 @@ namespace osu.Framework.Platform
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
             // Attempt to initialise various veldrid surface types (and legacy GL).
-            // If legacy GL was requested we can skip this and fallback to the final logic below.
             var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
 
             // Move user's preference to the start of the attempts.
