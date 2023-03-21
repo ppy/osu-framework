@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             vboId = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vboId);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, ref getMemory().Span[0], usage);
 
             GLVertexUtils<DepthWrappingVertex<T>>.SetAttributes();
         }

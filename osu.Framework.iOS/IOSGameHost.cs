@@ -38,7 +38,7 @@ namespace osu.Framework.iOS
             this.gameView = gameView;
         }
 
-        protected override IRenderer CreateRenderer() => new IOSGLRenderer(gameView);
+        protected override IRenderer CreateGLRenderer() => new IOSGLRenderer(gameView);
 
         protected override void SetupForRun()
         {
