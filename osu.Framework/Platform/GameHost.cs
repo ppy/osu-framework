@@ -59,6 +59,8 @@ namespace osu.Framework.Platform
 
         public IRenderer Renderer { get; private set; }
 
+        public string RendererInfo { get; private set; }
+
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
         /// Only use this for benchmarking purposes (see <see cref="maximum_sane_fps"/> for further reasoning).
@@ -722,7 +724,9 @@ namespace osu.Framework.Platform
                 // Prepare renderer (requires config).
                 Dependencies.CacheAs(Renderer);
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}")
+                RendererInfo = $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}";
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this)
                 {
                     ActiveHz = MaximumDrawHz,
                     InactiveHz = MaximumInactiveHz,
