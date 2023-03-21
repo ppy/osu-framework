@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Statistics;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
@@ -44,9 +45,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             get => pendingData ?? currentStorage.Data;
             set
             {
-                if (value.Equals(Data))
-                    return;
-
                 // Immediately flush the current draw call, since we'll be changing the contents of this UBO.
                 renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
 
@@ -65,23 +63,41 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (pendingData is not TData pending)
                 return;
 
-            // Advance the storage index with every new data. Each draw call effectively has a unique UBO.
+            // The storage should only be advanced once if matching data is set twice in a row in a single frame.
+            if (pending.Equals(currentStorage.Data))
+            {
+                pendingData = null;
+                return;
+            }
+
+            // Register this UBO to be reset in the next frame, but only once per frame.
+            if (currentStorageIndex == 0)
+                renderer.RegisterUniformBufferForReset(this);
+
+            // Advance the storage index to hold the new data.
             if (++currentStorageIndex == storages.Count)
                 storages.Add(new VeldridUniformBufferStorage<TData>(renderer));
-
-            // Register this UBO to be reset in the next draw call, but only the first time it receives new data.
-            // This prevents usages like the global UBO from being registered multiple times.
-            if (currentStorageIndex == 1)
-                renderer.RegisterUniformBufferForReset(this);
+            else
+            {
+                // If the new storage previously existed, then it may already contain the data.
+                if (pending.Equals(currentStorage.Data))
+                {
+                    pendingData = null;
+                    return;
+                }
+            }
 
             // Upload the data.
             currentStorage.Data = pending;
             pendingData = null;
+
+            FrameStatistics.Increment(StatisticsCounterType.UniformUpl);
         }
 
         public void ResetCounters()
         {
             currentStorageIndex = 0;
+            pendingData = null;
         }
 
         ~VeldridUniformBuffer()
