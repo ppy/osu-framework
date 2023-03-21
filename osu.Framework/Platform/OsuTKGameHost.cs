@@ -18,7 +18,7 @@ namespace osu.Framework.Platform
             toolkit = Toolkit.Init();
         }
 
-        protected override IRenderer CreateRenderer() => new GLRenderer();
+        protected override IRenderer CreateGLRenderer() => new GLRenderer();
 
         protected override void Dispose(bool disposing)
         {

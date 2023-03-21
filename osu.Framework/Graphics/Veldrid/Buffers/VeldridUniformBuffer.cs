@@ -84,10 +84,28 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             currentStorageIndex = 0;
         }
 
+        ~VeldridUniformBuffer()
+        {
+            renderer.ScheduleDisposal(v => v.Dispose(false), this);
+        }
+
         public void Dispose()
         {
+            renderer.ScheduleDisposal(v => v.Dispose(true), this);
+            GC.SuppressFinalize(this);
+        }
+
+        protected bool IsDisposed { get; private set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
             foreach (var s in storages)
                 s.Dispose();
+
+            IsDisposed = true;
         }
     }
 }

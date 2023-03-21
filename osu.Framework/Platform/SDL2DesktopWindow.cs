@@ -232,11 +232,10 @@ namespace osu.Framework.Platform
             if (SDLWindowHandle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL.SDL_GetError()}");
 
-            Exists = true;
-
             graphicsSurface.Initialise();
 
             initialiseWindowingAfterCreation();
+            Exists = true;
         }
 
         /// <summary>
@@ -281,11 +280,10 @@ namespace osu.Framework.Platform
                 Update?.Invoke();
             }
 
+            Exists = false;
             Exited?.Invoke();
 
-            if (SDLWindowHandle != IntPtr.Zero)
-                SDL.SDL_DestroyWindow(SDLWindowHandle);
-
+            Close();
             SDL.SDL_Quit();
         }
 
@@ -303,7 +301,22 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Forcefully closes the window.
         /// </summary>
-        public void Close() => ScheduleCommand(() => Exists = false);
+        public void Close()
+        {
+            if (Exists)
+            {
+                // Close will be called as part of finishing the Run loop.
+                ScheduleCommand(() => Exists = false);
+            }
+            else
+            {
+                if (SDLWindowHandle != IntPtr.Zero)
+                {
+                    SDL.SDL_DestroyWindow(SDLWindowHandle);
+                    SDLWindowHandle = IntPtr.Zero;
+                }
+            }
+        }
 
         public void Raise() => ScheduleCommand(() =>
         {
@@ -530,6 +543,8 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
+            Close();
+            SDL.SDL_Quit();
         }
     }
 }

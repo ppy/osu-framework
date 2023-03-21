@@ -414,6 +414,12 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         /// <summary>
+        /// Checks whether the given frame buffer is currently bound.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer to check.</param>
+        public bool IsFrameBufferBound(IFrameBuffer frameBuffer) => FrameBuffer == frameBuffer;
+
+        /// <summary>
         /// Deletes a frame buffer.
         /// </summary>
         /// <param name="frameBuffer">The frame buffer to delete.</param>
@@ -422,7 +428,7 @@ namespace osu.Framework.Graphics.Veldrid
             while (FrameBuffer == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            frameBuffer.Framebuffer.Dispose();
+            frameBuffer.DeleteResources(true);
         }
 
         private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();

@@ -113,7 +113,7 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Restore .NET workloads
-        run: dotnet workload restore
+        run: dotnet workload install android
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.Android.slnf
