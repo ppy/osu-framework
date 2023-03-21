@@ -45,7 +45,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             get => pendingData ?? currentStorage.Data;
             set
             {
-                // Immediately flush the current draw call, since we'll be changing the contents of this UBO.
+                if (value.Equals(Data))
+                    return;
+
+                // Flush the current draw call since the contents of the buffer will change.
                 renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
 
                 pendingData = value;
@@ -63,12 +66,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (pendingData is not TData pending)
                 return;
 
-            // The storage should only be advanced once if matching data is set twice in a row in a single frame.
-            if (pending.Equals(currentStorage.Data))
-            {
-                pendingData = null;
-                return;
-            }
+            pendingData = null;
 
             // Register this UBO to be reset in the next frame, but only once per frame.
             if (currentStorageIndex == 0)
@@ -81,15 +79,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             {
                 // If the new storage previously existed, then it may already contain the data.
                 if (pending.Equals(currentStorage.Data))
-                {
-                    pendingData = null;
                     return;
-                }
             }
 
             // Upload the data.
             currentStorage.Data = pending;
-            pendingData = null;
 
             FrameStatistics.Increment(StatisticsCounterType.UniformUpl);
         }
