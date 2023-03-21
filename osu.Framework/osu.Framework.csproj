@@ -27,6 +27,8 @@
     <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.0-g7363bb645c" />
+    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gab8ec76d56" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
@@ -37,8 +39,6 @@
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.630-alpha" />
-    <PackageReference Include="Veldrid" Version="4.9.0-beta2" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
     <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2022.1222.1" />
 
     <!-- DO NOT use ProjectReference for native packaging project.
