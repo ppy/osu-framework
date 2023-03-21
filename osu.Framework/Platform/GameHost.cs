@@ -951,10 +951,9 @@ namespace osu.Framework.Platform
                 return;
             }
 
-            Window.SetupWindow(Config);
-
             try
             {
+                Window.SetupWindow(Config);
                 Window.Create();
                 Window.Title = $@"osu!framework (running ""{Name}"")";
 
