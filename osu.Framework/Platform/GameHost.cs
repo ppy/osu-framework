@@ -802,60 +802,23 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The renderer which the game host is currently running with.
         /// </summary>
+        /// <remarks>
+        /// This is similar to <see cref="IGraphicsSurface.Type"/> except that this is expressed as a <see cref="RendererType"/> rather than a <see cref="GraphicsSurfaceType"/>.
+        /// </remarks>
         public RendererType ResolvedRenderer { get; private set; }
 
         /// <summary>
-        /// All valid <see cref="RendererType"/>s for the current platform.
-        /// </summary>
-        public IEnumerable<RendererType> GetValidRenderersForCurrentPlatform()
-        {
-            yield return RendererType.Automatic;
-
-            switch (RuntimeInfo.OS)
-            {
-                case RuntimeInfo.Platform.Windows:
-                    yield return RendererType.Direct3D11;
-                    yield return RendererType.Vulkan;
-
-                    break;
-
-                case RuntimeInfo.Platform.Linux:
-                case RuntimeInfo.Platform.Android:
-                    yield return RendererType.Vulkan;
-
-                    break;
-
-                case RuntimeInfo.Platform.macOS:
-                case RuntimeInfo.Platform.iOS:
-                    yield return RendererType.Metal;
-
-                    break;
-            }
-
-            yield return RendererType.OpenGL;
-            yield return RendererType.OpenGLLegacy;
-        }
-
-        /// <summary>
-        /// All preferred <see cref="RendererType"/>s for the current platform.
-        /// These are used in order of appearance when <see cref="RendererType.Automatic"/> is used, or when the user preference fails to initialise.
+        /// All valid <see cref="RendererType"/>s for the current platform, in order of how stable and performant they are deemed to be.
         /// </summary>
         public IEnumerable<RendererType> GetPreferredRenderersForCurrentPlatform()
         {
             yield return RendererType.Automatic;
 
-            // Best case, we can make use of veldrid with a new graphics API.
+            // Preferred per-platform renderers
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
-                    // yield return RendererType.Vulkan;
                     yield return RendererType.Direct3D11;
-
-                    break;
-
-                case RuntimeInfo.Platform.Linux:
-                case RuntimeInfo.Platform.Android:
-                    // yield return RendererType.Vulkan;
 
                     break;
 
@@ -865,6 +828,15 @@ namespace osu.Framework.Platform
 
                     break;
             }
+
+            // Non-veldrid "known-to-work".
+            yield return RendererType.OpenGLLegacy;
+
+            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
+            // but will never be preferred as OpenGLLegacy will always work.
+            yield return RendererType.OpenGL;
+
+            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -884,45 +856,44 @@ namespace osu.Framework.Platform
             var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
 
-            // Attempt to initialise various veldrid surface types.
-            // If legacy GL was requested we can skip this and fallback to the final logic below.
-            if (configRenderer.Value != RendererType.OpenGLLegacy)
+            // Attempt to initialise various veldrid surface types (and legacy GL).
+            var rendererTypes = GetPreferredRenderersForCurrentPlatform().Where(r => r != RendererType.Automatic).ToList();
+
+            // Move user's preference to the start of the attempts.
+            if (!configRenderer.IsDefault)
             {
-                var rendererTypes = GetPreferredRenderersForCurrentPlatform().ToList();
-
-                Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()).Append("OpenGL (Legacy)"))} ]");
-
-                // Move user's preference to the start of the attempts.
                 rendererTypes.Remove(configRenderer.Value);
                 rendererTypes.Insert(0, configRenderer.Value);
+            }
 
-                foreach (RendererType type in rendererTypes)
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
+
+            foreach (RendererType type in rendererTypes)
+            {
+                try
                 {
-                    if (type == RendererType.Automatic)
-                        continue;
-
-                    try
-                    {
+                    if (type == RendererType.OpenGLLegacy)
+                        // the legacy renderer. this is basically guaranteed to support all platforms.
+                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                    else
                         SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
-                        ResolvedRenderer = type;
-                        return;
-                    }
-                    catch
+
+                    ResolvedRenderer = type;
+                    return;
+                }
+                catch
+                {
+                    if (configRenderer.Value != RendererType.Automatic)
                     {
-                        if (configRenderer.Value != RendererType.Automatic)
-                        {
-                            // If we fail, assume the user may have had a custom setting and switch it back to automatic.
-                            Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
-                                level: LogLevel.Important);
-                            configRenderer.Value = RendererType.Automatic;
-                        }
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                            level: LogLevel.Important);
+                        configRenderer.Value = RendererType.Automatic;
                     }
                 }
             }
 
-            // fallback to legacy renderer. this is basically guaranteed to support all platforms.
-            SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-            ResolvedRenderer = RendererType.OpenGLLegacy;
+            Logger.Log("No usable renderer was found!", level: LogLevel.Error);
         }
 
         private static GraphicsSurfaceType rendererToGraphicsSurfaceType(RendererType renderer)
@@ -984,10 +955,9 @@ namespace osu.Framework.Platform
                 return;
             }
 
-            Window.SetupWindow(Config);
-
             try
             {
+                Window.SetupWindow(Config);
                 Window.Create();
                 Window.Title = $@"osu!framework (running ""{Name}"")";
 
@@ -1330,14 +1300,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Construct all input handlers for this host. The order here decides the priority given to handlers, with the earliest occurring having higher priority.
         /// </summary>
-        protected abstract IEnumerable<InputHandler>
-            CreateAvailableInputHandlers();
+        protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
-        public ImmutableArray<InputHandler> AvailableInputHandlers
-        {
-            get;
-            private set;
-        }
+        public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
         protected virtual TextInputSource CreateTextInput() => new TextInputSource();
 
