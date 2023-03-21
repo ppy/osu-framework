@@ -44,10 +44,28 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
 
+        ~VeldridUniformBuffer()
+        {
+            renderer.ScheduleDisposal(v => v.Dispose(false), this);
+        }
+
         public void Dispose()
         {
+            renderer.ScheduleDisposal(v => v.Dispose(true), this);
+            GC.SuppressFinalize(this);
+        }
+
+        protected bool IsDisposed { get; private set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
             buffer.Dispose();
             set?.Dispose();
+
+            IsDisposed = true;
         }
     }
 }
