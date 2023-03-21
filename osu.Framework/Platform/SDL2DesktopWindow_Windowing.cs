@@ -25,15 +25,32 @@ namespace osu.Framework.Platform
 
             DisplaysChanged += _ => CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.Default = PrimaryDisplay;
-            CurrentDisplayBindable.ValueChanged += evt =>
+            CurrentDisplayBindable.ValueChanged += display =>
             {
-                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
+                if (display.NewValue.Equals(currentDisplay))
+                    // if the values match, that means that the this set operation originates from `fetchCurrentDisplay()`
+                    // updating the display would lead to a feedback loop.
+                    return;
+
+                Debug.Assert(display.OldValue.Equals(currentDisplay));
+
+                pendingDisplayIndex = display.NewValue.Index;
+                invalidateWindowSpecifics();
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
-            windowDisplayIndexBindable.BindValueChanged(evt =>
+            windowDisplayIndexBindable.BindValueChanged(displayIndex =>
             {
-                currentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay;
+                int newIndex = displayIndex.NewValue.ToSDLDisplayIndex();
+
+                if (currentDisplay != null && newIndex == currentDisplay.Index)
+                    // if the values match, that means that the this set operation originates from `fetchCurrentDisplay()`
+                    // updating the display would lead to a feedback loop.
+                    return;
+
+                Debug.Assert(currentDisplay == null || currentDisplay.Index == displayIndex.OldValue.ToSDLDisplayIndex());
+
+                pendingDisplayIndex = newIndex;
                 invalidateWindowSpecifics();
             }, true);
 
@@ -375,8 +392,30 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual Display PrimaryDisplay => Displays.First();
 
-        private Display currentDisplay = null!;
-        private int displayIndex = -1;
+        /// <summary>
+        /// The display the centre of this window is on.
+        /// </summary>
+        /// <remarks>Can be <c>null</c> on startup.</remarks>
+        private Display? currentDisplay;
+
+        private int? pendingDisplayIndex;
+
+        /// <summary>
+        /// Consumes the <see cref="pendingDisplayIndex"/> and returns the appropriate <see cref="Display"/> if the index was valid.
+        /// </summary>
+        /// <returns>The <see cref="Display"/> at index <see cref="pendingDisplayIndex"/>, or <c>null</c> if the index was not valid or unset.</returns>
+        private Display? consumePendingDisplayIndex()
+        {
+            if (pendingDisplayIndex is not int newIndex)
+                return null;
+
+            pendingDisplayIndex = null;
+
+            if (tryGetDisplayFromSDL(newIndex, out var display))
+                return display;
+
+            return null;
+        }
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
@@ -389,7 +428,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
+                SDL.SDL_GetDisplayBounds(CurrentDisplayBindable.Value.Index, out var rect);
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
@@ -441,6 +480,30 @@ namespace osu.Framework.Platform
             EventScheduler.AddOnce(storeWindowSizeToConfig);
         }
 
+        /// <summary>
+        /// Fetches the current display from SDL and updates the appropriate bindables.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If there was a fatal error with SDL and the current display couldn't be fetched.</exception>
+        private void fetchCurrentDisplay()
+        {
+            int newIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
+
+            if (tryGetDisplayFromSDL(newIndex, out var display))
+            {
+                // fetch to get the new desktop display mode in case the window moved between displays
+                if (tryFetchDisplayMode(SDLWindowHandle, WindowState, display, out var newMode))
+                    currentDisplayMode.Value = newMode;
+
+                currentDisplay = display;
+                CurrentDisplayBindable.Value = currentDisplay;
+                windowDisplayIndexBindable.Value = (DisplayIndex)display.Index;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Failed to fetch display for index={newIndex}. Last valid display was ({currentDisplay}). SDL error: {SDL.SDL_GetError()}");
+            }
+        }
+
         #region SDL Event Handling
 
         private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
@@ -486,6 +549,7 @@ namespace osu.Framework.Platform
                     // force update displays when gaining keyboard focus to always have up-to-date information.
                     // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
                     fetchDisplays();
+                    fetchCurrentDisplay();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
@@ -494,6 +558,10 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                    break;
+
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_DISPLAY_CHANGED:
+                    fetchCurrentDisplay();
                     break;
             }
 
@@ -508,7 +576,7 @@ namespace osu.Framework.Platform
         /// </summary>
         private void invalidateWindowSpecifics()
         {
-            pendingWindowState = windowState;
+            pendingWindowState ??= windowState;
         }
 
         /// <summary>
@@ -528,7 +596,9 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
-                updateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+                var newDisplay = consumePendingDisplayIndex() ?? currentDisplay ?? PrimaryDisplay;
+
+                updateWindowStateAndSize(windowState, newDisplay, currentDisplayMode.Value);
             }
             else
             {
@@ -541,15 +611,6 @@ namespace osu.Framework.Platform
 
                 if (tryFetchMaximisedState(windowState, out bool maximized))
                     windowMaximised = maximized;
-            }
-
-            int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
-
-            if (displayIndex != newDisplayIndex)
-            {
-                displayIndex = newDisplayIndex;
-                currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
-                CurrentDisplayBindable.Value = currentDisplay;
             }
         }
 
@@ -614,6 +675,8 @@ namespace osu.Framework.Platform
                 currentDisplayMode.Value = newMode;
 
             fetchDisplays();
+
+            fetchCurrentDisplay();
         }
 
         private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
@@ -706,7 +769,7 @@ namespace osu.Framework.Platform
             if (WindowState != WindowState.Normal)
                 return;
 
-            var displayBounds = currentDisplay.Bounds;
+            var displayBounds = CurrentDisplayBindable.Value.Bounds;
 
             int windowX = Position.X - displayBounds.X;
             int windowY = Position.Y - displayBounds.Y;
@@ -784,7 +847,7 @@ namespace osu.Framework.Platform
 
             // default size means to use the display's native size.
             if (size.Width == 9999 && size.Height == 9999)
-                size = display.Bounds.Size;
+                size = display.DisplayModes[0].Size;
 
             var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = requestedMode.RefreshRate };
 
