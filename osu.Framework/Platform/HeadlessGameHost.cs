@@ -46,6 +46,8 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
+        protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";

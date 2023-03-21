@@ -103,6 +103,9 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundBuffers.AsSpan().Clear();
             lastBoundVertexArray = 0;
 
+            // Seems to be required on some drivers as the context is lost from the draw thread.
+            MakeCurrent();
+
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);

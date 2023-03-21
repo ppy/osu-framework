@@ -23,6 +23,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -250,7 +251,7 @@ namespace osu.Framework.Platform
         public InputThread InputThread { get; private set; }
         public AudioThread AudioThread { get; private set; }
 
-        private double maximumUpdateHz;
+        private double maximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of update frames per second when the game window is active.
@@ -264,7 +265,7 @@ namespace osu.Framework.Platform
             set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
-        private double maximumDrawHz;
+        private double maximumDrawHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of draw frames per second when the game window is active.
@@ -275,8 +276,15 @@ namespace osu.Framework.Platform
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
-            set => DrawThread.ActiveHz = maximumDrawHz = value;
+            set
+            {
+                maximumDrawHz = value;
+                if (DrawThread != null)
+                    DrawThread.ActiveHz = maximumDrawHz;
+            }
         }
+
+        private double maximumInactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -287,11 +295,12 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumInactiveHz
         {
-            get => DrawThread.InactiveHz;
+            get => maximumInactiveHz;
             set
             {
-                DrawThread.InactiveHz = value;
-                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
+                if (DrawThread != null)
+                    DrawThread.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -326,19 +335,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer()
-        {
-            switch (FrameworkEnvironment.PreferredGraphicsRenderer)
-            {
-                case "veldrid":
-                    return new VeldridRenderer();
-
-                default:
-                case "gl":
-                case "opengl":
-                    return new GLRenderer();
-            }
-        }
+        protected virtual IRenderer CreateGLRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -680,8 +677,6 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
-            Renderer = CreateRenderer();
-
             try
             {
                 if (!host_running_mutex.Wait(10000))
@@ -701,13 +696,6 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                GraphicsSurfaceType surfaceType = FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL;
-
-                Logger.Log("Using renderer: " + Renderer.GetType().ReadableName());
-                Logger.Log("Using graphics surface: " + surfaceType);
-
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {surfaceType}"));
-
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
@@ -718,34 +706,27 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
-                Dependencies.CacheAs(Renderer);
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
 
-                Window = CreateWindow(surfaceType);
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
+                ChooseAndSetupRenderer();
+
                 initialiseInputHandlers();
 
-                if (Window != null)
+                // Prepare renderer (requires config).
+                Dependencies.CacheAs(Renderer);
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this, $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}")
                 {
-                    Window.SetupWindow(Config);
-
-                    Window.Create();
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
-
-                    Renderer.Initialise(Window.GraphicsSurface);
-
-                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
-                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
-
-                    IsActive.BindTo(Window.IsActive);
-                }
+                    ActiveHz = MaximumDrawHz,
+                    InactiveHz = MaximumInactiveHz,
+                });
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
@@ -812,6 +793,191 @@ namespace osu.Framework.Platform
                     host_running_mutex.Release();
                 }
             }
+        }
+
+        /// <summary>
+        /// The renderer which the game host is currently running with.
+        /// </summary>
+        /// <remarks>
+        /// This is similar to <see cref="IGraphicsSurface.Type"/> except that this is expressed as a <see cref="RendererType"/> rather than a <see cref="GraphicsSurfaceType"/>.
+        /// </remarks>
+        public RendererType ResolvedRenderer { get; private set; }
+
+        /// <summary>
+        /// All valid <see cref="RendererType"/>s for the current platform, in order of how stable and performant they are deemed to be.
+        /// </summary>
+        public IEnumerable<RendererType> GetPreferredRenderersForCurrentPlatform()
+        {
+            yield return RendererType.Automatic;
+
+            // Preferred per-platform renderers
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.Windows:
+                    yield return RendererType.Direct3D11;
+
+                    break;
+
+                case RuntimeInfo.Platform.macOS:
+                case RuntimeInfo.Platform.iOS:
+                    yield return RendererType.Metal;
+
+                    break;
+            }
+
+            // Non-veldrid "known-to-work".
+            yield return RendererType.OpenGLLegacy;
+
+            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
+            // but will never be preferred as OpenGLLegacy will always work.
+            yield return RendererType.OpenGL;
+
+            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
+        }
+
+        protected virtual void ChooseAndSetupRenderer()
+        {
+            // Always give preference to environment variables.
+            if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
+            {
+                Logger.Log("🖼️ Using environment variables for renderer and surface selection.", level: LogLevel.Important);
+
+                // And allow this to hard fail with no fallbacks.
+                SetupRendererAndWindow(
+                    FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
+                    FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
+                return;
+            }
+
+            var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
+            Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
+
+            // Attempt to initialise various veldrid surface types (and legacy GL).
+            var rendererTypes = GetPreferredRenderersForCurrentPlatform().Where(r => r != RendererType.Automatic).ToList();
+
+            // Move user's preference to the start of the attempts.
+            if (!configRenderer.IsDefault)
+            {
+                rendererTypes.Remove(configRenderer.Value);
+                rendererTypes.Insert(0, configRenderer.Value);
+            }
+
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
+
+            foreach (RendererType type in rendererTypes)
+            {
+                try
+                {
+                    if (type == RendererType.OpenGLLegacy)
+                        // the legacy renderer. this is basically guaranteed to support all platforms.
+                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                    else
+                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
+
+                    ResolvedRenderer = type;
+                    return;
+                }
+                catch
+                {
+                    if (configRenderer.Value != RendererType.Automatic)
+                    {
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                            level: LogLevel.Important);
+                        configRenderer.Value = RendererType.Automatic;
+                    }
+                }
+            }
+
+            Logger.Log("No usable renderer was found!", level: LogLevel.Error);
+        }
+
+        private static GraphicsSurfaceType rendererToGraphicsSurfaceType(RendererType renderer)
+        {
+            GraphicsSurfaceType surface;
+
+            switch (renderer)
+            {
+                case RendererType.Metal:
+                    surface = GraphicsSurfaceType.Metal;
+                    break;
+
+                case RendererType.Vulkan:
+                    surface = GraphicsSurfaceType.Vulkan;
+                    break;
+
+                case RendererType.Direct3D11:
+                    surface = GraphicsSurfaceType.Direct3D11;
+                    break;
+
+                case RendererType.OpenGL:
+                    surface = GraphicsSurfaceType.OpenGL;
+                    break;
+
+                default:
+                    throw new ArgumentException("Provided renderer cannot be mapped to a veldrid surface");
+            }
+
+            return surface;
+        }
+
+        protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
+        {
+            switch (renderer)
+            {
+                case "veldrid":
+                    SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                default:
+                case "gl":
+                    SetupRendererAndWindow(CreateGLRenderer(), surfaceType);
+                    break;
+            }
+        }
+
+        protected void SetupRendererAndWindow(IRenderer renderer, GraphicsSurfaceType surfaceType)
+        {
+            Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
+
+            Renderer = renderer;
+
+            // Prepare window
+            Window = CreateWindow(surfaceType);
+
+            if (Window == null)
+            {
+                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
+                return;
+            }
+
+            try
+            {
+                Window.SetupWindow(Config);
+                Window.Create();
+                Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                Renderer.Initialise(Window.GraphicsSurface);
+
+                Logger.Log("🖼️ Renderer initialised!");
+            }
+            catch (Exception e)
+            {
+                Logger.Log("🖼️ Renderer initialisation failed with:");
+                Logger.Log(e.ToString());
+
+                Window?.Close();
+                Window?.Dispose();
+                Window = null;
+
+                Renderer = null;
+                throw;
+            }
+
+            currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+            currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+            IsActive.BindTo(Window.IsActive);
         }
 
         /// <summary>
