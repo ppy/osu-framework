@@ -798,6 +798,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The renderer which the game host is currently running with.
         /// </summary>
+        /// <remarks>
+        /// This is similar to <see cref="IGraphicsSurface.Type"/> except that this is expressed as a <see cref="RendererType"/> rather than a <see cref="GraphicsSurfaceType"/>.
+        /// </remarks>
         public RendererType ResolvedRenderer { get; private set; }
 
         /// <summary>
