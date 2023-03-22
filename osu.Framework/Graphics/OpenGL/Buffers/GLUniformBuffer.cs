@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 if (value.Equals(data))
                     return;
 
+                renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
+
                 setData(ref value);
             }
         }

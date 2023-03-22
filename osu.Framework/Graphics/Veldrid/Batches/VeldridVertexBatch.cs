@@ -27,15 +27,13 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         private int currentVertexIndex;
 
         private readonly VeldridRenderer renderer;
-        private readonly int maxBuffers;
 
         private VeldridVertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
 
-        protected VeldridVertexBatch(VeldridRenderer renderer, int bufferSize, int maxBuffers)
+        protected VeldridVertexBatch(VeldridRenderer renderer, int bufferSize)
         {
             Size = bufferSize;
             this.renderer = renderer;
-            this.maxBuffers = maxBuffers;
 
             AddAction = Add;
         }
@@ -117,8 +115,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             int count = currentVertexIndex;
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
-            //TODO: let us know if we exceed and roll over to zero here.
-            currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
+            currentBufferIndex++;
             currentVertexIndex = 0;
             changeBeginIndex = -1;
 
