@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
@@ -351,8 +352,8 @@ namespace osu.Framework.Graphics.Veldrid
             Debug.Assert(device.BackendType == GraphicsBackend.Direct3D11);
 
             var info = device.GetD3D11Info();
-            var dxgiAdapter = MarshallingHelpers.FromPointer<IDXGIAdapter>(info.Adapter);
-            var d3d11Device = MarshallingHelpers.FromPointer<ID3D11Device>(info.Device);
+            var dxgiAdapter = MarshallingHelpers.FromPointer<IDXGIAdapter>(info.Adapter).AsNonNull();
+            var d3d11Device = MarshallingHelpers.FromPointer<ID3D11Device>(info.Device).AsNonNull();
 
             maxTextureSize = ID3D11Resource.MaximumTexture2DSize;
 
