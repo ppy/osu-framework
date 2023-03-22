@@ -104,10 +104,13 @@ namespace osu.Framework.Graphics.Veldrid
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
+                {
                     swapchain.Source = SwapchainSource.CreateWin32(graphicsSurface.WindowHandle, IntPtr.Zero);
                     break;
+                }
 
                 case RuntimeInfo.Platform.macOS:
+                {
                     // OpenGL doesn't use a swapchain, so it's only needed on Metal.
                     // Creating a Metal surface in general would otherwise destroy the GL context.
                     if (graphicsSurface.Type == GraphicsSurfaceType.Metal)
@@ -117,13 +120,29 @@ namespace osu.Framework.Graphics.Veldrid
                     }
 
                     break;
+                }
+
+                case RuntimeInfo.Platform.iOS:
+                {
+                    // OpenGL doesn't use a swapchain, so it's only needed on Metal.
+                    // Creating a Metal surface in general would otherwise destroy the GL context.
+                    if (graphicsSurface.Type == GraphicsSurfaceType.Metal)
+                    {
+                        var metalGraphics = (IMetalGraphicsSurface)graphicsSurface;
+                        swapchain.Source = SwapchainSource.CreateUIView(metalGraphics.CreateMetalView());
+                    }
+
+                    break;
+                }
 
                 case RuntimeInfo.Platform.Linux:
+                {
                     var linuxGraphics = (ILinuxGraphicsSurface)graphicsSurface;
                     swapchain.Source = linuxGraphics.IsWayland
                         ? SwapchainSource.CreateWayland(graphicsSurface.DisplayHandle, graphicsSurface.WindowHandle)
                         : SwapchainSource.CreateXlib(graphicsSurface.DisplayHandle, graphicsSurface.WindowHandle);
                     break;
+                }
             }
 
             switch (graphicsSurface.Type)
