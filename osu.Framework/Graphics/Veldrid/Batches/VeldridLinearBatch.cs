@@ -14,8 +14,8 @@ namespace osu.Framework.Graphics.Veldrid.Batches
     {
         private readonly PrimitiveTopology type;
 
-        public VeldridLinearBatch(VeldridRenderer renderer, int size, int maxBuffers, PrimitiveTopology type)
-            : base(renderer, size, maxBuffers)
+        public VeldridLinearBatch(VeldridRenderer renderer, int size, PrimitiveTopology type)
+            : base(renderer, size)
         {
             this.type = type;
         }
