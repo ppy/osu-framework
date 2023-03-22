@@ -27,8 +27,8 @@ namespace osu.Framework.Platform
 
         protected override TextInputSource CreateTextInput()
         {
-            if (Window is SDL2Window desktopWindow)
-                return new SDL2WindowTextInput(desktopWindow);
+            if (Window is SDL2Window window)
+                return new SDL2WindowTextInput(window);
 
             return base.CreateTextInput();
         }
