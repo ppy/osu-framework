@@ -5,6 +5,8 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using AVFoundation;
+using Foundation;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -18,8 +20,12 @@ namespace osu.Framework.iOS
 {
     public static class GameApplication
     {
+        private const string output_volume = @"outputVolume";
+
         private static IOSGameHost host = null!;
         private static Game game = null!;
+
+        private static readonly OutputVolumeObserver output_volume_observer = new OutputVolumeObserver();
 
         public static void Main(Game target)
         {
@@ -38,8 +44,12 @@ namespace osu.Framework.iOS
         [MonoPInvokeCallback(typeof(SDL.SDL_main_func))]
         private static int main(int argc, IntPtr argv)
         {
+            var audioSession = AVAudioSession.SharedInstance();
+            audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
+
             host = new IOSGameHost();
             host.Run(game);
+
             return 0;
         }
 
@@ -54,6 +64,19 @@ namespace osu.Framework.iOS
             }
             catch
             {
+            }
+        }
+
+        private class OutputVolumeObserver : NSObject
+        {
+            public override void ObserveValue(NSString keyPath, NSObject ofObject, NSDictionary change, nint context)
+            {
+                switch (keyPath)
+                {
+                    case output_volume:
+                        AVAudioSession.SharedInstance().SetCategory(AVAudioSessionCategory.Playback);
+                        break;
+                }
             }
         }
     }
