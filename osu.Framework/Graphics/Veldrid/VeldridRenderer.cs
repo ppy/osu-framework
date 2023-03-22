@@ -44,10 +44,12 @@ namespace osu.Framework.Graphics.Veldrid
         public ResourceFactory Factory => Device.ResourceFactory;
 
         public CommandList Commands { get; private set; } = null!;
+        public CommandList BufferUpdateCommands { get; private set; } = null!;
 
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
+        private readonly List<IVeldridUniformBuffer> uniformBufferResetList = new List<IVeldridUniformBuffer>();
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
         private readonly Dictionary<string, IVeldridUniformBuffer> boundUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
         private IGraphicsSurface graphicsSurface = null!;
@@ -161,6 +163,7 @@ namespace osu.Framework.Graphics.Veldrid
             MaxTextureSize = maxTextureSize;
 
             Commands = Factory.CreateCommandList();
+            BufferUpdateCommands = Factory.CreateCommandList();
 
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
@@ -175,7 +178,12 @@ namespace osu.Framework.Graphics.Veldrid
                 currentSize = windowSize;
             }
 
+            foreach (var ubo in uniformBufferResetList)
+                ubo.ResetCounters();
+            uniformBufferResetList.Clear();
+
             Commands.Begin();
+            BufferUpdateCommands.Begin();
 
             base.BeginFrame(windowSize);
         }
@@ -183,6 +191,9 @@ namespace osu.Framework.Graphics.Veldrid
         protected internal override void FinishFrame()
         {
             base.FinishFrame();
+
+            BufferUpdateCommands.End();
+            Device.SubmitCommands(BufferUpdateCommands);
 
             Commands.End();
             Device.SubmitCommands(Commands);
@@ -403,6 +414,12 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         /// <summary>
+        /// Checks whether the given frame buffer is currently bound.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer to check.</param>
+        public bool IsFrameBufferBound(IFrameBuffer frameBuffer) => FrameBuffer == frameBuffer;
+
+        /// <summary>
         /// Deletes a frame buffer.
         /// </summary>
         /// <param name="frameBuffer">The frame buffer to delete.</param>
@@ -411,7 +428,7 @@ namespace osu.Framework.Graphics.Veldrid
             while (FrameBuffer == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            frameBuffer.Framebuffer.Dispose();
+            frameBuffer.DeleteResources(true);
         }
 
         private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();
@@ -437,10 +454,16 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
-            => new VeldridLinearBatch<TVertex>(this, size, maxBuffers, primitiveType.ToPrimitiveTopology());
+        {
+            // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
+            return new VeldridLinearBatch<TVertex>(this, size, primitiveType.ToPrimitiveTopology());
+        }
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)
-            => new VeldridQuadBatch<TVertex>(this, size, maxBuffers);
+        {
+            // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
+            return new VeldridQuadBatch<TVertex>(this, size);
+        }
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
             => new VeldridUniformBuffer<TData>(this);
@@ -454,6 +477,11 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
+        }
+
+        public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
+        {
+            uniformBufferResetList.Add(buffer);
         }
     }
 }

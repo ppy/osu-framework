@@ -11,8 +11,8 @@ namespace osu.Framework.Graphics.Veldrid.Batches
     internal class VeldridQuadBatch<T> : VeldridVertexBatch<T>
         where T : unmanaged, IEquatable<T>, IVertex
     {
-        public VeldridQuadBatch(VeldridRenderer renderer, int size, int maxBuffers)
-            : base(renderer, size, maxBuffers)
+        public VeldridQuadBatch(VeldridRenderer renderer, int size)
+            : base(renderer, size)
         {
             if (size > VeldridQuadBuffer<T>.MAX_QUADS)
                 throw new OverflowException($"Attempted to initialise a {nameof(VeldridQuadBuffer<T>)} with more than {nameof(VeldridQuadBuffer<T>)}.{nameof(VeldridQuadBuffer<T>.MAX_QUADS)} quads ({VeldridQuadBuffer<T>.MAX_QUADS}).");

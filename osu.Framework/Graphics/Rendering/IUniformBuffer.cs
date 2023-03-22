@@ -17,6 +17,9 @@ namespace osu.Framework.Graphics.Rendering
     public interface IUniformBuffer<TData> : IUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
+        /// <summary>
+        /// The data contained by this <see cref="IUniformBuffer{TData}"/>.
+        /// </summary>
         TData Data { get; set; }
     }
 }

@@ -121,11 +121,16 @@ namespace osu.Framework.Graphics.Primitives
         /// which is why the sign of the perpendicular dot product is opposite to what would be normally expected on the Cartesian plane.
         /// </para>
         /// </remarks>
-        public bool Contains(Vector2 pos) =>
-            Vector2.PerpDot(BottomLeft - TopLeft, pos - TopLeft) <= 0
-            && Vector2.PerpDot(BottomRight - BottomLeft, pos - BottomLeft) <= 0
-            && Vector2.PerpDot(TopRight - BottomRight, pos - BottomRight) <= 0
-            && Vector2.PerpDot(TopLeft - TopRight, pos - TopRight) <= 0;
+        public bool Contains(Vector2 pos)
+        {
+            if (Width == 0 && Height == 0)
+                return pos == TopLeft;
+
+            return Vector2.PerpDot(BottomLeft - TopLeft, pos - TopLeft) <= 0
+                   && Vector2.PerpDot(BottomRight - BottomLeft, pos - BottomLeft) <= 0
+                   && Vector2.PerpDot(TopRight - BottomRight, pos - BottomRight) <= 0
+                   && Vector2.PerpDot(TopLeft - TopRight, pos - TopRight) <= 0;
+        }
 
         /// <summary>
         /// Computes the area of this <see cref="Quad"/>.

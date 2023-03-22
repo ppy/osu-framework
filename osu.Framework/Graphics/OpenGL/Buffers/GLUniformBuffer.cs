@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 if (value.Equals(data))
                     return;
 
+                renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
+
                 setData(ref value);
             }
         }
@@ -64,7 +66,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Dispose()
         {
-            Dispose(true);
+            renderer.ScheduleDisposal(v => v.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 
