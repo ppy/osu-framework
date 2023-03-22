@@ -174,9 +174,9 @@ namespace osu.Framework.Platform
         public abstract void OpenUrlExternally(string url);
 
         /// <summary>
-        /// Creates the game window for the host. Should be implemented per-platform if required.
+        /// Creates the game window for the host.
         /// </summary>
-        protected virtual IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
+        protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
