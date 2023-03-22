@@ -30,6 +30,8 @@ namespace osu.Framework.iOS
         {
         }
 
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface);
+
         protected override void SetupForRun()
         {
             base.SetupForRun();
