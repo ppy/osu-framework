@@ -71,7 +71,12 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
-            GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
+
+            // For whatever reason, changing this value breaks colour rendering inside BufferedContainers only on android.
+            // We're going to eventually have to figure out why this is the case, but for now this workaround fixes the issue very locally.
+            // See https://github.com/ppy/osu-framework/issues/5694.
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Android)
+                GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
 
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
