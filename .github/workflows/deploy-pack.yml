@@ -118,8 +118,8 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
-      - name: Restore .NET Workloads
-        run: dotnet workload restore
+      - name: Restore .NET workloads
+        run: dotnet workload install android
 
       - name: Pack (Android Framework)
         run: dotnet pack -c Release osu.Framework.Android /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
