@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
+using System.Diagnostics;
 using System.Drawing;
 using ObjCRuntime;
 using osu.Framework.Graphics;
@@ -12,7 +12,7 @@ namespace osu.Framework.iOS
 {
     public class IOSWindow : SDL2Window
     {
-        private UIWindow window;
+        private UIWindow? window;
 
         public override Size Size
         {
@@ -41,6 +41,8 @@ namespace osu.Framework.iOS
 
         private void updateSafeArea()
         {
+            Debug.Assert(window != null);
+
             SafeAreaPadding.Value = new MarginPadding
             {
                 Top = (float)window.SafeAreaInsets.Top * Scale,
