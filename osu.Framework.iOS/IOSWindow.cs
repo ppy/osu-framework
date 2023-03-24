@@ -6,6 +6,7 @@ using System.Drawing;
 using ObjCRuntime;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
+using SDL2;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -29,6 +30,14 @@ namespace osu.Framework.iOS
         public IOSWindow(GraphicsSurfaceType surfaceType)
             : base(surfaceType)
         {
+        }
+
+        protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        {
+            // This sets the status bar to hidden.
+            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+
+            // Don't run base logic at all. Let's keep things simple.
         }
 
         public override void Create()
