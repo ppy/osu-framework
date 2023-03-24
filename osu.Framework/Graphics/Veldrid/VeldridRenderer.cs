@@ -35,6 +35,12 @@ namespace osu.Framework.Graphics.Veldrid
             set => Device.SyncToVerticalBlank = value;
         }
 
+        protected internal override bool AllowTearing
+        {
+            get => Device.AllowTearing;
+            set => Device.AllowTearing = value;
+        }
+
         public override bool IsDepthRangeZeroToOne => Device.IsDepthRangeZeroToOne;
         public override bool IsUvOriginTopLeft => Device.IsUvOriginTopLeft;
         public override bool IsClipSpaceYInverted => Device.IsClipSpaceYInverted;
@@ -201,6 +207,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void SwapBuffers() => Device.SwapBuffers();
         protected internal override void WaitUntilIdle() => Device.WaitForIdle();
+        protected internal override void WaitUntilNextFrameReady() => Device.WaitForNextFrameReady();
 
         protected internal override void MakeCurrent()
         {

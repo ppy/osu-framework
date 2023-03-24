@@ -38,6 +38,7 @@ namespace osu.Framework.Graphics.Rendering
         private const int vbo_free_check_interval = 300;
 
         protected internal abstract bool VerticalSync { get; set; }
+        protected internal abstract bool AllowTearing { get; set; }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
@@ -338,6 +339,8 @@ namespace osu.Framework.Graphics.Rendering
         /// This is equivalent to a <c>glFinish</c> call.
         /// </remarks>
         protected internal abstract void WaitUntilIdle();
+
+        protected internal abstract void WaitUntilNextFrameReady();
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
@@ -1096,11 +1099,18 @@ namespace osu.Framework.Graphics.Rendering
             set => VerticalSync = value;
         }
 
+        bool IRenderer.AllowTearing
+        {
+            get => AllowTearing;
+            set => AllowTearing = value;
+        }
+
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
         void IRenderer.SwapBuffers() => SwapBuffers();
         void IRenderer.WaitUntilIdle() => WaitUntilIdle();
+        void IRenderer.WaitUntilNextFrameReady() => WaitUntilNextFrameReady();
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);

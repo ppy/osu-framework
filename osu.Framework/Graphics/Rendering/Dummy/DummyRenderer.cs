@@ -52,6 +52,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         bool IRenderer.VerticalSync { get; set; } = true;
 
+        bool IRenderer.AllowTearing { get; set; }
+
         void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
             IsInitialised = true;
@@ -70,6 +72,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         void IRenderer.WaitUntilIdle()
+        {
+        }
+
+        void IRenderer.WaitUntilNextFrameReady()
         {
         }
 
