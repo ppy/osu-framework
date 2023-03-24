@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +36,7 @@ namespace osu.Framework.Platform.Linux
         {
             get
             {
-                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                string? xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!string.IsNullOrEmpty(xdg))
                     yield return xdg;
@@ -49,6 +47,8 @@ namespace osu.Framework.Platform.Linux
                     yield return path;
             }
         }
+
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
     }
