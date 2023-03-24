@@ -24,7 +24,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    public partial class SDL2Window : IWindow
+    public abstract partial class SDL2Window : IWindow
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
@@ -176,7 +176,7 @@ namespace osu.Framework.Platform
 
         private ObjectHandle<SDL2Window> objectHandle;
 
-        public SDL2Window(GraphicsSurfaceType surfaceType)
+        protected SDL2Window(GraphicsSurfaceType surfaceType)
         {
             objectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 

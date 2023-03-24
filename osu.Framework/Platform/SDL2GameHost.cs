@@ -23,8 +23,6 @@ namespace osu.Framework.Platform
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2Window(preferredSurface);
-
         protected override TextInputSource CreateTextInput()
         {
             if (Window is SDL2Window window)
