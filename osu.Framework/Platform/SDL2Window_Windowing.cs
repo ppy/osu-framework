@@ -537,7 +537,17 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
-                updateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+                UpdateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+
+                fetchWindowSize();
+
+                if (tryFetchMaximisedState(windowState, out bool maximized))
+                    windowMaximised = maximized;
+
+                if (tryFetchDisplayMode(SDLWindowHandle, windowState, currentDisplay, out var newMode))
+                    currentDisplayMode.Value = newMode;
+
+                fetchDisplays();
             }
             else
             {
@@ -565,7 +575,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run after a local window state change, to propagate the correct SDL actions.
         /// </summary>
-        private void updateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        protected virtual void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // this reset is required even on changing from one fullscreen resolution to another.
             // if it is not included, the GL context will not get the correct size.
@@ -607,7 +617,6 @@ namespace osu.Framework.Platform
                     ensureWindowOnDisplay(display);
 
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
-                    fetchWindowSize();
                     break;
 
                 case WindowState.Minimised:
@@ -615,14 +624,6 @@ namespace osu.Framework.Platform
                     SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
-
-            if (tryFetchMaximisedState(state, out bool maximized))
-                windowMaximised = maximized;
-
-            if (tryFetchDisplayMode(SDLWindowHandle, state, display, out var newMode))
-                currentDisplayMode.Value = newMode;
-
-            fetchDisplays();
         }
 
         private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
