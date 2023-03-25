@@ -17,7 +17,7 @@ using SDL2;
 
 namespace osu.Framework.Platform
 {
-    public partial class SDL2DesktopWindow
+    public partial class SDL2Window
     {
         private void setupWindowing(FrameworkConfigManager config)
         {
@@ -130,12 +130,21 @@ namespace osu.Framework.Platform
             }
         }
 
-        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
+        public WindowMode DefaultWindowMode => RuntimeInfo.IsMobile ? Configuration.WindowMode.Fullscreen : Configuration.WindowMode.Windowed;
 
         /// <summary>
         /// Returns the window modes that the platform should support by default.
         /// </summary>
-        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues<WindowMode>();
+        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes
+        {
+            get
+            {
+                if (RuntimeInfo.IsMobile)
+                    return new[] { Configuration.WindowMode.Fullscreen };
+
+                return Enum.GetValues<WindowMode>();
+            }
+        }
 
         private Point position;
 
@@ -528,7 +537,17 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
-                updateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+                UpdateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+
+                fetchWindowSize();
+
+                if (tryFetchMaximisedState(windowState, out bool maximized))
+                    windowMaximised = maximized;
+
+                if (tryFetchDisplayMode(SDLWindowHandle, windowState, currentDisplay, out var newMode))
+                    currentDisplayMode.Value = newMode;
+
+                fetchDisplays();
             }
             else
             {
@@ -556,15 +575,8 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run after a local window state change, to propagate the correct SDL actions.
         /// </summary>
-        private void updateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        protected virtual void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
-            // this reset is required even on changing from one fullscreen resolution to another.
-            // if it is not included, the GL context will not get the correct size.
-            // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
-            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-            SDL.SDL_RestoreWindow(SDLWindowHandle);
-
             switch (state)
             {
                 case WindowState.Normal:
@@ -598,7 +610,6 @@ namespace osu.Framework.Platform
                     ensureWindowOnDisplay(display);
 
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
-                    fetchWindowSize();
                     break;
 
                 case WindowState.Minimised:
@@ -606,14 +617,6 @@ namespace osu.Framework.Platform
                     SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
-
-            if (tryFetchMaximisedState(state, out bool maximized))
-                windowMaximised = maximized;
-
-            if (tryFetchDisplayMode(SDLWindowHandle, state, display, out var newMode))
-                currentDisplayMode.Value = newMode;
-
-            fetchDisplays();
         }
 
         private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)

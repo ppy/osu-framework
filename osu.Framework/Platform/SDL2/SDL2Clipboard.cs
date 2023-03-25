@@ -6,7 +6,7 @@
 using SDL2;
 using SixLabors.ImageSharp;
 
-namespace osu.Framework.Platform.Linux.SDL2
+namespace osu.Framework.Platform.SDL2
 {
     public class SDL2Clipboard : Clipboard
     {

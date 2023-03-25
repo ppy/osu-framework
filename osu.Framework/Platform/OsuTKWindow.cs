@@ -49,6 +49,15 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Resized;
 
+        /// <inheritdoc cref="IWindow.Suspended"/>
+        public event Action Suspended { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.Resumed"/>
+        public event Action Resumed { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.LowOnMemory"/>
+        public event Action LowOnMemory { add { } remove { } }
+
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged { add { } remove { } }
 
