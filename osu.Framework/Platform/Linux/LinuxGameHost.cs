@@ -20,7 +20,7 @@ namespace osu.Framework.Platform.Linux
         /// </remarks>
         public readonly bool BypassCompositor;
 
-        internal LinuxGameHost(string gameName, HostOptions options)
+        internal LinuxGameHost(string gameName, HostOptions? options)
             : base(gameName, options)
         {
             BypassCompositor = Options.BypassCompositor;
