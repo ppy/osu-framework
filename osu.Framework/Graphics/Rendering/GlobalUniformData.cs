@@ -36,6 +36,7 @@ namespace osu.Framework.Graphics.Rendering
 
         public UniformBool IsDepthRangeZeroToOne;
         public UniformBool IsClipSpaceYInverted;
-        private readonly UniformPadding8 pad4;
+        public UniformBool IsUvOriginTopLeft;
+        private readonly UniformPadding4 pad4;
     }
 }
