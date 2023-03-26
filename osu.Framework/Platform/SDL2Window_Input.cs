@@ -20,7 +20,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    public partial class SDL2DesktopWindow
+    public partial class SDL2Window
     {
         private void setupInput(FrameworkConfigManager config)
         {
@@ -234,8 +234,8 @@ namespace osu.Framework.Platform
             if (existingSource == null)
                 return;
 
-            float x = evtTfinger.x * Size.Width;
-            float y = evtTfinger.y * Size.Height;
+            float x = evtTfinger.x * ClientSize.Width;
+            float y = evtTfinger.y * ClientSize.Height;
 
             var touch = new Touch(existingSource.Value, new Vector2(x, y));
 

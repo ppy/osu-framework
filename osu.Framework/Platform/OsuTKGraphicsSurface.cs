@@ -20,6 +20,8 @@ namespace osu.Framework.Platform
         public IntPtr WindowHandle => window.WindowInfo.Handle;
         public IntPtr DisplayHandle => throw new NotSupportedException($@"{nameof(DisplayHandle)} is not supported.");
 
+        public int? BackbufferFramebuffer => null;
+
         public bool VerticalSync { get; set; }
 
         public IntPtr WindowContext { get; private set; }

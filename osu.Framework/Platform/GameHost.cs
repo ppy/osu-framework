@@ -174,9 +174,9 @@ namespace osu.Framework.Platform
         public abstract void OpenUrlExternally(string url);
 
         /// <summary>
-        /// Creates the game window for the host. Should be implemented per-platform if required.
+        /// Creates the game window for the host.
         /// </summary>
-        protected virtual IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
+        protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
@@ -761,7 +761,7 @@ namespace osu.Framework.Platform
                     {
                         switch (Window)
                         {
-                            case SDL2DesktopWindow window:
+                            case SDL2Window window:
                                 window.Update += windowUpdate;
                                 break;
 
@@ -769,6 +769,10 @@ namespace osu.Framework.Platform
                                 tkWindow.UpdateFrame += (_, _) => windowUpdate();
                                 break;
                         }
+
+                        Window.Suspended += Suspend;
+                        Window.Resumed += Resume;
+                        Window.LowOnMemory += Collect;
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;

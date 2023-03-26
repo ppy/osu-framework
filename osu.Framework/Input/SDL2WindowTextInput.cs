@@ -8,11 +8,11 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class SDL2DesktopWindowTextInput : TextInputSource
+    public class SDL2WindowTextInput : TextInputSource
     {
-        private readonly SDL2DesktopWindow window;
+        private readonly SDL2Window window;
 
-        public SDL2DesktopWindowTextInput(SDL2DesktopWindow window)
+        public SDL2WindowTextInput(SDL2Window window)
         {
             this.window = window;
         }
