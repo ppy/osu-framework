@@ -38,6 +38,7 @@ namespace osu.Framework.Graphics.Rendering
         private const int vbo_free_check_interval = 300;
 
         protected internal abstract bool VerticalSync { get; set; }
+        protected internal abstract bool AllowTearing { get; set; }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
@@ -189,7 +190,8 @@ namespace osu.Framework.Graphics.Rendering
             globalUniformBuffer.Data = globalUniformBuffer.Data with
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
-                IsClipSpaceYInverted = IsClipSpaceYInverted
+                IsClipSpaceYInverted = IsClipSpaceYInverted,
+                IsUvOriginTopLeft = IsUvOriginTopLeft
             };
 
             Debug.Assert(defaultQuadBatch != null);
@@ -338,6 +340,8 @@ namespace osu.Framework.Graphics.Rendering
         /// This is equivalent to a <c>glFinish</c> call.
         /// </remarks>
         protected internal abstract void WaitUntilIdle();
+
+        protected internal abstract void WaitUntilNextFrameReady();
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
@@ -1071,14 +1075,6 @@ namespace osu.Framework.Graphics.Rendering
         internal Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
             => registerTexture(new Texture(nativeTexture, wrapModeS, wrapModeT));
 
-        /// <summary>
-        /// Creates a special <see cref="Texture"/> which responds to any UV-coordinate space requirements for use in framebuffers.
-        /// </summary>
-        /// <param name="nativeTexture">The framebuffer's native texture.</param>
-        /// <returns>The <see cref="Texture"/>.</returns>
-        internal Texture CreateFrameBufferTexture(INativeTexture nativeTexture)
-            => registerTexture(new ClipSpaceAdjustedTexture(nativeTexture, WrapMode.None, WrapMode.None));
-
         private Texture registerTexture(Texture texture)
         {
             allTextures.Add(texture);
@@ -1096,11 +1092,18 @@ namespace osu.Framework.Graphics.Rendering
             set => VerticalSync = value;
         }
 
+        bool IRenderer.AllowTearing
+        {
+            get => AllowTearing;
+            set => AllowTearing = value;
+        }
+
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
         void IRenderer.SwapBuffers() => SwapBuffers();
         void IRenderer.WaitUntilIdle() => WaitUntilIdle();
+        void IRenderer.WaitUntilNextFrameReady() => WaitUntilNextFrameReady();
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
@@ -1238,37 +1241,6 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
-
-        #endregion
-
-        #region Utils
-
-        /// <summary>
-        /// A special <see cref="Texture"/> which applies adjustments necessary for the current renderer
-        /// to ensure that (0, 0) is the top-left texel of the texture.
-        /// </summary>
-        /// <remarks>
-        /// This is used for framebuffers where the texture can't be pre-adjusted from the time of creation.
-        /// </remarks>
-        private class ClipSpaceAdjustedTexture : Texture
-        {
-            public ClipSpaceAdjustedTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
-                : base(nativeTexture, wrapModeS, wrapModeT)
-            {
-            }
-
-            public ClipSpaceAdjustedTexture(Texture parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-                : base(parent, wrapModeS, wrapModeT)
-            {
-            }
-
-            public override RectangleF GetTextureRect(RectangleF? area = null)
-            {
-                return base.NativeTexture.Renderer.IsUvOriginTopLeft
-                    ? base.GetTextureRect(area)
-                    : base.GetTextureRect(area).Inflate(new Vector2(0, -1));
-            }
-        }
 
         #endregion
     }

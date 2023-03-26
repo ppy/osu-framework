@@ -32,6 +32,8 @@ namespace osu.Framework.Graphics.OpenGL
             set => openGLSurface.VerticalSync = value;
         }
 
+        protected internal override bool AllowTearing { get; set; }
+
         public override bool IsDepthRangeZeroToOne => false;
         public override bool IsUvOriginTopLeft => false;
         public override bool IsClipSpaceYInverted => false;
@@ -116,6 +118,10 @@ namespace osu.Framework.Graphics.OpenGL
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
+        }
+
+        protected internal override void WaitUntilNextFrameReady()
+        {
         }
 
         protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);

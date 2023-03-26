@@ -47,6 +47,8 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         protected internal bool VerticalSync { get; set; }
 
+        protected internal bool AllowTearing { get; set; }
+
         /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
@@ -177,6 +179,11 @@ namespace osu.Framework.Graphics.Rendering
         /// This is equivalent to a <c>glFinish</c> call.
         /// </remarks>
         protected internal void WaitUntilIdle();
+
+        /// <summary>
+        /// Waits until the GPU signals that the next frame is ready to be rendered.
+        /// </summary>
+        protected internal void WaitUntilNextFrameReady();
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
