@@ -32,6 +32,7 @@
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswresample.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswscale.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\veldrid-spirv.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\metal-mono-workaround.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
   </ItemGroup>
   <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
        See: https://github.com/mellinoe/veldrid/issues/472#issuecomment-1356461410 -->
