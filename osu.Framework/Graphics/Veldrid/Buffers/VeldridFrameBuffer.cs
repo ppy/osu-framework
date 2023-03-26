@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             depthFormat = formats?[0];
 
             colourTarget = new FrameBufferTexture(renderer, filteringMode);
-            Texture = renderer.CreateFrameBufferTexture(colourTarget);
+            Texture = renderer.CreateTexture(colourTarget);
 
             recreateResources();
         }

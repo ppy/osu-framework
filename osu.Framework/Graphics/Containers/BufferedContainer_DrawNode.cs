@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
                 using (BindFrameBuffer(target))
                 {
-                    float radians = -MathUtils.DegreesToRadians(blurRotation);
+                    float radians = MathUtils.DegreesToRadians(blurRotation);
 
                     blurParametersBuffer.Data = blurParametersBuffer.Data with
                     {
