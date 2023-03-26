@@ -55,13 +55,15 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: osu-framework
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+          path: |
+            ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+            ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.snupkg
 
       - name: Publish packages to nuget.org
         run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
