@@ -2,8 +2,6 @@
 
 layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
 {
-    bool g_GammaCorrection;
-
     // Whether the backbuffer is currently being drawn to.
     bool g_BackbufferDraw;
 

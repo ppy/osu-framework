@@ -69,12 +69,6 @@ namespace osu.Framework.Graphics.Rendering
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
 
-        /// <summary>
-        /// Whether this renderer should apply gamma correction (toSRGB/toLinear) functions in fragment shaders.
-        /// By default, this is only applied to the main framebuffer (i.e. "backbuffer").
-        /// </summary>
-        protected virtual bool GammaCorrection => UsingBackbuffer;
-
         public bool IsInitialised { get; private set; }
 
         protected ClearInfo CurrentClearInfo { get; private set; }
@@ -940,11 +934,7 @@ namespace osu.Framework.Graphics.Rendering
 
             SetFrameBufferImplementation(frameBuffer);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with
-            {
-                BackbufferDraw = UsingBackbuffer,
-                GammaCorrection = GammaCorrection,
-            };
+            globalUniformBuffer!.Data = globalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
 
             FrameBuffer = frameBuffer;
         }

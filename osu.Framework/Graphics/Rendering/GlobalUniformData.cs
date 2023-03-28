@@ -10,9 +10,8 @@ namespace osu.Framework.Graphics.Rendering
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public record struct GlobalUniformData
     {
-        public UniformBool GammaCorrection;
         public UniformBool BackbufferDraw;
-        private readonly UniformPadding8 pad1;
+        private readonly UniformPadding12 pad1;
 
         public UniformMatrix4 ProjMatrix;
         public UniformMatrix3 ToMaskingSpace;

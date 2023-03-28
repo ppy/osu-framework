@@ -40,7 +40,7 @@ lowp vec4 blur(int radius, highp vec2 direction, mediump vec2 texCoord, mediump 
 			break;
 	}
 
-    return toSRGB(sum / totalFactor);
+    return sum / totalFactor;
 }
 
 void main(void)
