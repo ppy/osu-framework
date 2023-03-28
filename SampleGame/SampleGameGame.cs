@@ -7,29 +7,67 @@ using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 
 namespace SampleGame
 {
     public partial class SampleGameGame : Game
     {
-        private Box box = null!;
-
         [BackgroundDependencyLoader]
         private void load()
         {
-            Add(box = new Box
+            Add(new FillFlowContainer
             {
+                AutoSizeAxes = Axes.Both,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(150, 150),
-                Colour = Color4.Tomato
+                Direction = FillDirection.Horizontal,
+                Spacing = new Vector2(5),
+                Children = new Drawable[]
+                {
+                    new BufferedContainer
+                    {
+                        Size = new Vector2(200),
+                        Children = new[]
+                        {
+                            new Sprite
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Tomato,
+                                Texture = Textures.Get("sample-texture")
+                            },
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Width = 0.5f,
+                                Colour = Color4.Black,
+                                Alpha = 0.5f
+                            }
+                        }
+                    },
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Children = new[]
+                        {
+                            new Sprite
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Tomato,
+                                Texture = Textures.Get("sample-texture")
+                            },
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Width = 0.5f,
+                                Colour = Color4.Black,
+                                Alpha = 0.5f
+                            }
+                        }
+                    }
+                }
             });
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-            box.Rotation += (float)Time.Elapsed / 10;
         }
     }
 }
