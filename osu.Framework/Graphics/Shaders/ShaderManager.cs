@@ -39,8 +39,7 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         /// <param name="vertex">The vertex shader name.</param>
         /// <param name="fragment">The fragment shader name.</param>
-        /// <param name="continuousCompilation"></param>
-        public IShader Load(string vertex, string fragment, bool continuousCompilation = false)
+        public IShader Load(string vertex, string fragment)
         {
             var tuple = (vertex, fragment);
 
