@@ -266,7 +266,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     DeleteProgram(this);
 
                 foreach (var buf in textureAuxDataBuffers)
-                    buf.Dispose();
+                    buf?.Dispose();
             }
         }
 

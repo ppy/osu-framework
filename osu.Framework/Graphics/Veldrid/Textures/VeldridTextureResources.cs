@@ -4,7 +4,6 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using Veldrid;
 
