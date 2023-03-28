@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = topColour.Linear,
+                Colour = topColour,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = drawColour.BottomLeft.Linear,
+                Colour = drawColour.BottomLeft,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = bottomColour.Linear,
+                Colour = bottomColour,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = drawColour.BottomRight.Linear,
+                Colour = drawColour.BottomRight,
             });
 
             long area = (long)vertexTriangle.Area;
@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.BottomLeft.Linear,
+                Colour = drawColour.BottomLeft,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.BottomRight.Linear,
+                Colour = drawColour.BottomRight,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.TopRight.Linear,
+                Colour = drawColour.TopRight,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Rendering
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
-                Colour = drawColour.TopLeft.Linear,
+                Colour = drawColour.TopLeft,
             });
 
             long area = (long)vertexQuad.Area;
