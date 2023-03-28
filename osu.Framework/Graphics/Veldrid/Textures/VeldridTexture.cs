@@ -321,8 +321,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 sampler = Renderer.Factory.CreateSampler(ref samplerDescription);
             }
 
-            resources = new VeldridTextureResources(texture, sampler);
+            resources = new VeldridTextureResources(texture, sampler, IsFrameBufferTexture);
         }
+
+        protected virtual bool IsFrameBufferTexture => false;
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
         {

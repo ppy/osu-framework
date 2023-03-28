@@ -2,6 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Shaders.Types;
+using osu.Framework.Graphics.Veldrid.Shaders;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -13,12 +16,16 @@ namespace osu.Framework.Graphics.Veldrid.Textures
     {
         public readonly Texture Texture;
         public readonly Sampler Sampler;
+        private readonly bool isFrameBufferTexture;
+
+        private DeviceBuffer? auxDataBuffer;
         private ResourceSet? set;
 
-        public VeldridTextureResources(Texture texture, Sampler sampler)
+        public VeldridTextureResources(Texture texture, Sampler sampler, bool isFrameBufferTexture)
         {
             Texture = texture;
             Sampler = sampler;
+            this.isFrameBufferTexture = isFrameBufferTexture;
         }
 
         /// <summary>
@@ -27,14 +34,42 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="renderer">The renderer to create the resource set for.</param>
         /// <param name="layout">The resource layout which this set will be attached to. Assumes a layout with the texture in slot 0 and the sampler in slot 1.</param>
         /// <returns>The resource set.</returns>
-        public ResourceSet GetResourceSet(VeldridRenderer renderer, ResourceLayout layout)
-            => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
+        public ResourceSet GetResourceSet(VeldridRenderer renderer, VeldridTextureUniformLayout layout)
+        {
+            if (set != null)
+                return set;
+
+            BindableResource[] resources = layout.HasAuxData
+                ? new BindableResource[3]
+                : new BindableResource[2];
+
+            resources[0] = Texture;
+            resources[1] = Sampler;
+
+            if (layout.HasAuxData)
+            {
+                auxDataBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(AuxTextureData)), BufferUsage.UniformBuffer));
+                renderer.BufferUpdateCommands.UpdateBuffer(auxDataBuffer, 0, new AuxTextureData { IsFrameBufferTexture = isFrameBufferTexture });
+
+                resources[2] = auxDataBuffer;
+            }
+
+            return set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout.Layout, resources));
+        }
 
         public void Dispose()
         {
             Texture.Dispose();
             Sampler.Dispose();
+            auxDataBuffer?.Dispose();
             set?.Dispose();
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private record struct AuxTextureData
+        {
+            public UniformBool IsFrameBufferTexture;
+            private readonly UniformPadding12 pad1;
         }
     }
 }

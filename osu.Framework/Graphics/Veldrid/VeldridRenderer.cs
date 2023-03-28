@@ -41,6 +41,8 @@ namespace osu.Framework.Graphics.Veldrid
             set => Device.AllowTearing = value;
         }
 
+        protected override bool GammaCorrection => true;
+
         public override bool IsDepthRangeZeroToOne => Device.IsDepthRangeZeroToOne;
         public override bool IsUvOriginTopLeft => Device.IsUvOriginTopLeft;
         public override bool IsClipSpaceYInverted => Device.IsClipSpaceYInverted;
@@ -420,10 +422,10 @@ namespace osu.Framework.Graphics.Veldrid
             foreach (var (unit, texture) in boundTextureUnits)
             {
                 var layout = veldridShader.GetTextureLayout(unit);
-                if (layout == null)
+                if (layout is not VeldridTextureUniformLayout textureLayout)
                     continue;
 
-                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(this, layout.Layout));
+                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(this, textureLayout));
             }
 
             // Activate uniform buffer resources.

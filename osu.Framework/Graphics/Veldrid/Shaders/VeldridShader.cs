@@ -169,34 +169,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                     if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                     {
-                        // Todo: We should enforce that a texture set contains both a texture and a sampler.
-                        var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
-                        var samplerElement = layout.Elements.First(e => e.Kind == ResourceKind.Sampler);
-
-                        textureLayouts.Add(new VeldridUniformLayout(
-                            set,
-                            renderer.Factory.CreateResourceLayout(
-                                new ResourceLayoutDescription(
-                                    new ResourceLayoutElementDescription(
-                                        textureElement.Name,
-                                        ResourceKind.TextureReadOnly,
-                                        ShaderStages.Fragment),
-                                    new ResourceLayoutElementDescription(
-                                        samplerElement.Name,
-                                        ResourceKind.Sampler,
-                                        ShaderStages.Fragment)))));
+                        bool hasAuxData = layout.Elements.Any(e => e.Kind == ResourceKind.UniformBuffer);
+                        textureLayouts.Add(new VeldridTextureUniformLayout(set, renderer.Factory.CreateResourceLayout(layout), hasAuxData));
                     }
                     else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
-                    {
-                        uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(
-                            set,
-                            renderer.Factory.CreateResourceLayout(
-                                new ResourceLayoutDescription(
-                                    new ResourceLayoutElementDescription(
-                                        layout.Elements[0].Name,
-                                        ResourceKind.UniformBuffer,
-                                        ShaderStages.Fragment | ShaderStages.Vertex))));
-                    }
+                        uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
                 }
             }
             catch (SpirvCompilationException e)

@@ -14,6 +14,10 @@ layout(std140, set = 0, binding = 0) uniform m_BlurParameters
 
 layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
 layout(set = 1, binding = 1) uniform lowp sampler m_Sampler;
+layout(std140, set = 1, binding = 2) uniform m_TextureAuxData
+{
+    AuxTextureData m_TextureData;
+};
 
 layout(location = 0) out vec4 o_Colour;
 
@@ -25,7 +29,7 @@ mediump float computeGauss(in mediump float x, in mediump float sigma)
 lowp vec4 blur(int radius, highp vec2 direction, mediump vec2 texCoord, mediump vec2 texSize, mediump float sigma)
 {
 	mediump float factor = computeGauss(0.0, sigma);
-	mediump vec4 sum = texture(sampler2D(m_Texture, m_Sampler), texCoord) * factor;
+	mediump vec4 sum = sampleTexture(m_Texture, m_Sampler, m_TextureData, texCoord) * factor;
 
 	mediump float totalFactor = factor;
 
@@ -34,8 +38,8 @@ lowp vec4 blur(int radius, highp vec2 direction, mediump vec2 texCoord, mediump 
 		mediump float x = float(i) - 0.5;
 		factor = computeGauss(x, sigma) * 2.0;
 		totalFactor += 2.0 * factor;
-		sum += texture(sampler2D(m_Texture, m_Sampler), texCoord + direction * x / texSize) * factor;
-		sum += texture(sampler2D(m_Texture, m_Sampler), texCoord - direction * x / texSize) * factor;
+		sum += sampleTexture(m_Texture, m_Sampler, m_TextureData, texCoord + direction * x / texSize) * factor;
+		sum += sampleTexture(m_Texture, m_Sampler, m_TextureData, texCoord - direction * x / texSize) * factor;
 		if (i >= radius)
 			break;
 	}
