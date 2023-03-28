@@ -41,8 +41,6 @@ namespace osu.Framework.Graphics.Veldrid
             set => Device.AllowTearing = value;
         }
 
-        protected override bool GammaCorrection => true;
-
         public override bool IsDepthRangeZeroToOne => Device.IsDepthRangeZeroToOne;
         public override bool IsUvOriginTopLeft => Device.IsUvOriginTopLeft;
         public override bool IsClipSpaceYInverted => Device.IsClipSpaceYInverted;

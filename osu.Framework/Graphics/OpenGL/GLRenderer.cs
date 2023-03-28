@@ -50,8 +50,6 @@ namespace osu.Framework.Graphics.OpenGL
 
         private int backbufferFramebuffer;
 
-        protected override bool GammaCorrection => base.GammaCorrection || !IsEmbedded;
-
         private readonly int[] lastBoundBuffers = new int[2];
 
         private bool? lastBlendingEnabledState;
