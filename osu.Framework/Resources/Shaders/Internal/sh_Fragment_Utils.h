@@ -1,6 +1,6 @@
 vec4 sampleTexture(texture2D tex, sampler samp, AuxTextureData auxData, vec2 coord, float lodBias)
 {
-    vec4 col = texture(sampler2D(tex, samp), coord);
+    vec4 col = texture(sampler2D(tex, samp), coord, lodBias);
 
     if (auxData.IsFrameBufferTexture)
         col = toLinear(col);
