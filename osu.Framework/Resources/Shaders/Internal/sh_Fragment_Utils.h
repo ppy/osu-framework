@@ -11,6 +11,8 @@ vec4 sampleTexture(texture2D tex, sampler samp, AuxTextureData auxData, vec2 coo
 vec4 sampleTexture(texture2D tex, sampler samp, vec2 coord, float lodBias)
 {
     AuxTextureData auxData;
+    auxData.IsFrameBufferTexture = false;
+
     return sampleTexture(tex, samp, auxData, coord, lodBias);
 }
 

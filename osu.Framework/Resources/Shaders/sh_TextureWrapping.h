@@ -31,5 +31,7 @@ vec4 wrappedSampler(vec2 wrappedCoord, vec4 texRect, texture2D wrapTexture, samp
 vec4 wrappedSampler(vec2 wrappedCoord, vec4 texRect, texture2D wrapTexture, sampler wrapSampler, float lodBias)
 {
     AuxTextureData auxData;
+    auxData.IsFrameBufferTexture = false;
+
     return wrappedSampler(wrappedCoord, texRect, wrapTexture, wrapSampler, auxData, lodBias);
 }
