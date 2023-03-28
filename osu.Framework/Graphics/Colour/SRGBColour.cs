@@ -10,19 +10,32 @@ namespace osu.Framework.Graphics.Colour
 {
     /// <summary>
     /// A wrapper struct around Color4 that takes care of converting between sRGB and linear colour spaces.
-    /// Internally this struct stores the colour in linear space, which is exposed by the Linear member.
-    /// This struct implicitly converts to sRGB space Color4 values (i.e. it can be assigned and implicitly cast)
-    /// to sRGB Color4.
+    /// Internally this struct stores the colour in linear space, which is exposed by the <see cref="Linear"/> member.
+    /// This struct converts to sRGB space by using the <see cref="SRGB"/> member.
     /// </summary>
     public struct SRGBColour : IEquatable<SRGBColour>
     {
+        /// <summary>
+        /// A <see cref="Color4"/> representation of this colour in the linear space.
+        /// </summary>
         public Color4 Linear;
 
+        /// <summary>
+        /// A <see cref="Color4"/> representation of this colour in the sRGB space.
+        /// </summary>
+        public Color4 SRGB => Linear.ToSRGB();
+
+        /// <summary>
+        /// The alpha component of this colour.
+        /// </summary>
+        public float Alpha => Linear.A;
+
+        // todo: these implicit operators breaks the mind and should never exist (https://github.com/ppy/osu-framework/issues/5714).
         public static implicit operator SRGBColour(Color4 value) => new SRGBColour { Linear = value.ToLinear() };
-        public static implicit operator Color4(SRGBColour value) => value.Linear.ToSRGB();
+        public static implicit operator Color4(SRGBColour value) => value.SRGB;
 
         public static implicit operator SRGBColour(Colour4 value) => new SRGBColour { Linear = value.ToLinear() };
-        public static implicit operator Colour4(SRGBColour value) => value.Linear.ToSRGB();
+        public static implicit operator Colour4(SRGBColour value) => value.SRGB;
 
         /// <summary>
         /// Multiplies 2 colours in linear colour space.

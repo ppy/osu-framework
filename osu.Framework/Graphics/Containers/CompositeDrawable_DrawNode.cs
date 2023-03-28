@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
 
             private void drawEdgeEffect(IRenderer renderer)
             {
-                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
+                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Alpha <= 0)
                     return;
 
                 RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
@@ -145,10 +145,10 @@ namespace osu.Framework.Graphics.Containers
                 Shader.Bind();
 
                 ColourInfo colour = ColourInfo.SingleColour(edgeEffect.Colour);
-                colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Linear.A);
-                colour.BottomLeft.MultiplyAlpha(DrawColourInfo.Colour.BottomLeft.Linear.A);
-                colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
-                colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
+                colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Alpha);
+                colour.BottomLeft.MultiplyAlpha(DrawColourInfo.Colour.BottomLeft.Alpha);
+                colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Alpha);
+                colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Alpha);
 
                 renderer.DrawQuad(
                     renderer.WhitePixel,

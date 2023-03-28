@@ -258,7 +258,7 @@ namespace osu.Framework.Graphics.Visualisation
                         return;
 
                     if ((composite.BorderThickness > 0 && composite.BorderColour.MaxAlpha > 0)
-                        || (composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0))
+                        || (composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Alpha > 0))
                     {
                         drawableTarget = composite;
                     }
