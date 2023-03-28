@@ -126,6 +126,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private class FrameBufferTexture : GLTexture
         {
+            public override bool IsFrameBufferTexture => true;
+
             public FrameBufferTexture(GLRenderer renderer, All filteringMode = All.Linear)
                 : base(renderer, 1, 1, true, filteringMode)
             {

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -32,6 +33,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
+        private readonly GLUniformBlock[] textureAuxDataBlocks = new GLUniformBlock[16];
+        private readonly GLUniformBuffer<AuxTextureData>[] textureAuxDataBuffers = new GLUniformBuffer<AuxTextureData>[16];
 
         /// <summary>
         /// Holds all <see cref="uniformBlocks"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
@@ -125,6 +128,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             foreach (var block in uniformBlocksValues)
                 block?.Bind();
 
+            foreach (var block in textureAuxDataBlocks)
+                block?.Bind();
+
             IsBound = true;
         }
 
@@ -147,6 +153,14 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             EnsureShaderCompiled();
 
             return (Uniform<T>)Uniforms[name];
+        }
+
+        public void SetAuxTextureData(int index, AuxTextureData data)
+        {
+            if (textureAuxDataBuffers[index] == null)
+                return;
+
+            textureAuxDataBuffers[index].Data = data;
         }
 
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
@@ -187,10 +201,22 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                 {
                     var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+
                     textureUniforms.Add(new Uniform<int>(renderer, this, textureElement.Name, GL.GetUniformLocation(this, textureElement.Name))
                     {
-                        Value = textureIndex++
+                        Value = textureIndex
                     });
+
+                    if (layout.Elements.Any(e => e.Kind == ResourceKind.UniformBuffer))
+                    {
+                        var auxDataBuffer = layout.Elements.FirstOrDefault(e => e.Kind == ResourceKind.UniformBuffer);
+                        var block = new GLUniformBlock(renderer, this, GL.GetUniformBlockIndex(this, auxDataBuffer.Name), blockBindingIndex++);
+                        textureAuxDataBlocks[textureIndex] = block;
+                        textureAuxDataBuffers[textureIndex] = new GLUniformBuffer<AuxTextureData>(renderer);
+                        textureAuxDataBlocks[textureIndex].Assign(textureAuxDataBuffers[textureIndex]);
+                    }
+
+                    textureIndex++;
                 }
                 else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
                 {

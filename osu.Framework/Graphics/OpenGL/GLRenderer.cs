@@ -50,6 +50,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private int backbufferFramebuffer;
 
+        private readonly GLTexture?[] lastBoundTextures = new GLTexture?[16];
         private readonly int[] lastBoundBuffers = new int[2];
 
         private bool? lastBlendingEnabledState;
@@ -73,12 +74,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
-
-            // For whatever reason, changing this value breaks colour rendering inside BufferedContainers only on android.
-            // We're going to eventually have to figure out why this is the case, but for now this workaround fixes the issue very locally.
-            // See https://github.com/ppy/osu-framework/issues/5694.
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Android)
-                GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
 
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
@@ -109,6 +104,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
             lastBoundVertexArray = 0;
+            lastBoundTextures.AsSpan().Clear();
 
             // Seems to be required on some drivers as the context is lost from the draw thread.
             MakeCurrent();
@@ -150,6 +146,22 @@ namespace osu.Framework.Graphics.OpenGL
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
             return true;
+        }
+
+        public void DrawVertices(PrimitiveType type, int indexStart, int indicesCount)
+        {
+            for (int i = 0; i < lastBoundTextures.Length; i++)
+            {
+                if (lastBoundTextures[i] == null)
+                    continue;
+
+                ((GLShader)Shader!).SetAuxTextureData(i, new AuxTextureData
+                {
+                    IsFrameBufferTexture = lastBoundTextures[i]!.IsFrameBufferTexture
+                });
+            }
+
+            GL.DrawElements(type, indicesCount, DrawElementsType.UnsignedShort, (IntPtr)(indexStart * sizeof(ushort)));
         }
 
         protected override void SetShaderImplementation(IShader shader) => GL.UseProgram((GLShader)shader);
@@ -198,6 +210,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
         {
+            lastBoundTextures[unit] = texture as GLTexture;
+
             if (texture == null)
             {
                 GL.ActiveTexture(TextureUnit.Texture0 + unit);
@@ -231,8 +245,15 @@ namespace osu.Framework.Graphics.OpenGL
             return true;
         }
 
-        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
+        {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? backbufferFramebuffer);
+
+            if (frameBuffer == null)
+                GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
+            else
+                GL.Enable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
+        }
 
         /// <summary>
         /// Deletes a frame buffer.

@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using Veldrid;
@@ -63,13 +64,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             Sampler.Dispose();
             auxDataBuffer?.Dispose();
             set?.Dispose();
-        }
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        private record struct AuxTextureData
-        {
-            public UniformBool IsFrameBufferTexture;
-            private readonly UniformPadding12 pad1;
         }
     }
 }

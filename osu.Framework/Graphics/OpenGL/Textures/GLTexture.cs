@@ -221,6 +221,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public bool IsQueuedForUpload { get; set; }
 
+        public virtual bool IsFrameBufferTexture => false;
+
         private bool tryGetNextUpload(out ITextureUpload upload)
         {
             lock (uploadQueue)

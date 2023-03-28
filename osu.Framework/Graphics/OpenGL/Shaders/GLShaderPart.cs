@@ -59,7 +59,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
             // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
             for (int i = 0; i < shaderCodes.Count; i++)
-                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
+                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i],
+                    match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
         }
 
         private string loadFile(byte[] bytes, bool mainFile)
@@ -115,6 +116,12 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 {
                     string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
                     internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
+
+                    if (Type == ShaderType.VertexShader)
+                        internalIncludes += loadFile(manager.LoadRaw("Internal/sh_Vertex_Utils.h"), false) + "\n";
+                    else
+                        internalIncludes += loadFile(manager.LoadRaw("Internal/sh_Fragment_Utils.h"), false) + "\n";
+
                     code = internalIncludes + code;
 
                     if (Type == ShaderType.VertexShader)
