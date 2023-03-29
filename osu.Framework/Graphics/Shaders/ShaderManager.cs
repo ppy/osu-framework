@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
 
@@ -32,7 +33,14 @@ namespace osu.Framework.Graphics.Shaders
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
         /// <param name="name">The shader name.</param>
-        public virtual byte[]? LoadRaw(string name) => store.Get(name);
+        public virtual byte[] LoadRaw(string name)
+        {
+            byte[]? bytes = store.Get(name);
+
+            if (bytes == null) throw new FileNotFoundException("Shader file could not be found", name);
+
+            return bytes;
+        }
 
         /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
@@ -62,7 +70,7 @@ namespace osu.Framework.Graphics.Shaders
             if (!bypassCache && partCache.TryGetValue(name, out IShaderPart? part))
                 return part;
 
-            byte[]? rawData = LoadRaw(name);
+            byte[] rawData = LoadRaw(name);
 
             part = renderer.CreateShaderPart(this, name, rawData, partType);
 
