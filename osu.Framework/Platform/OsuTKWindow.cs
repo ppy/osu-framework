@@ -150,8 +150,6 @@ namespace osu.Framework.Platform
             MouseEnter += (_, _) => cursorInWindow.Value = true;
             MouseLeave += (_, _) => cursorInWindow.Value = false;
 
-            supportedWindowModes.AddRange(DefaultSupportedWindowModes);
-
             UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
             graphicsSurface = new OsuTKGraphicsSurface(this);
@@ -257,9 +255,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
-
-        public IBindableList<WindowMode> SupportedWindowModes => supportedWindowModes;
+        public IEnumerable<WindowMode> SupportedWindowModes => DefaultSupportedWindowModes;
 
         public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
 

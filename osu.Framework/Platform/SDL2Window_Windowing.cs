@@ -223,7 +223,7 @@ namespace osu.Framework.Platform
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
-        public IBindableList<WindowMode> SupportedWindowModes { get; }
+        public IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         private bool visible;
 
