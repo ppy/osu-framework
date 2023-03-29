@@ -206,6 +206,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             catch (SpirvCompilationException e)
             {
                 Logger.Error(e, $"🖍️ Failed to initialise shader {name}");
+                throw;
             }
         }
 
