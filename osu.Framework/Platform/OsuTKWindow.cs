@@ -255,11 +255,9 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        public IEnumerable<WindowMode> SupportedWindowModes => DefaultSupportedWindowModes;
+        public abstract IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
-
-        protected abstract IEnumerable<WindowMode> DefaultSupportedWindowModes { get; }
 
         public virtual VSyncMode VSync { get; set; }
 

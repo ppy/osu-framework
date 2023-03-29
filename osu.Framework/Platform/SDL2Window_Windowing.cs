@@ -135,7 +135,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns the window modes that the platform should support by default.
         /// </summary>
-        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes
+        public virtual IEnumerable<WindowMode> SupportedWindowModes
         {
             get
             {
@@ -222,8 +222,6 @@ namespace osu.Framework.Platform
         private readonly BindableBool cursorInWindow = new BindableBool();
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
-
-        public IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         private bool visible;
 

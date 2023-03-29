@@ -53,7 +53,7 @@ namespace osu.Framework.Android
             SafeAreaPadding.BindTo(view.SafeAreaPadding);
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
+        protected override IEnumerable<WindowMode> SupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };
