@@ -132,9 +132,7 @@ namespace osu.Framework.Platform
 
         public WindowMode DefaultWindowMode => RuntimeInfo.IsMobile ? Configuration.WindowMode.Fullscreen : Configuration.WindowMode.Windowed;
 
-        /// <summary>
-        /// Returns the window modes that the platform should support by default.
-        /// </summary>
+        /// <inheritdoc />
         public virtual IEnumerable<WindowMode> SupportedWindowModes
         {
             get
