@@ -108,6 +108,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         private void compile()
         {
+            Logger.Log($"🖍️ Compiling shader {name}...");
+
             Debug.Assert(parts.Length == 2);
 
             VeldridShaderPart vertex = parts.Single(p => p.Type == ShaderPartType.Vertex);
@@ -198,10 +200,13 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                                         ShaderStages.Fragment | ShaderStages.Vertex))));
                     }
                 }
+
+                Logger.Log($"🖍️ Shader {name} compiled!");
             }
             catch (SpirvCompilationException e)
             {
-                Logger.Error(e, $"Failed to initialise shader \"{name}\"");
+                Logger.Error(e, $"🖍️ Failed to initialise shader {name}");
+                throw;
             }
         }
 
