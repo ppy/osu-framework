@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics.OpenGL;
@@ -20,7 +21,7 @@ namespace osu.Framework.Tests.Shaders
 
             // fetch non-existent shader throws an arbitrary exception type.
             // not sure this is the best way to have things (other stores return null instead), but is what it is for now so let's ensure we don't change behaviour.
-            Assert.That(() => manager.Load("unknown", "unknown"), Throws.Exception);
+            Assert.That(() => manager.Load("unknown", "unknown"), Throws.Exception.TypeOf<FileNotFoundException>());
         }
 
         [Test]
