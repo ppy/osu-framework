@@ -11,7 +11,9 @@ namespace osu.Framework.Graphics.Rendering
     public record struct GlobalUniformData
     {
         public UniformBool BackbufferDraw;
-        private readonly UniformPadding12 pad1;
+        public UniformBool IsDepthRangeZeroToOne;
+        public UniformBool IsClipSpaceYInverted;
+        public UniformBool IsUvOriginTopLeft;
 
         public UniformMatrix4 ProjMatrix;
         public UniformMatrix3 ToMaskingSpace;
@@ -32,10 +34,5 @@ namespace osu.Framework.Graphics.Rendering
         public UniformFloat InnerCornerRadius;
         public UniformInt WrapModeS;
         public UniformInt WrapModeT;
-
-        public UniformBool IsDepthRangeZeroToOne;
-        public UniformBool IsClipSpaceYInverted;
-        public UniformBool IsUvOriginTopLeft;
-        private readonly UniformPadding4 pad4;
     }
 }

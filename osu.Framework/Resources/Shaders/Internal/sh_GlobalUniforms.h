@@ -5,6 +5,16 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
     // Whether the backbuffer is currently being drawn to.
     bool g_BackbufferDraw;
 
+    // Whether the depth values range from 0 to 1. If false, depth values range from -1 to 1.
+    // OpenGL uses [-1, 1], Vulkan/D3D/MTL all use [0, 1].
+    bool g_IsDepthRangeZeroToOne;
+
+    // Whether the clip space ranges from -1 (top) to 1 (bottom). If false, the clip space ranges from -1 (bottom) to 1 (top).
+    bool g_IsClipSpaceYInverted;
+
+    // Whether the texture coordinates begin in the top-left of the texture. If false, (0, 0) is the bottom-left texel of the texture.
+    bool g_IsUvOriginTopLeft;
+
     mat4 g_ProjMatrix;
     mat3 g_ToMaskingSpace;
 
@@ -26,14 +36,4 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
     // 3 -> Repeat
     int g_WrapModeS;
     int g_WrapModeT;
-
-    // Whether the depth values range from 0 to 1. If false, depth values range from -1 to 1.
-    // OpenGL uses [-1, 1], Vulkan/D3D/MTL all use [0, 1].
-    bool g_IsDepthRangeZeroToOne;
-
-    // Whether the clip space ranges from -1 (top) to 1 (bottom). If false, the clip space ranges from -1 (bottom) to 1 (top).
-    bool g_IsClipSpaceYInverted;
-
-    // Whether the texture coordinates begin in the top-left of the texture. If false, (0, 0) is the bottom-left texel of the texture.
-    bool g_IsUvOriginTopLeft;
 };
