@@ -16,72 +16,83 @@ namespace osu.Framework.Graphics.Colour
     public struct SRGBColour : IEquatable<SRGBColour>
     {
         /// <summary>
-        /// A <see cref="Color4"/> representation of this colour in the linear space.
-        /// </summary>
-        public Color4 Linear;
-
-        /// <summary>
         /// A <see cref="Color4"/> representation of this colour in the sRGB space.
         /// </summary>
-        public Color4 SRGB => Linear.ToSRGB();
+        public Color4 SRGB;
+
+        /// <summary>
+        /// A <see cref="Color4"/> representation of this colour in the linear space.
+        /// </summary>
+        public Color4 Linear => SRGB.ToLinear();
 
         /// <summary>
         /// The alpha component of this colour.
         /// </summary>
-        public float Alpha => Linear.A;
+        public float Alpha => SRGB.A;
 
-        // todo: these implicit operators breaks the mind and should never exist (https://github.com/ppy/osu-framework/issues/5714).
-        public static implicit operator SRGBColour(Color4 value) => new SRGBColour { Linear = value.ToLinear() };
+        // todo: these implicit operators should be replaced with explicit static methods (https://github.com/ppy/osu-framework/issues/5714).
+        public static implicit operator SRGBColour(Color4 value) => new SRGBColour { SRGB = value };
         public static implicit operator Color4(SRGBColour value) => value.SRGB;
 
-        public static implicit operator SRGBColour(Colour4 value) => new SRGBColour { Linear = value.ToLinear() };
+        public static implicit operator SRGBColour(Colour4 value) => new SRGBColour { SRGB = value };
         public static implicit operator Colour4(SRGBColour value) => value.SRGB;
 
-        /// <summary>
-        /// Multiplies 2 colours in linear colour space.
-        /// </summary>
-        /// <param name="first">First factor.</param>
-        /// <param name="second">Second factor.</param>
-        /// <returns>Product of first and second.</returns>
-        public static SRGBColour operator *(SRGBColour first, SRGBColour second) => new SRGBColour
+        public static SRGBColour operator *(SRGBColour first, SRGBColour second)
         {
-            Linear = new Color4(
-                first.Linear.R * second.Linear.R,
-                first.Linear.G * second.Linear.G,
-                first.Linear.B * second.Linear.B,
-                first.Linear.A * second.Linear.A),
-        };
+            var firstLinear = first.Linear;
+            var secondLinear = second.Linear;
 
-        public static SRGBColour operator *(SRGBColour first, float second) => new SRGBColour
+            return new SRGBColour
+            {
+                SRGB = new Color4(
+                    firstLinear.R * secondLinear.R,
+                    firstLinear.G * secondLinear.G,
+                    firstLinear.B * secondLinear.B,
+                    firstLinear.A * secondLinear.A).ToSRGB(),
+            };
+        }
+
+        public static SRGBColour operator *(SRGBColour first, float second)
         {
-            Linear = new Color4(
-                first.Linear.R * second,
-                first.Linear.G * second,
-                first.Linear.B * second,
-                first.Linear.A * second),
-        };
+            var firstLinear = first.Linear;
+
+            return new SRGBColour
+            {
+                SRGB = new Color4(
+                    firstLinear.R * second,
+                    firstLinear.G * second,
+                    firstLinear.B * second,
+                    firstLinear.A * second).ToSRGB(),
+            };
+        }
 
         public static SRGBColour operator /(SRGBColour first, float second) => first * (1 / second);
 
-        public static SRGBColour operator +(SRGBColour first, SRGBColour second) => new SRGBColour
+        public static SRGBColour operator +(SRGBColour first, SRGBColour second)
         {
-            Linear = new Color4(
-                first.Linear.R + second.Linear.R,
-                first.Linear.G + second.Linear.G,
-                first.Linear.B + second.Linear.B,
-                first.Linear.A + second.Linear.A),
-        };
+            var firstLinear = first.Linear;
+            var secondLinear = second.Linear;
+
+            return new SRGBColour
+            {
+                SRGB = new Color4(
+                    firstLinear.R + secondLinear.R,
+                    firstLinear.G + secondLinear.G,
+                    firstLinear.B + secondLinear.B,
+                    firstLinear.A + secondLinear.A).ToSRGB(),
+            };
+        }
 
         public readonly Vector4 ToVector() => new Vector4(SRGB.R, SRGB.G, SRGB.B, SRGB.A);
-        public static SRGBColour FromVector(Vector4 v) => new SRGBColour { Linear = new Color4(v.X, v.Y, v.Z, v.W).ToLinear() };
+        public static SRGBColour FromVector(Vector4 v) => new SRGBColour { SRGB = new Color4(v.X, v.Y, v.Z, v.W) };
 
         /// <summary>
         /// Multiplies the alpha value of this colour by the given alpha factor.
         /// </summary>
         /// <param name="alpha">The alpha factor to multiply with.</param>
-        public void MultiplyAlpha(float alpha) => Linear.A *= alpha;
+        public void MultiplyAlpha(float alpha) => SRGB.A *= alpha;
 
-        public readonly bool Equals(SRGBColour other) => Linear.Equals(other.Linear);
-        public override readonly string ToString() => Linear.ToString();
+        public readonly bool Equals(SRGBColour other) => SRGB.Equals(other.SRGB);
+        public override string ToString() => $"srgb: {SRGB}, linear: {Linear}";
     }
 }
