@@ -7,64 +7,29 @@ using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Containers;
 
 namespace SampleGame
 {
     public partial class SampleGameGame : Game
     {
+        private Box box = null!;
+
         [BackgroundDependencyLoader]
         private void load()
         {
-            Add(new FillFlowContainer
+            Add(box = new Box
             {
-                AutoSizeAxes = Axes.Both,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Direction = FillDirection.Horizontal,
-                Spacing = new Vector2(5),
-                Children = new Drawable[]
-                {
-                    new BufferedContainer
-                    {
-                        Size = new Vector2(200),
-                        Children = new[]
-                        {
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Tomato
-                            },
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Width = 0.5f,
-                                Colour = Color4.Black,
-                                Alpha = 0.5f
-                            }
-                        }
-                    },
-                    new Container
-                    {
-                        Size = new Vector2(200),
-                        Children = new[]
-                        {
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Tomato
-                            },
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Width = 0.5f,
-                                Colour = Color4.Black,
-                                Alpha = 0.5f
-                            }
-                        }
-                    }
-                }
+                Size = new Vector2(150, 150),
+                Colour = Color4.Tomato
             });
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+            box.Rotation += (float)Time.Elapsed / 10;
         }
     }
 }
