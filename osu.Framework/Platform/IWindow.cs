@@ -116,7 +116,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
         /// </summary>
-        IBindableList<WindowMode> SupportedWindowModes { get; }
+        IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
         /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.
