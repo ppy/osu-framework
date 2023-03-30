@@ -525,6 +525,11 @@ namespace osu.Framework.Graphics.Rendering
                 scissor.Height = -scissor.Height;
             }
 
+            if (!UsingBackbuffer && !IsUvOriginTopLeft)
+            {
+                scissor.Y = Viewport.Height - scissor.Bottom;
+            }
+
             if (Scissor == scissor)
                 return;
 
