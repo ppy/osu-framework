@@ -20,6 +20,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestSceneColourInterpolation : FrameworkTestScene
     {
+        [Resolved]
+        private TextureStore textures { get; set; }
+
         [Test]
         public void TestColourInterpolatesInLinearSpace()
         {
@@ -40,27 +43,23 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Text = "d3.interpolateRgb.gamma(2.2)(\"red\", \"blue\")"
-                        },
-                        new SampleSpriteD3
-                        {
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Size = new Vector2(750f, 50f),
+                            Text = "Linear space (gamma-correct)",
+                            Font = FrameworkFont.Regular.With(size: 24),
+                            Margin = new MarginPadding { Bottom = 10f },
                         },
                         new SpriteText
                         {
-                            Margin = new MarginPadding { Top = 20f },
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Text = $"{nameof(ColourInfo)}.{nameof(ColourInfo.GradientHorizontal)}(Blue, Red)"
+                            Text = "d3.interpolateRgb.gamma(2.2)(\"red\", \"blue\")"
                         },
-                        new Box
+                        new Sprite
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
                             Size = new Vector2(750f, 50f),
-                            Colour = ColourInfo.GradientHorizontal(Color4.Red, Color4.Blue),
+                            // Taken from https://observablehq.com/@d3/working-with-color
+                            Texture = textures.Get("d3-colour-interpolation"),
                         },
                         new SpriteText
                         {
@@ -81,6 +80,41 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 RelativeSizeAxes = Axes.Y,
                                 Colour = Interpolation.ValueAt(i, Color4.Red, Color4.Blue, 0, 750),
                             }),
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Text = "sRGB space (gamma-incorrect)",
+                            Font = FrameworkFont.Regular.With(size: 24),
+                            Margin = new MarginPadding { Top = 50f, Bottom = 10f },
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Text = "Figma design",
+                        },
+                        new Sprite
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Size = new Vector2(750f, 50f),
+                            Texture = textures.Get("figma-colour-interpolation"),
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Margin = new MarginPadding { Top = 20f },
+                            Text = $"{nameof(ColourInfo)}.{nameof(ColourInfo.GradientHorizontal)}(Blue, Red)"
+                        },
+                        new Box
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Size = new Vector2(750f, 50f),
+                            Colour = ColourInfo.GradientHorizontal(Color4.Red, Color4.Blue),
                         },
                     }
                 };
