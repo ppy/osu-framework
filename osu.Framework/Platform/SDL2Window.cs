@@ -189,7 +189,6 @@ namespace osu.Framework.Platform
             SDL.SDL_LogSetOutputFunction(logOutputDelegate = logOutput, IntPtr.Zero);
 
             graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
-            SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
             CursorStateBindable.ValueChanged += evt =>
             {
