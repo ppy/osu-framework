@@ -10,8 +10,8 @@ namespace osu.Framework.Graphics.Colour
 {
     /// <summary>
     /// A wrapper struct around Color4 that takes care of converting between sRGB and linear colour spaces.
-    /// Internally this struct stores the colour in linear space, which is exposed by the <see cref="Linear"/> member.
-    /// This struct converts to sRGB space by using the <see cref="SRGB"/> member.
+    /// Internally this struct stores the colour in sRGB space, which is exposed by the <see cref="SRGB"/> member.
+    /// This struct converts to linear space by using the <see cref="Linear"/> member.
     /// </summary>
     public struct SRGBColour : IEquatable<SRGBColour>
     {
