@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Margin = new MarginPadding { Top = 20f },
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
-                        Text = $"{nameof(Interpolation)}.{nameof(Interpolation.ValueAt)}(Red, Red) with 1px boxes",
+                        Text = $"{nameof(Interpolation)}.{nameof(Interpolation.ValueAt)}(Red, Blue) with 1px boxes",
                     },
                     interpolatingLines = new FillFlowContainer
                     {
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         Margin = new MarginPadding { Top = 20f },
-                        Text = $"{nameof(ColourInfo)}.{nameof(ColourInfo.GradientHorizontal)}(Blue, Red)"
+                        Text = $"{nameof(ColourInfo)}.{nameof(ColourInfo.GradientHorizontal)}(Red, Blue)"
                     },
                     new Box
                     {
