@@ -525,6 +525,7 @@ namespace osu.Framework.Graphics.Rendering
                 scissor.Height = -scissor.Height;
             }
 
+            // compare: requiresFramebufferInvert flag in sh_Vertex_output.h.
             if (!UsingBackbuffer && !IsUvOriginTopLeft)
             {
                 scissor.Y = Viewport.Height - scissor.Bottom;
