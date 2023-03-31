@@ -119,7 +119,7 @@ namespace osu.Framework.Platform
                         return wmInfo.info.uikit.window;
 
                     case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
-                        return wmInfo.info.wl.shell_surface;
+                        return wmInfo.info.wl.surface;
 
                     case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_ANDROID:
                         return wmInfo.info.android.window;
