@@ -88,8 +88,6 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 HasMainSwapchain = true,
                 SwapchainDepthFormat = PixelFormat.R16_UNorm,
-                // todo: we may want to use this over our shader-based toLinear/toSRGB correction functions.
-                // SwapchainSrgbFormat = true,
                 SyncToVerticalBlank = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
             };

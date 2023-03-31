@@ -230,10 +230,10 @@ namespace osu.Framework.Graphics.Colour
         {
             get
             {
-                float max = TopLeft.Linear.A;
-                if (TopRight.Linear.A > max) max = TopRight.Linear.A;
-                if (BottomLeft.Linear.A > max) max = BottomLeft.Linear.A;
-                if (BottomRight.Linear.A > max) max = BottomRight.Linear.A;
+                float max = TopLeft.Alpha;
+                if (TopRight.Alpha > max) max = TopRight.Alpha;
+                if (BottomLeft.Alpha > max) max = BottomLeft.Alpha;
+                if (BottomRight.Alpha > max) max = BottomRight.Alpha;
 
                 return max;
             }
@@ -246,10 +246,10 @@ namespace osu.Framework.Graphics.Colour
         {
             get
             {
-                float min = TopLeft.Linear.A;
-                if (TopRight.Linear.A < min) min = TopRight.Linear.A;
-                if (BottomLeft.Linear.A < min) min = BottomLeft.Linear.A;
-                if (BottomRight.Linear.A < min) min = BottomRight.Linear.A;
+                float min = TopLeft.Alpha;
+                if (TopRight.Alpha < min) min = TopRight.Alpha;
+                if (BottomLeft.Alpha < min) min = BottomLeft.Alpha;
+                if (BottomRight.Alpha < min) min = BottomRight.Alpha;
 
                 return min;
             }
