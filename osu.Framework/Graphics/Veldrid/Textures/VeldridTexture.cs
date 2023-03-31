@@ -274,7 +274,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             {
                 texture?.Dispose();
 
-                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm_SRgb, Usages);
+                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures

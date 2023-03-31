@@ -40,7 +40,10 @@ lowp vec4 blur(int radius, highp vec2 direction, mediump vec2 texCoord, mediump 
 			break;
 	}
 
-    return toSRGB(sum / totalFactor);
+	// todo: workaround for a SPIR-V bug (https://github.com/ppy/osu-framework/issues/5719)
+	float one = g_BackbufferDraw ? 0 : 1;
+
+	return sum / totalFactor * one;
 }
 
 void main(void)
