@@ -2,9 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using AVFoundation;
 using Foundation;
 using ManagedBass;
@@ -12,8 +10,6 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using ObjCRuntime;
 using SDL2;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 using Veldrid.SPIRV;
 
 namespace osu.Framework.iOS
@@ -29,8 +25,6 @@ namespace osu.Framework.iOS
 
         public static void Main(Game target)
         {
-            aotImageSharp();
-
             NativeLibrary.SetDllImportResolver(typeof(Bass).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass.framework/bass", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassFx).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass_fx.framework/bass_fx", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassMix).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bassmix.framework/bassmix", assembly, path));
@@ -51,20 +45,6 @@ namespace osu.Framework.iOS
             host.Run(game);
 
             return 0;
-        }
-
-        private static void aotImageSharp()
-        {
-            Unsafe.SizeOf<Rgba32>();
-            Unsafe.SizeOf<long>();
-
-            try
-            {
-                new PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null, CancellationToken.None);
-            }
-            catch
-            {
-            }
         }
 
         private class OutputVolumeObserver : NSObject
