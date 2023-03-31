@@ -132,10 +132,8 @@ namespace osu.Framework.Platform
 
         public WindowMode DefaultWindowMode => RuntimeInfo.IsMobile ? Configuration.WindowMode.Fullscreen : Configuration.WindowMode.Windowed;
 
-        /// <summary>
-        /// Returns the window modes that the platform should support by default.
-        /// </summary>
-        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes
+        /// <inheritdoc />
+        public virtual IEnumerable<WindowMode> SupportedWindowModes
         {
             get
             {
@@ -222,8 +220,6 @@ namespace osu.Framework.Platform
         private readonly BindableBool cursorInWindow = new BindableBool();
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
-
-        public IBindableList<WindowMode> SupportedWindowModes { get; }
 
         private bool visible;
 

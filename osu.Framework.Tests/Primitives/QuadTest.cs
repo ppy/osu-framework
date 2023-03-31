@@ -122,6 +122,47 @@ namespace osu.Framework.Tests.Primitives
             Assert.That(quad.Contains(new Vector2(0, 0)), Is.True);
         }
 
+        [Test]
+        public void TestFromNegativeSizedRectangle()
+        {
+            var rectangle = new RectangleF(-5, 5, 10, -10);
+            var quad = Quad.FromRectangle(rectangle);
+
+            Assert.That(quad.Contains(new Vector2(0, 0)), Is.True);
+
+            Assert.That(quad.Contains(new Vector2(-5, -5)), Is.True);
+            Assert.That(quad.Contains(new Vector2(-5, 5)), Is.True);
+            Assert.That(quad.Contains(new Vector2(5, -5)), Is.True);
+            Assert.That(quad.Contains(new Vector2(5, 5)), Is.True);
+
+            Assert.That(quad.Contains(new Vector2(-15, -15)), Is.False);
+            Assert.That(quad.Contains(new Vector2(-15, 15)), Is.False);
+            Assert.That(quad.Contains(new Vector2(15, -15)), Is.False);
+            Assert.That(quad.Contains(new Vector2(15, 15)), Is.False);
+        }
+
+        [Test]
+        public void TestFlippedQuad()
+        {
+            var quad = new Quad(-5, -5, 10, 10);
+            quad *= new Matrix3(
+                -1, 0, 0,
+                0, 1, 0,
+                0, 0, 1);
+
+            Assert.That(quad.Contains(new Vector2(0, 0)), Is.True);
+
+            Assert.That(quad.Contains(new Vector2(-5, -5)), Is.True);
+            Assert.That(quad.Contains(new Vector2(-5, 5)), Is.True);
+            Assert.That(quad.Contains(new Vector2(5, -5)), Is.True);
+            Assert.That(quad.Contains(new Vector2(5, 5)), Is.True);
+
+            Assert.That(quad.Contains(new Vector2(-15, -15)), Is.False);
+            Assert.That(quad.Contains(new Vector2(-15, 15)), Is.False);
+            Assert.That(quad.Contains(new Vector2(15, -15)), Is.False);
+            Assert.That(quad.Contains(new Vector2(15, 15)), Is.False);
+        }
+
         private class AreaTestData
         {
             public static IEnumerable TestCases
