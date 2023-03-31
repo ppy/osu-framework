@@ -644,7 +644,7 @@ namespace osu.Framework.Platform
             }
             else
             {
-                Logger.Log($"Failed to get {type} display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}", level: LogLevel.Error);
+                Logger.Log($"Failed to get {type} display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}");
                 displayMode = default;
                 return false;
             }
