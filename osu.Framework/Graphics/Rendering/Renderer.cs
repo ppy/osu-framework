@@ -525,17 +525,16 @@ namespace osu.Framework.Graphics.Rendering
                 scissor.Height = -scissor.Height;
             }
 
-            // compare: requiresFramebufferInvert flag in sh_Vertex_output.h.
-            if (!UsingBackbuffer && !IsUvOriginTopLeft)
-            {
-                scissor.Y = Viewport.Height - scissor.Bottom;
-            }
-
             if (Scissor == scissor)
                 return;
 
+            var compensatedScissor = scissor;
+            if (!UsingBackbuffer && !IsUvOriginTopLeft)
+                compensatedScissor.Y = Viewport.Height - scissor.Bottom;
+
             FlushCurrentBatch(FlushBatchSource.SetScissor);
-            SetScissorImplementation(scissor);
+            SetScissorImplementation(compensatedScissor);
+            // do not expose the implementation detail of flipping the scissor box to Scissor readers.
             Scissor = scissor;
         }
 
