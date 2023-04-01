@@ -823,16 +823,15 @@ namespace osu.Framework.Platform
             }
 
             // See https://github.com/ppy/osu/issues/23003
-            // See https://github.com/ppy/osu/issues/22978
             if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
             {
                 // Non-veldrid "known-to-work".
                 yield return RendererType.OpenGLLegacy;
-
-                // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
-                // but will never be preferred as OpenGLLegacy will always work.
-                yield return RendererType.OpenGL;
             }
+
+            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
+            // but will never be preferred as OpenGLLegacy will always work.
+            yield return RendererType.OpenGL;
 
             if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
         }

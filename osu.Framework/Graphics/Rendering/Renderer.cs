@@ -529,8 +529,16 @@ namespace osu.Framework.Graphics.Rendering
             if (Scissor == scissor)
                 return;
 
+            // when rendering to a framebuffer on a backend which has the UV origin set to bottom-left (OpenGL),
+            // vertex positions are flipped vertically in sh_Vertex_Output.h to match that UV origin.
+            // for scissoring to continue to work correctly with that, the scissor box has to be inverted too.
+            var compensatedScissor = scissor;
+            if (!UsingBackbuffer && !IsUvOriginTopLeft)
+                compensatedScissor.Y = Viewport.Height - scissor.Bottom;
+
             FlushCurrentBatch(FlushBatchSource.SetScissor);
-            SetScissorImplementation(scissor);
+            SetScissorImplementation(compensatedScissor);
+            // do not expose the implementation detail of flipping the scissor box to Scissor readers.
             Scissor = scissor;
         }
 
