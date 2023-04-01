@@ -473,7 +473,7 @@ namespace osu.Framework.Graphics.Veldrid
             return instance;
         }
 
-        public override unsafe Image<Rgba32> TakeScreenshot()
+        protected internal override unsafe Image<Rgba32> TakeScreenshot()
         {
             var texture = Device.SwapchainFramebuffer.ColorTargets[0].Target;
 

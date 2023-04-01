@@ -342,7 +342,7 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.Disable(EnableCap.StencilTest);
         }
 
-        public override Image<Rgba32> TakeScreenshot()
+        protected internal override Image<Rgba32> TakeScreenshot()
         {
             var size = ((IGraphicsSurface)openGLSurface).GetDrawableSize();
             var data = MemoryAllocator.Default.Allocate<Rgba32>(size.Width * size.Height);

@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
         /// </summary>
-        Image<Rgba32> TakeScreenshot();
+        protected internal Image<Rgba32> TakeScreenshot();
 
         /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
