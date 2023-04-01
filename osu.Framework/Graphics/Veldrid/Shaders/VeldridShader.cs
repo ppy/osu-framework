@@ -127,11 +127,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     Array.Empty<byte>(),
                     renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
-                // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under Vulkan.
+                // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under other backends.
                 VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
                     Encoding.UTF8.GetBytes(vertex.GetRawText()),
                     Encoding.UTF8.GetBytes(fragment.GetRawText()),
-                    CrossCompileTarget.GLSL);
+                    RuntimeInfo.IsMobile ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
 
                 if (renderer.SurfaceType == GraphicsSurfaceType.Vulkan)
                 {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -20,6 +21,7 @@ using osuTK;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using Veldrid.OpenGL;
+using Veldrid.OpenGLBinding;
 using PixelFormat = Veldrid.PixelFormat;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
@@ -153,8 +155,7 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 case GraphicsSurfaceType.OpenGL:
                     var openGLGraphics = (IOpenGLGraphicsSurface)graphicsSurface;
-
-                    Device = GraphicsDevice.CreateOpenGL(options, new OpenGLPlatformInfo(
+                    var openGLInfo = new OpenGLPlatformInfo(
                         openGLContextHandle: openGLGraphics.WindowContext,
                         getProcAddress: openGLGraphics.GetProcAddress,
                         makeCurrent: openGLGraphics.MakeCurrent,
@@ -162,8 +163,11 @@ namespace osu.Framework.Graphics.Veldrid
                         clearCurrentContext: openGLGraphics.ClearCurrent,
                         deleteContext: openGLGraphics.DeleteContext,
                         swapBuffers: openGLGraphics.SwapBuffers,
-                        setSyncToVerticalBlank: v => openGLGraphics.VerticalSync = v), swapchain.Width, swapchain.Height);
+                        setSyncToVerticalBlank: v => openGLGraphics.VerticalSync = v,
+                        setSwapchainFramebuffer: () => OpenGLNative.glBindFramebuffer(FramebufferTarget.Framebuffer, (uint)openGLGraphics.BackbufferFramebuffer.AsNonNull()),
+                        null);
 
+                    Device = GraphicsDevice.CreateOpenGL(options, openGLInfo, swapchain.Width, swapchain.Height);
                     Device.LogOpenGL(out maxTextureSize);
                     break;
 
