@@ -22,7 +22,9 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -309,6 +311,8 @@ namespace osu.Framework.Graphics.Rendering
             else
                 disposalAction.Invoke(target);
         }
+
+        public abstract Image<Rgba32> TakeScreenshot();
 
         /// <summary>
         /// Sets the current draw depth.

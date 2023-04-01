@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -18,7 +19,11 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -335,6 +340,18 @@ namespace osu.Framework.Graphics.OpenGL
             }
             else
                 GL.Disable(EnableCap.StencilTest);
+        }
+
+        public override Image<Rgba32> TakeScreenshot()
+        {
+            var size = ((IGraphicsSurface)openGLSurface).GetDrawableSize();
+            var data = MemoryAllocator.Default.Allocate<Rgba32>(size.Width * size.Height);
+
+            GL.ReadPixels(0, 0, size.Width, size.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
+
+            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, size.Width, size.Height);
+            image.Mutate(i => i.Flip(FlipMode.Vertical));
+            return image;
         }
 
         protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)

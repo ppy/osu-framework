@@ -12,13 +12,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
-using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -40,15 +38,12 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
-using Image = SixLabors.ImageSharp.Image;
-using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
@@ -562,17 +557,11 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                int width = Window.ClientSize.Width;
-                int height = Window.ClientSize.Height;
-                var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
+                Image<Rgba32> image = null;
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    Renderer.MakeCurrent();
-
-                    // todo: add proper renderer API for screenshots and veldrid support
-                    if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL)
-                        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
+                    image = Renderer.TakeScreenshot();
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
@@ -582,9 +571,6 @@ namespace osu.Framework.Platform
                 // ReSharper disable once AccessToDisposedClosure
                 if (!await Task.Run(() => completionEvent.Wait(5000)).ConfigureAwait(false))
                     throw new TimeoutException("Screenshot data did not arrive in a timely fashion");
-
-                var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
-                image.Mutate(c => c.Flip(FlipMode.Vertical));
 
                 return image;
             }

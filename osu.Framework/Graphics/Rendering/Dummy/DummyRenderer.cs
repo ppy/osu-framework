@@ -9,7 +9,9 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
@@ -173,6 +175,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public void ScheduleExpensiveOperation(ScheduledDelegate operation) => operation.RunTask();
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target) => disposalAction(target);
+
+        public Image<Rgba32> TakeScreenshot()
+            => new Image<Rgba32>(1366, 768);
 
         IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
