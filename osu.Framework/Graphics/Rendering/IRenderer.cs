@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using SixLabors.ImageSharp;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -326,6 +327,11 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="disposalAction">The disposal action.</param>
         /// <param name="target">The target to be disposed.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
+
+        /// <summary>
+        /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
+        /// </summary>
+        protected internal Image<Rgba32> TakeScreenshot();
 
         /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
