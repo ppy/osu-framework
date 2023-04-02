@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -167,7 +166,7 @@ namespace osu.Framework.Graphics.Veldrid
                         setSwapchainFramebuffer: () =>
                         {
                             if (openGLGraphics.BackbufferFramebuffer != null)
-                                OpenGLNative.glBindFramebuffer(FramebufferTarget.Framebuffer, (uint)openGLGraphics.BackbufferFramebuffer.AsNonNull());
+                                OpenGLNative.glBindFramebuffer(FramebufferTarget.Framebuffer, (uint)openGLGraphics.BackbufferFramebuffer);
                         },
                         null);
 
