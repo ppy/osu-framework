@@ -167,11 +167,7 @@ namespace osu.Framework.Graphics.Veldrid
                         deleteContext: openGLGraphics.DeleteContext,
                         swapBuffers: openGLGraphics.SwapBuffers,
                         setSyncToVerticalBlank: v => openGLGraphics.VerticalSync = v,
-                        setSwapchainFramebuffer: () =>
-                        {
-                            if (openGLGraphics.BackbufferFramebuffer != null)
-                                OpenGLNative.glBindFramebuffer(FramebufferTarget.Framebuffer, (uint)openGLGraphics.BackbufferFramebuffer);
-                        },
+                        setSwapchainFramebuffer: () => OpenGLNative.glBindFramebuffer(FramebufferTarget.Framebuffer, (uint)(openGLGraphics.BackbufferFramebuffer ?? 0)),
                         null);
 
                     Device = GraphicsDevice.CreateOpenGL(options, openGLInfo, swapchain.Width, swapchain.Height);
