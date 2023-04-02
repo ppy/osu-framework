@@ -22,7 +22,9 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -309,6 +311,11 @@ namespace osu.Framework.Graphics.Rendering
             else
                 disposalAction.Invoke(target);
         }
+
+        /// <summary>
+        /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
+        /// </summary>
+        protected internal abstract Image<Rgba32> TakeScreenshot();
 
         /// <summary>
         /// Sets the current draw depth.
@@ -1108,6 +1115,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
+        Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(manager, name, rawData, partType);
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!);
 

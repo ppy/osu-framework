@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -18,10 +19,13 @@ using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
 using osuTK;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using Veldrid;
 using Veldrid.OpenGL;
 using Veldrid.OpenGLBinding;
+using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = Veldrid.PixelFormat;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
@@ -470,6 +474,68 @@ namespace osu.Framework.Graphics.Veldrid
             }
 
             return instance;
+        }
+
+        protected internal override unsafe Image<Rgba32> TakeScreenshot()
+        {
+            var texture = Device.SwapchainFramebuffer.ColorTargets[0].Target;
+
+            switch (graphicsSurface.Type)
+            {
+                // Veldrid doesn't support copying content from a swapchain framebuffer texture on OpenGL.
+                // OpenGL already provides a method for reading pixels directly from the active framebuffer, so let's just use that for now.
+                case GraphicsSurfaceType.OpenGL:
+                {
+                    var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>((int)(texture.Width * texture.Height));
+
+                    var info = Device.GetOpenGLInfo();
+
+                    info.ExecuteOnGLThread(() =>
+                    {
+                        fixed (Rgba32* data = pixelData.Memory.Span)
+                            OpenGLNative.glReadPixels(0, 0, texture.Width, texture.Height, GLPixelFormat.Rgba, GLPixelType.UnsignedByte, data);
+                    });
+
+                    var glImage = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, (int)texture.Width, (int)texture.Height);
+                    glImage.Mutate(i => i.Flip(FlipMode.Vertical));
+                    return glImage;
+                }
+
+                default:
+                {
+                    uint width = texture.Width;
+                    uint height = texture.Height;
+
+                    using var staging = Factory.CreateTexture(TextureDescription.Texture2D(width, height, 1, 1, texture.Format, TextureUsage.Staging));
+                    using var commands = Factory.CreateCommandList();
+                    using var fence = Factory.CreateFence(false);
+
+                    commands.Begin();
+                    commands.CopyTexture(texture, staging);
+                    commands.End();
+                    Device.SubmitCommands(commands, fence);
+                    Device.WaitForFence(fence);
+
+                    var resource = Device.Map(staging, MapMode.Read);
+                    var span = new Span<Bgra32>(resource.Data.ToPointer(), (int)(resource.SizeInBytes / Marshal.SizeOf<Bgra32>()));
+
+                    // on some backends (Direct3D11, in particular), the staging resource data may contain padding at the end of each row for alignment,
+                    // which means that for the image width, we cannot use the framebuffer's width raw.
+                    using var image = Image.LoadPixelData<Bgra32>(span, (int)(resource.RowPitch / Marshal.SizeOf<Bgra32>()), (int)height);
+
+                    if (!Device.IsUvOriginTopLeft)
+                        image.Mutate(i => i.Flip(FlipMode.Vertical));
+
+                    // if the image width doesn't match the framebuffer, it means that we still have padding at the end of each row mentioned above to get rid of.
+                    // snip it to get a clean image.
+                    if (image.Width != width)
+                        image.Mutate(i => i.Crop((int)width, (int)height));
+
+                    Device.Unmap(staging);
+
+                    return image.CloneAs<Rgba32>();
+                }
+            }
         }
 
         protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
