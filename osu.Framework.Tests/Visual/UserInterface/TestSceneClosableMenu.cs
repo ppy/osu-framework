@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestClickItemWithActionClosesMenus()
+        public void TestClickItemWithoutActionDoesNotCloseMenus()
         {
             AddStep("click item", () => ClickItem(0, 0));
             AddStep("click item", () => ClickItem(1, 0));
@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestClickItemWithoutActionDoesNotCloseMenus()
+        public void TestClickItemWithActionClosesMenus()
         {
             AddStep("click item", () => ClickItem(0, 0));
             AddStep("click item", () => ClickItem(1, 1));
