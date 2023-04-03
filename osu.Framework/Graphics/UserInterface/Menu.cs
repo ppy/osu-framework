@@ -702,6 +702,19 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Item = item;
 
+                // Edge case where action might be changed while item is already hovered.
+                Item.Action.BindDisabledChanged(_ =>
+                {
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
+                });
+
+                Item.Action.BindValueChanged(_ =>
+                {
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
+                });
+
                 InternalChildren = new[]
                 {
                     Background = CreateBackground(),
