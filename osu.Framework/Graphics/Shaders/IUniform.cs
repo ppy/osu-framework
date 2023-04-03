@@ -14,11 +14,6 @@ namespace osu.Framework.Graphics.Shaders
         IShader Owner { get; }
 
         /// <summary>
-        /// The name of this uniform as declared by the shader, or <see cref="GlobalPropertyManager"/> for global uniforms.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
         /// The location of this uniform in relation to all other uniforms in the shader.
         /// </summary>
         /// <remarks>

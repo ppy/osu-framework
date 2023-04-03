@@ -342,7 +342,7 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that baseline alignment adjustments are done correctly on a builder which has <see cref="TextBuilder.useFontSizeAsHeight"/> disabled,
+        /// Tests that baseline alignment adjustments are done correctly on a builder which has TextBuilder.useFontSizeAsHeight disabled,
         /// and only affect the line the new character was placed on.
         /// </summary>
         [Test]
@@ -469,7 +469,7 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that removing a character behaves correctly on a builder which has <see cref="TextBuilder.useFontSizeAsHeight"/> disabled.
+        /// Tests that removing a character behaves correctly on a builder which has TextBuilder.useFontSizeAsHeight disabled.
         /// </summary>
         [Test]
         public void TestRemoveCharacterWhenNotUsingFontSizeAsHeight()
@@ -636,7 +636,7 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Retrieves the baseline of a glyph when <see cref="TextBuilder.useFontSizeAsHeight"/> is turned off.
+        /// Retrieves the baseline of a glyph when TextBuilder.useFontSizeAsHeight is turned off.
         /// </summary>
         /// <param name="glyph">The glyph to return the trimmed baseline for.</param>
         private float getTrimmedBaseline(ITexturedCharacterGlyph glyph) => glyph.Baseline - glyph.YOffset;

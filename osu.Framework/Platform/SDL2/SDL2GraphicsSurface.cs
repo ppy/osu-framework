@@ -15,7 +15,7 @@ namespace osu.Framework.Platform.SDL2
 {
     public class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
-        private readonly SDL2DesktopWindow window;
+        private readonly SDL2Window window;
 
         private IntPtr context;
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Platform.SDL2
 
         public GraphicsSurfaceType Type { get; }
 
-        public SDL2GraphicsSurface(SDL2DesktopWindow window, GraphicsSurfaceType surfaceType)
+        public SDL2GraphicsSurface(SDL2Window window, GraphicsSurfaceType surfaceType)
         {
             this.window = window;
             Type = surfaceType;
@@ -32,6 +32,11 @@ namespace osu.Framework.Platform.SDL2
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
+                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_RED_SIZE, 8);
+                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
+                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
+                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_ACCUM_ALPHA_SIZE, 0);
+                    SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 16);
                     SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
                     break;
 
@@ -83,7 +88,22 @@ namespace osu.Framework.Platform.SDL2
 
         private void initialiseOpenGL()
         {
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+            if (RuntimeInfo.IsMobile)
+            {
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
+
+                // Minimum OpenGL version for ES profile:
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+            }
+            else
+            {
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+
+                // Minimum OpenGL version for core profile:
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
+            }
 
             context = SDL.SDL_GL_CreateContext(window.SDLWindowHandle);
 
@@ -149,10 +169,33 @@ namespace osu.Framework.Platform.SDL2
             return ret;
         }
 
+        int? IOpenGLGraphicsSurface.BackbufferFramebuffer
+        {
+            get
+            {
+                if (window.SDLWindowHandle == IntPtr.Zero)
+                    return null;
+
+                var wmInfo = window.GetWindowSystemInformation();
+
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
+                        return (int)wmInfo.info.uikit.framebuffer;
+                }
+
+                return null;
+            }
+        }
+
         bool IOpenGLGraphicsSurface.VerticalSync
         {
             get => SDL.SDL_GL_GetSwapInterval() != 0;
-            set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+            set
+            {
+                if (RuntimeInfo.IsDesktop)
+                    SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+            }
         }
 
         IntPtr IOpenGLGraphicsSurface.WindowContext => context;

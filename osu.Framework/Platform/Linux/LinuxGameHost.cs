@@ -1,14 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using SDL2;
 using osu.Framework.Input;
-using osu.Framework.Platform.Linux.SDL2;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -23,7 +20,7 @@ namespace osu.Framework.Platform.Linux
         /// </remarks>
         public readonly bool BypassCompositor;
 
-        internal LinuxGameHost(string gameName, HostOptions options)
+        internal LinuxGameHost(string gameName, HostOptions? options)
             : base(gameName, options)
         {
             BypassCompositor = Options.BypassCompositor;
@@ -35,13 +32,11 @@ namespace osu.Framework.Platform.Linux
             base.SetupForRun();
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
-
         public override IEnumerable<string> UserStoragePaths
         {
             get
             {
-                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                string? xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!string.IsNullOrEmpty(xdg))
                     yield return xdg;
@@ -53,7 +48,7 @@ namespace osu.Framework.Platform.Linux
             }
         }
 
-        public override Clipboard GetClipboard() => new SDL2Clipboard();
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
     }

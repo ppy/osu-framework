@@ -527,7 +527,9 @@ namespace osu.Framework.Graphics.Sprites
                 screenSpaceCharactersBacking.Add(new ScreenSpaceCharacterPart
                 {
                     DrawQuad = ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
-                    InflationPercentage = Vector2.Divide(inflationAmount, character.DrawRectangle.Size),
+                    InflationPercentage = new Vector2(
+                        character.DrawRectangle.Size.X == 0 ? 0 : inflationAmount.X / character.DrawRectangle.Size.X,
+                        character.DrawRectangle.Size.Y == 0 ? 0 : inflationAmount.Y / character.DrawRectangle.Size.Y),
                     Texture = character.Texture
                 });
             }

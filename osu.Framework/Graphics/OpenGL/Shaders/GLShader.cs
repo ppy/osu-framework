@@ -6,10 +6,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Graphics.ES30;
+using Veldrid;
+using Veldrid.SPIRV;
 using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
@@ -18,6 +21,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     {
         private readonly GLRenderer renderer;
         private readonly string name;
+        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
         private readonly GLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
@@ -26,10 +30,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
+        private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
+        private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
+
         /// <summary>
-        /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
+        /// Holds all <see cref="uniformBlocks"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
         /// </summary>
-        private IUniform[] uniformsValues;
+        private readonly List<GLUniformBlock> uniformBlocksValues = new List<GLUniformBlock>();
 
         public bool IsLoaded { get; private set; }
 
@@ -37,12 +44,36 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int programID = -1;
 
-        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
+        private readonly GLShaderPart vertexPart;
+        private readonly GLShaderPart fragmentPart;
+        private readonly VertexFragmentCompilationResult crossCompileResult;
+
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
         {
             this.renderer = renderer;
             this.name = name;
+            this.globalUniformBuffer = globalUniformBuffer;
             this.parts = parts.Where(p => p != null).ToArray();
 
+            vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
+            fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
+
+            // This part of the compilation is quite CPU expensive.
+            // Running it in the constructor will ensure that BDL usages can correctly offload this as an async operation.
+            try
+            {
+                // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
+                crossCompileResult = SpirvCompilation.CompileVertexFragment(
+                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
+                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                    renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
+            }
+            catch (Exception e)
+            {
+                throw new ProgramLinkingFailedException(name, e.ToString());
+            }
+
+            // Final GPU level compilation needs to be run on the draw thread.
             renderer.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
 
@@ -64,9 +95,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             IsLoaded = true;
 
-            SetupUniforms();
-
-            GlobalPropertyManager.Register(this);
+            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
         }
 
         internal void EnsureShaderCompiled()
@@ -90,8 +119,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             renderer.BindShader(this);
 
-            foreach (var uniform in uniformsValues)
-                uniform?.Update();
+            for (int i = 0; i < textureUniforms.Count; i++)
+                textureUniforms[i].Update();
+
+            foreach (var block in uniformBlocksValues)
+                block?.Bind();
 
             IsBound = true;
         }
@@ -117,16 +149,23 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
+        public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+
+            EnsureShaderCompiled();
+
+            uniformBlocks[blockName].Assign(buffer);
+        }
+
         private protected virtual bool CompileInternal()
         {
-            foreach (GLShaderPart p in parts)
-            {
-                if (!p.Compiled) p.Compile();
-                GL.AttachShader(this, p);
+            vertexPart.Compile(crossCompileResult.VertexShader);
+            fragmentPart.Compile(crossCompileResult.FragmentShader);
 
-                foreach (ShaderInputInfo input in p.ShaderInputs)
-                    GL.BindAttribLocation(this, input.Location, input.Name);
-            }
+            foreach (GLShaderPart p in parts)
+                GL.AttachShader(this, p);
 
             GL.LinkProgram(this);
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out int linkResult);
@@ -134,76 +173,34 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             foreach (var part in parts)
                 GL.DetachShader(this, part);
 
-            return linkResult == 1;
-        }
+            if (linkResult != 1)
+                return false;
 
-        private protected virtual void SetupUniforms()
-        {
-            GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
+            int blockBindingIndex = 0;
+            int textureIndex = 0;
 
-            uniformsValues = new IUniform[uniformCount];
-
-            for (int i = 0; i < uniformCount; i++)
+            foreach (ResourceLayoutDescription layout in crossCompileResult.Reflection.ResourceLayouts)
             {
-                GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
+                if (layout.Elements.Length == 0)
+                    continue;
 
-                IUniform uniform;
-
-                switch (type)
+                if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                 {
-                    case ActiveUniformType.Bool:
-                        uniform = createUniform<bool>(uniformName);
-                        break;
-
-                    case ActiveUniformType.Float:
-                        uniform = createUniform<float>(uniformName);
-                        break;
-
-                    case ActiveUniformType.Int:
-                        uniform = createUniform<int>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatMat3:
-                        uniform = createUniform<Matrix3>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatMat4:
-                        uniform = createUniform<Matrix4>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatVec2:
-                        uniform = createUniform<Vector2>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatVec3:
-                        uniform = createUniform<Vector3>(uniformName);
-                        break;
-
-                    case ActiveUniformType.FloatVec4:
-                        uniform = createUniform<Vector4>(uniformName);
-                        break;
-
-                    case ActiveUniformType.Sampler2D:
-                        uniform = createUniform<int>(uniformName);
-                        break;
-
-                    default:
-                        continue;
+                    var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+                    textureUniforms.Add(new Uniform<int>(renderer, this, textureElement.Name, GL.GetUniformLocation(this, textureElement.Name))
+                    {
+                        Value = textureIndex++
+                    });
                 }
-
-                Uniforms.Add(uniformName, uniform);
-                uniformsValues[i] = uniform;
+                else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
+                {
+                    var block = new GLUniformBlock(renderer, this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
+                    uniformBlocks[layout.Elements[0].Name] = block;
+                    uniformBlocksValues.Add(block);
+                }
             }
 
-            IUniform createUniform<T>(string name)
-                where T : unmanaged, IEquatable<T>
-            {
-                int location = GL.GetUniformLocation(this, name);
-
-                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(renderer, this, name, location);
-
-                return new Uniform<T>(renderer, this, name, location);
-            }
+            return true;
         }
 
         private protected virtual string GetProgramLog() => GL.GetProgramInfoLog(this);
@@ -238,8 +235,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 IsDisposed = true;
 
                 shaderCompileDelegate?.Cancel();
-
-                GlobalPropertyManager.Unregister(this);
 
                 if (programID != -1)
                     DeleteProgram(this);

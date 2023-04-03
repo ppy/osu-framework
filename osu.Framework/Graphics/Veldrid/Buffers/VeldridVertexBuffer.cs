@@ -69,10 +69,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             ThreadSafety.EnsureDrawThread();
 
-            var description = new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | usage);
-            buffer = renderer.Factory.CreateBuffer(description);
-
+            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | usage));
             memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
+
+            // Ensure the device buffer is initialised to 0.
+            Update();
         }
 
         ~VeldridVertexBuffer()
@@ -146,7 +147,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 Initialise();
 
             int countVertices = endIndex - startIndex;
-            renderer.Commands.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
+            renderer.BufferUpdateCommands.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }

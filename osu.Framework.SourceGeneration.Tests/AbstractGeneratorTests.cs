@@ -51,8 +51,8 @@ namespace osu.Framework.SourceGeneration.Tests
             out (string filename, string content)[] commonGenerated,
             out (string filename, string content)[] generated)
         {
-            string commonSourcesNamespace = $"{resources_namespace}.CommonSources";
-            string commonGeneratedNamespace = $"{resources_namespace}.CommonGenerated";
+            const string common_sources_namespace = $"{resources_namespace}.CommonSources";
+            const string common_generated_namespace = $"{resources_namespace}.CommonGenerated";
             string sourcesNamespace = $"{resources_namespace}.{name}.Sources";
             string generatedNamespace = $"{resources_namespace}.{name}.Generated";
 
@@ -64,11 +64,11 @@ namespace osu.Framework.SourceGeneration.Tests
             var commonGeneratedFiles = new List<(string filename, string content)>();
             var generatedFiles = new List<(string filename, string content)>();
 
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonSourcesNamespace, StringComparison.Ordinal)))
-                commonSourceFiles.Add((getFileNameFromResourceName(commonSourcesNamespace, file), readResourceStream(assembly, file)));
+            foreach (string? file in resourceNames.Where(n => n.StartsWith(common_sources_namespace, StringComparison.Ordinal)))
+                commonSourceFiles.Add((getFileNameFromResourceName(common_sources_namespace, file), readResourceStream(assembly, file)));
 
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonGeneratedNamespace, StringComparison.Ordinal)))
-                commonGeneratedFiles.Add((getFileNameFromResourceName(commonGeneratedNamespace, file), readResourceStream(assembly, file)));
+            foreach (string? file in resourceNames.Where(n => n.StartsWith(common_generated_namespace, StringComparison.Ordinal)))
+                commonGeneratedFiles.Add((getFileNameFromResourceName(common_generated_namespace, file), readResourceStream(assembly, file)));
 
             foreach (string? file in resourceNames.Where(n => n.StartsWith(sourcesNamespace, StringComparison.Ordinal)))
                 sourceFiles.Add((getFileNameFromResourceName(sourcesNamespace, file), readResourceStream(assembly, file)));

@@ -246,7 +246,7 @@ namespace osu.Framework
 
             PerformanceOverlay performanceOverlay;
 
-            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads)
+            LoadComponentAsync(performanceOverlay = new PerformanceOverlay
             {
                 Margin = new MarginPadding(5),
                 Direction = FillDirection.Vertical,

@@ -2,9 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
 
@@ -120,23 +122,51 @@ namespace osu.Framework.Graphics.UserInterface
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
+            private IUniformBuffer<CircularBlobParameters>? parametersBuffer;
+
             protected override void Blit(IRenderer renderer)
             {
                 if (innerRadius == 0)
                     return;
 
-                var shader = TextureShader;
-
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
-                shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
-                shader.GetUniform<float>("frequency").UpdateValue(ref frequency);
-                shader.GetUniform<float>("amplitude").UpdateValue(ref amplitude);
-                shader.GetUniform<Vector2>("noisePosition").UpdateValue(ref noisePosition);
-
                 base.Blit(renderer);
             }
 
+            protected override void BindUniformResources(IShader shader, IRenderer renderer)
+            {
+                base.BindUniformResources(shader, renderer);
+
+                parametersBuffer ??= renderer.CreateUniformBuffer<CircularBlobParameters>();
+                parametersBuffer.Data = new CircularBlobParameters
+                {
+                    InnerRadius = innerRadius,
+                    TexelSize = texelSize,
+                    Frequency = frequency,
+                    Amplitude = amplitude,
+                    NoisePosition = noisePosition,
+                };
+
+                shader.BindUniformBlock("m_CircularBlobParameters", parametersBuffer);
+            }
+
             protected internal override bool CanDrawOpaqueInterior => false;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                parametersBuffer?.Dispose();
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct CircularBlobParameters
+            {
+                public UniformFloat InnerRadius;
+                public UniformFloat TexelSize;
+                public UniformFloat Frequency;
+                public UniformFloat Amplitude;
+                public UniformVector2 NoisePosition;
+                private readonly UniformPadding8 pad1;
+            }
         }
     }
 }

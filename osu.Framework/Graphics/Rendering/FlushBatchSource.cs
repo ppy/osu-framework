@@ -5,6 +5,7 @@ namespace osu.Framework.Graphics.Rendering
 {
     public enum FlushBatchSource
     {
+        BindBuffer,
         BindTexture,
         FinishFrame,
         SetBlend,
