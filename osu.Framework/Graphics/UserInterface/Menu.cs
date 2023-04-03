@@ -817,16 +817,18 @@ namespace osu.Framework.Graphics.UserInterface
             public float ContentDrawHeight => Content.DrawHeight;
 
             /// <summary>
-            /// Whether the underlying <see cref="Item"/> has an assigned action, and is not in a disabled state.
+            /// Whether the underlying <see cref="Item"/> has an assigned action or a submenu, and is not in a disabled state.
             /// </summary>
-            protected bool IsActionable => !Item.Action.Disabled && Item.Action.Value != null;
+            protected bool IsActionable => hasSubmenu || (!Item.Action.Disabled && Item.Action.Value != null);
+
+            private bool hasSubmenu => Item.Items?.Count > 0;
 
             /// <summary>
             /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
             /// </summary>
             protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(IsHovered && (IsActionable || HasSubmenu) ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered && IsActionable ? BackgroundColourHover : BackgroundColour);
             }
 
             /// <summary>
@@ -834,7 +836,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(IsHovered && (IsActionable || HasSubmenu) ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered && IsActionable ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
@@ -866,11 +868,9 @@ namespace osu.Framework.Graphics.UserInterface
                 base.OnHoverLost(e);
             }
 
-            protected bool HasSubmenu => Item.Items?.Count > 0;
-
             protected override bool OnClick(ClickEvent e)
             {
-                if (HasSubmenu)
+                if (hasSubmenu)
                 {
                     Clicked?.Invoke(this);
                     return true;
