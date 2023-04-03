@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -55,6 +56,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 for (int i = 1; i >= 0; --i)
                 {
                     if (Menus.GetSubMenu(i).State == MenuState.Closed)
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestClickItemWithActionAssignedDuringNavigationClosesMenus()
+        {
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[0]));
+            AddStep("assign action", () => Menus.GetSubStructure(1).GetMenuItems().Cast<Menu.DrawableMenuItem>().First().Item.Action.Value = () => { });
+            AddStep("click item", () => InputManager.Click(MouseButton.Left));
+            AddAssert("all menus closed", () =>
+            {
+                for (int i = 1; i >= 0; --i)
+                {
+                    if (Menus.GetSubMenu(i).State == MenuState.Open)
                         return false;
                 }
 
