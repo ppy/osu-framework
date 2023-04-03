@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             Commands.CopyTexture(
                 staging, 0, 0, 0, 0, 0,
-                texture, (uint)x, (uint)y, 0, 0, 0, (uint)width, (uint)height, 1, 1);
+                texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
 
         protected override void SetShaderImplementation(IShader shader)
