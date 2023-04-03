@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
@@ -305,10 +306,32 @@ namespace osu.Framework.Graphics.Veldrid
         {
             using var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
 
-            for (uint yi = (uint)y; yi < height; yi++)
-                Device.UpdateTexture(staging, (IntPtr)(data.ToInt64() + yi * rowLengthInBytes), (uint)rowLengthInBytes, (uint)x, yi, 0, (uint)width, 1, 1, (uint)level, 0);
+            unsafe
+            {
+                MappedResource mappedData = Device.Map(staging, MapMode.Write);
 
-            Commands.CopyTexture(staging, texture);
+                try
+                {
+                    void* srcPtr = data.ToPointer();
+                    void* dstPtr = mappedData.Data.ToPointer();
+
+                    for (int i = 0; i < height; i++)
+                    {
+                        Unsafe.CopyBlockUnaligned(dstPtr, srcPtr, mappedData.RowPitch);
+
+                        srcPtr = Unsafe.Add<byte>(srcPtr, rowLengthInBytes);
+                        dstPtr = Unsafe.Add<byte>(dstPtr, (int)mappedData.RowPitch);
+                    }
+                }
+                finally
+                {
+                    Device.Unmap(staging);
+                }
+            }
+
+            Commands.CopyTexture(
+                staging, 0, 0, 0, 0, 0,
+                texture, (uint)x, (uint)y, 0, 0, 0, (uint)width, (uint)height, 1, 1);
         }
 
         protected override void SetShaderImplementation(IShader shader)
