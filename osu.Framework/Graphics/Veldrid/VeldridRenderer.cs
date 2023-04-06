@@ -272,7 +272,7 @@ namespace osu.Framework.Graphics.Veldrid
             var resources = veldridTexture.GetResourceList();
 
             for (int i = 0; i < resources.Count; i++)
-                boundTextureUnits[unit++] = resources[i];
+                BindTextureResource(resources[i], unit++);
 
             return true;
         }
@@ -392,6 +392,11 @@ namespace osu.Framework.Graphics.Veldrid
             VeldridFrameBuffer? veldridFrameBuffer = (VeldridFrameBuffer?)frameBuffer;
             Framebuffer framebuffer = veldridFrameBuffer?.Framebuffer ?? Device.SwapchainFramebuffer;
 
+            SetFramebuffer(framebuffer);
+        }
+
+        public void SetFramebuffer(Framebuffer framebuffer)
+        {
             Commands.SetFramebuffer(framebuffer);
             pipeline.Outputs = framebuffer.OutputDescription;
         }
@@ -587,8 +592,9 @@ namespace osu.Framework.Graphics.Veldrid
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
             => new VeldridUniformBuffer<TData>(this);
 
-        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Color4 initialisationColour = default)
-            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), new Rgba32(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A));
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Color4 initialisationColour = default)
+            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)
             => new VeldridVideoTexture(this, width, height);
@@ -601,5 +607,7 @@ namespace osu.Framework.Graphics.Veldrid
         {
             uniformBufferResetList.Add(buffer);
         }
+
+        public void BindTextureResource(VeldridTextureResources resource, int unit) => boundTextureUnits[unit] = resource;
     }
 }

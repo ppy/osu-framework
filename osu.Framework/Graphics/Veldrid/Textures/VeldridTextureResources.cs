@@ -13,7 +13,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
     {
         public readonly Texture Texture;
         public readonly Sampler Sampler;
-        private ResourceSet? set;
+
+        public ResourceSet? Set { get; private set; }
 
         public VeldridTextureResources(Texture texture, Sampler sampler)
         {
@@ -28,13 +29,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="layout">The resource layout which this set will be attached to. Assumes a layout with the texture in slot 0 and the sampler in slot 1.</param>
         /// <returns>The resource set.</returns>
         public ResourceSet GetResourceSet(VeldridRenderer renderer, ResourceLayout layout)
-            => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
+            => Set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
 
         public void Dispose()
         {
             Texture.Dispose();
             Sampler.Dispose();
-            set?.Dispose();
+            Set?.Dispose();
         }
     }
 }
