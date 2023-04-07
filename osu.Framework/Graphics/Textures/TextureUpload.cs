@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Textures
             {
                 using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>((int)stream.Length))
                 {
-                    stream.ReadToFill(buffer.Memory.Span);
+                    stream.ReadExactly(buffer.Memory.Span);
 
                     using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
                         return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
