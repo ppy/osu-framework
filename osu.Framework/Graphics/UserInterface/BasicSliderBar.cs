@@ -2,14 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public partial class BasicSliderBar<T> : SliderBar<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         public Color4 BackgroundColour
         {
