@@ -254,8 +254,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 // Create render state for mipmap generation
                 Renderer.BindTexture(this);
                 Renderer.GetMipmapShader().Bind();
-                int texUnit = 0;
-                Renderer.GetMipmapShader().GetUniform<int>("tex").UpdateValue(ref texUnit);
 
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
 
