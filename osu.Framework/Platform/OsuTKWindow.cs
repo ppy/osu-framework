@@ -49,6 +49,15 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Resized;
 
+        /// <inheritdoc cref="IWindow.Suspended"/>
+        public event Action Suspended { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.Resumed"/>
+        public event Action Resumed { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.LowOnMemory"/>
+        public event Action LowOnMemory { add { } remove { } }
+
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged { add { } remove { } }
 
@@ -74,6 +83,10 @@ namespace osu.Framework.Platform
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
         public void OnDraw()
+        {
+        }
+
+        public void Raise()
         {
         }
 
@@ -136,8 +149,6 @@ namespace osu.Framework.Platform
 
             MouseEnter += (_, _) => cursorInWindow.Value = true;
             MouseLeave += (_, _) => cursorInWindow.Value = false;
-
-            supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
             UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
@@ -244,13 +255,9 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
-
-        public IBindableList<WindowMode> SupportedWindowModes => supportedWindowModes;
+        public abstract IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
-
-        protected abstract IEnumerable<WindowMode> DefaultSupportedWindowModes { get; }
 
         public virtual VSyncMode VSync { get; set; }
 

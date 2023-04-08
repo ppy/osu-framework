@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Veldrid.Vertices
                     var attrib = field.GetCustomAttribute<VertexMemberAttribute>();
                     Debug.Assert(attrib != null);
 
-                    elements.Add(new VertexElementDescription($"m_{field.Name}", default, attrib.Type.ToVertexElementFormat(attrib.Count), (uint)fieldOffset));
+                    elements.Add(new VertexElementDescription($"m_{field.Name}", VertexElementSemantic.TextureCoordinate, attrib.Type.ToVertexElementFormat(attrib.Count), (uint)fieldOffset));
                 }
             }
         }

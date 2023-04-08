@@ -273,6 +273,11 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleStore"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
+        /// <remarks>
+        /// By default, <c>.wav</c> and <c>.ogg</c> extensions will be automatically appended to lookups on the returned store
+        /// if the lookup does not correspond directly to an existing filename.
+        /// Additional extensions can be added via <see cref="ISampleStore.AddExtension"/>.
+        /// </remarks>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
         public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)

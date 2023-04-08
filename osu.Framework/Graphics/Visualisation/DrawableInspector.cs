@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Visualisation
                                 Horizontal = 10,
                                 Vertical = 5
                             },
-                            Items = Enum.GetValues(typeof(Tab)).Cast<Tab>().ToList()
+                            Items = Enum.GetValues<Tab>().ToList()
                         },
                         tabContentContainer = new Container
                         {

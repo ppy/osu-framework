@@ -43,25 +43,30 @@ jobs:
         shell: powershell
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
       - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: "6.0.x"
 
       - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: osu-framework
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+          path: |
+            ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+            ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.snupkg
+
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-template:
     name: Pack (Templates)
@@ -69,14 +74,14 @@ jobs:
     needs: [check-if-tag]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
       - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: "6.0.x"
 
@@ -87,10 +92,13 @@ jobs:
         run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: osu-framework-templates
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
+
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-android:
     name: Pack (Android)
@@ -101,28 +109,31 @@ jobs:
         shell: powershell
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
       - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: "6.0.x"
 
-      - name: Restore .NET Workloads
-        run: dotnet workload restore
+      - name: Restore .NET workloads
+        run: dotnet workload install android
 
       - name: Pack (Android Framework)
         run: dotnet pack -c Release osu.Framework.Android /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: osu-framework-android
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   pack-ios:
     name: Pack (iOS)
@@ -133,14 +144,14 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
       - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: "6.0.x"
 
@@ -153,33 +164,10 @@ jobs:
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: osu-framework-ios
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
 
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: [check-if-tag, pack-android, pack-framework, pack-template, pack-ios]
-    steps:
-      - name: Create Artifact Directory
-        run: mkdir ${{github.workspace}}/artifacts/
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: ${{github.workspace}}/artifacts/
-
-        # Artifacts create their own directories. Let's fix that!
-        # https://github.com/actions/download-artifact#download-all-artifacts
-      - name: Move Artifacts to root of subdirectory
-        working-directory: ${{github.workspace}}/artifacts/
-        run: |
-          mv -v **/*.nupkg $(pwd)
-          rm -rfv */
-
-      - name: Deploy
-        run: |
-            dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
-            dotnet nuget push ${{github.workspace}}/artifacts/*.nupkg --skip-duplicate --source authed-nuget
+      - name: Publish packages to nuget.org
+        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

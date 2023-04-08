@@ -403,7 +403,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 if ((Width == upload.Bounds.Width && Height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
                     updateMemoryUsage(upload.Level, (long)Width * Height * 4);
-                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, Width, Height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba8, Width, Height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                 }
                 else
                 {
@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private void initializeLevel(int level, int width, int height, PixelFormat format)
         {
             updateMemoryUsage(level, (long)width * height * 4);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
 
             // Bind a dummy frame buffer such that we can later restore the current framebuffer
             // state via Renderer.UnbindFrameBuffer(null);

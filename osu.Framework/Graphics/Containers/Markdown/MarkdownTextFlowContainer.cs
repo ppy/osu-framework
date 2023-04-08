@@ -186,28 +186,19 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 }
             }
 
-            var textDrawable = CreateEmphasisedSpriteText(hasBold, hasItalic);
-            textDrawable.Text = text;
-
-            AddDrawable(textDrawable);
+            AddText(text, t => ApplyEmphasisedCreationParameters(t, hasBold, hasItalic));
         }
 
         protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
 
         /// <summary>
-        /// Creates an emphasised <see cref="SpriteText"/>.
+        /// Applies emphasised creation parameters to <see cref="SpriteText"/>.
         /// </summary>
+        /// <param name="spriteText">The <see cref="SpriteText"/> to be emphasised.</param>
         /// <param name="bold">Whether the text should be emboldened.</param>
         /// <param name="italic">Whether the text should be italicised.</param>
-        /// <returns>The <see cref="SpriteText"/> with emphases applied.</returns>
-        protected virtual SpriteText CreateEmphasisedSpriteText(bool bold, bool italic)
-        {
-            var textDrawable = CreateSpriteText();
-
-            textDrawable.Font = textDrawable.Font.With(weight: bold ? "Bold" : null, italics: italic);
-
-            return textDrawable;
-        }
+        protected virtual void ApplyEmphasisedCreationParameters(SpriteText spriteText, bool bold, bool italic)
+            => spriteText.Font = spriteText.Font.With(weight: bold ? "Bold" : null, italics: italic);
 
         SpriteText IMarkdownTextComponent.CreateSpriteText() => CreateSpriteText();
     }

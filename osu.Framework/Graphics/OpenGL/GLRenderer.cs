@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using System.Text;
+using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -19,6 +21,9 @@ using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
 using osuTK.Graphics;
+using SixLabors.ImageSharp.Memory;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -32,6 +37,12 @@ namespace osu.Framework.Graphics.OpenGL
             set => openGLSurface.VerticalSync = value;
         }
 
+        protected internal override bool AllowTearing { get; set; }
+
+        public override bool IsDepthRangeZeroToOne => false;
+        public override bool IsUvOriginTopLeft => false;
+        public override bool IsClipSpaceYInverted => false;
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>
@@ -42,11 +53,12 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public bool IsEmbedded { get; private set; }
 
-        protected virtual int BackbufferFramebuffer => 0;
+        private int backbufferFramebuffer;
 
         private readonly int[] lastBoundBuffers = new int[2];
 
         private bool? lastBlendingEnabledState;
+        private int lastBoundVertexArray;
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
@@ -55,6 +67,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
             openGLSurface.MakeCurrent(openGLSurface.WindowContext);
+
+            backbufferFramebuffer = openGLSurface.BackbufferFramebuffer ?? 0;
 
             string version = GL.GetString(StringName.Version);
             IsEmbedded = version.Contains("OpenGL ES"); // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
@@ -70,25 +84,59 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
+                        GL Extensions:              {GetExtensions()}");
 
             openGLSurface.ClearCurrent();
+        }
+
+        protected virtual string GetExtensions()
+        {
+#pragma warning disable CS0618
+            GL.GetInteger(All.NumExtensions, out int numExtensions);
+#pragma warning restore CS0618
+
+            var extensionsBuilder = new StringBuilder();
+
+            for (int i = 0; i < numExtensions; i++)
+                extensionsBuilder.Append($"{GL.GetString(StringNameIndexed.Extensions, i)} ");
+
+            return extensionsBuilder.ToString().TrimEnd();
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
             lastBlendingEnabledState = null;
             lastBoundBuffers.AsSpan().Clear();
+            lastBoundVertexArray = 0;
+
+            // Seems to be required on some drivers as the context is lost from the draw thread.
+            MakeCurrent();
 
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
         }
 
+        protected internal override void WaitUntilNextFrameReady()
+        {
+        }
+
         protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);
         protected internal override void ClearCurrent() => openGLSurface.ClearCurrent();
         protected internal override void SwapBuffers() => openGLSurface.SwapBuffers();
         protected internal override void WaitUntilIdle() => GL.Finish();
+
+        public bool BindVertexArray(int vaoId)
+        {
+            if (lastBoundVertexArray == vaoId)
+                return false;
+
+            lastBoundVertexArray = vaoId;
+            GL.BindVertexArray(vaoId);
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+            return true;
+        }
 
         public bool BindBuffer(BufferTarget target, int buffer)
         {
@@ -183,7 +231,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? backbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -294,6 +342,18 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.Disable(EnableCap.StencilTest);
         }
 
+        protected internal override Image<Rgba32> TakeScreenshot()
+        {
+            var size = ((IGraphicsSurface)openGLSurface).GetDrawableSize();
+            var data = MemoryAllocator.Default.Allocate<Rgba32>(size.Width * size.Height);
+
+            GL.ReadPixels(0, 0, size.Width, size.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
+
+            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, size.Width, size.Height);
+            image.Mutate(i => i.Flip(FlipMode.Vertical));
+            return image;
+        }
+
         protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
         {
             ShaderType glType;
@@ -315,7 +375,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, manager);
         }
 
-        protected override IShader CreateShader(string name, params IShaderPart[] parts) => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
+        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer);
 
         private IShader? mipmapShader;
 
@@ -390,6 +451,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
+
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4 initialisationColour = default)

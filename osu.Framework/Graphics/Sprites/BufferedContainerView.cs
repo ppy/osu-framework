@@ -139,9 +139,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
-                var shader = TextureShader;
-
-                shader.Bind();
+                BindTextureShader(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
                     drawMainBuffer(renderer);
@@ -151,7 +149,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (sourceEffectPlacement == EffectPlacement.Behind)
                     drawMainBuffer(renderer);
 
-                shader.Unbind();
+                UnbindTextureShader(renderer);
             }
 
             private void drawMainBuffer(IRenderer renderer)

@@ -5,6 +5,7 @@
 
 using System;
 using System.Drawing;
+using System.Runtime.Versioning;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -13,6 +14,9 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test cannot be run in headless mode (a window instance is required).")]
+    [SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("linux")]
+    [SupportedOSPlatform("macos")]
     public partial class TestSceneWindowed : FrameworkTestScene
     {
         [Resolved]
@@ -21,12 +25,12 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
-        private SDL2DesktopWindow sdlWindow;
+        private SDL2Window sdlWindow;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (SDL2DesktopWindow)host.Window;
+            sdlWindow = (SDL2Window)host.Window;
         }
 
         [SetUp]

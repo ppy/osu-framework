@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
 
@@ -32,15 +33,21 @@ namespace osu.Framework.Graphics.Shaders
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
         /// <param name="name">The shader name.</param>
-        public virtual byte[]? LoadRaw(string name) => store.Get(name);
+        public virtual byte[] LoadRaw(string name)
+        {
+            byte[]? bytes = store.Get(name);
+
+            if (bytes == null) throw new FileNotFoundException("Shader file could not be found", name);
+
+            return bytes;
+        }
 
         /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
         /// </summary>
         /// <param name="vertex">The vertex shader name.</param>
         /// <param name="fragment">The fragment shader name.</param>
-        /// <param name="continuousCompilation"></param>
-        public IShader Load(string vertex, string fragment, bool continuousCompilation = false)
+        public virtual IShader Load(string vertex, string fragment)
         {
             var tuple = (vertex, fragment);
 
@@ -63,7 +70,7 @@ namespace osu.Framework.Graphics.Shaders
             if (!bypassCache && partCache.TryGetValue(name, out IShaderPart? part))
                 return part;
 
-            byte[]? rawData = LoadRaw(name);
+            byte[] rawData = LoadRaw(name);
 
             part = renderer.CreateShaderPart(this, name, rawData, partType);
 
@@ -135,6 +142,7 @@ namespace osu.Framework.Graphics.Shaders
         public const string TEXTURE_2 = "Texture2D";
         public const string TEXTURE_3 = "Texture3D";
         public const string POSITION = "Position";
+        public const string BLUR = "Blur";
     }
 
     public static class FragmentShaderDescriptor
