@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         Image<Rgba32> IRenderer.TakeScreenshot() => new Image<Rgba32>(1366, 768);
 
-        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        IShaderPart IRenderer.CreateShaderPart(IShaderStore manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts)

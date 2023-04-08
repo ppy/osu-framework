@@ -14,16 +14,17 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -354,7 +355,7 @@ namespace osu.Framework.Graphics.OpenGL
             return image;
         }
 
-        protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
         {
             ShaderType glType;
 
@@ -372,33 +373,11 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported shader part type: {partType}", nameof(partType));
             }
 
-            return new GLShaderPart(this, name, rawData, glType, manager);
+            return new GLShaderPart(this, name, rawData, glType, store);
         }
 
         protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
             => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer);
-
-        private IShader? mipmapShader;
-
-        public IShader GetMipmapShader()
-        {
-            if (mipmapShader != null)
-                return mipmapShader;
-
-            var store = new PassthroughShaderStore(
-                new NamespacedResourceStore<byte[]>(
-                    new NamespacedResourceStore<byte[]>(
-                        new DllResourceStore(typeof(Game).Assembly),
-                        @"Resources"),
-                    "Shaders"));
-
-            mipmapShader = new GLShader(this, "mipmap", new[]
-            {
-                new GLShaderPart(this, "mipmap.vs", store.LoadRaw("sh_mipmap.vs"), ShaderType.VertexShader, store),
-                new GLShaderPart(this, "mipmap.fs", store.LoadRaw("sh_mipmap.fs"), ShaderType.FragmentShader, store),
-            });
-            return mipmapShader;
-        }
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -482,17 +461,5 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
-
-        private class PassthroughShaderStore : IShaderStore
-        {
-            private readonly IResourceStore<byte[]> store;
-
-            public PassthroughShaderStore(IResourceStore<byte[]> store)
-            {
-                this.store = store;
-            }
-
-            public byte[]? LoadRaw(string name) => store.Get(name);
-        }
     }
 }

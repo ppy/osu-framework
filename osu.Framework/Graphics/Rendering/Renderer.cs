@@ -9,12 +9,14 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -22,6 +24,9 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -1028,10 +1033,33 @@ namespace osu.Framework.Graphics.Rendering
         public abstract IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <inheritdoc cref="IRenderer.CreateShaderPart"/>
-        protected abstract IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+        protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
         protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer);
+
+        private IShader? mipmapShader;
+
+        internal IShader GetMipmapShader()
+        {
+            if (mipmapShader != null)
+                return mipmapShader;
+
+            var store = new PassthroughShaderStore(
+                new NamespacedResourceStore<byte[]>(
+                    new NamespacedResourceStore<byte[]>(
+                        new DllResourceStore(typeof(Game).Assembly),
+                        @"Resources"),
+                    "Shaders"));
+
+            mipmapShader = CreateShader("mipmap", new[]
+            {
+                CreateShaderPart(store, "mipmap.vs", store.LoadRaw("sh_mipmap.vs"), ShaderPartType.Vertex),
+                CreateShaderPart(store, "mipmap.fs", store.LoadRaw("sh_mipmap.fs"), ShaderPartType.Fragment),
+            }, globalUniformBuffer.AsNonNull());
+
+            return mipmapShader;
+        }
 
         /// <inheritdoc cref="IRenderer.CreateLinearBatch{TVertex}"/>
         protected abstract IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
@@ -1114,7 +1142,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
-        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(manager, name, rawData, partType);
+        IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
@@ -1247,5 +1275,17 @@ namespace osu.Framework.Graphics.Rendering
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
 
         #endregion
+
+        private class PassthroughShaderStore : IShaderStore
+        {
+            private readonly IResourceStore<byte[]> store;
+
+            public PassthroughShaderStore(IResourceStore<byte[]> store)
+            {
+                this.store = store;
+            }
+
+            public byte[]? LoadRaw(string name) => store.Get(name);
+        }
     }
 }

@@ -20,6 +20,9 @@ using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using Veldrid;
 using Veldrid.OpenGL;
 using Veldrid.OpenGLBinding;
@@ -558,8 +561,8 @@ namespace osu.Framework.Graphics.Veldrid
             }
         }
 
-        protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
-            => new VeldridShaderPart(rawData, partType, manager);
+        protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
+            => new VeldridShaderPart(rawData, partType, store);
 
         protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
             => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), globalUniformBuffer);
@@ -583,7 +586,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Color4 initialisationColour = default)
-            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
+            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), new Rgba32(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A));
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)
             => new VeldridVideoTexture(this, width, height);

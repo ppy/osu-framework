@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             Type = type;
 
             // Load the shader files.
-            shaderCodes.Add(loadFile(data, true, store));
+            shaderCodes.Add(loadFile(data, true));
 
             int lastInputIndex = 0;
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
         }
 
-        private string loadFile(byte[] bytes, bool mainFile, IShaderStore store)
+        private string loadFile(byte[] bytes, bool mainFile)
         {
             if (bytes == null)
                 return null;
@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(store.LoadRaw(includeName), false, store) + '\n';
+                        code += loadFile(store.LoadRaw(includeName), false) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                     if (Type == ShaderType.VertexShader)
                     {
-                        string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Vertex_Output.h"), false);
+                        string backbufferCode = loadFile(store.LoadRaw("Internal/sh_Vertex_Output.h"), false);
 
                         if (!string.IsNullOrEmpty(backbufferCode))
                         {

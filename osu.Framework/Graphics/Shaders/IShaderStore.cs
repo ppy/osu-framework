@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal interface IShaderStore
+    public interface IShaderStore
     {
         byte[]? LoadRaw(string name);
     }
