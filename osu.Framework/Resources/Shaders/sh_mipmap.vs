@@ -1,8 +1,8 @@
-attribute highp vec2 pos;
-varying highp vec2 uv;
+layout(location = 0) in highp vec2 m_Position;
+layout(location = 0) out highp vec2 v_TexCoord;
 
 void main()
 {
-    uv = pos;
-    gl_Position = vec4(2.0 * pos - vec2(1.0), 0.0, 1.0);
+    v_TexCoord = m_Position;
+    gl_Position = vec4(2.0 * m_Position - vec2(1.0), 0.0, 1.0);
 }
