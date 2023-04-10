@@ -164,10 +164,10 @@ namespace osu.Framework.Graphics.Transforms
                             flushAppliedCache = true;
                         }
 
-                        if (t.LoopCount != -1)
+                        if (t.LoopCount > 0)
                             t.LoopCount--;
 
-                        if (t.IsLooping && t.LoopCount != 0)
+                        if (t.IsLooping && t.LoopCount > 0)
                         {
                             if (tCanRewind)
                             {
