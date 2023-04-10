@@ -35,6 +35,7 @@ namespace osu.Framework.Graphics.Transforms
 
         public bool IsLooping { get; internal set; }
         public double LoopDelay { get; internal set; }
+
         /// <summary>
         /// The remaining number of loops, including the current loop. If -1, then this loops indefinitely.
         /// </summary>

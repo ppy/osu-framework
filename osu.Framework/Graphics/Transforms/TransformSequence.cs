@@ -316,13 +316,17 @@ namespace osu.Framework.Graphics.Transforms
                 // each other due to instant re-sorting upon adding.
                 double currentTransformTime = t.TargetTransformable.Time.Current;
 
+                int pushForwardCount = 0;
                 while (t.EndTime <= currentTransformTime)
                 {
                     t.StartTime += iterDuration;
                     t.EndTime += iterDuration;
+
+                    pushForwardCount++;
                 }
 
-                t.LoopCount = numIters;
+                // In the finite case, we set LoopCount to the correct value to not add extra unneeded loops
+                t.LoopCount = numIters == -1 ? -1 : numIters - pushForwardCount;
             }
 
             // This sort is required such that no abortions happen.
