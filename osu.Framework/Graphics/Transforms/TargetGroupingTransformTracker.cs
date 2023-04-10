@@ -167,14 +167,19 @@ namespace osu.Framework.Graphics.Transforms
                         if (t.LoopCount > 0)
                             t.LoopCount--;
 
-                        if (t.IsLooping)
+                        if (t.IsLooping && t.LoopCount != 0)
                         {
                             if (tCanRewind)
+                            {
+                                t.IsLooping = false;
                                 t = t.Clone();
+                            }
 
                             t.AppliedToEnd = false;
                             t.Applied = false;
                             t.HasStartValue = false;
+
+                            t.IsLooping = true;
 
                             t.StartTime += t.LoopDelay;
                             t.EndTime += t.LoopDelay;

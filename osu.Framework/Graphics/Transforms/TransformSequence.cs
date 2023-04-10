@@ -317,7 +317,6 @@ namespace osu.Framework.Graphics.Transforms
                 double currentTransformTime = t.TargetTransformable.Time.Current;
 
                 int pushForwardCount = 0;
-
                 while (t.EndTime <= currentTransformTime)
                 {
                     t.StartTime += iterDuration;
@@ -336,6 +335,7 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (var t in sortedTransforms)
             {
+                t.IsLooping = true;
                 t.LoopDelay = iterDuration;
 
                 t.Applied = false;
