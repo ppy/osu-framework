@@ -15,13 +15,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         where T : unmanaged, IEquatable<T>, IVertex
     {
         private readonly VeldridRenderer renderer;
-        private readonly int amountVertices;
 
         internal VeldridLinearBuffer(VeldridRenderer renderer, int amountVertices, PrimitiveTopology type, BufferUsage usage)
             : base(renderer, amountVertices, usage)
         {
             this.renderer = renderer;
-            this.amountVertices = amountVertices;
             Type = type;
 
             if (amountVertices > renderer.SharedLinearIndex.Capacity)
