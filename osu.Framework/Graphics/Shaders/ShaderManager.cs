@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
@@ -15,6 +16,8 @@ namespace osu.Framework.Graphics.Shaders
 
         private readonly ConcurrentDictionary<string, IShaderPart> partCache = new ConcurrentDictionary<string, IShaderPart>();
         private readonly ConcurrentDictionary<(string, string), IShader> shaderCache = new ConcurrentDictionary<(string, string), IShader>();
+
+        private readonly Dictionary<string, IResourceStore<byte[]>> stores = new Dictionary<string, IResourceStore<byte[]>>();
 
         private readonly IRenderer renderer;
         private readonly IResourceStore<byte[]> store;
@@ -29,6 +32,13 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         /// <summary>
+        /// Adds additional store to retrieve shaders from.
+        /// </summary>
+        /// <param name="name">The name of the store.</param>
+        /// <param name="store">The store to add.</param>
+        public void AddStore(string name, IResourceStore<byte[]> store) => stores.TryAdd(name, store);
+
+        /// <summary>
         /// Retrieves raw shader data from the store.
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
@@ -37,9 +47,18 @@ namespace osu.Framework.Graphics.Shaders
         {
             byte[]? bytes = store.Get(name);
 
-            if (bytes == null) throw new FileNotFoundException("Shader file could not be found", name);
+            if (bytes != null)
+                return bytes;
 
-            return bytes;
+            foreach (var s in stores)
+            {
+                bytes = s.Value.Get(name);
+
+                if (bytes != null)
+                    return bytes;
+            }
+
+            throw new FileNotFoundException("Shader file could not be found", name);
         }
 
         /// <summary>
@@ -122,6 +141,9 @@ namespace osu.Framework.Graphics.Shaders
                 isDisposed = true;
 
                 store.Dispose();
+
+                foreach (var s in stores)
+                    s.Value.Dispose();
 
                 renderer.ScheduleDisposal(s =>
                 {
