@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             Bind();
 
             int countVertices = endIndex - startIndex;
-            renderer.DrawVertices(Type, ToElementIndex(startIndex) * sizeof(ushort), ToElements(countVertices));
+            renderer.DrawVertices(Type, ToElementIndex(startIndex), ToElements(countVertices));
 
             Unbind();
         }
