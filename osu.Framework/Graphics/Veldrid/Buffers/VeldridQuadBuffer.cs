@@ -30,11 +30,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             this.renderer = renderer;
             amountIndices = amountQuads * indices_per_quad;
             Debug.Assert(amountIndices <= ushort.MaxValue);
-        }
-
-        protected override void Initialise()
-        {
-            base.Initialise();
 
             if (amountIndices > renderer.SharedQuadIndex.Capacity)
             {

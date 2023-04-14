@@ -23,11 +23,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             this.renderer = renderer;
             this.amountVertices = amountVertices;
             Type = type;
-        }
-
-        protected override void Initialise()
-        {
-            base.Initialise();
 
             if (amountVertices > renderer.SharedLinearIndex.Capacity)
             {
