@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
-        private bool externalColourTarget;
+        private readonly bool externalColourTarget;
 
         public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear)
         {
