@@ -3,11 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -18,11 +16,9 @@ using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using PixelFormat = Veldrid.PixelFormat;
-using RectangleF = System.Drawing.RectangleF;
 using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -273,10 +269,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 Renderer.PushStencilInfo(new StencilInfo(false));
                 Renderer.PushScissorState(false);
 
-                // Bind a dummy frame buffer such that we can later restore the current framebuffer
-                // state via Renderer.UnbindFrameBuffer(null);
-                Renderer.BindFrameBuffer(null);
-
                 // Create render state for mipmap generation
                 Renderer.BindTexture(this);
                 Renderer.GetMipmapShader().Bind();
@@ -332,8 +324,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     Renderer.BindTextureResource(mipmapResources, 0);
 
                     // ...than the one we're writing to via frame buffer.
-                    var frameBuffer = Renderer.Factory.CreateFramebuffer(new FramebufferDescription { ColorTargets = new[] { new FramebufferAttachmentDescription(mipmapResources.Texture, 0, (uint)level) } });
-                    Renderer.SetFramebuffer(frameBuffer);
+                    // var frameBuffer = Renderer.Factory.CreateFramebuffer(new FramebufferDescription { ColorTargets = new[] { new FramebufferAttachmentDescription(mipmapResources.Texture, 0, (uint)level) } });
+                    var frameBuffer = new VeldridFrameBuffer(Renderer, this, level);
+                    Renderer.BindFrameBuffer(frameBuffer);
 
                     // Perform the actual mip level draw
                     Renderer.PushViewport(new RectangleI(0, 0, width, height));
@@ -342,6 +335,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     quadBuffer.Draw();
 
                     Renderer.PopViewport();
+                    Renderer.UnbindFrameBuffer(frameBuffer);
 
                     frameBuffer.Dispose();
                     mipmapResources.Set!.Dispose();
@@ -356,8 +350,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 Renderer.PopDepthInfo();
 
                 Renderer.SetBlend(previousBlendingParameters);
-
-                Renderer.UnbindFrameBuffer(null);
             }
 
             // Uncomment the following block of code in order to compare the above with the renderer mipmap generation method CommandList.GenerateMipmaps().
