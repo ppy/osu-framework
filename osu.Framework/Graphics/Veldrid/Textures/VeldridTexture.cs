@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             set => resourcesArray[0] = value;
         }
 
-        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList() => (VeldridTextureResources[])resourcesArray;
+        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList() => resourcesArray!;
 
         public void FlushUploads()
         {
