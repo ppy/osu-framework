@@ -158,7 +158,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         #endregion
 
-        private VeldridTextureResources? resources;
+        private readonly VeldridTextureResources?[] resourcesArray = new VeldridTextureResources?[1];
+
+        private VeldridTextureResources? resources
+        {
+            get => resourcesArray[0];
+            set => resourcesArray[0] = value;
+        }
+
+        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList() => resourcesArray!;
 
         public void FlushUploads()
         {
@@ -192,12 +200,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 BindCount++;
 
             return true;
-        }
-
-        public virtual IEnumerable<VeldridTextureResources> GetResourceList()
-        {
-            if (resources != null)
-                yield return resources;
         }
 
         public bool Upload()
