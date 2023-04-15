@@ -300,18 +300,14 @@ namespace osu.Framework.Graphics.Visualisation
                     texture.Bind();
 
                     if (visualisedMipLevel != -1)
-                    {
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, visualisedMipLevel);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, visualisedMipLevel);
-                    }
+                        texture.MipLevel = visualisedMipLevel;
 
                     renderer.DrawQuad(texture, shrunkenQuad, Color4.White);
 
                     if (visualisedMipLevel != -1)
                     {
                         renderer.FlushCurrentBatch(null);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
+                        texture.MipLevel = null;
                     }
                 }
 

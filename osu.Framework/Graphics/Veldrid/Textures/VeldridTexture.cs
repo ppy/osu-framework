@@ -387,10 +387,46 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
+        private int? mipLevel;
+
+        public int? MipLevel
+        {
+            get => mipLevel;
+            set
+            {
+                if (mipLevel == value)
+                    return;
+
+                mipLevel = value;
+
+                if (resources != null)
+                    resources.Sampler = createSampler();
+            }
+        }
+
         /// <summary>
         /// The maximum number of mip levels provided by an <see cref="ITextureUpload"/>.
         /// </summary>
         private int maximumUploadedLod;
+
+        private Sampler createSampler()
+        {
+            bool useUploadMipmaps = manualMipmaps || maximumUploadedLod > 0;
+            int maximumLod = useUploadMipmaps ? maximumUploadedLod : IRenderer.MAX_MIPMAP_LEVELS;
+
+            var samplerDescription = new SamplerDescription
+            {
+                AddressModeU = SamplerAddressMode.Clamp,
+                AddressModeV = SamplerAddressMode.Clamp,
+                AddressModeW = SamplerAddressMode.Clamp,
+                Filter = filteringMode,
+                MinimumLod = (uint)(MipLevel ?? 0),
+                MaximumLod = (uint)(MipLevel ?? maximumLod),
+                MaximumAnisotropy = 0,
+            };
+
+            return Renderer.Factory.CreateSampler(ref samplerDescription);
+        }
 
         protected virtual void DoUpload(ITextureUpload upload)
         {
@@ -415,24 +451,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 maximumUploadedLod = upload.Level;
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
-            {
-                sampler?.Dispose();
-
-                bool useUploadMipmaps = manualMipmaps || maximumUploadedLod > 0;
-
-                var samplerDescription = new SamplerDescription
-                {
-                    AddressModeU = SamplerAddressMode.Clamp,
-                    AddressModeV = SamplerAddressMode.Clamp,
-                    AddressModeW = SamplerAddressMode.Clamp,
-                    Filter = filteringMode,
-                    MinimumLod = 0,
-                    MaximumLod = useUploadMipmaps ? (uint)maximumUploadedLod : IRenderer.MAX_MIPMAP_LEVELS,
-                    MaximumAnisotropy = 0,
-                };
-
-                sampler = Renderer.Factory.CreateSampler(ref samplerDescription);
-            }
+                sampler = createSampler();
 
             resources = new VeldridTextureResources(texture, sampler);
 

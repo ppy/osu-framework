@@ -153,6 +153,12 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public Vector2 Size => new Vector2(Width, Height);
 
+        internal int? MipLevel
+        {
+            get => NativeTexture.MipLevel;
+            set => NativeTexture.MipLevel = value;
+        }
+
         /// <summary>
         /// Binds this texture for drawing.
         /// </summary>
