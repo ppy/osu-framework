@@ -268,8 +268,10 @@ namespace osu.Framework.Graphics.Veldrid
             if (texture is not VeldridTexture veldridTexture)
                 return false;
 
-            foreach (var res in veldridTexture.GetResourceList())
-                boundTextureUnits[unit++] = res;
+            var resources = veldridTexture.GetResourceList();
+
+            for (int i = 0; i < resources.Count; i++)
+                boundTextureUnits[unit++] = resources[i];
 
             return true;
         }
