@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
@@ -272,70 +273,78 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 Renderer.BindTexture(this);
                 Renderer.GetMipmapShader().Bind();
 
-                int width = Width;
-                int height = Height;
-
-                // Generate quad buffer that will hold all the updated regions
-                var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(Renderer, uploadedRegions.Count, BufferUsage.Dynamic);
-
-                // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
-                for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
+                while (uploadedRegions.Count > 0)
                 {
-                    width = MathUtils.DivideRoundUp(width, 2);
-                    height = MathUtils.DivideRoundUp(height, 2);
+                    int width = Width;
+                    int height = Height;
 
-                    // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
-                    for (int i = 0; i < uploadedRegions.Count; ++i)
+                    int count = Math.Min(uploadedRegions.Count, IRenderer.MAX_QUADS);
+
+                    // Generate quad buffer that will hold all the updated regions
+                    var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(Renderer, count, BufferUsage.Dynamic);
+
+                    // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
+                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
                     {
-                        // Conservatively round the draw rectangles. Rounding to integer coords is required
-                        // in order to ensure all the texels affected by linear interpolation are touched.
-                        // We could skip the rounding & use a single vertex buffer for all levels if we had
-                        // conservative raster, but alas, that's only supported on NV and Intel.
-                        Vector2I topLeft = uploadedRegions[i].TopLeft;
-                        topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
-                        Vector2I bottomRight = uploadedRegions[i].BottomRight;
-                        bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
-                        uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+                        width = MathUtils.DivideRoundUp(width, 2);
+                        height = MathUtils.DivideRoundUp(height, 2);
 
-                        // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
-                        RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
-
-                        quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
-                        quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
-                        quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
-                        quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
-                    }
-
-                    // Read the texture from 1 mip level higher...
-                    var samplerDescription = new SamplerDescription
-                    {
-                        AddressModeU = SamplerAddressMode.Clamp,
-                        AddressModeV = SamplerAddressMode.Clamp,
-                        AddressModeW = SamplerAddressMode.Clamp,
-                        Filter = filteringMode,
-                        MinimumLod = (uint)level - 1,
-                        MaximumLod = (uint)level - 1,
-                        MaximumAnisotropy = 0,
-                    };
-
-                    using (var sampler = Renderer.Factory.CreateSampler(samplerDescription))
-                    using (var mipmapResources = new VeldridTextureResources(resources!.Texture, sampler, false))
-                    {
-                        Renderer.BindTextureResource(mipmapResources, 0);
-
-                        // ...than the one we're writing to via frame buffer.
-                        using (var frameBuffer = new VeldridFrameBuffer(Renderer, this, level))
+                        // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
+                        for (int i = 0; i < count; ++i)
                         {
-                            Renderer.BindFrameBuffer(frameBuffer);
+                            // Conservatively round the draw rectangles. Rounding to integer coords is required
+                            // in order to ensure all the texels affected by linear interpolation are touched.
+                            // We could skip the rounding & use a single vertex buffer for all levels if we had
+                            // conservative raster, but alas, that's only supported on NV and Intel.
+                            Vector2I topLeft = uploadedRegions[i].TopLeft;
+                            topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
+                            Vector2I bottomRight = uploadedRegions[i].BottomRight;
+                            bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
+                            uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
-                            // Perform the actual mip level draw
-                            Renderer.PushViewport(new RectangleI(0, 0, width, height));
-                            quadBuffer.Update();
-                            quadBuffer.Draw();
-                            Renderer.PopViewport();
-                            Renderer.UnbindFrameBuffer(frameBuffer);
+                            // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
+                            RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
+
+                            quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
+                            quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
+                            quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
+                            quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
+                        }
+
+                        // Read the texture from 1 mip level higher...
+                        var samplerDescription = new SamplerDescription
+                        {
+                            AddressModeU = SamplerAddressMode.Clamp,
+                            AddressModeV = SamplerAddressMode.Clamp,
+                            AddressModeW = SamplerAddressMode.Clamp,
+                            Filter = filteringMode,
+                            MinimumLod = (uint)level - 1,
+                            MaximumLod = (uint)level - 1,
+                            MaximumAnisotropy = 0,
+                        };
+
+                        using (var sampler = Renderer.Factory.CreateSampler(samplerDescription))
+                        using (var mipmapResources = new VeldridTextureResources(resources!.Texture, sampler, false))
+                        {
+                            Renderer.BindTextureResource(mipmapResources, 0);
+
+                            // ...than the one we're writing to via frame buffer.
+                            using (var frameBuffer = new VeldridFrameBuffer(Renderer, this, level))
+                            {
+                                Renderer.BindFrameBuffer(frameBuffer);
+                                Renderer.PushViewport(new RectangleI(0, 0, width, height));
+
+                                // Perform the actual mip level draw
+                                quadBuffer.Update();
+                                quadBuffer.Draw();
+
+                                Renderer.PopViewport();
+                                Renderer.UnbindFrameBuffer(frameBuffer);
+                            }
                         }
                     }
+
+                    uploadedRegions.RemoveRange(0, count);
                 }
 
                 // Restore previous render state
