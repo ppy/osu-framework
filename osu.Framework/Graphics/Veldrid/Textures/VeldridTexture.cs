@@ -318,26 +318,24 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                         MaximumAnisotropy = 0,
                     };
 
-                    var mipmapResources = new VeldridTextureResources(resources!.Texture, Renderer.Factory.CreateSampler(samplerDescription));
+                    using (var sampler = Renderer.Factory.CreateSampler(samplerDescription))
+                    using (var mipmapResources = new VeldridTextureResources(resources!.Texture, sampler, false))
+                    {
+                        Renderer.BindTextureResource(mipmapResources, 0);
 
-                    Renderer.BindTextureResource(mipmapResources, 0);
+                        // ...than the one we're writing to via frame buffer.
+                        using (var frameBuffer = new VeldridFrameBuffer(Renderer, this, level))
+                        {
+                            Renderer.BindFrameBuffer(frameBuffer);
 
-                    // ...than the one we're writing to via frame buffer.
-                    var frameBuffer = new VeldridFrameBuffer(Renderer, this, level);
-                    Renderer.BindFrameBuffer(frameBuffer);
-
-                    // Perform the actual mip level draw
-                    Renderer.PushViewport(new RectangleI(0, 0, width, height));
-
-                    quadBuffer.Update();
-                    quadBuffer.Draw();
-
-                    Renderer.PopViewport();
-                    Renderer.UnbindFrameBuffer(frameBuffer);
-
-                    frameBuffer.Dispose();
-                    mipmapResources.Set!.Dispose();
-                    mipmapResources.Sampler.Dispose();
+                            // Perform the actual mip level draw
+                            Renderer.PushViewport(new RectangleI(0, 0, width, height));
+                            quadBuffer.Update();
+                            quadBuffer.Draw();
+                            Renderer.PopViewport();
+                            Renderer.UnbindFrameBuffer(frameBuffer);
+                        }
+                    }
                 }
 
                 // Restore previous render state
