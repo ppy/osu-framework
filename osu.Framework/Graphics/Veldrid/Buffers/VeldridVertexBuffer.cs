@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             Bind();
 
             int countVertices = endIndex - startIndex;
-            renderer.DrawVertices(Type, ToElementIndex(startIndex) * sizeof(ushort), ToElements(countVertices));
+            renderer.DrawVertices(Type, ToElementIndex(startIndex), ToElements(countVertices));
 
             Unbind();
         }
@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 Initialise();
 
             int countVertices = endIndex - startIndex;
-            renderer.BufferUpdateCommands.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
+            renderer.Device.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }

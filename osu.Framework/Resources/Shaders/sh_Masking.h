@@ -110,15 +110,17 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
 
+	lowp vec4 contentColour = v_Colour * texel;
+
+	if (colourWeight == 1.0)
+		return vec4(contentColour.rgb, contentColour.a * alphaFactor);
+
 	lowp vec4 borderColour = getBorderColour();
 
 	if (colourWeight <= 0.0)
-	{
 		return vec4(borderColour.rgb, borderColour.a * alphaFactor);
-	}
 
-	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
-	lowp vec4 src = vec4(borderColour.rgb, borderColour.a * (1.0 - colourWeight));
-
-	return blend(src, dest);
+	contentColour.a *= alphaFactor;
+	borderColour.a *= 1.0 - colourWeight;
+	return blend(borderColour, contentColour);
 }
