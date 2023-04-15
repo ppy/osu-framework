@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -15,10 +14,10 @@ using osu.Framework.Platform;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using PixelFormat = Veldrid.PixelFormat;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -299,7 +298,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                         uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
                         // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
-                        osu.Framework.Graphics.Primitives.RectangleF r = (osu.Framework.Graphics.Primitives.RectangleF)uploadedRegions[i] / new Vector2(width, height);
+                        RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
 
                         quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
                         quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
@@ -324,7 +323,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     Renderer.BindTextureResource(mipmapResources, 0);
 
                     // ...than the one we're writing to via frame buffer.
-                    // var frameBuffer = Renderer.Factory.CreateFramebuffer(new FramebufferDescription { ColorTargets = new[] { new FramebufferAttachmentDescription(mipmapResources.Texture, 0, (uint)level) } });
                     var frameBuffer = new VeldridFrameBuffer(Renderer, this, level);
                     Renderer.BindFrameBuffer(frameBuffer);
 
@@ -392,17 +390,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         }
 
         /// <summary>
-        /// The maximum number of mip levels provided by a <see cref="ITextureUpload"/>.
+        /// The maximum number of mip levels provided by an <see cref="ITextureUpload"/>.
         /// </summary>
-        /// <remarks>
-        /// This excludes automatic generation of mipmaps via the graphics backend.
-        /// </remarks>
         private int maximumUploadedLod;
 
         protected virtual void DoUpload(ITextureUpload upload)
         {
             Texture? texture = resources?.Texture;
             Sampler? sampler = resources?.Sampler;
+            bool newTexture = false;
 
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
@@ -410,20 +406,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
-
-                for (int i = 0; i < textureDescription.MipLevels; i++)
-                    initialiseLevel(texture, i, Width >> i, Height >> i);
+                newTexture = true;
 
                 maximumUploadedLod = 0;
             }
 
             int lastMaximumUploadedLod = maximumUploadedLod;
 
-            if (!upload.Data.IsEmpty)
-            {
-                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
-                    upload.Level, upload.Data);
-            }
+            if (!upload.Data.IsEmpty && upload.Level > maximumUploadedLod)
+                maximumUploadedLod = upload.Level;
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
@@ -446,32 +437,35 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
 
             resources = new VeldridTextureResources(texture, sampler);
+
+            if (newTexture)
+            {
+                for (int i = 0; i < texture.MipLevels; i++)
+                    initialiseLevel(i, Width >> i, Height >> i);
+            }
+
+            if (!upload.Data.IsEmpty)
+            {
+                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
+                    upload.Level, upload.Data);
+            }
         }
 
-        private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
+        private unsafe void initialiseLevel(int level, int width, int height)
         {
-            using (var image = new Image<Rgba32>(width, height, new Rgba32(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A)))
-            using (var pixels = image.CreateReadOnlyPixelSpan())
-            {
-                updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
-                Renderer.UpdateTexture(texture, 0, 0, width, height, level, pixels.Span);
-            }
-            //
-            // updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
-            //
-            // // Bind a dummy frame buffer such that we can later restore the current framebuffer
-            // // state via Renderer.UnbindFrameBuffer(null);
-            // Renderer.BindFrameBuffer(null);
-            //
-            // var target = new FramebufferAttachmentDescription { Target = texture, MipLevel = (uint)level };
-            // var framebuffer = Renderer.Factory.CreateFramebuffer(new FramebufferDescription { ColorTargets = new[] { target } });
-            //
-            // // Initialize texture to solid color
-            // Renderer.SetFramebuffer(framebuffer);
-            // Renderer.Clear(new ClearInfo(initialisationColour), false);
-            //
-            // Renderer.UnbindFrameBuffer(null);
-            // framebuffer.Dispose();
+            updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
+
+            using var commands = Renderer.Factory.CreateCommandList();
+            using var frameBuffer = new VeldridFrameBuffer(Renderer, this, level);
+
+            commands.Begin();
+
+            // Initialize texture to solid color
+            commands.SetFramebuffer(frameBuffer.Framebuffer);
+            commands.ClearColorTarget(0, new RgbaFloat(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A));
+
+            commands.End();
+            Renderer.Device.SubmitCommands(commands);
         }
 
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?
