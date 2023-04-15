@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 Initialise();
 
             int countVertices = endIndex - startIndex;
-            renderer.BufferUpdateCommands.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
+            renderer.Device.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }
