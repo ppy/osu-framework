@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.Veldrid
                 }
             }
 
-            Commands.CopyTexture(
+            BufferUpdateCommands.CopyTexture(
                 staging, 0, 0, 0, 0, 0,
                 texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
