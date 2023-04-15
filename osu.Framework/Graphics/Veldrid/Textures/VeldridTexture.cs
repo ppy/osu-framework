@@ -411,7 +411,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
 
-                initialiseLevel(texture, 0, Width, Height);
+                for (int i = 0; i < textureDescription.MipLevels; i++)
+                    initialiseLevel(texture, i, Width >> i, Height >> i);
 
                 maximumUploadedLod = 0;
             }
@@ -420,15 +421,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (!upload.Data.IsEmpty)
             {
-                // ensure all mip levels up to the target level are initialised.
-                if (upload.Level > maximumUploadedLod)
-                {
-                    for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
-                        initialiseLevel(texture, i, Width >> i, Height >> i);
-
-                    maximumUploadedLod = upload.Level;
-                }
-
                 Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
                     upload.Level, upload.Data);
             }
