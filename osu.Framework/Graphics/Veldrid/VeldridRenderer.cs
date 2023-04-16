@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
 
                 case GraphicsSurfaceType.Metal:
-                    Device = GraphicsDevice.CreateMetal(options, swapchain);
+                    Device = GraphicsDevice.CreateMetal(options, swapchain, new MetalDeviceOptions { PreferMemorylessDepthTargets = true });
                     Device.LogMetal(out maxTextureSize);
                     break;
             }
