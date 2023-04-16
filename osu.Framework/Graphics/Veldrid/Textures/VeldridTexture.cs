@@ -272,6 +272,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 Renderer.BindTexture(this);
                 Renderer.GetMipmapShader().Bind();
 
+                using var samplingTexture = Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)Width, (uint)Height, resources!.Texture.MipLevels, 1, resources!.Texture.Format, TextureUsage.Sampled));
+                using var samplingResources = new VeldridTextureResources(samplingTexture, null);
+
                 while (uploadedRegions.Count > 0)
                 {
                     int width = Width;
@@ -310,8 +313,11 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                             quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
                         }
 
+                        // this intentionally runs a CopyTexture command on the render pass command list as it has to be executed after the previous level is rendered by the GPU.
+                        Renderer.Commands.CopyTexture(resources!.Texture, samplingTexture, (uint)level - 1, 0);
+
                         // Read the texture from 1 mip level higher...
-                        var samplerDescription = new SamplerDescription
+                        samplingResources.Sampler = Renderer.Factory.CreateSampler(new SamplerDescription
                         {
                             AddressModeU = SamplerAddressMode.Clamp,
                             AddressModeV = SamplerAddressMode.Clamp,
@@ -320,26 +326,22 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                             MinimumLod = (uint)level - 1,
                             MaximumLod = (uint)level - 1,
                             MaximumAnisotropy = 0,
-                        };
+                        });
 
-                        using (var sampler = Renderer.Factory.CreateSampler(samplerDescription))
-                        using (var mipmapResources = new VeldridTextureResources(resources!.Texture, sampler, false))
+                        Renderer.BindTextureResource(samplingResources, 0);
+
+                        // ...than the one we're writing to via frame buffer.
+                        using (var frameBuffer = new VeldridFrameBuffer(Renderer, this, level))
                         {
-                            Renderer.BindTextureResource(mipmapResources, 0);
+                            Renderer.BindFrameBuffer(frameBuffer);
+                            Renderer.PushViewport(new RectangleI(0, 0, width, height));
 
-                            // ...than the one we're writing to via frame buffer.
-                            using (var frameBuffer = new VeldridFrameBuffer(Renderer, this, level))
-                            {
-                                Renderer.BindFrameBuffer(frameBuffer);
-                                Renderer.PushViewport(new RectangleI(0, 0, width, height));
+                            // Perform the actual mip level draw
+                            quadBuffer.Update();
+                            quadBuffer.Draw();
 
-                                // Perform the actual mip level draw
-                                quadBuffer.Update();
-                                quadBuffer.Draw();
-
-                                Renderer.PopViewport();
-                                Renderer.UnbindFrameBuffer(frameBuffer);
-                            }
+                            Renderer.PopViewport();
+                            Renderer.UnbindFrameBuffer(frameBuffer);
                         }
                     }
 
