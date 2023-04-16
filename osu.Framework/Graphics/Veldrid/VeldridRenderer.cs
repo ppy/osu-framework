@@ -481,7 +481,7 @@ namespace osu.Framework.Graphics.Veldrid
         /// <param name="frameBuffer">The frame buffer to delete.</param>
         public void DeleteFrameBuffer(VeldridFrameBuffer frameBuffer)
         {
-            while (FrameBuffer == frameBuffer)
+            if (FrameBuffer == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
             frameBuffer.DeleteResources(true);
