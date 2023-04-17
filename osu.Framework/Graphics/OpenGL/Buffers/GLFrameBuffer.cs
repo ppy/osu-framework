@@ -22,6 +22,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public readonly int FrameBuffer;
 
+        private readonly bool externalTexture;
+
         public GLFrameBuffer(GLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
         {
             this.renderer = renderer;
@@ -44,8 +46,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             renderer.UnbindFrameBuffer(this);
         }
-
-        private readonly bool externalTexture;
 
         public GLFrameBuffer(GLRenderer renderer, GLTexture glTexture, int level = 0)
         {
