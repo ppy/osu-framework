@@ -492,9 +492,6 @@ namespace osu.Framework.Platform
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                // Frame buffers pass
-                buffer.Object.PopulateFrameBuffers(Renderer);
-
                 if (!bypassFrontToBackPass.Value)
                 {
                     depthValue.Reset();

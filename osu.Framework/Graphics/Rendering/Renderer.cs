@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Rendering
         public WrapMode CurrentWrapModeT { get; private set; }
         public bool IsMaskingActive => maskingStack.Count > 1;
         public float BackbufferDrawDepth { get; private set; }
-        public bool UsingBackbuffer => FrameBuffer == null;
+        public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
 
         public bool IsInitialised { get; private set; }
@@ -115,6 +115,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Stack<DepthInfo> depthStack = new Stack<DepthInfo>();
         private readonly Stack<StencilInfo> stencilStack = new Stack<StencilInfo>();
         private readonly Stack<Vector2I> scissorOffsetStack = new Stack<Vector2I>();
+        private readonly Stack<IFrameBuffer> frameBufferStack = new Stack<IFrameBuffer>();
         private readonly Stack<IShader> shaderStack = new Stack<IShader>();
         private readonly Stack<bool> scissorStateStack = new Stack<bool>();
 
@@ -223,6 +224,7 @@ namespace osu.Framework.Graphics.Rendering
             projectionMatrixStack.Clear();
             maskingStack.Clear();
             scissorRectStack.Clear();
+            frameBufferStack.Clear();
             depthStack.Clear();
             stencilStack.Clear();
             scissorStateStack.Clear();
@@ -927,21 +929,17 @@ namespace osu.Framework.Graphics.Rendering
 
         public void BindFrameBuffer(IFrameBuffer? frameBuffer)
         {
-            if (FrameBuffer != null)
-            {
-                throw new InvalidOperationException("Attempting to bind a frame buffer while another one is still bound."
-                                                    + "Binding the same frame buffer more than once per frame may result in unexpected behaviour.");
-            }
-
+            frameBufferStack.Push(frameBuffer);
             setFrameBuffer(frameBuffer);
         }
 
         public void UnbindFrameBuffer(IFrameBuffer? frameBuffer)
         {
             if (FrameBuffer != frameBuffer)
-                throw new InvalidOperationException("Attempting to unbind a frame buffer that is not bound currently.");
+                return;
 
-            setFrameBuffer(null);
+            frameBufferStack.Pop();
+            setFrameBuffer(frameBufferStack.TryPeek(out var lastFramebuffer) ? lastFramebuffer : null);
         }
 
         private void setFrameBuffer(IFrameBuffer? frameBuffer, bool force = false)
@@ -952,9 +950,10 @@ namespace osu.Framework.Graphics.Rendering
             FlushCurrentBatch(FlushBatchSource.SetFrameBuffer);
 
             SetFrameBufferImplementation(frameBuffer);
-            FrameBuffer = frameBuffer;
 
             globalUniformBuffer!.Data = globalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
+
+            FrameBuffer = frameBuffer;
         }
 
         /// <summary>
