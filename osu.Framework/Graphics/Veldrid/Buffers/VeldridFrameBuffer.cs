@@ -101,8 +101,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             // Check if we need to rebind this framebuffer as a result of recreating it.
             if (renderer.IsFrameBufferBound(this))
             {
-                Unbind();
-                Bind();
+                renderer.UnbindFrameBuffer(this);
+                renderer.BindFrameBuffer(this);
             }
         }
 
@@ -121,8 +121,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             depthTarget?.Dispose();
         }
 
-        public void Bind() => renderer.BindFrameBuffer(this);
-        public void Unbind() => renderer.UnbindFrameBuffer(this);
+        void IFrameBuffer.Bind() => renderer.BindFrameBuffer(this);
+        void IFrameBuffer.Unbind() => renderer.UnbindFrameBuffer(this);
 
         ~VeldridFrameBuffer()
         {

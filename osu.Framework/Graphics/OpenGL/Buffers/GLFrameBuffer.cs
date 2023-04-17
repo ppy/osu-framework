@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
         /// </summary>
-        public void Bind()
+        void IFrameBuffer.Bind()
         {
             renderer.BindFrameBuffer(this);
 
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        public void Unbind()
+        void IFrameBuffer.Unbind()
         {
             // See: https://community.arm.com/developer/tools-software/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
             // Unbinding renderbuffers causes an invalidation of the relevant attachment of this framebuffer on embedded devices, causing the renderbuffers to remain transient.

@@ -240,7 +240,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="frameBuffer">The frame buffer to delete.</param>
         public void DeleteFrameBuffer(IFrameBuffer frameBuffer)
         {
-            while (FrameBuffer == frameBuffer)
+            if (FrameBuffer == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
             ScheduleDisposal(GL.DeleteFramebuffer, ((GLFrameBuffer)frameBuffer).FrameBuffer);

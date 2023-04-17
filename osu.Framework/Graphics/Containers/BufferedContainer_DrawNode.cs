@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -74,16 +75,16 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void PopulateContents(IRenderer renderer)
+            protected override void PopulateContents(IRenderer renderer, Func<IFrameBuffer, ValueInvokeOnDisposal<IFrameBuffer>> bindFrameBuffer)
             {
-                base.PopulateContents(renderer);
+                base.PopulateContents(renderer, bindFrameBuffer);
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
                     renderer.PushScissorState(false);
 
-                    if (blurRadius.X > 0) drawBlurredFrameBuffer(renderer, blurRadius.X, blurSigma.X, blurRotation);
-                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(renderer, blurRadius.Y, blurSigma.Y, blurRotation + 90);
+                    if (blurRadius.X > 0) drawBlurredFrameBuffer(renderer, bindFrameBuffer, blurRadius.X, blurSigma.X, blurRotation);
+                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(renderer, bindFrameBuffer, blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
                     renderer.PopScissorState();
                 }
@@ -108,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
             private IUniformBuffer<BlurParameters> blurParametersBuffer;
             private IVertexBatch<BlurVertex> blurQuadBatch;
 
-            private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
+            private void drawBlurredFrameBuffer(IRenderer renderer, Func<IFrameBuffer, ValueInvokeOnDisposal<IFrameBuffer>> bindFrameBuffer, int kernelRadius, float sigma, float blurRotation)
             {
                 blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
                 blurQuadBatch ??= renderer.CreateQuadBatch<BlurVertex>(1, 1);
@@ -118,7 +119,9 @@ namespace osu.Framework.Graphics.Containers
 
                 renderer.SetBlend(BlendingParameters.None);
 
-                using (BindFrameBuffer(target))
+                target.Size = FrameBufferSize;
+
+                using (bindFrameBuffer(target))
                 {
                     float radians = MathUtils.DegreesToRadians(blurRotation);
 
