@@ -29,11 +29,11 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             Texture = new Texture(new DummyNativeTexture(renderer), WrapMode.None, WrapMode.None);
         }
 
-        void IFrameBuffer.Bind()
+        public void Bind()
         {
         }
 
-        void IFrameBuffer.Unbind()
+        public void Unbind()
         {
         }
 

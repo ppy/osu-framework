@@ -5,7 +5,6 @@
 
 using System;
 using System.Threading;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics
@@ -129,28 +128,6 @@ namespace osu.Framework.Graphics
         protected virtual void DrawOpaqueInterior(IRenderer renderer)
         {
             renderer.SetDrawDepth(drawDepth);
-        }
-
-        /// <summary>
-        /// Populates all <see cref="IFrameBuffer"/>s belonging to this <see cref="DrawNode"/> with content.
-        /// </summary>
-        /// <param name="renderer">The renderer to populate frame buffers with.</param>
-        public void PopulateFrameBuffers(IRenderer renderer) => PopulateFrameBuffers(renderer, bindFrameBuffer);
-
-        /// <summary>
-        /// Populates all <see cref="IFrameBuffer"/>s belonging to this <see cref="DrawNode"/> with content.
-        /// </summary>
-        /// <param name="renderer">The renderer to populate frame buffers with.</param>
-        /// <param name="bindFrameBuffer">The function for binding <see cref="IFrameBuffer"/>s with the renderer. For optimal performance, <see cref="IFrameBuffer"/>s should only be bound once during the frame.</param>
-        protected virtual void PopulateFrameBuffers(IRenderer renderer, Func<IFrameBuffer, ValueInvokeOnDisposal<IFrameBuffer>> bindFrameBuffer)
-        {
-        }
-
-        private static ValueInvokeOnDisposal<IFrameBuffer> bindFrameBuffer(IFrameBuffer frameBuffer)
-        {
-            frameBuffer.Bind();
-
-            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
         }
 
         /// <summary>

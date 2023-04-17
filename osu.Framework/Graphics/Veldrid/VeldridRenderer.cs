@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
 
                 case GraphicsSurfaceType.Metal:
-                    Device = GraphicsDevice.CreateMetal(options, swapchain, new MetalDeviceOptions { PreferMemorylessDepthTargets = true });
+                    Device = GraphicsDevice.CreateMetal(options, swapchain);
                     Device.LogMetal(out maxTextureSize);
                     break;
             }
@@ -487,7 +487,7 @@ namespace osu.Framework.Graphics.Veldrid
         /// <param name="frameBuffer">The frame buffer to delete.</param>
         public void DeleteFrameBuffer(VeldridFrameBuffer frameBuffer)
         {
-            if (FrameBuffer == frameBuffer)
+            while (FrameBuffer == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
             frameBuffer.DeleteResources(true);

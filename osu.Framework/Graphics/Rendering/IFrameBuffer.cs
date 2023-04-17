@@ -23,11 +23,11 @@ namespace osu.Framework.Graphics.Rendering
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
         /// </summary>
-        protected internal void Bind();
+        void Bind();
 
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        protected internal void Unbind();
+        void Unbind();
     }
 }

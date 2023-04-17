@@ -34,11 +34,10 @@ namespace osu.Framework.Graphics
 
         protected RectangleF DrawRectangle { get; private set; }
 
-        protected Vector2 FrameBufferSize { get; private set; }
-
         private Color4 backgroundColour;
         private RectangleF screenSpaceDrawRectangle;
         private Vector2 frameBufferScale;
+        private Vector2 frameBufferSize;
         private IDrawable rootNodeCached;
 
         public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
@@ -59,9 +58,9 @@ namespace osu.Framework.Graphics
 
             clipDrawRectangle();
 
-            FrameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
+            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
             DrawRectangle = SharedData.PixelSnapping
-                ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, FrameBufferSize.X, FrameBufferSize.Y)
+                ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
 
             Child.ApplyState();
@@ -84,6 +83,36 @@ namespace osu.Framework.Graphics
 
         public sealed override void Draw(IRenderer renderer)
         {
+            if (!SharedData.IsInitialised)
+                SharedData.Initialise(renderer);
+
+            if (RequiresRedraw)
+            {
+                FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
+
+                SharedData.ResetCurrentEffectBuffer();
+
+                using (establishFrameBufferViewport(renderer))
+                {
+                    // Fill the frame buffer with drawn children
+                    using (BindFrameBuffer(SharedData.MainBuffer))
+                    {
+                        // We need to draw children as if they were zero-based to the top-left of the texture.
+                        // We can do this by adding a translation component to our (orthogonal) projection matrix.
+                        renderer.PushOrtho(screenSpaceDrawRectangle);
+                        renderer.Clear(new ClearInfo(backgroundColour));
+
+                        Child.Draw(renderer);
+
+                        renderer.PopOrtho();
+                    }
+
+                    PopulateContents(renderer);
+                }
+
+                SharedData.DrawVersion = GetDrawVersion();
+            }
+
             BindTextureShader(renderer);
 
             base.Draw(renderer);
@@ -92,53 +121,12 @@ namespace osu.Framework.Graphics
             UnbindTextureShader(renderer);
         }
 
-        protected override void PopulateFrameBuffers(IRenderer renderer, Func<IFrameBuffer, ValueInvokeOnDisposal<IFrameBuffer>> bindFrameBuffer)
-        {
-            base.PopulateFrameBuffers(renderer, bindFrameBuffer);
-
-            if (!RequiresRedraw)
-                return;
-
-            if (!SharedData.IsInitialised)
-                SharedData.Initialise(renderer);
-
-            SharedData.ResetCurrentEffectBuffer();
-
-            FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
-
-            // If there are any nested buffered draw nodes, make sure they're populated before beginning to draw them to this frame buffer.
-            Child.PopulateFrameBuffers(renderer);
-
-            // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
-            SharedData.MainBuffer.Size = FrameBufferSize;
-
-            using (establishFrameBufferViewport(renderer))
-            {
-                // Fill the frame buffer with drawn children
-                using (bindFrameBuffer(SharedData.MainBuffer))
-                {
-                    // We need to draw children as if they were zero-based to the top-left of the texture.
-                    // We can do this by adding a translation component to our (orthogonal) projection matrix.
-                    renderer.PushOrtho(screenSpaceDrawRectangle);
-                    renderer.Clear(new ClearInfo(backgroundColour));
-
-                    Child.Draw(renderer);
-
-                    renderer.PopOrtho();
-                }
-
-                PopulateContents(renderer, bindFrameBuffer);
-            }
-
-            SharedData.DrawVersion = GetDrawVersion();
-        }
-
         /// <summary>
-        /// Populates the contents of the <see cref="SharedData"/>.
+        /// Populates the contents of the effect buffers of <see cref="SharedData"/>.
+        /// This is invoked after <see cref="Child"/> has been rendered to the main buffer.
         /// </summary>
-        /// <param name="renderer">The renderer to populate the frame buffer with.</param>
-        /// <param name="bindFrameBuffer">The function for binding <see cref="IFrameBuffer"/>s with the renderer. For optimal performance, <see cref="IFrameBuffer"/>s should only be bound once during the frame.</param>
-        protected virtual void PopulateContents(IRenderer renderer, Func<IFrameBuffer, ValueInvokeOnDisposal<IFrameBuffer>> bindFrameBuffer)
+        /// <param name="renderer"></param>
+        protected virtual void PopulateContents(IRenderer renderer)
         {
         }
 
@@ -151,13 +139,28 @@ namespace osu.Framework.Graphics
             renderer.DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
+        /// <summary>
+        /// Binds and initialises an <see cref="IFrameBuffer"/> if required.
+        /// </summary>
+        /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to bind.</param>
+        /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
+        protected IDisposable BindFrameBuffer(IFrameBuffer frameBuffer)
+        {
+            // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
+            frameBuffer.Size = frameBufferSize;
+
+            frameBuffer.Bind();
+
+            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
+        }
+
         private IDisposable establishFrameBufferViewport(IRenderer renderer)
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)FrameBufferSize.X + 1,
-                (int)FrameBufferSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1,
+                (int)frameBufferSize.Y + 1);
 
             renderer.PushMaskingInfo(new MaskingInfo
             {
@@ -169,8 +172,8 @@ namespace osu.Framework.Graphics
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-            renderer.PushViewport(new RectangleI(0, 0, (int)FrameBufferSize.X, (int)FrameBufferSize.Y));
-            renderer.PushScissor(new RectangleI(0, 0, (int)FrameBufferSize.X, (int)FrameBufferSize.Y));
+            renderer.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            renderer.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
             renderer.PushScissorOffset(screenSpaceMaskingRect.Location);
 
             return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), tup => tup.node.returnViewport(tup.renderer));
