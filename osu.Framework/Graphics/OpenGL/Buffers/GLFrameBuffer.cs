@@ -45,6 +45,25 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             renderer.UnbindFrameBuffer(this);
         }
 
+        private readonly bool externalTexture;
+
+        public GLFrameBuffer(GLRenderer renderer, GLTexture glTexture, int level = 0)
+        {
+            this.renderer = renderer;
+            this.glTexture = glTexture;
+
+            FrameBuffer = GL.GenFramebuffer();
+            Texture = renderer.CreateTexture(glTexture);
+
+            externalTexture = true;
+
+            renderer.BindFrameBuffer(this);
+
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, glTexture.TextureId, level);
+
+            renderer.UnbindFrameBuffer(this);
+        }
+
         private Vector2 size = Vector2.One;
 
         /// <summary>
@@ -113,7 +132,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
-            glTexture.Dispose();
+            if (!externalTexture)
+                glTexture.Dispose();
+
             renderer.DeleteFrameBuffer(this);
 
             foreach (var buffer in attachedRenderBuffers)

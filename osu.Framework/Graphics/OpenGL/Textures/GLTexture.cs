@@ -250,7 +250,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 } while (mergeFound);
 
                 // Mipmap generation using the merged upload regions follows
-                int frameBuffer = GL.GenFramebuffer();
+                using var frameBuffer = new GLFrameBuffer(Renderer, this);
 
                 BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
 
@@ -260,15 +260,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Renderer.PushStencilInfo(new StencilInfo(false));
                 Renderer.PushScissorState(false);
 
-                // Bind a dummy frame buffer such that we can later restore the current framebuffer
-                // state via Renderer.UnbindFrameBuffer(null);
-                Renderer.BindFrameBuffer(null);
+                Renderer.BindFrameBuffer(frameBuffer);
 
                 // Create render state for mipmap generation
                 Renderer.BindTexture(this);
                 Renderer.GetMipmapShader().Bind();
-
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
 
                 while (uploadedRegions.Count > 0)
                 {
@@ -336,8 +332,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                 Renderer.SetBlend(previousBlendingParameters);
 
-                Renderer.UnbindFrameBuffer(null);
-                GL.DeleteFramebuffer(frameBuffer);
+                Renderer.UnbindFrameBuffer(frameBuffer);
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
@@ -459,18 +454,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             updateMemoryUsage(level, (long)width * height * 4);
             GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
 
-            // Bind a dummy frame buffer such that we can later restore the current framebuffer
-            // state via Renderer.UnbindFrameBuffer(null);
-            Renderer.BindFrameBuffer(null);
-
             // Initialize texture to solid color
-            int frameBuffer = GL.GenFramebuffer();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, level);
+            using var frameBuffer = new GLFrameBuffer(Renderer, this, level);
+            Renderer.BindFrameBuffer(frameBuffer);
             Renderer.Clear(new ClearInfo(initialisationColour));
-            GL.DeleteFramebuffer(frameBuffer);
-
-            Renderer.UnbindFrameBuffer(null);
+            Renderer.UnbindFrameBuffer(frameBuffer);
         }
     }
 }
