@@ -129,8 +129,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                             code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
                         }
                     }
-
-                    code = "#define OPENGL_LEGACY\n" + code;
                 }
 
                 return code;
