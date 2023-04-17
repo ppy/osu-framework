@@ -927,7 +927,7 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Framebuffers
 
-        public void BindFrameBuffer(IFrameBuffer? frameBuffer)
+        public void BindFrameBuffer(IFrameBuffer frameBuffer)
         {
             frameBufferStack.Push(frameBuffer);
             setFrameBuffer(frameBuffer);
