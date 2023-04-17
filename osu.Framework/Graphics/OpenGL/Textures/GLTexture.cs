@@ -250,15 +250,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 } while (mergeFound);
 
                 // Mipmap generation using the merged upload regions follows
-                using var frameBuffer = new GLFrameBuffer(Renderer, this);
-
+                IFrameBuffer previousFrameBuffer = Renderer.FrameBuffer;
                 BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
+
+                if (previousFrameBuffer != null)
+                    Renderer.UnbindFrameBuffer(previousFrameBuffer);
 
                 // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
                 Renderer.SetBlend(BlendingParameters.None);
                 Renderer.PushDepthInfo(new DepthInfo(false, false));
                 Renderer.PushStencilInfo(new StencilInfo(false));
                 Renderer.PushScissorState(false);
+
+                using var frameBuffer = new GLFrameBuffer(Renderer, this);
 
                 Renderer.BindFrameBuffer(frameBuffer);
 
@@ -333,6 +337,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Renderer.SetBlend(previousBlendingParameters);
 
                 Renderer.UnbindFrameBuffer(frameBuffer);
+
+                if (previousFrameBuffer != null)
+                    Renderer.BindFrameBuffer(previousFrameBuffer);
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
