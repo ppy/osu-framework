@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
+using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -66,6 +67,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         void IRenderer.FinishFrame()
+        {
+        }
+
+        void IRenderer.FlushCurrentBatch(FlushBatchSource? source)
         {
         }
 
@@ -178,7 +183,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         Image<Rgba32> IRenderer.TakeScreenshot() => new Image<Rgba32>(1366, 768);
 
-        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        IShaderPart IRenderer.CreateShaderPart(IShaderStore manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts)
@@ -188,7 +193,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyFrameBuffer(this);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                                     WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
+                                     WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default)
             => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height)
