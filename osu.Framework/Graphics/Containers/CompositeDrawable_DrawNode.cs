@@ -10,6 +10,7 @@ using osuTK;
 using osu.Framework.Graphics.Colour;
 using System;
 using System.Runtime.CompilerServices;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -256,6 +257,17 @@ namespace osu.Framework.Graphics.Containers
                     if (quadBatch != null)
                         renderer.PopQuadBatch();
                 }
+            }
+
+            protected override void PopulateFrameBuffers(IRenderer renderer, Func<IFrameBuffer, ValueInvokeOnDisposal<IFrameBuffer>> bindFrameBuffer)
+            {
+                if (Children != null)
+                {
+                    for (int i = 0; i < Children.Count; i++)
+                        Children[i].PopulateFrameBuffers(renderer);
+                }
+
+                base.PopulateFrameBuffers(renderer, bindFrameBuffer);
             }
 
             protected override void Dispose(bool isDisposing)
