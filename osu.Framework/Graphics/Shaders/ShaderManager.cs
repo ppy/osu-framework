@@ -29,54 +29,63 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         /// <summary>
-        /// Retrieves raw shader data from the store.
-        /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
-        /// </summary>
-        /// <param name="name">The shader name.</param>
-        public virtual byte[] LoadRaw(string name)
-        {
-            byte[]? bytes = store.Get(name);
-
-            if (bytes == null) throw new FileNotFoundException("Shader file could not be found", name);
-
-            return bytes;
-        }
-
-        /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
         /// </summary>
         /// <param name="vertex">The vertex shader name.</param>
         /// <param name="fragment">The fragment shader name.</param>
-        public virtual IShader Load(string vertex, string fragment)
+        public IShader Load(string vertex, string fragment)
         {
-            var tuple = (vertex, fragment);
+            IShader? cached = GetCachedShader(vertex, fragment);
+            if (cached != null)
+                return cached;
 
-            if (shaderCache.TryGetValue(tuple, out IShader? shader))
-                return shader;
-
-            return shaderCache[tuple] = CreateShader(
-                renderer,
+            return shaderCache[(vertex, fragment)] = renderer.CreateShader(
                 $"{vertex}/{fragment}",
-                createShaderPart(vertex, ShaderPartType.Vertex),
-                createShaderPart(fragment, ShaderPartType.Fragment));
+                new[]
+                {
+                    resolveShaderPart(vertex, ShaderPartType.Vertex),
+                    resolveShaderPart(fragment, ShaderPartType.Fragment)
+                });
         }
 
-        internal virtual IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts) => renderer.CreateShader(name, parts);
+        /// <summary>
+        /// Attempts to retrieve an already-cached shader.
+        /// </summary>
+        /// <param name="vertex">The vertex shader name.</param>
+        /// <param name="fragment">The fragment shader name.</param>
+        /// <returns>A cached <see cref="IShader"/> instance, if existing.</returns>
+        public virtual IShader? GetCachedShader(string vertex, string fragment)
+            => shaderCache.TryGetValue((vertex, fragment), out IShader? shader) ? shader : null;
 
-        private IShaderPart createShaderPart(string name, ShaderPartType partType, bool bypassCache = false)
+        /// <summary>
+        /// Attempts to retrieve an already-cached shader part.
+        /// </summary>
+        /// <param name="name">The name of the shader part.</param>
+        /// <returns>A cached <see cref="IShaderPart"/> instance, if existing.</returns>
+        public virtual IShaderPart? GetCachedShaderPart(string name)
+            => partCache.TryGetValue(name, out IShaderPart? part) ? part : null;
+
+        /// <summary>
+        /// Attempts to retrieve the raw data for a shader file.
+        /// </summary>
+        /// <param name="fileName">The file name.</param>
+        /// <returns></returns>
+        public virtual byte[]? GetRawData(string fileName) => store.Get(fileName);
+
+        private IShaderPart resolveShaderPart(string name, ShaderPartType type)
         {
-            name = ensureValidName(name, partType);
+            name = ensureValidName(name, type);
 
-            if (!bypassCache && partCache.TryGetValue(name, out IShaderPart? part))
-                return part;
+            IShaderPart? cached = GetCachedShaderPart(name);
+            if (cached != null)
+                return cached;
 
-            byte[] rawData = LoadRaw(name);
+            byte[]? rawData = GetRawData(name);
 
-            part = renderer.CreateShaderPart(this, name, rawData, partType);
+            if (rawData == null)
+                throw new FileNotFoundException($"{type} shader part could not be found.", name);
 
-            //cache even on failure so we don't try and fail every time.
-            partCache[name] = part;
-            return part;
+            return partCache[name] = renderer.CreateShaderPart(this, name, rawData, type);
         }
 
         private string ensureValidName(string name, ShaderPartType partType)
