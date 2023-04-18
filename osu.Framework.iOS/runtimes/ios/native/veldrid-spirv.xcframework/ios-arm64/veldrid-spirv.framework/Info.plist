@@ -43,7 +43,7 @@
 	<key>DTXcodeBuild</key>
 	<string>14C18</string>
 	<key>MinimumOSVersion</key>
-	<string>16.2</string>
+	<string>13.4</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
