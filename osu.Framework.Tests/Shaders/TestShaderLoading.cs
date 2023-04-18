@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Shaders
         [Test]
         public void TestFetchNonExistentShader()
         {
-            var manager = new TestShaderManager(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
+            var manager = new ShaderManager(new TestGLRenderer(), new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
 
             // fetch non-existent shader throws an arbitrary exception type.
             // not sure this is the best way to have things (other stores return null instead), but is what it is for now so let's ensure we don't change behaviour.
@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Shaders
         {
             IShader lookup1;
 
-            var manager = new TestShaderManager(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
+            var manager = new ShaderManager(new TestGLRenderer(), new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
 
             // fetch existent shader.
             Assert.That(lookup1 = manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE), Is.Not.Null);
@@ -38,15 +38,10 @@ namespace osu.Framework.Tests.Shaders
             Assert.That(manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE), Is.SameAs(lookup1));
         }
 
-        private class TestShaderManager : ShaderManager
+        private class TestGLRenderer : GLRenderer
         {
-            public TestShaderManager(IResourceStore<byte[]> store)
-                : base(new GLRenderer(), store)
-            {
-            }
-
-            internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
-                => new TestGLShader((GLRenderer)renderer, name, parts.Cast<GLShaderPart>().ToArray());
+            protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+                => new TestGLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
 
             private class TestGLShader : GLShader
             {

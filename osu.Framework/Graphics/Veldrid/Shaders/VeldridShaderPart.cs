@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(store.LoadRaw(includeName), false) + '\n';
+                        code += loadFile(store.GetRawData(includeName), false) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -105,13 +105,13 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                 if (mainFile)
                 {
-                    string internalIncludes = loadFile(store.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
-                    internalIncludes += loadFile(store.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
+                    string internalIncludes = loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false) + "\n";
+                    internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     code = internalIncludes + code;
 
                     if (Type == ShaderPartType.Vertex)
                     {
-                        string backbufferCode = loadFile(store.LoadRaw("Internal/sh_Vertex_Output.h"), false);
+                        string backbufferCode = loadFile(store.GetRawData("Internal/sh_Vertex_Output.h"), false);
 
                         if (!string.IsNullOrEmpty(backbufferCode))
                         {

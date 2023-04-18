@@ -1054,8 +1054,8 @@ namespace osu.Framework.Graphics.Rendering
 
             mipmapShader = CreateShader("mipmap", new[]
             {
-                CreateShaderPart(store, "mipmap.vs", store.LoadRaw("sh_mipmap.vs"), ShaderPartType.Vertex),
-                CreateShaderPart(store, "mipmap.fs", store.LoadRaw("sh_mipmap.fs"), ShaderPartType.Fragment),
+                CreateShaderPart(store, "mipmap.vs", store.GetRawData("sh_mipmap.vs"), ShaderPartType.Vertex),
+                CreateShaderPart(store, "mipmap.fs", store.GetRawData("sh_mipmap.fs"), ShaderPartType.Fragment),
             }, globalUniformBuffer.AsNonNull());
 
             return mipmapShader;
@@ -1285,7 +1285,7 @@ namespace osu.Framework.Graphics.Rendering
                 this.store = store;
             }
 
-            public byte[]? LoadRaw(string name) => store.Get(name);
+            public byte[]? GetRawData(string fileName) => store.Get(fileName);
         }
     }
 }
