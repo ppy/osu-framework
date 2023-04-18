@@ -431,7 +431,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     int height = internalHeight;
 
                     for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
-                        initializeLevel(level, Math.Max(width >> level, 1), Math.Max(height >> level, 1), upload.Format);
+                    {
+                        width = Math.Max(width >> 1, 1);
+                        height = Math.Max(height >> 1, 1);
+
+                        initializeLevel(level, width, height, upload.Format);
+                    }
                 }
             }
 
