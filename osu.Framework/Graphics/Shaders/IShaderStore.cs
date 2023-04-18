@@ -5,6 +5,6 @@ namespace osu.Framework.Graphics.Shaders
 {
     public interface IShaderStore
     {
-        byte[]? LoadRaw(string name);
+        byte[]? GetRawData(string fileName);
     }
 }
