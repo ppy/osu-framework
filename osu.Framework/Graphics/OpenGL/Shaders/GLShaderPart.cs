@@ -27,14 +27,14 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly IRenderer renderer;
         private readonly List<string> shaderCodes = new List<string>();
-        private readonly ShaderManager manager;
+        private readonly IShaderStore store;
 
         private int partID = -1;
 
-        public GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
+        public GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
-            this.manager = manager;
+            this.store = store;
 
             Name = name;
             Type = type;
@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
+                        code += loadFile(store.LoadRaw(includeName), false) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -113,13 +113,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (mainFile)
                 {
-                    string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
-                    internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
+                    string internalIncludes = loadFile(store.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
+                    internalIncludes += loadFile(store.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     code = internalIncludes + code;
 
                     if (Type == ShaderType.VertexShader)
                     {
-                        string backbufferCode = loadFile(manager.LoadRaw("Internal/sh_Vertex_Output.h"), false);
+                        string backbufferCode = loadFile(store.LoadRaw("Internal/sh_Vertex_Output.h"), false);
 
                         if (!string.IsNullOrEmpty(backbufferCode))
                         {

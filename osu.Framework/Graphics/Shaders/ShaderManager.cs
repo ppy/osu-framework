@@ -9,7 +9,7 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class ShaderManager : IDisposable
+    public class ShaderManager : IShaderStore, IDisposable
     {
         private const string shader_prefix = @"sh_";
 

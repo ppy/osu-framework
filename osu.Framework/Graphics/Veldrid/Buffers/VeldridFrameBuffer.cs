@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly PixelFormat? depthFormat;
 
         private readonly VeldridTexture colourTarget;
+        private readonly int mipLevel;
         private Texture? depthTarget;
 
         private Vector2 size = Vector2.One;
@@ -47,6 +48,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
+        private readonly bool externalColourTarget;
+
         public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear)
         {
             // todo: we probably want the arguments separated to "PixelFormat[] colorFormats, PixelFormat depthFormat".
@@ -59,6 +62,18 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             colourTarget = new FrameBufferTexture(renderer, filteringMode);
             Texture = renderer.CreateTexture(colourTarget);
+
+            recreateResources();
+        }
+
+        internal VeldridFrameBuffer(VeldridRenderer renderer, VeldridTexture colourTarget, int mipLevel)
+        {
+            this.renderer = renderer;
+            this.colourTarget = colourTarget;
+            this.mipLevel = mipLevel;
+
+            Texture = renderer.CreateTexture(colourTarget);
+            externalColourTarget = true;
 
             recreateResources();
         }
@@ -77,7 +92,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             FramebufferDescription description = new FramebufferDescription
             {
-                ColorTargets = new[] { new FramebufferAttachmentDescription(colourTarget.GetResourceList().Single().Texture, 0) },
+                ColorTargets = new[] { new FramebufferAttachmentDescription(colourTarget.GetResourceList().Single().Texture, 0, (uint)mipLevel) },
                 DepthTarget = depthTarget == null ? null : new FramebufferAttachmentDescription(depthTarget, 0)
             };
 
@@ -97,7 +112,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// <param name="deleteTexture">Whether the texture should also be deleted.</param>
         public void DeleteResources(bool deleteTexture)
         {
-            if (deleteTexture)
+            if (deleteTexture && !externalColourTarget)
                 colourTarget.Dispose();
 
             if (Framebuffer.IsNotNull())

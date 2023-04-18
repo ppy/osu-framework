@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        public override IEnumerable<VeldridTextureResources> GetResourceList() => resourceList.AsNonNull();
+        public override IReadOnlyList<VeldridTextureResources> GetResourceList() => resourceList.AsNonNull();
 
         #region Disposal
 
