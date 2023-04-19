@@ -433,6 +433,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
+        [Test]
+        public void TestKeyboardNavigationWhenHoveringItems()
+        {
+            toggleDropdownViaClick(testDropdownMenu);
+            assertDropdownIsOpen(testDropdownMenu);
+
+            AddStep("hover item 2", () => InputManager.MoveMouseTo(testDropdownMenu.Menu.Children[2]));
+
+            AddRepeatStep("user press arrow down 2 times", () => InputManager.Key(Key.Down), 2);
+            AddUntilStep("item 4 is preselected", () => testDropdownMenu.PreselectedIndex == 4);
+
+            AddRepeatStep("user press arrow up 3 times", () => InputManager.Key(Key.Up), 3);
+            AddUntilStep("item 1 is preselected", () => testDropdownMenu.PreselectedIndex == 1);
+
+            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
