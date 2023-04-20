@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Veldrid
             SharedQuadIndex = new VeldridIndexData(this);
         }
 
-        protected override void Initialise(IGraphicsSurface graphicsSurface)
+        protected override void InitialiseDevice(IGraphicsSurface graphicsSurface)
         {
             // Veldrid must either be initialised on the main/"input" thread, or in a separate thread away from the draw thread at least.
             // Otherwise the window may not render anything on some platforms (macOS at least).
@@ -193,6 +193,11 @@ namespace osu.Framework.Graphics.Veldrid
             }
 
             MaxTextureSize = maxTextureSize;
+        }
+
+        protected override void SetupResources()
+        {
+            base.SetupResources();
 
             Commands = Factory.CreateCommandList();
             BufferUpdateCommands = Factory.CreateCommandList();

@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.OpenGL
         private bool? lastBlendingEnabledState;
         private int lastBoundVertexArray;
 
-        protected override void Initialise(IGraphicsSurface graphicsSurface)
+        protected override void InitialiseDevice(IGraphicsSurface graphicsSurface)
         {
             if (graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
                 throw new InvalidOperationException($"{nameof(GLRenderer)} only supports OpenGL graphics surfaces.");
