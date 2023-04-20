@@ -297,6 +297,10 @@ namespace osu.Framework.Graphics.OpenGL
                     osuTK.Graphics.OpenGL.GL.MemoryBarrier(osuTK.Graphics.OpenGL.MemoryBarrierFlags.TextureFetchBarrierBit | osuTK.Graphics.OpenGL.MemoryBarrierFlags.TextureUpdateBarrierBit | osuTK.Graphics.OpenGL.MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                 }
             }
+
+            // restore previous shader if there's one bound currently.
+            if (Shader != null)
+                GL.UseProgram((GLShader)Shader);
         }
 
         private void generateMipmapsViaFramebuffer(GLTexture texture, List<RectangleI>? regions)
