@@ -282,9 +282,18 @@ namespace osu.Framework.Graphics.OpenGL
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);
 
-                osuTK.Graphics.ES31.GL.BindImageTexture(0, texture.TextureId, level - 1, false, 0, BufferAccessArb.ReadOnly, InternalFormat.Rgba8);
-                osuTK.Graphics.ES31.GL.BindImageTexture(1, texture.TextureId, level, false, 0, BufferAccessArb.WriteOnly, InternalFormat.Rgba8);
-                osuTK.Graphics.ES31.GL.DispatchCompute((uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X), (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y), 1);
+                if (IsEmbedded)
+                {
+                    osuTK.Graphics.ES31.GL.BindImageTexture(0, texture.TextureId, level - 1, false, 0, osuTK.Graphics.ES31.BufferAccessArb.ReadOnly, osuTK.Graphics.ES31.InternalFormat.Rgba8);
+                    osuTK.Graphics.ES31.GL.BindImageTexture(1, texture.TextureId, level, false, 0, osuTK.Graphics.ES31.BufferAccessArb.WriteOnly, osuTK.Graphics.ES31.InternalFormat.Rgba8);
+                    osuTK.Graphics.ES31.GL.DispatchCompute((uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X), (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y), 1);
+                }
+                else
+                {
+                    osuTK.Graphics.OpenGL.GL.BindImageTexture(0, texture.TextureId, level - 1, false, 0, osuTK.Graphics.OpenGL.TextureAccess.ReadOnly, osuTK.Graphics.OpenGL.SizedInternalFormat.Rgba8);
+                    osuTK.Graphics.OpenGL.GL.BindImageTexture(1, texture.TextureId, level, false, 0, osuTK.Graphics.OpenGL.TextureAccess.WriteOnly, osuTK.Graphics.OpenGL.SizedInternalFormat.Rgba8);
+                    osuTK.Graphics.OpenGL.GL.DispatchCompute((uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X), (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y), 1);
+                }
             }
         }
 
