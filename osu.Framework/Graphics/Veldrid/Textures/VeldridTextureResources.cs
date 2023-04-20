@@ -12,6 +12,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
     internal class VeldridTextureResources : IDisposable
     {
         public readonly Texture Texture;
+        private readonly bool disposeResources;
 
         private Sampler? sampler;
 
@@ -30,10 +31,12 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         public ResourceSet? Set { get; private set; }
 
-        public VeldridTextureResources(Texture texture, Sampler? sampler)
+        public VeldridTextureResources(Texture texture, Sampler? sampler, bool disposeResources = true)
         {
             Texture = texture;
             Sampler = sampler;
+
+            this.disposeResources = disposeResources;
         }
 
         /// <summary>
@@ -52,8 +55,12 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         public void Dispose()
         {
-            Texture.Dispose();
-            Sampler?.Dispose();
+            if (disposeResources)
+            {
+                Texture.Dispose();
+                Sampler?.Dispose();
+            }
+
             Set?.Dispose();
         }
     }

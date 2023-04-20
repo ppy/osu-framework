@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -12,11 +13,14 @@ using osu.Framework.Graphics.OpenGL.Batches;
 using osu.Framework.Graphics.OpenGL.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics.ES30;
 using osuTK.Graphics;
@@ -24,7 +28,14 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Veldrid.SPIRV;
+using BufferAccessArb = osuTK.Graphics.ES31.BufferAccessArb;
+using FramebufferAttachment = osuTK.Graphics.ES30.FramebufferAttachment;
 using Image = SixLabors.ImageSharp.Image;
+using InternalFormat = osuTK.Graphics.ES31.InternalFormat;
+using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using PrimitiveTopology = osu.Framework.Graphics.Rendering.PrimitiveTopology;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -55,6 +66,9 @@ namespace osu.Framework.Graphics.OpenGL
         public bool IsEmbedded { get; private set; }
 
         private int backbufferFramebuffer;
+
+        private int? computeMipmapShader;
+        private GLShader renderMipmapShader = null!;
 
         private readonly int[] lastBoundBuffers = new int[2];
 
@@ -88,6 +102,48 @@ namespace osu.Framework.Graphics.OpenGL
                         GL Extensions:              {GetExtensions()}");
 
             openGLSurface.ClearCurrent();
+        }
+
+        protected override void SetupResources()
+        {
+            MakeCurrent();
+
+            base.SetupResources();
+
+            string extensions = GetExtensions();
+
+            using (var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"))
+            {
+                if (extensions.Contains("GL_ARB_compute_shader"))
+                {
+                    int shader = GL.CreateShader(ShaderType.ComputeShader);
+                    var spirvResults = SpirvCompilation.CompileCompute(store.Get("sh_mipmap.comp"), IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
+                    GL.ShaderSource(shader, spirvResults.ComputeShader);
+                    GL.CompileShader(shader);
+                    GL.GetShader(shader, ShaderParameter.CompileStatus, out int compileResult);
+
+                    if (compileResult != 1)
+                        throw new InvalidOperationException($"Failed to compile mipmap shader: {GL.GetShaderInfoLog(shader)}");
+
+                    computeMipmapShader = GL.CreateProgram();
+                    GL.AttachShader(computeMipmapShader.Value, shader);
+                    GL.LinkProgram(computeMipmapShader.Value);
+                    GL.GetProgram(shader, GetProgramParameterName.LinkStatus, out int linkResult);
+
+                    if (linkResult != 1)
+                        throw new GLShader.PartCompilationFailedException("Failed to link mipmap shader", GL.GetShaderInfoLog(shader));
+                }
+                else
+                {
+                    var shaderStore = new PassthroughShaderStore(store);
+
+                    renderMipmapShader = new GLShader(this, "mipmap/mipmap", new[]
+                    {
+                        new GLShaderPart(this, "mipmap", store.Get("sh_mipmap.vs"), ShaderType.VertexShader, shaderStore),
+                        new GLShaderPart(this, "mipmap", store.Get("sh_mipmap.fs"), ShaderType.FragmentShader, shaderStore),
+                    }, GlobalUniformBuffer!);
+                }
+            }
         }
 
         protected virtual string GetExtensions()
@@ -194,6 +250,132 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueByRef());
                     break;
             }
+        }
+
+        public override void GenerateMipmaps(INativeTexture texture, List<RectangleI>? regions = null)
+        {
+            var glTexture = (GLTexture)texture;
+
+            if (computeMipmapShader.HasValue)
+                generateMipmapsViaComputeShader(glTexture);
+            else
+                generateMipmapsViaFramebuffer(glTexture, regions);
+        }
+
+        /// <summary>
+        /// The number of threads in a thread group for the mipmap compute shader.
+        /// </summary>
+        /// <remarks>
+        /// This is specified in the compute shader as well for OpenGL backends.
+        /// </remarks>
+        private static readonly Vector2I compute_mipmap_threads = new Vector2I(16, 16);
+
+        private void generateMipmapsViaComputeShader(GLTexture texture)
+        {
+            int width = texture.Width;
+            int height = texture.Height;
+
+            for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 || (width > 1 || height > 1); level++)
+            {
+                width = MathUtils.DivideRoundUp(width, 2);
+                height = MathUtils.DivideRoundUp(height, 2);
+
+                osuTK.Graphics.ES31.GL.BindImageTexture(0, texture.TextureId, level - 1, false, 0, BufferAccessArb.ReadOnly, InternalFormat.Rgba8);
+                osuTK.Graphics.ES31.GL.BindImageTexture(1, texture.TextureId, level, false, 0, BufferAccessArb.WriteOnly, InternalFormat.Rgba8);
+                osuTK.Graphics.ES31.GL.DispatchCompute((uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X), (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y), 1);
+            }
+        }
+
+        private void generateMipmapsViaFramebuffer(GLTexture texture, List<RectangleI>? regions)
+        {
+            regions ??= new List<RectangleI> { new RectangleI(0, 0, texture.Width, texture.Height) };
+
+            using var frameBuffer = new GLFrameBuffer(this, texture);
+
+            BlendingParameters previousBlendingParameters = CurrentBlendingParameters;
+
+            // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
+            SetBlend(BlendingParameters.None);
+            PushDepthInfo(new DepthInfo(false, false));
+            PushStencilInfo(new StencilInfo(false));
+            PushScissorState(false);
+
+            BindFrameBuffer(frameBuffer);
+
+            // Create render state for mipmap generation
+            BindTexture(texture);
+            renderMipmapShader.Bind();
+
+            int width = texture.Width;
+            int height = texture.Height;
+
+            while (regions.Count > 0)
+            {
+                int count = Math.Min(regions.Count, IRenderer.MAX_QUADS);
+
+                // Generate quad buffer that will hold all the updated regions
+                var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(this, count, BufferUsageHint.StreamDraw);
+
+                // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
+                for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
+                {
+                    width = MathUtils.DivideRoundUp(width, 2);
+                    height = MathUtils.DivideRoundUp(height, 2);
+
+                    // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
+                    for (int i = 0; i < count; ++i)
+                    {
+                        // Conservatively round the draw rectangles. Rounding to integer coords is required
+                        // in order to ensure all the texels affected by linear interpolation are touched.
+                        // We could skip the rounding & use a single vertex buffer for all levels if we had
+                        // conservative raster, but alas, that's only supported on NV and Intel.
+                        Vector2I topLeft = regions[i].TopLeft;
+                        topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
+                        Vector2I bottomRight = regions[i].BottomRight;
+                        bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
+                        regions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+
+                        // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
+                        RectangleF r = (RectangleF)regions[i] / new Vector2(width, height);
+
+                        quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
+                        quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
+                        quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
+                        quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
+                    }
+
+                    // Read the texture from 1 mip level higher...
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, level - 1);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, level - 1);
+
+                    // ...than the one we're writing to via frame buffer.
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, texture.TextureId, level);
+
+                    // Perform the actual mip level draw
+                    PushViewport(new RectangleI(0, 0, width, height));
+
+                    quadBuffer.Update();
+                    quadBuffer.Draw();
+
+                    PopViewport();
+                }
+
+                regions.RemoveRange(0, count);
+            }
+
+            // Restore previous render state
+            renderMipmapShader.Unbind();
+
+            PopScissorState();
+            PopStencilInfo();
+            PopDepthInfo();
+
+            SetBlend(previousBlendingParameters);
+
+            UnbindFrameBuffer(frameBuffer);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
         }
 
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit)

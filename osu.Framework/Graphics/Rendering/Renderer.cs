@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -922,6 +921,16 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
+        /// Generates mipmaps for the specified texture based on the content of the largest mipmap level.
+        /// </summary>
+        /// <param name="texture">The texture to generate mipmaps for.</param>
+        /// <param name="regions">
+        ///     A list of regions in the texture to generate partial mipmaps for, or null to generate full mipmaps.
+        ///     This should only be considered as a hint the renderer to improve performance, and may be ignored by certain implementations.
+        /// </param>
+        public abstract void GenerateMipmaps(INativeTexture texture, List<RectangleI>? regions = null);
+
+        /// <summary>
         /// Informs the graphics device to use the given texture for drawing.
         /// </summary>
         /// <param name="texture">The texture, or null to use default texture.</param>
@@ -1043,29 +1052,6 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
         protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer);
-
-        private IShader? mipmapShader;
-
-        internal IShader GetMipmapShader()
-        {
-            if (mipmapShader != null)
-                return mipmapShader;
-
-            var store = new PassthroughShaderStore(
-                new NamespacedResourceStore<byte[]>(
-                    new NamespacedResourceStore<byte[]>(
-                        new DllResourceStore(typeof(Game).Assembly),
-                        @"Resources"),
-                    "Shaders"));
-
-            mipmapShader = CreateShader("mipmap", new[]
-            {
-                CreateShaderPart(store, "mipmap.vs", store.GetRawData("sh_mipmap.vs"), ShaderPartType.Vertex),
-                CreateShaderPart(store, "mipmap.fs", store.GetRawData("sh_mipmap.fs"), ShaderPartType.Fragment),
-            }, globalUniformBuffer.AsNonNull());
-
-            return mipmapShader;
-        }
 
         /// <inheritdoc cref="IRenderer.CreateLinearBatch{TVertex}"/>
         protected abstract IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
@@ -1295,7 +1281,7 @@ namespace osu.Framework.Graphics.Rendering
 
         #endregion
 
-        private class PassthroughShaderStore : IShaderStore
+        protected class PassthroughShaderStore : IShaderStore
         {
             private readonly IResourceStore<byte[]> store;
 

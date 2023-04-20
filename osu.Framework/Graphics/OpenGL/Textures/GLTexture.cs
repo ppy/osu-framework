@@ -9,11 +9,8 @@ using osu.Framework.Development;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
-using osu.Framework.Utils;
-using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
@@ -249,93 +246,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     }
                 } while (mergeFound);
 
-                // Mipmap generation using the merged upload regions follows
-                using var frameBuffer = new GLFrameBuffer(Renderer, this);
-
-                BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
-
-                // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
-                Renderer.SetBlend(BlendingParameters.None);
-                Renderer.PushDepthInfo(new DepthInfo(false, false));
-                Renderer.PushStencilInfo(new StencilInfo(false));
-                Renderer.PushScissorState(false);
-
-                Renderer.BindFrameBuffer(frameBuffer);
-
-                // Create render state for mipmap generation
-                Renderer.BindTexture(this);
-                Renderer.GetMipmapShader().Bind();
-
-                while (uploadedRegions.Count > 0)
-                {
-                    int width = internalWidth;
-                    int height = internalHeight;
-
-                    int count = Math.Min(uploadedRegions.Count, IRenderer.MAX_QUADS);
-
-                    // Generate quad buffer that will hold all the updated regions
-                    var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(Renderer, count, BufferUsageHint.StreamDraw);
-
-                    // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
-                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
-                    {
-                        width = MathUtils.DivideRoundUp(width, 2);
-                        height = MathUtils.DivideRoundUp(height, 2);
-
-                        // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
-                        for (int i = 0; i < count; ++i)
-                        {
-                            // Conservatively round the draw rectangles. Rounding to integer coords is required
-                            // in order to ensure all the texels affected by linear interpolation are touched.
-                            // We could skip the rounding & use a single vertex buffer for all levels if we had
-                            // conservative raster, but alas, that's only supported on NV and Intel.
-                            Vector2I topLeft = uploadedRegions[i].TopLeft;
-                            topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
-                            Vector2I bottomRight = uploadedRegions[i].BottomRight;
-                            bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
-                            uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
-
-                            // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
-                            RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
-
-                            quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
-                            quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
-                            quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
-                            quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
-                        }
-
-                        // Read the texture from 1 mip level higher...
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, level - 1);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, level - 1);
-
-                        // ...than the one we're writing to via frame buffer.
-                        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, level);
-
-                        // Perform the actual mip level draw
-                        Renderer.PushViewport(new RectangleI(0, 0, width, height));
-
-                        quadBuffer.Update();
-                        quadBuffer.Draw();
-
-                        Renderer.PopViewport();
-                    }
-
-                    uploadedRegions.RemoveRange(0, count);
-                }
-
-                // Restore previous render state
-                Renderer.GetMipmapShader().Unbind();
-
-                Renderer.PopScissorState();
-                Renderer.PopStencilInfo();
-                Renderer.PopDepthInfo();
-
-                Renderer.SetBlend(previousBlendingParameters);
-
-                Renderer.UnbindFrameBuffer(frameBuffer);
-
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
+                Renderer.GenerateMipmaps(this, uploadedRegions);
             }
 
             // Uncomment the following block of code in order to compare the above with the OpenGL
