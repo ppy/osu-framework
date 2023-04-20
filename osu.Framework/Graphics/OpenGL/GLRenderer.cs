@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.OpenGL
                     computeMipmapShader = GL.CreateProgram();
                     GL.AttachShader(computeMipmapShader.Value, shader);
                     GL.LinkProgram(computeMipmapShader.Value);
-                    GL.GetProgram(shader, GetProgramParameterName.LinkStatus, out int linkResult);
+                    GL.GetProgram(computeMipmapShader.Value, GetProgramParameterName.LinkStatus, out int linkResult);
 
                     if (linkResult != 1)
                         throw new GLShader.PartCompilationFailedException("Failed to link mipmap shader", GL.GetShaderInfoLog(shader));
