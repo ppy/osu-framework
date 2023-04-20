@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.UseProgram(computeMipmapShader!.Value);
 
-            for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 || (width > 1 || height > 1); level++)
+            for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); level++)
             {
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);

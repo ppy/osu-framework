@@ -438,7 +438,7 @@ namespace osu.Framework.Graphics.Veldrid
             int width = texture.Width;
             int height = texture.Height;
 
-            for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 || (width > 1 || height > 1); level++)
+            for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); level++)
             {
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);
