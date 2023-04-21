@@ -29,13 +29,13 @@ using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Veldrid.SPIRV;
-using BufferAccessArb = osuTK.Graphics.ES31.BufferAccessArb;
 using FramebufferAttachment = osuTK.Graphics.ES30.FramebufferAttachment;
 using Image = SixLabors.ImageSharp.Image;
-using InternalFormat = osuTK.Graphics.ES31.InternalFormat;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using PrimitiveTopology = osu.Framework.Graphics.Rendering.PrimitiveTopology;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+
+// ReSharper disable BitwiseOperatorOnEnumWithoutFlags
 
 namespace osu.Framework.Graphics.OpenGL
 {
