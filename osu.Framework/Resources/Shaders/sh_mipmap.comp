@@ -6,21 +6,34 @@
 // For consistent results, the size should match between here and GLRenderer/VeldridRenderer.compute_mipmap_threads.
 layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(set = 0, binding = 0) uniform texture2D samplingTexture;
-layout(set = 0, binding = 1) uniform writeonly image2D targetTexture;
+layout(set = 0, binding = 0) uniform texture2D inputTexture;
+
+#ifdef DIRECT3D11
+    // todo: there's so many fucked up shit to explain here.
+    layout(set = 0, binding = 1) writeonly buffer outputTexture { int outputTextureBuffer[]; };
+#else
+    layout(set = 0, binding = 1, rgba8) writeonly uniform image2D outputTexture;
+#endif
 
 layout(set = 1, binding = 0) uniform parameters
 {
-    int samplingLevel;
+    int inputLevel;
+    int outputPitch;
 };
 
 void main(void)
 {
+    // todo: use textureGather
     vec4 colour =
-        (texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 0)), samplingLevel) +
-         texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 1)), samplingLevel) +
-         texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 0)), samplingLevel) +
-         texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 1)), samplingLevel)) / 4;
+        (texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 0)), inputLevel) +
+         texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 1)), inputLevel) +
+         texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 0)), inputLevel) +
+         texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 1)), inputLevel)) / 4;
 
-    imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), colour);
+#ifdef DIRECT3D11
+    ivec4 byteColour = ivec4(colour * 255);
+    outputTextureBuffer[int(gl_GlobalInvocationID.y * outputPitch + gl_GlobalInvocationID.x)] = byteColour.r + (byteColour.g << 8) + (byteColour.b << 16) + (byteColour.a << 24);
+#else
+    imageStore(outputTexture, ivec2(gl_GlobalInvocationID), colour);
+#endif
 }

@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             get
             {
-                var usages = TextureUsage.Sampled;
+                var usages = TextureUsage.Sampled | TextureUsage.RenderTarget;
 
                 if (!manualMipmaps && Renderer.Device.Features.ComputeShader)
                     usages |= TextureUsage.Storage;
