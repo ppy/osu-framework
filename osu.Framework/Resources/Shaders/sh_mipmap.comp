@@ -1,4 +1,5 @@
 #version 450
+#extension GL_EXT_samplerless_texture_functions : enable
 
 // On OpenGL backends, the thread group size is specified here in the compute shader.
 // On non-OpenGL backends, the thread group size is specified in Veldrid's compute pipeline description.
@@ -7,7 +8,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 layout(set = 0, binding = 0) uniform texture2D samplingTexture;
 layout(set = 0, binding = 1) uniform writeonly image2D targetTexture;
-layout(set = 0, binding = 2) uniform sampler samplingSampler;
 
 layout(set = 1, binding = 0) uniform parameters
 {
@@ -17,10 +17,10 @@ layout(set = 1, binding = 0) uniform parameters
 void main(void)
 {
     vec4 colour =
-        (texelFetch(sampler2D(samplingTexture, samplingSampler), ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 0)), samplingLevel) +
-         texelFetch(sampler2D(samplingTexture, samplingSampler), ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 1)), samplingLevel) +
-         texelFetch(sampler2D(samplingTexture, samplingSampler), ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 0)), samplingLevel) +
-         texelFetch(sampler2D(samplingTexture, samplingSampler), ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 1)), samplingLevel)) / 4;
+        (texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 0)), samplingLevel) +
+         texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 1)), samplingLevel) +
+         texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 0)), samplingLevel) +
+         texelFetch(samplingTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 1)), samplingLevel)) / 4;
 
     imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), colour);
 }

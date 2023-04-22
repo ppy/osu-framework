@@ -241,8 +241,7 @@ namespace osu.Framework.Graphics.Veldrid
 
                     computeMipmapTextureResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(
                         new ResourceLayoutElementDescription("samplingTexture", ResourceKind.TextureReadOnly, ShaderStages.Compute),
-                        new ResourceLayoutElementDescription("targetTexture", ResourceKind.TextureReadWrite, ShaderStages.Compute),
-                        new ResourceLayoutElementDescription("sampler", ResourceKind.Sampler, ShaderStages.Compute)));
+                        new ResourceLayoutElementDescription("targetTexture", ResourceKind.TextureReadWrite, ShaderStages.Compute))); // todo: update to use SSBO type
 
                     computeMipmapBufferResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(new ResourceLayoutElementDescription("parameters", ResourceKind.UniformBuffer, ShaderStages.Compute)));
 
@@ -452,7 +451,7 @@ namespace osu.Framework.Graphics.Veldrid
                 height = MathUtils.DivideRoundUp(height, 2);
 
                 using var targetTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level, 1, 0, 1));
-                using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, targetTextureView, Device.LinearSampler));
+                using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, targetTextureView));
 
                 int bufferIndex = level - 1;
 
