@@ -1,5 +1,4 @@
 #version 450
-#extension GL_EXT_samplerless_texture_functions : enable
 
 // On OpenGL backends, the thread group size is specified here in the compute shader.
 // On non-OpenGL backends, the thread group size is specified in Veldrid's compute pipeline description.
@@ -7,32 +6,28 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 
 layout(set = 0, binding = 0) uniform texture2D inputTexture;
+layout(set = 0, binding = 1) uniform sampler inputSampler;
 
 #ifdef DIRECT3D11
     // todo: there's so many fucked up shit to explain here.
-    layout(set = 0, binding = 1) writeonly buffer outputTexture { int outputTextureBuffer[]; };
+    layout(set = 0, binding = 2) writeonly buffer outputTexture { int outputTextureBuffer[]; };
 #else
-    layout(set = 0, binding = 1, rgba8) writeonly uniform image2D outputTexture;
+    layout(set = 0, binding = 2, rgba8) writeonly uniform image2D outputTexture;
 #endif
 
 layout(set = 1, binding = 0) uniform parameters
 {
     int inputLevel;
-    int outputPitch;
+    int invocationWidth;
 };
 
 void main(void)
 {
-    // todo: use textureGather
-    vec4 colour =
-        (texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 0)), inputLevel) +
-         texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(0, 1)), inputLevel) +
-         texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 0)), inputLevel) +
-         texelFetch(inputTexture, ivec2(gl_GlobalInvocationID.xy * 2 + uvec2(1, 1)), inputLevel)) / 4;
+    vec4 colour = texture(sampler2D(inputTexture, inputSampler), (vec2(gl_GlobalInvocationID.xy) + 0.5) / invocationWidth);
 
 #ifdef DIRECT3D11
     ivec4 byteColour = ivec4(colour * 255);
-    outputTextureBuffer[int(gl_GlobalInvocationID.y * outputPitch + gl_GlobalInvocationID.x)] = byteColour.r + (byteColour.g << 8) + (byteColour.b << 16) + (byteColour.a << 24);
+    outputTextureBuffer[int(gl_GlobalInvocationID.y * invocationWidth + gl_GlobalInvocationID.x)] = byteColour.r + (byteColour.g << 8) + (byteColour.b << 16) + (byteColour.a << 24);
 #else
     imageStore(outputTexture, ivec2(gl_GlobalInvocationID), colour);
 #endif

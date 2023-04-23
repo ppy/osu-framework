@@ -246,6 +246,7 @@ namespace osu.Framework.Graphics.Veldrid
 
                     computeMipmapTextureResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(
                         new ResourceLayoutElementDescription("inputTexture", ResourceKind.TextureReadOnly, ShaderStages.Compute),
+                        new ResourceLayoutElementDescription("inputSampler", ResourceKind.Sampler, ShaderStages.Compute),
                         new ResourceLayoutElementDescription("outputTexture", graphicsSurface.Type == GraphicsSurfaceType.Direct3D11 ? ResourceKind.StructuredBufferReadWrite : ResourceKind.TextureReadWrite, ShaderStages.Compute)));
 
                     computeMipmapBufferResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(new ResourceLayoutElementDescription("parameters", ResourceKind.UniformBuffer, ShaderStages.Compute)));
@@ -459,8 +460,10 @@ namespace osu.Framework.Graphics.Veldrid
                 using var parametersBuffer = Factory.CreateBuffer(new BufferDescription((uint)sizeof(MipmapGenerationParameters), BufferUsage.UniformBuffer));
                 using var bufferResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapBufferResourceLayout, parametersBuffer));
 
-                Device.UpdateBuffer(parametersBuffer, 0, new MipmapGenerationParameters { InputLevel = level - 1, OutputPitch = width });
+                Device.UpdateBuffer(parametersBuffer, 0, new MipmapGenerationParameters { InputLevel = level - 1, InvocationWidth = width });
                 MipmapGenerationCommands.SetComputeResourceSet(1, bufferResourceSet);
+
+                using var sampler = Factory.CreateSampler(SamplerDescription.Linear with { MinimumLod = (uint)level - 1, MaximumLod = (uint)level - 1 });
 
                 if (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11)
                 {
@@ -468,7 +471,7 @@ namespace osu.Framework.Graphics.Veldrid
                     uint elements = (uint)(width * height);
 
                     using var outputBuffer = Factory.CreateBuffer(new BufferDescription(elements * stride, BufferUsage.StructuredBufferReadWrite, stride, true));
-                    using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, outputBuffer));
+                    using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, sampler, outputBuffer));
 
                     MipmapGenerationCommands.SetComputeResourceSet(0, textureResourceSet);
                     MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
@@ -508,7 +511,7 @@ namespace osu.Framework.Graphics.Veldrid
                 else
                 {
                     using var outputTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level, 1, 0, 1));
-                    using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, outputTextureView));
+                    using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, sampler, outputTextureView));
 
                     MipmapGenerationCommands.SetComputeResourceSet(0, textureResourceSet);
                     MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
@@ -894,7 +897,7 @@ namespace osu.Framework.Graphics.Veldrid
         private record struct MipmapGenerationParameters
         {
             public UniformInt InputLevel;
-            public UniformInt OutputPitch;
+            public UniformInt InvocationWidth;
             private readonly UniformPadding8 _;
         }
     }
