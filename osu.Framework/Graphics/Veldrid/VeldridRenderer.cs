@@ -86,7 +86,8 @@ namespace osu.Framework.Graphics.Veldrid
         /// </summary>
         /// <remarks>
         /// On an M1 machine, setting any value that's higher than 1024 threads breaks mipmap generation, therefore.
-        /// This is specified in the compute shader as well for OpenGL backends.
+        /// This should always match with the values specified in the compute shader.
+        /// todo: add validation logic at some point.
         /// </remarks>
         private static readonly Vector2I compute_mipmap_threads = new Vector2I(16, 16);
 
