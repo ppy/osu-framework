@@ -277,22 +277,26 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.UseProgram(computeMipmapShader!.Value);
 
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, texture.TextureId);
+
             for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); level++)
             {
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);
 
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, level - 1);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, level - 1);
+
                 if (IsEmbedded)
                 {
-                    osuTK.Graphics.ES31.GL.BindImageTexture(0, texture.TextureId, level - 1, false, 0, osuTK.Graphics.ES31.BufferAccessArb.ReadOnly, osuTK.Graphics.ES31.InternalFormat.Rgba8);
-                    osuTK.Graphics.ES31.GL.BindImageTexture(1, texture.TextureId, level, false, 0, osuTK.Graphics.ES31.BufferAccessArb.WriteOnly, osuTK.Graphics.ES31.InternalFormat.Rgba8);
+                    osuTK.Graphics.ES31.GL.BindImageTexture(2, texture.TextureId, level, false, 0, osuTK.Graphics.ES31.BufferAccessArb.WriteOnly, osuTK.Graphics.ES31.InternalFormat.Rgba8);
                     osuTK.Graphics.ES31.GL.DispatchCompute((uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X), (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y), 1);
                     osuTK.Graphics.ES31.GL.MemoryBarrier(osuTK.Graphics.ES31.MemoryBarrierMask.TextureFetchBarrierBit | osuTK.Graphics.ES31.MemoryBarrierMask.TextureUpdateBarrierBit | osuTK.Graphics.ES31.MemoryBarrierMask.ShaderImageAccessBarrierBit);
                 }
                 else
                 {
-                    osuTK.Graphics.OpenGL.GL.BindImageTexture(0, texture.TextureId, level - 1, false, 0, osuTK.Graphics.OpenGL.TextureAccess.ReadOnly, osuTK.Graphics.OpenGL.SizedInternalFormat.Rgba8);
-                    osuTK.Graphics.OpenGL.GL.BindImageTexture(1, texture.TextureId, level, false, 0, osuTK.Graphics.OpenGL.TextureAccess.WriteOnly, osuTK.Graphics.OpenGL.SizedInternalFormat.Rgba8);
+                    osuTK.Graphics.OpenGL.GL.BindImageTexture(2, texture.TextureId, level, false, 0, osuTK.Graphics.OpenGL.TextureAccess.WriteOnly, osuTK.Graphics.OpenGL.SizedInternalFormat.Rgba8);
                     osuTK.Graphics.OpenGL.GL.DispatchCompute((uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X), (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y), 1);
                     osuTK.Graphics.OpenGL.GL.MemoryBarrier(osuTK.Graphics.OpenGL.MemoryBarrierFlags.TextureFetchBarrierBit | osuTK.Graphics.OpenGL.MemoryBarrierFlags.TextureUpdateBarrierBit | osuTK.Graphics.OpenGL.MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                 }
@@ -301,6 +305,9 @@ namespace osu.Framework.Graphics.OpenGL
             // restore previous shader if there's one bound currently.
             if (Shader != null)
                 GL.UseProgram((GLShader)Shader);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
         }
 
         private void generateMipmapsViaFramebuffer(GLTexture texture, List<RectangleI>? regions)
