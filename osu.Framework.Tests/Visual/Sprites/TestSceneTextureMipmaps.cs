@@ -23,6 +23,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
+    [Ignore("This test cannot be run in headless mode (a renderer is required).")]
     public class TestSceneTextureMipmaps : FrameworkTestScene
     {
         [Resolved]
