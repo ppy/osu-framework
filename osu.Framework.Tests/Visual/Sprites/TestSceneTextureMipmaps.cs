@@ -9,14 +9,17 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -38,8 +41,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         [SetUp]
         public void SetUp() => Schedule(() =>
         {
-            timeSpent = 0;
-
             Scheduler.CancelDelayedTasks();
 
             fonts?.Dispose();
@@ -102,6 +103,23 @@ namespace osu.Framework.Tests.Visual.Sprites
         });
 
         [Test]
+        public void TestAddOnce()
+        {
+            int currentGlyphIndex = 1;
+
+            AddStep("add one", () =>
+            {
+                timeSpent = 0;
+
+                string? resource = fonts.GetAvailableResources().ElementAt(currentGlyphIndex++);
+                fonts.Get(resource);
+
+                upload();
+                report($"Generating mipmaps spent {timeSpent:N3}ms");
+            });
+        }
+
+        [Test]
         public void TestAddGradually()
         {
             int currentGlyphIndex = 1;
@@ -109,6 +127,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("add gradually", () =>
             {
+                timeSpent = 0;
+
                 glyphDelegate?.Cancel();
                 glyphDelegate = Scheduler.AddDelayed(() =>
                 {
@@ -140,6 +160,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("add half", () =>
             {
+                timeSpent = 0;
+
                 foreach (string? resource in fonts.GetAvailableResources().Take(fonts.GetAvailableResources().Count() / 2))
                     fonts.Get(resource);
 
@@ -153,6 +175,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("add all", () =>
             {
+                timeSpent = 0;
+
                 foreach (string? resource in fonts.GetAvailableResources())
                     fonts.Get(resource);
 
@@ -169,10 +193,21 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             host.DrawThread.Scheduler.Add(() =>
             {
+                if (host.Renderer is VeldridRenderer)
+                    ((VeldridRenderer)host.Renderer).BypassMipmapGenerationQueue = true;
+
+                // ensure atlas texture is uploaded first before profiling mipmap generation.
+                fonts.Atlas.AtlasTexture!.NativeTexture.Upload();
+
                 double timeBefore = stopwatchClock.CurrentTime;
                 fonts.Atlas.AtlasTexture!.NativeTexture.Upload(true);
                 timeSpent += stopwatchClock.CurrentTime - timeBefore;
                 tcs.SetResult();
+
+                if (host.Renderer is VeldridRenderer)
+                    ((VeldridRenderer)host.Renderer).BypassMipmapGenerationQueue = false;
+                else if (host.Renderer is GLRenderer)
+                    GL.Finish();
             });
 
             tcs.Task.WaitSafely();

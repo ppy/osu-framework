@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -201,6 +202,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return true;
         }
 
+        private List<RectangleI> lastUploadedRegions;
+
         public bool Upload(bool forceMipmaps = false)
         {
             if (!Available)
@@ -221,11 +224,17 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 }
             }
 
+            if (uploadedRegions.Count > 0)
+                lastUploadedRegions = uploadedRegions.ToList();
+
+            if (forceMipmaps && uploadedRegions.Count == 0)
+                uploadedRegions = lastUploadedRegions;
+
             // Generate mipmaps for just the updated regions of the texture.
             // This implementation is functionally equivalent to CommandList.GenerateMipmaps(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
-            if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmaps))
+            if (!manualMipmaps && uploadedRegions.Count != 0)
             {
                 // Merge overlapping upload regions to prevent redundant mipmap generation.
                 // i goes through the list left-to-right, j goes through it right-to-left
@@ -259,7 +268,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
 
             // Uncomment the following block of code in order to compare the above with the renderer mipmap generation method CommandList.GenerateMipmaps().
-            // if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmap))
+            // if (!manualMipmaps && uploadedRegions.Count != 0)
             // {
             //     Debug.Assert(resources != null);
             //     Renderer.Commands.GenerateMipmaps(resources.Texture);

@@ -9,8 +9,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -113,6 +111,9 @@ namespace osu.Framework.Graphics.Veldrid
             SharedLinearIndex = new VeldridIndexData(this);
             SharedQuadIndex = new VeldridIndexData(this);
         }
+
+        // todo: this is temporary at best, eventually we should have a method that allows us mapping renderer states to a specific command list for operations like mipmap generation.
+        private bool mainCommandsActive;
 
         protected override void InitialiseDevice(IGraphicsSurface graphicsSurface)
         {
@@ -291,8 +292,8 @@ namespace osu.Framework.Graphics.Veldrid
                 ubo.ResetCounters();
             uniformBufferResetList.Clear();
 
-            Commands.Begin();
-            BufferUpdateCommands.Begin();
+            beginCommands();
+            mainCommandsActive = true;
 
             base.BeginFrame(windowSize);
         }
@@ -315,6 +316,18 @@ namespace osu.Framework.Graphics.Veldrid
                 Device.SubmitCommands(MipmapGenerationCommands);
             }
 
+            submitCommands();
+            mainCommandsActive = false;
+        }
+
+        private void beginCommands()
+        {
+            Commands.Begin();
+            BufferUpdateCommands.Begin();
+        }
+
+        private void submitCommands()
+        {
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
 
@@ -449,26 +462,31 @@ namespace osu.Framework.Graphics.Veldrid
                 return;
             }
 
-            if (BypassMipmapGenerationQueue)
-            {
-                using var fence = Factory.CreateFence(false);
-
-                MipmapGenerationCommands.Begin();
-                MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
-                generateMipmapsViaComputeShader(veldridTexture);
-                MipmapGenerationCommands.End();
-                Device.SubmitCommands(MipmapGenerationCommands, fence);
-
-                while (!fence.Signaled)
-                    Thread.Sleep(1);
-
-                return;
-            }
-
             // our compute shader doesn't support generating on specific regions yet,
             // so we can safely schedule mipmap generation to happen only once at the end of the frame.
             if (!computeMipmapGenerationQueue.Contains(veldridTexture))
                 computeMipmapGenerationQueue.Enqueue(veldridTexture);
+
+            if (BypassMipmapGenerationQueue)
+            {
+                using var fence = Factory.CreateFence(false);
+                processMipmapGenerationQueue(fence);
+                while (!fence.Signaled) ;
+            }
+        }
+
+        private void processMipmapGenerationQueue(Fence? fence = null)
+        {
+            MipmapGenerationCommands.Begin();
+            MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
+
+            while (computeMipmapGenerationQueue.TryDequeue(out var texture))
+                generateMipmapsViaComputeShader(texture);
+            // foreach (var texture in computeMipmapGenerationQueue)
+            //    generateMipmapsViaComputeShader(texture);
+
+            MipmapGenerationCommands.End();
+            Device.SubmitCommands(MipmapGenerationCommands, fence);
         }
 
         private unsafe void generateMipmapsViaComputeShader(VeldridTexture texture)
@@ -550,6 +568,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         private void generateMipmapsViaFramebuffer(VeldridTexture texture, List<RectangleI>? regions)
         {
+            if (!mainCommandsActive)
+                beginCommands();
+
             Debug.Assert(graphicsSurface.Type == GraphicsSurfaceType.OpenGL);
 
             regions ??= new List<RectangleI> { new RectangleI(0, 0, texture.Width, texture.Height) };
@@ -649,6 +670,9 @@ namespace osu.Framework.Graphics.Veldrid
             PopDepthInfo();
 
             SetBlend(previousBlendingParameters);
+
+            if (!mainCommandsActive)
+                submitCommands();
         }
 
         protected override void SetShaderImplementation(IShader shader)

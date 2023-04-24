@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
@@ -191,6 +192,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
+        private List<RectangleI> lastUploadedRegions;
+
         public unsafe bool Upload(bool forceMipmaps = false)
         {
             if (!Available)
@@ -212,11 +215,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
+            if (uploadedRegions.Count > 0)
+                lastUploadedRegions = uploadedRegions.ToList();
+
+            if (forceMipmaps && uploadedRegions.Count == 0)
+                uploadedRegions = lastUploadedRegions;
+
             // Generate mipmaps for just the updated regions of the texture.
             // This implementation is functionally equivalent to GL.GenerateMipmap(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
-            if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmaps))
+            if (!manualMipmaps && uploadedRegions.Count != 0)
             {
                 // Merge overlapping upload regions to prevent redundant mipmap generation.
                 // i goes through the list left-to-right, j goes through it right-to-left
@@ -251,7 +260,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             // Uncomment the following block of code in order to compare the above with the OpenGL
             // reference mipmap generation GL.GenerateMipmap().
-            // if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmap))
+            // if (!manualMipmaps && uploadedRegions.Count != 0)
             // {
             //     GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
             //     GL.GenerateMipmap(TextureTarget.Texture2D);
