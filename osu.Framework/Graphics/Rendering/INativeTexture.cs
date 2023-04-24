@@ -76,8 +76,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Uploads this texture.
         /// </summary>
+        /// <param name="forceMipmaps">Whether mipmaps should be generated regardless of whether any uploads occurred. This is only used for testing mipmap performance.</param>
         /// <returns>Whether any uploads occurred.</returns>
-        bool Upload();
+        bool Upload(bool forceMipmaps = false);
 
         /// <summary>
         /// The size of this texture in bytes.

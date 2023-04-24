@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return true;
         }
 
-        public bool Upload()
+        public bool Upload(bool forceMipmaps = false)
         {
             if (!Available)
                 return false;
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             // This implementation is functionally equivalent to CommandList.GenerateMipmaps(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
-            if (uploadedRegions.Count != 0 && !manualMipmaps)
+            if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmaps))
             {
                 // Merge overlapping upload regions to prevent redundant mipmap generation.
                 // i goes through the list left-to-right, j goes through it right-to-left
@@ -259,7 +259,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
 
             // Uncomment the following block of code in order to compare the above with the renderer mipmap generation method CommandList.GenerateMipmaps().
-            // if (uploadedRegions.Count != 0 && !manualMipmaps)
+            // if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmap))
             // {
             //     Debug.Assert(resources != null);
             //     Renderer.Commands.GenerateMipmaps(resources.Texture);

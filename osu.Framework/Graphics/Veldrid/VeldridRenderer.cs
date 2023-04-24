@@ -9,6 +9,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -428,6 +430,15 @@ namespace osu.Framework.Graphics.Veldrid
                 texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
 
+        /// <summary>
+        /// Whether calling <see cref="GenerateMipmaps"/> should process enqueuing commands immediately rather than queuing it until end of frame.
+        /// This will also block <see cref="GenerateMipmaps"/> until GPU processes all sent commands.
+        /// </summary>
+        /// <remarks>
+        /// This is used in framework tests for profiling mipmap generation performance.
+        /// </remarks>
+        public bool BypassMipmapGenerationQueue { get; set; }
+
         public override void GenerateMipmaps(INativeTexture texture, List<RectangleI>? regions = null)
         {
             var veldridTexture = (VeldridTexture)texture;
@@ -435,6 +446,22 @@ namespace osu.Framework.Graphics.Veldrid
             if (!Device.Features.ComputeShader)
             {
                 generateMipmapsViaFramebuffer(veldridTexture, regions);
+                return;
+            }
+
+            if (BypassMipmapGenerationQueue)
+            {
+                using var fence = Factory.CreateFence(false);
+
+                MipmapGenerationCommands.Begin();
+                MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
+                generateMipmapsViaComputeShader(veldridTexture);
+                MipmapGenerationCommands.End();
+                Device.SubmitCommands(MipmapGenerationCommands, fence);
+
+                while (!fence.Signaled)
+                    Thread.Sleep(1);
+
                 return;
             }
 

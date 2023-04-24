@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public unsafe bool Upload()
+        public unsafe bool Upload(bool forceMipmaps = false)
         {
             if (!Available)
                 return false;
@@ -216,7 +216,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // This implementation is functionally equivalent to GL.GenerateMipmap(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
-            if (uploadedRegions.Count != 0 && !manualMipmaps)
+            if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmaps))
             {
                 // Merge overlapping upload regions to prevent redundant mipmap generation.
                 // i goes through the list left-to-right, j goes through it right-to-left
@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             // Uncomment the following block of code in order to compare the above with the OpenGL
             // reference mipmap generation GL.GenerateMipmap().
-            // if (uploadedRegions.Count != 0 && !manualMipmaps)
+            // if (!manualMipmaps && (uploadedRegions.Count != 0 || forceMipmap))
             // {
             //     GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
             //     GL.GenerateMipmap(TextureTarget.Texture2D);
