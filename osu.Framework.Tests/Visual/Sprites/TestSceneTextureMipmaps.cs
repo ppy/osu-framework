@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
@@ -31,9 +30,6 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         [Resolved]
         private Game game { get; set; } = null!;
-
-        [Resolved]
-        private TextureStore textures { get; set; } = null!;
 
         private FontStore fonts = null!;
 
