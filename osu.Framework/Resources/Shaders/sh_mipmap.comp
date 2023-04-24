@@ -7,19 +7,15 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 layout(set = 0, binding = 0) uniform texture2D inputTexture;
 layout(set = 0, binding = 1) uniform sampler inputSampler;
+layout(set = 0, binding = 2, rgba8) writeonly uniform image2D outputTexture;
 
+// normally we would use gl_WorkGroupSize.x * gl_NumWorkGroups.x to get the width, but that's not supported in D3D11. 
+// easiest way would be to supply it using a uniform buffer.
 #ifdef DIRECT3D11
-    // todo: there's so many fucked up shit to explain here.
-    layout(set = 0, binding = 2) writeonly buffer outputTexture { int outputTextureBuffer[]; };
-
     layout(set = 1, binding = 0) uniform parameters
     {
-        // normally we would use gl_WorkGroupSize.x * gl_NumWorkGroups.x to get the width, but that's not supported in D3D11. 
-        // easiest way would be to supply it using a uniform buffer.
         int invocationWidth;
     };
-#else
-    layout(set = 0, binding = 2, rgba8) writeonly uniform image2D outputTexture;
 #endif
 
 void main(void)
@@ -31,11 +27,5 @@ void main(void)
 #endif
 
     vec4 colour = texture(sampler2D(inputTexture, inputSampler), (vec2(gl_GlobalInvocationID.xy) + 0.5) / globalInvocationWidth);
-
-#ifdef DIRECT3D11
-    ivec4 byteColour = ivec4(colour * 255);
-    outputTextureBuffer[int(gl_GlobalInvocationID.y * invocationWidth + gl_GlobalInvocationID.x)] = byteColour.r + (byteColour.g << 8) + (byteColour.b << 16) + (byteColour.a << 24);
-#else
     imageStore(outputTexture, ivec2(gl_GlobalInvocationID), colour);
-#endif
 }

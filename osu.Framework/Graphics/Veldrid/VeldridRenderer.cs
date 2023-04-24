@@ -32,6 +32,7 @@ using Veldrid;
 using Veldrid.OpenGL;
 using Veldrid.OpenGLBinding;
 using Veldrid.SPIRV;
+using Vortice.Direct3D;
 using BufferUsage = Veldrid.BufferUsage;
 using FramebufferTarget = Veldrid.OpenGLBinding.FramebufferTarget;
 using Image = SixLabors.ImageSharp.Image;
@@ -251,7 +252,7 @@ namespace osu.Framework.Graphics.Veldrid
                     resourceLayouts.Add(computeMipmapTextureResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(
                         new ResourceLayoutElementDescription("inputTexture", ResourceKind.TextureReadOnly, ShaderStages.Compute),
                         new ResourceLayoutElementDescription("inputSampler", ResourceKind.Sampler, ShaderStages.Compute),
-                        new ResourceLayoutElementDescription("outputTexture", graphicsSurface.Type == GraphicsSurfaceType.Direct3D11 ? ResourceKind.StructuredBufferReadWrite : ResourceKind.TextureReadWrite, ShaderStages.Compute))));
+                        new ResourceLayoutElementDescription("outputTexture", ResourceKind.TextureReadWrite, ShaderStages.Compute))));
 
                     if (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11)
                         resourceLayouts.Add(computeMipmapBufferResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(new ResourceLayoutElementDescription("parameters", ResourceKind.UniformBuffer, ShaderStages.Compute))));
@@ -456,7 +457,7 @@ namespace osu.Framework.Graphics.Veldrid
         {
             var veldridTexture = (VeldridTexture)texture;
 
-            if (!Device.Features.ComputeShader)
+            if (!Device.Features.ComputeShader || (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11 && Device.GetD3D11Info().FeatureLevel < FeatureLevel.Level_11_0))
             {
                 generateMipmapsViaFramebuffer(veldridTexture, regions);
                 return;
@@ -471,7 +472,11 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 using var fence = Factory.CreateFence(false);
                 processMipmapGenerationQueue(fence);
-                while (!fence.Signaled) ;
+
+                while (!fence.Signaled)
+                {
+                    // todo: thread sleep?
+                }
             }
         }
 
@@ -482,6 +487,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             while (computeMipmapGenerationQueue.TryDequeue(out var texture))
                 generateMipmapsViaComputeShader(texture);
+            // todo: remove.
             // foreach (var texture in computeMipmapGenerationQueue)
             //    generateMipmapsViaComputeShader(texture);
 
@@ -489,7 +495,7 @@ namespace osu.Framework.Graphics.Veldrid
             Device.SubmitCommands(MipmapGenerationCommands, fence);
         }
 
-        private unsafe void generateMipmapsViaComputeShader(VeldridTexture texture)
+        private void generateMipmapsViaComputeShader(VeldridTexture texture)
         {
             var deviceTexture = texture.GetResourceList().Single().Texture;
 
@@ -504,65 +510,22 @@ namespace osu.Framework.Graphics.Veldrid
                 uint groupCountX = (uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X);
                 uint groupCountY = (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y);
 
-                using var sampler = Factory.CreateSampler(SamplerDescription.Linear with { MinimumLod = (uint)level - 1, MaximumLod = (uint)level - 1 });
+                using var inputTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level - 1, 1, 0, 1));
+                using var outputTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level, 1, 0, 1));
+                using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, inputTextureView, Device.LinearSampler, outputTextureView));
+
+                MipmapGenerationCommands.SetComputeResourceSet(0, textureResourceSet);
 
                 if (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11)
                 {
-                    const uint stride = (uint)sizeof(byte) * 4;
-                    uint elements = (uint)(width * height);
-
-                    using var outputBuffer = Factory.CreateBuffer(new BufferDescription(elements * stride, BufferUsage.StructuredBufferReadWrite, stride, true));
-                    using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, sampler, outputBuffer));
-
                     using var parametersBuffer = Factory.CreateBuffer(new BufferDescription(16u, BufferUsage.UniformBuffer));
                     using var bufferResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapBufferResourceLayout, parametersBuffer));
 
                     Device.UpdateBuffer(parametersBuffer, 0, width);
-
-                    MipmapGenerationCommands.SetComputeResourceSet(0, textureResourceSet);
                     MipmapGenerationCommands.SetComputeResourceSet(1, bufferResourceSet);
-                    MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
-
-                    MipmapGenerationCommands.End();
-                    Device.SubmitCommands(MipmapGenerationCommands);
-
-                    using var stagingBuffer = Factory.CreateBuffer(new BufferDescription(outputBuffer.SizeInBytes, BufferUsage.Staging));
-                    using var stagingTexture = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, deviceTexture.Format, TextureUsage.Staging));
-
-                    using (var copyCommands = Factory.CreateCommandList())
-                    {
-                        copyCommands.Begin();
-                        copyCommands.CopyBuffer(outputBuffer, 0, stagingBuffer, 0, outputBuffer.SizeInBytes);
-                        copyCommands.End();
-                        Device.SubmitCommands(copyCommands);
-                    }
-
-                    var mappedBuffer = Device.Map(stagingBuffer, MapMode.Read);
-                    var mappedTexture = Device.Map(stagingTexture, MapMode.Write);
-                    Unsafe.CopyBlock(mappedTexture.Data.ToPointer(), mappedBuffer.Data.ToPointer(), mappedTexture.SizeInBytes);
-
-                    Device.Unmap(stagingTexture);
-                    Device.Unmap(stagingBuffer);
-
-                    using (var copyCommands = Factory.CreateCommandList())
-                    {
-                        copyCommands.Begin();
-                        copyCommands.CopyTexture(stagingTexture, 0, 0, 0, 0, 0, deviceTexture, 0, 0, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
-                        copyCommands.End();
-                        Device.SubmitCommands(copyCommands);
-                    }
-
-                    MipmapGenerationCommands.Begin();
-                    MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
                 }
-                else
-                {
-                    using var outputTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level, 1, 0, 1));
-                    using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, deviceTexture, sampler, outputTextureView));
 
-                    MipmapGenerationCommands.SetComputeResourceSet(0, textureResourceSet);
-                    MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
-                }
+                MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
             }
         }
 
