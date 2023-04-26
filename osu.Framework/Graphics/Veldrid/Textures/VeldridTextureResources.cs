@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (renderer.Device.Features.SubsetTextureView)
             {
-                for (int i = 0; i < textureViews.Length; i++)
+                for (int i = 0; i < Math.Min(texture.MipLevels, IRenderer.MAX_MIPMAP_LEVELS + 1); i++)
                     textureViews[i] = renderer.Factory.CreateTextureView(new TextureViewDescription(texture, (uint)i, 1, 0, 1));
             }
 
