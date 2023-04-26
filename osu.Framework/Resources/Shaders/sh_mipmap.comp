@@ -12,9 +12,7 @@ layout(set = 0, binding = 2, rgba8) writeonly uniform image2D outputTexture;
 layout(set = 1, binding = 0) uniform parameters
 {
     vec4 region;
-    // normally we would use gl_WorkGroupSize.x * gl_NumWorkGroups.x to get the width, but that's not supported in D3D11. 
-    // easiest way would be to supply it using a uniform buffer.
-    int invocationWidth;
+    int outputWidth;
 };
 
 void main(void)
@@ -23,6 +21,6 @@ void main(void)
         return;
 
     ivec2 texelCoord = ivec2(region.xy + gl_GlobalInvocationID.xy);
-    vec4 colour = texture(sampler2D(inputTexture, inputSampler), (vec2(texelCoord) + 0.5) / invocationWidth);
+    vec4 colour = texture(sampler2D(inputTexture, inputSampler), (vec2(texelCoord) + 0.5) / outputWidth);
     imageStore(outputTexture, texelCoord, colour);
 }

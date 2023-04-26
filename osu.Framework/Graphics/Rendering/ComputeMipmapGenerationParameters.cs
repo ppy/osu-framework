@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Rendering
     internal record struct ComputeMipmapGenerationParameters
     {
         public UniformVector4 Region;
-        public UniformInt InvocationWidth;
+        public UniformInt OutputWidth;
         private readonly UniformPadding12 pad1;
     }
 }

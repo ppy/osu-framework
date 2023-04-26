@@ -505,7 +505,7 @@ namespace osu.Framework.Graphics.Veldrid
                     computeMipmapParametersBuffer!.Data = new ComputeMipmapGenerationParameters
                     {
                         Region = new Vector4(regions[i].X, regions[i].Y, regions[i].Width, regions[i].Height),
-                        InvocationWidth = width,
+                        OutputWidth = width,
                     };
 
                     MipmapGenerationCommands.SetComputeResourceSet(1, computeMipmapParametersBuffer.GetResourceSet(computeMipmapBufferResourceLayout.AsNonNull()));
