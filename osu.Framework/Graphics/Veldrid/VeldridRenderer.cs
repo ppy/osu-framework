@@ -486,8 +486,8 @@ namespace osu.Framework.Graphics.Veldrid
 
             for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); level++)
             {
-                width = MathUtils.DivideRoundUp(width, 2);
-                height = MathUtils.DivideRoundUp(height, 2);
+                width /= 2;
+                height /= 2;
 
                 MipmapGenerationCommands.SetComputeResourceSet(0, textureResources.GetMipmapResourceSet(this, computeMipmapTextureResourceLayout.AsNonNull(), level));
 
@@ -540,8 +540,8 @@ namespace osu.Framework.Graphics.Veldrid
             // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
             for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
             {
-                width = MathUtils.DivideRoundUp(width, 2);
-                height = MathUtils.DivideRoundUp(height, 2);
+                width /= 2;
+                height /= 2;
 
                 // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
                 for (int i = 0; i < regions.Count; ++i)
