@@ -1,10 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-// ReSharper disable StaticMemberInGenericType
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,8 +22,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public static readonly int STRIDE = Marshal.SizeOf(default(T));
 
+        // ReSharper disable StaticMemberInGenericType
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
-        private static int amountEnabledAttributes;
 
         static GLVertexUtils()
         {
@@ -48,7 +44,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 }
                 else if (field.IsDefined(typeof(VertexMemberAttribute), true))
                 {
-                    var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
+                    var attrib = (VertexMemberAttribute?)field.GetCustomAttribute(typeof(VertexMemberAttribute));
                     Debug.Assert(attrib != null);
 
                     // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
@@ -59,33 +55,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
         }
 
-        /// <summary>
-        /// Enables and binds the vertex attributes/pointers for the vertex of type <typeparamref name="T"/>.
-        /// </summary>
-        public static void Bind()
+        public static void SetAttributes()
         {
-            enableAttributes(attributes.Count);
             for (int i = 0; i < attributes.Count; i++)
+            {
+                GL.EnableVertexAttribArray(i);
                 GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
-        }
-
-        private static void enableAttributes(int amount)
-        {
-            if (amount == amountEnabledAttributes)
-                return;
-
-            if (amount > amountEnabledAttributes)
-            {
-                for (int i = amountEnabledAttributes; i < amount; ++i)
-                    GL.EnableVertexAttribArray(i);
             }
-            else
-            {
-                for (int i = amountEnabledAttributes - 1; i >= amount; --i)
-                    GL.DisableVertexAttribArray(i);
-            }
-
-            amountEnabledAttributes = amount;
         }
     }
 }

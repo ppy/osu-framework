@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osuTK;
 
 namespace osu.Framework.Graphics.Shapes
@@ -10,7 +8,7 @@ namespace osu.Framework.Graphics.Shapes
     /// <summary>
     /// A triangle which has all side lengths and angles equal.
     /// </summary>
-    public class EquilateralTriangle : Triangle
+    public partial class EquilateralTriangle : Triangle
     {
         /// <summary>
         /// For equilateral triangles, height = cos(30) * sidelength = ~0.866 * sidelength.

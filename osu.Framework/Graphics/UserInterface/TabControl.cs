@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
     /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics.UserInterface
             Masking = true
         };
 
-        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
+        public partial class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
             private bool allowMultiline;
 

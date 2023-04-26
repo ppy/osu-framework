@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +12,7 @@ namespace osu.Framework.Graphics.Animations
     /// Represents a generic, frame-based animation. Inherit this class if you need custom animations.
     /// </summary>
     /// <typeparam name="T">The type of content in the frames of the animation.</typeparam>
-    public abstract class Animation<T> : AnimationClockComposite, IFramedAnimation
+    public abstract partial class Animation<T> : AnimationClockComposite, IFramedAnimation
     {
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.

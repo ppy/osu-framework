@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
     /// Manages dynamically displaying a custom <see cref="Drawable"/> based on a model object.
     /// Useful for replacing <see cref="Drawable"/>s on the fly.
     /// </summary>
-    public abstract class ModelBackedDrawable<T> : CompositeDrawable
+    public abstract partial class ModelBackedDrawable<T> : CompositeDrawable
     {
         /// <summary>
         /// The currently displayed <see cref="Drawable"/>. Null if no drawable is displayed.

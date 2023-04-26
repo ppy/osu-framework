@@ -20,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDrawablePool : TestScene
+    public partial class TestSceneDrawablePool : TestScene
     {
         private DrawablePool<TestDrawable> pool;
         private SpriteText count;
@@ -353,7 +353,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
         }
 
-        private class TestPool : DrawablePool<TestDrawable>
+        private partial class TestPool : DrawablePool<TestDrawable>
         {
             private readonly double fadeTime;
 
@@ -369,7 +369,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestDrawable : PoolableDrawable
+        private partial class TestDrawable : PoolableDrawable
         {
             private readonly double fadeTime;
 

@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Audio
     /// <summary>
     /// Visualises the waveform for an audio stream.
     /// </summary>
-    public class WaveformGraph : Drawable
+    public partial class WaveformGraph : Drawable
     {
         private IShader shader;
         private Texture texture;

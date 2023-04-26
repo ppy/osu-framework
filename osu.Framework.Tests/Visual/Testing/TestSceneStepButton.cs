@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneStepButton : FrameworkTestScene
+    public partial class TestSceneStepButton : FrameworkTestScene
     {
         public TestSceneStepButton()
         {

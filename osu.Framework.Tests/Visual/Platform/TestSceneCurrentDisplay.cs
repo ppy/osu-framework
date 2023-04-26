@@ -12,7 +12,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test cannot be run in headless mode (a window instance is required).")]
-    public class TestSceneCurrentDisplay : FrameworkTestScene
+    public partial class TestSceneCurrentDisplay : FrameworkTestScene
     {
         private IWindow window = null!;
 
@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [TestCase(WindowState.Fullscreen)]
         public void TestChangeCurrentDisplay(WindowState startingState)
         {
-            Display? display = null;
+            Display display = null!;
 
             WindowMode startingMode = getWindowModeForState(startingState);
 

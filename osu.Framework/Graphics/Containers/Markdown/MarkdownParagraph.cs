@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Visualises a paragraph.
     /// </summary>
-    public class MarkdownParagraph : CompositeDrawable, IMarkdownTextFlowComponent
+    public partial class MarkdownParagraph : CompositeDrawable, IMarkdownTextFlowComponent
     {
         private readonly ParagraphBlock paragraphBlock;
 

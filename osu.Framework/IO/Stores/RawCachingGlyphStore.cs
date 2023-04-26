@@ -157,10 +157,13 @@ namespace osu.Framework.IO.Stores
                 for (int y = 0; y < character.Height; y++)
                 {
                     var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
+                    var span = pixelRowMemory.Span;
                     int readOffset = y * pageWidth + character.X;
 
                     for (int x = 0; x < character.Width; x++)
-                        pixelRowMemory.Span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                    {
+                        span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                    }
                 }
 
                 return new TextureUpload(image);

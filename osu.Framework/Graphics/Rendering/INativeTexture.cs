@@ -35,6 +35,12 @@ namespace osu.Framework.Graphics.Rendering
         int Height { get; set; }
 
         /// <summary>
+        /// The level of the texture to display, or null to display all levels automatically.
+        /// This is used by the texture visualiser tool for viewing textures on a specific mipmap level.
+        /// </summary>
+        int? MipLevel { get; set; }
+
+        /// <summary>
         /// Whether the texture is in a usable state.
         /// </summary>
         bool Available { get; }

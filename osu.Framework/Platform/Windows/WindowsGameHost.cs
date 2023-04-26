@@ -1,12 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Rendering;
@@ -18,9 +17,10 @@ using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform.Windows
 {
+    [SupportedOSPlatform("windows")]
     public class WindowsGameHost : DesktopGameHost
     {
-        private TimePeriod timePeriod;
+        private TimePeriod? timePeriod;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
@@ -30,12 +30,9 @@ namespace osu.Framework.Platform.Windows
             // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
 
-#if NET6_0_OR_GREATER
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, HostOptions options)
+        internal WindowsGameHost(string gameName, HostOptions? options)
             : base(gameName, options)
         {
         }
@@ -68,7 +65,7 @@ namespace osu.Framework.Platform.Windows
                        .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
 
-        protected override IRenderer CreateRenderer() => new WindowsGLRenderer(this);
+        protected override IRenderer CreateGLRenderer() => new WindowsGLRenderer(this);
 
         protected override void SetupForRun()
         {
@@ -80,7 +77,7 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1);
         }
 
-        protected override IWindow CreateWindow() => new WindowsWindow();
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new WindowsWindow(preferredSurface);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {

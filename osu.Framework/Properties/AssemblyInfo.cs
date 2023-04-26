@@ -4,11 +4,8 @@
 #nullable disable
 
 using System.Runtime.CompilerServices;
-#if NET6_0_OR_GREATER
 using System.Reflection.Metadata;
 using osu.Framework.Testing;
-
-#endif
 
 // We publish our internal attributes to other sub-projects of the framework.
 // Note, that we omit visual tests as they are meant to test the framework
@@ -21,7 +18,4 @@ using osu.Framework.Testing;
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.iOS")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Android")]
-
-#if NET6_0_OR_GREATER
 [assembly: MetadataUpdateHandler(typeof(HotReloadCallbackReceiver))]
-#endif

@@ -39,7 +39,7 @@ using Logger = osu.Framework.Logging.Logger;
 namespace osu.Framework.Testing
 {
     [Cached]
-    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalKeyboardInput
+    public partial class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalKeyboardInput
     {
         public TestScene CurrentTest { get; private set; }
 
@@ -86,7 +86,7 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any() && t.IsSupportedOnCurrentOSPlatform();
 
         private void updateList(ValueChangedEvent<Assembly> args)
         {
@@ -610,7 +610,7 @@ namespace osu.Framework.Testing
                 b.Current = CurrentTest.GetType();
         }
 
-        private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
+        private partial class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
         {
             private readonly bool catchErrors;
             private bool hasCaught;
@@ -647,7 +647,7 @@ namespace osu.Framework.Testing
             protected override bool ShouldLoadContent => !hasCaught;
         }
 
-        private class TestBrowserTextBox : BasicTextBox
+        private partial class TestBrowserTextBox : BasicTextBox
         {
             protected override float LeftRightPadding => TestButtonBase.LEFT_TEXT_PADDING;
 

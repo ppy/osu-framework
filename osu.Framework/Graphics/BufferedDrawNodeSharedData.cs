@@ -25,11 +25,6 @@ namespace osu.Framework.Graphics
         internal long DrawVersion = -1;
 
         /// <summary>
-        /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
-        /// </summary>
-        public IFrameBuffer MainBuffer { get; private set; }
-
-        /// <summary>
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".
         /// </summary>
@@ -48,8 +43,10 @@ namespace osu.Framework.Graphics
         private readonly IFrameBuffer[] effectBuffers;
 
         private readonly RenderBufferFormat[] formats;
+        private readonly TextureFilteringMode filterMode;
 
         private IRenderer renderer;
+        private IFrameBuffer mainBuffer;
 
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
@@ -76,23 +73,19 @@ namespace osu.Framework.Graphics
             this.formats = formats;
             PixelSnapping = pixelSnapping;
             ClipToRootNode = clipToRootNode;
+            filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
 
             effectBuffers = new IFrameBuffer[effectBufferCount];
         }
 
+        /// <summary>
+        /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
+        /// </summary>
+        public IFrameBuffer MainBuffer => mainBuffer ??= renderer.CreateFrameBuffer(formats, filterMode);
+
         public void Initialise(IRenderer renderer)
         {
-            if (IsInitialised)
-                return;
-
             this.renderer = renderer;
-
-            TextureFilteringMode filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
-
-            MainBuffer = renderer.CreateFrameBuffer(formats, filterMode);
-            for (int i = 0; i < effectBuffers.Length; i++)
-                effectBuffers[i] = renderer.CreateFrameBuffer(formats, filterMode);
-
             IsInitialised = true;
         }
 
@@ -101,7 +94,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="IFrameBuffer"/> which contains the most up-to-date drawn effect.
         /// </summary>
-        public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
+        public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : getEffectBufferAtIndex(currentEffectBuffer);
 
         /// <summary>
         /// Retrieves the next <see cref="IFrameBuffer"/> which effects can be rendered to.
@@ -114,8 +107,11 @@ namespace osu.Framework.Graphics
 
             if (++currentEffectBuffer >= effectBuffers.Length)
                 currentEffectBuffer = 0;
-            return effectBuffers[currentEffectBuffer];
+
+            return getEffectBufferAtIndex(currentEffectBuffer);
         }
+
+        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(formats, filterMode);
 
         /// <summary>
         /// Resets <see cref="CurrentEffectBuffer"/>.

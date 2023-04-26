@@ -1,0 +1,8 @@
+public partial class DefaultParameters : osu.Framework.Graphics.Drawable, IDefaultParameters
+{
+}
+
+[osu.Framework.Allocation.Cached]
+public interface IDefaultParameters
+{
+}

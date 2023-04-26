@@ -112,7 +112,7 @@ namespace osu.Framework.Platform
 
         public override Storage GetStorageForDirectory([NotNull] string path)
         {
-            if (path == null) throw new ArgumentNullException(nameof(path));
+            ArgumentNullException.ThrowIfNull(path);
 
             if (path.Length > 0 && !path.EndsWith(Path.DirectorySeparatorChar))
                 path += Path.DirectorySeparatorChar;

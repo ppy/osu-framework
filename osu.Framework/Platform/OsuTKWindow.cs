@@ -7,10 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
-using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 using osuTK.Platform;
 using osuTK.Input;
 using System.ComponentModel;
@@ -26,6 +24,9 @@ namespace osu.Framework.Platform
 {
     public abstract class OsuTKWindow : IWindow, IGameWindow
     {
+        private readonly IGraphicsSurface graphicsSurface;
+        IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
+
         /// <summary>
         /// The <see cref="IGraphicsContext"/> associated with this <see cref="OsuTKWindow"/>.
         /// </summary>
@@ -48,6 +49,15 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Resized;
 
+        /// <inheritdoc cref="IWindow.Suspended"/>
+        public event Action Suspended { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.Resumed"/>
+        public event Action Resumed { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.LowOnMemory"/>
+        public event Action LowOnMemory { add { } remove { } }
+
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged { add { } remove { } }
 
@@ -56,10 +66,6 @@ namespace osu.Framework.Platform
         /// </summary>
         [CanBeNull]
         public event EventHandler<KeyboardKeyEventArgs> KeyDown;
-
-        internal readonly Version GLVersion;
-        internal readonly Version GLSLVersion;
-        internal readonly bool IsEmbedded;
 
         protected readonly IGameWindow OsuTKGameWindow;
 
@@ -75,6 +81,14 @@ namespace osu.Framework.Platform
         public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
+
+        public void OnDraw()
+        {
+        }
+
+        public void Raise()
+        {
+        }
 
         public abstract bool Focused { get; }
 
@@ -136,43 +150,10 @@ namespace osu.Framework.Platform
             MouseEnter += (_, _) => cursorInWindow.Value = true;
             MouseLeave += (_, _) => cursorInWindow.Value = false;
 
-            supportedWindowModes.AddRange(DefaultSupportedWindowModes);
-
             UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
-            MakeCurrent();
-
-            string version = GL.GetString(StringName.Version);
-            string versionNumberSubstring = getVersionNumberSubstring(version);
-
-            GLVersion = new Version(versionNumberSubstring);
-
-            // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
-            IsEmbedded = version.Contains("OpenGL ES");
-
-            version = GL.GetString(StringName.ShadingLanguageVersion);
-
-            if (!string.IsNullOrEmpty(version))
-            {
-                try
-                {
-                    GLSLVersion = new Version(versionNumberSubstring);
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(e, $@"couldn't set GLSL version using string '{version}'");
-                }
-            }
-
-            if (GLSLVersion == null)
-                GLSLVersion = new Version();
-
-            Logger.Log($@"GL Initialized
-                        GL Version:                 {GL.GetString(StringName.Version)}
-                        GL Renderer:                {GL.GetString(StringName.Renderer)}
-                        GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
-                        GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
+            graphicsSurface = new OsuTKGraphicsSurface(this);
+            graphicsSurface.Initialise();
         }
 
         /// <summary>
@@ -263,14 +244,6 @@ namespace osu.Framework.Platform
                 CurrentDisplayBindable.Value = Displays.ElementAtOrDefault(index);
         }
 
-        private string getVersionNumberSubstring(string version)
-        {
-            string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
-            if (result != null) return result;
-
-            throw new ArgumentException($"Cannot get version number from {version}!", nameof(version));
-        }
-
         public abstract void SetupWindow(FrameworkConfigManager config);
 
         protected virtual void OnKeyDown(object sender, KeyboardKeyEventArgs e) => KeyDown?.Invoke(sender, e);
@@ -282,13 +255,9 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
-
-        public IBindableList<WindowMode> SupportedWindowModes => supportedWindowModes;
+        public abstract IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
-
-        protected abstract IEnumerable<WindowMode> DefaultSupportedWindowModes { get; }
 
         public virtual VSyncMode VSync { get; set; }
 

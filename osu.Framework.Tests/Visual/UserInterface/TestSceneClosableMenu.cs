@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -13,7 +14,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneClosableMenu : MenuTestScene
+    public partial class TestSceneClosableMenu : MenuTestScene
     {
         [SetUpSteps]
         public void SetUpSteps()
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Items = new[]
                         {
                             new MenuItem("Sub-item #1"),
-                            new MenuItem("Sub-item #2"),
+                            new MenuItem("Sub-item #2", () => { }),
                         }
                     },
                     new MenuItem("Item #2")
@@ -38,7 +39,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Items = new[]
                         {
                             new MenuItem("Sub-item #1"),
-                            new MenuItem("Sub-item #2"),
+                            new MenuItem("Sub-item #2", () => { }),
                         }
                     },
                 }
@@ -46,10 +47,46 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestClickItemClosesMenus()
+        public void TestClickItemWithoutActionDoesNotCloseMenus()
         {
             AddStep("click item", () => ClickItem(0, 0));
             AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("no menus closed", () =>
+            {
+                for (int i = 1; i >= 0; --i)
+                {
+                    if (Menus.GetSubMenu(i).State == MenuState.Closed)
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestClickItemWithActionAssignedDuringNavigationClosesMenus()
+        {
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[0]));
+            AddStep("assign action", () => Menus.GetSubStructure(1).GetMenuItems().Cast<Menu.DrawableMenuItem>().First().Item.Action.Value = () => { });
+            AddStep("click item", () => InputManager.Click(MouseButton.Left));
+            AddAssert("all menus closed", () =>
+            {
+                for (int i = 1; i >= 0; --i)
+                {
+                    if (Menus.GetSubMenu(i).State == MenuState.Open)
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestClickItemWithActionClosesMenus()
+        {
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("click item", () => ClickItem(1, 1));
             AddAssert("all menus closed", () =>
             {
                 for (int i = 1; i >= 0; --i)
@@ -94,7 +131,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("mouse handler not activated", () => !actionReceived);
         }
 
-        private class MouseHandlingLayer : Drawable
+        private partial class MouseHandlingLayer : Drawable
         {
             public Action Action { get; set; }
 
@@ -110,7 +147,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class AnimatedMenu : BasicMenu
+        private partial class AnimatedMenu : BasicMenu
         {
             public bool PressBlocked { get; set; }
 

@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectorySelectorDirectory : DirectorySelectorDirectory
+    public partial class BasicDirectorySelectorDirectory : DirectorySelectorDirectory
     {
         protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar)
             ? FontAwesome.Solid.Database

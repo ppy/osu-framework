@@ -13,7 +13,7 @@ jobs:
           - arm64
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: ilammy/setup-nasm@v1
 
@@ -34,7 +34,7 @@ jobs:
     needs: build-macos
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
         with:
@@ -65,7 +65,7 @@ jobs:
           - x64
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
@@ -91,7 +91,7 @@ jobs:
       image: mstorsjo/llvm-mingw:latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/win/fetch_and_build.sh
@@ -116,7 +116,7 @@ jobs:
           apt-get install -y git curl gcc make nasm
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/linux/fetch_and_build.sh
@@ -137,7 +137,7 @@ jobs:
       - build-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
         with:
@@ -160,7 +160,7 @@ jobs:
           name: win-x86
           path: osu.Framework.NativeLibs/runtimes/win-x86/native
 
-      - uses: peter-evans/create-pull-request@v2
+      - uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Update FFmpeg binaries
           title: Update FFmpeg binaries

@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
     // Implementing IRequireHighFrequencyMousePosition is necessary to gain the ability to block high frequency mouse position updates.
-    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
+    internal partial class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
     {
         public Vector2 ToolPosition
         {
@@ -258,7 +258,7 @@ namespace osu.Framework.Graphics.Visualisation
                         return;
 
                     if ((composite.BorderThickness > 0 && composite.BorderColour.MaxAlpha > 0)
-                        || (composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0))
+                        || (composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Alpha > 0))
                     {
                         drawableTarget = composite;
                     }

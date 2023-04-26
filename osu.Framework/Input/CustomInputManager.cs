@@ -12,7 +12,7 @@ namespace osu.Framework.Input
     /// <summary>
     /// An <see cref="InputManager"/> implementation which allows managing of <see cref="InputHandler"/>s manually.
     /// </summary>
-    public class CustomInputManager : InputManager
+    public partial class CustomInputManager : InputManager
     {
         protected override ImmutableArray<InputHandler> InputHandlers => inputHandlers;
 

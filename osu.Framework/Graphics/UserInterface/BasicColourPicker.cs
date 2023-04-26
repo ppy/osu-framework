@@ -5,7 +5,7 @@
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicColourPicker : ColourPicker
+    public partial class BasicColourPicker : ColourPicker
     {
         protected override HSVColourPicker CreateHSVColourPicker() => new BasicHSVColourPicker();
         protected override HexColourPicker CreateHexColourPicker() => new BasicHexColourPicker();

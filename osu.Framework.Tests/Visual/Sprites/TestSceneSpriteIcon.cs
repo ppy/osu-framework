@@ -21,7 +21,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [TestFixture]
-    public class TestSceneSpriteIcon : FrameworkTestScene
+    public partial class TestSceneSpriteIcon : FrameworkTestScene
     {
         private ScheduledDelegate? scheduledDelegate;
 
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                     if (++i > icons.Length - 1)
                         scheduledDelegate?.Cancel();
-                }, 50, true);
+                }, 5, true);
             });
         }
 
@@ -160,7 +160,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class Icon : Container, IHasTooltip
+        private partial class Icon : Container, IHasTooltip
         {
             public LocalisableString TooltipText { get; }
 

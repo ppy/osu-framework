@@ -14,7 +14,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneSampleAmplitudes : FrameworkTestScene
+    public partial class TestSceneSampleAmplitudes : FrameworkTestScene
     {
         private Box leftChannel;
         private Box rightChannel;
