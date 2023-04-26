@@ -261,14 +261,14 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        public override void GenerateMipmaps(INativeTexture texture, params RectangleI[] regions)
+        public override void GenerateMipmaps(INativeTexture texture, List<RectangleI> regions)
         {
             var glTexture = (GLTexture)texture;
 
             if (supportsComputeMipmapGeneration)
                 generateMipmapsViaComputeShader(glTexture, regions);
             else
-                generateMipmapsViaFramebuffer(glTexture, regions); // todo: bad
+                generateMipmapsViaFramebuffer(glTexture, regions);
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
         }
 
-        private void generateMipmapsViaFramebuffer(GLTexture texture, params RectangleI[] regions)
+        private void generateMipmapsViaFramebuffer(GLTexture texture, List<RectangleI> regions)
         {
             using var frameBuffer = new GLFrameBuffer(this, texture);
 
@@ -354,7 +354,7 @@ namespace osu.Framework.Graphics.OpenGL
             int height = texture.Height;
 
             // Generate quad buffer that will hold all the updated regions
-            var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(this, regions.Length, BufferUsageHint.StreamDraw);
+            var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(this, regions.Count, BufferUsageHint.StreamDraw);
 
             // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
             for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
@@ -363,7 +363,7 @@ namespace osu.Framework.Graphics.OpenGL
                 height = MathUtils.DivideRoundUp(height, 2);
 
                 // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
-                for (int i = 0; i < regions.Length; ++i)
+                for (int i = 0; i < regions.Count; ++i)
                 {
                     // Conservatively round the draw rectangles. Rounding to integer coords is required
                     // in order to ensure all the texels affected by linear interpolation are touched.

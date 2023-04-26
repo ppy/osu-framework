@@ -928,7 +928,7 @@ namespace osu.Framework.Graphics.Rendering
         ///     A list of regions in the texture to generate partial mipmaps for, or null to generate full mipmaps.
         ///     This should only be considered as a hint the renderer to improve performance, and may be ignored by certain implementations.
         /// </param>
-        public abstract void GenerateMipmaps(INativeTexture texture, params RectangleI[] regions);
+        public abstract void GenerateMipmaps(INativeTexture texture, List<RectangleI> regions);
 
         /// <summary>
         /// Informs the graphics device to use the given texture for drawing.

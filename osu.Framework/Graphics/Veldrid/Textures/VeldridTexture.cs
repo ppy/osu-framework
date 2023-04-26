@@ -15,7 +15,6 @@ using osu.Framework.Platform;
 using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
-using PixelFormat = Veldrid.PixelFormat;
 using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -274,10 +273,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 }
             }
 
-            if (leftRectangle != null)
-                Renderer.GenerateMipmaps(this, rightRectangle, leftRectangle.Value);
-            else
-                Renderer.GenerateMipmaps(this, rightRectangle);
+            Renderer.GenerateMipmaps(this, leftRectangle != null ? new List<RectangleI> { rightRectangle, leftRectangle.Value } : new List<RectangleI> { rightRectangle });
 
             // Uncomment the following block of code in order to compare the above with the renderer mipmap generation method CommandList.GenerateMipmaps().
             // if (!manualMipmaps && regions.Count != 0)

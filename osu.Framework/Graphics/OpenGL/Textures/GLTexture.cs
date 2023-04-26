@@ -268,10 +268,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            if (leftRectangle != null)
-                Renderer.GenerateMipmaps(this, rightRectangle, leftRectangle.Value);
-            else
-                Renderer.GenerateMipmaps(this, rightRectangle);
+            Renderer.GenerateMipmaps(this, leftRectangle != null ? new List<RectangleI> { rightRectangle, leftRectangle.Value } : new List<RectangleI> { rightRectangle });
 
             // Uncomment the following block of code in order to compare the above with the OpenGL
             // reference mipmap generation GL.GenerateMipmap().

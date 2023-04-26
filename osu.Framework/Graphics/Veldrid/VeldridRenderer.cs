@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -74,15 +75,15 @@ namespace osu.Framework.Graphics.Veldrid
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
-        private readonly ConcurrentDictionary<VeldridTexture, RectangleI[]> computeMipmapGenerationQueue = new ConcurrentDictionary<VeldridTexture, RectangleI[]>();
-        // private readonly ConcurrentQueue<VeldridTexture> computeMipmapGenerationQueue = new ConcurrentQueue<VeldridTexture>();
+        private readonly ConcurrentDictionary<VeldridTexture, List<RectangleI>> computeMipmapGenerationQueue = new ConcurrentDictionary<VeldridTexture, List<RectangleI>>();
 
         private VeldridShader renderMipmapShader = null!;
 
-        private Shader computeMipmapShader = null!;
-        private Pipeline computeMipmapPipeline = null!;
-        private ResourceLayout computeMipmapTextureResourceLayout = null!;
-        private ResourceLayout computeMipmapBufferResourceLayout = null!;
+        private Shader? computeMipmapShader;
+        private Pipeline? computeMipmapPipeline;
+        private ResourceLayout? computeMipmapTextureResourceLayout;
+        private ResourceLayout? computeMipmapBufferResourceLayout;
+        private VeldridUniformBuffer<MipmapGenerationParameters>? computeMipmapParametersBuffer;
 
         private bool supportsComputeMipmapGeneration =>
             // Requires GPU device to support compute shaders (not supported on old OpenGL versions).
@@ -272,6 +273,8 @@ namespace osu.Framework.Graphics.Veldrid
                         ThreadGroupSizeY = (uint)compute_mipmap_threads.Y,
                         ThreadGroupSizeZ = 1,
                     });
+
+                    computeMipmapParametersBuffer = new VeldridUniformBuffer<MipmapGenerationParameters>(this);
                 }
                 else
                 {
@@ -447,13 +450,13 @@ namespace osu.Framework.Graphics.Veldrid
         /// </remarks>
         public bool BypassMipmapGenerationQueue { get; set; }
 
-        public override void GenerateMipmaps(INativeTexture texture, params RectangleI[] regions)
+        public override void GenerateMipmaps(INativeTexture texture, List<RectangleI> regions)
         {
             var veldridTexture = (VeldridTexture)texture;
 
             if (!supportsComputeMipmapGeneration)
             {
-                generateMipmapsViaFramebuffer(veldridTexture, regions.ToList());
+                generateMipmapsViaFramebuffer(veldridTexture, regions);
                 return;
             }
 
@@ -461,26 +464,21 @@ namespace osu.Framework.Graphics.Veldrid
                 generateMipmapsViaComputeShader(veldridTexture, regions);
             else
             {
-                // todo: this is weird
                 computeMipmapGenerationQueue.AddOrUpdate(veldridTexture,
                     _ => regions,
                     (_, existing) =>
                     {
-                        for (int i = 0; i < regions.Length; i++)
-                            existing[i] = RectangleF.Union(existing[i], regions[i]);
-
+                        existing.AddRange(regions);
                         return existing;
                     });
             }
         }
 
-        private VeldridUniformBuffer<MipmapGenerationParameters>? parametersBuffer;
-
-        private unsafe void generateMipmapsViaComputeShader(VeldridTexture texture, params RectangleI[] regions)
+        private void generateMipmapsViaComputeShader(VeldridTexture texture, List<RectangleI> regions)
         {
-            parametersBuffer ??= new VeldridUniformBuffer<MipmapGenerationParameters>(this);
+            computeMipmapParametersBuffer ??= new VeldridUniformBuffer<MipmapGenerationParameters>(this);
 
-            var textureResources = texture.GetResourceList().Single()!;
+            var textureResources = texture.GetResourceList().Single().AsNonNull();
 
             int width = texture.Width;
             int height = texture.Height;
@@ -492,9 +490,9 @@ namespace osu.Framework.Graphics.Veldrid
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);
 
-                MipmapGenerationCommands.SetComputeResourceSet(0, textureResources.GetMipmapResourceSet(this, computeMipmapTextureResourceLayout, Device.LinearSampler, level));
+                MipmapGenerationCommands.SetComputeResourceSet(0, textureResources.GetMipmapResourceSet(this, computeMipmapTextureResourceLayout.AsNonNull(), Device.LinearSampler, level));
 
-                for (int i = 0; i < regions.Length; i++)
+                for (int i = 0; i < regions.Count; i++)
                 {
                     Vector2I topLeft = regions[i].TopLeft;
                     topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
@@ -505,23 +503,21 @@ namespace osu.Framework.Graphics.Veldrid
                     uint groupCountX = (uint)MathUtils.DivideRoundUp(regions[i].Width, compute_mipmap_threads.X);
                     uint groupCountY = (uint)MathUtils.DivideRoundUp(regions[i].Height, compute_mipmap_threads.Y);
 
-                    parametersBuffer!.Data = new MipmapGenerationParameters
+                    computeMipmapParametersBuffer!.Data = new MipmapGenerationParameters
                     {
-                        Region = new Vector4(regions[i].Left, regions[i].Top, regions[i].Width, regions[i].Height),
+                        Region = new Vector4(regions[i].X, regions[i].Y, regions[i].Width, regions[i].Height),
                         InvocationWidth = width,
                     };
 
-                    MipmapGenerationCommands.SetComputeResourceSet(1, parametersBuffer.GetResourceSet(computeMipmapBufferResourceLayout));
+                    MipmapGenerationCommands.SetComputeResourceSet(1, computeMipmapParametersBuffer.GetResourceSet(computeMipmapBufferResourceLayout.AsNonNull()));
                     MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
                 }
             }
         }
 
-        private void generateMipmapsViaFramebuffer(VeldridTexture texture, List<RectangleI>? regions)
+        private void generateMipmapsViaFramebuffer(VeldridTexture texture, List<RectangleI> regions)
         {
             Debug.Assert(graphicsSurface.Type == GraphicsSurfaceType.OpenGL);
-
-            regions ??= new List<RectangleI> { new RectangleI(0, 0, texture.Width, texture.Height) };
 
             var deviceTexture = texture.GetResourceList().Single().Texture;
 
@@ -536,78 +532,71 @@ namespace osu.Framework.Graphics.Veldrid
             BindTexture(texture);
             renderMipmapShader.Bind();
 
-            while (regions.Count > 0)
+            int width = texture.Width;
+            int height = texture.Height;
+
+            // Generate quad buffer that will hold all the updated regions
+            var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(this, regions.Count, BufferUsage.Dynamic);
+
+            // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
+            for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
             {
-                int width = texture.Width;
-                int height = texture.Height;
+                width = MathUtils.DivideRoundUp(width, 2);
+                height = MathUtils.DivideRoundUp(height, 2);
 
-                int count = Math.Min(regions.Count, IRenderer.MAX_QUADS);
-
-                // Generate quad buffer that will hold all the updated regions
-                var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(this, count, BufferUsage.Dynamic);
-
-                // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
-                for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
+                // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
+                for (int i = 0; i < regions.Count; ++i)
                 {
-                    width = MathUtils.DivideRoundUp(width, 2);
-                    height = MathUtils.DivideRoundUp(height, 2);
+                    // Conservatively round the draw rectangles. Rounding to integer coords is required
+                    // in order to ensure all the texels affected by linear interpolation are touched.
+                    // We could skip the rounding & use a single vertex buffer for all levels if we had
+                    // conservative raster, but alas, that's only supported on NV and Intel.
+                    Vector2I topLeft = regions[i].TopLeft;
+                    topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
+                    Vector2I bottomRight = regions[i].BottomRight;
+                    bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
+                    regions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
-                    // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
-                    for (int i = 0; i < count; ++i)
-                    {
-                        // Conservatively round the draw rectangles. Rounding to integer coords is required
-                        // in order to ensure all the texels affected by linear interpolation are touched.
-                        // We could skip the rounding & use a single vertex buffer for all levels if we had
-                        // conservative raster, but alas, that's only supported on NV and Intel.
-                        Vector2I topLeft = regions[i].TopLeft;
-                        topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
-                        Vector2I bottomRight = regions[i].BottomRight;
-                        bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
-                        regions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+                    // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
+                    RectangleF r = (RectangleF)regions[i] / new Vector2(width, height);
 
-                        // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
-                        RectangleF r = (RectangleF)regions[i] / new Vector2(width, height);
-
-                        quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
-                        quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
-                        quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
-                        quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
-                    }
-
-                    // Read the texture from 1 mip level higher...
-                    var samplerDescription = new SamplerDescription
-                    {
-                        AddressModeU = SamplerAddressMode.Clamp,
-                        AddressModeV = SamplerAddressMode.Clamp,
-                        AddressModeW = SamplerAddressMode.Clamp,
-                        Filter = SamplerFilter.MinLinear_MagLinear_MipLinear,
-                        MinimumLod = (uint)level - 1,
-                        MaximumLod = (uint)level - 1,
-                        MaximumAnisotropy = 0,
-                    };
-
-                    using (var sampler = Factory.CreateSampler(ref samplerDescription))
-                    using (var resources = new VeldridTextureResources(deviceTexture, sampler, this, false))
-                    {
-                        // ...than the one we're writing to via frame buffer.
-                        using var frameBuffer = new VeldridFrameBuffer(this, texture, level);
-
-                        BindFrameBuffer(frameBuffer);
-                        bindTextureResource(resources, 0);
-
-                        // Perform the actual mip level draw
-                        PushViewport(new RectangleI(0, 0, width, height));
-
-                        quadBuffer.Update();
-                        quadBuffer.Draw();
-
-                        PopViewport();
-
-                        UnbindFrameBuffer(frameBuffer);
-                    }
+                    quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
+                    quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
+                    quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
+                    quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
                 }
 
-                regions.RemoveRange(0, count);
+                // Read the texture from 1 mip level higher...
+                var samplerDescription = new SamplerDescription
+                {
+                    AddressModeU = SamplerAddressMode.Clamp,
+                    AddressModeV = SamplerAddressMode.Clamp,
+                    AddressModeW = SamplerAddressMode.Clamp,
+                    Filter = SamplerFilter.MinLinear_MagLinear_MipLinear,
+                    MinimumLod = (uint)level - 1,
+                    MaximumLod = (uint)level - 1,
+                    MaximumAnisotropy = 0,
+                };
+
+                using (var sampler = Factory.CreateSampler(ref samplerDescription))
+                using (var resources = new VeldridTextureResources(deviceTexture, sampler, this, false))
+                {
+                    // ...than the one we're writing to via frame buffer.
+                    using var frameBuffer = new VeldridFrameBuffer(this, texture, level);
+
+                    BindFrameBuffer(frameBuffer);
+                    bindTextureResource(resources, 0);
+
+                    // Perform the actual mip level draw
+                    PushViewport(new RectangleI(0, 0, width, height));
+
+                    quadBuffer.Update();
+                    quadBuffer.Draw();
+
+                    PopViewport();
+
+                    UnbindFrameBuffer(frameBuffer);
+                }
             }
 
             // Restore previous render state
