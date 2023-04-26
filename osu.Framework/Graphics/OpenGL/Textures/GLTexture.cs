@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set
             {
                 mipLevel = value;
+
+                GL.BindTexture(TextureTarget.Texture2D, textureId);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, mipLevel ?? 0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, mipLevel ?? IRenderer.MAX_MIPMAP_LEVELS);
             }
