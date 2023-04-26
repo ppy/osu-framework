@@ -84,6 +84,15 @@ namespace osu.Framework.Graphics.Veldrid
         private ResourceLayout computeMipmapTextureResourceLayout = null!;
         private ResourceLayout computeMipmapBufferResourceLayout = null!;
 
+        private bool supportsComputeMipmapGeneration =>
+            // Requires GPU device to support compute shaders (not supported on old OpenGL versions).
+            Device.Features.ComputeShader &&
+            // Requires GPU device to support creating texture views for each mipmap level (not supported on old OpenGL versions).
+            Device.Features.SubsetTextureView &&
+            // On Direct3D 11, requires feature level 11_0+ for binding output textures as read-write UAV resources and for larger thread group sizes.
+            // See https://learn.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-compute-shader#using-compute-shader-on-direct3d-11x-hardware for more information.
+            (Device.BackendType != GraphicsBackend.Direct3D11 || Device.GetD3D11Info().FeatureLevel >= FeatureLevel.Level_11_0);
+
         /// <summary>
         /// The number of threads in a thread group for the mipmap compute shader.
         /// </summary>
@@ -239,7 +248,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             using (var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"))
             {
-                if (Device.Features.ComputeShader)
+                if (supportsComputeMipmapGeneration)
                 {
                     var shaderLines = Encoding.UTF8.GetString(store.Get("sh_mipmap.comp")).Split(Environment.NewLine).ToList();
                     shaderLines.Insert(1, $"#define {graphicsSurface.Type.ToString().ToUpperInvariant()}");
@@ -442,7 +451,7 @@ namespace osu.Framework.Graphics.Veldrid
         {
             var veldridTexture = (VeldridTexture)texture;
 
-            if (!Device.Features.ComputeShader || (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11 && Device.GetD3D11Info().FeatureLevel < FeatureLevel.Level_11_0))
+            if (!supportsComputeMipmapGeneration)
             {
                 generateMipmapsViaFramebuffer(veldridTexture, regions.ToList());
                 return;

@@ -2,12 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics.Rendering;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
     /// <summary>
+    /// todo: change description
     /// Stores the underlying <see cref="global::Veldrid.Texture"/> and <see cref="global::Veldrid.Sampler"/> resources of a <see cref="VeldridTexture"/>.
     /// </summary>
     internal class VeldridTextureResources : IDisposable
@@ -30,8 +32,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        private readonly TextureView[] views = new TextureView[IRenderer.MAX_MIPMAP_LEVELS + 1];
-        private readonly ResourceSet[] mipmapSets = new ResourceSet[IRenderer.MAX_MIPMAP_LEVELS];
+        private readonly TextureView?[] textureViews = new TextureView?[IRenderer.MAX_MIPMAP_LEVELS + 1];
+        private readonly ResourceSet?[] mipmapSets = new ResourceSet?[IRenderer.MAX_MIPMAP_LEVELS];
 
         public ResourceSet? Set { get; private set; }
 
@@ -40,13 +42,14 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             Texture = texture;
             Sampler = sampler;
 
-            for (int i = 0; i < views.Length; i++)
-                views[i] = renderer.Factory.CreateTextureView(new TextureViewDescription(texture, (uint)i, 1, 0, 1));
+            if (renderer.Device.Features.SubsetTextureView)
+            {
+                for (int i = 0; i < textureViews.Length; i++)
+                    textureViews[i] = renderer.Factory.CreateTextureView(new TextureViewDescription(texture, (uint)i, 1, 0, 1));
+            }
 
             this.disposeResources = disposeResources;
         }
-
-        public TextureView GetTextureView(int level) => views[level];
 
         /// <summary>
         /// Creates a <see cref="ResourceSet"/> from the <see cref="global::Veldrid.Texture"/> and <see cref="global::Veldrid.Sampler"/>.
@@ -63,7 +66,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         }
 
         public ResourceSet GetMipmapResourceSet(VeldridRenderer renderer, ResourceLayout layout, Sampler sampler, int level)
-            => mipmapSets[level - 1] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, views[level - 1], sampler, views[level]));
+        {
+            Debug.Assert(renderer.Device.Features.SubsetTextureView);
+            return mipmapSets[level - 1] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, textureViews[level - 1], sampler, textureViews[level]));
+        }
 
         public void Dispose()
         {
@@ -74,10 +80,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
 
             foreach (var set in mipmapSets)
-                set.Dispose();
+                set?.Dispose();
 
-            foreach (var view in views)
-                view.Dispose();
+            foreach (var view in textureViews)
+                view?.Dispose();
 
             Set?.Dispose();
         }
