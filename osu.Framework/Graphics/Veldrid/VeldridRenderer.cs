@@ -489,7 +489,7 @@ namespace osu.Framework.Graphics.Veldrid
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);
 
-                MipmapGenerationCommands.SetComputeResourceSet(0, textureResources.GetMipmapResourceSet(this, computeMipmapTextureResourceLayout.AsNonNull(), Device.LinearSampler, level));
+                MipmapGenerationCommands.SetComputeResourceSet(0, textureResources.GetMipmapResourceSet(this, computeMipmapTextureResourceLayout.AsNonNull(), level));
 
                 for (int i = 0; i < regions.Count; i++)
                 {

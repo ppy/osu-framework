@@ -9,13 +9,13 @@ using Veldrid;
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
     /// <summary>
-    /// todo: change description
-    /// Stores the underlying <see cref="global::Veldrid.Texture"/> and <see cref="global::Veldrid.Sampler"/> resources of a <see cref="VeldridTexture"/>.
+    /// Stores device resources revolving around a <see cref="global::Veldrid.Texture"/>.
     /// </summary>
     internal class VeldridTextureResources : IDisposable
     {
         public readonly Texture Texture;
-        private readonly bool disposeResources;
+
+        private readonly TextureView?[] textureViews = new TextureView?[IRenderer.MAX_MIPMAP_LEVELS + 1];
 
         private Sampler? sampler;
 
@@ -32,7 +32,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        private readonly TextureView?[] textureViews = new TextureView?[IRenderer.MAX_MIPMAP_LEVELS + 1];
+        private readonly bool disposeResources;
+
         private readonly ResourceSet?[] mipmapSets = new ResourceSet?[IRenderer.MAX_MIPMAP_LEVELS];
 
         public ResourceSet? Set { get; private set; }
@@ -65,10 +66,18 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return Set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
         }
 
-        public ResourceSet GetMipmapResourceSet(VeldridRenderer renderer, ResourceLayout layout, Sampler sampler, int level)
+        /// <summary>
+        /// Creates a special <see cref="ResourceSet"/> used specifically for mipmap generation.
+        /// The <see cref="ResourceSet"/> contains a <see cref="TextureView"/> for the previous mipmap level, a <see cref="Sampler"/> provided by the caller, and a <see cref="TextureView"/> for the current mipmap level.
+        /// </summary>
+        /// <param name="renderer">The renderer to create the resource set for.</param>
+        /// <param name="layout">The resource layout which this set will be attached to. Assumes a layout with a read-only texture view in slot 0, a sampler in slot 1, and read-write texture view in slot 2.</param>
+        /// <param name="level">The mipmap level of the texture that will be written to.</param>
+        /// <returns>The resource set.</returns>
+        public ResourceSet GetMipmapResourceSet(VeldridRenderer renderer, ResourceLayout layout, int level)
         {
             Debug.Assert(renderer.Device.Features.SubsetTextureView);
-            return mipmapSets[level - 1] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, textureViews[level - 1], sampler, textureViews[level]));
+            return mipmapSets[level - 1] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, textureViews[level - 1], renderer.Device.LinearSampler, textureViews[level]));
         }
 
         public void Dispose()
