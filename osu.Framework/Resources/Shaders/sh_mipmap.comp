@@ -2,8 +2,8 @@
 
 // On OpenGL backends, the thread group size is specified here in the compute shader.
 // On non-OpenGL backends, the thread group size is specified in Veldrid's compute pipeline description.
-// This should always match with the values specified in the compute pipeline.
-layout(local_size_x = 16, local_size_y = 16) in;
+// This should always match with the constants defined in GLRenderer/VeldridRenderer.
+layout(local_size_x = 32, local_size_y = 32) in;
 
 layout(set = 0, binding = 0) uniform texture2D inputTexture;
 layout(set = 0, binding = 1) uniform sampler inputSampler;

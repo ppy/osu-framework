@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <remarks>
         /// This is specified in the compute shader as well for OpenGL backends.
         /// </remarks>
-        private static readonly Vector2I compute_mipmap_threads = new Vector2I(16, 16);
+        private static readonly Vector2I compute_mipmap_threads = new Vector2I(32, 32);
 
         private void generateMipmapsViaComputeShader(GLTexture texture, List<RectangleI> regions)
         {

@@ -97,11 +97,11 @@ namespace osu.Framework.Graphics.Veldrid
         /// The number of threads in a thread group for the mipmap compute shader.
         /// </summary>
         /// <remarks>
-        /// On an M1 machine, setting any value that's higher than 1024 threads breaks mipmap generation, therefore.
+        /// This defines 1024 threads per thread group, which is the limit on Metal and Direct3D 11.
         /// This should always match with the values specified in the compute shader.
         /// todo: add validation logic at some point.
         /// </remarks>
-        private static readonly Vector2I compute_mipmap_threads = new Vector2I(16, 16);
+        private static readonly Vector2I compute_mipmap_threads = new Vector2I(32, 32);
 
         private readonly List<IVeldridUniformBuffer> uniformBufferResetList = new List<IVeldridUniformBuffer>();
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
