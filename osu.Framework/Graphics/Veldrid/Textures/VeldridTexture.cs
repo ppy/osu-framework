@@ -273,7 +273,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 }
             }
 
-            Renderer.GenerateMipmaps(this, leftRectangle != null ? new List<RectangleI> { rightRectangle, leftRectangle.Value } : new List<RectangleI> { rightRectangle });
+            Renderer.GenerateMipmaps(this, leftRectangle != null
+                ? new List<RectangleI> { rightRectangle, leftRectangle.Value }
+                : new List<RectangleI> { rightRectangle });
 
             // Uncomment the following block of code in order to compare the above with the renderer mipmap generation method CommandList.GenerateMipmaps().
             // if (!manualMipmaps && regions.Count != 0)
