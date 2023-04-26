@@ -4,12 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -36,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private readonly List<string?> availableFontResources = new List<string?>();
 
-        private FontStore fonts = null!;
+        private FontStore? fonts;
 
         private double timeSpent;
 
@@ -123,7 +119,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         public void TestAddGradually()
         {
             int fetchedGlyphs = 0;
-            int? count = null;
+            int? count;
             ScheduledDelegate? glyphDelegate = null;
 
             AddStep("add gradually", () =>
@@ -202,6 +198,8 @@ namespace osu.Framework.Tests.Visual.Sprites
             host.Renderer.ScheduleExpensiveOperation(new ScheduledDelegate(() =>
             {
                 // ensure atlas texture is uploaded first before profiling mipmap generation.
+                Debug.Assert(fonts != null);
+
                 fonts.Atlas.AtlasTexture!.NativeTexture.Upload();
 
                 switch (host.Renderer)
@@ -226,6 +224,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private void uploadOpenGL(GLRenderer gl)
         {
+            Debug.Assert(fonts != null);
+
             double timeBefore = stopwatchClock.CurrentTime;
 
             fonts.Atlas.AtlasTexture!.NativeTexture.GenerateMipmaps();
@@ -236,6 +236,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private void uploadVeldrid(VeldridRenderer veldrid)
         {
+            Debug.Assert(fonts != null);
+
             double timeBefore = stopwatchClock.CurrentTime;
 
             veldrid.MipmapGenerationCommands.Begin();
@@ -296,6 +298,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             if (availableFontResources.Count == 0)
                 return;
+
+            Debug.Assert(fonts != null);
 
             fonts.Get(availableFontResources[0]);
             availableFontResources.RemoveAt(0);
