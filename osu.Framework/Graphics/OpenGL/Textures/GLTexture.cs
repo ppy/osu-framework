@@ -11,6 +11,7 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -40,6 +41,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public virtual int Width { get; set; }
         public virtual int Height { get; set; }
+
         public virtual int GetByteSize() => Width * Height * 4;
         public bool Available { get; private set; } = true;
 
@@ -192,9 +194,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private List<RectangleI> lastUploadedRegions;
+        /// <summary>
+        /// Represents all regions of uploaded data from the last <see cref="Upload"/> call.
+        /// </summary>
+        private readonly SortedList<RectangleI> uploadedRegions = new SortedList<RectangleI>((a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
 
-        public unsafe bool Upload(bool forceMipmaps = false)
+        public unsafe bool Upload()
         {
             if (!Available)
                 return false;
@@ -202,7 +207,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
 
-            List<RectangleI> uploadedRegions = new List<RectangleI>();
+            uploadedRegions.Clear();
 
             while (tryGetNextUpload(out ITextureUpload upload))
             {
@@ -215,48 +220,56 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            if (uploadedRegions.Count > 0)
-                lastUploadedRegions = uploadedRegions.ToList();
+            GenerateMipmaps();
+            return uploadedRegions.Count != 0;
+        }
 
-            if (forceMipmaps && uploadedRegions.Count == 0)
-                uploadedRegions = lastUploadedRegions;
+        public bool GenerateMipmaps()
+        {
+            if (manualMipmaps || uploadedRegions.Count == 0)
+                return false;
+
+            var regions = uploadedRegions.ToList();
 
             // Generate mipmaps for just the updated regions of the texture.
             // This implementation is functionally equivalent to GL.GenerateMipmap(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
-            if (!manualMipmaps && uploadedRegions.Count != 0)
+            RectangleI? current = null;
+
+            RectangleI rightRectangle = regions[0];
+            RectangleI? leftRectangle = null;
+
+            int initialX = rightRectangle.X;
+
+            for (int i = 1; i < regions.Count; i++)
             {
-                // Merge overlapping upload regions to prevent redundant mipmap generation.
-                // i goes through the list left-to-right, j goes through it right-to-left
-                // until both indices meet somewhere in the middle.
-                // This algorithm needs multiple passes until no possible merges are found.
-                bool mergeFound;
+                var region = regions[i];
 
-                do
+                bool finalElement = i == regions.Count - 1;
+                bool finalInRow = !finalElement && regions[i + 1].Y > current?.Y;
+
+                if (region.X >= initialX)
                 {
-                    mergeFound = false;
+                    current = current == null ? region : RectangleI.Union(current.Value, region);
+                    regions.RemoveAt(i--);
 
-                    for (int i = 0; i < uploadedRegions.Count; ++i)
-                    {
-                        RectangleI toMerge = uploadedRegions[i];
-
-                        for (int j = uploadedRegions.Count - 1; j > i; --j)
-                        {
-                            RectangleI mergeCandidate = uploadedRegions[j];
-
-                            if (!toMerge.Intersect(mergeCandidate).IsEmpty)
-                            {
-                                uploadedRegions[i] = toMerge = RectangleI.Union(toMerge, mergeCandidate);
-                                uploadedRegions.RemoveAt(j);
-                                mergeFound = true;
-                            }
-                        }
-                    }
-                } while (mergeFound);
-
-                Renderer.GenerateMipmaps(this, uploadedRegions);
+                    if (finalInRow)
+                        rightRectangle = RectangleI.Union(rightRectangle, current.Value);
+                    else if (finalElement && leftRectangle != null)
+                        leftRectangle = RectangleI.Union(leftRectangle.Value, current.Value);
+                }
+                else
+                {
+                    leftRectangle = leftRectangle == null ? region : RectangleI.Union(leftRectangle.Value, region);
+                    regions.RemoveAt(i--);
+                }
             }
+
+            if (leftRectangle != null)
+                Renderer.GenerateMipmaps(this, rightRectangle, leftRectangle.Value);
+            else
+                Renderer.GenerateMipmaps(this, rightRectangle);
 
             // Uncomment the following block of code in order to compare the above with the OpenGL
             // reference mipmap generation GL.GenerateMipmap().
@@ -266,7 +279,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             //     GL.GenerateMipmap(TextureTarget.Texture2D);
             // }
 
-            return uploadedRegions.Count != 0;
+            return true;
         }
 
         public bool UploadComplete

@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
@@ -73,7 +74,8 @@ namespace osu.Framework.Graphics.Veldrid
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
-        private readonly ConcurrentQueue<VeldridTexture> computeMipmapGenerationQueue = new ConcurrentQueue<VeldridTexture>();
+        private readonly ConcurrentDictionary<VeldridTexture, RectangleI[]> computeMipmapGenerationQueue = new ConcurrentDictionary<VeldridTexture, RectangleI[]>();
+        // private readonly ConcurrentQueue<VeldridTexture> computeMipmapGenerationQueue = new ConcurrentQueue<VeldridTexture>();
 
         private VeldridShader renderMipmapShader = null!;
 
@@ -112,9 +114,6 @@ namespace osu.Framework.Graphics.Veldrid
             SharedLinearIndex = new VeldridIndexData(this);
             SharedQuadIndex = new VeldridIndexData(this);
         }
-
-        // todo: this is temporary at best, eventually we should have a method that allows us mapping renderer states to a specific command list for operations like mipmap generation.
-        private bool mainCommandsActive;
 
         protected override void InitialiseDevice(IGraphicsSurface graphicsSurface)
         {
@@ -242,7 +241,6 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 if (Device.Features.ComputeShader)
                 {
-                    // todo: move this to VeldridShader
                     var shaderLines = Encoding.UTF8.GetString(store.Get("sh_mipmap.comp")).Split(Environment.NewLine).ToList();
                     shaderLines.Insert(1, $"#define {graphicsSurface.Type.ToString().ToUpperInvariant()}");
                     computeMipmapShader = Factory.CreateFromSpirv(new ShaderDescription(ShaderStages.Compute, Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, shaderLines)), "main"));
@@ -254,8 +252,8 @@ namespace osu.Framework.Graphics.Veldrid
                         new ResourceLayoutElementDescription("inputSampler", ResourceKind.Sampler, ShaderStages.Compute),
                         new ResourceLayoutElementDescription("outputTexture", ResourceKind.TextureReadWrite, ShaderStages.Compute))));
 
-                    if (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11)
-                        resourceLayouts.Add(computeMipmapBufferResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(new ResourceLayoutElementDescription("parameters", ResourceKind.UniformBuffer, ShaderStages.Compute))));
+                    resourceLayouts.Add(computeMipmapBufferResourceLayout = Factory.CreateResourceLayout(new ResourceLayoutDescription(
+                        new ResourceLayoutElementDescription("parameters", ResourceKind.UniformBuffer, ShaderStages.Compute))));
 
                     computeMipmapPipeline = Factory.CreateComputePipeline(new ComputePipelineDescription
                     {
@@ -293,8 +291,8 @@ namespace osu.Framework.Graphics.Veldrid
                 ubo.ResetCounters();
             uniformBufferResetList.Clear();
 
-            beginCommands();
-            mainCommandsActive = true;
+            Commands.Begin();
+            BufferUpdateCommands.Begin();
 
             base.BeginFrame(windowSize);
         }
@@ -303,34 +301,21 @@ namespace osu.Framework.Graphics.Veldrid
         {
             base.FinishFrame();
 
-            if (Device.Features.ComputeShader)
+            MipmapGenerationCommands.Begin();
+
+            var textures = computeMipmapGenerationQueue.Keys.ToArray();
+
+            foreach (var texture in textures)
             {
-                MipmapGenerationCommands.Begin();
-                MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
-
-                while (computeMipmapGenerationQueue.TryDequeue(out var texture))
-                    generateMipmapsViaComputeShader(texture);
-                // foreach (var texture in computeMipmapGenerationQueue)
-                //    generateMipmapsViaComputeShader(texture);
-
-                MipmapGenerationCommands.End();
-                Device.SubmitCommands(MipmapGenerationCommands);
+                computeMipmapGenerationQueue.TryRemove(texture, out var regions);
+                generateMipmapsViaComputeShader(texture, regions!);
             }
 
-            submitCommands();
-            mainCommandsActive = false;
-        }
-
-        private void beginCommands()
-        {
-            Commands.Begin();
-            BufferUpdateCommands.Begin();
-        }
-
-        private void submitCommands()
-        {
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
+
+            MipmapGenerationCommands.End();
+            Device.SubmitCommands(MipmapGenerationCommands);
 
             Commands.End();
             Device.SubmitCommands(Commands);
@@ -453,87 +438,78 @@ namespace osu.Framework.Graphics.Veldrid
         /// </remarks>
         public bool BypassMipmapGenerationQueue { get; set; }
 
-        public override void GenerateMipmaps(INativeTexture texture, List<RectangleI>? regions = null)
+        public override void GenerateMipmaps(INativeTexture texture, params RectangleI[] regions)
         {
             var veldridTexture = (VeldridTexture)texture;
 
             if (!Device.Features.ComputeShader || (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11 && Device.GetD3D11Info().FeatureLevel < FeatureLevel.Level_11_0))
             {
-                generateMipmapsViaFramebuffer(veldridTexture, regions);
+                generateMipmapsViaFramebuffer(veldridTexture, regions.ToList());
                 return;
             }
 
-            // our compute shader doesn't support generating on specific regions yet,
-            // so we can safely schedule mipmap generation to happen only once at the end of the frame.
-            if (!computeMipmapGenerationQueue.Contains(veldridTexture))
-                computeMipmapGenerationQueue.Enqueue(veldridTexture);
-
             if (BypassMipmapGenerationQueue)
+                generateMipmapsViaComputeShader(veldridTexture, regions);
+            else
             {
-                using var fence = Factory.CreateFence(false);
-                processMipmapGenerationQueue(fence);
+                // todo: this is weird
+                computeMipmapGenerationQueue.AddOrUpdate(veldridTexture,
+                    _ => regions,
+                    (_, existing) =>
+                    {
+                        for (int i = 0; i < regions.Length; i++)
+                            existing[i] = RectangleF.Union(existing[i], regions[i]);
 
-                while (!fence.Signaled)
-                {
-                    // todo: thread sleep?
-                }
+                        return existing;
+                    });
             }
         }
 
-        private void processMipmapGenerationQueue(Fence? fence = null)
+        private VeldridUniformBuffer<MipmapGenerationParameters>? parametersBuffer;
+
+        private unsafe void generateMipmapsViaComputeShader(VeldridTexture texture, params RectangleI[] regions)
         {
-            MipmapGenerationCommands.Begin();
-            MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
+            parametersBuffer ??= new VeldridUniformBuffer<MipmapGenerationParameters>(this);
 
-            while (computeMipmapGenerationQueue.TryDequeue(out var texture))
-                generateMipmapsViaComputeShader(texture);
-            // todo: remove.
-            // foreach (var texture in computeMipmapGenerationQueue)
-            //    generateMipmapsViaComputeShader(texture);
-
-            MipmapGenerationCommands.End();
-            Device.SubmitCommands(MipmapGenerationCommands, fence);
-        }
-
-        private void generateMipmapsViaComputeShader(VeldridTexture texture)
-        {
-            var deviceTexture = texture.GetResourceList().Single().Texture;
+            var textureResources = texture.GetResourceList().Single()!;
 
             int width = texture.Width;
             int height = texture.Height;
+
+            MipmapGenerationCommands.SetPipeline(computeMipmapPipeline);
 
             for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); level++)
             {
                 width = MathUtils.DivideRoundUp(width, 2);
                 height = MathUtils.DivideRoundUp(height, 2);
 
-                uint groupCountX = (uint)MathUtils.DivideRoundUp(width, compute_mipmap_threads.X);
-                uint groupCountY = (uint)MathUtils.DivideRoundUp(height, compute_mipmap_threads.Y);
+                MipmapGenerationCommands.SetComputeResourceSet(0, textureResources.GetMipmapResourceSet(this, computeMipmapTextureResourceLayout, Device.LinearSampler, level));
 
-                using var inputTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level - 1, 1, 0, 1));
-                using var outputTextureView = Factory.CreateTextureView(new TextureViewDescription(deviceTexture, (uint)level, 1, 0, 1));
-                using var textureResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapTextureResourceLayout, inputTextureView, Device.LinearSampler, outputTextureView));
-
-                MipmapGenerationCommands.SetComputeResourceSet(0, textureResourceSet);
-
-                if (graphicsSurface.Type == GraphicsSurfaceType.Direct3D11)
+                for (int i = 0; i < regions.Length; i++)
                 {
-                    using var parametersBuffer = Factory.CreateBuffer(new BufferDescription(16u, BufferUsage.UniformBuffer));
-                    using var bufferResourceSet = Factory.CreateResourceSet(new ResourceSetDescription(computeMipmapBufferResourceLayout, parametersBuffer));
+                    Vector2I topLeft = regions[i].TopLeft;
+                    topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
+                    Vector2I bottomRight = regions[i].BottomRight;
+                    bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
+                    regions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
-                    Device.UpdateBuffer(parametersBuffer, 0, width);
-                    MipmapGenerationCommands.SetComputeResourceSet(1, bufferResourceSet);
+                    uint groupCountX = (uint)MathUtils.DivideRoundUp(regions[i].Width, compute_mipmap_threads.X);
+                    uint groupCountY = (uint)MathUtils.DivideRoundUp(regions[i].Height, compute_mipmap_threads.Y);
+
+                    parametersBuffer!.Data = new MipmapGenerationParameters
+                    {
+                        Region = new Vector4(regions[i].Left, regions[i].Top, regions[i].Width, regions[i].Height),
+                        InvocationWidth = width,
+                    };
+
+                    MipmapGenerationCommands.SetComputeResourceSet(1, parametersBuffer.GetResourceSet(computeMipmapBufferResourceLayout));
+                    MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
                 }
-
-                MipmapGenerationCommands.Dispatch(groupCountX, groupCountY, 1);
             }
         }
 
         private void generateMipmapsViaFramebuffer(VeldridTexture texture, List<RectangleI>? regions)
         {
-            if (!mainCommandsActive)
-                beginCommands();
-
             Debug.Assert(graphicsSurface.Type == GraphicsSurfaceType.OpenGL);
 
             regions ??= new List<RectangleI> { new RectangleI(0, 0, texture.Width, texture.Height) };
@@ -602,7 +578,7 @@ namespace osu.Framework.Graphics.Veldrid
                     };
 
                     using (var sampler = Factory.CreateSampler(ref samplerDescription))
-                    using (var resources = new VeldridTextureResources(deviceTexture, sampler, false))
+                    using (var resources = new VeldridTextureResources(deviceTexture, sampler, this, false))
                     {
                         // ...than the one we're writing to via frame buffer.
                         using var frameBuffer = new VeldridFrameBuffer(this, texture, level);
@@ -633,9 +609,6 @@ namespace osu.Framework.Graphics.Veldrid
             PopDepthInfo();
 
             SetBlend(previousBlendingParameters);
-
-            if (!mainCommandsActive)
-                submitCommands();
         }
 
         protected override void SetShaderImplementation(IShader shader)
@@ -907,6 +880,13 @@ namespace osu.Framework.Graphics.Veldrid
         public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
         {
             uniformBufferResetList.Add(buffer);
+        }
+
+        private record struct MipmapGenerationParameters
+        {
+            public UniformVector4 Region;
+            public UniformInt InvocationWidth;
+            private readonly UniformPadding12 _;
         }
     }
 }

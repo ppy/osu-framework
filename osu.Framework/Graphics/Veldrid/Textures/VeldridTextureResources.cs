@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.Rendering;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -29,15 +30,23 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
+        private readonly TextureView[] views = new TextureView[IRenderer.MAX_MIPMAP_LEVELS + 1];
+        private readonly ResourceSet[] mipmapSets = new ResourceSet[IRenderer.MAX_MIPMAP_LEVELS];
+
         public ResourceSet? Set { get; private set; }
 
-        public VeldridTextureResources(Texture texture, Sampler? sampler, bool disposeResources = true)
+        public VeldridTextureResources(Texture texture, Sampler? sampler, VeldridRenderer renderer, bool disposeResources = true)
         {
             Texture = texture;
             Sampler = sampler;
 
+            for (int i = 0; i < views.Length; i++)
+                views[i] = renderer.Factory.CreateTextureView(new TextureViewDescription(texture, (uint)i, 1, 0, 1));
+
             this.disposeResources = disposeResources;
         }
+
+        public TextureView GetTextureView(int level) => views[level];
 
         /// <summary>
         /// Creates a <see cref="ResourceSet"/> from the <see cref="global::Veldrid.Texture"/> and <see cref="global::Veldrid.Sampler"/>.
@@ -53,6 +62,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return Set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
         }
 
+        public ResourceSet GetMipmapResourceSet(VeldridRenderer renderer, ResourceLayout layout, Sampler sampler, int level)
+            => mipmapSets[level - 1] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, views[level - 1], sampler, views[level]));
+
         public void Dispose()
         {
             if (disposeResources)
@@ -60,6 +72,12 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 Texture.Dispose();
                 Sampler?.Dispose();
             }
+
+            foreach (var set in mipmapSets)
+                set.Dispose();
+
+            foreach (var view in views)
+                view.Dispose();
 
             Set?.Dispose();
         }

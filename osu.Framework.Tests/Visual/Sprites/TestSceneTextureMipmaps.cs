@@ -1,8 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -23,13 +26,15 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [Ignore("This test cannot be run in headless mode (a renderer is required).")]
-    public class TestSceneTextureMipmaps : FrameworkTestScene
+    public partial class TestSceneTextureMipmaps : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; } = null!;
 
         [Resolved]
         private Game game { get; set; } = null!;
+
+        private readonly List<string?> availableFontResources = new List<string?>();
 
         private FontStore fonts = null!;
 
@@ -43,8 +48,11 @@ namespace osu.Framework.Tests.Visual.Sprites
             fonts?.Dispose();
             fonts = new FontStore(host.Renderer, new GlyphStore(game.Resources, @"Fonts/FontAwesome5/FontAwesome-Solid", host.CreateTextureLoaderStore(game.Resources)), useAtlas: true);
 
+            availableFontResources.Clear();
+            availableFontResources.AddRange(fonts.GetAvailableResources());
+
             // fetch any glyph for a texture atlas to be generated.
-            fonts.Get(fonts.GetAvailableResources().First());
+            getNextGlyph();
 
             Debug.Assert(fonts.Atlas.AtlasTexture != null);
 
@@ -102,53 +110,53 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestAddOnce()
         {
-            int currentGlyphIndex = 1;
-
             AddStep("add one", () =>
             {
                 timeSpent = 0;
 
-                string? resource = fonts.GetAvailableResources().ElementAt(currentGlyphIndex++);
-                fonts.Get(resource);
-
-                upload();
-                report($"Generating mipmaps spent {timeSpent:N3}ms");
+                getNextGlyph();
+                uploadAndReport();
             });
         }
 
         [Test]
         public void TestAddGradually()
         {
-            int currentGlyphIndex = 1;
+            int fetchedGlyphs = 0;
+            int? count = null;
             ScheduledDelegate? glyphDelegate = null;
 
             AddStep("add gradually", () =>
             {
+                count = availableFontResources.Count;
+                fetchedGlyphs = 0;
+
                 timeSpent = 0;
 
                 glyphDelegate?.Cancel();
                 glyphDelegate = Scheduler.AddDelayed(() =>
                 {
-                    if (currentGlyphIndex == 500)
+                    if (fetchedGlyphs == count)
                     {
-                        finish();
+                        if (!pendingMipmapGeneration)
+                            stop();
+
                         return;
                     }
 
-                    string? resource = fonts.GetAvailableResources().ElementAt(currentGlyphIndex++);
-                    fonts.Get(resource);
-
+                    getNextGlyph();
                     upload();
+                    fetchedGlyphs++;
                 }, 1, true);
             });
 
-            AddStep("finish", finish);
+            AddStep("stop", stop);
 
-            void finish()
+            void stop()
             {
                 // ReSharper disable once AccessToModifiedClosure
                 glyphDelegate?.Cancel();
-                report($"Generating mipmaps spent {timeSpent / (currentGlyphIndex - 1):N3}ms on average");
+                report($"Generating mipmaps spent {timeSpent / (fetchedGlyphs):N3}ms on average");
             }
         }
 
@@ -159,11 +167,11 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 timeSpent = 0;
 
-                foreach (string? resource in fonts.GetAvailableResources().Take(fonts.GetAvailableResources().Count() / 2))
-                    fonts.Get(resource);
+                int count = availableFontResources.Count / 2;
+                for (int i = 0; i < count; i++)
+                    getNextGlyph();
 
-                upload();
-                report($"Generating mipmaps of final texture atlas spent {timeSpent:N3}ms");
+                uploadAndReport();
             });
         }
 
@@ -174,40 +182,100 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 timeSpent = 0;
 
-                foreach (string? resource in fonts.GetAvailableResources())
-                    fonts.Get(resource);
+                int count = availableFontResources.Count;
+                for (int i = 0; i < count; i++)
+                    getNextGlyph();
 
-                upload();
-                report($"Generating mipmaps of final texture atlas spent {timeSpent:N3}ms");
+                uploadAndReport();
             });
         }
 
         private readonly StopwatchClock stopwatchClock = new StopwatchClock(true);
 
+        private bool pendingMipmapGeneration;
+
         private void upload()
         {
-            var tcs = new TaskCompletionSource();
+            if (pendingMipmapGeneration)
+                return;
 
-            host.DrawThread.Scheduler.Add(() =>
+            host.Renderer.ScheduleExpensiveOperation(new ScheduledDelegate(() =>
             {
-                if (host.Renderer is VeldridRenderer)
-                    ((VeldridRenderer)host.Renderer).BypassMipmapGenerationQueue = true;
-
                 // ensure atlas texture is uploaded first before profiling mipmap generation.
                 fonts.Atlas.AtlasTexture!.NativeTexture.Upload();
 
-                double timeBefore = stopwatchClock.CurrentTime;
-                fonts.Atlas.AtlasTexture!.NativeTexture.Upload(true);
-                timeSpent += stopwatchClock.CurrentTime - timeBefore;
-                tcs.SetResult();
+                switch (host.Renderer)
+                {
+                    case GLRenderer gl:
+                        uploadOpenGL(gl);
+                        break;
 
-                if (host.Renderer is VeldridRenderer)
-                    ((VeldridRenderer)host.Renderer).BypassMipmapGenerationQueue = false;
-                else if (host.Renderer is GLRenderer)
-                    GL.Finish();
-            });
+                    case VeldridRenderer veldrid:
+                        uploadVeldrid(veldrid);
+                        break;
 
-            tcs.Task.WaitSafely();
+                    default:
+                        throw new InvalidOperationException("Unsupported renderer.");
+                }
+
+                pendingMipmapGeneration = false;
+            }));
+
+            pendingMipmapGeneration = true;
+        }
+
+        private void uploadOpenGL(GLRenderer gl)
+        {
+            double timeBefore = stopwatchClock.CurrentTime;
+
+            fonts.Atlas.AtlasTexture!.NativeTexture.GenerateMipmaps();
+            GL.Finish();
+
+            timeSpent += stopwatchClock.CurrentTime - timeBefore;
+        }
+
+        private void uploadVeldrid(VeldridRenderer veldrid)
+        {
+            double timeBefore = stopwatchClock.CurrentTime;
+
+            veldrid.MipmapGenerationCommands.Begin();
+            veldrid.BypassMipmapGenerationQueue = true;
+
+            fonts.Atlas.AtlasTexture!.NativeTexture.GenerateMipmaps();
+
+            veldrid.BypassMipmapGenerationQueue = false;
+
+            veldrid.BufferUpdateCommands.End();
+            veldrid.Device.SubmitCommands(veldrid.BufferUpdateCommands);
+
+            veldrid.MipmapGenerationCommands.End();
+            veldrid.Device.SubmitCommands(veldrid.MipmapGenerationCommands);
+            veldrid.Device.WaitForIdle();
+
+            timeSpent += stopwatchClock.CurrentTime - timeBefore;
+
+            veldrid.BufferUpdateCommands.Begin();
+        }
+
+        private void uploadAndReport()
+        {
+            upload();
+
+            ScheduledDelegate reportDelegate = null!;
+
+            reportDelegate = Scheduler.AddDelayed(() =>
+            {
+                for (int i = 10; i >= 0; --i)
+                {
+                    if (pendingMipmapGeneration)
+                        continue;
+
+                    report($"Generating mipmaps spent {timeSpent:N3}ms");
+                    // ReSharper disable once AccessToModifiedClosure
+                    reportDelegate?.Cancel();
+                    break;
+                }
+            }, 0, true);
         }
 
         private SpriteText? reportText;
@@ -224,7 +292,16 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private class MipmapSprite : Sprite
+        private void getNextGlyph()
+        {
+            if (availableFontResources.Count == 0)
+                return;
+
+            fonts.Get(availableFontResources[0]);
+            availableFontResources.RemoveAt(0);
+        }
+
+        private partial class MipmapSprite : Sprite
         {
             private readonly int level;
 

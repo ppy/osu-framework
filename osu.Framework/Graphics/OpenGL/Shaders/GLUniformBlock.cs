@@ -21,10 +21,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         /// Creates a new uniform block.
         /// </summary>
         /// <param name="renderer">The renderer.</param>
-        /// <param name="shader">The shader.</param>
+        /// <param name="shader">The shader program.</param>
         /// <param name="index">The index (location) of this block in the GL shader.</param>
         /// <param name="binding">A unique index for this block to bound to in the GL program.</param>
-        public GLUniformBlock(GLRenderer renderer, GLShader shader, int index, int binding)
+        public GLUniformBlock(GLRenderer renderer, int shader, int index, int binding)
         {
             this.renderer = renderer;
             this.binding = binding;

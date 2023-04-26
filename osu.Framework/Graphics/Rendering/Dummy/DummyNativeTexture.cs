@@ -36,7 +36,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        public bool Upload(bool forceMipmaps) => true;
+        public bool Upload() => true;
+
+        public bool GenerateMipmaps() => true;
 
         public bool Bind(int unit) => true;
 
