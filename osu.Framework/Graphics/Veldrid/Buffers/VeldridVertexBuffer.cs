@@ -17,7 +17,7 @@ using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal abstract class VeldridVertexBuffer<T> : IVertexBuffer
+    internal abstract class VeldridVertexBuffer<T> : IVertexBuffer, IDisposable
         where T : unmanaged, IEquatable<T>, IVertex
     {
         protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;

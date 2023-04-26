@@ -272,7 +272,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 Renderer.BindTexture(this);
                 Renderer.GetMipmapShader().Bind();
 
-                using var samplingTexture = Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)Width, (uint)Height, resources!.Texture.MipLevels, 1, resources!.Texture.Format, TextureUsage.Sampled));
+                using var samplingTexture =
+                    Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)Width, (uint)Height, resources!.Texture.MipLevels, 1, resources!.Texture.Format, TextureUsage.Sampled));
                 using var samplingResources = new VeldridTextureResources(samplingTexture, null);
 
                 while (uploadedRegions.Count > 0)
@@ -283,7 +284,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     int count = Math.Min(uploadedRegions.Count, IRenderer.MAX_QUADS);
 
                     // Generate quad buffer that will hold all the updated regions
-                    var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(Renderer, count, BufferUsage.Dynamic);
+                    using var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(Renderer, count, BufferUsage.Dynamic);
 
                     // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
                     for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
