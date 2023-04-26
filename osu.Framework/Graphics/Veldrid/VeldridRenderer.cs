@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
@@ -83,7 +82,7 @@ namespace osu.Framework.Graphics.Veldrid
         private Pipeline? computeMipmapPipeline;
         private ResourceLayout? computeMipmapTextureResourceLayout;
         private ResourceLayout? computeMipmapBufferResourceLayout;
-        private VeldridUniformBuffer<MipmapGenerationParameters>? computeMipmapParametersBuffer;
+        private VeldridUniformBuffer<ComputeMipmapGenerationParameters>? computeMipmapParametersBuffer;
 
         private bool supportsComputeMipmapGeneration =>
             // Requires GPU device to support compute shaders (not supported on old OpenGL versions).
@@ -274,7 +273,7 @@ namespace osu.Framework.Graphics.Veldrid
                         ThreadGroupSizeZ = 1,
                     });
 
-                    computeMipmapParametersBuffer = new VeldridUniformBuffer<MipmapGenerationParameters>(this);
+                    computeMipmapParametersBuffer = new VeldridUniformBuffer<ComputeMipmapGenerationParameters>(this);
                 }
                 else
                 {
@@ -476,7 +475,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         private void generateMipmapsViaComputeShader(VeldridTexture texture, List<RectangleI> regions)
         {
-            computeMipmapParametersBuffer ??= new VeldridUniformBuffer<MipmapGenerationParameters>(this);
+            computeMipmapParametersBuffer ??= new VeldridUniformBuffer<ComputeMipmapGenerationParameters>(this);
 
             var textureResources = texture.GetResourceList().Single().AsNonNull();
 
@@ -503,7 +502,7 @@ namespace osu.Framework.Graphics.Veldrid
                     uint groupCountX = (uint)MathUtils.DivideRoundUp(regions[i].Width, compute_mipmap_threads.X);
                     uint groupCountY = (uint)MathUtils.DivideRoundUp(regions[i].Height, compute_mipmap_threads.Y);
 
-                    computeMipmapParametersBuffer!.Data = new MipmapGenerationParameters
+                    computeMipmapParametersBuffer!.Data = new ComputeMipmapGenerationParameters
                     {
                         Region = new Vector4(regions[i].X, regions[i].Y, regions[i].Width, regions[i].Height),
                         InvocationWidth = width,
@@ -878,13 +877,6 @@ namespace osu.Framework.Graphics.Veldrid
         public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
         {
             uniformBufferResetList.Add(buffer);
-        }
-
-        private record struct MipmapGenerationParameters
-        {
-            public UniformVector4 Region;
-            public UniformInt InvocationWidth;
-            private readonly UniformPadding12 _;
         }
     }
 }

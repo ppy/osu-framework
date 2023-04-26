@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -69,7 +70,7 @@ namespace osu.Framework.Graphics.OpenGL
         private int backbufferFramebuffer;
 
         private int? computeMipmapShader;
-        private GLUniformBuffer<MipmapGenerationParameters>? computeMipmapParametersBuffer;
+        private GLUniformBuffer<ComputeMipmapGenerationParameters>? computeMipmapParametersBuffer;
         private GLUniformBlock? computeMipmapParametersBlock;
 
         private bool supportsComputeMipmapGeneration;
@@ -140,7 +141,7 @@ namespace osu.Framework.Graphics.OpenGL
                         throw new GLShader.PartCompilationFailedException("Failed to link mipmap shader", GL.GetShaderInfoLog(shader));
 
                     computeMipmapParametersBlock = new GLUniformBlock(this, computeMipmapShader.Value, 0, 0);
-                    computeMipmapParametersBlock.Assign(computeMipmapParametersBuffer = new GLUniformBuffer<MipmapGenerationParameters>(this));
+                    computeMipmapParametersBlock.Assign(computeMipmapParametersBuffer = new GLUniformBuffer<ComputeMipmapGenerationParameters>(this));
                 }
                 else
                 {
@@ -306,9 +307,10 @@ namespace osu.Framework.Graphics.OpenGL
 
                 for (int i = 0; i < regions.Count; i++)
                 {
-                    computeMipmapParametersBuffer!.Data = new MipmapGenerationParameters
+                    computeMipmapParametersBuffer!.Data = new ComputeMipmapGenerationParameters
                     {
-                        Region = new Vector4(regions[i].X, regions[i].Y, regions[i].Width, regions[i].Height)
+                        Region = new Vector4(regions[i].X, regions[i].Y, regions[i].Width, regions[i].Height),
+                        InvocationWidth = width
                     };
 
                     if (IsEmbedded)
@@ -680,12 +682,5 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
-
-        private record struct MipmapGenerationParameters
-        {
-            public UniformVector4 Region;
-            public UniformInt InvocationWidth;
-            private readonly UniformPadding12 _;
-        }
     }
 }
