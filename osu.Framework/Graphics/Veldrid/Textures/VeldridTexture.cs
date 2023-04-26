@@ -273,6 +273,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 }
             }
 
+            // trim left rectangle from overlapping with right rectangle to avoid any unnecessary work.
+            if (leftRectangle is RectangleI left)
+                leftRectangle = new RectangleI(left.X, left.Y, left.Width - Math.Max(0, left.Right - rightRectangle.Left), left.Height);
+
             Renderer.GenerateMipmaps(this, leftRectangle != null
                 ? new List<RectangleI> { rightRectangle, leftRectangle.Value }
                 : new List<RectangleI> { rightRectangle });
