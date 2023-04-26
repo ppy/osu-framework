@@ -15,9 +15,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Veldrid;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -130,7 +128,7 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.GetShader(shader, ShaderParameter.CompileStatus, out int compileResult);
 
                     if (compileResult != 1)
-                        throw new InvalidOperationException($"Failed to compile mipmap shader: {GL.GetShaderInfoLog(shader)}");
+                        throw new InvalidOperationException($"Failed to compile compute mipmap shader: {GL.GetShaderInfoLog(shader)}");
 
                     computeMipmapShader = GL.CreateProgram();
                     GL.AttachShader(computeMipmapShader.Value, shader);
@@ -138,7 +136,7 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.GetProgram(computeMipmapShader.Value, GetProgramParameterName.LinkStatus, out int linkResult);
 
                     if (linkResult != 1)
-                        throw new GLShader.PartCompilationFailedException("Failed to link mipmap shader", GL.GetShaderInfoLog(shader));
+                        throw new GLShader.PartCompilationFailedException("Failed to link compute mipmap shader", GL.GetShaderInfoLog(shader));
 
                     computeMipmapParametersBlock = new GLUniformBlock(this, computeMipmapShader.Value, 0, 0);
                     computeMipmapParametersBlock.Assign(computeMipmapParametersBuffer = new GLUniformBuffer<ComputeMipmapGenerationParameters>(this));
