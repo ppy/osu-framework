@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Transforms
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
     /// <typeparam name="TEasing">The type of easing.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, TEasing, T> : Transform<TValue, TEasing, T>
+    public class TransformCustom<TValue, TEasing, T> : Transform<TValue, TEasing, T>
         where T : class, ITransformable
         where TEasing : IEasingFunction
     {
@@ -28,19 +28,15 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly string targetGrouping;
 
-        private delegate TValue ReadFunc(T transformable);
-
-        private delegate void WriteFunc(T transformable, TValue value);
-
         private class Accessor
         {
-            public ReadFunc Read;
-            public WriteFunc Write;
+            public ReadFunc<T, TValue> Read;
+            public WriteFunc<T, TValue> Write;
         }
 
         private static readonly ConcurrentDictionary<string, Accessor> accessors = new ConcurrentDictionary<string, Accessor>();
 
-        private static ReadFunc createFieldGetter(FieldInfo field)
+        private static ReadFunc<T, TValue> createFieldGetter(FieldInfo field)
         {
             if (!RuntimeFeature.IsDynamicCodeCompiled) return transformable => (TValue)field.GetValue(transformable);
 
@@ -50,10 +46,10 @@ namespace osu.Framework.Graphics.Transforms
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, field);
             gen.Emit(OpCodes.Ret);
-            return setterMethod.CreateDelegate<ReadFunc>();
+            return setterMethod.CreateDelegate<ReadFunc<T, TValue>>();
         }
 
-        private static WriteFunc createFieldSetter(FieldInfo field)
+        private static WriteFunc<T, TValue> createFieldSetter(FieldInfo field)
         {
             if (!RuntimeFeature.IsDynamicCodeCompiled) return (transformable, value) => field.SetValue(transformable, value);
 
@@ -64,21 +60,21 @@ namespace osu.Framework.Graphics.Transforms
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Stfld, field);
             gen.Emit(OpCodes.Ret);
-            return setterMethod.CreateDelegate<WriteFunc>();
+            return setterMethod.CreateDelegate<WriteFunc<T, TValue>>();
         }
 
-        private static ReadFunc createPropertyGetter(MethodInfo getter)
+        private static ReadFunc<T, TValue> createPropertyGetter(MethodInfo getter)
         {
             if (!RuntimeFeature.IsDynamicCodeCompiled) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
-            return getter.CreateDelegate<ReadFunc>();
+            return getter.CreateDelegate<ReadFunc<T, TValue>>();
         }
 
-        private static WriteFunc createPropertySetter(MethodInfo setter)
+        private static WriteFunc<T, TValue> createPropertySetter(MethodInfo setter)
         {
             if (!RuntimeFeature.IsDynamicCodeCompiled) return (transformable, value) => setter.Invoke(transformable, new object[] { value });
 
-            return setter.CreateDelegate<WriteFunc>();
+            return setter.CreateDelegate<WriteFunc<T, TValue>>();
         }
 
         private static Accessor findAccessor(Type type, string propertyOrFieldName)
@@ -171,6 +167,18 @@ namespace osu.Framework.Graphics.Transforms
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
         }
 
+        public TransformCustom(string propertyOrFieldName, ReadFunc<T, TValue> read, WriteFunc<T, TValue> write, string grouping = null)
+        {
+            TargetMember = propertyOrFieldName;
+            targetGrouping = grouping;
+
+            accessor = new Accessor
+            {
+                Read = read,
+                Write = write
+            };
+        }
+
         private TValue valueAt(double time)
         {
             if (time < StartTime) return StartValue;
@@ -186,7 +194,7 @@ namespace osu.Framework.Graphics.Transforms
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
     }
 
-    internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
+    public class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
         where T : class, ITransformable
     {
         public TransformCustom(string propertyOrFieldName)
@@ -194,4 +202,8 @@ namespace osu.Framework.Graphics.Transforms
         {
         }
     }
+
+    public delegate TValue ReadFunc<in T, out TValue>(T transformable);
+
+    public delegate void WriteFunc<in T, in TValue>(T transformable, TValue value);
 }
