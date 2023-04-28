@@ -27,11 +27,33 @@ namespace osu.Framework.Graphics.Transforms
         public override string TargetGrouping => targetGrouping ?? TargetMember;
 
         private readonly string targetGrouping;
+        private readonly Accessor accessor;
 
-        private class Accessor
+        /// <summary>
+        /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
+        /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
+        /// By default, an interpolation method "ValueAt" from <see cref="Interpolation"/> with suitable signature is
+        /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
+        /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
+        /// <see cref="Transform.EndTime"/>, and a current time.
+        /// </summary>
+        /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
+        /// <param name="grouping">An optional grouping, for a case where the target property can potentially conflict with others.</param>
+        public TransformCustom(string propertyOrFieldName, string grouping = null)
         {
-            public ReadFunc<T, TValue> Read;
-            public WriteFunc<T, TValue> Write;
+            TargetMember = propertyOrFieldName;
+            targetGrouping = grouping;
+
+            accessor = getAccessor(propertyOrFieldName);
+            Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
+        }
+
+        public TransformCustom(string propertyOrFieldName, ReadFunc<T, TValue> read, WriteFunc<T, TValue> write, string grouping = null)
+        {
+            TargetMember = propertyOrFieldName;
+            targetGrouping = grouping;
+
+            accessor = new Accessor(read, write);
         }
 
         private static readonly ConcurrentDictionary<string, Accessor> accessors = new ConcurrentDictionary<string, Accessor>();
@@ -106,11 +128,7 @@ namespace osu.Framework.Graphics.Transforms
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
                 }
 
-                return new Accessor
-                {
-                    Read = createPropertyGetter(getter),
-                    Write = createPropertySetter(setter),
-                };
+                return new Accessor(createPropertyGetter(getter), createPropertySetter(setter));
             }
 
             FieldInfo field = type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
@@ -130,11 +148,7 @@ namespace osu.Framework.Graphics.Transforms
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
                 }
 
-                return new Accessor
-                {
-                    Read = createFieldGetter(field),
-                    Write = createFieldSetter(field),
-                };
+                return new Accessor(createFieldGetter(field), createFieldSetter(field));
             }
 
             if (type.BaseType == null)
@@ -145,39 +159,6 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
-
-        private readonly Accessor accessor;
-
-        /// <summary>
-        /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
-        /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
-        /// By default, an interpolation method "ValueAt" from <see cref="Interpolation"/> with suitable signature is
-        /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
-        /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
-        /// <see cref="Transform.EndTime"/>, and a current time.
-        /// </summary>
-        /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
-        /// <param name="grouping">An optional grouping, for a case where the target property can potentially conflict with others.</param>
-        public TransformCustom(string propertyOrFieldName, string grouping = null)
-        {
-            TargetMember = propertyOrFieldName;
-            targetGrouping = grouping;
-
-            accessor = getAccessor(propertyOrFieldName);
-            Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
-        }
-
-        public TransformCustom(string propertyOrFieldName, ReadFunc<T, TValue> read, WriteFunc<T, TValue> write, string grouping = null)
-        {
-            TargetMember = propertyOrFieldName;
-            targetGrouping = grouping;
-
-            accessor = new Accessor
-            {
-                Read = read,
-                Write = write
-            };
-        }
 
         private TValue valueAt(double time)
         {
@@ -192,6 +173,18 @@ namespace osu.Framework.Graphics.Transforms
         protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
 
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
+
+        private readonly struct Accessor
+        {
+            public readonly ReadFunc<T, TValue> Read;
+            public readonly WriteFunc<T, TValue> Write;
+
+            public Accessor(ReadFunc<T, TValue> read, WriteFunc<T, TValue> write)
+            {
+                Read = read;
+                Write = write;
+            }
+        }
     }
 
     public class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
