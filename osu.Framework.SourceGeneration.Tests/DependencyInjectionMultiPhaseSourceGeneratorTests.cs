@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using Xunit;
-using VerifyIncremental = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpMultiPhaseSourceGeneratorVerifier<osu.Framework.SourceGeneration.DependencyInjectionSourceGenerator>;
+using VerifyIncremental = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpMultiPhaseSourceGeneratorVerifier<osu.Framework.SourceGeneration.Generators.Dependencies.DependencyInjectionSourceGenerator>;
 
 namespace osu.Framework.SourceGeneration.Tests
 {

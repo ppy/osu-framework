@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Emitters;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Emitters;
 
-namespace osu.Framework.SourceGeneration
+namespace osu.Framework.SourceGeneration.Generators.Dependencies
 {
     [Generator]
     public partial class DependencyInjectionSourceGenerator : IIncrementalGenerator

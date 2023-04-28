@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace osu.Framework.SourceGeneration
+namespace osu.Framework.SourceGeneration.Generators.Dependencies
 {
     public partial class DependencyInjectionSourceGenerator
     {

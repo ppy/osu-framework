@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace osu.Framework.SourceGeneration
+namespace osu.Framework.SourceGeneration.Generators.Dependencies
 {
     public class SyntaxTargetNameComparer : IEqualityComparer<SyntaxTarget>
     {

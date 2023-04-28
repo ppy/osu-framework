@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Data;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Data;
 
-namespace osu.Framework.SourceGeneration.Emitters
+namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
 {
     /// <summary>
     /// Emits the statement for a [BackgroundDependencyLoader] attribute.

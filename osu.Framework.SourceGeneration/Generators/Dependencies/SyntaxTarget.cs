@@ -5,7 +5,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace osu.Framework.SourceGeneration
+namespace osu.Framework.SourceGeneration.Generators.Dependencies
 {
     public class SyntaxTarget : IEquatable<SyntaxTarget>
     {

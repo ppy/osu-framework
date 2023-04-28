@@ -4,19 +4,19 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Data;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Data;
 
-namespace osu.Framework.SourceGeneration.Emitters
+namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
 {
     /// <summary>
-    /// Emits the statement for a [Resolved] attribute.
+    /// Emits the statement for a [Cached] attribute on a member of the class.
     /// </summary>
-    public class ResolvedMemberEmitter : IStatementEmitter
+    public class CachedMemberEmitter : IStatementEmitter
     {
         private readonly DependenciesFileEmitter fileEmitter;
-        private readonly ResolvedAttributeData data;
+        private readonly CachedAttributeData data;
 
-        public ResolvedMemberEmitter(DependenciesFileEmitter fileEmitter, ResolvedAttributeData data)
+        public CachedMemberEmitter(DependenciesFileEmitter fileEmitter, CachedAttributeData data)
         {
             this.fileEmitter = fileEmitter;
             this.data = data;
@@ -25,16 +25,13 @@ namespace osu.Framework.SourceGeneration.Emitters
         public IEnumerable<StatementSyntax> Emit()
         {
             yield return SyntaxFactory.ExpressionStatement(
-                SyntaxFactory.AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
+                SyntaxHelpers.CacheDependencyInvocation(
+                    fileEmitter.Candidate.GlobalPrefixedTypeName,
                     createMemberAccessor(),
-                    SyntaxHelpers.GetDependencyInvocation(
-                        fileEmitter.Candidate.GlobalPrefixedTypeName,
-                        data.GlobalPrefixedTypeName,
-                        data.CachedName,
-                        data.GlobalPrefixedParentTypeName,
-                        data.CanBeNull,
-                        true)));
+                    data.GlobalPrefixedTypeName,
+                    data.Name,
+                    data.PropertyName
+                ));
         }
 
         private ExpressionSyntax createMemberAccessor()
@@ -45,7 +42,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.ParseTypeName(fileEmitter.Candidate.GlobalPrefixedTypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
-                SyntaxFactory.IdentifierName(data.PropertyName));
+                SyntaxFactory.IdentifierName(data.PropertyName!));
         }
     }
 }
