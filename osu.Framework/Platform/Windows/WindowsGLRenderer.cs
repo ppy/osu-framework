@@ -57,6 +57,10 @@ namespace osu.Framework.Platform.Windows
             if (window.WindowState != WindowState.Fullscreen || !window.IsActive.Value || fullscreenCapability.Value != Windows.FullscreenCapability.Unknown)
                 return;
 
+            // This detection method was only ever tested / implemented with the legacy GL.
+            if (host.Renderer is not GLRenderer)
+                return;
+
             var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
             var cancellationToken = cancellationSource.Token;
 
