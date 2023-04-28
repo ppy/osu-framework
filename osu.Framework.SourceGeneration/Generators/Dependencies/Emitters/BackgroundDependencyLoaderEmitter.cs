@@ -33,7 +33,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
                             data.Parameters.Select(p =>
                                 SyntaxFactory.Argument(
                                     SyntaxHelpers.GetDependencyInvocation(
-                                        fileEmitter.Candidate.GlobalPrefixedTypeName,
+                                        fileEmitter.Target.GlobalPrefixedTypeName,
                                         p.GlobalPrefixedTypeName,
                                         null,
                                         null,
@@ -47,7 +47,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.GlobalPrefixedTypeName),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Target.GlobalPrefixedTypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
                 SyntaxFactory.IdentifierName(data.MethodName));
         }

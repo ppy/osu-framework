@@ -5,45 +5,44 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using osu.Framework.SourceGeneration.Generators.Dependencies;
 
 namespace osu.Framework.SourceGeneration.Generators
 {
     public class GeneratorEventDriver
     {
-        public event Action<SyntaxTarget>? SyntaxTargetCreated;
-        public event Action<SyntaxTarget>? SemanticTargetCreated;
-        public event Action<ImmutableArray<SyntaxTarget>>? Stage2Entry;
-        public event Action<ImmutableArray<SyntaxTarget>>? Stage2GenerationIdAssigned;
-        public event Action<HashSet<SyntaxTarget>>? Stage2Exit;
-        public event Action<GeneratorClassCandidate>? Emit;
+        public event Action<IncrementalSyntaxTarget>? SyntaxTargetCreated;
+        public event Action<IncrementalSyntaxTarget>? SemanticTargetCreated;
+        public event Action<ImmutableArray<IncrementalSyntaxTarget>>? Stage2Entry;
+        public event Action<ImmutableArray<IncrementalSyntaxTarget>>? Stage2GenerationIdAssigned;
+        public event Action<HashSet<IncrementalSyntaxTarget>>? Stage2Exit;
+        public event Action<IncrementalSemanticTarget>? Emit;
 
-        public void OnSyntaxTargetCreated(SyntaxTarget target)
+        public void OnSyntaxTargetCreated(IncrementalSyntaxTarget target)
         {
             conditionalInvoke(SyntaxTargetCreated, target);
         }
 
-        public void OnSemanticTargetCreated(SyntaxTarget target)
+        public void OnSemanticTargetCreated(IncrementalSyntaxTarget target)
         {
             conditionalInvoke(SemanticTargetCreated, target);
         }
 
-        public void OnStage2Entry(ImmutableArray<SyntaxTarget> target)
+        public void OnStage2Entry(ImmutableArray<IncrementalSyntaxTarget> target)
         {
             conditionalInvoke(Stage2Entry, target);
         }
 
-        public void OnStage2GenerationIdAssigned(ImmutableArray<SyntaxTarget> target)
+        public void OnStage2GenerationIdAssigned(ImmutableArray<IncrementalSyntaxTarget> target)
         {
             conditionalInvoke(Stage2GenerationIdAssigned, target);
         }
 
-        public void OnStage2Exit(HashSet<SyntaxTarget> target)
+        public void OnStage2Exit(HashSet<IncrementalSyntaxTarget> target)
         {
             conditionalInvoke(Stage2Exit, target);
         }
 
-        public void OnEmit(GeneratorClassCandidate candidate)
+        public void OnEmit(IncrementalSemanticTarget candidate)
         {
             conditionalInvoke(Emit, candidate);
         }

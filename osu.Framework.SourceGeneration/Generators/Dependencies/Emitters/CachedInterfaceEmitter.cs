@@ -26,7 +26,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
         {
             yield return SyntaxFactory.ExpressionStatement(
                 SyntaxHelpers.CacheDependencyInvocation(
-                    fileEmitter.Candidate.GlobalPrefixedTypeName,
+                    fileEmitter.Target.GlobalPrefixedTypeName,
                     SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME),
                     data.GlobalPrefixedTypeName,
                     data.Name,
