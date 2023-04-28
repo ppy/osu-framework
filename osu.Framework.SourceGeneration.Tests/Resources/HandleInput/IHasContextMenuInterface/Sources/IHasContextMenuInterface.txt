@@ -1,0 +1,7 @@
+public partial class IHasContextMenuInterface : osu.Framework.Graphics.Drawable, IHasContextMenu
+{
+}
+
+public interface IHasContextMenu
+{
+}

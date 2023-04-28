@@ -1,0 +1,4 @@
+public partial class HandleMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void Handle(object e) { }
+}

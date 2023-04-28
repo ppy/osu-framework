@@ -1,0 +1,7 @@
+public partial class IKeyBindingHandlerInterface : osu.Framework.Graphics.Drawable, IKeyBindingHandler
+{
+}
+
+public interface IKeyBindingHandler
+{
+}

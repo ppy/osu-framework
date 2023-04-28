@@ -1,0 +1,7 @@
+public partial class IHasPopoverInterface : osu.Framework.Graphics.Drawable, IHasPopover
+{
+}
+
+public interface IHasPopover
+{
+}

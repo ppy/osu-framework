@@ -1,0 +1,7 @@
+public partial class IHasTooltipInterface : osu.Framework.Graphics.Drawable, IHasTooltip
+{
+}
+
+public interface IHasTooltip
+{
+}

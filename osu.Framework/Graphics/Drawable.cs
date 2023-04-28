@@ -25,13 +25,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Layout;
@@ -2362,134 +2359,6 @@ namespace osu.Framework.Graphics
         /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
-
-        /// <summary>
-        /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values obtained via reflection.
-        /// </summary>
-        private static class HandleInputCache
-        {
-            private static readonly ConcurrentDictionary<Type, bool> positional_cached_values = new ConcurrentDictionary<Type, bool>();
-            private static readonly ConcurrentDictionary<Type, bool> non_positional_cached_values = new ConcurrentDictionary<Type, bool>();
-
-            private static readonly string[] positional_input_methods =
-            {
-                nameof(Handle),
-                nameof(OnMouseMove),
-                nameof(OnHover),
-                nameof(OnHoverLost),
-                nameof(OnMouseDown),
-                nameof(OnMouseUp),
-                nameof(OnClick),
-                nameof(OnDoubleClick),
-                nameof(OnDragStart),
-                nameof(OnDrag),
-                nameof(OnDragEnd),
-                nameof(OnScroll),
-                nameof(OnFocus),
-                nameof(OnFocusLost),
-                nameof(OnTouchDown),
-                nameof(OnTouchMove),
-                nameof(OnTouchUp),
-                nameof(OnTabletPenButtonPress),
-                nameof(OnTabletPenButtonRelease)
-            };
-
-            private static readonly string[] non_positional_input_methods =
-            {
-                nameof(Handle),
-                nameof(OnFocus),
-                nameof(OnFocusLost),
-                nameof(OnKeyDown),
-                nameof(OnKeyUp),
-                nameof(OnJoystickPress),
-                nameof(OnJoystickRelease),
-                nameof(OnJoystickAxisMove),
-                nameof(OnTabletAuxiliaryButtonPress),
-                nameof(OnTabletAuxiliaryButtonRelease),
-                nameof(OnMidiDown),
-                nameof(OnMidiUp)
-            };
-
-            private static readonly Type[] positional_input_interfaces =
-            {
-                typeof(IHasTooltip),
-                typeof(IHasCustomTooltip),
-                typeof(IHasContextMenu),
-                typeof(IHasPopover),
-            };
-
-            private static readonly Type[] non_positional_input_interfaces =
-            {
-                typeof(IKeyBindingHandler),
-            };
-
-            private static readonly string[] positional_input_properties =
-            {
-                nameof(HandlePositionalInput),
-            };
-
-            private static readonly string[] non_positional_input_properties =
-            {
-                nameof(HandleNonPositionalInput),
-                nameof(AcceptsFocus),
-            };
-
-            public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
-
-            public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
-
-            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
-            {
-                var type = drawable.GetType();
-
-                if (!cache.TryGetValue(type, out bool value))
-                {
-                    value = compute(type, positional);
-                    cache.TryAdd(type, value);
-                }
-
-                return value;
-            }
-
-            private static bool compute([NotNull] Type type, bool positional)
-            {
-                string[] inputMethods = positional ? positional_input_methods : non_positional_input_methods;
-
-                foreach (string inputMethod in inputMethods)
-                {
-                    // check for any input method overrides which are at a higher level than drawable.
-                    var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
-
-                    Debug.Assert(method != null);
-
-                    if (method.DeclaringType != typeof(Drawable))
-                        return true;
-                }
-
-                var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
-
-                foreach (var inputInterface in inputInterfaces)
-                {
-                    // check if this type implements any interface which requires a drawable to handle input.
-                    if (inputInterface.IsAssignableFrom(type))
-                        return true;
-                }
-
-                string[] inputProperties = positional ? positional_input_properties : non_positional_input_properties;
-
-                foreach (string inputProperty in inputProperties)
-                {
-                    var property = type.GetProperty(inputProperty);
-
-                    Debug.Assert(property != null);
-
-                    if (property.DeclaringType != typeof(Drawable))
-                        return true;
-                }
-
-                return false;
-            }
-        }
 
         /// <summary>
         /// Check whether we have active focus.

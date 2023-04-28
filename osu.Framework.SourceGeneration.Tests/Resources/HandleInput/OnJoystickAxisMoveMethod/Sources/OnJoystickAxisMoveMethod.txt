@@ -1,0 +1,4 @@
+public partial class OnJoystickAxisMoveMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnJoystickAxisMove(object e) { }
+}

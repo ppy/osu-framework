@@ -1,0 +1,4 @@
+public partial class OnKeyDownMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnKeyDown(object e) { }
+}
