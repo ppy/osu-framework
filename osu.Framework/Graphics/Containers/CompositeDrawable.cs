@@ -1373,7 +1373,7 @@ namespace osu.Framework.Graphics.Containers
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that tweens the current <see cref="EdgeEffect"/>.
         /// </summary>
         protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
+            this.TransformTo(this.PopulateTransform(CreateEdgeEffectTransform<DefaultEasingFunction>(), newParams, duration, easing));
 
         internal void EnsureChildMutationAllowed() => EnsureMutationAllowed($"mutate the {nameof(InternalChildren)}");
 
@@ -1588,6 +1588,7 @@ namespace osu.Framework.Graphics.Containers
         /// Edge effects are e.g. glow or a shadow.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
+        [TransformGenerator]
         public EdgeEffectParameters EdgeEffect
         {
             get => edgeEffect;
@@ -1676,6 +1677,7 @@ namespace osu.Framework.Graphics.Containers
         /// The size of the relative position/size coordinate space of children of this <see cref="CompositeDrawable"/>.
         /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.One"/> in this <see cref="CompositeDrawable"/>.
         /// </summary>
+        [TransformGenerator]
         public Vector2 RelativeChildSize
         {
             get => relativeChildSize;
@@ -1700,6 +1702,7 @@ namespace osu.Framework.Graphics.Containers
         /// The offset of the relative position/size coordinate space of children of this <see cref="CompositeDrawable"/>.
         /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.Zero"/> in this <see cref="CompositeDrawable"/>.
         /// </summary>
+        [TransformGenerator]
         public Vector2 RelativeChildOffset
         {
             get => relativeChildOffset;
@@ -1733,7 +1736,7 @@ namespace osu.Framework.Graphics.Containers
             if (newSize.X == 0 || newSize.Y == 0)
                 throw new ArgumentException($@"{nameof(newSize)} must be non-zero, but is {newSize}.", nameof(newSize));
 
-            return this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
+            return this.TransformTo(this.PopulateTransform(CreateRelativeChildSizeTransform<DefaultEasingFunction>(), newSize, duration, easing));
         }
 
         /// <summary>
@@ -1743,7 +1746,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
         protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(RelativeChildOffset), newOffset, duration, easing);
+            this.TransformTo(this.PopulateTransform(CreateRelativeChildOffsetTransform<DefaultEasingFunction>(), newOffset, duration, easing));
 
         public override Axes RelativeSizeAxes
         {
