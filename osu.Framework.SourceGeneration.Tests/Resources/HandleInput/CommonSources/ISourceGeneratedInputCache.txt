@@ -2,8 +2,8 @@ namespace osu.Framework.Input
 {
     public interface ISourceGeneratedInputCache
     {
-        System.Type KnownType { get; }
-        bool RequestsPositionalInput { get; }
-        bool RequestsNonPositionalInput { get; }
+        protected internal System.Type KnownType { get; }
+        protected internal bool RequestsPositionalInput { get; }
+        protected internal bool RequestsNonPositionalInput { get; }
     }
 }
