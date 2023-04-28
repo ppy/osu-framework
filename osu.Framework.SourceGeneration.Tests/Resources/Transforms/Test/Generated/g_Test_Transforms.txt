@@ -7,12 +7,12 @@ partial class Test
     public static global::osu.Framework.Graphics.Transforms.Transform<int, TEasing, global::Test> CreateValueTransform<TEasing>()
         where TEasing : global::osu.Framework.Graphics.Transforms.IEasingFunction
     {
-        return new global::osu.Framework.Graphics.Transforms.TransformCustom<int, TEasing, global::Test>(nameof(Value), d => d.Value, (d, value) => d.Value = value, null);
+        return new global::osu.Framework.Graphics.Transforms.TransformCustom<int, TEasing, global::Test>(nameof(Value), static d => d.Value, static (d, value) => d.Value = value, null);
     }
 
     public static global::osu.Framework.Graphics.Transforms.Transform<int, TEasing, global::Test> CreateValue2Transform<TEasing>()
         where TEasing : global::osu.Framework.Graphics.Transforms.IEasingFunction
     {
-        return new global::osu.Framework.Graphics.Transforms.TransformCustom<int, TEasing, global::Test>(nameof(Value2), d => d.Value2, (d, value) => d.Value2 = value, "SomeGroup");
+        return new global::osu.Framework.Graphics.Transforms.TransformCustom<int, TEasing, global::Test>(nameof(Value2), static d => d.Value2, static (d, value) => d.Value2 = value, "SomeGroup");
     }
 }

@@ -96,6 +96,9 @@ namespace osu.Framework.SourceGeneration.Generators.Transforms
                                                                                  SyntaxFactory.SimpleLambdaExpression(
                                                                                                   SyntaxFactory.Parameter(
                                                                                                       SyntaxFactory.Identifier("d")))
+                                                                                              .WithModifiers(
+                                                                                                  SyntaxFactory.TokenList(
+                                                                                                      SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
                                                                                               .WithExpressionBody(
                                                                                                   SyntaxFactory.MemberAccessExpression(
                                                                                                       SyntaxKind.SimpleMemberAccessExpression,
@@ -103,6 +106,9 @@ namespace osu.Framework.SourceGeneration.Generators.Transforms
                                                                                                       SyntaxFactory.IdentifierName(data.PropertyOrFieldName)))),
                                                                              SyntaxFactory.Argument(
                                                                                  SyntaxFactory.ParenthesizedLambdaExpression()
+                                                                                              .WithModifiers(
+                                                                                                  SyntaxFactory.TokenList(
+                                                                                                      SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
                                                                                               .WithParameterList(
                                                                                                   SyntaxFactory.ParameterList(
                                                                                                       SyntaxFactory.SeparatedList(
