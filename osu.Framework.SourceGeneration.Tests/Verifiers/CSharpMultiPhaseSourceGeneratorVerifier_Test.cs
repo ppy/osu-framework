@@ -10,8 +10,7 @@ using osu.Framework.SourceGeneration.Generators;
 
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
-    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : IIncrementalGenerator, IGeneratorWithEvents, new()
+    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator> where TSourceGenerator : AbstractIncrementalGenerator, new()
     {
         public class Test
         {

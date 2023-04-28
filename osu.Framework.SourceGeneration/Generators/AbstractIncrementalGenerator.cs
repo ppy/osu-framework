@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace osu.Framework.SourceGeneration.Generators
 {
-    public abstract class AbstractIncrementalGenerator : IIncrementalGenerator, IGeneratorWithEvents
+    public abstract class AbstractIncrementalGenerator : IIncrementalGenerator
     {
-        public GeneratorEventDriver EventDriver { get; } = new GeneratorEventDriver();
+        public readonly GeneratorEventDriver EventDriver = new GeneratorEventDriver();
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
