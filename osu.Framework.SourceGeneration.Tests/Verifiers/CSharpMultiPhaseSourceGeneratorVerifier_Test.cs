@@ -15,7 +15,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
         public class Test
         {
             private GeneratorDriver driver;
-            private TSourceGenerator generator;
+            private readonly TSourceGenerator generator;
             private readonly (string filename, string content)[] commonSources;
             private readonly (string filename, string content)[] commonGenerated;
             private readonly List<List<(string filename, string content)>> multiPhaseSources;
