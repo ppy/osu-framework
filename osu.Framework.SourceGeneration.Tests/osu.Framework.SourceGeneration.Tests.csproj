@@ -17,4 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.SourceGeneration\osu.Framework.SourceGeneration.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\DependencyInjection\" />
+  </ItemGroup>
 </Project>
