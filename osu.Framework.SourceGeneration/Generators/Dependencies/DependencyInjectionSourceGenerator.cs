@@ -11,17 +11,19 @@ using osu.Framework.SourceGeneration.Generators.Dependencies.Emitters;
 namespace osu.Framework.SourceGeneration.Generators.Dependencies
 {
     [Generator]
-    public partial class DependencyInjectionSourceGenerator : IIncrementalGenerator
+    public class DependencyInjectionSourceGenerator : IIncrementalGenerator, IGeneratorWithEvents
     {
+        public GeneratorEventDriver EventDriver { get; } = new GeneratorEventDriver();
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             // Stage 1: Create SyntaxTarget objects for all classes.
             IncrementalValuesProvider<SyntaxTarget> syntaxTargets =
                 context.SyntaxProvider.CreateSyntaxProvider(
                            (n, _) => GeneratorClassCandidate.IsSyntaxTarget(n),
-                           (ctx, _) => returnWithEvent(new SyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel), GeneratorEvent.OnSyntaxTargetCreated))
+                           (ctx, _) => returnWithEvent(new SyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel), EventDriver.OnSyntaxTargetCreated))
                        .Select((t, _) => t.WithName())
-                       .Select((t, _) => returnWithEvent(t.WithSemanticTarget(), GeneratorEvent.OnSemanticTargetCreated));
+                       .Select((t, _) => returnWithEvent(t.WithSemanticTarget(), EventDriver.OnSemanticTargetCreated));
 
             // Stage 2: Separate out the old and new syntax targets for the same class object.
             // At this point, there are a bunch of old and new syntax targets that may refer to the same class object.
@@ -34,7 +36,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies
                     .Collect()
                     .SelectMany((targets, _) =>
                     {
-                        GeneratorEvent.OnStage2Entry(targets);
+                        EventDriver.OnStage2Entry(targets);
 
                         // Ensure all targets have a generation ID. This is over-engineered as two loops to:
                         // 1. Increment the generation ID locally for deterministic test output.
@@ -50,7 +52,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies
                         foreach (var target in targets)
                             target.GenerationId ??= maxGenerationIds[target] + 1;
 
-                        GeneratorEvent.OnStage2GenerationIdAssigned(targets);
+                        EventDriver.OnStage2GenerationIdAssigned(targets);
 
                         HashSet<SyntaxTarget> result = new HashSet<SyntaxTarget>(SyntaxTargetNameComparer.DEFAULT);
 
@@ -58,7 +60,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies
                         foreach (SyntaxTarget t in targets.OrderByDescending(t => t.GenerationId))
                             result.Add(t);
 
-                        GeneratorEvent.OnStage2Exit(result);
+                        EventDriver.OnStage2Exit(result);
                         return result;
                     });
 
@@ -67,7 +69,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies
 
         private void emit(SourceProductionContext context, GeneratorClassCandidate candidate)
         {
-            GeneratorEvent.OnEmit(candidate);
+            EventDriver.OnEmit(candidate);
             new DependenciesFileEmitter(candidate).Emit(context.AddSource);
         }
 
