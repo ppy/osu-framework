@@ -43,8 +43,11 @@ namespace osu.Framework.SourceGeneration.Generators.Transforms
                 string? name = (string?)attribute.ConstructorArguments.FirstOrDefault().Value;
                 name ??= member.Name;
 
+                string? grouping = (string?)attribute.NamedArguments.SingleOrDefault(arg => arg.Key == "Grouping").Value.Value;
+
                 Members.Add(new TransformMemberData(
                     name,
+                    grouping,
                     member.Name,
                     type));
             }

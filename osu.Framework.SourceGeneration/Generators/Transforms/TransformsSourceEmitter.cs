@@ -49,19 +49,6 @@ namespace osu.Framework.SourceGeneration.Generators.Transforms
                                         SyntaxFactory.SingletonSeparatedList(
                                             SyntaxFactory.TypeParameter(
                                                 SyntaxFactory.Identifier("TEasing")))))
-                                .WithParameterList(
-                                    SyntaxFactory.ParameterList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Parameter(
-                                                             SyntaxFactory.Identifier("grouping"))
-                                                         .WithType(
-                                                             SyntaxFactory.NullableType(
-                                                                 SyntaxFactory.PredefinedType(
-                                                                     SyntaxFactory.Token(SyntaxKind.StringKeyword))))
-                                                         .WithDefault(
-                                                             SyntaxFactory.EqualsValueClause(
-                                                                 SyntaxFactory.LiteralExpression(
-                                                                     SyntaxKind.NullLiteralExpression))))))
                                 .WithConstraintClauses(
                                     SyntaxFactory.SingletonList(
                                         SyntaxFactory.TypeParameterConstraintClause(
@@ -135,7 +122,11 @@ namespace osu.Framework.SourceGeneration.Generators.Transforms
                                                                                                           SyntaxFactory.IdentifierName(data.PropertyOrFieldName)),
                                                                                                       SyntaxFactory.IdentifierName("value")))),
                                                                              SyntaxFactory.Argument(
-                                                                                 SyntaxFactory.IdentifierName("grouping"))
+                                                                                 data.Grouping == null
+                                                                                     ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                                                                                     : SyntaxFactory.LiteralExpression(
+                                                                                         SyntaxKind.StringLiteralExpression,
+                                                                                         SyntaxFactory.Literal(data.Grouping)))
                                                                          })))))));
         }
     }

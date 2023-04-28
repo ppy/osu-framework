@@ -9,6 +9,7 @@ namespace osu.Framework.Graphics.Transforms
     public class TransformGeneratorAttribute : Attribute
     {
         public readonly string? Name;
+        public string? Grouping { get; set; }
 
         public TransformGeneratorAttribute()
         {

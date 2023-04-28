@@ -6,12 +6,14 @@ namespace osu.Framework.SourceGeneration.Generators.Transforms
     public readonly struct TransformMemberData
     {
         public readonly string MethodName;
+        public readonly string? Grouping;
         public readonly string PropertyOrFieldName;
         public readonly string GlobalPrefixedTypeName;
 
-        public TransformMemberData(string methodName, string propertyOrFieldName, string globalPrefixedTypeName)
+        public TransformMemberData(string methodName, string? grouping, string propertyOrFieldName, string globalPrefixedTypeName)
         {
             MethodName = methodName;
+            Grouping = grouping;
             PropertyOrFieldName = propertyOrFieldName;
             GlobalPrefixedTypeName = globalPrefixedTypeName;
         }

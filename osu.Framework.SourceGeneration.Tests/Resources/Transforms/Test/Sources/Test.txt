@@ -2,4 +2,7 @@ public partial class Test : osu.Framework.Graphics.Transforms.Transformable
 {
     [osu.Framework.Graphics.Transforms.TransformGeneratorAttribute]
     public int Value;
+
+    [osu.Framework.Graphics.Transforms.TransformGeneratorAttribute(Grouping = "SomeGroup")]
+    public int Value2;
 }
