@@ -13,6 +13,8 @@ namespace osu.Framework.SourceGeneration
 {
     public static class SyntaxHelpers
     {
+        public const string UTILS_TYPE_NAME = "global::osu.Framework.Utils.SourceGeneratorUtils";
+
         public static InvocationExpressionSyntax CacheDependencyInvocation(string callerType, ExpressionSyntax objSyntax, string? asType, string? cachedName, string? propertyName)
         {
             ExpressionSyntax asTypeSyntax = asType == null
@@ -30,7 +32,7 @@ namespace osu.Framework.SourceGeneration
             return SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
+                                        SyntaxFactory.ParseTypeName(UTILS_TYPE_NAME),
                                         SyntaxFactory.IdentifierName("CacheDependency")))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
@@ -67,7 +69,7 @@ namespace osu.Framework.SourceGeneration
             return SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
+                                        SyntaxFactory.ParseTypeName(UTILS_TYPE_NAME),
                                         SyntaxFactory.GenericName("GetDependency")
                                                      .WithTypeArgumentList(
                                                          SyntaxFactory.TypeArgumentList(

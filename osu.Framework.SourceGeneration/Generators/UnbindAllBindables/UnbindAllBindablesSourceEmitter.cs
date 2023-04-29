@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -85,7 +84,7 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
                         SyntaxFactory.InvocationExpression(
                                          SyntaxFactory.MemberAccessExpression(
                                              SyntaxKind.SimpleMemberAccessExpression,
-                                             SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
+                                             SyntaxFactory.ParseTypeName(SyntaxHelpers.UTILS_TYPE_NAME),
                                              SyntaxFactory.IdentifierName("UnbindBindable")))
                                      .WithArgumentList(
                                          SyntaxFactory.ArgumentList(
