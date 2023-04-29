@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -80,35 +81,27 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
 
                 foreach (BindableDefinition bindable in Target.Bindables)
                 {
-                    ExpressionSyntax unbindableSyntax = SyntaxFactory.ParenthesizedExpression(
-                        SyntaxFactory.CastExpression(
-                            SyntaxFactory.IdentifierName("global::osu.Framework.Bindables.IUnbindable"),
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.ParenthesizedExpression(
-                                    SyntaxFactory.CastExpression(
-                                        SyntaxFactory.ParseTypeName(bindable.FullyQualifiedContainingType),
-                                        SyntaxFactory.ThisExpression())),
-                                SyntaxFactory.IdentifierName(bindable.Name))));
-
-                    if (bindable.IsNullable)
-                    {
-                        yield return SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.ConditionalAccessExpression(
-                                unbindableSyntax,
-                                SyntaxFactory.InvocationExpression(
-                                    SyntaxFactory.MemberBindingExpression(
-                                        SyntaxFactory.IdentifierName("UnbindAll")))));
-                    }
-                    else
-                    {
-                        yield return SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    unbindableSyntax,
-                                    SyntaxFactory.IdentifierName("UnbindAll"))));
-                    }
+                    yield return SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.InvocationExpression(
+                                         SyntaxFactory.MemberAccessExpression(
+                                             SyntaxKind.SimpleMemberAccessExpression,
+                                             SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
+                                             SyntaxFactory.IdentifierName("UnbindBindable")))
+                                     .WithArgumentList(
+                                         SyntaxFactory.ArgumentList(
+                                             SyntaxFactory.SeparatedList(new[]
+                                             {
+                                                 SyntaxFactory.Argument(
+                                                     SyntaxHelpers.TypeOf(Target.GlobalPrefixedTypeName)),
+                                                 SyntaxFactory.Argument(
+                                                     SyntaxFactory.MemberAccessExpression(
+                                                         SyntaxKind.SimpleMemberAccessExpression,
+                                                         SyntaxFactory.ParenthesizedExpression(
+                                                             SyntaxFactory.CastExpression(
+                                                                 SyntaxFactory.IdentifierName(bindable.FullyQualifiedContainingType),
+                                                                 SyntaxFactory.ThisExpression())),
+                                                         SyntaxFactory.IdentifierName(bindable.Name)))
+                                             }))));
                 }
             }
         }

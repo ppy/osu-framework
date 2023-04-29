@@ -1,0 +1,13 @@
+#nullable enable
+
+namespace osu.Framework.Utils
+{
+    public static class SourceGeneratorUtils
+    {
+        public static void UnbindBindable(System.Type containingType, osu.Framework.Bindables.IUnbindable? bindable)
+        {
+        }
+    }
+}
+
+#nullable disable

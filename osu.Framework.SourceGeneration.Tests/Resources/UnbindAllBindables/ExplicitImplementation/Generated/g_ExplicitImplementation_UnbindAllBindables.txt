@@ -8,6 +8,6 @@ partial class ExplicitImplementation : global::osu.Framework.Graphics.ISourceGen
     public override void InternalUnbindAllBindables()
     {
         base.InternalUnbindAllBindables();
-        ((global::osu.Framework.Bindables.IUnbindable)((ITestInterface)this).Bindable1).UnbindAll();
+        global::osu.Framework.Utils.SourceGeneratorUtils.UnbindBindable(typeof(global::ExplicitImplementation), ((ITestInterface)this).Bindable1);
     }
 }

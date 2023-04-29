@@ -8,6 +8,6 @@ partial class DerivedType : global::osu.Framework.Graphics.ISourceGeneratedUnbin
     public override void InternalUnbindAllBindables()
     {
         base.InternalUnbindAllBindables();
-        ((global::osu.Framework.Bindables.IUnbindable)((global::DerivedType)this).Bindable2).UnbindAll();
+        global::osu.Framework.Utils.SourceGeneratorUtils.UnbindBindable(typeof(global::DerivedType), ((global::DerivedType)this).Bindable2);
     }
 }

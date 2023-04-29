@@ -17,13 +17,7 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
         {
         }
 
-        protected override bool CheckValid(INamedTypeSymbol symbol)
-        {
-            if (!isDrawableSubType(symbol))
-                return false;
-
-            return isDrawableType(symbol) || enumerateBindables(symbol).Any();
-        }
+        protected override bool CheckValid(INamedTypeSymbol symbol) => isDrawableSubType(symbol);
 
         protected override bool CheckNeedsOverride(INamedTypeSymbol symbol) => !isDrawableType(symbol);
 

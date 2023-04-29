@@ -8,6 +8,6 @@ partial class AutoProperty : global::osu.Framework.Graphics.ISourceGeneratedUnbi
     public override void InternalUnbindAllBindables()
     {
         base.InternalUnbindAllBindables();
-        ((global::osu.Framework.Bindables.IUnbindable)((global::AutoProperty)this).Bindable1).UnbindAll();
+        global::osu.Framework.Utils.SourceGeneratorUtils.UnbindBindable(typeof(global::AutoProperty), ((global::AutoProperty)this).Bindable1);
     }
 }
