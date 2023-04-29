@@ -15,6 +15,7 @@ namespace osu.Framework.SourceGeneration.Tests.UnbindAllBindables
         [InlineData("Basic")]
         [InlineData("AutoProperty")]
         [InlineData("ExplicitImplementation")]
+        [InlineData("Static")]
         public Task Check(string name)
         {
             GetTestSources(name,

@@ -22,15 +22,14 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
             if (!isDrawableSubType(symbol))
                 return false;
 
-            return isDrawableType(symbol)
-                   || symbol.GetMembers().OfType<IFieldSymbol>().Any(m => m.Type.AllInterfaces.Any(SyntaxHelpers.IsIUnbindableInterface));
+            return isDrawableType(symbol) || enumerateBindables(symbol).Any();
         }
 
         protected override bool CheckNeedsOverride(INamedTypeSymbol symbol) => !isDrawableType(symbol);
 
         protected override void Process(INamedTypeSymbol symbol)
         {
-            foreach (IFieldSymbol bindableField in symbol.GetMembers().OfType<IFieldSymbol>().Where(m => m.Type.AllInterfaces.Any(SyntaxHelpers.IsIUnbindableInterface)))
+            foreach (IFieldSymbol bindableField in enumerateBindables(symbol))
             {
                 if (bindableField.IsImplicitlyDeclared)
                 {
@@ -52,6 +51,14 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
                 else
                     Bindables.Add(new BindableDefinition(bindableField.Name, GlobalPrefixedTypeName));
             }
+        }
+
+        private IEnumerable<IFieldSymbol> enumerateBindables(INamedTypeSymbol symbol)
+        {
+            return symbol.GetMembers()
+                         .OfType<IFieldSymbol>()
+                         .Where(m => !m.IsStatic)
+                         .Where(m => m.Type.AllInterfaces.Any(SyntaxHelpers.IsIUnbindableInterface));
         }
 
         private bool isDrawableSubType(INamedTypeSymbol type)

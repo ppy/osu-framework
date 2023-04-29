@@ -1,0 +1,4 @@
+public partial class Static : osu.Framework.Graphics.Drawable
+{
+    public static readonly osu.Framework.Bindables.Bindable<int> Bindable1 = new osu.Framework.Bindables.Bindable<int>();
+}
