@@ -18,10 +18,10 @@ namespace osu.Framework.Graphics
             if (this is ISourceGeneratedUnbindAllBindables sg && sg.KnownType == GetType())
                 sg.InternalUnbindAllBindables();
 
-            getUnbindAction().Invoke(this);
+            reflectUnbindAction().Invoke(this);
         }
 
-        private Action<object> getUnbindAction()
+        private Action<object> reflectUnbindAction()
         {
             Type ourType = GetType();
             return unbind_action_cache.TryGetValue(ourType, out var action) ? action : addToCache(ourType);
