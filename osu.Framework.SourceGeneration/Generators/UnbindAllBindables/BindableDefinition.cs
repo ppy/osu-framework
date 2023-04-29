@@ -7,11 +7,13 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
     {
         public readonly string Name;
         public readonly string FullyQualifiedContainingType;
+        public readonly bool IsNullable;
 
-        public BindableDefinition(string name, string fullyQualifiedContainingType)
+        public BindableDefinition(string name, string fullyQualifiedContainingType, bool isNullable)
         {
             Name = name;
             FullyQualifiedContainingType = fullyQualifiedContainingType;
+            IsNullable = isNullable;
         }
     }
 }

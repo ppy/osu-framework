@@ -31,6 +31,8 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
         {
             foreach (IFieldSymbol bindableField in enumerateBindables(symbol))
             {
+                bool isNullable = bindableField.NullableAnnotation == NullableAnnotation.Annotated;
+
                 if (bindableField.IsImplicitlyDeclared)
                 {
                     // Compiler generated names are of the form "<Name>k__BackingField".
@@ -46,10 +48,10 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
                         name = name.Substring(containingTypeIndex + 1);
                     }
 
-                    Bindables.Add(new BindableDefinition(name, containingType));
+                    Bindables.Add(new BindableDefinition(name, containingType, isNullable));
                 }
                 else
-                    Bindables.Add(new BindableDefinition(bindableField.Name, GlobalPrefixedTypeName));
+                    Bindables.Add(new BindableDefinition(bindableField.Name, GlobalPrefixedTypeName, isNullable));
             }
         }
 

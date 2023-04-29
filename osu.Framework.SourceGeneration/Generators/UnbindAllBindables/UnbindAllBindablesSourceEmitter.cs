@@ -80,21 +80,35 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
 
                 foreach (BindableDefinition bindable in Target.Bindables)
                 {
-                    yield return SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.InvocationExpression(
+                    ExpressionSyntax unbindableSyntax = SyntaxFactory.ParenthesizedExpression(
+                        SyntaxFactory.CastExpression(
+                            SyntaxFactory.IdentifierName("global::osu.Framework.Bindables.IUnbindable"),
                             SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 SyntaxFactory.ParenthesizedExpression(
                                     SyntaxFactory.CastExpression(
-                                        SyntaxFactory.IdentifierName("global::osu.Framework.Bindables.IUnbindable"),
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            SyntaxFactory.ParenthesizedExpression(
-                                                SyntaxFactory.CastExpression(
-                                                    SyntaxFactory.ParseTypeName(bindable.FullyQualifiedContainingType),
-                                                    SyntaxFactory.ThisExpression())),
-                                            SyntaxFactory.IdentifierName(bindable.Name)))),
-                                SyntaxFactory.IdentifierName("UnbindAll"))));
+                                        SyntaxFactory.ParseTypeName(bindable.FullyQualifiedContainingType),
+                                        SyntaxFactory.ThisExpression())),
+                                SyntaxFactory.IdentifierName(bindable.Name))));
+
+                    if (bindable.IsNullable)
+                    {
+                        yield return SyntaxFactory.ExpressionStatement(
+                            SyntaxFactory.ConditionalAccessExpression(
+                                unbindableSyntax,
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberBindingExpression(
+                                        SyntaxFactory.IdentifierName("UnbindAll")))));
+                    }
+                    else
+                    {
+                        yield return SyntaxFactory.ExpressionStatement(
+                            SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    unbindableSyntax,
+                                    SyntaxFactory.IdentifierName("UnbindAll"))));
+                    }
                 }
             }
         }
