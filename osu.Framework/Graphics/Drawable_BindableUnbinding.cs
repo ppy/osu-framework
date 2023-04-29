@@ -16,7 +16,10 @@ namespace osu.Framework.Graphics
         private void unbindAllBindables()
         {
             if (this is ISourceGeneratedUnbindAllBindables sg && sg.KnownType == GetType())
+            {
                 sg.InternalUnbindAllBindables();
+                return;
+            }
 
             reflectUnbindAction().Invoke(this);
         }
