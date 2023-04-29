@@ -12,7 +12,9 @@ namespace osu.Framework.SourceGeneration.Tests.UnbindAllBindables
         protected override string ResourceNamespace => "UnbindAllBindables";
 
         [Theory]
-        [InlineData("Test")]
+        [InlineData("Basic")]
+        [InlineData("AutoProperty")]
+        [InlineData("ExplicitImplementation")]
         public Task Check(string name)
         {
             GetTestSources(name,

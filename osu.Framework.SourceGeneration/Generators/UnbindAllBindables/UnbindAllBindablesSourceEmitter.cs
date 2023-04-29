@@ -78,7 +78,7 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
                                 SyntaxFactory.IdentifierName(unbind_all_bindables_method_name))));
                 }
 
-                foreach (string name in Target.BindableFieldNames)
+                foreach (BindableDefinition bindable in Target.Bindables)
                 {
                     yield return SyntaxFactory.ExpressionStatement(
                         SyntaxFactory.InvocationExpression(
@@ -86,8 +86,14 @@ namespace osu.Framework.SourceGeneration.Generators.UnbindAllBindables
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 SyntaxFactory.ParenthesizedExpression(
                                     SyntaxFactory.CastExpression(
-                                        SyntaxFactory.IdentifierName("osu.Framework.Bindables.IUnbindable"),
-                                        SyntaxFactory.IdentifierName(name))),
+                                        SyntaxFactory.IdentifierName("global::osu.Framework.Bindables.IUnbindable"),
+                                        SyntaxFactory.MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.ParenthesizedExpression(
+                                                SyntaxFactory.CastExpression(
+                                                    SyntaxFactory.ParseTypeName(bindable.FullyQualifiedContainingType),
+                                                    SyntaxFactory.ThisExpression())),
+                                            SyntaxFactory.IdentifierName(bindable.Name)))),
                                 SyntaxFactory.IdentifierName("UnbindAll"))));
                 }
             }

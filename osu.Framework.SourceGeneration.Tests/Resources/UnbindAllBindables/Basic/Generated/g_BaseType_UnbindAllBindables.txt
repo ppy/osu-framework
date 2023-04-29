@@ -8,6 +8,6 @@ partial class BaseType : global::osu.Framework.Graphics.ISourceGeneratedUnbindAl
     public override void InternalUnbindAllBindables()
     {
         base.InternalUnbindAllBindables();
-        ((osu.Framework.Bindables.IUnbindable)Bindable1).UnbindAll();
+        ((global::osu.Framework.Bindables.IUnbindable)((global::BaseType)this).Bindable1).UnbindAll();
     }
 }
