@@ -1,0 +1,4 @@
+public partial class DerivedType : BaseType
+{
+    private readonly osu.Framework.Bindables.Bindable<int> Bindable2 = new osu.Framework.Bindables.Bindable<int>();
+}

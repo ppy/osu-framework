@@ -22,7 +22,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
@@ -132,45 +131,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
-        private Action<object> getUnbindAction()
-        {
-            Type ourType = GetType();
-            return unbind_action_cache.TryGetValue(ourType, out var action) ? action : cacheUnbindAction(ourType);
-
-            // Extracted to a separate method to prevent .NET from pre-allocating some objects (saves ~150B per call to this method, even if already cached).
-            static Action<object> cacheUnbindAction(Type ourType)
-            {
-                List<Action<object>> actions = new List<Action<object>>();
-
-                foreach (var type in ourType.EnumerateBaseTypes())
-                {
-                    // Generate delegates to unbind fields
-                    actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                         .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
-                                         .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
-                }
-
-                // Delegates to unbind properties are intentionally not generated.
-                // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
-                // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
-
-                return unbind_action_cache[ourType] = target =>
-                {
-                    foreach (var a in actions)
-                    {
-                        try
-                        {
-                            a(target);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Error(e, $"Failed to unbind a local bindable in {ourType.ReadableName()}");
-                        }
-                    }
-                };
-            }
-        }
-
         private bool unbindComplete;
 
         /// <summary>
@@ -183,7 +143,7 @@ namespace osu.Framework.Graphics
 
             unbindComplete = true;
 
-            getUnbindAction().Invoke(this);
+            unbindAllBindables();
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -266,9 +226,6 @@ namespace osu.Framework.Graphics
         private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             LoadThread = Thread.CurrentThread;
-
-            // Cache eagerly during load to hopefully defer the reflection overhead to an async pathway.
-            getUnbindAction();
 
             UpdateClock(clock);
 

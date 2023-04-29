@@ -112,6 +112,12 @@ namespace osu.Framework.SourceGeneration
         public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
             => type?.Name == "IDependencyInjectionCandidate";
 
+        public static bool IsISourceGeneratedUnbindAllBindablesInterface(ITypeSymbol? type)
+            => type?.Name == "ISourceGeneratedUnbindAllBindables";
+
+        public static bool IsIUnbindableInterface(ITypeSymbol? type)
+            => type?.Name == "IUnbindable";
+
         public static string GetFullyQualifiedTypeName(INamedTypeSymbol type)
             => type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 
