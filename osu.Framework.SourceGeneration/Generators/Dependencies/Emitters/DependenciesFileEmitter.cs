@@ -120,7 +120,12 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
                                          SyntaxFactory.Argument(
                                              emitInjectDependenciesDelegate()),
                                          SyntaxFactory.Argument(
-                                             emitCacheDependenciesDelegate())
+                                             emitCacheDependenciesDelegate()),
+                                         SyntaxFactory.Argument(
+                                             SyntaxFactory.LiteralExpression(
+                                                 Target.IsLongRunning
+                                                     ? SyntaxKind.TrueLiteralExpression
+                                                     : SyntaxKind.FalseLiteralExpression))
                                      }))));
         }
 

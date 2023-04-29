@@ -36,6 +36,7 @@ namespace osu.Framework.SourceGeneration.Tests.Dependencies
         [InlineData("MultipleCachedMember")]
         [InlineData("CachedInheritedInterface")]
         [InlineData("CachedBaseType")]
+        [InlineData("LongRunningLoad")]
         public Task Check(string name)
         {
             GetTestSources(name,

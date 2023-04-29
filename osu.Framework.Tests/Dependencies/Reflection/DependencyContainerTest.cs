@@ -336,6 +336,13 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             Assert.DoesNotThrow(() => dependencies.Inject(receiver));
         }
 
+        [Test]
+        public void TestLongRunningLoad()
+        {
+            Assert.That(DependencyActivator.IsLongRunning(new LongRunningBaseClass()), Is.True);
+            Assert.That(DependencyActivator.IsLongRunning(new LongRunningDerivedClass()), Is.True);
+        }
+
         private interface IBaseInterface
         {
         }
@@ -464,5 +471,14 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             }
         }
 #nullable disable
+
+        [LongRunningLoad]
+        private class LongRunningBaseClass : IDependencyInjectionCandidate
+        {
+        }
+
+        private class LongRunningDerivedClass : LongRunningBaseClass
+        {
+        }
     }
 }

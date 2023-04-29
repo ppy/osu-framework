@@ -30,6 +30,7 @@ namespace osu.Framework.Allocation
 
         private readonly List<InjectDependencyDelegate> injectionActivators = new List<InjectDependencyDelegate>();
         private readonly List<CacheDependencyDelegate> buildCacheActivators = new List<CacheDependencyDelegate>();
+        private readonly bool isLongRunning;
 
         static DependencyActivator()
         {
@@ -38,16 +39,25 @@ namespace osu.Framework.Allocation
         }
 
         // Source generator pathway.
-        private DependencyActivator(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel)
+        private DependencyActivator(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel, bool isLongRunning)
         {
             injectionActivators.Add(injectDel);
             buildCacheActivators.Add(cacheDel);
             activator_cache[type] = this;
+
+            // The isLongRunning parameter only indicates whether the type itself (excluding the rest of its hierarchy) is long-running.
+            // If it isn't, then we should also ensure that the base type is also not long-running.
+            // This is safe to do because ISourceGeneratedDependencyActivator.RegisterForDependencyActivation() is always invoked base-first.
+            if (!isLongRunning && type.BaseType != typeof(object))
+                isLongRunning |= getActivator(type.BaseType).isLongRunning;
+
+            this.isLongRunning = isLongRunning;
         }
 
         // Reflection pathway.
         private DependencyActivator(Type type)
         {
+            isLongRunning = type.GetCustomAttribute<LongRunningLoadAttribute>() != null;
             injectionActivators.Add(ResolvedAttribute.CreateActivator(type));
             injectionActivators.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
             buildCacheActivators.Add(CachedAttribute.CreateActivator(type));
@@ -58,6 +68,13 @@ namespace osu.Framework.Allocation
         /// Clears the dependency activator function cache.
         /// </summary>
         public static void ClearCache() => activator_cache.Clear();
+
+        public static bool IsLongRunning<T>(T obj)
+            where T : IDependencyInjectionCandidate
+        {
+            initialiseSourceGeneratedActivators(obj);
+            return getActivator(obj.GetType()).isLongRunning;
+        }
 
         /// <summary>
         /// Injects dependencies from a <see cref="DependencyContainer"/> into an object.
@@ -137,13 +154,19 @@ namespace osu.Framework.Allocation
         {
             public bool IsRegistered(Type type) => activator_cache.ContainsKey(type);
 
+            // Retained for backwards compatibility due to signature change.
+            [Obsolete] // Can be removed 2023-10-30
             public void Register(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel)
+                => Register(type, injectDel, cacheDel, type.GetCustomAttribute<LongRunningLoadAttribute>() != null);
+
+            public void Register(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel, bool isLongRunning)
             {
                 // The DependencyActivator constructor stores itself to a static dictionary.
                 var _ = new DependencyActivator(
                     type,
                     injectDel ?? ((_, _) => { }),
-                    cacheDel ?? ((_, d, _) => d));
+                    cacheDel ?? ((_, d, _) => d),
+                    isLongRunning);
             }
         }
     }

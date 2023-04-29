@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics
         {
             if (registry.IsRegistered(typeof(global::osu.Framework.Graphics.Drawable)))
                 return;
-            registry.Register(typeof(global::osu.Framework.Graphics.Drawable), null, null);
+            registry.Register(typeof(global::osu.Framework.Graphics.Drawable), null, null, false);
         }
     }
 }

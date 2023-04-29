@@ -16,6 +16,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies
         public readonly HashSet<CachedAttributeData> CachedClasses = new HashSet<CachedAttributeData>();
         public readonly HashSet<ResolvedAttributeData> ResolvedMembers = new HashSet<ResolvedAttributeData>();
         public readonly HashSet<BackgroundDependencyLoaderAttributeData> DependencyLoaderMembers = new HashSet<BackgroundDependencyLoaderAttributeData>();
+        public bool IsLongRunning { get; private set; }
 
         public DependenciesClassCandidate(ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
             : base(classSyntax, semanticModel)
@@ -39,6 +40,8 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies
             // Process any [Cached] attributes on the class.
             foreach (var attrib in symbol.GetAttributes().Where(SyntaxHelpers.IsCachedAttribute))
                 CachedClasses.Add(CachedAttributeData.FromInterfaceOrClass(symbol, attrib));
+
+            IsLongRunning = symbol.GetAttributes().Any(SyntaxHelpers.IsLongRunningLoadAttribute);
 
             // Process any attributes of members of the class.
             foreach (var member in symbol.GetMembers())

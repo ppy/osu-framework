@@ -6,7 +6,7 @@ namespace osu.Framework.Allocation
     {
         bool IsRegistered(Type type);
 
-        void Register(Type type, InjectDependencyDelegate? injectDel, CacheDependencyDelegate? cacheDel);
+        void Register(Type type, InjectDependencyDelegate? injectDel, CacheDependencyDelegate? cacheDel, bool isLongRunning);
     }
     
     public delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);

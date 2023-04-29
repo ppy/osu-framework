@@ -1,0 +1,4 @@
+[osu.Framework.Allocation.LongRunningLoad]
+public partial class BaseClass : osu.Framework.Graphics.Drawable
+{
+}

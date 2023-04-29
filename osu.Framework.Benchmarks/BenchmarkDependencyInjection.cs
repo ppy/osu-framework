@@ -39,6 +39,22 @@ namespace osu.Framework.Benchmarks
                 DependencyActivator.ClearCache();
             DependencyActivator.Activate(new ClassInjectedWithSourceGenerator(), dependencyContainer);
         }
+
+        [Benchmark]
+        public void QueryIsLongRunningWithReflection()
+        {
+            if (ClearCaches)
+                DependencyActivator.ClearCache();
+            DependencyActivator.IsLongRunning(new ClassInjectedWithReflection());
+        }
+
+        [Benchmark]
+        public void QueryIsLongRunningWithSourceGenerator()
+        {
+            if (ClearCaches)
+                DependencyActivator.ClearCache();
+            DependencyActivator.IsLongRunning(new ClassInjectedWithSourceGenerator());
+        }
     }
 
     [SuppressMessage("Performance", "OFSG001:Class contributes to dependency injection and should be partial")]

@@ -1,0 +1,7 @@
+namespace osu.Framework.Allocation
+{
+    [System.AttributeUsage(System.AttributeTargets.Class)]
+    public class LongRunningLoadAttribute : System.Attribute
+    {
+    }
+}

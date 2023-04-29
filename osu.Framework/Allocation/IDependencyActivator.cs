@@ -23,5 +23,14 @@ namespace osu.Framework.Allocation
         /// <param name="injectDel">A function to inject dependencies into the object.</param>
         /// <param name="cacheDel">A function to cache the dependencies of the object.</param>
         void Register(Type type, InjectDependencyDelegate? injectDel, CacheDependencyDelegate? cacheDel);
+
+        /// <summary>
+        /// Registers dependency activation functions for the given type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="injectDel">A function to inject dependencies into the object.</param>
+        /// <param name="cacheDel">A function to cache the dependencies of the object.</param>
+        /// <param name="isLongRunning">Whether the type requires a long-running load.</param>
+        void Register(Type type, InjectDependencyDelegate? injectDel, CacheDependencyDelegate? cacheDel, bool isLongRunning);
     }
 }
