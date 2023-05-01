@@ -34,7 +34,13 @@ namespace osu.Framework.Graphics.Textures
 
         protected TextureAtlas Atlas;
 
-        private const int max_atlas_size = 4096;
+        /// <remarks>
+        /// While it would be beneficial to have this atlas size be higher (the ideal size seems to be somewhere in the ballpark of 4096),
+        /// built-in GL mipmapping performs poorly on atlases bigger than this maximum.
+        /// If the built-in GL mipmapping is replaced in the future (see custom generation logic in `{GL,Veldrid}Texture`),
+        /// then this limit can be increased to 4096 again.
+        /// </remarks>
+        private const int max_atlas_size = 1024;
 
         /// <summary>
         /// Decides at what resolution multiple this <see cref="TextureStore"/> is providing sprites at.
