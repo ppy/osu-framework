@@ -40,14 +40,14 @@ jobs:
     needs: check-if-tag
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
       - name: Setup .NET 6.0.x
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: "6.0.x"
 
@@ -55,7 +55,7 @@ jobs:
         run: dotnet pack -c Release osu.Framework.NativeLibs /p:Configuration=Release /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: osu-framework-nativelibs
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg

@@ -664,8 +664,7 @@ namespace osu.Framework.Graphics.UserInterface
             public event Action<MenuItemState> StateChanged;
 
             /// <summary>
-            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was
-            /// invoked or not, or whether <see cref="Item"/> contains any sub-<see cref="MenuItem"/>s.
+            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked and successfully invokes an action or opens a submenu.
             /// </summary>
             internal Action<DrawableMenuItem> Clicked;
 
@@ -702,6 +701,19 @@ namespace osu.Framework.Graphics.UserInterface
             protected DrawableMenuItem(MenuItem item)
             {
                 Item = item;
+
+                // Edge case where action might be changed while item is already hovered.
+                Item.Action.BindDisabledChanged(_ =>
+                {
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
+                });
+
+                Item.Action.BindValueChanged(_ =>
+                {
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
+                });
 
                 InternalChildren = new[]
                 {
@@ -818,11 +830,18 @@ namespace osu.Framework.Graphics.UserInterface
             public float ContentDrawHeight => Content.DrawHeight;
 
             /// <summary>
+            /// Whether the underlying <see cref="Item"/> has an assigned action or a submenu, and is not in a disabled state.
+            /// </summary>
+            protected bool IsActionable => hasSubmenu || (!Item.Action.Disabled && Item.Action.Value != null);
+
+            private bool hasSubmenu => Item.Items?.Count > 0;
+
+            /// <summary>
             /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
             /// </summary>
             protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(IsHovered ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered && IsActionable ? BackgroundColourHover : BackgroundColour);
             }
 
             /// <summary>
@@ -830,7 +849,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(IsHovered ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered && IsActionable ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
@@ -862,18 +881,19 @@ namespace osu.Framework.Graphics.UserInterface
                 base.OnHoverLost(e);
             }
 
-            private bool hasSubmenu => Item.Items?.Count > 0;
-
             protected override bool OnClick(ClickEvent e)
             {
-                if (Item.Action.Disabled)
+                if (hasSubmenu)
+                {
+                    Clicked?.Invoke(this);
+                    return true;
+                }
+
+                if (!IsActionable)
                     return true;
 
-                if (!hasSubmenu)
-                    Item.Action.Value?.Invoke();
-
+                Item.Action.Value.Invoke();
                 Clicked?.Invoke(this);
-
                 return true;
             }
 

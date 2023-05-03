@@ -18,9 +18,6 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.211" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="runtimes\**\*" Pack="true" PackagePath="runtimes" />
     <None Include="stubs\**\*" Pack="true" PackagePath="stubs" />
     <Content Include="osu.Framework.iOS.Workarounds.targets" Pack="true" PackagePath="build\$(PackageId).targets" />

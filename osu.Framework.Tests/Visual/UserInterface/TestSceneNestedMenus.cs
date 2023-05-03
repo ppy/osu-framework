@@ -480,7 +480,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private MenuItem generateRandomMenuItem(string name = "Menu Item", int currDepth = 1)
         {
-            var item = new MenuItem(name);
+            var item = new MenuItem(name, () => { });
 
             if (currDepth == max_depth)
                 return item;
