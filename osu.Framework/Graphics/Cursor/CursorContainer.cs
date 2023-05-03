@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        private class CircularLongPressFeedback : TouchLongPressFeedback
+        private partial class CircularLongPressFeedback : TouchLongPressFeedback
         {
             private readonly CircularProgress progress;
 
