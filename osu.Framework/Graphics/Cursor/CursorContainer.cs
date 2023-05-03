@@ -116,22 +116,40 @@ namespace osu.Framework.Graphics.Cursor
                 InternalChild = progress = new CircularProgress
                 {
                     Size = new Vector2(180),
-                    InnerRadius = 0.1f,
                 };
+
+                Alpha = 0;
             }
 
             public override void BeginAnimation(double duration)
-                => this.Delay(duration / 3)
-                       .FadeIn()
-                       .FadeColour(Color4.OrangeRed)
-                       .TransformBindableTo(progress.Current, 0)
-                       .TransformBindableTo(progress.Current, 1, duration * 2 / 3, Easing.InOutSine).Then()
-                       .FadeColour(Color4.White, 50)
-                       .FadeOut(200);
+            {
+                using (BeginDelayedSequence(duration / 3))
+                {
+                    this.FadeInFromZero();
+
+                    progress.FadeColour(Color4.SkyBlue)
+                            .TransformTo(nameof(progress.InnerRadius), 0.2f)
+                            .TransformTo(nameof(progress.InnerRadius), 0.3f, 150, Easing.OutQuint)
+                            .TransformBindableTo(progress.Current, 0)
+                            .TransformBindableTo(progress.Current, 1, duration / 3 * 2);
+
+                    using (BeginDelayedSequence(duration / 3 * 2))
+                    {
+                        this.FadeOut(500, Easing.OutQuint);
+
+                        progress.FadeColour(Color4.White, 800, Easing.OutQuint)
+                                .TransformTo(nameof(progress.InnerRadius), 0.6f, 500, Easing.OutQuint);
+                    }
+                }
+            }
 
             public override void CancelAnimation()
-                => this.TransformBindableTo(progress.Current, 0, 50, Easing.OutQuint)
-                       .FadeOut(50, Easing.OutQuint);
+            {
+                this.FadeOut(400, Easing.OutQuint);
+
+                progress.TransformBindableTo(progress.Current, 0, 400, Easing.OutQuint)
+                        .TransformTo(nameof(progress.InnerRadius), 0.2f, 50, Easing.OutQuint);
+            }
         }
     }
 }
