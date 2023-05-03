@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -17,11 +15,11 @@ namespace osu.Framework.Graphics.Cursor
 {
     public partial class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
     {
-        public Drawable ActiveCursor { get; protected set; }
+        public Drawable ActiveCursor { get; protected set; } = null!;
 
-        private TouchLongPressFeedback longPressFeedback;
+        private TouchLongPressFeedback longPressFeedback = null!;
 
-        private InputManager inputManager;
+        private InputManager inputManager = null!;
 
         public CursorContainer()
         {
