@@ -29,6 +29,15 @@ namespace osu.Framework.SourceGeneration.Analysers
             true,
             "Async BackgroundDependencyLoader methods must return Task.");
 
+        public static readonly DiagnosticDescriptor CONFIGURE_AWAIT_MUST_BE_TRUE = new DiagnosticDescriptor(
+            "OFSG003",
+            "Direct awaits in a BackgroundDependencyLoader must use ConfigureAwait(true)",
+            "Direct awaits in a BackgroundDependencyLoader must use ConfigureAwait(true)",
+            "Performance",
+            DiagnosticSeverity.Error,
+            true,
+            "Direct awaits in a BackgroundDependencyLoader must use ConfigureAwait(true).");
+
 #pragma warning restore RS2008
     }
 }
