@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
@@ -90,7 +90,6 @@ namespace osu.Framework.Utils
         {
             private readonly SynchronizationContext? lastContext;
             private readonly Scheduler scheduler;
-            private readonly ManualResetEventSlim ready = new ManualResetEventSlim();
 
             public BackgroundDependencyLoaderSynchronizationContext()
             {
@@ -100,35 +99,23 @@ namespace osu.Framework.Utils
                 SetSynchronizationContext(this);
             }
 
-            public override void Send(SendOrPostCallback d, object? state)
-            {
-                d(state);
-            }
+            public override void Send(SendOrPostCallback d, object? state) => d(state);
 
-            public override void Post(SendOrPostCallback d, object? state)
-            {
-                scheduler.Add(() => d(state));
-                ready.Set();
-            }
+            public override void Post(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state));
 
-#pragma warning disable RS0030
             public IBackgroundDependencyLoaderContext WaitFor(Task? task)
             {
                 if (task == null)
                     return this;
 
-                TaskAwaiter awaiter = task.GetAwaiter();
-                awaiter.OnCompleted(() => ready.Set());
-
-                while (!awaiter.IsCompleted)
+                while (!task.IsCompleted)
                 {
-                    ready.Wait();
+                    Debugger.NotifyOfCrossThreadDependency();
                     scheduler.Update();
                 }
 
                 return this;
             }
-#pragma warning restore RS0030
 
             public void Release()
             {
