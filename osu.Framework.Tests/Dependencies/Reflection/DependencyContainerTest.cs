@@ -501,7 +501,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             [BackgroundDependencyLoader]
             private async Task load()
             {
-                await AllowLoad.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                await AllowLoad.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(true);
             }
 
             public void Dispose()
