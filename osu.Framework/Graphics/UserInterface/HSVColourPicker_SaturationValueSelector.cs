@@ -4,11 +4,13 @@
 #nullable disable
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -255,10 +257,29 @@ namespace osu.Framework.Graphics.UserInterface
                         hue = Source.hue;
                     }
 
-                    protected override void Blit(IRenderer renderer)
+                    private IUniformBuffer<HueData> hueDataBuffer;
+
+                    protected override void BindUniformResources(IShader shader, IRenderer renderer)
                     {
-                        TextureShader.GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(renderer);
+                        base.BindUniformResources(shader, renderer);
+
+                        hueDataBuffer ??= renderer.CreateUniformBuffer<HueData>();
+                        hueDataBuffer.Data = hueDataBuffer.Data with { Hue = hue };
+
+                        shader.BindUniformBlock("m_HueData", hueDataBuffer);
+                    }
+
+                    protected override void Dispose(bool isDisposing)
+                    {
+                        base.Dispose(isDisposing);
+                        hueDataBuffer?.Dispose();
+                    }
+
+                    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+                    private record struct HueData
+                    {
+                        public UniformFloat Hue;
+                        private readonly UniformPadding12 pad1;
                     }
                 }
             }

@@ -107,9 +107,59 @@ namespace osu.Framework.Graphics.Primitives
 
         public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in TopLeft), 4);
 
-        public bool Contains(Vector2 pos) =>
-            new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
-            new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
+        /// <summary>
+        /// Checks whether <paramref name="pos"/> is inside of this quad.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method assumes a convex quad. The convexity of the quad is not checked.
+        /// Vertices of the quad as returned by <see cref="GetVertices"/> must be arranged either in clockwise or counter-clockwise order.
+        /// </para>
+        /// <para>
+        /// The method works by checking whether the point lies on the same side of all four sides of the quad.
+        /// Note that the quad vertices are *not* using the standard Cartesian coordinates, but rather a Y-inverted version of them
+        /// (as in higher Y is *down*),
+        /// which is why the sign of the perpendicular dot product is opposite to what would be normally expected on the Cartesian plane.
+        /// </para>
+        /// </remarks>
+        public bool Contains(Vector2 pos)
+        {
+            if (Width == 0 && Height == 0)
+                return pos == TopLeft;
+
+            // to check if the point is inside the quad, we will calculate on which side of each quad segment the tested point is using the sign of the perp dot product.
+            // note that the order in which we walk the segments matters - it must be clockwise or counterclockwise.
+            // in theory quads should always be CCW (see note at top of class), but this is not necessarily true after applying negative horizontal or vertical scale.
+            // if the signs all match (all positive or negative), then the point is inside of the quad.
+            // a zero perp dot anywhere means that the point lies on one of the lines going through one of the quad sides, so zeroes are treated like positive values.
+
+            // we test if two perp dots have matching signs by multiplying them and testing against 0.
+            // if the result is positive, both perp dots were nonzero and had matching signs => don't reject point.
+            // if the result is zero, one (or both) perp dots was zero, so the point may lie on the quad boundary => don't reject point.
+            // if the result is negative, both perp dots were nonzero and had different signs => reject point.
+
+            // note that we don't generally care about overflows there as long as the sign is right.
+            // however, NaN values may come from Infinity - Infinity subtractions in `Vector2.PerpDot`.
+            // there's not much good left to be done in such cases, so we err on the side of caution and reject points that generate any NaNs on sight.
+
+            float perpDot1 = Vector2.PerpDot(BottomLeft - TopLeft, pos - TopLeft);
+            if (float.IsNaN(perpDot1))
+                return false;
+
+            float perpDot2 = Vector2.PerpDot(BottomRight - BottomLeft, pos - BottomLeft);
+            if (float.IsNaN(perpDot2) || perpDot1 * perpDot2 < 0)
+                return false;
+
+            float perpDot3 = Vector2.PerpDot(TopRight - BottomRight, pos - BottomRight);
+            if (float.IsNaN(perpDot3) || perpDot1 * perpDot3 < 0 || perpDot2 * perpDot3 < 0)
+                return false;
+
+            float perpDot4 = Vector2.PerpDot(TopLeft - TopRight, pos - TopRight);
+            if (float.IsNaN(perpDot4) || perpDot1 * perpDot4 < 0 || perpDot2 * perpDot4 < 0 || perpDot3 * perpDot4 < 0)
+                return false;
+
+            return true;
+        }
 
         /// <summary>
         /// Computes the area of this <see cref="Quad"/>.

@@ -35,9 +35,27 @@ namespace osu.Framework.Tests.Visual.Platform
                     },
                     new BasicButton
                     {
+                        Action = () => host.OpenUrlExternally("mailto:contact@ppy.sh"),
+                        Size = new Vector2(150, 30),
+                        Text = "Mail to contact email",
+                    },
+                    new BasicButton
+                    {
                         Action = () => host.OpenUrlExternally("this is a bad link that shouldn't crash the app"),
                         Size = new Vector2(150, 30),
                         Text = "Open bad link",
+                    },
+                    new BasicButton
+                    {
+                        Action = () => host.OpenUrlExternally("https://github.com/ppy/osu-framework"),
+                        Size = new Vector2(150, 30),
+                        Text = "Open github link",
+                    },
+                    new BasicButton
+                    {
+                        Action = () => host.OpenUrlExternally("https://twitter.com/osugame"),
+                        Size = new Vector2(150, 30),
+                        Text = "Open twitter link",
                     },
                 }
             };
