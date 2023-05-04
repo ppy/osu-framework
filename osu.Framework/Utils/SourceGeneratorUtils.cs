@@ -78,11 +78,26 @@ namespace osu.Framework.Utils
             return val == null ? default! : (T)val;
         }
 
+        /// <summary>
+        /// Creates and sets a synchronization context to begin an async BDL invocation.
+        /// </summary>
         public static IBackgroundDependencyLoaderContext CreateBackgroundDependencyLoaderContext() => new BackgroundDependencyLoaderSynchronizationContext();
 
+        /// <summary>
+        /// The synchronisation context for an async BDL invocation.
+        /// </summary>
         public interface IBackgroundDependencyLoaderContext
         {
+            /// <summary>
+            /// Waits for the given task to complete.
+            /// </summary>
+            /// <param name="task">The task.</param>
+            /// <returns>The synchronisation context.</returns>
             IBackgroundDependencyLoaderContext WaitFor(Task? task);
+
+            /// <summary>
+            /// Returns to the previous synchronisation context.
+            /// </summary>
             void Release();
         }
 
