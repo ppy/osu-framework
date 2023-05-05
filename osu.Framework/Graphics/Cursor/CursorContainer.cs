@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Cursor
 {
     public partial class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
     {
-        public Drawable ActiveCursor { get; protected set; } = null!;
+        public Drawable? ActiveCursor { get; protected set; }
 
         private TouchLongPressFeedback longPressFeedback = null!;
 
@@ -63,7 +63,8 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            ActiveCursor.Position = e.MousePosition;
+            if (ActiveCursor != null)
+                ActiveCursor.Position = e.MousePosition;
             return base.OnMouseMove(e);
         }
 
