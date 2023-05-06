@@ -92,12 +92,15 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             if (!filterValid.IsValid)
-            {
-                canBeShownBindables.Clear();
-                performFilter();
-                filterValid.Validate();
-                FilterCompleted?.Invoke();
-            }
+                Filter();
+        }
+
+        protected void Filter()
+        {
+            canBeShownBindables.Clear();
+            performFilter();
+            filterValid.Validate();
+            FilterCompleted?.Invoke();
         }
 
         private void performFilter()
