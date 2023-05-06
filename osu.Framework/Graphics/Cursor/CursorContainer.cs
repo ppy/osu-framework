@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Cursor
 {
     public partial class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
     {
-        public Drawable ActiveCursor { get; protected set; } = null!;
+        public Drawable ActiveCursor { get; protected set; }
 
         private TouchLongPressFeedback longPressFeedback = null!;
 
@@ -27,12 +27,14 @@ namespace osu.Framework.Graphics.Cursor
             RelativeSizeAxes = Axes.Both;
 
             State.Value = Visibility.Visible;
+
+            ActiveCursor = CreateCursor();
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            Add(ActiveCursor = CreateCursor());
+            Add(ActiveCursor);
             Add(longPressFeedback = CreateLongPressFeedback());
         }
 
