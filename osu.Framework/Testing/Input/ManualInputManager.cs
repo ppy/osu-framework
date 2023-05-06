@@ -58,6 +58,10 @@ namespace osu.Framework.Testing.Input
             }
         }
 
+        protected override bool AllowRightClickFromLongTouch => RightClickFromLongTouch;
+
+        public bool RightClickFromLongTouch = true;
+
         public ManualInputManager()
         {
             AddHandler(handler = new ManualInputHandler());
