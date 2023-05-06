@@ -47,6 +47,12 @@ namespace osu.Framework.Input
         /// </summary>
         public abstract bool ChangeFocusOnClick { get; }
 
+        /// <summary>
+        /// Whether the next click should temporarily be ignored if enabled in this manager.
+        /// This is required for double-click and touch long-press logic.
+        /// </summary>
+        internal bool BlockNextClick;
+
         protected MouseButtonEventManager(MouseButton button)
             : base(button)
         {
@@ -148,8 +154,6 @@ namespace osu.Framework.Input
 
             MouseDownPosition = null;
         }
-
-        protected bool BlockNextClick;
 
         private void handleClick(InputState state, List<Drawable> targets)
         {

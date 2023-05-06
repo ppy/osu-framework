@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace osu.Framework.SourceGeneration.Generators
 {
-    public abstract class AbstractIncrementalGenerator : IIncrementalGenerator, IGeneratorWithEvents
+    public abstract class AbstractIncrementalGenerator : IIncrementalGenerator
     {
-        public GeneratorEventDriver EventDriver { get; } = new GeneratorEventDriver();
+        public readonly GeneratorEventDriver EventDriver = new GeneratorEventDriver();
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -40,7 +40,7 @@ namespace osu.Framework.SourceGeneration.Generators
                         // Ensure all targets have a generation ID. This is over-engineered as two loops to:
                         // 1. Increment the generation ID locally for deterministic test output.
                         // 2. Remain performant across many thousands of objects.
-                        Dictionary<IncrementalSyntaxTarget, long> maxGenerationIds = new Dictionary<IncrementalSyntaxTarget, long>(IncrementalSyntaxTarget.Comparer.DEFAULT);
+                        Dictionary<IncrementalSyntaxTarget, long> maxGenerationIds = new Dictionary<IncrementalSyntaxTarget, long>(IncrementalSyntaxTarget.SyntaxNameComparer.DEFAULT);
 
                         foreach (var target in targets)
                         {
@@ -53,7 +53,7 @@ namespace osu.Framework.SourceGeneration.Generators
 
                         EventDriver.OnStage2GenerationIdAssigned(targets);
 
-                        HashSet<IncrementalSyntaxTarget> result = new HashSet<IncrementalSyntaxTarget>(IncrementalSyntaxTarget.Comparer.DEFAULT);
+                        HashSet<IncrementalSyntaxTarget> result = new HashSet<IncrementalSyntaxTarget>(IncrementalSyntaxTarget.SyntaxNameComparer.DEFAULT);
 
                         // Filter out the targets, preferring the most recent at all times.
                         foreach (IncrementalSyntaxTarget t in targets.OrderByDescending(t => t.GenerationId))

@@ -10,13 +10,12 @@ using osu.Framework.SourceGeneration.Generators;
 
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
-    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : IIncrementalGenerator, IGeneratorWithEvents, new()
+    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator> where TSourceGenerator : AbstractIncrementalGenerator, new()
     {
         public class Test
         {
             private GeneratorDriver driver;
-            private TSourceGenerator generator;
+            private readonly TSourceGenerator generator;
             private readonly (string filename, string content)[] commonSources;
             private readonly (string filename, string content)[] commonGenerated;
             private readonly List<List<(string filename, string content)>> multiPhaseSources;
