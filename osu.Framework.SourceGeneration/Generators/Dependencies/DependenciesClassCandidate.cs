@@ -4,54 +4,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Data;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Data;
 
-namespace osu.Framework.SourceGeneration
+namespace osu.Framework.SourceGeneration.Generators.Dependencies
 {
-    public class GeneratorClassCandidate
+    public class DependenciesClassCandidate : IncrementalSemanticTarget
     {
-        public readonly ClassDeclarationSyntax ClassSyntax;
-
-        public readonly string FullyQualifiedTypeName = string.Empty;
-        public readonly string GlobalPrefixedTypeName = string.Empty;
-        public readonly bool NeedsOverride;
-        public readonly string? ContainingNamespace;
-        public readonly bool IsValid;
-
-        public readonly List<string> TypeHierarchy = new List<string>();
         public readonly HashSet<CachedAttributeData> CachedInterfaces = new HashSet<CachedAttributeData>();
         public readonly HashSet<CachedAttributeData> CachedMembers = new HashSet<CachedAttributeData>();
         public readonly HashSet<CachedAttributeData> CachedClasses = new HashSet<CachedAttributeData>();
         public readonly HashSet<ResolvedAttributeData> ResolvedMembers = new HashSet<ResolvedAttributeData>();
         public readonly HashSet<BackgroundDependencyLoaderAttributeData> DependencyLoaderMembers = new HashSet<BackgroundDependencyLoaderAttributeData>();
 
-        public GeneratorClassCandidate(ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
+        public DependenciesClassCandidate(ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
+            : base(classSyntax, semanticModel)
         {
-            ClassSyntax = classSyntax;
+        }
 
-            INamedTypeSymbol symbol = semanticModel.GetDeclaredSymbol(ClassSyntax)!;
+        protected override bool CheckValid(INamedTypeSymbol symbol) => symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
 
-            // Determine if the class is a candidate for the source generator.
-            IsValid = symbol.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
+        protected override bool CheckNeedsOverride(INamedTypeSymbol symbol) => symbol.BaseType!.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
 
-            if (!IsValid)
-                return;
-
-            FullyQualifiedTypeName = SyntaxHelpers.GetFullyQualifiedTypeName(symbol);
-            GlobalPrefixedTypeName = SyntaxHelpers.GetGlobalPrefixedTypeName(symbol)!;
-            NeedsOverride = symbol.BaseType != null && symbol.BaseType.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface);
-            ContainingNamespace = symbol.ContainingNamespace.IsGlobalNamespace ? null : symbol.ContainingNamespace.ToDisplayString();
-
-            ITypeSymbol? containingType = symbol;
-
-            while (containingType != null)
-            {
-                TypeHierarchy.Add(createTypeName(containingType));
-                containingType = containingType.ContainingType ?? null;
-            }
-
+        protected override void Process(INamedTypeSymbol symbol)
+        {
             // Process any [Cached] attributes on any interface on the class excluding base types.
             foreach (var iFace in SyntaxHelpers.GetDeclaredInterfacesOnType(symbol))
             {
@@ -99,27 +75,6 @@ namespace osu.Framework.SourceGeneration
                     }
                 }
             }
-        }
-
-        public static bool IsSyntaxTarget(SyntaxNode syntaxNode)
-        {
-            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
-                return false;
-
-            if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
-                return false;
-
-            return true;
-        }
-
-        private static string createTypeName(ITypeSymbol typeSymbol)
-        {
-            string name = typeSymbol.Name;
-
-            if (typeSymbol is INamedTypeSymbol named && named.TypeParameters.Length > 0)
-                name += $@"<{string.Join(@", ", named.TypeParameters)}>";
-
-            return name;
         }
     }
 }

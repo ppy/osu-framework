@@ -7,7 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Emitters;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Emitters;
 
 namespace osu.Framework.SourceGeneration
 {

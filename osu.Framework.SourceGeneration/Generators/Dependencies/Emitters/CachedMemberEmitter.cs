@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Data;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Data;
 
-namespace osu.Framework.SourceGeneration.Emitters
+namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
 {
     /// <summary>
     /// Emits the statement for a [Cached] attribute on a member of the class.
@@ -26,7 +26,7 @@ namespace osu.Framework.SourceGeneration.Emitters
         {
             yield return SyntaxFactory.ExpressionStatement(
                 SyntaxHelpers.CacheDependencyInvocation(
-                    fileEmitter.Candidate.GlobalPrefixedTypeName,
+                    fileEmitter.Target.GlobalPrefixedTypeName,
                     createMemberAccessor(),
                     data.GlobalPrefixedTypeName,
                     data.Name,
@@ -40,7 +40,7 @@ namespace osu.Framework.SourceGeneration.Emitters
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(fileEmitter.Candidate.GlobalPrefixedTypeName),
+                        SyntaxFactory.ParseTypeName(fileEmitter.Target.GlobalPrefixedTypeName),
                         SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME))),
                 SyntaxFactory.IdentifierName(data.PropertyName!));
         }

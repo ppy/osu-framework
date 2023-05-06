@@ -2,12 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using Xunit;
-using VerifyIncremental = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpMultiPhaseSourceGeneratorVerifier<osu.Framework.SourceGeneration.DependencyInjectionSourceGenerator>;
+using VerifyIncremental = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpMultiPhaseSourceGeneratorVerifier<osu.Framework.SourceGeneration.Generators.Dependencies.DependencyInjectionSourceGenerator>;
 
-namespace osu.Framework.SourceGeneration.Tests
+namespace osu.Framework.SourceGeneration.Tests.Dependencies
 {
     public class DependencyInjectionMultiPhaseSourceGeneratorTests : AbstractGeneratorTests
     {
+        protected override string ResourceNamespace => "DependencyInjection";
+
         // this function has support for the same test cases as DependencyInjectionSourceGeneratorTests.Check
         // but since the new verifier used here doesn't support creating nice diffs yet,
         // DependencyInjectionSourceGeneratorTests.Check is still preferred for now for single phase tests.

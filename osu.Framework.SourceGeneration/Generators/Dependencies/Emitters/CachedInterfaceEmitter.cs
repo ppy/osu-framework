@@ -4,19 +4,19 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using osu.Framework.SourceGeneration.Data;
+using osu.Framework.SourceGeneration.Generators.Dependencies.Data;
 
-namespace osu.Framework.SourceGeneration.Emitters
+namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
 {
     /// <summary>
-    /// Emits the statement for a [Cached] attribute on the class itself.
+    /// Emits the statement for a [Cached] attribute on an implemented interface.
     /// </summary>
-    public class CachedClassEmitter : IStatementEmitter
+    public class CachedInterfaceEmitter : IStatementEmitter
     {
         private readonly DependenciesFileEmitter fileEmitter;
         private readonly CachedAttributeData data;
 
-        public CachedClassEmitter(DependenciesFileEmitter fileEmitter, CachedAttributeData data)
+        public CachedInterfaceEmitter(DependenciesFileEmitter fileEmitter, CachedAttributeData data)
         {
             this.fileEmitter = fileEmitter;
             this.data = data;
@@ -26,7 +26,7 @@ namespace osu.Framework.SourceGeneration.Emitters
         {
             yield return SyntaxFactory.ExpressionStatement(
                 SyntaxHelpers.CacheDependencyInvocation(
-                    fileEmitter.Candidate.GlobalPrefixedTypeName,
+                    fileEmitter.Target.GlobalPrefixedTypeName,
                     SyntaxFactory.IdentifierName(DependenciesFileEmitter.TARGET_PARAMETER_NAME),
                     data.GlobalPrefixedTypeName,
                     data.Name,

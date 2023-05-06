@@ -4,7 +4,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace osu.Framework.SourceGeneration.Data
+namespace osu.Framework.SourceGeneration.Generators.Dependencies.Data
 {
     public readonly struct ResolvedAttributeData
     {

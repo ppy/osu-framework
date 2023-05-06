@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace osu.Framework.SourceGeneration.Emitters
+namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
 {
     public interface IStatementEmitter
     {
