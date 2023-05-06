@@ -68,8 +68,8 @@ namespace osu.Framework.Tests.Visual.Input
             };
         });
 
-        private float getTouchXPos(TouchSource source) => receptors[(int)source].DrawPosition.X + 10f;
-        private Vector2 getTouchDownPos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), 1f));
+        private float getTouchXPos(TouchSource source) => receptors[(int)source].DrawPosition.X + Content.DrawWidth / TouchState.MAX_TOUCH_COUNT / 2;
+        private Vector2 getTouchDownPos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), 50f));
         private Vector2 getTouchMovePos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), receptors.DrawHeight / 2f));
         private Vector2 getTouchUpPos(TouchSource source) => receptors.ToScreenSpace(new Vector2(getTouchXPos(source), receptors.DrawHeight - 1f));
 
@@ -191,8 +191,10 @@ namespace osu.Framework.Tests.Visual.Input
         {
             InputReceptor firstReceptor = null, lastReceptor = null;
 
-            AddStep("setup receptors to receive mouse-from-touch", () =>
+            AddStep("setup receptors to receive left mouse-from-touch", () =>
             {
+                InputManager.RightClickFromLongTouch = false;
+
                 foreach (var r in receptors)
                     r.HandleTouch = _ => false;
             });
@@ -381,10 +383,12 @@ namespace osu.Framework.Tests.Visual.Input
         public void TestMouseStillReleasedOnHierarchyInterference()
         {
             InputReceptor primaryReceptor = null;
+            InputReceptor childReceptor = null;
 
             AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
-            AddStep("setup handlers to receive mouse", () =>
+            AddStep("setup handlers to receive left mouse-from-touch", () =>
             {
+                InputManager.RightClickFromLongTouch = false;
                 primaryReceptor.HandleTouch = _ => false;
             });
 
@@ -396,7 +400,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
             });
 
-            AddStep("add drawable", () => primaryReceptor.Add(new InputReceptor(TouchSource.Touch1)
+            AddStep("add drawable", () => primaryReceptor.Add(childReceptor = new InputReceptor(TouchSource.Touch1)
             {
                 RelativeSizeAxes = Axes.Both,
                 HandleTouch = _ => true,
@@ -408,9 +412,198 @@ namespace osu.Framework.Tests.Visual.Input
                 bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent;
                 return event1 && primaryReceptor.MouseEvents.Count == 0;
             });
+
             AddAssert("child receptor received nothing", () =>
-                primaryReceptor.TouchEvents.Count == 0 &&
-                primaryReceptor.MouseEvents.Count == 0);
+                childReceptor.TouchEvents.Count == 0 &&
+                childReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
+        public void TestHoldTouchToRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddAssert("left down received", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Left;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+
+            AddWaitStep("hold touch", 4);
+            AddAssert("right click received", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+
+            AddStep("move touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
+            AddAssert("received move and left drag", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is DragEvent drag && drag.Button == MouseButton.Left;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+
+            AddStep("end touch in place", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
+            AddAssert("left up received", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Left;
+                return event1 && primaryReceptor.MouseEvents.Count == 0;
+            });
+        }
+
+        [Test]
+        public void TestHoldTouchThenKeepHoldingAfterRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold touch", 4);
+            AddAssert("right click received", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+
+            AddStep("nudge touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1) + new Vector2(70))));
+            AddWaitStep("keep holding", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
+        public void TestHoldTouchAndReleaseBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
+        public void TestHoldTouchAndNudgeBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("nudge touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1) + new Vector2(70))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("right click received at original position", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent down && down.Button == MouseButton.Right && down.ScreenSpaceMousePosition == getTouchDownPos(TouchSource.Touch1);
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent up && up.Button == MouseButton.Right;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+        }
+
+        [Test]
+        public void TestHoldTouchAndDragBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("move touch", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
+
+            AddStep("move back", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
+        public void TestHoldTwoTouchesAndReleaseFirstBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+            InputReceptor secondaryReceptor = null;
+
+            AddStep("retrieve touch1 and touch2 receptor", () =>
+            {
+                primaryReceptor = receptors[(int)TouchSource.Touch1];
+                secondaryReceptor = receptors[(int)TouchSource.Touch2];
+            });
+
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = secondaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = secondaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("begin another", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
+            AddStep("end first", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
+        public void TestHoldTwoTouchesAndReleaseSecondBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+            InputReceptor secondaryReceptor = null;
+
+            AddStep("retrieve touch1 and touch2 receptor", () =>
+            {
+                primaryReceptor = receptors[(int)TouchSource.Touch1];
+                secondaryReceptor = receptors[(int)TouchSource.Touch2];
+            });
+
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = secondaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = secondaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("begin another", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
+            AddStep("end second", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, getTouchDownPos(TouchSource.Touch2))));
+            AddStep("move first", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
+            AddWaitStep("wait a bit", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
         }
 
         private partial class InputReceptor : Container
