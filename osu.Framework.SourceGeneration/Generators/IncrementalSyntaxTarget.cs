@@ -58,9 +58,9 @@ namespace osu.Framework.SourceGeneration.Generators
             return Syntax.GetHashCode();
         }
 
-        public class Comparer : IEqualityComparer<IncrementalSyntaxTarget>
+        public class SyntaxNameComparer : IEqualityComparer<IncrementalSyntaxTarget>
         {
-            public static readonly Comparer DEFAULT = new Comparer();
+            public static readonly SyntaxNameComparer DEFAULT = new SyntaxNameComparer();
 
             public bool Equals(IncrementalSyntaxTarget? x, IncrementalSyntaxTarget? y)
             {
