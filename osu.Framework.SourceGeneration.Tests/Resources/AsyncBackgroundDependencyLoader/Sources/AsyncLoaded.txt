@@ -1,0 +1,7 @@
+public partial class AsyncLoaded : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.BackgroundDependencyLoader]
+    private async System.Threading.Tasks.Task load()
+    {
+    }
+}

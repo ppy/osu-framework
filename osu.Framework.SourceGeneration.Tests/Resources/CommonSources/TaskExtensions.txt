@@ -1,0 +1,11 @@
+using System.Threading.Tasks;
+
+namespace osu.Framework.Extensions
+{
+    public static class TaskExtensions
+    {
+        public static void WaitSafely(this Task task)
+        {
+        }
+    }
+}

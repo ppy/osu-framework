@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 
 namespace osu.Framework.Utils
@@ -14,6 +15,26 @@ namespace osu.Framework.Utils
         public static T GetDependency<T>(IReadOnlyDependencyContainer container, Type callerType, string? cachedName, Type? cachedParent, bool allowNulls, bool rebindBindables)
         {
             return default;
+        }
+
+        public static IBackgroundDependencyLoaderContext CreateBackgroundDependencyLoaderContext() => new BackgroundDependencyLoaderSynchronizationContext();
+
+        public interface IBackgroundDependencyLoaderContext
+        {
+            IBackgroundDependencyLoaderContext WaitFor(Task? task);
+            void Release();
+        }
+
+        private class BackgroundDependencyLoaderSynchronizationContext : IBackgroundDependencyLoaderContext
+        {
+            public IBackgroundDependencyLoaderContext WaitFor(Task? task)
+            {
+                return this;
+            }
+
+            public void Release()
+            {
+            }
         }
     }
 }

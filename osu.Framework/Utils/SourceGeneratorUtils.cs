@@ -2,10 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Utils
 {
@@ -72,6 +76,66 @@ namespace osu.Framework.Utils
 
             // `(int)(object)null` throws a NRE, so `default` is used instead.
             return val == null ? default! : (T)val;
+        }
+
+        /// <summary>
+        /// Creates and sets a synchronization context to begin an async BDL invocation.
+        /// </summary>
+        public static IBackgroundDependencyLoaderContext CreateBackgroundDependencyLoaderContext() => new BackgroundDependencyLoaderSynchronizationContext();
+
+        /// <summary>
+        /// The synchronisation context for an async BDL invocation.
+        /// </summary>
+        public interface IBackgroundDependencyLoaderContext
+        {
+            /// <summary>
+            /// Waits for the given task to complete.
+            /// </summary>
+            /// <param name="task">The task.</param>
+            /// <returns>The synchronisation context.</returns>
+            IBackgroundDependencyLoaderContext WaitFor(Task? task);
+
+            /// <summary>
+            /// Returns to the previous synchronisation context.
+            /// </summary>
+            void Release();
+        }
+
+        private class BackgroundDependencyLoaderSynchronizationContext : SynchronizationContext, IBackgroundDependencyLoaderContext
+        {
+            private readonly SynchronizationContext? lastContext;
+            private readonly Scheduler scheduler;
+
+            public BackgroundDependencyLoaderSynchronizationContext()
+            {
+                scheduler = new Scheduler();
+                lastContext = Current;
+
+                SetSynchronizationContext(this);
+            }
+
+            public override void Send(SendOrPostCallback d, object? state) => d(state);
+
+            public override void Post(SendOrPostCallback d, object? state) => scheduler.Add(() => d(state));
+
+            public IBackgroundDependencyLoaderContext WaitFor(Task? task)
+            {
+                if (task == null)
+                    return this;
+
+                while (!task.IsCompleted)
+                {
+                    Debugger.NotifyOfCrossThreadDependency();
+                    scheduler.Update();
+                }
+
+                return this;
+            }
+
+            public void Release()
+            {
+                SetSynchronizationContext(lastContext);
+            }
         }
     }
 }

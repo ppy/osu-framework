@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -336,6 +337,34 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             Assert.DoesNotThrow(() => dependencies.Inject(receiver));
         }
 
+        [Test]
+        public void TestLoadAsyncTask()
+        {
+            using var receiver = new Receiver15();
+            bool exited = false;
+
+            // Start a new thread because the inject call should block until all async tasks have completed.
+            new Thread(() =>
+            {
+                // ReSharper disable once AccessToDisposedClosure
+                new DependencyContainer().Inject(receiver);
+                exited = true;
+            })
+            {
+                IsBackground = true
+            }.Start();
+
+            // Give it 2 seconds to block on the load.
+            Thread.Sleep(2000);
+            Assert.That(exited, Is.False);
+
+            // Allow the load to continue.
+            receiver.AllowLoad.Release();
+
+            // Give it up to 2 seconds to finish the load.
+            Assert.That(() => exited, Is.True.After(2000, 100));
+        }
+
         private interface IBaseInterface
         {
         }
@@ -464,5 +493,21 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             }
         }
 #nullable disable
+
+        private class Receiver15 : IDependencyInjectionCandidate, IDisposable
+        {
+            public readonly SemaphoreSlim AllowLoad = new SemaphoreSlim(0, 1);
+
+            [BackgroundDependencyLoader]
+            private async Task load()
+            {
+                await AllowLoad.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(true);
+            }
+
+            public void Dispose()
+            {
+                AllowLoad?.Dispose();
+            }
+        }
     }
 }

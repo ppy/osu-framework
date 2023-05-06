@@ -25,7 +25,7 @@ namespace osu.Framework.SourceGeneration.Emitters
 
         public IEnumerable<StatementSyntax> Emit()
         {
-            yield return SyntaxFactory.ExpressionStatement(
+            InvocationExpressionSyntax loadExpression =
                 SyntaxFactory.InvocationExpression(
                     createMemberAccessor(),
                     SyntaxFactory.ArgumentList(
@@ -38,7 +38,12 @@ namespace osu.Framework.SourceGeneration.Emitters
                                         null,
                                         null,
                                         p.CanBeNull || data.CanBeNull,
-                                        false)))))));
+                                        false))))));
+
+            if (data.IsAsync)
+                loadExpression = SyntaxHelpers.WrapAsyncBackgroundDependencyLoaderInvocation(loadExpression);
+
+            yield return SyntaxFactory.ExpressionStatement(loadExpression);
         }
 
         private ExpressionSyntax createMemberAccessor()

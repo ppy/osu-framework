@@ -20,6 +20,24 @@ namespace osu.Framework.SourceGeneration.Analysers
             true,
             "Classes that are candidates for dependency injection should be made partial to benefit from compile-time optimisations.");
 
+        public static readonly DiagnosticDescriptor ASYNC_BDL_MUST_RETURN_TASK = new DiagnosticDescriptor(
+            "OFSG002",
+            "Async BackgroundDependencyLoader methods must return Task",
+            "Async BackgroundDependencyLoader methods must return Task",
+            "Performance",
+            DiagnosticSeverity.Error,
+            true,
+            "Async BackgroundDependencyLoader methods must return Task.");
+
+        public static readonly DiagnosticDescriptor CONFIGURE_AWAIT_MUST_BE_TRUE = new DiagnosticDescriptor(
+            "OFSG003",
+            "Direct awaits in a BackgroundDependencyLoader must use ConfigureAwait(true)",
+            "Direct awaits in a BackgroundDependencyLoader must use ConfigureAwait(true)",
+            "Performance",
+            DiagnosticSeverity.Error,
+            true,
+            "Direct awaits in a BackgroundDependencyLoader must use ConfigureAwait(true).");
+
 #pragma warning restore RS2008
     }
 }

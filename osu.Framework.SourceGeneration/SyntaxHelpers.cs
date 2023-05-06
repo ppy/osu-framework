@@ -88,6 +88,30 @@ namespace osu.Framework.SourceGeneration
                                         })));
         }
 
+        public static InvocationExpressionSyntax WrapAsyncBackgroundDependencyLoaderInvocation(ExpressionSyntax invocation)
+        {
+            return CreateInvocation(
+                CreateInvocation(
+                    CreateInvocation(
+                        SyntaxFactory.ParseTypeName("global::osu.Framework.Utils.SourceGeneratorUtils"),
+                        SyntaxFactory.IdentifierName("CreateBackgroundDependencyLoaderContext")),
+                    SyntaxFactory.IdentifierName("WaitFor"),
+                    SyntaxFactory.Argument(invocation)),
+                SyntaxFactory.IdentifierName("Release"));
+        }
+
+        public static InvocationExpressionSyntax CreateInvocation(ExpressionSyntax target, SimpleNameSyntax methodName, params ArgumentSyntax[] args)
+        {
+            return SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        target,
+                                        methodName))
+                                .WithArgumentList(
+                                    SyntaxFactory.ArgumentList(
+                                        SyntaxFactory.SeparatedList(args)));
+        }
+
         public static TypeOfExpressionSyntax TypeOf(string typeName)
             => SyntaxFactory.TypeOfExpression(SyntaxFactory.ParseTypeName(typeName));
 
