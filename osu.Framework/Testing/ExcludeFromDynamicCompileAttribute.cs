@@ -14,6 +14,7 @@ namespace osu.Framework.Testing
     /// This should be used as sparingly as possible for cases where compiling a type changes fundamental testing components (e.g. <see cref="TestBrowser"/>).
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum, Inherited = false)]
+    [Obsolete("Since migrating to .NET Hot Reload, this attribute has no effect and can be safely removed.")] // can be removed 20231107
     public class ExcludeFromDynamicCompileAttribute : Attribute
     {
     }
