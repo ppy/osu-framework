@@ -73,7 +73,7 @@ namespace osu.Framework.Platform.SDL2
             (InputKey.BracketLeft, Key.BracketLeft, SDL.SDL_Keycode.SDLK_UNKNOWN, SDL.SDL_Scancode.SDL_SCANCODE_LEFTBRACKET),
             (InputKey.BackSlash, Key.BackSlash, SDL.SDL_Keycode.SDLK_UNKNOWN, SDL.SDL_Scancode.SDL_SCANCODE_BACKSLASH),
             (InputKey.BracketRight, Key.BracketRight, SDL.SDL_Keycode.SDLK_UNKNOWN, SDL.SDL_Scancode.SDL_SCANCODE_RIGHTBRACKET),
-            (InputKey.Tilde, Key.Tilde, SDL.SDL_Keycode.SDLK_UNKNOWN, SDL.SDL_Scancode.SDL_SCANCODE_GRAVE), //////////////////////
+            (InputKey.Tilde, Key.Tilde, SDL.SDL_Keycode.SDLK_UNKNOWN, SDL.SDL_Scancode.SDL_SCANCODE_GRAVE),
             (InputKey.A, Key.A, SDL.SDL_Keycode.SDLK_a, SDL.SDL_Scancode.SDL_SCANCODE_A),
             (InputKey.B, Key.B, SDL.SDL_Keycode.SDLK_b, SDL.SDL_Scancode.SDL_SCANCODE_B),
             (InputKey.C, Key.C, SDL.SDL_Keycode.SDLK_c, SDL.SDL_Scancode.SDL_SCANCODE_C),
