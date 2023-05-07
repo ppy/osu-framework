@@ -14,7 +14,7 @@ namespace osu.Framework.Platform.SDL2
     {
         protected override string GetReadableKey(InputKey key)
         {
-            var keycode = SDL.SDL_GetKeyFromScancode(key.ToScancode());
+            var keycode = key.ToKeycode();
 
             // early return if unknown. probably because key isn't a keyboard key, or doesn't map to an `SDL_Scancode`.
             if (keycode == SDL.SDL_Keycode.SDLK_UNKNOWN)
