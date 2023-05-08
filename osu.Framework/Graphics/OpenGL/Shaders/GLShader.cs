@@ -34,11 +34,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
 
-        /// <summary>
-        /// Holds all <see cref="uniformBlocks"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
-        /// </summary>
-        private readonly List<GLUniformBlock> uniformBlocksValues = new List<GLUniformBlock>();
-
         public bool IsLoaded { get; private set; }
 
         public bool IsBound { get; private set; }
@@ -198,7 +193,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 {
                     var block = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
                     uniformBlocks[layout.Elements[0].Name] = block;
-                    uniformBlocksValues.Add(block);
                 }
             }
 
