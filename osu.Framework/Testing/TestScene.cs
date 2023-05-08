@@ -30,7 +30,6 @@ using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
-    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract partial class TestScene : Container
     {
