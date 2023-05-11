@@ -112,9 +112,6 @@ namespace osu.Framework.SourceGeneration
         public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
             => type?.Name == "IDependencyInjectionCandidate";
 
-        public static bool IsISourceGeneratorInputCandidateInterface(ITypeSymbol? type)
-            => type?.Name == "ISourceGeneratorInputCandidate";
-
         public static string GetFullyQualifiedTypeName(INamedTypeSymbol type)
             => type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 

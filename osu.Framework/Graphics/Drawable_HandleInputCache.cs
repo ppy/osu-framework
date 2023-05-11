@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics
     public partial class Drawable
     {
         /// <summary>
-        /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values.
         /// </summary>
         private static class HandleInputCache
         {
