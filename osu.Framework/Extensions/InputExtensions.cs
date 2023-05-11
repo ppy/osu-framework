@@ -120,12 +120,5 @@ namespace osu.Framework.Extensions
 
             return c;
         }
-
-        /// <summary>
-        /// Gets a single UTF-16 character from a string encoding a Unicode scalar value.
-        /// </summary>
-        /// <param name="str"><c>string</c> that has a single Unicode scalar value, encoded as one UTF-16 <c>char</c>, or two surrogate pair UTF-16 <c>char</c>s</param>
-        /// <returns>The single UTF-16 character contained in this string, or <c>default</c> if there's more than one.</returns>
-        public static char GetCharacter(this string str) => str.Length == 1 ? str[0] : default;
     }
 }
