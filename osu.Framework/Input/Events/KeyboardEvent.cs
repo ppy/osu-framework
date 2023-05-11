@@ -21,6 +21,8 @@ namespace osu.Framework.Input.Events
         /// <inheritdoc cref="Input.KeyboardKey.Character"/>
         public readonly char Character;
 
+        public KeyboardKey KeyboardKey => new KeyboardKey(Key, Character);
+
         /// <inheritdoc cref="States.KeyboardState.IsPressed(osuTK.Input.Key)"/>
         public bool IsPressed(Key key) => CurrentState.Keyboard.IsPressed(key);
 

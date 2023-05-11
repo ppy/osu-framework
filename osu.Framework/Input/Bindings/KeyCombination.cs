@@ -104,8 +104,8 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Exact:
                     foreach (var key in pressedKey)
                     {
-                        // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!ContainsKeyPermissive(candidateKey, key))
+                        // in exact matching mode, every pressed key except the "virtual" keycode keys needs to be in the candidate.
+                        if (!IsKeycode(key) && !ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
 
@@ -257,6 +257,9 @@ namespace osu.Framework.Input.Bindings
 
             return false;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsKeycode(InputKey key) => key >= InputKey.KeycodeA && key <= InputKey.KeycodeZ;
 
         private static string getReadableKey(InputKey key)
         {
@@ -531,7 +534,28 @@ namespace osu.Framework.Input.Bindings
             }
         }
 
-        public static InputKey FromKey(Key key)
+        /// <summary>
+        /// Returns 1 or 2 <see cref="InputKey"/>s based on the <see cref="KeyboardKey"/>.
+        /// </summary>
+        /// <param name="key">The <see cref="KeyboardKey"/> to get the <see cref="InputKey"/>s from</param>
+        /// <returns>
+        /// 1 or 2 <see cref="InputKey"/>s:
+        /// <list>
+        ///     <item>The first <see cref="InputKey"/> is from the <see cref="KeyboardKey.Key"/>.</item>
+        ///     <item>The second one (if available) is from the <see cref="KeyboardKey.Character"/>.</item>
+        /// </list>
+        /// </returns>
+        public static IEnumerable<InputKey> FromKey(KeyboardKey key)
+        {
+            yield return fromKey(key.Key);
+
+            var fromChar = fromKeyCharacter(key.Character);
+
+            if (fromChar != InputKey.None)
+                yield return fromChar; // this is wrong
+        }
+
+        private static InputKey fromKey(Key key)
         {
             switch (key)
             {
@@ -553,6 +577,14 @@ namespace osu.Framework.Input.Bindings
             }
 
             return (InputKey)key;
+        }
+
+        private static InputKey fromKeyCharacter(char character)
+        {
+            if (character >= 'a' && character <= 'z')
+                return character - 'a' + InputKey.KeycodeA;
+
+            return InputKey.None;
         }
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
@@ -620,10 +652,11 @@ namespace osu.Framework.Input.Bindings
             {
                 foreach (var key in state.Keyboard.Keys)
                 {
-                    var iKey = FromKey(key);
-
-                    if (!keys.Contains(iKey))
-                        keys.Add(iKey);
+                    foreach (var iKey in FromKey(new KeyboardKey(key, state.Keyboard.Characters[key])))
+                    {
+                        if (!keys.Contains(iKey))
+                            keys.Add(iKey);
+                    }
                 }
             }
 

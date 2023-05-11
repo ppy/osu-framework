@@ -2520,5 +2520,36 @@ namespace osu.Framework.Input.Bindings
         TabletAuxiliaryButton16,
 
         #endregion
+
+        #region Keyboard keycodes
+
+        KeycodeA = 10752 + 1,
+        KeycodeB,
+        KeycodeC,
+        KeycodeD,
+        KeycodeE,
+        KeycodeF,
+        KeycodeG,
+        KeycodeH,
+        KeycodeI,
+        KeycodeJ,
+        KeycodeK,
+        KeycodeL,
+        KeycodeM,
+        KeycodeN,
+        KeycodeO,
+        KeycodeP,
+        KeycodeQ,
+        KeycodeR,
+        KeycodeS,
+        KeycodeT,
+        KeycodeU,
+        KeycodeV,
+        KeycodeW,
+        KeycodeX,
+        KeycodeY,
+        KeycodeZ,
+
+        #endregion
     }
 }

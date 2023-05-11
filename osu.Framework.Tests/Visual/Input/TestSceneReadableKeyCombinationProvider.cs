@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey)), KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.Navy;
 
                 return base.OnKeyDown(e);
@@ -149,7 +149,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey)), KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.DarkGray;
 
                 base.OnKeyUp(e);

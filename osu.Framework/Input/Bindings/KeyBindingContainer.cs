@@ -115,11 +115,18 @@ namespace osu.Framework.Input.Bindings
                 case KeyDownEvent keyDown:
                     if (keyDown.Repeat)
                         return handleRepeat(state);
-                    else
-                        return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key));
+
+                    bool handled = false;
+
+                    foreach (var key in KeyCombination.FromKey(keyDown.KeyboardKey))
+                        handled |= handleNewPressed(state, key);
+
+                    return handled;
 
                 case KeyUpEvent keyUp:
-                    handleNewReleased(state, KeyCombination.FromKey(keyUp.Key));
+                    foreach (var key in KeyCombination.FromKey(keyUp.KeyboardKey))
+                        handleNewReleased(state, key);
+
                     return false;
 
                 case JoystickPressEvent joystickPress:
@@ -153,7 +160,7 @@ namespace osu.Framework.Input.Bindings
                 case ScrollEvent scroll:
                 {
                     var keys = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    bool handled = false;
+                    handled = false;
 
                     foreach (var key in keys)
                     {
