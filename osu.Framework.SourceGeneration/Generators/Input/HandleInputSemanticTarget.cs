@@ -87,7 +87,7 @@ namespace osu.Framework.SourceGeneration.Generators.Input
         }
 
         private bool isDrawableType(INamedTypeSymbol type)
-            => type.Name == "Drawable" && SyntaxHelpers.GetFullyQualifiedTypeName(type) == "osu.Framework.Graphics.Drawable";
+            => SyntaxHelpers.GetFullyQualifiedTypeName(type) == "osu.Framework.Graphics.Drawable";
 
         // HandleInputCache.positional_input_methods
         private static readonly string[] positional_input_methods =
