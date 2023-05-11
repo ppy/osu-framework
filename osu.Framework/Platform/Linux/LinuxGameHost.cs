@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SDL2;
 using osu.Framework.Input;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -51,5 +54,19 @@ namespace osu.Framework.Platform.Linux
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
+
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            var handlers = base.CreateAvailableInputHandlers();
+
+            foreach (var h in handlers.OfType<MouseHandler>())
+            {
+                // There are several bugs we need to fix with Linux / SDL2 cursor handling before switching this on.
+                h.UseRelativeMode.Value = false;
+                h.UseRelativeMode.Default = false;
+            }
+
+            return handlers;
+        }
     }
 }
