@@ -1,12 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -14,9 +13,13 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
+    public partial class CursorContainer : VisibilityContainer, IRequireHighFrequencyMousePosition
     {
         public Drawable ActiveCursor { get; protected set; }
+
+        private TouchLongPressFeedback longPressFeedback = null!;
+
+        private InputManager inputManager = null!;
 
         public CursorContainer()
         {
@@ -24,15 +27,36 @@ namespace osu.Framework.Graphics.Cursor
             RelativeSizeAxes = Axes.Both;
 
             State.Value = Visibility.Visible;
+
+            ActiveCursor = CreateCursor();
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            Add(ActiveCursor = CreateCursor());
+            Add(ActiveCursor);
+            Add(longPressFeedback = CreateLongPressFeedback());
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            inputManager = GetContainingInputManager();
+            inputManager.TouchLongPressBegan += (position, duration) =>
+            {
+                longPressFeedback.Position = Parent.ToLocalSpace(position);
+                longPressFeedback.BeginAnimation(duration);
+            };
+            inputManager.TouchLongPressCancelled += longPressFeedback.CancelAnimation;
         }
 
         protected virtual Drawable CreateCursor() => new Cursor();
+
+        /// <summary>
+        /// Creates a drawable providing visual feedback for touch long-presses, signaled via <see cref="TouchLongPressFeedback.BeginAnimation"/> and <see cref="TouchLongPressFeedback.CancelAnimation"/>.
+        /// </summary>
+        protected virtual TouchLongPressFeedback CreateLongPressFeedback() => new CircularLongPressFeedback();
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
@@ -55,7 +79,7 @@ namespace osu.Framework.Graphics.Cursor
             Alpha = 0;
         }
 
-        private class Cursor : CircularContainer
+        private partial class Cursor : CircularContainer
         {
             public Cursor()
             {
@@ -79,6 +103,54 @@ namespace osu.Framework.Graphics.Cursor
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
                 };
+            }
+        }
+
+        private partial class CircularLongPressFeedback : TouchLongPressFeedback
+        {
+            private readonly CircularProgress progress;
+
+            public CircularLongPressFeedback()
+            {
+                AutoSizeAxes = Axes.Both;
+                Origin = Anchor.Centre;
+
+                InternalChild = progress = new CircularProgress
+                {
+                    Size = new Vector2(180),
+                };
+
+                Alpha = 0;
+            }
+
+            public override void BeginAnimation(double duration)
+            {
+                using (BeginDelayedSequence(duration / 3))
+                {
+                    this.FadeInFromZero();
+
+                    progress.FadeColour(Color4.SkyBlue)
+                            .TransformTo(nameof(progress.InnerRadius), 0.2f)
+                            .TransformTo(nameof(progress.InnerRadius), 0.3f, 150, Easing.OutQuint)
+                            .TransformBindableTo(progress.Current, 0)
+                            .TransformBindableTo(progress.Current, 1, duration / 3 * 2);
+
+                    using (BeginDelayedSequence(duration / 3 * 2))
+                    {
+                        this.FadeOut(500, Easing.OutQuint);
+
+                        progress.FadeColour(Color4.White, 800, Easing.OutQuint)
+                                .TransformTo(nameof(progress.InnerRadius), 0.6f, 500, Easing.OutQuint);
+                    }
+                }
+            }
+
+            public override void CancelAnimation()
+            {
+                this.FadeOut(400, Easing.OutQuint);
+
+                progress.TransformBindableTo(progress.Current, 0, 400, Easing.OutQuint)
+                        .TransformTo(nameof(progress.InnerRadius), 0.2f, 50, Easing.OutQuint);
             }
         }
     }

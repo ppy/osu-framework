@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class TitleBar : CompositeDrawable
+    internal partial class TitleBar : CompositeDrawable
     {
         private readonly Drawable movableTarget;
 

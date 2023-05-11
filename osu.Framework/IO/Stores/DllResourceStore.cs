@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -21,7 +22,7 @@ namespace osu.Framework.IO.Stores
 
         public DllResourceStore(string dllName)
         {
-            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName);
+            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location).AsNonNull(), dllName);
 
             // prefer the local file if it exists, else load from assembly cache.
             assembly = File.Exists(filePath) ? Assembly.LoadFrom(filePath) : Assembly.Load(Path.GetFileNameWithoutExtension(dllName));
@@ -48,12 +49,17 @@ namespace osu.Framework.IO.Stores
                 return input?.ReadAllBytesToArray();
         }
 
-        public virtual Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
+        public virtual async Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             this.LogIfNonBackgroundThread(name);
 
             using (Stream input = GetStream(name))
-                return input?.ReadAllBytesToArrayAsync(cancellationToken);
+            {
+                if (input == null)
+                    return null;
+
+                return await input.ReadAllBytesToArrayAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

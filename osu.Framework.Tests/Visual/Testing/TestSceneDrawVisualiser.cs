@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDrawVisualiser : FrameworkTestScene
+    public partial class TestSceneDrawVisualiser : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load()

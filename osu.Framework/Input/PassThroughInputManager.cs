@@ -25,7 +25,7 @@ namespace osu.Framework.Input
     /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> becomes true,
     /// multiple events may fire to synchronise the local <see cref="InputState"/> with the parent's.
     /// </remarks>
-    public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
+    public partial class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.

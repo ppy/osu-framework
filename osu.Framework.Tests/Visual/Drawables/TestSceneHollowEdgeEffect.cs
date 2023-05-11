@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneHollowEdgeEffect : GridTestScene
+    public partial class TestSceneHollowEdgeEffect : GridTestScene
     {
         public TestSceneHollowEdgeEffect()
             : base(2, 2)

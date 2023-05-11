@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Clocks
 {
-    public abstract class TestSceneClock : FrameworkTestScene
+    public abstract partial class TestSceneClock : FrameworkTestScene
     {
         private readonly FillFlowContainer fill;
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             return clock;
         }
 
-        public class VisualClock : CompositeDrawable
+        public partial class VisualClock : CompositeDrawable
         {
             private readonly IClock clock;
             private readonly SpriteText time;

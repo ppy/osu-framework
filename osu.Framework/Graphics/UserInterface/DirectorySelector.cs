@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A component which allows a user to select a directory.
     /// </summary>
-    public abstract class DirectorySelector : CompositeDrawable
+    public abstract partial class DirectorySelector : CompositeDrawable
     {
         private FillFlowContainer directoryFlow;
 
@@ -138,8 +138,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 directoryChanging = true;
 
-                directoryFlow.Clear();
-
                 var newDirectory = CurrentPath.Value;
                 bool notifyError = false;
                 ICollection<DirectorySelectorItem> items = Array.Empty<DirectorySelectorItem>();
@@ -160,16 +158,27 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (newDirectory == null)
                 {
-                    var drives = DriveInfo.GetDrives();
+                    try
+                    {
+                        // This will throw on AOT platforms (System.ExecutionEngineException: Attempting to JIT compile method).
+                        var drives = DriveInfo.GetDrives();
 
-                    foreach (var drive in drives)
-                        directoryFlow.Add(CreateDirectoryItem(drive.RootDirectory));
+                        directoryFlow.Clear();
+
+                        foreach (var drive in drives)
+                            directoryFlow.Add(CreateDirectoryItem(drive.RootDirectory));
+                    }
+                    catch
+                    {
+                        NotifySelectionError();
+                    }
 
                     return;
                 }
 
                 CurrentPath.Value = newDirectory;
 
+                directoryFlow.Clear();
                 directoryFlow.Add(CreateParentDirectoryItem(newDirectory.Parent));
                 directoryFlow.AddRange(items);
             }

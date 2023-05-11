@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -27,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
     /// If non-<see cref="Drawable"/> <see cref="Container{T}.Children"/> are desired, use
     /// <see cref="FillFlowContainer{T}"/>.
     /// </summary>
-    public class FillFlowContainer : FillFlowContainer<Drawable>
+    public partial class FillFlowContainer : FillFlowContainer<Drawable>
     {
     }
 
@@ -43,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
     /// They are arranged from bottom-to-top otherwise.
     /// </summary>
-    public class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
+    public partial class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
         private FillDirection direction = FillDirection.Full;
 

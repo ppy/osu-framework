@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneIgnore : FrameworkTestScene
+    public partial class TestSceneIgnore : FrameworkTestScene
     {
         [Test]
         [Ignore("test")]

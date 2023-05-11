@@ -21,8 +21,7 @@ namespace osu.Framework.Bindables
             get => this;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (currentBound != null) UnbindFrom(currentBound);
                 BindTo(currentBound = (BindableNumber<T>)value);

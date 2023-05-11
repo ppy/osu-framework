@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Platform
 {
@@ -119,7 +120,7 @@ namespace osu.Framework.Platform
         [Pure]
         public Stream CreateFileSafely(string path)
         {
-            string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
+            string temporaryPath = Path.Combine(Path.GetDirectoryName(path).AsNonNull(), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
 
             return new SafeWriteStream(temporaryPath, path, this);
         }

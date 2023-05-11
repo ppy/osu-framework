@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osuTK.Graphics.ES30;
 
@@ -35,12 +34,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.amountVertices = amountVertices;
             Type = type;
 
-            Debug.Assert(amountVertices <= MAX_VERTICES);
+            Debug.Assert(amountVertices <= IRenderer.MAX_VERTICES);
         }
 
         protected override void Initialise()
         {
             base.Initialise();
+
+            // Must be outside the conditional below as it needs to be added to the VAO
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
 
             if (amountVertices > GLLinearIndexData.MaxAmountIndices)
             {
@@ -49,19 +51,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 for (int i = 0; i < amountVertices; i++)
                     indices[i] = (ushort)i;
 
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 GLLinearIndexData.MaxAmountIndices = amountVertices;
             }
-        }
-
-        public override void Bind(bool forRendering)
-        {
-            base.Bind(forRendering);
-
-            if (forRendering)
-                Renderer.BindBuffer(BufferTarget.ElementArrayBuffer, GLLinearIndexData.EBO_ID);
         }
 
         protected override PrimitiveType Type { get; }

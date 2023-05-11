@@ -1,0 +1,11 @@
+#nullable enable
+
+public partial class NRTNullableValueType : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.BackgroundDependencyLoader]
+    private void load(System.Threading.CancellationToken? obj)
+    {
+    }
+}
+
+#nullable disable

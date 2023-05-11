@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osuTK;
 
@@ -14,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// This is useful, for example, to automatically scale the user interface according to
     /// the window resolution, or to provide automatic HiDPI display support.
     /// </summary>
-    public class DrawSizePreservingFillContainer : Container
+    public partial class DrawSizePreservingFillContainer : Container
     {
         private readonly Container content;
 

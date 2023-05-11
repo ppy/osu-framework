@@ -1,0 +1,7 @@
+namespace osu.Framework.Allocation
+{
+    public interface ISourceGeneratedDependencyActivator
+    {
+        void RegisterForDependencyActivation(IDependencyActivatorRegistry registry);
+    }
+}

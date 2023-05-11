@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// to the host <see cref="IWindow"/>'s <see cref="IWindow.SafeAreaPadding"/>.
     /// </summary>
     [Cached(typeof(ISafeArea))]
-    public class SafeAreaDefiningContainer : Container<Drawable>, ISafeArea
+    public partial class SafeAreaDefiningContainer : Container<Drawable>, ISafeArea
     {
         private readonly bool usesCustomBinding;
 

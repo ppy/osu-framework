@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Containers
     /// Adding duplicate items is not currently supported.
     /// </remarks>
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
-    public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
+    public abstract partial class RearrangeableListContainer<TModel> : CompositeDrawable
     {
         private const float exp_base = 1.05f;
 
@@ -228,7 +228,7 @@ namespace osu.Framework.Graphics.Containers
                 scrollSpeed = (float)(MathF.Pow(exp_base, power) * Clock.ElapsedFrameTime * 0.1);
             }
 
-            if ((scrollSpeed < 0 && ScrollContainer.Current > 0) || (scrollSpeed > 0 && !ScrollContainer.IsScrolledToEnd()))
+            if ((scrollSpeed < 0 && !ScrollContainer.IsScrolledToStart()) || (scrollSpeed > 0 && !ScrollContainer.IsScrolledToEnd()))
                 ScrollContainer.ScrollBy(scrollSpeed);
         }
 

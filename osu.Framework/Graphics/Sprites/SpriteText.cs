@@ -43,7 +43,6 @@ namespace osu.Framework.Graphics.Sprites
         private ILocalisedBindableString localisedText;
 
         public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
 
         public SpriteText()
         {
@@ -68,7 +67,6 @@ namespace osu.Framework.Graphics.Sprites
             localisedText = localisation.GetLocalisedBindableString(text);
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (char character in localisedText.Value)
@@ -529,7 +527,9 @@ namespace osu.Framework.Graphics.Sprites
                 screenSpaceCharactersBacking.Add(new ScreenSpaceCharacterPart
                 {
                     DrawQuad = ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
-                    InflationPercentage = Vector2.Divide(inflationAmount, character.DrawRectangle.Size),
+                    InflationPercentage = new Vector2(
+                        character.DrawRectangle.Size.X == 0 ? 0 : inflationAmount.X / character.DrawRectangle.Size.X,
+                        character.DrawRectangle.Size.Y == 0 ? 0 : inflationAmount.Y / character.DrawRectangle.Size.Y),
                     Texture = character.Texture
                 });
             }
@@ -557,7 +557,7 @@ namespace osu.Framework.Graphics.Sprites
             parentScreenSpaceCache.Invalidate();
             localScreenSpaceCache.Invalidate();
 
-            Invalidate(Invalidation.DrawNode);
+            Invalidate(Invalidation.RequiredParentSizeToFit);
         }
 
         #endregion

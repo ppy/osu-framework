@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
@@ -118,11 +119,7 @@ namespace osu.Framework.Bindables
             return true;
         }
 
-#if NETSTANDARD
-        public bool TryGetValue(TKey key, out TValue value) => collection.TryGetValue(key, out value);
-#else
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
-#endif
 
         /// <inheritdoc cref="IDictionary{TKey,TValue}.this" />
         /// <exception cref="InvalidOperationException">Thrown when setting an item while this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
@@ -455,12 +452,12 @@ namespace osu.Framework.Bindables
         /// <param name="them">The <see cref="BindableDictionary{TKey, TValue}"/> to be bound to.</param>
         public void BindTo(BindableDictionary<TKey, TValue> them)
         {
-            if (them == null)
-                throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) == true)
-                throw new ArgumentException("An already bound collection can not be bound again.");
+            ArgumentNullException.ThrowIfNull(them);
+
+            if (bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound dictionary can not be bound again.");
             if (them == this)
-                throw new ArgumentException("A collection can not be bound to itself");
+                throw new ArgumentException("A dictionary can not be bound to itself");
 
             // copy state and content over
             Parse(them);
@@ -526,5 +523,7 @@ namespace osu.Framework.Bindables
         }
 
         public bool IsDefault => Count == 0;
+
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }

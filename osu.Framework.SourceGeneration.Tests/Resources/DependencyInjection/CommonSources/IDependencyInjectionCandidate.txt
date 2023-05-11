@@ -1,0 +1,6 @@
+namespace osu.Framework.Allocation
+{
+    public interface IDependencyInjectionCandidate
+    {
+    }
+}

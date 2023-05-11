@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
@@ -18,18 +19,24 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private readonly List<GLRenderBuffer> attachedRenderBuffers = new List<GLRenderBuffer>();
         private readonly GLRenderer renderer;
         private readonly GLTexture glTexture;
-        private readonly int frameBuffer;
+
+        public readonly int FrameBuffer;
+
+        private readonly bool externalTexture;
 
         public GLFrameBuffer(GLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
         {
             this.renderer = renderer;
-            frameBuffer = GL.GenFramebuffer();
-            Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, filteringMode), WrapMode.None, WrapMode.None);
+            FrameBuffer = GL.GenFramebuffer();
 
-            renderer.BindFrameBuffer(frameBuffer);
+            Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, filteringMode));
+
+            renderer.BindFrameBuffer(this);
+
+            Debug.Assert(glTexture.TextureId != 0);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, glTexture.TextureId, 0);
-            renderer.BindTexture(0);
+            renderer.UnbindTexture();
 
             if (renderBufferFormats != null)
             {
@@ -37,7 +44,24 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     attachedRenderBuffers.Add(new GLRenderBuffer(renderer, format));
             }
 
-            renderer.UnbindFrameBuffer(frameBuffer);
+            renderer.UnbindFrameBuffer(this);
+        }
+
+        public GLFrameBuffer(GLRenderer renderer, GLTexture glTexture, int level = 0)
+        {
+            this.renderer = renderer;
+            this.glTexture = glTexture;
+
+            FrameBuffer = GL.GenFramebuffer();
+            Texture = renderer.CreateTexture(glTexture);
+
+            externalTexture = true;
+
+            renderer.BindFrameBuffer(this);
+
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, glTexture.TextureId, level);
+
+            renderer.UnbindFrameBuffer(this);
         }
 
         private Vector2 size = Vector2.One;
@@ -68,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public void Bind()
         {
-            renderer.BindFrameBuffer(frameBuffer);
+            renderer.BindFrameBuffer(this);
 
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Bind(Size);
@@ -85,7 +109,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Unbind();
 
-            renderer.UnbindFrameBuffer(frameBuffer);
+            renderer.UnbindFrameBuffer(this);
         }
 
         #region Disposal
@@ -108,8 +132,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
-            glTexture.Dispose();
-            renderer.DeleteFrameBuffer(frameBuffer);
+            if (!externalTexture)
+                glTexture.Dispose();
+
+            renderer.DeleteFrameBuffer(this);
 
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Dispose();

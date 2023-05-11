@@ -62,23 +62,32 @@ namespace osu.Framework.Graphics.Textures
 
         private int exceedCount;
 
+        /// <summary>
+        /// Creates a new empty texture.
+        /// </summary>
+        /// <remarks>
+        /// Existing textures created via <see cref="Add"/> are not cleared and remain accessible by usages.
+        /// </remarks>
         public void Reset()
         {
-            subTextureBounds.Clear();
-            currentPosition = Vector2I.Zero;
+            lock (textureRetrievalLock)
+            {
+                subTextureBounds.Clear();
+                currentPosition = Vector2I.Zero;
 
-            // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
-            // occupies half of the padded space.
-            atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
+                // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
+                // occupies half of the padded space.
+                atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
-            RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
-            subTextureBounds.Add(bounds);
+                RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
+                subTextureBounds.Add(bounds);
 
-            using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
-                // Generate white padding as if the white texture was wrapped, even though it isn't
-                whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
+                using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
+                    // Generate white padding as if the white texture was wrapped, even though it isn't
+                    whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
 
-            currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
+                currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
+            }
         }
 
         /// <summary>
@@ -89,7 +98,7 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
         /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
-        internal Texture? Add(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        public Texture? Add(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (!canFitEmptyTextureAtlas(width, height))
                 return null;

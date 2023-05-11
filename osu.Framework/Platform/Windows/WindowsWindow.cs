@@ -1,17 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using osu.Framework.Bindables;
+using System.Runtime.Versioning;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
@@ -20,6 +14,7 @@ using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
 {
+    [SupportedOSPlatform("windows")]
     public class WindowsWindow : SDL2DesktopWindow
     {
         private const int seticon_message = 0x0080;
@@ -29,16 +24,31 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
-        public IBindable<FullscreenCapability> FullscreenCapability => fullscreenCapability;
-        private readonly Bindable<FullscreenCapability> fullscreenCapability = new Bindable<FullscreenCapability>();
-
-        private Icon smallIcon;
-        private Icon largeIcon;
+        private Icon? smallIcon;
+        private Icon? largeIcon;
 
         private const int wm_killfocus = 8;
 
-        public WindowsWindow()
+        /// <summary>
+        /// Whether to apply the <see cref="windows_borderless_width_hack"/>.
+        /// </summary>
+        private readonly bool applyBorderlessWindowHack;
+
+        public WindowsWindow(GraphicsSurfaceType surfaceType)
+            : base(surfaceType)
         {
+            switch (surfaceType)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                case GraphicsSurfaceType.Vulkan:
+                    applyBorderlessWindowHack = true;
+                    break;
+
+                case GraphicsSurfaceType.Direct3D11:
+                    applyBorderlessWindowHack = false;
+                    break;
+            }
+
             try
             {
                 // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
@@ -48,93 +58,42 @@ namespace osu.Framework.Platform.Windows
             {
                 // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
             }
-
-            IsActive.BindValueChanged(_ => detectFullscreenCapability(WindowState));
-            WindowStateChanged += detectFullscreenCapability;
-            detectFullscreenCapability(WindowState);
-        }
-
-        private CancellationTokenSource fullscreenCapabilityDetectionCancellationSource;
-
-        private void detectFullscreenCapability(WindowState state)
-        {
-            fullscreenCapabilityDetectionCancellationSource?.Cancel();
-            fullscreenCapabilityDetectionCancellationSource?.Dispose();
-            fullscreenCapabilityDetectionCancellationSource = null;
-
-            if (state != WindowState.Fullscreen || !IsActive.Value || fullscreenCapability.Value != Windows.FullscreenCapability.Unknown)
-                return;
-
-            var cancellationSource = fullscreenCapabilityDetectionCancellationSource = new CancellationTokenSource();
-
-            // 50 attempts, 100ms apart = run the detection for a total of 5 seconds before yielding an incapable state.
-            const int max_attempts = 50;
-            const int time_per_attempt = 100;
-            int attempts = 0;
-
-            queueNextAttempt();
-
-            void queueNextAttempt() => Task.Delay(time_per_attempt, cancellationSource.Token).ContinueWith(_ => ScheduleEvent(() =>
-            {
-                if (cancellationSource.IsCancellationRequested || WindowState != WindowState.Fullscreen || !IsActive.Value)
-                    return;
-
-                attempts++;
-
-                try
-                {
-                    SHQueryUserNotificationState(out var notificationState);
-
-                    var capability = notificationState == QueryUserNotificationState.QUNS_RUNNING_D3D_FULL_SCREEN
-                        ? Windows.FullscreenCapability.Capable
-                        : Windows.FullscreenCapability.Incapable;
-
-                    if (capability == Windows.FullscreenCapability.Incapable && attempts < max_attempts)
-                    {
-                        queueNextAttempt();
-                        return;
-                    }
-
-                    fullscreenCapability.Value = capability;
-                    Logger.Log($"Exclusive fullscreen capability: {fullscreenCapability.Value} ({notificationState})");
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, "Failed to detect fullscreen capabilities.");
-                    fullscreenCapability.Value = Windows.FullscreenCapability.Capable;
-                }
-            }), cancellationSource.Token);
         }
 
         public override void Create()
         {
             base.Create();
 
+            // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
+            foreach (var feedbackType in Enum.GetValues<FeedbackType>())
+                Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
+
             // enable window message events to use with `OnSDLEvent` below.
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
-
-            OnSDLEvent += handleSDLEvent;
         }
 
-        private void handleSDLEvent(SDL.SDL_Event e)
+        protected override void HandleEventFromFilter(SDL.SDL_Event e)
         {
-            if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
-
-            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
-            var m = wmMsg.msg.win;
-
-            switch (m.msg)
+            if (e.type == SDL.SDL_EventType.SDL_SYSWMEVENT)
             {
-                case wm_killfocus:
-                    warpCursorFromFocusLoss();
-                    break;
+                var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
+                var m = wmMsg.msg.win;
 
-                case Imm.WM_IME_STARTCOMPOSITION:
-                case Imm.WM_IME_COMPOSITION:
-                case Imm.WM_IME_ENDCOMPOSITION:
-                    handleImeMessage(m.hwnd, m.msg, m.lParam);
-                    break;
+                switch (m.msg)
+                {
+                    case wm_killfocus:
+                        warpCursorFromFocusLoss();
+                        break;
+
+                    case Imm.WM_IME_STARTCOMPOSITION:
+                    case Imm.WM_IME_COMPOSITION:
+                    case Imm.WM_IME_ENDCOMPOSITION:
+                        handleImeMessage(m.hwnd, m.msg, m.lParam);
+                        break;
+                }
             }
+
+            base.HandleEventFromFilter(e);
         }
 
         /// <summary>
@@ -210,8 +169,7 @@ namespace osu.Framework.Platform.Windows
         /// Used for blocking SDL IME results since we handle those ourselves.
         /// Cleared when the SDL events are blocked.
         /// </remarks>
-        [CanBeNull]
-        private string lastImeResult;
+        private string? lastImeResult;
 
         private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
         {
@@ -225,13 +183,13 @@ namespace osu.Framework.Platform.Windows
                 case Imm.WM_IME_COMPOSITION:
                     using (var inputContext = new Imm.InputContext(hWnd, lParam))
                     {
-                        if (inputContext.TryGetImeResult(out string resultText))
+                        if (inputContext.TryGetImeResult(out string? resultText))
                         {
                             lastImeResult = resultText;
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
-                        if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
+                        if (inputContext.TryGetImeComposition(out string? compositionText, out int start, out int length))
                         {
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
                         }
@@ -253,7 +211,7 @@ namespace osu.Framework.Platform.Windows
             protected set
             {
                 // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
-                if (WindowState == WindowState.FullscreenBorderless)
+                if (applyBorderlessWindowHack && WindowState == WindowState.FullscreenBorderless)
                     value.Width -= windows_borderless_width_hack;
 
                 base.Size = value;
@@ -264,20 +222,22 @@ namespace osu.Framework.Platform.Windows
         /// Amount of extra width added to window size when in borderless mode on Windows.
         /// Some drivers require this to avoid the window switching to exclusive fullscreen automatically.
         /// </summary>
+        /// <remarks>Used on <see cref="GraphicsSurfaceType.OpenGL"/> and <see cref="GraphicsSurfaceType.Vulkan"/>.</remarks>
         private const int windows_borderless_width_hack = 1;
 
-        protected override Size SetBorderless()
+        protected override Size SetBorderless(Display display)
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            // use the 1px hack we've always used, but only expand the width.
-            // we also trick the game into thinking the window has normal size: see Size setter override
+            var newSize = display.Bounds.Size;
 
-            var sizeOffset = new Size(windows_borderless_width_hack, 0);
-            var newSize = CurrentDisplay.Bounds.Size + sizeOffset;
+            if (applyBorderlessWindowHack)
+                // use the 1px hack we've always used, but only expand the width.
+                // we also trick the game into thinking the window has normal size: see Size setter override
+                newSize += new Size(windows_borderless_width_hack, 0);
 
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            Position = CurrentDisplay.Bounds.Location;
+            Position = display.Bounds.Location;
 
             return newSize;
         }
@@ -334,18 +294,5 @@ namespace osu.Framework.Platform.Windows
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("shell32.dll")]
-        private static extern int SHQueryUserNotificationState(out QueryUserNotificationState state);
-
-        private enum QueryUserNotificationState
-        {
-            QUNS_NOT_PRESENT = 1,
-            QUNS_BUSY = 2,
-            QUNS_RUNNING_D3D_FULL_SCREEN = 3,
-            QUNS_PRESENTATION_MODE = 4,
-            QUNS_ACCEPTS_NOTIFICATIONS = 5,
-            QUNS_QUIET_TIME = 6
-        }
     }
 }

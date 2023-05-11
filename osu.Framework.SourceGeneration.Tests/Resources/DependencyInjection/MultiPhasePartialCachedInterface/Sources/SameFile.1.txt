@@ -1,0 +1,8 @@
+public partial class SameFile : osu.Framework.Graphics.Drawable, ISameFile
+{
+}
+
+[osu.Framework.Allocation.Cached]
+public interface ISameFile
+{
+}

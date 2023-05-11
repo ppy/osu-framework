@@ -21,7 +21,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneTransformRewinding : FrameworkTestScene
+    public partial class TestSceneTransformRewinding : FrameworkTestScene
     {
         private const double interval = 250;
         private const int interval_count = 4;
@@ -203,6 +203,24 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.375f));
 
             AddAssert("check transform count", () => box.Transforms.Count() == 2);
+        }
+
+        [Test]
+        public void FiniteLoopSequence()
+        {
+            boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(0, 2); });
+
+            checkAtTime(0, box => box.Rotation == 0);
+            checkAtTime(interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+            checkAtTime(interval + 1, box => Precision.AlmostEquals(box.Rotation, 0, 1));
+            checkAtTime(2 * interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+
+            checkAtTime(3 * interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+
+            checkAtTime(2 * interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+            checkAtTime(interval + 1, box => Precision.AlmostEquals(box.Rotation, 0, 1));
+            checkAtTime(interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+            checkAtTime(0, box => box.Rotation == 0);
         }
 
         [Test]
@@ -482,7 +500,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
         }
 
-        private class AnimationContainer : Container
+        private partial class AnimationContainer : Container
         {
             public override bool RemoveCompletedTransforms => false;
             protected override Container<Drawable> Content => content;
@@ -594,7 +612,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             }
 
-            private class Tick : Box
+            private partial class Tick : Box
             {
                 private readonly int tick;
                 private readonly bool colouring;
@@ -620,7 +638,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class WrappingTimeContainer : Container
+        private partial class WrappingTimeContainer : Container
         {
             // Padding, in milliseconds, at each end of maxima of the clock time
             private const double time_padding = 50;

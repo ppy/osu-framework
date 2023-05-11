@@ -10,6 +10,7 @@ using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
@@ -17,7 +18,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Localisation
 {
     [HeadlessTest]
-    public class ThreadCultureTest : FrameworkTestScene
+    public partial class ThreadCultureTest : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
@@ -26,10 +27,10 @@ namespace osu.Framework.Tests.Localisation
         private FrameworkConfigManager config { get; set; }
 
         [Test]
-        public void TestDefaultCultureIsInvariant()
+        public void TestDefaultCultureIsSystem()
         {
             setCulture("");
-            assertCulture("");
+            assertCulture(CultureInfoHelper.SystemCulture.Name);
         }
 
         [Test]
@@ -40,10 +41,10 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestInvalidCultureFallsBackToInvariant()
+        public void TestInvalidCultureFallsBackToSystem()
         {
             setCulture("ko_KR");
-            assertCulture("");
+            assertCulture(CultureInfoHelper.SystemCulture.Name);
         }
 
         [Test]
@@ -67,12 +68,13 @@ namespace osu.Framework.Tests.Localisation
 
             AddStep("query cultures", () =>
             {
-                host.DrawThread.Scheduler.Add(() => cultures.Add(Thread.CurrentThread.CurrentCulture));
-                host.UpdateThread.Scheduler.Add(() => cultures.Add(Thread.CurrentThread.CurrentCulture));
-                host.AudioThread.Scheduler.Add(() => cultures.Add(Thread.CurrentThread.CurrentCulture));
+                host.DrawThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
+                host.UpdateThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
+                host.InputThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
+                host.AudioThread.Scheduler.Add(() => cultures.Add(CultureInfo.CurrentCulture));
             });
 
-            AddUntilStep("wait for query", () => cultures.Count == 3);
+            AddUntilStep("wait for query", () => cultures.Count == 4);
             AddAssert($"culture is {name}", () => cultures.Select(c => c.Name), () => Is.All.EqualTo(name));
         }
 
@@ -80,7 +82,7 @@ namespace osu.Framework.Tests.Localisation
         {
             CultureInfo culture = null;
 
-            AddStep("start new thread", () => new Thread(() => culture = Thread.CurrentThread.CurrentCulture) { IsBackground = true }.Start());
+            AddStep("start new thread", () => new Thread(() => culture = CultureInfo.CurrentCulture) { IsBackground = true }.Start());
             AddUntilStep("wait for culture", () => culture != null);
             AddAssert($"thread culture is {name}", () => culture.Name == name);
         }

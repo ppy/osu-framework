@@ -378,7 +378,7 @@ namespace osu.Framework.Tests.Audio
                 resetEvent.Set();
             })
             {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
+                Name = GameThread.SuffixedThreadNameFor("Audio")
             }.Start();
 
             if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))

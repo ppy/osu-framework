@@ -1,0 +1,16 @@
+namespace osu;
+
+public partial class NestedConflictGenerator : osu.Framework.Graphics.Drawable
+{
+    [global::osu.Framework.Allocation.BackgroundDependencyLoader]
+    private void load()
+    {
+    }
+
+    [global::osu.Framework.Allocation.Resolved]
+    private object resolvedMember { get; set; }
+
+    public class osu
+    {
+    }
+}

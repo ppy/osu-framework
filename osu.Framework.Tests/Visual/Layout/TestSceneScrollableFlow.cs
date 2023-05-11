@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneScrollableFlow : FrameworkTestScene
+    public partial class TestSceneScrollableFlow : FrameworkTestScene
     {
         private ScrollContainer<Drawable> scroll;
         private FillFlowContainer flow;

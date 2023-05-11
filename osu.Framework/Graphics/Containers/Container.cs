@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
     /// If all children are of a specific non-<see cref="Drawable"/> type, use the
     /// generic version <see cref="Container{T}"/>.
     /// </summary>
-    public class Container : Container<Drawable>
+    public partial class Container : Container<Drawable>
     {
     }
 
@@ -33,9 +33,16 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
+    public partial class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
+        /// <summary>
+        /// This is checked when enumerating through this <see cref="Container"/> to throw when
+        /// <see cref="Children"/> was mutated while enumerating (in <see cref="Enumerator"/>).
+        /// This is incremented whenever <see cref="Children"/> is mutated (e.g. with <see cref="Add(T)"/>).
+        /// </summary>
+        private int enumeratorVersion;
+
         /// <summary>
         /// Constructs a <see cref="Container"/> that stores children.
         /// </summary>
@@ -141,7 +148,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 Clear();
                 AddRange(value);
@@ -164,7 +171,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Children cannot be mutated on a disposed drawable.");
+                    return;
 
                 Clear();
                 Add(value);
@@ -207,8 +214,7 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == Content)
                 throw new InvalidOperationException("Content may not be added to itself.");
 
-            if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable));
+            ArgumentNullException.ThrowIfNull(drawable);
 
             if (drawable.IsDisposed)
                 throw new ObjectDisposedException(nameof(drawable));
@@ -235,13 +241,15 @@ namespace osu.Framework.Graphics.Containers
                 Add(d);
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             if (Content == this && drawable != null && !(drawable is T))
             {
                 throw new InvalidOperationException(
                     $"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
             }
+
+            enumeratorVersion++;
 
             base.AddInternal(drawable);
         }
@@ -298,6 +306,13 @@ namespace osu.Framework.Graphics.Containers
                 Remove(p, disposeImmediately);
         }
 
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
+        {
+            enumeratorVersion++;
+
+            return base.RemoveInternal(drawable, disposeImmediately);
+        }
+
         /// <summary>
         /// Removes all children.
         /// </summary>
@@ -316,6 +331,13 @@ namespace osu.Framework.Graphics.Containers
                 Content.Clear(disposeChildren);
             else
                 ClearInternal(disposeChildren);
+        }
+
+        protected internal override void ClearInternal(bool disposeChildren = true)
+        {
+            enumeratorVersion++;
+
+            base.ClearInternal(disposeChildren);
         }
 
         /// <summary>
@@ -490,14 +512,22 @@ namespace osu.Framework.Graphics.Containers
         {
             private Container<T> container;
             private int currentIndex;
+            private readonly int version;
 
             internal Enumerator(Container<T> container)
             {
                 this.container = container;
                 currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+                version = container.enumeratorVersion;
             }
 
-            public bool MoveNext() => ++currentIndex < container.Count;
+            public bool MoveNext()
+            {
+                if (version != container.enumeratorVersion)
+                    throw new InvalidOperationException($"May not add or remove {nameof(Children)} from this {nameof(Container)} during enumeration.");
+
+                return ++currentIndex < container.Count;
+            }
 
             public void Reset() => currentIndex = -1;
 

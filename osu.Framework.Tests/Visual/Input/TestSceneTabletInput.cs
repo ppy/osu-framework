@@ -3,7 +3,6 @@
 
 #nullable disable
 
-#if NET6_0_OR_GREATER
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -19,7 +18,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneTabletInput : FrameworkTestScene
+    public partial class TestSceneTabletInput : FrameworkTestScene
     {
         public TestSceneTabletInput()
         {
@@ -62,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Input
                 AddToggleStep("toggle tablet handling", t => tabletHandler.Enabled.Value = t);
         }
 
-        private class PenButtonHandler : CompositeDrawable
+        private partial class PenButtonHandler : CompositeDrawable
         {
             private readonly TabletPenButton button;
             private readonly Drawable background;
@@ -112,7 +111,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class AuxiliaryButtonHandler : CompositeDrawable
+        private partial class AuxiliaryButtonHandler : CompositeDrawable
         {
             private readonly TabletAuxiliaryButton button;
             private readonly Drawable background;
@@ -163,4 +162,3 @@ namespace osu.Framework.Tests.Visual.Input
         }
     }
 }
-#endif

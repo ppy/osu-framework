@@ -17,7 +17,7 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
-    public class TestSceneClipboard : FrameworkTestScene
+    public partial class TestSceneClipboard : FrameworkTestScene
     {
         [Resolved]
         private IRenderer renderer { get; set; }

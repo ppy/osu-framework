@@ -9,7 +9,7 @@ namespace FlappyDon.Game.Tests.Visual
     /// and placement of the sprites that make up the backdrop
     /// </summary>
     [TestFixture]
-    public class TestSceneBackdrop : FlappyDonTestScene
+    public partial class TestSceneBackdrop : FlappyDonTestScene
     {
         [BackgroundDependencyLoader]
         private void load()

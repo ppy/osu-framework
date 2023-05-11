@@ -1000,6 +1000,24 @@ namespace osu.Framework.Platform.SDL2
             return 0;
         }
 
+        public static SDL.SDL_WindowFlags ToFlags(this GraphicsSurfaceType surfaceType)
+        {
+            switch (surfaceType)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+
+                case GraphicsSurfaceType.Vulkan when !RuntimeInfo.IsApple:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
+
+                case GraphicsSurfaceType.Metal:
+                case GraphicsSurfaceType.Vulkan when RuntimeInfo.IsApple:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_METAL;
+            }
+
+            return 0;
+        }
+
         public static JoystickAxisSource ToJoystickAxisSource(this SDL.SDL_GameControllerAxis axis)
         {
             switch (axis)
@@ -1180,6 +1198,24 @@ namespace osu.Framework.Platform.SDL2
                 default:
                     return "unknown";
             }
+        }
+
+        /// <summary>
+        /// Gets the readable string for this <see cref="SDL.SDL_DisplayMode"/>.
+        /// </summary>
+        /// <returns>
+        /// <c>string</c> in the format of <c>1920x1080@60</c>.
+        /// </returns>
+        public static string ReadableString(this SDL.SDL_DisplayMode mode) => $"{mode.w}x{mode.h}@{mode.refresh_rate}";
+
+        /// <summary>
+        /// Gets the SDL error, and then clears it.
+        /// </summary>
+        public static string GetAndClearError()
+        {
+            string error = SDL.SDL_GetError();
+            SDL.SDL_ClearError();
+            return error;
         }
     }
 }

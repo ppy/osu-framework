@@ -15,7 +15,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class MouseInputTest : ManualInputManagerTestScene
+    public partial class MouseInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that a drawable that is removed from the hierarchy (or is otherwise removed from the input queues) does not receive an OnClick() event on mouse up.
@@ -99,12 +99,12 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptor did not receive double click", () => !receptor.DoubleClickReceived);
         }
 
-        private class InputReceptor : Box
+        private partial class InputReceptor : Box
         {
             public bool ClickReceived { get; set; }
             public bool DoubleClickReceived { get; set; }
 
-            public new Func<bool> Click;
+            public Func<bool> Click;
 
             protected override bool OnClick(ClickEvent e)
             {

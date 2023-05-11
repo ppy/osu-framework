@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -15,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameTimeDisplay : Container
+    internal partial class FrameTimeDisplay : Container
     {
         private readonly SpriteText counter;
 
@@ -60,6 +58,8 @@ namespace osu.Framework.Graphics.Performance
         private double lastUpdateLocalTime;
         private double lastFrameFramesPerSecond;
 
+        private double jitter;
+
         private const int updates_per_second = 10;
 
         protected override void Update()
@@ -100,11 +100,11 @@ namespace osu.Framework.Graphics.Performance
             framesSinceLastUpdate = 0;
             elapsedSinceLastUpdate = 0;
 
-            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms)"
+            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms ±{jitter:0.00}ms)"
                            + (clock.Throttling ? $"{(clock.MaximumUpdateHz > 0 && clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞"),4}hz" : string.Empty);
         }
 
-        private class CounterText : SpriteText
+        private partial class CounterText : SpriteText
         {
             public CounterText()
             {
@@ -126,6 +126,7 @@ namespace osu.Framework.Graphics.Performance
 
             framesSinceLastUpdate++;
             lastFrameFramesPerSecond = frame.FramesPerSecond;
+            jitter = frame.Jitter;
         }
     }
 }

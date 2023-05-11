@@ -10,7 +10,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class TabbableContainer : TabbableContainer<Drawable>
+    public partial class TabbableContainer : TabbableContainer<Drawable>
     {
     }
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
         bool CanBeTabbedTo { get; }
     }
 
-    public class TabbableContainer<T> : Container<T>, ITabbableContainer
+    public partial class TabbableContainer<T> : Container<T>, ITabbableContainer
         where T : Drawable
     {
         /// <summary>

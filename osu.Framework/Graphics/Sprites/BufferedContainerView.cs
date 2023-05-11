@@ -15,11 +15,10 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A view that displays the contents of a <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
+    public partial class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
         where T : Drawable
     {
         public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
 
         private BufferedContainer<T> container;
         private BufferedDrawNodeSharedData sharedData;
@@ -36,7 +35,6 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferSpriteDrawNode(this);
@@ -141,9 +139,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
-                var shader = GetAppropriateShader(renderer);
-
-                shader.Bind();
+                BindTextureShader(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
                     drawMainBuffer(renderer);
@@ -153,7 +149,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (sourceEffectPlacement == EffectPlacement.Behind)
                     drawMainBuffer(renderer);
 
-                shader.Unbind();
+                UnbindTextureShader(renderer);
             }
 
             private void drawMainBuffer(IRenderer renderer)

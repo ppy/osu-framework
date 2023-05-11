@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
 using System.Linq;
@@ -17,7 +15,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The name of the display, if available. Usually the manufacturer.
         /// </summary>
-        public string Name { get; }
+        public string? Name { get; }
 
         /// <summary>
         /// The current rectangle of the display in screen space.
@@ -36,7 +34,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public int Index { get; }
 
-        public Display(int index, string name, Rectangle bounds, DisplayMode[] displayModes)
+        public Display(int index, string? name, Rectangle bounds, DisplayMode[] displayModes)
         {
             Index = index;
             Name = name;
@@ -46,12 +44,15 @@ namespace osu.Framework.Platform
 
         public override string ToString() => $"Name: {Name ?? "Unknown"}, Bounds: {Bounds}, DisplayModes: {DisplayModes.Length}, Index: {Index}";
 
-        public bool Equals(Display other)
+        public bool Equals(Display? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return Index == other.Index;
+            return Index == other.Index
+                   && Name == other.Name
+                   && Bounds == other.Bounds
+                   && DisplayModes.SequenceEqual(other.DisplayModes);
         }
 
         /// <summary>

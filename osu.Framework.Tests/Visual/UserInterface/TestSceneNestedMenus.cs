@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneNestedMenus : MenuTestScene
+    public partial class TestSceneNestedMenus : MenuTestScene
     {
         private const int max_depth = 5;
         private const int max_count = 5;
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             });
 
-        private class ClickOpenMenu : BasicMenu
+        private partial class ClickOpenMenu : BasicMenu
         {
             private readonly int depth;
             private readonly Direction subMenuDirection;
@@ -480,7 +480,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private MenuItem generateRandomMenuItem(string name = "Menu Item", int currDepth = 1)
         {
-            var item = new MenuItem(name);
+            var item = new MenuItem(name, () => { });
 
             if (currDepth == max_depth)
                 return item;

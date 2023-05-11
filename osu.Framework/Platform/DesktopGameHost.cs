@@ -3,23 +3,16 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
-using osu.Framework.Input;
-using osu.Framework.Input.Handlers;
-using osu.Framework.Input.Handlers.Joystick;
-using osu.Framework.Input.Handlers.Keyboard;
-using osu.Framework.Input.Handlers.Midi;
-using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Input.Handlers.Touch;
 
 namespace osu.Framework.Platform
 {
-    public abstract class DesktopGameHost : GameHost
+    public abstract class DesktopGameHost : SDL2GameHost
     {
         public const int IPC_PORT = 45356;
 
@@ -77,15 +70,19 @@ namespace osu.Framework.Platform
 
         public bool IsPortableInstallation { get; }
 
-        public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
-
         public override bool OpenFileExternally(string filename)
         {
             openUsingShellExecute(filename);
             return true;
         }
 
-        public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
+        public override void OpenUrlExternally(string url)
+        {
+            if (!url.CheckIsValidUrl())
+                throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
+
+            openUsingShellExecute(url);
+        }
 
         public override bool PresentFileExternally(string filename)
         {
@@ -99,28 +96,6 @@ namespace osu.Framework.Platform
             FileName = path,
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
         });
-
-        protected override TextInputSource CreateTextInput()
-        {
-            if (Window is SDL2DesktopWindow desktopWindow)
-                return new SDL2DesktopWindowTextInput(desktopWindow);
-
-            return base.CreateTextInput();
-        }
-
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[]
-            {
-                new KeyboardHandler(),
-#if NET6_0_OR_GREATER
-                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
-                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
-#endif
-                new MouseHandler(),
-                new TouchHandler(),
-                new JoystickHandler(),
-                new MidiHandler(),
-            };
 
         public override Task SendMessageAsync(IpcMessage message)
         {

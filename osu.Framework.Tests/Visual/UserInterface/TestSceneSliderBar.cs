@@ -20,7 +20,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneSliderBar : ManualInputManagerTestScene
+    public partial class TestSceneSliderBar : ManualInputManagerTestScene
     {
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
@@ -280,11 +280,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
         }
 
-        public class TestSliderBar : BasicSliderBar<double>
+        public partial class TestSliderBar : BasicSliderBar<double>
         {
         }
 
-        public class TestSliderBarWithNub : BasicSliderBar<double>
+        public partial class TestSliderBarWithNub : BasicSliderBar<double>
         {
             private Box nub;
 

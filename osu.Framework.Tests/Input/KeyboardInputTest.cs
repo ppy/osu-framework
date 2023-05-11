@@ -16,7 +16,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class KeyboardInputTest : ManualInputManagerTestScene
+    public partial class KeyboardInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that if the hierarchy is changed while a key is held, the <see cref="Drawable.OnKeyUp"/> event is
@@ -139,7 +139,7 @@ namespace osu.Framework.Tests.Input
             AddAssert("char 'b' not pressed", () => InputManager.CurrentState.Keyboard.IsPressed('b'), () => Is.False);
         }
 
-        private class InputReceptor : Box
+        private partial class InputReceptor : Box
         {
             public bool DownReceived { get; set; }
             public bool UpReceived { get; set; }

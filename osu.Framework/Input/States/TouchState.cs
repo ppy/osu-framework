@@ -15,7 +15,7 @@ namespace osu.Framework.Input.States
         /// <summary>
         /// The maximum amount of touches this can handle.
         /// </summary>
-        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues(typeof(TouchSource)).Length;
+        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues<TouchSource>().Length;
 
         /// <summary>
         /// The list of currently active touch sources.

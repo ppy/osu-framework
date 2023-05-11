@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Visualisation;
 
 namespace osu.Framework.Graphics.Rendering
 {
-    internal interface INativeTexture : IDisposable
+    public interface INativeTexture : IDisposable
     {
         /// <summary>
         /// The renderer that created this texture.
@@ -35,9 +35,20 @@ namespace osu.Framework.Graphics.Rendering
         int Height { get; set; }
 
         /// <summary>
+        /// The level of the texture to display, or null to display all levels automatically.
+        /// This is used by the texture visualiser tool for viewing textures on a specific mipmap level.
+        /// </summary>
+        int? MipLevel { get; set; }
+
+        /// <summary>
         /// Whether the texture is in a usable state.
         /// </summary>
         bool Available { get; }
+
+        /// <summary>
+        /// The total number of times this texture has been bound, ever.
+        /// </summary>
+        ulong TotalBindCount { get; internal set; }
 
         /// <summary>
         /// By default, texture uploads are queued for upload at the beginning of each frame, allowing loading them ahead of time.
@@ -69,22 +80,8 @@ namespace osu.Framework.Graphics.Rendering
         bool Upload();
 
         /// <summary>
-        /// Binds this texture for drawing.
-        /// </summary>
-        /// <param name="unit">The sampling unit in which the texture is to be bound.</param>
-        /// <param name="wrapModeS">The horizontal wrap mode.</param>
-        /// <param name="wrapModeT">The vertical wrap mode.</param>
-        /// <returns>Whether the texture was successfully bound.</returns>
-        bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT);
-
-        /// <summary>
         /// The size of this texture in bytes.
         /// </summary>
         int GetByteSize();
-
-        /// <summary>
-        /// The total amount of times this <see cref="INativeTexture"/> has ever been bound.
-        /// </summary>
-        ulong BindCount { get; }
     }
 }
