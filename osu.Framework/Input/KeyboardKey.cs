@@ -33,7 +33,7 @@ namespace osu.Framework.Input
         /// </summary>
         /// <remarks>
         /// Should be matched against for common platform actions (eg. copy, paste) and actions that match mnemonically to the character (eg. 'o' for "open file").
-        /// Generally, only alphanumeric characters [a-z, 0-9] are safe to match against. Other characters could be absent from international keyboard layouts,
+        /// Generally, only latin characters [a-z] are safe to match against. Other characters could be absent from international keyboard layouts,
         /// or appear in a shifted / AltGr state (something not currently provided by <see cref="KeyboardKey"/>).
         /// </remarks>
         /// <seealso cref="Key"/>
