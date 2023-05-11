@@ -549,10 +549,8 @@ namespace osu.Framework.Input.Bindings
         {
             yield return fromKey(key.Key);
 
-            var fromChar = fromKeyCharacter(key.Character);
-
-            if (fromChar != InputKey.None)
-                yield return fromChar; // this is wrong
+            if (key.Character >= 'a' && key.Character <= 'z')
+                yield return key.Character - 'a' + InputKey.KeycodeA;
         }
 
         private static InputKey fromKey(Key key)
@@ -577,14 +575,6 @@ namespace osu.Framework.Input.Bindings
             }
 
             return (InputKey)key;
-        }
-
-        private static InputKey fromKeyCharacter(char character)
-        {
-            if (character >= 'a' && character <= 'z')
-                return character - 'a' + InputKey.KeycodeA;
-
-            return InputKey.None;
         }
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
