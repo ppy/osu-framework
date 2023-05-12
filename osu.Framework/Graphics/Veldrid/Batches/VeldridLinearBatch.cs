@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using Veldrid;
-using BufferUsage = Veldrid.BufferUsage;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {
@@ -20,6 +19,6 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             this.type = type;
         }
 
-        protected override VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridLinearBuffer<T>(renderer, Size, type, BufferUsage.Dynamic);
+        protected override VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridLinearBuffer<T>(renderer, Size, type);
     }
 }

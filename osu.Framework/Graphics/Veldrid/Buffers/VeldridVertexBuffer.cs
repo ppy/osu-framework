@@ -6,6 +6,7 @@ using System.Diagnostics;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -21,18 +22,14 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
         private readonly VeldridRenderer renderer;
-        private readonly BufferUsage usage;
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
-        private DeviceBuffer? stagingBuffer;
-        private MappedResource stagingBufferMap;
-
+        private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
         private DeviceBuffer? gpuBuffer;
 
-        protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices, BufferUsage usage)
+        protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
         {
             this.renderer = renderer;
-            this.usage = usage;
 
             Size = amountVertices;
         }
@@ -144,32 +141,28 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (gpuBuffer == null)
                 Initialise();
 
-            int countVertices = endIndex - startIndex;
+            Debug.Assert(stagingBuffer != null);
+            Debug.Assert(gpuBuffer != null);
 
-            // Todo: Using BufferUpdateCommands is temporary here for testing purposes. In the future, the device should have a CopyBuffer() method.
-            renderer.BufferUpdateCommands.CopyBuffer(stagingBuffer, (uint)(startIndex * STRIDE), gpuBuffer, (uint)(startIndex * STRIDE), (uint)(countVertices * STRIDE));
+            int countVertices = endIndex - startIndex;
+            stagingBuffer.CopyTo(gpuBuffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }
 
         private Span<DepthWrappingVertex<T>> getMemory()
         {
-            unsafe
+            ThreadSafety.EnsureDrawThread();
+
+            if (!InUse)
             {
-                ThreadSafety.EnsureDrawThread();
-
-                if (!InUse)
-                {
-                    stagingBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.Staging));
-                    stagingBufferMap = renderer.Device.Map(stagingBuffer, MapMode.ReadWrite);
-
-                    renderer.RegisterVertexBufferUse(this);
-                }
-
-                LastUseResetId = renderer.ResetId;
-
-                return new Span<DepthWrappingVertex<T>>(stagingBufferMap.Data.ToPointer(), Size);
+                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
+                renderer.RegisterVertexBufferUse(this);
             }
+
+            LastUseResetId = renderer.ResetId;
+
+            return stagingBuffer!.Data;
         }
 
         public ulong LastUseResetId { get; private set; }
@@ -181,11 +174,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             memoryLease?.Dispose();
             memoryLease = null;
 
-            if (stagingBuffer != null)
-            {
-                renderer.Device.Unmap(stagingBuffer);
-                stagingBufferMap = default;
-            }
+            stagingBuffer?.Dispose();
+            stagingBuffer = null;
 
             stagingBuffer?.Dispose();
             stagingBuffer = null;
