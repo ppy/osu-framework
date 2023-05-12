@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Platform;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using PixelFormat = Veldrid.PixelFormat;
@@ -478,7 +479,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (newTexture)
             {
                 for (int i = 0; i < texture.MipLevels; i++)
-                    initialiseLevel(i, Width >> i, Height >> i);
+                    initialiseLevel(texture, i, Width >> i, Height >> i);
             }
 
             if (!upload.Data.IsEmpty)
@@ -488,21 +489,20 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        private unsafe void initialiseLevel(int level, int width, int height)
+        private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
         {
-            updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
+            using (var image = createBackingImage(width, height))
+            using (var pixels = image.CreateReadOnlyPixelSpan())
+            {
+                updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
+                Renderer.UpdateTexture(texture, 0, 0, width, height, level, pixels.Span);
+            }
+        }
 
-            using var commands = Renderer.Factory.CreateCommandList();
-            using var frameBuffer = new VeldridFrameBuffer(Renderer, this, level);
-
-            commands.Begin();
-
-            // Initialize texture to solid color
-            commands.SetFramebuffer(frameBuffer.Framebuffer);
-            commands.ClearColorTarget(0, new RgbaFloat(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A));
-
-            commands.End();
-            Renderer.Device.SubmitCommands(commands);
+        private Image<Rgba32> createBackingImage(int width, int height)
+        {
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            return new Image<Rgba32>(width, height);
         }
 
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?

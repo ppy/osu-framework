@@ -5,14 +5,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -460,14 +463,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void initializeLevel(int level, int width, int height, PixelFormat format)
         {
-            updateMemoryUsage(level, (long)width * height * 4);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
+            using (var image = createBackingImage(width, height))
+            using (var pixels = image.CreateReadOnlyPixelSpan())
+            {
+                updateMemoryUsage(level, (long)width * height * 4);
+                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+                    ref MemoryMarshal.GetReference(pixels.Span));
+            }
+        }
 
-            // Initialize texture to solid color
-            using var frameBuffer = new GLFrameBuffer(Renderer, this, level);
-            Renderer.BindFrameBuffer(frameBuffer);
-            Renderer.Clear(new ClearInfo(initialisationColour));
-            Renderer.UnbindFrameBuffer(frameBuffer);
+        private Image<Rgba32> createBackingImage(int width, int height)
+        {
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            return initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, new Rgba32(new Vector4(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A)));
         }
     }
 }
