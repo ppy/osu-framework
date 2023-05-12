@@ -34,6 +34,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
 
         public uint Count { get; }
 
+        public BufferUsage CopyTargetUsageFlags => 0;
+
         public Span<T> Data
         {
             get

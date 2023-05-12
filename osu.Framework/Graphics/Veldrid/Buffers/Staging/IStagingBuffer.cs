@@ -20,6 +20,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
         uint Count { get; }
 
         /// <summary>
+        /// Any extra flags required for the target of a <see cref="CopyTo"/> operation.
+        /// </summary>
+        BufferUsage CopyTargetUsageFlags { get; }
+
+        /// <summary>
         /// The data contained in this buffer.
         /// </summary>
         Span<T> Data { get; }

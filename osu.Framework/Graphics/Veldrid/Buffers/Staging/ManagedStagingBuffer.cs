@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
 
         public uint Count { get; }
 
+        public BufferUsage CopyTargetUsageFlags => BufferUsage.Dynamic;
+
         public Span<T> Data => vertexMemory.Span;
 
         public void CopyTo(DeviceBuffer buffer, uint srcOffset, uint dstOffset, uint count)

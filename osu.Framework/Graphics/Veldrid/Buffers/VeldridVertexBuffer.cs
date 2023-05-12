@@ -64,7 +64,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             ThreadSafety.EnsureDrawThread();
 
-            gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer));
+            getMemory();
+            Debug.Assert(stagingBuffer != null);
+
+            gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
             memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
 
             // Ensure the device buffer is initialised to 0.
