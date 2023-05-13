@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -42,9 +42,6 @@ namespace osu.Framework.Input
         public Drawable FocusedDrawable { get; internal set; }
 
         protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
-
-        private double keyboardRepeatTime;
-        private Key? keyboardRepeatKey;
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
@@ -440,13 +437,6 @@ namespace osu.Framework.Input
 
             foreach (var result in pendingInputs)
             {
-                if (result is KeyboardKeyInput k)
-                {
-                    if (k.Entries[0].IsRepeated)
-                    {
-                        int a = 0;
-                    }
-                }
                 result.Apply(CurrentState, this);
             }
 
@@ -663,13 +653,22 @@ namespace osu.Framework.Input
                               || k == Key.LShift || k == Key.RShift
                               || k == Key.LWin || k == Key.RWin;
 
-        protected virtual void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
+        protected virtual void HandleKeyboardKeyStateChange(KeyboardKeyStateChangeEvent keyboardKeyStateChange)
         {
             var state = keyboardKeyStateChange.State;
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
+            var repeat = keyboardKeyStateChange.IsRepeated;
 
-            GetButtonEventManagerFor(key).HandleButtonStateChange(state, kind);
+            var keyManager = GetButtonEventManagerFor(key);
+            if (repeat)
+            {
+                keyManager.HandleRepeat(state);
+            }
+            else
+            {
+                keyManager.HandleButtonStateChange(state, kind);
+            }
         }
 
         protected virtual void HandleTouchStateChange(TouchStateChangeEvent e)
@@ -845,7 +844,7 @@ namespace osu.Framework.Input
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
 
-                case ButtonStateChangeEvent<Key> keyboardKeyStateChange:
+                case KeyboardKeyStateChangeEvent keyboardKeyStateChange:
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
 
