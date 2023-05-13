@@ -16,7 +16,7 @@ namespace osu.Framework.Input.StateChanges
         {
         }
 
-        public KeyboardKeyInput(Key button, bool isPressed)
+        public KeyboardKeyInput(Key button, bool isPressed, bool isRepeated = false)
             : base(button, isPressed)
         {
         }

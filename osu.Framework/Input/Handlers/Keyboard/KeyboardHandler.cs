@@ -47,8 +47,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 
-        private void handleKeyDown(TKKey key) => enqueueInput(new KeyboardKeyInput(key, true));
+        private void handleKeyDown(TKKey key, bool repeated) => enqueueInput(new KeyboardKeyInput(key, true, repeated));
 
-        private void handleKeyUp(TKKey key) => enqueueInput(new KeyboardKeyInput(key, false));
+        private void handleKeyUp(TKKey key) => enqueueInput(new KeyboardKeyInput(key, false, false));
     }
 }
