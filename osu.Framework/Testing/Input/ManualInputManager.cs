@@ -88,13 +88,13 @@ namespace osu.Framework.Testing.Input
         /// To press and release a key immediately, use <see cref="Key"/>.
         /// </remarks>
         /// <param name="key">The key to press.</param>
-        public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
+        public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true, false));
 
         /// <summary>
         /// Release a pressed key.
         /// </summary>
         /// <param name="key">The key to release.</param>
-        public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
+        public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false, false));
 
         /// <summary>
         /// Press and release the specified key.
