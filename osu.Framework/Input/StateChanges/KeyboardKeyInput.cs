@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Input.States;
@@ -25,7 +26,11 @@ namespace osu.Framework.Input.StateChanges
         public KeyboardKeyInput(KeyboardKey key, bool isPressed)
             : base(key.Key, isPressed)
         {
-            Characters = new List<(Key, char)> { (key.Key, key.Character) };
+            if (isPressed)
+                Characters = new List<(Key, char)> { (key.Key, key.Character) };
+            else
+                // if the character changes between the first press and the release, don't update and use the original character for consistency
+                Characters = ImmutableList<(Key, char)>.Empty;
         }
 
         public KeyboardKeyInput(KeyboardState current, KeyboardState previous)
