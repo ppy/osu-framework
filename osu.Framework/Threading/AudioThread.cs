@@ -47,9 +47,12 @@ namespace osu.Framework.Threading
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
+        private long frameCount;
+
         private void onNewFrame()
         {
-            cpu_usage.Value = Bass.CPUUsage;
+            if (frameCount++ % 1000 == 0)
+                cpu_usage.Value = Bass.CPUUsage;
 
             lock (managers)
             {
