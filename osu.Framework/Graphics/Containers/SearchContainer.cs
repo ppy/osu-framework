@@ -95,6 +95,12 @@ namespace osu.Framework.Graphics.Containers
                 Filter();
         }
 
+        /// <summary>
+        /// Filter <see cref="IFilterable"/> children based on a search term
+        /// </summary>
+        /// <remarks>
+        /// Filtering is done automatically in the <see cref="Update"/> call. However, if <see cref="SearchContainer{T}"/> or any of its parents are hidden, <see cref="Update"/> will not run. In these scenarios, you can manually invoke filtering using this method
+        /// </remarks>
         protected void Filter()
         {
             canBeShownBindables.Clear();
