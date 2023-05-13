@@ -100,11 +100,9 @@ namespace osu.Framework.Testing.Input
                 keyDownRepeatDelay = Scheduler.AddDelayed(() =>
                 {
                     Input(new KeyboardKeyInput(key, true, true));
-
                 }, repeatDelaySubsequent, true);
 
                 Input(new KeyboardKeyInput(key, true, true));
-
             }, repeatDelayFirst, false);
 
             Input(new KeyboardKeyInput(key, true, false));
