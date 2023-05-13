@@ -5,14 +5,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -61,10 +64,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private int internalWidth;
         private int internalHeight;
+        private bool manualMipmaps;
 
         private readonly All filteringMode;
         private readonly Color4 initialisationColour;
-        private readonly bool manualMipmaps;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -429,45 +432,57 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
                 else
                 {
-                    initializeLevel(upload.Level, Width, Height, upload.Format);
+                    initializeLevel(upload.Level, Width, Height);
+
                     GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
                         PixelType.UnsignedByte, dataPointer);
                 }
-
-                if (!manualMipmaps)
-                {
-                    int width = internalWidth;
-                    int height = internalHeight;
-
-                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
-                    {
-                        width = Math.Max(width >> 1, 1);
-                        height = Math.Max(height >> 1, 1);
-
-                        initializeLevel(level, width, height, upload.Format);
-                    }
-                }
             }
-
             // Just update content of the current texture
             else if (dataPointer != IntPtr.Zero)
             {
                 Renderer.BindTexture(this);
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
-                    dataPointer);
+
+                if (!manualMipmaps && upload.Level > 0)
+                {
+                    //allocate mipmap levels
+                    int level = 1;
+                    int d = 2;
+
+                    while (Width / d > 0)
+                    {
+                        initializeLevel(level, Width / d, Height / d);
+                        level++;
+                        d *= 2;
+                    }
+
+                    manualMipmaps = true;
+                }
+
+                int div = (int)Math.Pow(2, upload.Level);
+
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
+                    upload.Format, PixelType.UnsignedByte, dataPointer);
             }
         }
 
-        private void initializeLevel(int level, int width, int height, PixelFormat format)
+        private void initializeLevel(int level, int width, int height)
         {
-            updateMemoryUsage(level, (long)width * height * 4);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
+            using (var image = createBackingImage(width, height))
+            using (var pixels = image.CreateReadOnlyPixelSpan())
+            {
+                updateMemoryUsage(level, (long)width * height * 4);
+                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+                    ref MemoryMarshal.GetReference(pixels.Span));
+            }
+        }
 
-            // Initialize texture to solid color
-            using var frameBuffer = new GLFrameBuffer(Renderer, this, level);
-            Renderer.BindFrameBuffer(frameBuffer);
-            Renderer.Clear(new ClearInfo(initialisationColour));
-            Renderer.UnbindFrameBuffer(frameBuffer);
+        private Image<Rgba32> createBackingImage(int width, int height)
+        {
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            return initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, new Rgba32(new Vector4(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A)));
         }
     }
 }
