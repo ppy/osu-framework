@@ -84,7 +84,7 @@ namespace osu.Framework.Input.StateChanges
 
             foreach (var entry in Entries)
             {
-                if (keyStates.SetPressed(entry.Key, entry.IsPressed))
+                if (keyStates.SetPressed(entry.Key, entry.IsPressed) || entry.IsRepeated)
                 {
                     var buttonStateChange = CreateEvent(state, entry.Key, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released, entry.IsRepeated);
                     handler.HandleInputStateChange(buttonStateChange);
