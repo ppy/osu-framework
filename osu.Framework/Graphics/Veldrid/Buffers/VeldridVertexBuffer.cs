@@ -180,9 +180,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             stagingBuffer?.Dispose();
             stagingBuffer = null;
 
-            stagingBuffer?.Dispose();
-            stagingBuffer = null;
-
             gpuBuffer?.Dispose();
             gpuBuffer = null;
 
