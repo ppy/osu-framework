@@ -30,7 +30,7 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="key">The <typeparamref name="Key"/> to add.</param>
         /// <param name="isPressed">The state of <paramref name="key"/>.</param>
         /// <param name="isRepeated">Whether this key event is being repeated.</param>
-        public KeyboardKeyInput(Key key, bool isPressed, bool isRepeated)
+        public KeyboardKeyInput(Key key, bool isPressed, bool isRepeated = false)
         {
             Entries = ImmutableArray.Create(new KeyboardKeyInputEntry(key, isPressed, isRepeated));
         }
