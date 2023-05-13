@@ -29,9 +29,9 @@ namespace osu.Framework.Input.StateChanges
         /// </summary>
         /// <param name="button">The <typeparamref name="TButton"/> to add.</param>
         /// <param name="isPressed">The state of <paramref name="button"/>.</param>
-        protected ButtonInput(TButton button, bool isPressed, bool isRepeated = false)
+        protected ButtonInput(TButton button, bool isPressed)
         {
-            Entries = ImmutableArray.Create(new ButtonInputEntry<TButton>(button, isPressed, isRepeated));
+            Entries = ImmutableArray.Create(new ButtonInputEntry<TButton>(button, isPressed));
         }
 
         /// <summary>
@@ -68,8 +68,7 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="state">The <see cref="InputState"/> which changed.</param>
         /// <param name="button">The <typeparamref name="TButton"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
-        /// <param name="isRepeated">Whether this event is being repeated.</param>
-        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind, bool isRepeated) => new ButtonStateChangeEvent<TButton>(state, this, button, kind, isRepeated);
+        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind) => new ButtonStateChangeEvent<TButton>(state, this, button, kind);
 
         public virtual void Apply(InputState state, IInputStateChangeHandler handler)
         {
@@ -82,7 +81,7 @@ namespace osu.Framework.Input.StateChanges
             {
                 if (buttonStates.SetPressed(entry.Button, entry.IsPressed))
                 {
-                    var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released, entry.IsRepeated);
+                    var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
                     handler.HandleInputStateChange(buttonStateChange);
                 }
             }
