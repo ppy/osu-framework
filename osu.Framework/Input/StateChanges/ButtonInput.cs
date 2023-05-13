@@ -29,9 +29,9 @@ namespace osu.Framework.Input.StateChanges
         /// </summary>
         /// <param name="button">The <typeparamref name="TButton"/> to add.</param>
         /// <param name="isPressed">The state of <paramref name="button"/>.</param>
-        protected ButtonInput(TButton button, bool isPressed)
+        protected ButtonInput(TButton button, bool isPressed, bool isRepeated = false)
         {
-            Entries = ImmutableArray.Create(new ButtonInputEntry<TButton>(button, isPressed));
+            Entries = ImmutableArray.Create(new ButtonInputEntry<TButton>(button, isPressed, isRepeated));
         }
 
         /// <summary>
