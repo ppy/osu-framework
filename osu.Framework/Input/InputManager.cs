@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -33,16 +33,6 @@ namespace osu.Framework.Input
 {
     public abstract partial class InputManager : Container, IInputStateChangeHandler
     {
-        /// <summary>
-        /// The initial delay before key repeat begins.
-        /// </summary>
-        private const int repeat_initial_delay = 250;
-
-        /// <summary>
-        /// The delay between key repeats after the initial repeat.
-        /// </summary>
-        private const int repeat_tick_rate = 70;
-
         [Resolved(CanBeNull = true)]
         protected GameHost Host { get; private set; }
 
@@ -483,8 +473,6 @@ namespace osu.Framework.Input
                 highFrequencyDrawables.Clear();
             }
 
-            updateKeyRepeat(CurrentState);
-
             // Other inputs or drawable changes may affect hover even if
             // there were no mouse movements, so it must be updated every frame.
             if (!hoverEventsUpdated)
@@ -494,19 +482,6 @@ namespace osu.Framework.Input
                 focusTopMostRequestingDrawable();
 
             base.Update();
-        }
-
-        private void updateKeyRepeat(InputState state)
-        {
-            if (!(keyboardRepeatKey is Key key)) return;
-
-            keyboardRepeatTime -= Time.Elapsed;
-
-            while (keyboardRepeatTime < 0)
-            {
-                GetButtonEventManagerFor(key).HandleRepeat(state);
-                keyboardRepeatTime += repeat_tick_rate;
-            }
         }
 
         private readonly List<IInput> inputs = new List<IInput>();
@@ -695,23 +670,6 @@ namespace osu.Framework.Input
             var kind = keyboardKeyStateChange.Kind;
 
             GetButtonEventManagerFor(key).HandleButtonStateChange(state, kind);
-
-            if (kind == ButtonStateChangeKind.Pressed)
-            {
-                if (!isModifierKey(key))
-                {
-                    keyboardRepeatKey = key;
-                    keyboardRepeatTime = repeat_initial_delay;
-                }
-            }
-            else
-            {
-                if (key == keyboardRepeatKey)
-                {
-                    keyboardRepeatKey = null;
-                    keyboardRepeatTime = 0;
-                }
-            }
         }
 
         protected virtual void HandleTouchStateChange(TouchStateChangeEvent e)
