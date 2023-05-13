@@ -22,16 +22,10 @@ namespace osu.Framework.Input.StateChanges
         /// </summary>
         public bool IsPressed;
 
-        /// <summary>
-        /// Whether this button input is being repeated.
-        /// </summary>
-        public bool IsRepeated;
-
-        public ButtonInputEntry(TButton button, bool isPressed, bool isRepeated = false)
+        public ButtonInputEntry(TButton button, bool isPressed)
         {
             Button = button;
             IsPressed = isPressed;
-            IsRepeated = isRepeated;
         }
     }
 }
