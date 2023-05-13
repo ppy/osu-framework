@@ -653,12 +653,17 @@ namespace osu.Framework.Input
                               || k == Key.LShift || k == Key.RShift
                               || k == Key.LWin || k == Key.RWin;
 
+        private bool isFirstKeyDownEvent = true;
+
         protected virtual void HandleKeyboardKeyStateChange(KeyboardKeyStateChangeEvent keyboardKeyStateChange)
         {
             var state = keyboardKeyStateChange.State;
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
             var repeat = keyboardKeyStateChange.Repeat;
+
+            if (isFirstKeyDownEvent && repeat)
+                repeat = false;
 
             var keyManager = GetButtonEventManagerFor(key);
             if (repeat)
@@ -670,6 +675,7 @@ namespace osu.Framework.Input
             }
             else
             {
+                isFirstKeyDownEvent = false;
                 keyManager.HandleButtonStateChange(state, kind);
             }
         }
