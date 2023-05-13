@@ -450,6 +450,13 @@ namespace osu.Framework.Input
 
             foreach (var result in pendingInputs)
             {
+                if (result is KeyboardKeyInput k)
+                {
+                    if (k.Entries[0].IsRepeated)
+                    {
+                        int a = 0;
+                    }
+                }
                 result.Apply(CurrentState, this);
             }
 

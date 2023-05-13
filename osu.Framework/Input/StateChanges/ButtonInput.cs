@@ -68,7 +68,8 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="state">The <see cref="InputState"/> which changed.</param>
         /// <param name="button">The <typeparamref name="TButton"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
-        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind) => new ButtonStateChangeEvent<TButton>(state, this, button, kind);
+        /// <param name="isRepeated">Whether this event is being repeated.</param>
+        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind, bool isRepeated) => new ButtonStateChangeEvent<TButton>(state, this, button, kind, isRepeated);
 
         public virtual void Apply(InputState state, IInputStateChangeHandler handler)
         {
@@ -81,7 +82,7 @@ namespace osu.Framework.Input.StateChanges
             {
                 if (buttonStates.SetPressed(entry.Button, entry.IsPressed))
                 {
-                    var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
+                    var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released, entry.IsRepeated);
                     handler.HandleInputStateChange(buttonStateChange);
                 }
             }

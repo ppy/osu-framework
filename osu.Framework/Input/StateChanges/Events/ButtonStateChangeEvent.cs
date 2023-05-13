@@ -20,11 +20,17 @@ namespace osu.Framework.Input.StateChanges.Events
         /// </summary>
         public readonly ButtonStateChangeKind Kind;
 
-        public ButtonStateChangeEvent(InputState state, IInput input, TButton button, ButtonStateChangeKind kind)
+        /// <summary>
+        /// Whether this event was sent in the past and is now being repeated.
+        /// </summary>
+        public readonly bool IsRepeated;
+
+        public ButtonStateChangeEvent(InputState state, IInput input, TButton button, ButtonStateChangeKind kind, bool isRepeated)
             : base(state, input)
         {
             Button = button;
             Kind = kind;
+            IsRepeated = isRepeated;
         }
     }
 }
