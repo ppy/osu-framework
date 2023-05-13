@@ -188,13 +188,26 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
+        // cache value locally as requesting from SDL is not free.
+        // it is assumed that we are the only thing changing vsync modes.
+        private bool? verticalSync;
+
         bool IOpenGLGraphicsSurface.VerticalSync
         {
-            get => SDL.SDL_GL_GetSwapInterval() != 0;
+            get
+            {
+                if (verticalSync != null)
+                    return verticalSync.Value;
+
+                return (verticalSync = SDL.SDL_GL_GetSwapInterval() != 0).Value;
+            }
             set
             {
                 if (RuntimeInfo.IsDesktop)
+                {
                     SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+                    verticalSync = value;
+                }
             }
         }
 
