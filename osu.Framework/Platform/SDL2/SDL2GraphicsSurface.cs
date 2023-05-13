@@ -190,7 +190,7 @@ namespace osu.Framework.Platform.SDL2
 
         // cache value locally as requesting from SDL is not free.
         // it is assumed that we are the only thing changing vsync modes.
-        private bool? verticalSync = false;
+        private bool? verticalSync;
 
         bool IOpenGLGraphicsSurface.VerticalSync
         {
