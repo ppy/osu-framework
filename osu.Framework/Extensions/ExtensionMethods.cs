@@ -370,7 +370,7 @@ namespace osu.Framework.Extensions
             }
 
             // ascii control, and delete character
-            if (character < 0x20 || character == '\x7f')
+            if (character < '\x20' || character == '\x7f')
                 return $@"'\x{(int)character:x2}'";
 
             return @$"'{character}'";
