@@ -64,10 +64,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private int internalWidth;
         private int internalHeight;
+        private bool manualMipmaps;
 
         private readonly All filteringMode;
         private readonly Color4 initialisationColour;
-        private readonly bool manualMipmaps;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -432,36 +432,41 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
                 else
                 {
-                    initializeLevel(upload.Level, Width, Height, upload.Format);
+                    initializeLevel(upload.Level, Width, Height);
+
                     GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
                         PixelType.UnsignedByte, dataPointer);
                 }
-
-                if (!manualMipmaps)
-                {
-                    int width = internalWidth;
-                    int height = internalHeight;
-
-                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
-                    {
-                        width = Math.Max(width >> 1, 1);
-                        height = Math.Max(height >> 1, 1);
-
-                        initializeLevel(level, width, height, upload.Format);
-                    }
-                }
             }
-
             // Just update content of the current texture
             else if (dataPointer != IntPtr.Zero)
             {
                 Renderer.BindTexture(this);
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
-                    dataPointer);
+
+                if (!manualMipmaps && upload.Level > 0)
+                {
+                    //allocate mipmap levels
+                    int level = 1;
+                    int d = 2;
+
+                    while (Width / d > 0)
+                    {
+                        initializeLevel(level, Width / d, Height / d);
+                        level++;
+                        d *= 2;
+                    }
+
+                    manualMipmaps = true;
+                }
+
+                int div = (int)Math.Pow(2, upload.Level);
+
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
+                    upload.Format, PixelType.UnsignedByte, dataPointer);
             }
         }
 
-        private void initializeLevel(int level, int width, int height, PixelFormat format)
+        private void initializeLevel(int level, int width, int height)
         {
             using (var image = createBackingImage(width, height))
             using (var pixels = image.CreateReadOnlyPixelSpan())
