@@ -663,7 +663,10 @@ namespace osu.Framework.Input
             var keyManager = GetButtonEventManagerFor(key);
             if (repeat)
             {
-                keyManager.HandleRepeat(state);
+                if (!isModifierKey(key))
+                {
+                    keyManager.HandleRepeat(state);
+                }
             }
             else
             {
