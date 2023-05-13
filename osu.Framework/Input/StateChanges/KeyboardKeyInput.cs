@@ -29,10 +29,10 @@ namespace osu.Framework.Input.StateChanges
         /// </summary>
         /// <param name="key">The <typeparamref name="Key"/> to add.</param>
         /// <param name="isPressed">The state of <paramref name="key"/>.</param>
-        /// <param name="isRepeated">Whether this key event is being repeated.</param>
-        public KeyboardKeyInput(Key key, bool isPressed, bool isRepeated = false)
+        /// <param name="repeat">Whether this key event is being repeated.</param>
+        public KeyboardKeyInput(Key key, bool isPressed, bool repeat = false)
         {
-            Entries = ImmutableArray.Create(new KeyboardKeyInputEntry(key, isPressed, isRepeated));
+            Entries = ImmutableArray.Create(new KeyboardKeyInputEntry(key, isPressed, repeat));
         }
 
         /// <summary>
@@ -72,8 +72,8 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="state">The <see cref="InputState"/> which changed or is being repeated.</param>
         /// <param name="key">The <typeparamref name="Key"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="key"/>.</param>
-        /// <param name="isRepeated">Whether this event is being repeated.</param>
-        protected virtual KeyboardKeyStateChangeEvent CreateEvent(InputState state, Key key, ButtonStateChangeKind kind, bool isRepeated) => new KeyboardKeyStateChangeEvent(state, this, key, kind, isRepeated);
+        /// <param name="repeat">Whether this event is being repeated.</param>
+        protected virtual KeyboardKeyStateChangeEvent CreateEvent(InputState state, Key key, ButtonStateChangeKind kind, bool repeat) => new KeyboardKeyStateChangeEvent(state, this, key, kind, repeat);
 
         public virtual void Apply(InputState state, IInputStateChangeHandler handler)
         {
@@ -84,9 +84,9 @@ namespace osu.Framework.Input.StateChanges
 
             foreach (var entry in Entries)
             {
-                if (keyStates.SetPressed(entry.Key, entry.IsPressed) || entry.IsRepeated)
+                if (keyStates.SetPressed(entry.Key, entry.IsPressed) || entry.Repeat)
                 {
-                    var buttonStateChange = CreateEvent(state, entry.Key, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released, entry.IsRepeated);
+                    var buttonStateChange = CreateEvent(state, entry.Key, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released, entry.Repeat);
                     handler.HandleInputStateChange(buttonStateChange);
                 }
             }

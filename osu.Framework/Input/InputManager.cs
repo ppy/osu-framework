@@ -658,7 +658,7 @@ namespace osu.Framework.Input
             var state = keyboardKeyStateChange.State;
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
-            var repeat = keyboardKeyStateChange.IsRepeated;
+            var repeat = keyboardKeyStateChange.Repeat;
 
             var keyManager = GetButtonEventManagerFor(key);
             if (repeat)

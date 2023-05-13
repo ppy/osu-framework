@@ -25,13 +25,13 @@ namespace osu.Framework.Input.StateChanges
         /// <summary>
         /// Whether this key is being repeated.
         /// </summary>
-        public bool IsRepeated;
+        public bool Repeat;
 
-        public KeyboardKeyInputEntry(Key key, bool isPressed, bool isRepeated)
+        public KeyboardKeyInputEntry(Key key, bool isPressed, bool repeat)
         {
             Key = key;
             IsPressed = isPressed;
-            IsRepeated = isRepeated;
+            Repeat = repeat;
         }
     }
 }

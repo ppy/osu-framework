@@ -13,12 +13,12 @@ namespace osu.Framework.Input.StateChanges.Events
         /// <summary>
         /// Whether this event was sent in the past and is now being repeated.
         /// </summary>
-        public readonly bool IsRepeated;
+        public readonly bool Repeat;
 
-        public KeyboardKeyStateChangeEvent(InputState state, IInput input, Key key, ButtonStateChangeKind kind, bool isRepeated)
+        public KeyboardKeyStateChangeEvent(InputState state, IInput input, Key key, ButtonStateChangeKind kind, bool repeat)
             : base(state, input, key, kind)
         {
-            IsRepeated = isRepeated;
+            Repeat = repeat;
         }
     }
 }
