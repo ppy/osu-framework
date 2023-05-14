@@ -681,6 +681,9 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Matches a <see cref="KeyCombination"/> if there are no additional key presses.
         /// </summary>
+        /// <remarks>
+        /// Does not fully work with <see cref="KeyCombination"/>s that have keycode <see cref="InputKey"/>s, eg. <see cref="InputKey.KeycodeA"/>.
+        /// </remarks>
         Exact,
 
         /// <summary>
