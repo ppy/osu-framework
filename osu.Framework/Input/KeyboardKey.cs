@@ -29,7 +29,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The character that this key would generate if pressed (roughly equivalent to the keycode - the character printed on the key).
-        /// Dependant on the system keyboard layout.
+        /// Dependant on the system keyboard layout. Will be <c>default</c> if no character is available.
         /// </summary>
         /// <remarks>
         /// Should be matched against for common platform actions (eg. copy, paste) and actions that match mnemonically to the character (eg. 'o' for "open file").
