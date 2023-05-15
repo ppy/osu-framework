@@ -6,7 +6,6 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using Veldrid;
-using BufferUsage = Veldrid.BufferUsage;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
@@ -24,8 +23,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// </summary>
         public const int MAX_QUADS = ushort.MaxValue / indices_per_quad;
 
-        internal VeldridQuadBuffer(VeldridRenderer renderer, int amountQuads, BufferUsage usage)
-            : base(renderer, amountQuads * IRenderer.VERTICES_PER_QUAD, usage)
+        internal VeldridQuadBuffer(VeldridRenderer renderer, int amountQuads)
+            : base(renderer, amountQuads * IRenderer.VERTICES_PER_QUAD)
         {
             this.renderer = renderer;
             amountIndices = amountQuads * indices_per_quad;

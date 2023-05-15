@@ -29,7 +29,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Layout;
 using osu.Framework.Logging;
-using osu.Framework.Testing;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
@@ -41,7 +40,6 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    [ExcludeFromDynamicCompile]
     public abstract partial class CompositeDrawable : Drawable
     {
         #region Construction and disposal
