@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Graphics.Rendering.Vertices;
 using Veldrid;
-using BufferUsage = Veldrid.BufferUsage;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
@@ -17,8 +16,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly VeldridRenderer renderer;
         private readonly int amountVertices;
 
-        internal VeldridLinearBuffer(VeldridRenderer renderer, int amountVertices, PrimitiveTopology type, BufferUsage usage)
-            : base(renderer, amountVertices, usage)
+        internal VeldridLinearBuffer(VeldridRenderer renderer, int amountVertices, PrimitiveTopology type)
+            : base(renderer, amountVertices)
         {
             this.renderer = renderer;
             this.amountVertices = amountVertices;

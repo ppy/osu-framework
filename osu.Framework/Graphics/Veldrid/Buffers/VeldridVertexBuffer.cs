@@ -2,15 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Buffers;
 using System.Diagnostics;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using SixLabors.ImageSharp.Memory;
 using Veldrid;
 using BufferUsage = Veldrid.BufferUsage;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
@@ -23,18 +22,14 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
         private readonly VeldridRenderer renderer;
-        private readonly BufferUsage usage;
 
-        private Memory<DepthWrappingVertex<T>> vertexMemory;
-        private IMemoryOwner<DepthWrappingVertex<T>>? memoryOwner;
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
+        private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
+        private DeviceBuffer? gpuBuffer;
 
-        private DeviceBuffer? buffer;
-
-        protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices, BufferUsage usage)
+        protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
         {
             this.renderer = renderer;
-            this.usage = usage;
 
             Size = amountVertices;
         }
@@ -47,7 +42,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// <returns>Whether the vertex changed.</returns>
         public bool SetVertex(int vertexIndex, T vertex)
         {
-            ref var currentVertex = ref getMemory().Span[vertexIndex];
+            ref var currentVertex = ref getMemory()[vertexIndex];
 
             bool isNewVertex = !currentVertex.Vertex.Equals(vertex) || currentVertex.BackbufferDrawDepth != renderer.BackbufferDrawDepth;
 
@@ -69,8 +64,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             ThreadSafety.EnsureDrawThread();
 
-            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | usage));
-            memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
+            getMemory();
+            Debug.Assert(stagingBuffer != null);
+
+            gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
+            memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
 
             // Ensure the device buffer is initialised to 0.
             Update();
@@ -104,11 +102,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
 
-            if (buffer == null)
+            if (gpuBuffer == null)
                 Initialise();
 
-            Debug.Assert(buffer != null);
-            renderer.BindVertexBuffer(buffer, VeldridVertexUtils<DepthWrappingVertex<T>>.Layout);
+            Debug.Assert(gpuBuffer != null);
+            renderer.BindVertexBuffer(gpuBuffer, VeldridVertexUtils<DepthWrappingVertex<T>>.Layout);
         }
 
         public virtual void Unbind()
@@ -143,30 +141,31 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public void UpdateRange(int startIndex, int endIndex)
         {
-            if (buffer == null)
+            if (gpuBuffer == null)
                 Initialise();
 
+            Debug.Assert(stagingBuffer != null);
+            Debug.Assert(gpuBuffer != null);
+
             int countVertices = endIndex - startIndex;
-            renderer.Device.UpdateBuffer(buffer, (uint)(startIndex * STRIDE), ref getMemory().Span[startIndex], (uint)(countVertices * STRIDE));
+            stagingBuffer.CopyTo(gpuBuffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }
 
-        private ref Memory<DepthWrappingVertex<T>> getMemory()
+        private Span<DepthWrappingVertex<T>> getMemory()
         {
             ThreadSafety.EnsureDrawThread();
 
             if (!InUse)
             {
-                memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(Size, AllocationOptions.Clean);
-                vertexMemory = memoryOwner.Memory;
-
+                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
                 renderer.RegisterVertexBufferUse(this);
             }
 
             LastUseResetId = renderer.ResetId;
 
-            return ref vertexMemory;
+            return stagingBuffer!.Data;
         }
 
         public ulong LastUseResetId { get; private set; }
@@ -178,12 +177,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             memoryLease?.Dispose();
             memoryLease = null;
 
-            buffer?.Dispose();
-            buffer = null;
+            stagingBuffer?.Dispose();
+            stagingBuffer = null;
 
-            memoryOwner?.Dispose();
-            memoryOwner = null;
-            vertexMemory = Memory<DepthWrappingVertex<T>>.Empty;
+            gpuBuffer?.Dispose();
+            gpuBuffer = null;
 
             LastUseResetId = 0;
         }
