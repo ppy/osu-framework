@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
@@ -87,8 +88,11 @@ namespace osu.Framework.Graphics.Cursor
         {
             base.Dispose(isDisposing);
 
-            inputManager.TouchLongPressBegan -= onLongPressBegan;
-            inputManager.TouchLongPressCancelled -= longPressFeedback.CancelAnimation;
+            if (inputManager.IsNotNull())
+            {
+                inputManager.TouchLongPressBegan -= onLongPressBegan;
+                inputManager.TouchLongPressCancelled -= longPressFeedback.CancelAnimation;
+            }
         }
 
         private partial class Cursor : CircularContainer
