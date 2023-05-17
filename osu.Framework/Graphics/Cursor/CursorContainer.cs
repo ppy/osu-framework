@@ -43,12 +43,16 @@ namespace osu.Framework.Graphics.Cursor
             base.LoadComplete();
 
             inputManager = GetContainingInputManager();
-            inputManager.TouchLongPressBegan += (position, duration) =>
-            {
-                longPressFeedback.Position = Parent.ToLocalSpace(position);
-                longPressFeedback.BeginAnimation(duration);
-            };
+            inputManager.TouchLongPressBegan += onLongPressBegan;
             inputManager.TouchLongPressCancelled += longPressFeedback.CancelAnimation;
+        }
+
+        private void onLongPressBegan(Vector2 position, double duration)
+        {
+            if (Parent == null) return;
+
+            longPressFeedback.Position = Parent.ToLocalSpace(position);
+            longPressFeedback.BeginAnimation(duration);
         }
 
         protected virtual Drawable CreateCursor() => new Cursor();
@@ -77,6 +81,14 @@ namespace osu.Framework.Graphics.Cursor
         protected override void PopOut()
         {
             Alpha = 0;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            inputManager.TouchLongPressBegan -= onLongPressBegan;
+            inputManager.TouchLongPressCancelled -= longPressFeedback.CancelAnimation;
         }
 
         private partial class Cursor : CircularContainer
