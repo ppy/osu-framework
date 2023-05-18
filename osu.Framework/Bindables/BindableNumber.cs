@@ -96,28 +96,12 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                // TODO: wait for syntax like T is IFloatingPoint<T>
-
-                if (typeof(T) == typeof(sbyte))
-                    return (T)(object)(sbyte)1;
-                if (typeof(T) == typeof(byte))
-                    return (T)(object)(byte)1;
-                if (typeof(T) == typeof(short))
-                    return (T)(object)(short)1;
-                if (typeof(T) == typeof(ushort))
-                    return (T)(object)(ushort)1;
-                if (typeof(T) == typeof(int))
-                    return (T)(object)1;
-                if (typeof(T) == typeof(uint))
-                    return (T)(object)1U;
-                if (typeof(T) == typeof(long))
-                    return (T)(object)1L;
-                if (typeof(T) == typeof(ulong))
-                    return (T)(object)1UL;
                 if (typeof(T) == typeof(float))
                     return (T)(object)float.Epsilon;
+                if (typeof(T) == typeof(double))
+                    return (T)(object)double.Epsilon;
 
-                return (T)(object)double.Epsilon;
+                return T.One;
             }
         }
 
