@@ -3,12 +3,14 @@
 
 using System;
 using System.Buffers;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Threading;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Bindables;
+using osu.Framework.Configuration;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
+using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
@@ -18,7 +20,16 @@ namespace osu.Framework.Graphics.Performance
         [Resolved]
         private GameHost host { get; set; } = null!;
 
+        [Resolved]
+        private FrameworkConfigManager config { get; set; } = null!;
+
         private FrameStatisticsMode state;
+
+        private TextFlowContainer? infoText;
+
+        private Bindable<FrameSync> configFrameSync = null!;
+        private Bindable<ExecutionMode> configExecutionMode = null!;
+        private Bindable<WindowMode> configWindowMode = null!;
 
         public event Action<FrameStatisticsMode>? StateChanged;
 
@@ -46,7 +57,18 @@ namespace osu.Framework.Graphics.Performance
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            configFrameSync = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+            configFrameSync.BindValueChanged(_ => updateInfoText());
+
+            configExecutionMode = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
+            configExecutionMode.BindValueChanged(_ => updateInfoText());
+
+            configWindowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+            configWindowMode.BindValueChanged(_ => updateInfoText());
+
             updateState();
+            updateInfoText();
         }
 
         private void updateState()
@@ -65,12 +87,15 @@ namespace osu.Framework.Graphics.Performance
 
                         var uploadPool = createUploadPool();
 
-                        Add(new SpriteText
+                        Add(infoText = new TextFlowContainer(cp => cp.Font = FrameworkFont.Condensed)
                         {
-                            Text = $"Renderer: {host.RendererInfo}",
                             Alpha = 0.75f,
                             Origin = Anchor.TopRight,
+                            TextAnchor = Anchor.TopRight,
+                            AutoSizeAxes = Axes.Both,
                         });
+
+                        updateInfoText();
 
                         foreach (GameThread t in host.Threads)
                             Add(new FrameStatisticsDisplay(t, uploadPool) { State = state });
@@ -84,6 +109,37 @@ namespace osu.Framework.Graphics.Performance
                 d.State = state;
 
             StateChanged?.Invoke(State);
+        }
+
+        private void updateInfoText()
+        {
+            if (infoText == null)
+                return;
+
+            infoText.Clear();
+
+            addHeader("Renderer:");
+            addValue(host.RendererInfo);
+
+            infoText.NewLine();
+
+            addHeader("Limiter:");
+            addValue(configFrameSync.ToString());
+            addHeader("Execution:");
+            addValue(configExecutionMode.ToString());
+            addHeader("Mode:");
+            addValue(configWindowMode.ToString());
+
+            void addHeader(string text) => infoText.AddText($"{text} ", cp =>
+            {
+                cp.Padding = new MarginPadding { Left = 5 };
+                cp.Colour = Color4.Gray;
+            });
+
+            void addValue(string text) => infoText.AddText(text, cp =>
+            {
+                cp.Font = cp.Font.With(weight: "Bold");
+            });
         }
 
         private ArrayPool<Rgba32> createUploadPool()
