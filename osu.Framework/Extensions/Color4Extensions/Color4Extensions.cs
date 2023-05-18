@@ -11,9 +11,17 @@ namespace osu.Framework.Extensions.Color4Extensions
     {
         public const double GAMMA = 2.4;
 
-        public static double ToLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, GAMMA);
+        // ToLinear is quite a hot path in the game.
+        // MathF.Pow performs way faster than Math.Pow, how ever on Windows it lacks a short path for x == 1
+        // Given passing color == 1 (White or Transparent) is very common, a short path for 1 is added.
 
-        public static double ToSRGB(double color) => color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055;
+        public static double ToLinear(double color) => color == 1 ? 1 : color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, GAMMA);
+
+        public static float ToLinear(float color) => color == 1 ? 1 : color <= 0.04045f ? color / 12.92f : MathF.Pow((color + 0.055f) / 1.055f, (float)GAMMA);
+
+        public static double ToSRGB(double color) => color == 1 ? 1 : color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055;
+
+        public static float ToSRGB(float color) => color == 1 ? 1 : color < 0.0031308f ? 12.92f * color : 1.055f * MathF.Pow(color, 1.0f / (float)GAMMA) - 0.055f;
 
         public static Color4 Opacity(this Color4 color, float a) => new Color4(color.R, color.G, color.B, a);
 
@@ -21,16 +29,16 @@ namespace osu.Framework.Extensions.Color4Extensions
 
         public static Color4 ToLinear(this Color4 colour) =>
             new Color4(
-                (float)ToLinear(colour.R),
-                (float)ToLinear(colour.G),
-                (float)ToLinear(colour.B),
+                ToLinear(colour.R),
+                ToLinear(colour.G),
+                ToLinear(colour.B),
                 colour.A);
 
         public static Color4 ToSRGB(this Color4 colour) =>
             new Color4(
-                (float)ToSRGB(colour.R),
-                (float)ToSRGB(colour.G),
-                (float)ToSRGB(colour.B),
+                ToSRGB(colour.R),
+                ToSRGB(colour.G),
+                ToSRGB(colour.B),
                 colour.A);
 
         public static Color4 MultiplySRGB(Color4 first, Color4 second)
