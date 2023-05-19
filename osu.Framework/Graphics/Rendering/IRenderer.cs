@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Waits until the GPU signals that the next frame is ready to be rendered.
         /// </summary>
-        protected internal void WaitUntilNextFrameReady();
+        protected internal bool WaitUntilNextFrameReady();
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.

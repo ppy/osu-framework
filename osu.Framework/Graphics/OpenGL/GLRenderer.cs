@@ -118,8 +118,9 @@ namespace osu.Framework.Graphics.OpenGL
             base.BeginFrame(windowSize);
         }
 
-        protected internal override void WaitUntilNextFrameReady()
+        protected internal override bool WaitUntilNextFrameReady()
         {
+            return true;
         }
 
         protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);

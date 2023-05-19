@@ -82,8 +82,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        void IRenderer.WaitUntilNextFrameReady()
+        bool IRenderer.WaitUntilNextFrameReady()
         {
+            return true;
         }
 
         void IRenderer.MakeCurrent()

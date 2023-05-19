@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void SwapBuffers() => Device.SwapBuffers();
         protected internal override void WaitUntilIdle() => Device.WaitForIdle();
-        protected internal override void WaitUntilNextFrameReady() => Device.WaitForNextFrameReady();
+        protected internal override bool WaitUntilNextFrameReady() => Device.WaitForNextFrameReady();
 
         protected internal override void MakeCurrent()
         {

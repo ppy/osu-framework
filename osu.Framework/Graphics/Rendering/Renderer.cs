@@ -344,7 +344,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </remarks>
         protected internal abstract void WaitUntilIdle();
 
-        protected internal abstract void WaitUntilNextFrameReady();
+        protected internal abstract bool WaitUntilNextFrameReady();
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
@@ -1134,7 +1134,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.FlushCurrentBatch(FlushBatchSource? source) => FlushCurrentBatch(source);
         void IRenderer.SwapBuffers() => SwapBuffers();
         void IRenderer.WaitUntilIdle() => WaitUntilIdle();
-        void IRenderer.WaitUntilNextFrameReady() => WaitUntilNextFrameReady();
+        bool IRenderer.WaitUntilNextFrameReady() => WaitUntilNextFrameReady();
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);

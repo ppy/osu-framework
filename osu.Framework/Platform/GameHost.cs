@@ -477,7 +477,8 @@ namespace osu.Framework.Platform
                 return;
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
-            Renderer.WaitUntilNextFrameReady();
+            if (!Renderer.WaitUntilNextFrameReady())
+                return;
 
             ObjectUsage<DrawNode> buffer;
 
