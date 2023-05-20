@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Visual.Platform
     public partial class TestSceneWindowFlash : FrameworkTestScene
     {
         private IBindable<bool> isActive = null!;
-        private IWindow window = null!;
+        private IWindow? window;
         private SpriteText text = null!;
         private TextFlowContainer behaviourText = null!;
         private readonly Bindable<bool> flashUntilFocused = new BindableBool();
@@ -52,14 +52,14 @@ namespace osu.Framework.Tests.Visual.Platform
             AddToggleStep("Flash until focused", a => flashUntilFocused.Value = a);
             flashUntilFocused.BindValueChanged(e =>
             {
-                window.CancelFlash();
+                window?.CancelFlash();
                 text.Text = "This window will flash " + (e.NewValue ? "until focused again" : "briefly")
                                                       + " as soon as it is unfocused.";
             }, true);
             isActive.BindValueChanged(e =>
             {
                 if (!e.NewValue)
-                    window.Flash(flashUntilFocused.Value);
+                    window?.Flash(flashUntilFocused.Value);
             }, true);
             behaviourText.AddParagraph("Behaviour is platform dependent (only for desktops):");
             behaviourText.AddParagraph("- Windows: icon flashes on the taskbar and raises it. Only once if briefly.");
