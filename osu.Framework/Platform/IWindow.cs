@@ -160,6 +160,23 @@ namespace osu.Framework.Platform
         void Raise();
 
         /// <summary>
+        /// Attempts to flash the window in order to request the user's attention.
+        /// </summary>
+        /// <remarks>
+        /// This behaviour is only available on desktop platforms and is different depending on the OS:
+        /// - On Windows: flashes the icon on the taskbar and raises it (only once if briefly)
+        /// - On MacOS: jumps on the Dock and raises it (only once if briefly)
+        /// - On Linux: depends on the Desktop Environment / Window Manager setup.
+        /// </remarks>
+        /// <param name="untilFocused">Flash the window until the window is focused.</param>
+        void Flash(bool untilFocused = false);
+
+        /// <summary>
+        /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
+        /// </summary>
+        void CancelFlash();
+
+        /// <summary>
         /// Start the window's run loop.
         /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
