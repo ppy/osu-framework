@@ -164,8 +164,8 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <remarks>
         /// This behaviour is only available on desktop platforms and is different depending on the OS:
-        /// - On Windows: flashes the icon on the taskbar and raises it (only once if briefly)
-        /// - On MacOS: jumps on the Dock and raises it (only once if briefly)
+        /// - On Windows: flashes the icon on the taskbar (only once if briefly) and raises it
+        /// - On MacOS: jumps on the Dock (only once if briefly)
         /// - On Linux: depends on the Desktop Environment / Window Manager setup.
         /// </remarks>
         /// <param name="untilFocused">Flash the window until the window is focused.</param>

@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Platform
             }, true);
             behaviourText.AddParagraph("Behaviour is platform dependent (only for desktops):");
             behaviourText.AddParagraph("- Windows: icon flashes on the taskbar and raises it. Only once if briefly.");
-            behaviourText.AddParagraph("- MacOS: icon jumps on the Dock and raises it. Only once if briefly.");
+            behaviourText.AddParagraph("- MacOS: icon jumps on the Dock (can be seen even hidden). Only once if briefly.");
             behaviourText.AddParagraph("- Linux: depends on DE/WM setup.");
         }
     }
