@@ -11,6 +11,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Input
 {
+    [HeadlessTest]
     public partial class KeyBindingKeycodeTest : ManualInputManagerTestScene
     {
         private TestKeyBindingContainer keyBindingContainer = null!;
