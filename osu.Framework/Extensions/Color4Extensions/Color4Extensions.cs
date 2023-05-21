@@ -12,7 +12,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         public const double GAMMA = 2.4;
 
         // ToLinear is quite a hot path in the game.
-        // MathF.Pow performs way faster than Math.Pow, how ever on Windows it lacks a short path for x == 1
+        // MathF.Pow performs way faster than Math.Pow, however on Windows it lacks a short path for x == 1
         // Given passing color == 1 (White or Transparent) is very common, a short path for 1 is added.
 
         public static double ToLinear(double color) => color == 1 ? 1 : color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, GAMMA);
