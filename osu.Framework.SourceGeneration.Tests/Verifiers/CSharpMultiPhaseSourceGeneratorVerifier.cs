@@ -4,12 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis;
+using osu.Framework.SourceGeneration.Generators;
 
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
-    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : IIncrementalGenerator, new()
+    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator> where TSourceGenerator : AbstractIncrementalGenerator, new()
     {
         // ReSharper disable once StaticMemberInGenericType
         private static readonly Regex multi_phase = new Regex(@"^(?<filename>.*)\.(?<num>\d+)\.cs$", RegexOptions.Compiled);

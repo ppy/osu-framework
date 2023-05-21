@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                     if (++i > icons.Length - 1)
                         scheduledDelegate?.Cancel();
-                }, 50, true);
+                }, 5, true);
             });
         }
 

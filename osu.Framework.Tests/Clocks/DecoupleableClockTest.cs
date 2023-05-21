@@ -136,6 +136,74 @@ namespace osu.Framework.Tests.Clocks
 
         #endregion
 
+        #region Source changes
+
+        [Test]
+        public void SourceChangeTransfersValueAdjustable()
+        {
+            // For decoupled clocks, value transfer is preferred in the direction of the track if possible.
+            // In other words, we want to keep our current time even if the source changes, as long as the source supports it.
+            //
+            // This tests the case where it is supported.
+
+            const double first_source_time = 256000;
+            const double second_source_time = 128000;
+
+            source.Seek(first_source_time);
+            source.Start();
+
+            var secondSource = new TestClock
+            {
+                // importantly, test a value lower than the original source.
+                // this is to both test value transfer *and* the case where time is going backwards, as
+                // some clocks have special provisions for this.
+                CurrentTime = second_source_time
+            };
+
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(first_source_time));
+
+            decoupleable.ChangeSource(secondSource);
+            decoupleable.ProcessFrame();
+
+            Assert.That(secondSource.CurrentTime, Is.EqualTo(first_source_time));
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(first_source_time));
+        }
+
+        [Test]
+        public void SourceChangeTransfersValueNonAdjustable()
+        {
+            // For decoupled clocks, value transfer is preferred in the direction of the track if possible.
+            // In other words, we want to keep our current time even if the source changes, as long as the source supports it.
+            //
+            // This tests the case where it is NOT supported.
+
+            const double first_source_time = 256000;
+            const double second_source_time = 128000;
+
+            source.Seek(first_source_time);
+            source.Start();
+
+            var secondSource = new TestNonAdjustableClock
+            {
+                // importantly, test a value lower than the original source.
+                // this is to both test value transfer *and* the case where time is going backwards, as
+                // some clocks have special provisions for this.
+                CurrentTime = second_source_time
+            };
+
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(first_source_time));
+
+            decoupleable.ChangeSource(secondSource);
+            decoupleable.ProcessFrame();
+
+            Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(second_source_time));
+        }
+
+        #endregion
+
         #region Offset start
 
         /// <summary>

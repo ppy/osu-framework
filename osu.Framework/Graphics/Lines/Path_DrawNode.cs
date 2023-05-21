@@ -85,8 +85,8 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
 
             private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.TryExtractSingleColour(out SRGBColour colour)
-                ? colour.Linear
-                : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
+                ? colour.SRGB
+                : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).SRGB;
 
             private void addSegmentQuads(Line segment, Line segmentLeft, Line segmentRight, RectangleF texRect)
             {

@@ -35,7 +35,6 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Layout;
-using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK.Input;
 using Container = osu.Framework.Graphics.Containers.Container;
@@ -54,7 +53,6 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    [ExcludeFromDynamicCompile]
     public abstract partial class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal

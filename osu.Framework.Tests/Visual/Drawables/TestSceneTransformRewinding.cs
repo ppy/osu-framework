@@ -206,6 +206,24 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void FiniteLoopSequence()
+        {
+            boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(0, 2); });
+
+            checkAtTime(0, box => box.Rotation == 0);
+            checkAtTime(interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+            checkAtTime(interval + 1, box => Precision.AlmostEquals(box.Rotation, 0, 1));
+            checkAtTime(2 * interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+
+            checkAtTime(3 * interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+
+            checkAtTime(2 * interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+            checkAtTime(interval + 1, box => Precision.AlmostEquals(box.Rotation, 0, 1));
+            checkAtTime(interval - 1, box => Precision.AlmostEquals(box.Rotation, 90, 1));
+            checkAtTime(0, box => box.Rotation == 0);
+        }
+
+        [Test]
         public void StartInMiddleOfSequence()
         {
             boxTest(box =>

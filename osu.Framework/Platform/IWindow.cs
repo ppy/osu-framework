@@ -47,6 +47,21 @@ namespace osu.Framework.Platform
         event Action? Exited;
 
         /// <summary>
+        /// Invoked when the application associated with this <see cref="IWindow"/> has been suspended.
+        /// </summary>
+        event Action? Suspended;
+
+        /// <summary>
+        /// Invoked when the application associated with this <see cref="IWindow"/> has been resumed from suspension.
+        /// </summary>
+        event Action? Resumed;
+
+        /// <summary>
+        /// Invoked when the operating system is low on memory, in order for the application to free some.
+        /// </summary>
+        event Action? LowOnMemory;
+
+        /// <summary>
         /// Invoked when the <see cref="IWindow"/> client size has changed.
         /// </summary>
         event Action? Resized;
@@ -101,7 +116,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
         /// </summary>
-        IBindableList<WindowMode> SupportedWindowModes { get; }
+        IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
         /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.

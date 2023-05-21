@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using osu.Framework.Graphics.OpenGL.Shaders;
 
@@ -12,8 +11,6 @@ namespace osu.Framework.Tests.Graphics
     [TestFixture]
     public class ShaderRegexTest
     {
-        private readonly Regex shaderAttributeRegex = new Regex(GLShaderPart.SHADER_ATTRIBUTE_PATTERN);
-
         [Test]
         public void TestComment()
         {
@@ -24,42 +21,42 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestNonAttribute()
         {
-            const string test_string = "varying vec3 name;";
+            const string test_string = "wangs vec3 name;";
             performInvalidAttributeTest(test_string);
         }
 
         [Test]
         public void TestValidAttribute()
         {
-            const string test_string = "attribute lowp float name;";
+            const string test_string = "layout(location = 0) in lowp float name;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestSpacedAttribute()
         {
-            const string test_string = "    attribute    float    name   ;";
+            const string test_string = "    layout(  location   =0   )in    float    name   ;";
             performValidAttributeTest(test_string);
         }
 
         [Test]
         public void TestNoPrecisionQualifier()
         {
-            const string test_string = "attribute float name;";
+            const string test_string = "layout(location = 0) in float name;";
             performValidAttributeTest(test_string);
         }
 
         private void performValidAttributeTest(string testString)
         {
-            var match = shaderAttributeRegex.Match(testString);
+            var match = GLShaderPart.SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsTrue(match.Success);
-            Assert.AreEqual("name", match.Groups[1].Value.Trim());
+            Assert.AreEqual("name", match.Groups[3].Value.Trim());
         }
 
         private void performInvalidAttributeTest(string testString)
         {
-            var match = shaderAttributeRegex.Match(testString);
+            var match = GLShaderPart.SHADER_INPUT_PATTERN.Match(testString);
 
             Assert.IsFalse(match.Success);
         }

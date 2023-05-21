@@ -26,6 +26,11 @@ namespace osu.Framework.Platform
         IntPtr CurrentContext { get; }
 
         /// <summary>
+        /// The main framebuffer object, or null if unknown.
+        /// </summary>
+        int? BackbufferFramebuffer { get; }
+
+        /// <summary>
         /// Swaps the back buffer with the front buffer.
         /// </summary>
         void SwapBuffers();

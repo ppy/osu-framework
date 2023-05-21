@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (boundItemSource != null)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
 
-                Scheduler.AddOnce(setItems, value);
+                setItems(value);
             }
         }
 
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, _) => Scheduler.AddOnce(setItems, ItemSource);
+            ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)
