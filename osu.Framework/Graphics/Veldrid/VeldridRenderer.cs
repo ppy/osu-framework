@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
@@ -598,6 +599,27 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)
             => new VeldridVideoTexture(this, width, height);
+
+        internal IStagingBuffer<T> CreateStagingBuffer<T>(uint count)
+            where T : unmanaged
+        {
+            switch (Device.BackendType)
+            {
+                // D3D11 benefits from persistently mapped buffers.
+                case GraphicsBackend.Direct3D11:
+                // Persistently mapped buffers appear to work by default on Vulkan.
+                case GraphicsBackend.Vulkan:
+                    return new PersistentStagingBuffer<T>(this, count);
+
+                default:
+                // Metal uses a more optimal path that elides a Blit Command Encoder.
+                case GraphicsBackend.Metal:
+                // OpenGL backends need additional work to support coherency and persistently mapped buffers.
+                case GraphicsBackend.OpenGL:
+                case GraphicsBackend.OpenGLES:
+                    return new ManagedStagingBuffer<T>(this, count);
+            }
+        }
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
