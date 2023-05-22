@@ -214,7 +214,7 @@ namespace osu.Framework.Platform.Windows
                 // Windows Ink tablet/pen handling
                 // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)
 
-                TriggerMouseMove(evtTfinger.x * Size.Width, evtTfinger.y * Size.Height);
+                TriggerMouseMove(evtTfinger.x * ClientSize.Width, evtTfinger.y * ClientSize.Height);
 
                 switch ((SDL.SDL_EventType)evtTfinger.type)
                 {
