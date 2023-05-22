@@ -9,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkTransformUpdate : BenchmarkTest
+    public partial class BenchmarkTransformUpdate : BenchmarkTest
     {
         private TestBox target = null!;
         private TestBox targetNoTransforms = null!;
@@ -50,7 +50,7 @@ namespace osu.Framework.Benchmarks
                 target.UpdateTransforms();
         }
 
-        private class TestBox : Box
+        private partial class TestBox : Box
         {
             public override bool RemoveCompletedTransforms => false;
 

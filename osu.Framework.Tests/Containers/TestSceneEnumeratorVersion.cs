@@ -10,7 +10,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSceneEnumeratorVersion : FrameworkTestScene
+    public partial class TestSceneEnumeratorVersion : FrameworkTestScene
     {
         private Container parent = null!;
 

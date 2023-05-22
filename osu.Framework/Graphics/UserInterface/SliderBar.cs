@@ -13,7 +13,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
+    public abstract partial class SliderBar<T> : Container, IHasCurrentValue<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         /// <summary>
@@ -48,8 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => current;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 current.Current = value;
 

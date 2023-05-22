@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    internal class TestVideo : Video
+    internal partial class TestVideo : Video
     {
         public TestVideo(Stream videoStream, bool startAtCurrentTime = true)
             : base(videoStream, startAtCurrentTime)

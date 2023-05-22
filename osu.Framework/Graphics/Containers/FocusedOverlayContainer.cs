@@ -6,7 +6,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// An overlay container that eagerly holds keyboard focus.
     /// </summary>
-    public abstract class FocusedOverlayContainer : OverlayContainer
+    public abstract partial class FocusedOverlayContainer : OverlayContainer
     {
         public override bool RequestsFocus => State.Value == Visibility.Visible;
 

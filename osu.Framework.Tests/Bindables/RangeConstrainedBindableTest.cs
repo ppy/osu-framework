@@ -101,6 +101,30 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable.Value, Is.EqualTo(3));
         }
 
+        [Test]
+        public void TestBindToAnotherBindableWithDisjointRange()
+        {
+            var first = new BindableDouble
+            {
+                MinValue = -10,
+                MaxValue = -5,
+                Value = -7
+            };
+
+            var second = new BindableDouble
+            {
+                MinValue = 5,
+                MaxValue = 10,
+                Value = 9
+            };
+
+            first.BindTo(second);
+
+            Assert.That(first.MinValue, Is.EqualTo(5));
+            Assert.That(first.MaxValue, Is.EqualTo(10));
+            Assert.That(first.Value, Is.EqualTo(9));
+        }
+
         private class BindableNumberWithDefaultMaxValue : BindableInt
         {
             public BindableNumberWithDefaultMaxValue(int value = 0)

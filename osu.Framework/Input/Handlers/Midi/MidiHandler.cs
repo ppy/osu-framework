@@ -124,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Midi
 
             // some devices may take some time to close, so this should be fire-and-forget.
             // the internal implementations look to have their own (eventual) timeout logic.
-            Task.Factory.StartNew(() => device.CloseAsync(), TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(device.CloseAsync, TaskCreationOptions.LongRunning);
         }
 
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)

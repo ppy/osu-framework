@@ -14,7 +14,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [HeadlessTest]
-    public class TestSceneIsMaskedAway : FrameworkTestScene
+    public partial class TestSceneIsMaskedAway : FrameworkTestScene
     {
         /// <summary>
         /// Tests that a box which is within the bounds of a parent is never masked away, regardless of whether the parent is masking or not.

@@ -19,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneFillFlowContainer : FrameworkTestScene
+    public partial class TestSceneFillFlowContainer : FrameworkTestScene
     {
         private FillDirectionDropdown selectionDropdown;
 
@@ -377,7 +377,7 @@ namespace osu.Framework.Tests.Visual.Layout
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
-        private class TestSceneDropdownHeader : DropdownHeader
+        private partial class TestSceneDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
 
@@ -399,12 +399,12 @@ namespace osu.Framework.Tests.Visual.Layout
             }
         }
 
-        private class AnchorDropdown : BasicDropdown<Anchor>
+        private partial class AnchorDropdown : BasicDropdown<Anchor>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
-        private class FillDirectionDropdown : BasicDropdown<FlowTestType>
+        private partial class FillDirectionDropdown : BasicDropdown<FlowTestType>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }

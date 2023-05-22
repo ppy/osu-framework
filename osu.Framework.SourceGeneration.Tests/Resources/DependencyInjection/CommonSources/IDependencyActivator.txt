@@ -1,0 +1,14 @@
+using System;
+
+namespace osu.Framework.Allocation
+{
+    public interface IDependencyActivatorRegistry
+    {
+        bool IsRegistered(Type type);
+
+        void Register(Type type, InjectDependencyDelegate? injectDel, CacheDependencyDelegate? cacheDel);
+    }
+    
+    public delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
+    public delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies, CacheInfo info);
+}

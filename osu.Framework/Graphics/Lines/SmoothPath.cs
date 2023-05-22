@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class SmoothPath : Path
+    public partial class SmoothPath : Path
     {
         [Resolved]
         private IRenderer renderer { get; set; }

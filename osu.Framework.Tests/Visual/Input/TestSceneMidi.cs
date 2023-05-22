@@ -19,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneMidi : FrameworkTestScene
+    public partial class TestSceneMidi : FrameworkTestScene
     {
         public TestSceneMidi()
         {
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Input
             return base.Handle(e);
         }
 
-        private class MidiKeyHandler : CompositeDrawable
+        private partial class MidiKeyHandler : CompositeDrawable
         {
             private readonly Drawable background;
 

@@ -15,7 +15,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Tests.Visual.Localisation
 {
-    public abstract class LocalisationTestScene : FrameworkTestScene
+    public abstract partial class LocalisationTestScene : FrameworkTestScene
     {
         protected virtual LocalisationManager CreateLocalisationManager(FrameworkConfigManager config) => new LocalisationManager(config);
 

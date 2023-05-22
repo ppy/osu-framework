@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// An item of a <see cref="RearrangeableListContainer{TModel}"/>.
     /// </summary>
     /// <typeparam name="TModel"></typeparam>
-    public abstract class RearrangeableListItem<TModel> : CompositeDrawable
+    public abstract partial class RearrangeableListItem<TModel> : CompositeDrawable
     {
         /// <summary>
         /// Invoked on drag start, if an arrangement should be started.

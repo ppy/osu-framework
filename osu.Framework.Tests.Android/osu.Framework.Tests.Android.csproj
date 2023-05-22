@@ -1,20 +1,11 @@
-﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\osu.Framework.Android.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{320089C6-A141-4D3E-BD5F-C4A6CE9E567B}</ProjectGuid>
-    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>net6.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
     <RootNamespace>osu.Framework.Tests.Android</RootNamespace>
     <AssemblyName>osu.Framework.Tests.Android</AssemblyName>
-    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="TestGameActivity.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Properties\AndroidManifest.xml" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\osu.Framework.Tests\**\*.cs" Exclude="..\osu.Framework.Tests\Program.cs;..\osu.Framework.Tests\obj\**\*;..\osu.Framework.Tests\bin\**\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -23,7 +14,7 @@
       <Link>Resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Numerics" />
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj" />
   </ItemGroup>
 </Project>

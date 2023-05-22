@@ -7,7 +7,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicPopover : Popover
+    public partial class BasicPopover : Popover
     {
         public BasicPopover()
         {

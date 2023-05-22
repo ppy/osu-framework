@@ -27,7 +27,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
+    internal partial class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
         internal const int HEIGHT = 100;
 
@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarX => currentX % WIDTH;
 
         private readonly Container overlayContainer;
-        private readonly Drawable labelText;
+        private readonly SpriteText labelText;
         private readonly Sprite counterBarBackground;
 
         private readonly Container mainContainer;
@@ -87,6 +87,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
+                        labelText.Text = Name;
                         break;
 
                     case FrameStatisticsMode.Full:
@@ -97,6 +98,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.BottomCentre;
                         labelText.Rotation = -90;
+                        labelText.Text = Name.Split(' ').First();
                         break;
                 }
 
@@ -133,7 +135,7 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.TopRight,
                         AutoSizeAxes = Axes.X,
                         RelativeSizeAxes = Axes.Y,
-                        Children = new[]
+                        Children = new Drawable[]
                         {
                             labelText = new SpriteText
                             {
@@ -165,7 +167,7 @@ namespace osu.Framework.Graphics.Performance
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =
-                                                from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                from StatisticsCounterType t in Enum.GetValues<StatisticsCounterType>()
                                                 where monitor.ActiveCounters[(int)t]
                                                 select counterBars[t] = new CounterBar
                                                 {
@@ -212,7 +214,7 @@ namespace osu.Framework.Graphics.Performance
                                         Spacing = new Vector2(5, 1),
                                         Padding = new MarginPadding { Right = 5 },
                                         ChildrenEnumerable =
-                                            from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                            from PerformanceCollectionType t in Enum.GetValues<PerformanceCollectionType>()
                                             select legendMapping[(int)t] = new SpriteText
                                             {
                                                 Colour = getColour(t),
@@ -513,7 +515,7 @@ namespace osu.Framework.Graphics.Performance
             return currentHeight;
         }
 
-        private class TimeBar : Container
+        private partial class TimeBar : Container
         {
             public readonly Sprite Sprite;
 
@@ -531,7 +533,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private class CounterBar : Container
+        private partial class CounterBar : Container
         {
             private readonly Box box;
             private readonly SpriteText text;

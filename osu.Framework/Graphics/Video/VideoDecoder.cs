@@ -19,14 +19,11 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
-#if NET6_0_OR_GREATER
 using osu.Framework.Extensions.ObjectExtensions;
-#endif
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux.Native;
-using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -179,7 +176,7 @@ namespace osu.Framework.Graphics.Video
             decoderCommands.Enqueue(() =>
             {
                 ffmpeg.avcodec_flush_buffers(codecContext);
-                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), AGffmpeg.AVSEEK_FLAG_BACKWARD);
+                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
                 skipOutputUntilTime = targetTimestamp;
                 State = DecoderState.Ready;
             });
@@ -294,7 +291,7 @@ namespace osu.Framework.Graphics.Video
             var span = new Span<byte>(bufferPtr, bufferSize);
             int bytesRead = decoder.videoStream.Read(span);
 
-            return bytesRead != 0 ? bytesRead : AGffmpeg.AVERROR_EOF;
+            return bytesRead != 0 ? bytesRead : FFmpegFuncs.AVERROR_EOF;
         }
 
         [MonoPInvokeCallback(typeof(avio_alloc_context_seek))]
@@ -321,7 +318,7 @@ namespace osu.Framework.Graphics.Video
                     decoder.videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
 
-                case AGffmpeg.AVSEEK_SIZE:
+                case FFmpegFuncs.AVSEEK_SIZE:
                     return decoder.videoStream.Length;
 
                 default:
@@ -346,7 +343,7 @@ namespace osu.Framework.Graphics.Video
             var fcPtr = ffmpeg.avformat_alloc_context();
             formatContext = fcPtr;
             formatContext->pb = ioContext;
-            formatContext->flags |= AGffmpeg.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
+            formatContext->flags |= FFmpegFuncs.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             inputOpened = openInputResult >= 0;
@@ -367,7 +364,7 @@ namespace osu.Framework.Graphics.Video
             if (stream->duration > 0)
                 Duration = stream->duration * timeBaseInSeconds * 1000.0;
             else
-                Duration = formatContext->duration / (double)AGffmpeg.AV_TIME_BASE * 1000.0;
+                Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
         }
 
         private void recreateCodecContext()
@@ -520,7 +517,7 @@ namespace osu.Framework.Graphics.Video
                     int sendPacketResult = sendPacket(receiveFrame, packet);
 
                     // keep the packet data for next frame if we didn't send it successfully.
-                    if (sendPacketResult == -AGffmpeg.EAGAIN)
+                    if (sendPacketResult == -FFmpegFuncs.EAGAIN)
                     {
                         unrefPacket = false;
                     }
@@ -529,7 +526,7 @@ namespace osu.Framework.Graphics.Video
                 if (unrefPacket)
                     ffmpeg.av_packet_unref(packet);
             }
-            else if (readFrameResult == AGffmpeg.AVERROR_EOF)
+            else if (readFrameResult == FFmpegFuncs.AVERROR_EOF)
             {
                 // Flush decoder.
                 sendPacket(receiveFrame, null);
@@ -544,7 +541,7 @@ namespace osu.Framework.Graphics.Video
                     State = DecoderState.EndOfStream;
                 }
             }
-            else if (readFrameResult == -AGffmpeg.EAGAIN)
+            else if (readFrameResult == -FFmpegFuncs.EAGAIN)
             {
                 State = DecoderState.Ready;
                 Thread.Sleep(1);
@@ -563,7 +560,7 @@ namespace osu.Framework.Graphics.Video
 
             // Note: EAGAIN can be returned if there's too many pending frames, which we have to read,
             // otherwise we would get stuck in an infinite loop.
-            if (sendPacketResult == 0 || sendPacketResult == -AGffmpeg.EAGAIN)
+            if (sendPacketResult == 0 || sendPacketResult == -FFmpegFuncs.EAGAIN)
             {
                 readDecodedFrames(receiveFrame);
             }
@@ -587,7 +584,7 @@ namespace osu.Framework.Graphics.Video
 
                 if (receiveFrameResult < 0)
                 {
-                    if (receiveFrameResult != -AGffmpeg.EAGAIN && receiveFrameResult != AGffmpeg.AVERROR_EOF)
+                    if (receiveFrameResult != -FFmpegFuncs.EAGAIN && receiveFrameResult != FFmpegFuncs.AVERROR_EOF)
                     {
                         Logger.Log($"Failed to receive frame from avcodec: {getErrorMessage(receiveFrameResult)}");
                         tryDisableHwDecoding(receiveFrameResult);
@@ -598,7 +595,7 @@ namespace osu.Framework.Graphics.Video
 
                 // use `best_effort_timestamp` as it can be more accurate if timestamps from the source file (pts) are broken.
                 // but some HW codecs don't set it in which case fallback to `pts`
-                long frameTimestamp = receiveFrame->best_effort_timestamp != AGffmpeg.AV_NOPTS_VALUE ? receiveFrame->best_effort_timestamp : receiveFrame->pts;
+                long frameTimestamp = receiveFrame->best_effort_timestamp != FFmpegFuncs.AV_NOPTS_VALUE ? receiveFrame->best_effort_timestamp : receiveFrame->pts;
 
                 double frameTime = (frameTimestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
@@ -723,7 +720,7 @@ namespace osu.Framework.Graphics.Video
 
             hwDecodingAllowed = false;
 
-            if (errorCode == -AGffmpeg.ENOMEM)
+            if (errorCode == -FFmpegFuncs.ENOMEM)
             {
                 Logger.Log("Disabling hardware decoding of all videos due to a lack of memory");
                 TargetHardwareVideoDecoders.Value = HardwareVideoDecoder.None;
@@ -808,10 +805,9 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NET6_0_OR_GREATER
-            AGffmpeg.GetOrLoadLibrary = name =>
+            FFmpeg.AutoGen.ffmpeg.GetOrLoadLibrary = name =>
             {
-                int version = AGffmpeg.LibraryVersionMap[name];
+                int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
 
                 string libraryName;
 
@@ -836,46 +832,45 @@ namespace osu.Framework.Graphics.Video
 
                 return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
-#endif
 
             return new FFmpegFuncs
             {
-                av_frame_alloc = AGffmpeg.av_frame_alloc,
-                av_frame_free = AGffmpeg.av_frame_free,
-                av_frame_unref = AGffmpeg.av_frame_unref,
-                av_frame_move_ref = AGffmpeg.av_frame_move_ref,
-                av_frame_get_buffer = AGffmpeg.av_frame_get_buffer,
-                av_strdup = AGffmpeg.av_strdup,
-                av_strerror = AGffmpeg.av_strerror,
-                av_malloc = AGffmpeg.av_malloc,
-                av_freep = AGffmpeg.av_freep,
-                av_packet_alloc = AGffmpeg.av_packet_alloc,
-                av_packet_unref = AGffmpeg.av_packet_unref,
-                av_packet_free = AGffmpeg.av_packet_free,
-                av_read_frame = AGffmpeg.av_read_frame,
-                av_seek_frame = AGffmpeg.av_seek_frame,
-                av_hwdevice_ctx_create = AGffmpeg.av_hwdevice_ctx_create,
-                av_hwframe_transfer_data = AGffmpeg.av_hwframe_transfer_data,
-                av_codec_iterate = AGffmpeg.av_codec_iterate,
-                av_codec_is_decoder = AGffmpeg.av_codec_is_decoder,
-                avcodec_get_hw_config = AGffmpeg.avcodec_get_hw_config,
-                avcodec_alloc_context3 = AGffmpeg.avcodec_alloc_context3,
-                avcodec_free_context = AGffmpeg.avcodec_free_context,
-                avcodec_parameters_to_context = AGffmpeg.avcodec_parameters_to_context,
-                avcodec_open2 = AGffmpeg.avcodec_open2,
-                avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
-                avcodec_send_packet = AGffmpeg.avcodec_send_packet,
-                avcodec_flush_buffers = AGffmpeg.avcodec_flush_buffers,
-                avformat_alloc_context = AGffmpeg.avformat_alloc_context,
-                avformat_close_input = AGffmpeg.avformat_close_input,
-                avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
-                avformat_open_input = AGffmpeg.avformat_open_input,
-                av_find_best_stream = AGffmpeg.av_find_best_stream,
-                avio_alloc_context = AGffmpeg.avio_alloc_context,
-                avio_context_free = AGffmpeg.avio_context_free,
-                sws_freeContext = AGffmpeg.sws_freeContext,
-                sws_getCachedContext = AGffmpeg.sws_getCachedContext,
-                sws_scale = AGffmpeg.sws_scale
+                av_frame_alloc = FFmpeg.AutoGen.ffmpeg.av_frame_alloc,
+                av_frame_free = FFmpeg.AutoGen.ffmpeg.av_frame_free,
+                av_frame_unref = FFmpeg.AutoGen.ffmpeg.av_frame_unref,
+                av_frame_move_ref = FFmpeg.AutoGen.ffmpeg.av_frame_move_ref,
+                av_frame_get_buffer = FFmpeg.AutoGen.ffmpeg.av_frame_get_buffer,
+                av_strdup = FFmpeg.AutoGen.ffmpeg.av_strdup,
+                av_strerror = FFmpeg.AutoGen.ffmpeg.av_strerror,
+                av_malloc = FFmpeg.AutoGen.ffmpeg.av_malloc,
+                av_freep = FFmpeg.AutoGen.ffmpeg.av_freep,
+                av_packet_alloc = FFmpeg.AutoGen.ffmpeg.av_packet_alloc,
+                av_packet_unref = FFmpeg.AutoGen.ffmpeg.av_packet_unref,
+                av_packet_free = FFmpeg.AutoGen.ffmpeg.av_packet_free,
+                av_read_frame = FFmpeg.AutoGen.ffmpeg.av_read_frame,
+                av_seek_frame = FFmpeg.AutoGen.ffmpeg.av_seek_frame,
+                av_hwdevice_ctx_create = FFmpeg.AutoGen.ffmpeg.av_hwdevice_ctx_create,
+                av_hwframe_transfer_data = FFmpeg.AutoGen.ffmpeg.av_hwframe_transfer_data,
+                av_codec_iterate = FFmpeg.AutoGen.ffmpeg.av_codec_iterate,
+                av_codec_is_decoder = FFmpeg.AutoGen.ffmpeg.av_codec_is_decoder,
+                avcodec_get_hw_config = FFmpeg.AutoGen.ffmpeg.avcodec_get_hw_config,
+                avcodec_alloc_context3 = FFmpeg.AutoGen.ffmpeg.avcodec_alloc_context3,
+                avcodec_free_context = FFmpeg.AutoGen.ffmpeg.avcodec_free_context,
+                avcodec_parameters_to_context = FFmpeg.AutoGen.ffmpeg.avcodec_parameters_to_context,
+                avcodec_open2 = FFmpeg.AutoGen.ffmpeg.avcodec_open2,
+                avcodec_receive_frame = FFmpeg.AutoGen.ffmpeg.avcodec_receive_frame,
+                avcodec_send_packet = FFmpeg.AutoGen.ffmpeg.avcodec_send_packet,
+                avcodec_flush_buffers = FFmpeg.AutoGen.ffmpeg.avcodec_flush_buffers,
+                avformat_alloc_context = FFmpeg.AutoGen.ffmpeg.avformat_alloc_context,
+                avformat_close_input = FFmpeg.AutoGen.ffmpeg.avformat_close_input,
+                avformat_find_stream_info = FFmpeg.AutoGen.ffmpeg.avformat_find_stream_info,
+                avformat_open_input = FFmpeg.AutoGen.ffmpeg.avformat_open_input,
+                av_find_best_stream = FFmpeg.AutoGen.ffmpeg.av_find_best_stream,
+                avio_alloc_context = FFmpeg.AutoGen.ffmpeg.avio_alloc_context,
+                avio_context_free = FFmpeg.AutoGen.ffmpeg.avio_context_free,
+                sws_freeContext = FFmpeg.AutoGen.ffmpeg.sws_freeContext,
+                sws_getCachedContext = FFmpeg.AutoGen.ffmpeg.sws_getCachedContext,
+                sws_scale = FFmpeg.AutoGen.ffmpeg.sws_scale
             };
         }
 

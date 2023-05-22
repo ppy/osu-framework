@@ -11,7 +11,7 @@ namespace FlappyDon.Game.Elements
     /// Manages the buildings and sky texture in the far background of the game scene.
     /// The texture is aspect scaled up to the height of the game window.
     /// </summary>
-    public class BackdropSprite : Sprite
+    public partial class BackdropSprite : Sprite
     {
         public BackdropSprite()
         {

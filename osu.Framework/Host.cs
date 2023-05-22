@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux;
 using osu.Framework.Platform.MacOS;
@@ -18,6 +19,7 @@ namespace osu.Framework
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
+                    Debug.Assert(OperatingSystem.IsWindows());
                     return new WindowsGameHost(gameName, hostOptions);
 
                 case RuntimeInfo.Platform.Linux:

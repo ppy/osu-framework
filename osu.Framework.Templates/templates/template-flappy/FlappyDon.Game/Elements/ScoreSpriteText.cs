@@ -11,7 +11,7 @@ namespace FlappyDon.Game.Elements
     /// Draws the current score on screen. The score is displayed by using a glyph store
     /// to load the appropriate character images and display them like text on-screen.
     /// </summary>
-    public class ScoreSpriteText : SpriteText
+    public partial class ScoreSpriteText : SpriteText
     {
         private ScoreGlyphStore glyphStore;
 

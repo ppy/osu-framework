@@ -10,7 +10,7 @@ using osu.Framework.Bindables;
 namespace osu.Framework.Tests.Visual.Platform
 {
     [Ignore("for manual testing")]
-    public class TestSceneBlockExiting : FrameworkTestScene
+    public partial class TestSceneBlockExiting : FrameworkTestScene
     {
         private Bindable<bool> blockingClose;
 

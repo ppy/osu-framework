@@ -113,14 +113,12 @@ namespace osu.Framework.Graphics
                 SharedData.DrawVersion = GetDrawVersion();
             }
 
-            var shader = TextureShader;
-
-            shader.Bind();
+            BindTextureShader(renderer);
 
             base.Draw(renderer);
             DrawContents(renderer);
 
-            shader.Unbind();
+            UnbindTextureShader(renderer);
         }
 
         /// <summary>

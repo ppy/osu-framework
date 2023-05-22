@@ -19,7 +19,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneScrollContainer : ManualInputManagerTestScene
+    public partial class TestSceneScrollContainer : ManualInputManagerTestScene
     {
         private ScrollContainer<Drawable> scrollContainer;
 
@@ -620,7 +620,7 @@ namespace osu.Framework.Tests.Visual.Containers
         private void checkScrollbarPosition(float expected) =>
             AddUntilStep($"scrollbar position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.InternalChildren[1].DrawPosition.Y, 1));
 
-        private class RepeatCountingScrollContainer : BasicScrollContainer
+        private partial class RepeatCountingScrollContainer : BasicScrollContainer
         {
             public int RepeatCount { get; set; }
 
@@ -633,13 +633,13 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class ClampedScrollbarScrollContainer : BasicScrollContainer
+        private partial class ClampedScrollbarScrollContainer : BasicScrollContainer
         {
             public new ScrollbarContainer Scrollbar => base.Scrollbar;
 
             protected override ScrollbarContainer CreateScrollbar(Direction direction) => new ClampedScrollbar(direction);
 
-            private class ClampedScrollbar : BasicScrollbar
+            private partial class ClampedScrollbar : BasicScrollbar
             {
                 protected internal override float MinimumDimSize => 250;
 
@@ -650,7 +650,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class InputHandlingScrollContainer : BasicScrollContainer
+        private partial class InputHandlingScrollContainer : BasicScrollContainer
         {
             public bool? ScrollHandled { get; private set; }
             public bool? DragHandled { get; private set; }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration.Tracking;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.Configuration
 {
@@ -217,6 +218,31 @@ namespace osu.Framework.Configuration
             bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
+
+            return bindable;
+        }
+
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableColour4 SetDefault(TLookup lookup, Colour4 value)
+        {
+            value = getDefault(lookup, value);
+
+            if (!(GetOriginalBindable<Colour4>(lookup) is BindableColour4 bindable))
+            {
+                bindable = new BindableColour4(value);
+                AddBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            bindable.Default = value;
 
             return bindable;
         }
