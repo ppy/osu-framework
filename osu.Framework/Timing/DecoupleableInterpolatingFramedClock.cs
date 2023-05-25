@@ -139,6 +139,11 @@ namespace osu.Framework.Timing
             (source as IAdjustableClock)?.Seek(CurrentTime);
 
             base.ChangeSource(source);
+
+            // the above value transfer may have failed (if the source is not adjustable).
+            // in such a case, transfer value in the opposite direction to ensure we are still in sync.
+            if (adjustableSource == null)
+                decoupledStopwatch.Seek(currentTime = base.CurrentTime);
         }
 
         public void Reset()

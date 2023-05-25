@@ -1067,6 +1067,36 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region .ReplaceRange(index, count, newItems)
+
+        [Test]
+        public void TestReplaceRangeNotifiesBoundLists()
+        {
+            string[] items = { "A", "B" };
+
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+
+            var list = new BindableList<string>();
+            list.BindTo(bindableStringList);
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            list.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringList.ReplaceRange(0, 1, items);
+
+            Assert.That(list, Is.EquivalentTo(bindableStringList));
+            Assert.That(list, Is.EquivalentTo(new[] { "A", "B", "1" }));
+
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Replace));
+            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(items));
+            Assert.That(triggeredArgs.NewStartingIndex, Is.EqualTo(0));
+            Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo("0"));
+            Assert.That(triggeredArgs.OldStartingIndex, Is.EqualTo(0));
+        }
+
+        #endregion
+
         #region .Clear()
 
         [Test]
