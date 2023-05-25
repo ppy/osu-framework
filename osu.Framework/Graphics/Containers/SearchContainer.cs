@@ -96,10 +96,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Filter <see cref="IFilterable"/> children based on a search term
+        /// Immediately filter <see cref="IFilterable"/> children based on the current <see cref="SearchTerm"/>.
         /// </summary>
         /// <remarks>
-        /// Filtering is done automatically in the <see cref="Update"/> call. However, if <see cref="SearchContainer{T}"/> or any of its parents are hidden, <see cref="Update"/> will not run. In these scenarios, you can manually invoke filtering using this method
+        /// Filtering is done automatically after a change to <see cref="SearchTerm"/>, on new drawables being added, and on certain changes to
+        /// searchable children (like <see cref="IConditionalFilterable.CanBeShown"/> changing).
+        ///
+        /// However, if <see cref="SearchContainer{T}"/> or any of its parents are hidden this will not be run.
+        /// If an implementation relies on filtering to become present / visible, this method can be used to force a filter.
         /// </remarks>
         protected void Filter()
         {
