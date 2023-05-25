@@ -1,0 +1,4 @@
+public partial class AutoProperty : osu.Framework.Graphics.Drawable
+{
+    private osu.Framework.Bindables.Bindable<int> Bindable1 { get; set; } = new osu.Framework.Bindables.Bindable<int>();
+}

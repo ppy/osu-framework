@@ -1,0 +1,22 @@
+namespace osu.Framework.Bindables
+{
+    public interface IUnbindable
+    {
+        void UnbindAll();
+    }
+
+    public interface IBindable : IUnbindable
+    {
+    }
+
+    public interface IBindable<T> : IBindable
+    {
+    }
+
+    public class Bindable<T> : IBindable<T>
+    {
+        public void UnbindAll()
+        {
+        }
+    }
+}

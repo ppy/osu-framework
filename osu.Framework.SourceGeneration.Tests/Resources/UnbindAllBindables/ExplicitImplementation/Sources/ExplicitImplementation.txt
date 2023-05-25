@@ -1,0 +1,9 @@
+public partial class ExplicitImplementation : osu.Framework.Graphics.Drawable, ITestInterface
+{
+    osu.Framework.Bindables.Bindable<int> ITestInterface.Bindable1 { get; } = new osu.Framework.Bindables.Bindable<int>();
+}
+
+public interface ITestInterface
+{
+    osu.Framework.Bindables.Bindable<int> Bindable1 { get; }
+}

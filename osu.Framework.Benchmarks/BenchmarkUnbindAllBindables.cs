@@ -4,6 +4,7 @@
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Timing;
 
@@ -49,6 +50,15 @@ namespace osu.Framework.Benchmarks
             _.UnbindAllBindables();
         }
 
+        [Test]
+        [Benchmark]
+        public void TestComplexComposite()
+        {
+            var _ = new ComplexComposite();
+            _.Load(clock, dependencies);
+            _.UnbindAllBindables();
+        }
+
         public partial class SimpleComposite3 : SimpleComposite2
         {
         }
@@ -63,6 +73,20 @@ namespace osu.Framework.Benchmarks
 
         public partial class SimpleComposite : CompositeDrawable
         {
+        }
+
+        public partial class ComplexComposite : CompositeDrawable
+        {
+            private readonly Bindable<int> bindable1 = new Bindable<int>();
+            private readonly Bindable<int> bindable2 = new Bindable<int>();
+            private readonly Bindable<int> bindable3 = new Bindable<int>();
+            private readonly Bindable<int> bindable4 = new Bindable<int>();
+            private readonly Bindable<int> bindable5 = new Bindable<int>();
+            private readonly Bindable<int> bindable6 = new Bindable<int>();
+            private readonly Bindable<int> bindable7 = new Bindable<int>();
+            private readonly Bindable<int> bindable8 = new Bindable<int>();
+            private readonly Bindable<int> bindable9 = new Bindable<int>();
+            private readonly Bindable<int> bindable10 = new Bindable<int>();
         }
     }
 }

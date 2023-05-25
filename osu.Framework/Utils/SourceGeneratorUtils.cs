@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Utils
 {
@@ -72,6 +73,18 @@ namespace osu.Framework.Utils
 
             // `(int)(object)null` throws a NRE, so `default` is used instead.
             return val == null ? default! : (T)val;
+        }
+
+        public static void UnbindBindable(Type containingType, IUnbindable? bindable)
+        {
+            try
+            {
+                bindable?.UnbindAll();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"Failed to unbind a local bindable in {containingType.ReadableName()}");
+            }
         }
     }
 }

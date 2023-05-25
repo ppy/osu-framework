@@ -1,0 +1,4 @@
+public partial class BaseType : osu.Framework.Graphics.Drawable
+{
+    private readonly osu.Framework.Bindables.Bindable<int> Bindable1 = new osu.Framework.Bindables.Bindable<int>();
+}

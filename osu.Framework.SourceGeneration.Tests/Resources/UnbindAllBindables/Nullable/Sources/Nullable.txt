@@ -1,0 +1,4 @@
+public partial class Nullable : osu.Framework.Graphics.Drawable
+{
+    public osu.Framework.Bindables.Bindable<int>? Bindable1;
+}
