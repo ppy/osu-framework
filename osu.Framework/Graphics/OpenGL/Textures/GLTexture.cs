@@ -66,6 +66,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalHeight;
         private bool manualMipmaps;
 
+        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
+
         private readonly All filteringMode;
         private readonly Color4 initialisationColour;
 
@@ -199,10 +201,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!Available)
                 return false;
 
+            uploadedRegions.Clear();
+
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
-
-            List<RectangleI> uploadedRegions = new List<RectangleI>();
 
             while (tryGetNextUpload(out ITextureUpload upload))
             {

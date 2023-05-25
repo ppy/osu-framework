@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using osu.Framework.Utils;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
@@ -36,11 +35,11 @@ namespace osu.Framework.Graphics.Performance
                     Colour = Color4.Black,
                     Alpha = 0.75f
                 },
-                counter = new CounterText
+                counter = new SpriteText
                 {
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
-                    Spacing = new Vector2(-1, 0),
+                    Font = FrameworkFont.Regular,
                     Text = @"...",
                 }
             });
@@ -102,16 +101,6 @@ namespace osu.Framework.Graphics.Performance
 
             counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms ±{jitter:0.00}ms)"
                            + (clock.Throttling ? $"{(clock.MaximumUpdateHz > 0 && clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞"),4}hz" : string.Empty);
-        }
-
-        private partial class CounterText : SpriteText
-        {
-            public CounterText()
-            {
-                Font = FrameworkFont.Regular.With(fixedWidth: true);
-            }
-
-            protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };
         }
 
         public void NewFrame(FrameStatistics frame)

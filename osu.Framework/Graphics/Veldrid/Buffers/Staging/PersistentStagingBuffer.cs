@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
     {
         private readonly VeldridRenderer renderer;
         private readonly DeviceBuffer stagingBuffer;
-        private readonly MappedResource stagingBufferMap;
+        private MappedResource? stagingBufferMap;
 
         public PersistentStagingBuffer(VeldridRenderer renderer, uint count)
         {
@@ -25,7 +25,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
             SizeInBytes = (uint)(Unsafe.SizeOf<T>() * count);
 
             stagingBuffer = renderer.Factory.CreateBuffer(new BufferDescription(SizeInBytes, BufferUsage.Staging));
-            stagingBufferMap = renderer.Device.Map(stagingBuffer, MapMode.ReadWrite);
 
             Data.Clear();
         }
@@ -40,15 +39,20 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
         {
             get
             {
+                if (stagingBufferMap is not MappedResource map)
+                    stagingBufferMap = map = renderer.Device.Map(stagingBuffer, MapMode.ReadWrite);
+
                 unsafe
                 {
-                    return new Span<T>(stagingBufferMap.Data.ToPointer(), (int)Count);
+                    return new Span<T>(map.Data.ToPointer(), (int)Count);
                 }
             }
         }
 
         public void CopyTo(DeviceBuffer buffer, uint srcOffset, uint dstOffset, uint size)
         {
+            unmap();
+
             renderer.BufferUpdateCommands.CopyBuffer(
                 stagingBuffer,
                 (uint)(srcOffset * Unsafe.SizeOf<T>()),
@@ -57,9 +61,18 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
                 (uint)(size * Unsafe.SizeOf<T>()));
         }
 
+        private void unmap()
+        {
+            if (stagingBufferMap == null)
+                return;
+
+            renderer.Device.Unmap(stagingBuffer);
+            stagingBufferMap = null;
+        }
+
         public void Dispose()
         {
-            renderer.Device.Unmap(stagingBuffer);
+            unmap();
             stagingBuffer.Dispose();
         }
     }
