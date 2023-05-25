@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public DummyRenderer()
         {
             maskingInfo = default;
-            WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
+            WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
         }
 
         bool IRenderer.VerticalSync { get; set; } = true;
