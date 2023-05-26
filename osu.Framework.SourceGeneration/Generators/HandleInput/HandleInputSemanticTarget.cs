@@ -54,34 +54,34 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
                 || checkProperties(non_positional_input_properties, symbol);
         }
 
-        private bool checkMethods(IEnumerable<string> methods, INamedTypeSymbol symbol)
+        private static bool checkMethods(IEnumerable<string> methods, INamedTypeSymbol symbol)
         {
-            return runForTypeHierarchy(symbol, s =>
+            return runForTypeHierarchy(symbol, methods, static (symbol, methods) =>
             {
-                return methods.SelectMany(name => s.GetMembers(name).OfType<IMethodSymbol>()).Any(isDrawableMethod);
+                return methods.SelectMany(name => symbol.GetMembers(name).OfType<IMethodSymbol>()).Any(isDrawableMethod);
             });
         }
 
-        private bool checkProperties(IEnumerable<string> properties, INamedTypeSymbol symbol)
+        private static bool checkProperties(IEnumerable<string> properties, INamedTypeSymbol symbol)
         {
-            return runForTypeHierarchy(symbol, s =>
+            return runForTypeHierarchy(symbol, properties, static (symbol, properties) =>
             {
                 return properties.SelectMany(name => symbol.GetMembers(name).OfType<IPropertySymbol>()).Any(isDrawableProperty);
             });
         }
 
-        private bool checkInterfaces(ImmutableHashSet<string> interfaces, INamedTypeSymbol symbol)
+        private static bool checkInterfaces(ImmutableHashSet<string> interfaces, INamedTypeSymbol symbol)
         {
             return symbol.AllInterfaces.Select(SyntaxHelpers.GetFullyQualifiedTypeName).Any(interfaces.Contains);
         }
 
-        private bool runForTypeHierarchy(INamedTypeSymbol symbol, Func<INamedTypeSymbol, bool> func)
+        private static bool runForTypeHierarchy<T>(INamedTypeSymbol symbol, T items, Func<INamedTypeSymbol, T, bool> func)
         {
             INamedTypeSymbol? type = symbol;
 
             while (type != null && !isDrawableType(type))
             {
-                if (func(type))
+                if (func(type, items))
                     return true;
 
                 type = type.BaseType;
@@ -90,7 +90,7 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
             return false;
         }
 
-        private bool isDrawableMethod(IMethodSymbol method)
+        private static bool isDrawableMethod(IMethodSymbol method)
         {
             while (method.OverriddenMethod != null)
                 method = method.OverriddenMethod;
@@ -98,7 +98,7 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
             return isDrawableType(method.ContainingType);
         }
 
-        private bool isDrawableProperty(IPropertySymbol property)
+        private static bool isDrawableProperty(IPropertySymbol property)
         {
             while (property.OverriddenProperty != null)
                 property = property.OverriddenProperty;
@@ -106,7 +106,7 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
             return isDrawableType(property.ContainingType);
         }
 
-        private bool isDrawableType(INamedTypeSymbol type)
+        private static bool isDrawableType(INamedTypeSymbol type)
             => SyntaxHelpers.GetFullyQualifiedTypeName(type) == "osu.Framework.Graphics.Drawable";
 
         // HandleInputCache.positional_input_methods
