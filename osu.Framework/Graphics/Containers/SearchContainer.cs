@@ -91,7 +91,8 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            Filter();
+            if (!filterValid.IsValid)
+                Filter();
         }
 
         /// <summary>
