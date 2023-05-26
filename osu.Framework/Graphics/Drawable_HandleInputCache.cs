@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics
 
             public static bool RequestsPositionalInput(Drawable drawable)
             {
-                if (drawable is ISourceGeneratedInputCache sgInput && sgInput.KnownType == drawable.GetType())
+                if (drawable is ISourceGeneratedHandleInputCache sgInput && sgInput.KnownType == drawable.GetType())
                     return sgInput.RequestsPositionalInput;
 
                 return getViaReflection(drawable, positional_cached_values, true);
@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics
 
             public static bool RequestsNonPositionalInput(Drawable drawable)
             {
-                if (drawable is ISourceGeneratedInputCache sgInput && sgInput.KnownType == drawable.GetType())
+                if (drawable is ISourceGeneratedHandleInputCache sgInput && sgInput.KnownType == drawable.GetType())
                     return sgInput.RequestsNonPositionalInput;
 
                 return getViaReflection(drawable, non_positional_cached_values, false);

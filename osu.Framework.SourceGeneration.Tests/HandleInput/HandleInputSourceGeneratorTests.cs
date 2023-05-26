@@ -3,13 +3,13 @@
 
 using System.Threading.Tasks;
 using Xunit;
-using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.Generators.Input.HandleInputSourceGenerator>;
+using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.Generators.HandleInput.HandleInputSourceGenerator>;
 
-namespace osu.Framework.SourceGeneration.Tests.Input
+namespace osu.Framework.SourceGeneration.Tests.HandleInput
 {
     public class InputSourceGeneratorTests : AbstractGeneratorTests
     {
-        protected override string ResourceNamespace => "Input";
+        protected override string ResourceNamespace => "HandleInput";
 
         [Theory]
         [InlineData("HandleMethod")]

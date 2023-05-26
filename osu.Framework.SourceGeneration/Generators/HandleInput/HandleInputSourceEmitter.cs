@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace osu.Framework.SourceGeneration.Generators.Input
+namespace osu.Framework.SourceGeneration.Generators.HandleInput
 {
     public class HandleInputSourceEmitter : IncrementalSourceEmitter
     {
-        private const string interface_name = "global::osu.Framework.Input.ISourceGeneratedInputCache";
+        private const string interface_name = "global::osu.Framework.Input.ISourceGeneratedHandleInputCache";
 
         protected override string FileSuffix => "HandleInput";
 

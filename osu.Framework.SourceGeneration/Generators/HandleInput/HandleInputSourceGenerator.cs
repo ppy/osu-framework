@@ -4,7 +4,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace osu.Framework.SourceGeneration.Generators.Input
+namespace osu.Framework.SourceGeneration.Generators.HandleInput
 {
     [Generator]
     public class HandleInputSourceGenerator : AbstractIncrementalGenerator

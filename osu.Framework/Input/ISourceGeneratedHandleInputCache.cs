@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Input
 {
-    public interface ISourceGeneratedInputCache
+    public interface ISourceGeneratedHandleInputCache
     {
         protected internal Type KnownType { get; }
         protected internal bool RequestsPositionalInput { get; }

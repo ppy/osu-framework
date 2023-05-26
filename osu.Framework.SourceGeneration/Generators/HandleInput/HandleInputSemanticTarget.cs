@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace osu.Framework.SourceGeneration.Generators.Input
+namespace osu.Framework.SourceGeneration.Generators.HandleInput
 {
     public class HandleInputSemanticTarget : IncrementalSemanticTarget
     {
