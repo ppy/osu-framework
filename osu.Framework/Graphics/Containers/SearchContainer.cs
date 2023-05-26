@@ -91,8 +91,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            if (!filterValid.IsValid)
-                Filter();
+            Filter();
         }
 
         /// <summary>
@@ -104,9 +103,14 @@ namespace osu.Framework.Graphics.Containers
         ///
         /// However, if <see cref="SearchContainer{T}"/> or any of its parents are hidden this will not be run.
         /// If an implementation relies on filtering to become present / visible, this method can be used to force a filter.
+        ///
+        /// Note that this will only run if the current filter is not in an already valid state.
         /// </remarks>
         protected void Filter()
         {
+            if (filterValid.IsValid)
+                return;
+
             canBeShownBindables.Clear();
             performFilter();
             filterValid.Validate();
