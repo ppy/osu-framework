@@ -7,7 +7,7 @@ using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGene
 
 namespace osu.Framework.SourceGeneration.Tests.HandleInput
 {
-    public class InputSourceGeneratorTests : AbstractGeneratorTests
+    public class HandleInputSourceGeneratorTests : AbstractGeneratorTests
     {
         protected override string ResourceNamespace => "HandleInput";
 
