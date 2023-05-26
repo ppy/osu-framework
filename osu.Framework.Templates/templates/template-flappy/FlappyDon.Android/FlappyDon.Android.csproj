@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\..\osu.Framework.Android.props" />
+  <PropertyGroup>
+    <TargetFramework>net6.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FlappyDon.Android</RootNamespace>
+    <AssemblyName>FlappyDon.Android</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj" />
+    <ProjectReference Include="..\FlappyDon.Resources\FlappyDon.Resources.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Package References">
+    <ProjectReference Include="..\..\..\..\osu.Framework.Android\osu.Framework.Android.csproj" />
+  </ItemGroup>
+</Project>

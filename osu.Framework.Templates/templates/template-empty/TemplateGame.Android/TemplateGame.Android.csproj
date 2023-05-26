@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\..\osu.Framework.Android.props" />
+  <PropertyGroup>
+    <TargetFramework>net6.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TemplateGame.Android</RootNamespace>
+    <AssemblyName>TemplateGame.Android</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj" />
+    <ProjectReference Include="..\TemplateGame.Resources\TemplateGame.Resources.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Package References">
+    <ProjectReference Include="..\..\..\..\osu.Framework.Android\osu.Framework.Android.csproj" />
+  </ItemGroup>
+</Project>

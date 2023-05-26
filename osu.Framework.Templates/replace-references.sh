@@ -1,5 +1,6 @@
 game_projects=(./**/**/**/*.Game.csproj)
 ios_projects=(./**/**/**/*.iOS.csproj)
+android_projects=(./**/**/**/*.Android.csproj)
 
 cd "$(dirname "$0")"
 
@@ -16,3 +17,11 @@ do
 done
 
 sed -i '/osu.Framework.iOS.props/d' ./**/**/**/*.iOS.csproj
+
+for android_project in ${android_projects[@]}
+do
+    dotnet remove $android_project reference ../osu.Framework.Android/osu.Framework.Android.csproj
+    dotnet add $android_project package ppy.osu.Framework.Android -v $1 --no-restore
+done
+
+sed -i '/osu.Framework.Android.props/d' ./**/**/**/*.Android.csproj
