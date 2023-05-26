@@ -72,7 +72,7 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
 
         private bool checkInterfaces(ImmutableHashSet<string> interfaces, INamedTypeSymbol symbol)
         {
-            return symbol.AllInterfaces.Any(i => interfaces.Contains(i.Name));
+            return symbol.AllInterfaces.Select(SyntaxHelpers.GetFullyQualifiedTypeName).Any(interfaces.Contains);
         }
 
         private bool runForTypeHierarchy(INamedTypeSymbol symbol, Func<INamedTypeSymbol, bool> func)
@@ -152,15 +152,15 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
 
         // HandleInputCache.positional_input_interfaces
         private static readonly ImmutableHashSet<string> positional_input_interfaces = ImmutableHashSet.Create<string>(
-            "IHasTooltip",
-            "IHasCustomTooltip",
-            "IHasContextMenu",
-            "IHasPopover"
+            "osu.Framework.Graphics.Cursor.IHasTooltip",
+            "osu.Framework.Graphics.Cursor.IHasCustomTooltip",
+            "osu.Framework.Graphics.Cursor.IHasContextMenu",
+            "osu.Framework.Graphics.Cursor.IHasPopover"
         );
 
         // HandleInputCache.non_positional_input_interfaces
         private static readonly ImmutableHashSet<string> non_positional_input_interfaces = ImmutableHashSet.Create<string>(
-            "IKeyBindingHandler"
+            "osu.Framework.Input.Bindings.IKeyBindingHandler"
         );
 
         // HandleInputCache.positional_input_properties

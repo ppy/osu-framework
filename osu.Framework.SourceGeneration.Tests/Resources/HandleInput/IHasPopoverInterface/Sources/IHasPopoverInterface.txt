@@ -1,7 +1,5 @@
-public partial class IHasPopoverInterface : osu.Framework.Graphics.Drawable, IHasPopover
-{
-}
+using osu.Framework.Graphics.Cursor;
 
-public interface IHasPopover
+public partial class IHasPopoverInterface : osu.Framework.Graphics.Drawable, IHasPopover
 {
 }
