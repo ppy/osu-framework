@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -55,19 +56,38 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
 
         private bool checkMethods(IEnumerable<string> methods, INamedTypeSymbol symbol)
         {
-            return methods.SelectMany(name => symbol.GetMembers(name).OfType<IMethodSymbol>())
-                          .Any(method => method.Parameters.Length == 1 && isDrawableMethod(method));
+            return runForTypeHierarchy(symbol, s =>
+            {
+                return methods.SelectMany(name => s.GetMembers(name).OfType<IMethodSymbol>()).Any(isDrawableMethod);
+            });
         }
 
         private bool checkProperties(IEnumerable<string> properties, INamedTypeSymbol symbol)
         {
-            return properties.SelectMany(name => symbol.GetMembers(name).OfType<IPropertySymbol>())
-                             .Any(isDrawableProperty);
+            return runForTypeHierarchy(symbol, s =>
+            {
+                return properties.SelectMany(name => symbol.GetMembers(name).OfType<IPropertySymbol>()).Any(isDrawableProperty);
+            });
         }
 
         private bool checkInterfaces(ImmutableHashSet<string> interfaces, INamedTypeSymbol symbol)
         {
             return symbol.AllInterfaces.Any(i => interfaces.Contains(i.Name));
+        }
+
+        private bool runForTypeHierarchy(INamedTypeSymbol symbol, Func<INamedTypeSymbol, bool> func)
+        {
+            INamedTypeSymbol? type = symbol;
+
+            while (type != null && !isDrawableType(type))
+            {
+                if (func(type))
+                    return true;
+
+                type = type.BaseType;
+            }
+
+            return false;
         }
 
         private bool isDrawableMethod(IMethodSymbol method)

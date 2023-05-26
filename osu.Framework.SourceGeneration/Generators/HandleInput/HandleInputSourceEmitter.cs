@@ -36,18 +36,6 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
             // Drawable is the base type which always needs to have the members defined.
             bool isDrawable = Target.FullyQualifiedTypeName == "osu.Framework.Graphics.Drawable";
 
-            yield return SyntaxFactory.PropertyDeclaration(
-                                          SyntaxFactory.ParseTypeName("global::System.Type"),
-                                          SyntaxFactory.Identifier("KnownType"))
-                                      .WithExplicitInterfaceSpecifier(
-                                          SyntaxFactory.ExplicitInterfaceSpecifier(
-                                              SyntaxFactory.IdentifierName(interface_name)))
-                                      .WithExpressionBody(
-                                          SyntaxFactory.ArrowExpressionClause(
-                                              SyntaxFactory.TypeOfExpression(
-                                                  SyntaxFactory.ParseTypeName(Target.GlobalPrefixedTypeName))))
-                                      .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
             if (Target.RequestsPositionalInput || isDrawable)
                 yield return createInputMember("RequestsPositionalInput", Target.RequestsPositionalInput);
 

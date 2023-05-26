@@ -2,7 +2,7 @@
 #nullable enable
 #pragma warning disable CS4014
 
-partial class HandleMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
+partial class PartialClass : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => true;
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => true;

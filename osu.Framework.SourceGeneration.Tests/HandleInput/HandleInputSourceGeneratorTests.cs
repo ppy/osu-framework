@@ -48,6 +48,7 @@ namespace osu.Framework.SourceGeneration.Tests.HandleInput
         [InlineData("IHasContextMenuInterface")]
         [InlineData("IHasPopoverInterface")]
         [InlineData("IKeyBindingHandlerInterface")]
+        [InlineData("IntermediateNonPartial")]
         public Task Check(string name)
         {
             GetTestSources(name,
