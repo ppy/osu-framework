@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
             if (buffer is not IVeldridUniformBuffer veldridBuffer)
-                throw new InvalidOperationException();
+                throw new ArgumentException($"Buffer must be an {nameof(IVeldridUniformBuffer)}.");
 
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
