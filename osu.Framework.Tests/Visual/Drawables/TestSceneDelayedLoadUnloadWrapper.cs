@@ -19,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedLoadUnloadWrapper : FrameworkTestScene
+    public partial class TestSceneDelayedLoadUnloadWrapper : FrameworkTestScene
     {
         private const int panel_count = 1024;
 
@@ -409,7 +409,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
-            AddStep("remove parent", () => Remove(parent));
+            AddStep("remove parent", () => Remove(parent, false));
             AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
         }
 
@@ -489,12 +489,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("drawable disposed", () => child.IsDisposed);
         }
 
-        public class TestScrollContainer : BasicScrollContainer
+        public partial class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;
         }
 
-        public class TestBox : Container
+        public partial class TestBox : Container
         {
             private readonly Action onLoadAction;
 
@@ -519,7 +519,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class DelayedLoadTestDrawable : CompositeDrawable
+        public partial class DelayedLoadTestDrawable : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
 

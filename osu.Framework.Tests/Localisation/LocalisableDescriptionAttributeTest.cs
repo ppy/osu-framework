@@ -15,6 +15,7 @@ namespace osu.Framework.Tests.Localisation
     {
         [TestCase(EnumA.Item1, "Item1")]
         [TestCase(EnumA.Item2, "B")]
+        [TestCase((EnumA)3, "3")]
         public void TestNonLocalisableDescriptionReturnsDescriptionOrToString(EnumA value, string expected)
         {
             Assert.That(value.GetLocalisableDescription().ToString(), Is.EqualTo(expected));

@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using NUnit.Framework;
@@ -14,8 +12,8 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class InterpolatingClockTest
     {
-        private TestClock source;
-        private InterpolatingFramedClock interpolating;
+        private TestClock source = null!;
+        private InterpolatingFramedClock interpolating = null!;
 
         [SetUp]
         public void SetUp()
@@ -69,6 +67,62 @@ namespace osu.Framework.Tests.Clocks
             }
 
             Assert.Greater(interpolatedCount, 10);
+        }
+
+        [Test]
+        public void SourceChangeTransfersValueAdjustable()
+        {
+            // For interpolating clocks, value transfer is always in the direction of the interpolating clock.
+
+            const double first_source_time = 256000;
+            const double second_source_time = 128000;
+
+            source.Seek(first_source_time);
+
+            var secondSource = new TestClock
+            {
+                // importantly, test a value lower than the original source.
+                // this is to both test value transfer *and* the case where time is going backwards, as
+                // some clocks have special provisions for this.
+                CurrentTime = second_source_time
+            };
+
+            interpolating.ProcessFrame();
+            Assert.That(interpolating.CurrentTime, Is.EqualTo(first_source_time));
+
+            interpolating.ChangeSource(secondSource);
+            interpolating.ProcessFrame();
+
+            Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
+            Assert.That(interpolating.CurrentTime, Is.EqualTo(second_source_time));
+        }
+
+        [Test]
+        public void SourceChangeTransfersValueNonAdjustable()
+        {
+            // For interpolating clocks, value transfer is always in the direction of the interpolating clock.
+
+            const double first_source_time = 256000;
+            const double second_source_time = 128000;
+
+            source.Seek(first_source_time);
+
+            var secondSource = new TestNonAdjustableClock
+            {
+                // importantly, test a value lower than the original source.
+                // this is to both test value transfer *and* the case where time is going backwards, as
+                // some clocks have special provisions for this.
+                CurrentTime = second_source_time
+            };
+
+            interpolating.ProcessFrame();
+            Assert.That(interpolating.CurrentTime, Is.EqualTo(first_source_time));
+
+            interpolating.ChangeSource(secondSource);
+            interpolating.ProcessFrame();
+
+            Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
+            Assert.That(interpolating.CurrentTime, Is.EqualTo(second_source_time));
         }
 
         [Test]

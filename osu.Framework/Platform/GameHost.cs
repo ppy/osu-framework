@@ -12,20 +12,19 @@ using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
-using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -39,13 +38,12 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
-using Image = SixLabors.ImageSharp.Image;
-using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using osu.Framework.Localisation;
 using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
@@ -55,6 +53,8 @@ namespace osu.Framework.Platform
         public IWindow Window { get; private set; }
 
         public IRenderer Renderer { get; private set; }
+
+        public string RendererInfo { get; private set; }
 
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
@@ -169,9 +169,9 @@ namespace osu.Framework.Platform
         public abstract void OpenUrlExternally(string url);
 
         /// <summary>
-        /// Creates the game window for the host. Should be implemented per-platform if required.
+        /// Creates the game window for the host.
         /// </summary>
-        protected virtual IWindow CreateWindow() => null;
+        protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
@@ -226,7 +226,9 @@ namespace osu.Framework.Platform
 
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+
+            if (thread.Monitor != null)
+                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -246,7 +248,7 @@ namespace osu.Framework.Platform
         public InputThread InputThread { get; private set; }
         public AudioThread AudioThread { get; private set; }
 
-        private double maximumUpdateHz;
+        private double maximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of update frames per second when the game window is active.
@@ -260,7 +262,7 @@ namespace osu.Framework.Platform
             set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
-        private double maximumDrawHz;
+        private double maximumDrawHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of draw frames per second when the game window is active.
@@ -271,8 +273,15 @@ namespace osu.Framework.Platform
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
-            set => DrawThread.ActiveHz = maximumDrawHz = value;
+            set
+            {
+                maximumDrawHz = value;
+                if (DrawThread != null)
+                    DrawThread.ActiveHz = maximumDrawHz;
+            }
         }
+
+        private double maximumInactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -283,11 +292,12 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumInactiveHz
         {
-            get => DrawThread.InactiveHz;
+            get => maximumInactiveHz;
             set
             {
-                DrawThread.InactiveHz = value;
-                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
+                if (DrawThread != null)
+                    DrawThread.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -322,7 +332,7 @@ namespace osu.Framework.Platform
             };
         }
 
-        protected virtual IRenderer CreateRenderer() => new OpenGLRenderer();
+        protected virtual IRenderer CreateGLRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -466,6 +476,9 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Running)
                 return;
 
+            Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
+            Renderer.WaitUntilNextFrameReady();
+
             ObjectUsage<DrawNode> buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
@@ -476,43 +489,44 @@ namespace osu.Framework.Platform
 
             try
             {
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
+                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                 if (!bypassFrontToBackPass.Value)
                 {
                     depthValue.Reset();
 
-                    GL.ColorMask(false, false, false, false);
-                    GLWrapper.SetBlend(BlendingParameters.None);
-                    GLWrapper.PushDepthInfo(DepthInfo.Default);
+                    Renderer.SetBlend(BlendingParameters.None);
+
+                    Renderer.SetBlendMask(BlendingMask.None);
+                    Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
                     buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
 
-                    GLWrapper.PopDepthInfo();
-                    GL.ColorMask(true, true, true, true);
+                    Renderer.PopDepthInfo();
+                    Renderer.SetBlendMask(BlendingMask.All);
 
                     // The back pass doesn't write depth, but needs to depth test properly
-                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    Renderer.PushDepthInfo(new DepthInfo(true, false));
                 }
                 else
                 {
                     // Disable depth testing
-                    GLWrapper.PushDepthInfo(new DepthInfo());
+                    Renderer.PushDepthInfo(new DepthInfo(false, false));
                 }
 
                 // Back pass
                 buffer.Object.Draw(Renderer);
 
-                GLWrapper.PopDepthInfo();
+                Renderer.PopDepthInfo();
 
-                GLWrapper.FlushCurrentBatch();
+                Renderer.FinishFrame();
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                {
                     Swap();
-                }
+
+                Window.OnDraw();
             }
             finally
             {
@@ -525,12 +539,12 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            Window.SwapBuffers();
+            Renderer.SwapBuffers();
 
-            if (Window.VerticalSync)
-                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
+                // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
-                GL.Finish();
+                Renderer.WaitUntilIdle();
         }
 
         /// <summary>
@@ -543,18 +557,11 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                int width = Window.ClientSize.Width;
-                int height = Window.ClientSize.Height;
-                var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
+                Image<Rgba32> image = null;
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is SDL2DesktopWindow win)
-                        win.MakeCurrent();
-                    else if (GraphicsContext.CurrentContext == null)
-                        throw new GraphicsContextMissingException();
-
-                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
+                    image = Renderer.TakeScreenshot();
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
@@ -564,9 +571,6 @@ namespace osu.Framework.Platform
                 // ReSharper disable once AccessToDisposedClosure
                 if (!await Task.Run(() => completionEvent.Wait(5000)).ConfigureAwait(false))
                     throw new TimeoutException("Screenshot data did not arrive in a timely fashion");
-
-                var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
-                image.Mutate(c => c.Flip(FlipMode.Vertical));
 
                 return image;
             }
@@ -655,12 +659,14 @@ namespace osu.Framework.Platform
                 Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
             }
 
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            if (RuntimeInfo.IsDesktop)
+            {
+                // Mono (netcore) throws for this property
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            }
 
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
-
-            Renderer = CreateRenderer();
 
             try
             {
@@ -681,8 +687,6 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
-
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
@@ -692,33 +696,30 @@ namespace osu.Framework.Platform
                 Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
-
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
 
-                Window = CreateWindow();
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
+                ChooseAndSetupRenderer();
+
                 initialiseInputHandlers();
 
-                if (Window != null)
+                // Prepare renderer (requires config).
+                Dependencies.CacheAs(Renderer);
+
+                RendererInfo = $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}";
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this)
                 {
-                    Window.SetupWindow(Config);
-
-                    Window.Create();
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
-
-                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
-                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
-
-                    IsActive.BindTo(Window.IsActive);
-                }
+                    ActiveHz = MaximumDrawHz,
+                    InactiveHz = MaximumInactiveHz,
+                });
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
@@ -746,7 +747,7 @@ namespace osu.Framework.Platform
                     {
                         switch (Window)
                         {
-                            case SDL2DesktopWindow window:
+                            case SDL2Window window:
                                 window.Update += windowUpdate;
                                 break;
 
@@ -754,6 +755,10 @@ namespace osu.Framework.Platform
                                 tkWindow.UpdateFrame += (_, _) => windowUpdate();
                                 break;
                         }
+
+                        Window.Suspended += Suspend;
+                        Window.Resumed += Resume;
+                        Window.LowOnMemory += Collect;
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
@@ -785,6 +790,195 @@ namespace osu.Framework.Platform
                     host_running_mutex.Release();
                 }
             }
+        }
+
+        /// <summary>
+        /// The renderer which the game host is currently running with.
+        /// </summary>
+        /// <remarks>
+        /// This is similar to <see cref="IGraphicsSurface.Type"/> except that this is expressed as a <see cref="RendererType"/> rather than a <see cref="GraphicsSurfaceType"/>.
+        /// </remarks>
+        public RendererType ResolvedRenderer { get; private set; }
+
+        /// <summary>
+        /// All valid <see cref="RendererType"/>s for the current platform, in order of how stable and performant they are deemed to be.
+        /// </summary>
+        public IEnumerable<RendererType> GetPreferredRenderersForCurrentPlatform()
+        {
+            yield return RendererType.Automatic;
+
+            // Preferred per-platform renderers
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.Windows:
+                    yield return RendererType.Direct3D11;
+
+                    break;
+
+                case RuntimeInfo.Platform.macOS:
+                case RuntimeInfo.Platform.iOS:
+                    yield return RendererType.Metal;
+
+                    break;
+            }
+
+            // See https://github.com/ppy/osu/issues/23003
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
+            {
+                // Non-veldrid "known-to-work".
+                yield return RendererType.OpenGLLegacy;
+            }
+
+            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
+            // but will never be preferred as OpenGLLegacy will always work.
+            yield return RendererType.OpenGL;
+
+            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
+        }
+
+        protected virtual void ChooseAndSetupRenderer()
+        {
+            // Always give preference to environment variables.
+            if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
+            {
+                Logger.Log("🖼️ Using environment variables for renderer and surface selection.", level: LogLevel.Important);
+
+                // And allow this to hard fail with no fallbacks.
+                SetupRendererAndWindow(
+                    FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
+                    FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
+                return;
+            }
+
+            var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
+            Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
+
+            // Attempt to initialise various veldrid surface types (and legacy GL).
+            var rendererTypes = GetPreferredRenderersForCurrentPlatform().Where(r => r != RendererType.Automatic).ToList();
+
+            // Move user's preference to the start of the attempts.
+            if (!configRenderer.IsDefault)
+            {
+                rendererTypes.Remove(configRenderer.Value);
+                rendererTypes.Insert(0, configRenderer.Value);
+            }
+
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
+
+            foreach (RendererType type in rendererTypes)
+            {
+                try
+                {
+                    if (type == RendererType.OpenGLLegacy)
+                        // the legacy renderer. this is basically guaranteed to support all platforms.
+                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                    else
+                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
+
+                    ResolvedRenderer = type;
+                    return;
+                }
+                catch
+                {
+                    if (configRenderer.Value != RendererType.Automatic)
+                    {
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                            level: LogLevel.Important);
+                        configRenderer.Value = RendererType.Automatic;
+                    }
+                }
+            }
+
+            Logger.Log("No usable renderer was found!", level: LogLevel.Error);
+        }
+
+        private static GraphicsSurfaceType rendererToGraphicsSurfaceType(RendererType renderer)
+        {
+            GraphicsSurfaceType surface;
+
+            switch (renderer)
+            {
+                case RendererType.Metal:
+                    surface = GraphicsSurfaceType.Metal;
+                    break;
+
+                case RendererType.Vulkan:
+                    surface = GraphicsSurfaceType.Vulkan;
+                    break;
+
+                case RendererType.Direct3D11:
+                    surface = GraphicsSurfaceType.Direct3D11;
+                    break;
+
+                case RendererType.OpenGL:
+                    surface = GraphicsSurfaceType.OpenGL;
+                    break;
+
+                default:
+                    throw new ArgumentException("Provided renderer cannot be mapped to a veldrid surface");
+            }
+
+            return surface;
+        }
+
+        protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
+        {
+            switch (renderer)
+            {
+                case "veldrid":
+                    SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                default:
+                case "gl":
+                    SetupRendererAndWindow(CreateGLRenderer(), surfaceType);
+                    break;
+            }
+        }
+
+        protected void SetupRendererAndWindow(IRenderer renderer, GraphicsSurfaceType surfaceType)
+        {
+            Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
+
+            Renderer = renderer;
+
+            // Prepare window
+            Window = CreateWindow(surfaceType);
+
+            if (Window == null)
+            {
+                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
+                return;
+            }
+
+            try
+            {
+                Window.SetupWindow(Config);
+                Window.Create();
+                Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                Renderer.Initialise(Window.GraphicsSurface);
+
+                Logger.Log("🖼️ Renderer initialised!");
+            }
+            catch (Exception e)
+            {
+                Logger.Log("🖼️ Renderer initialisation failed with:");
+                Logger.Log(e.ToString());
+
+                Window?.Close();
+                Window?.Dispose();
+                Window = null;
+
+                Renderer = null;
+                throw;
+            }
+
+            currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+            currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+            IsActive.BindTo(Window.IsActive);
         }
 
         /// <summary>
@@ -998,7 +1192,11 @@ namespace osu.Framework.Platform
 
             PerformanceLogging.BindValueChanged(logging =>
             {
-                Threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                Threads.ForEach(t =>
+                {
+                    if (t.Monitor != null)
+                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
@@ -1008,24 +1206,8 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                CultureInfo culture;
-
-                try
-                {
-                    // After dropping netstandard we can use `predefinedOnly` override.
-                    // See https://github.com/dotnet/runtime/pull/1261/files
-                    culture = CultureInfo.GetCultureInfo(locale.NewValue);
-
-                    // This is best-effort for now to catch cases where dotnet is creating cultures.
-                    // See https://github.com/dotnet/runtime/blob/5877e8b713742b6d80bd1aa9819094be029e3e1f/src/libraries/System.Private.CoreLib/src/System/Globalization/CultureData.Icu.cs#L341-L345
-                    if (culture.ThreeLetterWindowsLanguageName == "ZZZ")
-                        culture = CultureInfo.InvariantCulture;
-                }
-                catch (Exception e)
-                {
-                    Logger.Log($"Culture for {locale.NewValue} could not be found ({e})");
-                    culture = CultureInfo.InvariantCulture;
-                }
+                // return value of TryGet ignored as the failure case gives expected results (CultureInfo.InvariantCulture)
+                CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture);
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -1109,7 +1291,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
+            DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         /// <summary>
@@ -1239,7 +1421,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(Renderer, stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

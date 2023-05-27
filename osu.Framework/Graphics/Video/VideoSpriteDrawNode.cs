@@ -3,9 +3,11 @@
 
 #nullable disable
 
-using osuTK;
+using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -19,18 +21,28 @@ namespace osu.Framework.Graphics.Video
             video = source;
         }
 
-        private int yLoc, uLoc = 1, vLoc = 2;
+        private IUniformBuffer<YuvData> yuvDataBuffer;
 
-        public override void Draw(IRenderer renderer)
+        protected override void BindUniformResources(IShader shader, IRenderer renderer)
         {
-            Shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
-            Shader.GetUniform<int>("m_SamplerU").UpdateValue(ref uLoc);
-            Shader.GetUniform<int>("m_SamplerV").UpdateValue(ref vLoc);
+            base.BindUniformResources(shader, renderer);
 
-            var yuvCoeff = video.ConversionMatrix;
-            Shader.GetUniform<Matrix3>("yuvCoeff").UpdateValue(ref yuvCoeff);
+            yuvDataBuffer ??= renderer.CreateUniformBuffer<YuvData>();
+            yuvDataBuffer.Data = new YuvData { YuvCoeff = video.ConversionMatrix };
 
-            base.Draw(renderer);
+            shader.BindUniformBlock("m_yuvData", yuvDataBuffer);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            yuvDataBuffer?.Dispose();
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private record struct YuvData
+        {
+            public UniformMatrix3 YuvCoeff;
         }
     }
 }

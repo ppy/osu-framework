@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Statistics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Allocation
 {
@@ -52,6 +54,8 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
     public class CachedAttribute : Attribute
     {
+        private static readonly GlobalStatistic<int> count_reflection_attributes = GlobalStatistics.Get<int>("Dependencies", "Reflected [Cached]s");
+
         internal const BindingFlags ACTIVATOR_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
@@ -120,25 +124,24 @@ namespace osu.Framework.Allocation
 
         internal static CacheDependencyDelegate CreateActivator(Type type)
         {
-            var additionActivators = new List<Action<object, DependencyContainer, CacheInfo>>();
+            count_reflection_attributes.Value++;
 
-            // Types within the framework should be able to cache value types if they desire (e.g. cancellation tokens)
-            bool allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
+            var additionActivators = new List<Action<object, DependencyContainer, CacheInfo>>();
 
             foreach (var iface in type.GetInterfaces())
             {
                 foreach (var attribute in iface.GetCustomAttributes<CachedAttribute>())
-                    additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? iface, new CacheInfo(info.Name ?? attribute.Name, info.Parent), target, allowValueTypes));
+                    additionActivators.Add((target, dc, info) => SourceGeneratorUtils.CacheDependency(dc, type, target, info, attribute.Type ?? iface, attribute.Name, null));
             }
 
             foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
-                additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? type, new CacheInfo(info.Name ?? attribute.Name, info.Parent), target, allowValueTypes));
+                additionActivators.Add((target, dc, info) => SourceGeneratorUtils.CacheDependency(dc, type, target, info, attribute.Type ?? type, attribute.Name, null));
 
             foreach (var property in type.GetProperties(ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
-                additionActivators.AddRange(createMemberActivator(property, type, allowValueTypes));
+                additionActivators.AddRange(createMemberActivator(property, type));
 
             foreach (var field in type.GetFields(ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
-                additionActivators.AddRange(createMemberActivator(field, type, allowValueTypes));
+                additionActivators.AddRange(createMemberActivator(field, type));
 
             if (additionActivators.Count == 0)
                 return (_, existing, _) => existing;
@@ -153,7 +156,7 @@ namespace osu.Framework.Allocation
             };
         }
 
-        private static IEnumerable<Action<object, DependencyContainer, CacheInfo>> createMemberActivator(MemberInfo member, Type type, bool allowValueTypes)
+        private static IEnumerable<Action<object, DependencyContainer, CacheInfo>> createMemberActivator(MemberInfo member, Type type)
         {
             switch (member)
             {
@@ -203,23 +206,7 @@ namespace osu.Framework.Allocation
                     if (member is FieldInfo f)
                         value = f.GetValue(target);
 
-                    if (value == null)
-                    {
-                        if (allowValueTypes)
-                            return;
-
-                        throw new NullDependencyException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
-                    }
-
-                    var cacheInfo = new CacheInfo(info.Name ?? attribute.Name);
-
-                    if (info.Parent != null)
-                    {
-                        // When a parent type exists, infer the property name if one is not provided
-                        cacheInfo = new CacheInfo(cacheInfo.Name ?? member.Name, info.Parent);
-                    }
-
-                    dc.CacheAs(attribute.Type ?? value.GetType(), cacheInfo, value, allowValueTypes);
+                    SourceGeneratorUtils.CacheDependency(dc, type, value, info, attribute.Type, attribute.Name, member.Name);
                 };
             }
         }

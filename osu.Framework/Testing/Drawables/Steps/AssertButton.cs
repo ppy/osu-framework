@@ -10,7 +10,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class AssertButton : StepButton
+    public partial class AssertButton : StepButton
     {
         public Func<bool> Assertion;
         public string ExtendedDescription;

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux;
 using osu.Framework.Platform.MacOS;
@@ -13,21 +14,12 @@ namespace osu.Framework
 {
     public static class Host
     {
-        [Obsolete("Use GetSuitableDesktopHost(string, HostOptions) instead.")] // Can be removed 20220715
-        public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
-        {
-            return GetSuitableDesktopHost(gameName, new HostOptions
-            {
-                BindIPC = bindIPC,
-                PortableInstallation = portableInstallation,
-            });
-        }
-
         public static DesktopGameHost GetSuitableDesktopHost(string gameName, HostOptions hostOptions = null)
         {
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
+                    Debug.Assert(OperatingSystem.IsWindows());
                     return new WindowsGameHost(gameName, hostOptions);
 
                 case RuntimeInfo.Platform.Linux:

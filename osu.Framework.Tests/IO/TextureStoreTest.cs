@@ -4,6 +4,7 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 
@@ -25,7 +26,7 @@ namespace osu.Framework.Tests.IO
         {
             using (var lookupStore1 = new NamespacedResourceStore<TextureUpload>(fontResourceStore, "Roboto"))
             using (var lookupStore2 = new NamespacedResourceStore<TextureUpload>(fontResourceStore, "RobotoCondensed"))
-            using (var textureStore = new TextureStore(scaleAdjust: 100))
+            using (var textureStore = new TextureStore(new DummyRenderer(), scaleAdjust: 100))
             {
                 textureStore.AddTextureSource(lookupStore1);
                 textureStore.AddTextureSource(lookupStore2);
@@ -49,8 +50,8 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNestedTextureStores()
         {
-            using (var textureStore = new TextureStore(new NamespacedResourceStore<TextureUpload>(fontResourceStore, "Roboto"), scaleAdjust: 100))
-            using (var nestedTextureStore = new TextureStore(new NamespacedResourceStore<TextureUpload>(fontResourceStore, "RobotoCondensed"), scaleAdjust: 200))
+            using (var textureStore = new TextureStore(new DummyRenderer(), new NamespacedResourceStore<TextureUpload>(fontResourceStore, "Roboto"), scaleAdjust: 100))
+            using (var nestedTextureStore = new TextureStore(new DummyRenderer(), new NamespacedResourceStore<TextureUpload>(fontResourceStore, "RobotoCondensed"), scaleAdjust: 200))
             {
                 textureStore.AddStore(nestedTextureStore);
 

@@ -1,13 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Development;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -31,10 +28,8 @@ namespace osu.Framework.Threading
 
             if (window != null)
             {
-                window.MakeCurrent();
-
-                GLWrapper.Initialize(host);
-                GLWrapper.Reset(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+                host.Renderer.BeginFrame(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+                host.Renderer.FinishFrame();
             }
         }
 
@@ -43,15 +38,15 @@ namespace osu.Framework.Threading
             base.MakeCurrent();
 
             ThreadSafety.IsDrawThread = true;
-
-            // Seems to be required on some drivers as the context is lost from the draw thread.
-            host.Window?.MakeCurrent();
         }
 
         protected sealed override void OnSuspended()
         {
             base.OnSuspended();
-            host.Window?.ClearCurrent();
+
+            // if we've acquired the GL context before in this thread, make sure to release it before suspension.
+            if (host.Renderer.IsInitialised)
+                host.Renderer.ClearCurrent();
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
@@ -64,6 +59,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.ShaderBinds,
             StatisticsCounterType.VerticesDraw,
             StatisticsCounterType.VerticesUpl,
+            StatisticsCounterType.UniformUpl,
             StatisticsCounterType.Pixels,
         };
     }

@@ -4,8 +4,6 @@
 #nullable disable
 
 using System;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,8 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Extensions;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -30,11 +28,18 @@ namespace osu.Framework.Graphics.Textures
         private readonly ResourceStore<TextureUpload> uploadStore = new ResourceStore<TextureUpload>();
         private readonly List<ITextureStore> nestedStores = new List<ITextureStore>();
 
-        private readonly All filteringMode;
+        private readonly IRenderer renderer;
+        private readonly TextureFilteringMode filteringMode;
         private readonly bool manualMipmaps;
 
         protected TextureAtlas Atlas;
 
+        /// <remarks>
+        /// While it would be beneficial to have this atlas size be higher (the ideal size seems to be somewhere in the ballpark of 4096),
+        /// built-in GL mipmapping performs poorly on atlases bigger than this maximum.
+        /// If the built-in GL mipmapping is replaced in the future (see custom generation logic in `{GL,Veldrid}Texture`),
+        /// then this limit can be increased to 4096 again.
+        /// </remarks>
         private const int max_atlas_size = 1024;
 
         /// <summary>
@@ -43,11 +48,12 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly float ScaleAdjust;
 
-        public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
         {
             if (store != null)
                 AddTextureSource(store);
 
+            this.renderer = renderer;
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
 
@@ -55,8 +61,8 @@ namespace osu.Framework.Graphics.Textures
 
             if (useAtlas)
             {
-                int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
-                Atlas = new TextureAtlas(size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
+                int size = Math.Min(max_atlas_size, renderer.MaxTextureSize);
+                Atlas = new TextureAtlas(renderer, size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
             }
         }
 
@@ -102,11 +108,11 @@ namespace osu.Framework.Graphics.Textures
         {
             if (upload == null) return null;
 
-            TextureGL glTexture = null;
+            Texture tex = null;
 
             if (Atlas != null)
             {
-                if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
+                if ((tex = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
                 {
                     Logger.Log(
                         $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
@@ -114,9 +120,8 @@ namespace osu.Framework.Graphics.Textures
                 }
             }
 
-            glTexture ??= new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
-
-            Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
+            tex ??= renderer.CreateTexture(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
+            tex.ScaleAdjust = ScaleAdjust;
             tex.SetData(upload);
 
             return tex;
@@ -248,7 +253,7 @@ namespace osu.Framework.Graphics.Textures
             }
             catch (TextureTooLargeForGLException)
             {
-                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({renderer.MaxTextureSize}px).", level: LogLevel.Error);
             }
             finally
             {
@@ -302,8 +307,8 @@ namespace osu.Framework.Graphics.Textures
                 {
                     // we are doing this locally as right now, Textures don't dispose the underlying texture (leaving it to GC finalizers).
                     // in the case of a purge operation we are pretty sure this is the intended behaviour.
-                    tex?.TextureGL?.Dispose();
-                    tex?.Dispose();
+                    if (tex != null)
+                        new DisposableTexture(tex).Dispose();
                 }
 
                 textureCache.Remove(texture.LookupKey);

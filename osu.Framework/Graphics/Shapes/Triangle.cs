@@ -1,13 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-using osu.Framework.Graphics.Textures;
+using osu.Framework.Allocation;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Shapes
@@ -15,14 +12,22 @@ namespace osu.Framework.Graphics.Shapes
     /// <summary>
     /// Represents a sprite that is drawn in a triangle shape, instead of a rectangle shape.
     /// </summary>
-    public class Triangle : Sprite
+    public partial class Triangle : Sprite
     {
         /// <summary>
         /// Creates a new triangle with a white pixel as texture.
         /// </summary>
         public Triangle()
         {
-            Texture = Texture.WhitePixel;
+            // Setting the texture would normally set a size of (1, 1), but since the texture is set from BDL it needs to be set here instead.
+            // RelativeSizeAxes may not behave as expected if this is not done.
+            Size = Vector2.One;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(IRenderer renderer)
+        {
+            Texture ??= renderer.WhitePixel;
         }
 
         public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
@@ -48,7 +53,7 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
+                renderer.DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
@@ -59,10 +64,10 @@ namespace osu.Framework.Graphics.Shapes
 
                 var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
-                if (GLWrapper.IsMaskingActive)
-                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour);
+                if (renderer.IsMaskingActive)
+                    renderer.DrawClipped(ref triangle, Texture, DrawColourInfo.Colour);
                 else
-                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour);
+                    renderer.DrawTriangle(Texture, triangle, DrawColourInfo.Colour);
             }
         }
     }

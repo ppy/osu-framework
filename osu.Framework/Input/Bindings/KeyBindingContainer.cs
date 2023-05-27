@@ -19,7 +19,7 @@ namespace osu.Framework.Input.Bindings
     /// Maps input actions to custom action data of type <typeparamref name="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom action.</typeparam>
-    public abstract class KeyBindingContainer<T> : KeyBindingContainer
+    public abstract partial class KeyBindingContainer<T> : KeyBindingContainer
         where T : struct
     {
         private readonly SimultaneousBindingMode simultaneousMode;
@@ -204,6 +204,8 @@ namespace osu.Framework.Input.Bindings
             {
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
                 // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+                // TODO: remove when we switch to .NET 7.
+                // ReSharper disable once ConvertClosureToMethodGroup
                 newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
             }
 
@@ -357,14 +359,14 @@ namespace osu.Framework.Input.Bindings
 
         public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, GetContainingInputManager()?.CurrentState ?? new InputState(), released);
 
-        public void TriggerPressed(T pressed)
+        public Drawable TriggerPressed(T pressed)
         {
             var state = GetContainingInputManager()?.CurrentState ?? new InputState();
 
             if (simultaneousMode == SimultaneousBindingMode.None)
                 releasePressedActions(state);
 
-            PropagatePressed(KeyBindingInputQueue, state, pressed);
+            return PropagatePressed(KeyBindingInputQueue, state, pressed);
         }
 
         private List<Drawable> getInputQueue(IKeyBinding binding, bool rebuildIfEmpty = false)
@@ -405,7 +407,7 @@ namespace osu.Framework.Input.Bindings
     /// <summary>
     /// Maps input actions to custom action data.
     /// </summary>
-    public abstract class KeyBindingContainer : Container
+    public abstract partial class KeyBindingContainer : Container
     {
         protected IEnumerable<IKeyBinding> KeyBindings;
 

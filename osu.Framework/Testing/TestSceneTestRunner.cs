@@ -16,7 +16,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Testing
 {
-    public class TestSceneTestRunner : Game, ITestSceneTestRunner
+    public partial class TestSceneTestRunner : Game, ITestSceneTestRunner
     {
         private readonly TestRunner runner;
 
@@ -31,7 +31,7 @@ namespace osu.Framework.Testing
         /// <param name="test">The <see cref="TestScene"/> to run.</param>
         public virtual void RunTestBlocking(TestScene test) => runner.RunTestBlocking(test);
 
-        public class TestRunner : CompositeDrawable
+        public partial class TestRunner : CompositeDrawable
         {
             private const double time_between_tests = 200;
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Testing
                     // We want to remove the TestScene from the hierarchy on completion as under nUnit, it may have operations run on it from a different thread.
                     // This is because nUnit will reuse the same class multiple times, running a different [Test] method each time, while the GameHost
                     // is run from its own asynchronous thread.
-                    RemoveInternal(test);
+                    RemoveInternal(test, false);
                     completed = true;
                 }
 

@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public abstract class ScrollContainer<T> : Container<T>, IScrollContainer, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+    public abstract partial class ScrollContainer<T> : Container<T>, IScrollContainer, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -119,9 +119,12 @@ namespace osu.Framework.Graphics.Containers
         public float Current { get; private set; }
 
         /// <summary>
-        /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
+        /// The target scroll position which is exponentially approached by current via a rate of distance decay.
         /// </summary>
-        protected float Target { get; private set; }
+        /// <remarks>
+        /// When not animating scroll position, this will always be equal to <see cref="Current"/>.
+        /// </remarks>
+        public float Target { get; private set; }
 
         /// <summary>
         /// The maximum distance that can be scrolled in the scroll direction.
@@ -141,6 +144,12 @@ namespace osu.Framework.Graphics.Containers
         protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, ScrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
+
+        /// <summary>
+        /// Whether we are currently scrolled to the beginning of content.
+        /// </summary>
+        /// <param name="lenience">How close to the extent we need to be.</param>
+        public bool IsScrolledToStart(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(0, Target, lenience);
 
         /// <summary>
         /// Whether we are currently scrolled as far as possible into the scroll direction.
@@ -608,7 +617,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="direction">The scrolling direction.</param>
         protected abstract ScrollbarContainer CreateScrollbar(Direction direction);
 
-        protected internal abstract class ScrollbarContainer : Container
+        protected internal abstract partial class ScrollbarContainer : Container
         {
             private float dragOffset;
 

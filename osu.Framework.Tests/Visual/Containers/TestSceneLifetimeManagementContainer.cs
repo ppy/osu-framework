@@ -16,7 +16,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneLifetimeManagementContainer : FrameworkTestScene
+    public partial class TestSceneLifetimeManagementContainer : FrameworkTestScene
     {
         private ManualClock manualClock;
         private TestContainer container;
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("add child", () => container.AddInternal(child = new TestChild(0, 2)));
             skipTo(1);
-            AddStep("remove child", () => container.RemoveInternal(child));
+            AddStep("remove child", () => container.RemoveInternal(child, false));
             AddStep("add same child", () => container.AddInternal(child));
             validate(1);
         }
@@ -200,7 +200,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestLifetimeMutatingChildren()
         {
-            AddStep("detach container", () => Remove(container));
+            AddStep("detach container", () => Remove(container, false));
 
             TestLifetimeMutatingChild first = null, second = null;
             AddStep("add children", () =>
@@ -250,7 +250,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
                 Logger.Log($"removeChild: {child.ChildID}");
-                container.RemoveInternal(child);
+                container.RemoveInternal(child, true);
             }
 
             void changeLifetime()
@@ -315,7 +315,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        public class TestChild : SpriteText
+        public partial class TestChild : SpriteText
         {
             public override bool RemoveWhenNotAlive => false;
             public List<LifetimeBoundaryCrossedEvent> Crossings = new List<LifetimeBoundaryCrossedEvent>();
@@ -341,7 +341,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        public class TestLifetimeMutatingChild : TestChild
+        public partial class TestLifetimeMutatingChild : TestChild
         {
             public bool Processed { get; private set; }
 
@@ -359,7 +359,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        public class TestContainer : LifetimeManagementContainer
+        public partial class TestContainer : LifetimeManagementContainer
         {
             public event Action<LifetimeBoundaryCrossedEvent> OnCrossing;
 
@@ -380,6 +380,8 @@ namespace osu.Framework.Tests.Visual.Containers
             }
 
             public new void UpdateSubTree() => base.UpdateSubTree();
+
+            public new void AddInternal(Drawable child) => base.AddInternal(child);
         }
     }
 }

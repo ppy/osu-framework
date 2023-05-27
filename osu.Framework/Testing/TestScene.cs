@@ -30,9 +30,8 @@ using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
-    [ExcludeFromDynamicCompile]
     [TestFixture]
-    public abstract class TestScene : Container
+    public abstract partial class TestScene : Container
     {
         public readonly FillFlowContainer<Drawable> StepsContainer;
         private readonly Container content;
@@ -66,7 +65,7 @@ namespace osu.Framework.Testing
         /// <param name="game">The game to add.</param>
         protected void AddGame([NotNull] Game game)
         {
-            if (game == null) throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             exitNestedGame();
 
@@ -84,7 +83,7 @@ namespace osu.Framework.Testing
             base.Add(drawable);
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
         }
@@ -92,7 +91,7 @@ namespace osu.Framework.Testing
         protected internal override void ClearInternal(bool disposeChildren = true) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
 
-        protected internal override bool RemoveInternal(Drawable drawable) =>
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         /// <summary>
@@ -406,12 +405,9 @@ namespace osu.Framework.Testing
 
         private void exitNestedGame()
         {
-            if (nestedGame?.Parent == null) return;
-
             // important that we do a synchronous disposal.
             // using Expire() will cause a deadlock in AsyncDisposalQueue.
-            nestedGame.Parent.RemoveInternal(nestedGame);
-            nestedGame.Dispose();
+            nestedGame?.Parent?.RemoveInternal(nestedGame, true);
         }
 
         #region NUnit execution setup
@@ -473,7 +469,7 @@ namespace osu.Framework.Testing
             runner.RunTestBlocking(this);
             checkForErrors();
 
-            if (Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1")
+            if (FrameworkEnvironment.ForceTestGC)
             {
                 // Force any unobserved exceptions to fire against the current test run.
                 // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.

@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
     /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
@@ -206,7 +206,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
                 Current.Value = Items.First();
 
-            Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
+            Current.BindValueChanged(v =>
+            {
+                if (v.NewValue != null && tabMap.TryGetValue(v.NewValue, out var found))
+                    selectTab(found);
+                else
+                    selectTab(null);
+            }, true);
 
             // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead
             if (AutoSort && Current.Value != null)
@@ -327,7 +333,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (removeFromDropdown)
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
-            TabContainer.Remove(tab);
+            TabContainer.Remove(tab, true);
         }
 
         /// <summary>
@@ -445,7 +451,7 @@ namespace osu.Framework.Graphics.UserInterface
             Masking = true
         };
 
-        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
+        public partial class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
             private bool allowMultiline;
 
@@ -532,10 +538,10 @@ namespace osu.Framework.Graphics.UserInterface
                 base.Clear(disposeChildren);
             }
 
-            public override bool Remove(TabItem<T> drawable)
+            public override bool Remove(TabItem<T> drawable, bool disposeImmediately)
             {
                 tabVisibility.Remove(drawable);
-                return base.Remove(drawable);
+                return base.Remove(drawable, disposeImmediately);
             }
         }
     }

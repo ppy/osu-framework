@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneBufferedContainerView : FrameworkTestScene
+    public partial class TestSceneBufferedContainerView : FrameworkTestScene
     {
         [TestCase(false)]
         [TestCase(true)]
@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private class BlurView : CompositeDrawable
+        private partial class BlurView : CompositeDrawable
         {
             public BlurView(BufferedContainer buffer, float blur, bool displayEffects, bool synchronisedQuad)
             {

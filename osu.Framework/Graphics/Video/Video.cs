@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a composite that displays a video played back from a stream or a file.
     /// </summary>
-    public class Video : AnimationClockComposite
+    public partial class Video : AnimationClockComposite
     {
         /// <summary>
         /// Whether this video is in a buffering state, waiting on decoder or underlying stream.
@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics.Video
                 var tex = lastFrame.Texture;
 
                 // Check if the new frame has been uploaded so we don't display an old frame
-                if ((tex?.TextureGL as VideoTexture)?.UploadComplete ?? false)
+                if (tex?.UploadComplete ?? false)
                 {
                     Sprite.Texture = tex;
                     UpdateSizing();

@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// A sprite which holds a video with a custom conversion matrix.
     /// </summary>
-    internal class VideoSprite : Sprite
+    internal partial class VideoSprite : Sprite
     {
         private readonly Video video;
 
@@ -25,7 +25,6 @@ namespace osu.Framework.Graphics.Video
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO_ROUNDED);
         }
 
         protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(video);

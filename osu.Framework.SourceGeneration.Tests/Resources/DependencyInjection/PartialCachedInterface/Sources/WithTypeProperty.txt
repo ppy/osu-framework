@@ -1,0 +1,8 @@
+public partial class WithTypeProperty : osu.Framework.Graphics.Drawable, IWithTypeProperty
+{
+}
+
+[osu.Framework.Allocation.Cached(Type = typeof(object))]
+public interface IWithTypeProperty
+{
+}

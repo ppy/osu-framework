@@ -19,6 +19,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Events;
 using osuTK;
 using SixLabors.ImageSharp;
@@ -26,7 +27,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
+    internal partial class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
         internal const int HEIGHT = 100;
 
@@ -51,7 +52,7 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarX => currentX % WIDTH;
 
         private readonly Container overlayContainer;
-        private readonly Drawable labelText;
+        private readonly SpriteText labelText;
         private readonly Sprite counterBarBackground;
 
         private readonly Container mainContainer;
@@ -86,6 +87,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
+                        labelText.Text = Name;
                         break;
 
                     case FrameStatisticsMode.Full:
@@ -96,6 +98,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.BottomCentre;
                         labelText.Rotation = -90;
+                        labelText.Text = Name.Split(' ').First();
                         break;
                 }
 
@@ -109,7 +112,10 @@ namespace osu.Framework.Graphics.Performance
         public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
+
+            Debug.Assert(thread.Monitor != null);
             monitor = thread.Monitor;
+
             this.uploadPool = uploadPool;
 
             Origin = Anchor.TopRight;
@@ -129,7 +135,7 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.TopRight,
                         AutoSizeAxes = Axes.X,
                         RelativeSizeAxes = Axes.Y,
-                        Children = new[]
+                        Children = new Drawable[]
                         {
                             labelText = new SpriteText
                             {
@@ -152,7 +158,6 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(1, HEIGHT, true),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -162,7 +167,7 @@ namespace osu.Framework.Graphics.Performance
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =
-                                                from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                from StatisticsCounterType t in Enum.GetValues<StatisticsCounterType>()
                                                 where monitor.ActiveCounters[(int)t]
                                                 select counterBars[t] = new CounterBar
                                                 {
@@ -209,7 +214,7 @@ namespace osu.Framework.Graphics.Performance
                                         Spacing = new Vector2(5, 1),
                                         Padding = new MarginPadding { Right = 5 },
                                         ChildrenEnumerable =
-                                            from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                            from PerformanceCollectionType t in Enum.GetValues<PerformanceCollectionType>()
                                             select legendMapping[(int)t] = new SpriteText
                                             {
                                                 Colour = getColour(t),
@@ -241,7 +246,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(IRenderer renderer)
         {
             //initialise background
             var columnUpload = new ArrayPoolTextureUpload(1, HEIGHT);
@@ -257,7 +262,12 @@ namespace osu.Framework.Graphics.Performance
 
             addArea(null, null, HEIGHT, amount_count_steps, columnUpload);
 
-            counterBarBackground?.Texture.SetData(columnUpload);
+            if (counterBarBackground != null)
+            {
+                counterBarBackground.Texture = renderer.CreateTexture(1, HEIGHT, true);
+                counterBarBackground.Texture.SetData(columnUpload);
+            }
+
             Schedule(() =>
             {
                 foreach (var t in timeBars)
@@ -431,7 +441,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
 
-                case PerformanceCollectionType.GLReset:
+                case PerformanceCollectionType.DrawReset:
                     return Color4.Cyan;
             }
         }
@@ -505,7 +515,7 @@ namespace osu.Framework.Graphics.Performance
             return currentHeight;
         }
 
-        private class TimeBar : Container
+        private partial class TimeBar : Container
         {
             public readonly Sprite Sprite;
 
@@ -513,12 +523,17 @@ namespace osu.Framework.Graphics.Performance
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
+            }
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT, true) { TextureGL = { BypassTextureUploadQueueing = true } };
+            [BackgroundDependencyLoader]
+            private void load(IRenderer renderer)
+            {
+                Sprite.Texture = renderer.CreateTexture(WIDTH, HEIGHT, true);
+                Sprite.Texture.BypassTextureUploadQueueing = true;
             }
         }
 
-        private class CounterBar : Container
+        private partial class CounterBar : Container
         {
             private readonly Box box;
             private readonly SpriteText text;

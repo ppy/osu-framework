@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
@@ -10,7 +8,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Animations
 {
-    public abstract class AnimationClockComposite : CustomisableSizeCompositeDrawable, IAnimation
+    public abstract partial class AnimationClockComposite : CustomisableSizeCompositeDrawable, IAnimation
     {
         private readonly bool startAtCurrentTime;
 
@@ -59,7 +57,7 @@ namespace osu.Framework.Graphics.Animations
                 manualClock.CurrentTime += elapsed;
         }
 
-        protected internal override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(CreateContent)} instead.");
+        protected override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(CreateContent)} instead.");
 
         /// <summary>
         /// Create the content container for animation display.

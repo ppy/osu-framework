@@ -9,7 +9,6 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -20,7 +19,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("texture wrap modes")]
-    public class TestSceneWrapModes : FrameworkGridTestScene
+    public partial class TestSceneWrapModes : FrameworkGridTestScene
     {
         private readonly WrapMode[] wrapModes = { WrapMode.None, WrapMode.ClampToEdge, WrapMode.ClampToBorder, WrapMode.Repeat };
 

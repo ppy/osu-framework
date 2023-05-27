@@ -166,7 +166,7 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateCircularArc(ReadOnlySpan<Vector2> controlPoints)
         {
-            CircularArcProperties pr = circularArcProperties(controlPoints);
+            CircularArcProperties pr = new CircularArcProperties(controlPoints);
             if (!pr.IsValid)
                 return ApproximateBezier(controlPoints);
 
@@ -197,7 +197,7 @@ namespace osu.Framework.Utils
         /// <returns>The rectangle inscribing the circular arc.</returns>
         public static RectangleF CircularArcBoundingBox(ReadOnlySpan<Vector2> controlPoints)
         {
-            CircularArcProperties pr = circularArcProperties(controlPoints);
+            CircularArcProperties pr = new CircularArcProperties(controlPoints);
             if (!pr.IsValid)
                 return RectangleF.Empty;
 
@@ -286,80 +286,6 @@ namespace osu.Framework.Utils
             }
 
             return result;
-        }
-
-        private readonly struct CircularArcProperties
-        {
-            public readonly bool IsValid;
-            public readonly double ThetaStart;
-            public readonly double ThetaRange;
-            public readonly double Direction;
-            public readonly float Radius;
-            public readonly Vector2 Centre;
-
-            public double ThetaEnd => ThetaStart + ThetaRange * Direction;
-
-            public CircularArcProperties(double thetaStart, double thetaRange, double direction, float radius, Vector2 centre)
-            {
-                IsValid = true;
-                ThetaStart = thetaStart;
-                ThetaRange = thetaRange;
-                Direction = direction;
-                Radius = radius;
-                Centre = centre;
-            }
-        }
-
-        /// <summary>
-        /// Computes various properties that can be used to approximate the circular arc.
-        /// </summary>
-        /// <param name="controlPoints">Three distinct points on the arc.</param>
-        private static CircularArcProperties circularArcProperties(ReadOnlySpan<Vector2> controlPoints)
-        {
-            Vector2 a = controlPoints[0];
-            Vector2 b = controlPoints[1];
-            Vector2 c = controlPoints[2];
-
-            // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
-            if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
-                return default; // Implicitly sets `IsValid` to false
-
-            // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
-            float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
-            float aSq = a.LengthSquared;
-            float bSq = b.LengthSquared;
-            float cSq = c.LengthSquared;
-
-            Vector2 centre = new Vector2(
-                aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,
-                aSq * (c - b).X + bSq * (a - c).X + cSq * (b - a).X) / d;
-
-            Vector2 dA = a - centre;
-            Vector2 dC = c - centre;
-
-            float r = dA.Length;
-
-            double thetaStart = Math.Atan2(dA.Y, dA.X);
-            double thetaEnd = Math.Atan2(dC.Y, dC.X);
-
-            while (thetaEnd < thetaStart)
-                thetaEnd += 2 * Math.PI;
-
-            double dir = 1;
-            double thetaRange = thetaEnd - thetaStart;
-
-            // Decide in which direction to draw the circle, depending on which side of
-            // AC B lies.
-            Vector2 orthoAtoC = c - a;
-            orthoAtoC = new Vector2(orthoAtoC.Y, -orthoAtoC.X);
-
-            if (Vector2.Dot(orthoAtoC, b - a) < 0)
-            {
-                dir = -dir;
-                thetaRange = 2 * Math.PI - thetaRange;
-            }
-
-            return new CircularArcProperties(thetaStart, thetaRange, dir, r, centre);
         }
 
         /// <summary>

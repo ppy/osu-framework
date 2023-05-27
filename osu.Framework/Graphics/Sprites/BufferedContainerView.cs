@@ -6,7 +6,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -16,11 +15,10 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A view that displays the contents of a <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
+    public partial class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
         where T : Drawable
     {
         public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
 
         private BufferedContainer<T> container;
         private BufferedDrawNodeSharedData sharedData;
@@ -37,7 +35,6 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferSpriteDrawNode(this);
@@ -142,20 +139,20 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
-                Shader.Bind();
+                BindTextureShader(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
-                    drawMainBuffer();
+                    drawMainBuffer(renderer);
 
-                drawEffectBuffer();
+                drawEffectBuffer(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.Behind)
-                    drawMainBuffer();
+                    drawMainBuffer(renderer);
 
-                Shader.Unbind();
+                UnbindTextureShader(renderer);
             }
 
-            private void drawMainBuffer()
+            private void drawMainBuffer(IRenderer renderer)
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -163,20 +160,20 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                renderer.SetBlend(DrawColourInfo.Blending);
+                renderer.DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
-            private void drawEffectBuffer()
+            private void drawEffectBuffer(IRenderer renderer)
             {
                 if (!shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(sourceEffectBlending);
+                renderer.SetBlend(sourceEffectBlending);
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
+                renderer.DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>

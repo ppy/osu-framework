@@ -4,17 +4,15 @@
 #nullable disable
 
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osuTK;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -118,9 +116,9 @@ namespace osu.Framework.Graphics.Containers
 
             public virtual bool AddChildDrawNodes => true;
 
-            private void drawEdgeEffect()
+            private void drawEdgeEffect(IRenderer renderer)
             {
-                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
+                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Alpha <= 0)
                     return;
 
                 RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
@@ -140,20 +138,20 @@ namespace osu.Framework.Graphics.Containers
                 edgeEffectMaskingInfo.Hollow = edgeEffect.Hollow;
                 edgeEffectMaskingInfo.HollowCornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius;
 
-                GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
+                renderer.PushMaskingInfo(edgeEffectMaskingInfo);
 
-                GLWrapper.SetBlend(edgeEffect.Type == EdgeEffectType.Glow ? BlendingParameters.Additive : BlendingParameters.Mixture);
+                renderer.SetBlend(edgeEffect.Type == EdgeEffectType.Glow ? BlendingParameters.Additive : BlendingParameters.Mixture);
 
                 Shader.Bind();
 
                 ColourInfo colour = ColourInfo.SingleColour(edgeEffect.Colour);
-                colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Linear.A);
-                colour.BottomLeft.MultiplyAlpha(DrawColourInfo.Colour.BottomLeft.Linear.A);
-                colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
-                colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
+                colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Alpha);
+                colour.BottomLeft.MultiplyAlpha(DrawColourInfo.Colour.BottomLeft.Alpha);
+                colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Alpha);
+                colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Alpha);
 
-                DrawQuad(
-                    Texture.WhitePixel,
+                renderer.DrawQuad(
+                    renderer.WhitePixel,
                     screenSpaceMaskingQuad.Value,
                     colour, null, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
@@ -163,7 +161,7 @@ namespace osu.Framework.Graphics.Containers
 
                 Shader.Unbind();
 
-                GLWrapper.PopMaskingInfo();
+                renderer.PopMaskingInfo();
             }
 
             private const int min_amount_children_to_warrant_batch = 8;
@@ -185,11 +183,11 @@ namespace osu.Framework.Graphics.Containers
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
                 if (quadBatch != null)
-                    GLWrapper.PushQuadBatch(quadBatch);
+                    renderer.PushQuadBatch(quadBatch);
 
                 base.Draw(renderer);
 
-                drawEdgeEffect();
+                drawEdgeEffect(renderer);
 
                 if (maskingInfo != null)
                 {
@@ -197,7 +195,7 @@ namespace osu.Framework.Graphics.Containers
                     if (info.BorderThickness > 0)
                         info.BorderColour = ColourInfo.Multiply(info.BorderColour, DrawColourInfo.Colour);
 
-                    GLWrapper.PushMaskingInfo(info);
+                    renderer.PushMaskingInfo(info);
                 }
 
                 if (Children != null)
@@ -207,10 +205,10 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 if (maskingInfo != null)
-                    GLWrapper.PopMaskingInfo();
+                    renderer.PopMaskingInfo();
 
                 if (quadBatch != null)
-                    GLWrapper.PopQuadBatch();
+                    renderer.PopQuadBatch();
             }
 
             internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
@@ -236,10 +234,10 @@ namespace osu.Framework.Graphics.Containers
 
                     // Prefer to use own vertex batch instead of the parent-owned one.
                     if (quadBatch != null)
-                        GLWrapper.PushQuadBatch(quadBatch);
+                        renderer.PushQuadBatch(quadBatch);
 
                     if (maskingInfo != null)
-                        GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                        renderer.PushMaskingInfo(maskingInfo.Value);
                 }
 
                 // We still need to invoke this method recursively for all children so their depth value is updated
@@ -253,10 +251,10 @@ namespace osu.Framework.Graphics.Containers
                 if (canIncrement)
                 {
                     if (maskingInfo != null)
-                        GLWrapper.PopMaskingInfo();
+                        renderer.PopMaskingInfo();
 
                     if (quadBatch != null)
-                        GLWrapper.PopQuadBatch();
+                        renderer.PopQuadBatch();
                 }
             }
 

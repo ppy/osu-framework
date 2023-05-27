@@ -20,7 +20,7 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IContainVisualisedDrawables, IHasFilterableChildren
+    internal partial class VisualisedDrawable : Container, IContainVisualisedDrawables, IFilterable
     {
         private const int line_height = 12;
 
@@ -45,8 +45,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target.ToString()
         };
-
-        public IEnumerable<IFilterable> FilterableChildren => flow.Children;
 
         public bool FilteringActive { get; set; }
 
@@ -162,7 +160,7 @@ namespace osu.Framework.Graphics.Visualisation
                             : new Sprite
                             {
                                 // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
-                                Texture = new Texture(spriteTarget.Texture.TextureGL),
+                                Texture = new Texture(spriteTarget.Texture),
                                 Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
@@ -298,7 +296,7 @@ namespace osu.Framework.Graphics.Visualisation
             flow.Add(visualiser);
         }
 
-        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser) => flow.Remove(visualiser);
+        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser) => flow.Remove(visualiser, false);
 
         public VisualisedDrawable FindVisualisedDrawable(Drawable drawable)
         {
@@ -468,7 +466,7 @@ namespace osu.Framework.Graphics.Visualisation
             currentContainer = container;
         }
 
-        private class VisualisedDrawableFlow : FillFlowContainer<VisualisedDrawable>
+        private partial class VisualisedDrawableFlow : FillFlowContainer<VisualisedDrawable>
         {
             public override IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => -d.Depth).ThenBy(d => ((VisualisedDrawable)d).Target.ChildID);
         }

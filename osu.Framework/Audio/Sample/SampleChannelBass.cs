@@ -56,6 +56,7 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         /// <param name="sample">The <see cref="SampleBass"/> to create the channel from.</param>
         public SampleChannelBass(SampleBass sample)
+            : base(sample.Name)
         {
             this.sample = sample;
 

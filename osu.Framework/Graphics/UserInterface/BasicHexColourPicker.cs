@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicHexColourPicker : HexColourPicker
+    public partial class BasicHexColourPicker : HexColourPicker
     {
         public BasicHexColourPicker()
         {
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override ColourPreview CreateColourPreview() => new BasicColourPreview();
 
-        private class BasicColourPreview : ColourPreview
+        private partial class BasicColourPreview : ColourPreview
         {
             private readonly Box previewBox;
 

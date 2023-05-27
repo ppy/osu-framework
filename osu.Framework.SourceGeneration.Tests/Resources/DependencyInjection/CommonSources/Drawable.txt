@@ -1,0 +1,6 @@
+namespace osu.Framework.Graphics
+{
+    public partial class Drawable : osu.Framework.Allocation.IDependencyInjectionCandidate
+    {
+    }
+}

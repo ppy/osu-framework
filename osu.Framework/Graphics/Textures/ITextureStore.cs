@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures

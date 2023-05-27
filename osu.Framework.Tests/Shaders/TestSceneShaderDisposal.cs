@@ -17,10 +17,10 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Shaders
 {
     [HeadlessTest]
-    public class TestSceneShaderDisposal : FrameworkTestScene
+    public partial class TestSceneShaderDisposal : FrameworkTestScene
     {
         private ShaderManager manager;
-        private OpenGLShader shader;
+        private GLShader shader;
 
         private WeakReference<IShader> shaderRef;
 
@@ -29,8 +29,8 @@ namespace osu.Framework.Tests.Shaders
         {
             AddStep("setup manager", () =>
             {
-                manager = new TestShaderManager(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
-                shader = (OpenGLShader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+                manager = new ShaderManager(new TestGLRenderer(), new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
+                shader = (GLShader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
                 shaderRef = new WeakReference<IShader>(shader);
 
                 shader.EnsureShaderCompiled();
@@ -58,20 +58,15 @@ namespace osu.Framework.Tests.Shaders
             });
         }
 
-        private class TestShaderManager : ShaderManager
+        private class TestGLRenderer : GLRenderer
         {
-            public TestShaderManager(IResourceStore<byte[]> store)
-                : base(new OpenGLRenderer(), store)
-            {
-            }
+            protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+                => new TestGLShader(this, name, parts.Cast<GLShaderPart>().ToArray());
 
-            internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
-                => new TestOpenGLShader(name, parts.Cast<OpenGLShaderPart>().ToArray());
-
-            private class TestOpenGLShader : OpenGLShader
+            private class TestGLShader : GLShader
             {
-                internal TestOpenGLShader(string name, OpenGLShaderPart[] parts)
-                    : base(name, parts)
+                internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
+                    : base(renderer, name, parts, null)
                 {
                 }
 
@@ -79,9 +74,8 @@ namespace osu.Framework.Tests.Shaders
 
                 private protected override bool CompileInternal() => true;
 
-                private protected override void SetupUniforms()
+                public override void BindUniformBlock(string blockName, IUniformBuffer buffer)
                 {
-                    Uniforms.Add("test", new Uniform<int>(this, "test", 1));
                 }
 
                 private protected override string GetProgramLog() => string.Empty;

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -45,6 +46,12 @@ namespace osu.Framework.Input
         /// Whether focus is changed when the button is clicked.
         /// </summary>
         public abstract bool ChangeFocusOnClick { get; }
+
+        /// <summary>
+        /// Whether the next click should temporarily be ignored if enabled in this manager.
+        /// This is required for double-click and touch long-press logic.
+        /// </summary>
+        internal bool BlockNextClick;
 
         protected MouseButtonEventManager(MouseButton button)
             : base(button)
@@ -148,8 +155,6 @@ namespace osu.Framework.Input
             MouseDownPosition = null;
         }
 
-        protected bool BlockNextClick;
-
         private void handleClick(InputState state, List<Drawable> targets)
         {
             if (targets == null) return;
@@ -197,7 +202,7 @@ namespace osu.Framework.Input
             DragStarted = true;
 
             // also the laziness of IEnumerable here
-            var drawables = ButtonDownInputQueue.Where(t => t.IsAlive && t.IsPresent);
+            var drawables = ButtonDownInputQueue.AsNonNull().Where(t => t.IsAlive && t.IsPresent);
 
             DraggedDrawable = PropagateButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
             if (DraggedDrawable != null)

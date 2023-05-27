@@ -4,12 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using Android.Runtime;
 using FFmpeg.AutoGen;
+using Java.Interop;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Logging;
 
@@ -135,23 +134,18 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_avcodec)]
         private static extern int av_jni_set_java_vm(void* vm, void* logCtx);
 
-        public AndroidVideoDecoder(string filename)
-            : base(filename)
+        public AndroidVideoDecoder(IRenderer renderer, string filename)
+            : base(renderer, filename)
         {
         }
 
-        public AndroidVideoDecoder(Stream videoStream)
-            : base(videoStream)
+        public AndroidVideoDecoder(IRenderer renderer, Stream videoStream)
+            : base(renderer, videoStream)
         {
             // Hardware decoding with MediaCodec requires that we pass a Java VM pointer
             // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only).
-            // Unfortunately, Xamarin doesn't publicly expose this pointer anywhere, so we have to get it through reflection...
-            const string java_vm_field_name = "java_vm";
 
-            var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
-            object? jvmPtrObj = jvmPtrInfo?.GetValue(null);
-
-            int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj.AsNonNull(), null);
+            int result = av_jni_set_java_vm(JniEnvironment.Runtime.InvocationPointer.ToPointer(), null);
             if (result < 0)
                 throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
         }
@@ -164,7 +158,7 @@ namespace osu.Framework.Android.Graphics.Video
         {
             if (targetHwDecoders.HasFlagFast(HardwareVideoDecoder.MediaCodec))
             {
-                string formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
+                string? formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
 
                 switch (formatName)
                 {

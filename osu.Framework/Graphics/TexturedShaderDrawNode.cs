@@ -3,17 +3,14 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
 {
     public abstract class TexturedShaderDrawNode : DrawNode
     {
-        protected IShader Shader => RequiresRoundedShader ? RoundedTextureShader : TextureShader;
-
-        protected IShader TextureShader { get; private set; }
-        protected IShader RoundedTextureShader { get; private set; }
+        private IShader textureShader;
 
         protected new ITexturedShaderDrawable Source => (ITexturedShaderDrawable)base.Source;
 
@@ -26,10 +23,29 @@ namespace osu.Framework.Graphics
         {
             base.ApplyState();
 
-            TextureShader = Source.TextureShader;
-            RoundedTextureShader = Source.RoundedTextureShader;
+            textureShader = Source.TextureShader;
         }
 
-        protected virtual bool RequiresRoundedShader => GLWrapper.IsMaskingActive;
+        /// <summary>
+        /// Binds the <see cref="IShader"/> used for rendering the texture.
+        /// </summary>
+        /// <param name="renderer">The renderer to use for setting up uniform resources.</param>
+        protected void BindTextureShader(IRenderer renderer)
+        {
+            textureShader.Bind();
+
+            BindUniformResources(textureShader, renderer);
+        }
+
+        protected void UnbindTextureShader(IRenderer renderer) => textureShader.Unbind();
+
+        /// <summary>
+        /// Binds uniform resources against the provided shader.
+        /// </summary>
+        /// <param name="shader">The shader to bind uniform resources against.</param>
+        /// <param name="renderer">The renderer to use for setting up uniform resources.</param>
+        protected virtual void BindUniformResources(IShader shader, IRenderer renderer)
+        {
+        }
     }
 }

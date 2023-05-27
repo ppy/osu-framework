@@ -10,7 +10,7 @@ using osuTK;
 namespace osu.Framework.Platform.MacOS
 {
     /// <summary>
-    /// macOS-specific subclass of <see cref="SDL2DesktopWindow"/>.
+    /// macOS-specific subclass of <see cref="SDL2Window"/>.
     /// </summary>
     public class MacOSWindow : SDL2DesktopWindow
     {
@@ -23,6 +23,11 @@ namespace osu.Framework.Platform.MacOS
 
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
+
+        public MacOSWindow(GraphicsSurfaceType surfaceType)
+            : base(surfaceType)
+        {
+        }
 
         public override void Create()
         {

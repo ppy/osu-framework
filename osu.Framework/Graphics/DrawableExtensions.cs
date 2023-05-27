@@ -59,8 +59,10 @@ namespace osu.Framework.Graphics
         {
             ThreadSafety.EnsureUpdateThread();
 
-            drawable.Parent?.RemoveInternal(drawable);
-            drawable.Dispose();
+            if (drawable.Parent != null)
+                drawable.Parent.RemoveInternal(drawable, true);
+            else
+                drawable.Dispose();
         }
     }
 }

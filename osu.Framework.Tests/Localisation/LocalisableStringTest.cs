@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
 using osu.Framework.Localisation;
 
@@ -98,6 +99,34 @@ namespace osu.Framework.Tests.Localisation
         public void TestLocalisableStringDoesNotEqualNull()
         {
             testEquals(false, new LocalisableString(), new RomanisableString(makeStringA, makeStringB));
+        }
+
+        [Test]
+        [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse")]
+        public void TestIsNullOrEmpty()
+        {
+            Assert.That(LocalisableString.IsNullOrEmpty(null), Is.EqualTo(string.IsNullOrEmpty(null)));
+            Assert.That(LocalisableString.IsNullOrEmpty(string.Empty), Is.EqualTo(string.IsNullOrEmpty(string.Empty)));
+            Assert.That(LocalisableString.IsNullOrEmpty(""), Is.EqualTo(string.IsNullOrEmpty("")));
+            Assert.That(LocalisableString.IsNullOrEmpty(" "), Is.EqualTo(string.IsNullOrEmpty(" ")));
+            Assert.That(LocalisableString.IsNullOrEmpty("a"), Is.EqualTo(string.IsNullOrEmpty("a")));
+
+            Assert.IsTrue(LocalisableString.IsNullOrEmpty(new LocalisableString())); // default(LocalisableString)
+            Assert.IsFalse(LocalisableString.IsNullOrEmpty(new TranslatableString("key", "fallback")));
+        }
+
+        [Test]
+        [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse")]
+        public void TestIsNullOrWhiteSpace()
+        {
+            Assert.That(LocalisableString.IsNullOrWhiteSpace(null), Is.EqualTo(string.IsNullOrWhiteSpace(null)));
+            Assert.That(LocalisableString.IsNullOrWhiteSpace(string.Empty), Is.EqualTo(string.IsNullOrWhiteSpace(string.Empty)));
+            Assert.That(LocalisableString.IsNullOrWhiteSpace(""), Is.EqualTo(string.IsNullOrWhiteSpace("")));
+            Assert.That(LocalisableString.IsNullOrWhiteSpace(" "), Is.EqualTo(string.IsNullOrWhiteSpace(" ")));
+            Assert.That(LocalisableString.IsNullOrWhiteSpace("a"), Is.EqualTo(string.IsNullOrWhiteSpace("a")));
+
+            Assert.IsTrue(LocalisableString.IsNullOrWhiteSpace(new LocalisableString())); // default(LocalisableString)
+            Assert.IsFalse(LocalisableString.IsNullOrWhiteSpace(new TranslatableString("key", "fallback")));
         }
 
         private static void testEquals<T>(bool expected, T a, T b)

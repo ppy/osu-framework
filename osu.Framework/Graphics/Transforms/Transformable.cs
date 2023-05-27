@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Transforms
     /// An implementer of this class must call <see cref="UpdateTransforms"/> to
     /// update and apply its <see cref="Transform"/>s.
     /// </summary>
-    public abstract class Transformable : ITransformable
+    public abstract partial class Transformable : ITransformable, IDependencyInjectionCandidate
     {
         /// <summary>
         /// The clock that is used to provide the timing for this object's <see cref="Transform"/>s.
@@ -382,8 +382,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             EnsureTransformMutationAllowed();
 
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
+            ArgumentNullException.ThrowIfNull(transform);
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
             {

@@ -4,8 +4,10 @@
 #nullable disable
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
@@ -19,13 +21,18 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace osu.Framework.Tests.Visual.Input
 {
     [System.ComponentModel.Description("live path optimiastion")]
-    public class TestSceneInputResampler : GridTestScene
+    public partial class TestSceneInputResampler : GridTestScene
     {
         public TestSceneInputResampler()
             : base(3, 3)
         {
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(IRenderer renderer)
+        {
             const int width = 2;
-            Texture gradientTexture = new Texture(width, 1, true);
+            Texture gradientTexture = renderer.CreateTexture(width, 1, true);
             var image = new Image<Rgba32>(width, 1);
 
             for (int i = 0; i < width; ++i)
@@ -120,7 +127,7 @@ namespace osu.Framework.Tests.Visual.Input
             Colour = Color4.White,
         };
 
-        private class SmoothedPath : TexturedPath
+        private partial class SmoothedPath : TexturedPath
         {
             protected SmoothedPath()
             {
@@ -156,7 +163,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class ArcPath : SmoothedPath
+        private partial class ArcPath : SmoothedPath
         {
             public ArcPath(bool raw, bool keepFraction, InputResampler inputResampler, Texture texture, Color4 colour, SpriteText output)
             {
@@ -184,7 +191,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class UserDrawnPath : SmoothedPath
+        private partial class UserDrawnPath : SmoothedPath
         {
             public SpriteText DrawText;
 
@@ -211,7 +218,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class SmoothedUserDrawnPath : UserDrawnPath
+        private partial class SmoothedUserDrawnPath : UserDrawnPath
         {
             protected override void AddUserVertex(Vector2 v) => AddSmoothedVertex(v);
         }

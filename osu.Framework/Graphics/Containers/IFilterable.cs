@@ -1,10 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// Implementing this interface in a <see cref="Drawable"/> allows it to be filtered basing on provided search terms
+    /// when placed inside a <see cref="SearchContainer{T}"/>.
+    /// </summary>
     public interface IFilterable : IHasFilterTerms
     {
         /// <summary>

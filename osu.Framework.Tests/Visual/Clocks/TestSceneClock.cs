@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Clocks
 {
-    public abstract class TestSceneClock : FrameworkTestScene
+    public abstract partial class TestSceneClock : FrameworkTestScene
     {
         private readonly FillFlowContainer fill;
 
@@ -36,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             });
         }
 
-        private IClock lastClock;
+        private IClock? lastClock;
 
         protected IClock AddClock(IClock clock)
         {
@@ -48,7 +46,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             return clock;
         }
 
-        public class VisualClock : CompositeDrawable
+        public partial class VisualClock : CompositeDrawable
         {
             private readonly IClock clock;
             private readonly SpriteText time;

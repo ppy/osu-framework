@@ -6,8 +6,6 @@
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Sprites
@@ -62,7 +60,7 @@ namespace osu.Framework.Graphics.Sprites
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, null,
+            renderer.DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, null,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
                 null, TextureCoords);
         }
@@ -72,10 +70,10 @@ namespace osu.Framework.Graphics.Sprites
             if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                 return;
 
-            if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
+            if (renderer.IsMaskingActive)
+                renderer.DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
             else
-                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
+                renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
         public override void Draw(IRenderer renderer)
@@ -85,14 +83,12 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            Shader.Bind();
+            BindTextureShader(renderer);
 
             Blit(renderer);
 
-            Shader.Unbind();
+            UnbindTextureShader(renderer);
         }
-
-        protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
 
         protected override void DrawOpaqueInterior(IRenderer renderer)
         {
@@ -101,11 +97,11 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            TextureShader.Bind();
+            BindTextureShader(renderer);
 
             BlitOpaqueInterior(renderer);
 
-            TextureShader.Unbind();
+            UnbindTextureShader(renderer);
         }
 
         protected internal override bool CanDrawOpaqueInterior => Texture?.Available == true && Texture.Opacity == Opacity.Opaque && hasOpaqueInterior;

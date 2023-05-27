@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Lists;
 
@@ -322,6 +323,41 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// Replaces <paramref name="count"/> items starting from <paramref name="index"/> with <paramref name="newItems"/>.
+        /// </summary>
+        /// <param name="index">The index to start removing from.</param>
+        /// <param name="count">The count of items to be removed.</param>
+        /// <param name="newItems">The items to replace the removed items with.</param>
+        public void ReplaceRange(int index, int count, IEnumerable<T> newItems)
+            => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), null);
+
+        private void replaceRange(int index, int count, IList newItems, BindableList<T> caller)
+        {
+            ensureMutationAllowed();
+
+            var removedItems = collection.GetRange(index, count);
+
+            collection.RemoveRange(index, count);
+            collection.InsertRange(index, newItems.Cast<T>());
+
+            if (removedItems.Count == 0 && newItems.Count == 0)
+                return;
+
+            if (bindings != null)
+            {
+                foreach (var b in bindings)
+                {
+                    // Prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.replaceRange(index, count, newItems, this);
+                }
+            }
+
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItems, removedItems, index));
+        }
+
+        /// <summary>
         /// Copies the contents of this <see cref="BindableList{T}"/> to the given array, starting at the given index.
         /// </summary>
         /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableList{T}"/>.</param>
@@ -585,9 +621,9 @@ namespace osu.Framework.Bindables
         /// <param name="them">The <see cref="BindableList{T}"/> to be bound to.</param>
         public void BindTo(BindableList<T> them)
         {
-            if (them == null)
-                throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) == true)
+            ArgumentNullException.ThrowIfNull(them);
+
+            if (bindings?.Contains(them.weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
@@ -654,5 +690,7 @@ namespace osu.Framework.Bindables
         }
 
         public bool IsDefault => Count == 0;
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }

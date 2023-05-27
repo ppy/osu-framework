@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneTrackAmplitudes : FrameworkTestScene
+    public partial class TestSceneTrackAmplitudes : FrameworkTestScene
     {
         private DrawableTrack track;
 

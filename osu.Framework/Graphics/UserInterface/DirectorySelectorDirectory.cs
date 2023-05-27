@@ -12,7 +12,7 @@ using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectorySelectorDirectory : DirectorySelectorItem
+    public abstract partial class DirectorySelectorDirectory : DirectorySelectorItem
     {
         protected readonly DirectoryInfo Directory;
         protected override string FallbackName => Directory.Name;
@@ -27,8 +27,21 @@ namespace osu.Framework.Graphics.UserInterface
 
             try
             {
-                if (directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
+                bool isHidden = directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true;
+
+                // On Windows, system drives are returned with `System | Hidden | Directory` file attributes,
+                // but the expectation is that they shouldn't be shown in a hidden state.
+                bool isSystemDrive = directory?.Parent == null;
+
+                if (isHidden && !isSystemDrive)
                     ApplyHiddenState();
+            }
+            catch (IOException)
+            {
+                // various IO exceptions could occur when attempting to read attributes.
+                // one example is when a target directory is a drive which is locked by BitLocker:
+                //
+                // "Unhandled exception. System.IO.IOException: This drive is locked by BitLocker Drive Encryption. You must unlock this drive from Control Panel. : 'D:\'"
             }
             catch (UnauthorizedAccessException)
             {

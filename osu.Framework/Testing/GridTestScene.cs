@@ -13,7 +13,7 @@ namespace osu.Framework.Testing
     /// An abstract test case which exposes small cells arranged in a grid.
     /// Useful for displaying multiple configurations of a tested component at a glance.
     /// </summary>
-    public abstract class GridTestScene : TestScene
+    public abstract partial class GridTestScene : TestScene
     {
         private readonly Drawable[,] cells;
 

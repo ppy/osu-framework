@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using NUnit.Framework;
 using osu.Framework.Logging;
@@ -15,7 +13,7 @@ namespace osu.Framework.Tests.Threading
     [TestFixture]
     public class SchedulerTest
     {
-        private Scheduler scheduler;
+        private Scheduler scheduler = null!;
 
         private bool fromMainThread;
 
@@ -265,7 +263,7 @@ namespace osu.Framework.Tests.Threading
 
             int invocations = 0;
 
-            ScheduledDelegate del = null;
+            ScheduledDelegate? del = null;
 
             scheduler.Add(del = new ScheduledDelegate(() =>
             {

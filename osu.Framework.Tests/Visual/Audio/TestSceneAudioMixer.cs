@@ -21,7 +21,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneAudioMixer : FrameworkTestScene
+    public partial class TestSceneAudioMixer : FrameworkTestScene
     {
         [SetUp]
         public void Setup() => Schedule(() =>
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Audio
             Add(audioBox.CreateProxy());
         });
 
-        private class AudioBox : CompositeDrawable
+        private partial class AudioBox : CompositeDrawable
         {
             private readonly Container<Drawable> defaultParent;
             private readonly Container<ContainerWithEffect> effectContainers;
@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 if (targetContainer == currentContainer)
                     return;
 
-                currentContainer.Remove(this);
+                currentContainer.Remove(this, false);
                 targetContainer.Add(this);
 
                 Position = Parent.ToLocalSpace(centre);
@@ -150,7 +150,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class ContainerWithEffect : Container
+        private partial class ContainerWithEffect : Container
         {
             protected override Container<Drawable> Content => content;
 

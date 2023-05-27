@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class MixerDisplay : CompositeDrawable
+    public partial class MixerDisplay : CompositeDrawable
     {
         public readonly AudioMixer Mixer;
 
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                     mixerChannelsContainer.Add(new AudioChannelDisplay(channel));
             }
 
-            mixerChannelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));
+            mixerChannelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle), true);
         }
     }
 }
