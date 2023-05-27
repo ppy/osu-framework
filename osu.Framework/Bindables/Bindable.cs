@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -371,9 +372,8 @@ namespace osu.Framework.Bindables
 
         internal virtual void UnbindAllInternal()
         {
-            // TODO: annotate isLeased with [MemberNotNull(nameof(leasedBindable))] on .NET 5+ to satisfy the nullability check
             if (isLeased)
-                leasedBindable.AsNonNull().Return();
+                leasedBindable.Return();
 
             UnbindEvents();
             UnbindBindings();
@@ -430,6 +430,7 @@ namespace osu.Framework.Bindables
 
         private LeasedBindable<T>? leasedBindable;
 
+        [MemberNotNullWhen(true, nameof(leasedBindable))]
         private bool isLeased => leasedBindable != null;
 
         /// <summary>
