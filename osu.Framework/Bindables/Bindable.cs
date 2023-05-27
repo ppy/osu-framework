@@ -392,7 +392,7 @@ namespace osu.Framework.Bindables
 
         public sealed override string ToString() => ToString(null, CultureInfo.CurrentCulture);
 
-        public virtual string ToString(string format, IFormatProvider formatProvider) => string.Format(formatProvider, $"{{0:{format}}}", Value);
+        public virtual string ToString(string? format, IFormatProvider? formatProvider) => string.Format(formatProvider, $"{{0:{format}}}", Value);
 
         /// <summary>
         /// Create an unbound clone of this bindable.

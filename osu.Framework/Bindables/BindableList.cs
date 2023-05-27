@@ -331,7 +331,7 @@ namespace osu.Framework.Bindables
         public void ReplaceRange(int index, int count, IEnumerable<T> newItems)
             => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), null);
 
-        private void replaceRange(int index, int count, IList newItems, BindableList<T> caller)
+        private void replaceRange(int index, int count, IList newItems, BindableList<T>? caller)
         {
             ensureMutationAllowed();
 
@@ -691,6 +691,6 @@ namespace osu.Framework.Bindables
 
         public bool IsDefault => Count == 0;
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }
