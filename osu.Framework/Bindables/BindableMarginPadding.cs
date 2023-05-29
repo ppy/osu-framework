@@ -17,8 +17,10 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override void Parse(object input)
+        public override void Parse(object? input)
         {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+
             switch (input)
             {
                 case string str:
