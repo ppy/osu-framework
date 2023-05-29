@@ -248,6 +248,7 @@ namespace osu.Framework.Tests.Bindables
             }
         }
 
+        // ReSharper disable once ClassNeverInstantiated.Local
         private class TestClass
         {
         }
