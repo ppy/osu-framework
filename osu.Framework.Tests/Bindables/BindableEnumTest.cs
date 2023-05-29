@@ -44,7 +44,6 @@ namespace osu.Framework.Tests.Bindables
 
         [TestCase(1.1f)]
         [TestCase("Not a value")]
-        [TestCase("")]
         public void TestUnparsaebles(object value)
         {
             var bindable = new Bindable<TestEnum>();
@@ -52,6 +51,19 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Throws<ArgumentException>(() => bindable.Parse(value));
             Assert.Throws<ArgumentException>(() => nullable.Parse(value));
+        }
+
+        [Test]
+        public void TestEmptyString()
+        {
+            var bindable = new Bindable<TestEnum>();
+            var nullable = new Bindable<TestEnum?>();
+
+            bindable.Parse(string.Empty);
+            nullable.Parse(string.Empty);
+
+            Assert.That(bindable.Value, Is.EqualTo(default(TestEnum)));
+            Assert.That(nullable.Value, Is.Null);
         }
 
         public enum TestEnum
