@@ -247,10 +247,20 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
-
             switch (input)
             {
+                case null:
+                    if (typeof(T).IsNullable() || typeof(T).IsClass)
+                    {
+                        // 1. If (T) is a nullable value type (first condition), it may receive `null`.
+                        // 2. If (T) is a reference type (second condition), we are unable to detect the annotation on it so we also allow `null` to be set in all cases.
+                        Value = default;
+                    }
+                    else
+                        throw new ArgumentNullException(nameof(input));
+
+                    break;
+
                 case T t:
                     Value = t;
                     break;
@@ -262,7 +272,15 @@ namespace osu.Framework.Bindables
                     Value = bindable.Value;
                     break;
 
+                case string str when string.IsNullOrEmpty(str):
+                    // This is slightly different from the `null` case.
+                    // Consider a non-nullable default-initialised struct for which `ToString()` outputs an empty string.
+                    Value = default;
+                    break;
+
                 default:
+                    Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
+
                     if (underlyingType.IsEnum)
                         Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
