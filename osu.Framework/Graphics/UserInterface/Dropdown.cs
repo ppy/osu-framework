@@ -410,13 +410,12 @@ namespace osu.Framework.Graphics.UserInterface
             /// Preselects an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to select.</param>
-            /// <param name="scrollToItem">Whether to scroll to the preselected item.</param>
-            protected void PreselectItem(MenuItem item, bool scrollToItem = true)
+            protected void PreselectItem(MenuItem item)
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
                     c.IsPreSelected = compareItemEquality(item, c.Item);
-                    if (c.IsPreSelected && scrollToItem)
+                    if (c.IsPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
@@ -437,7 +436,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             public abstract partial class DrawableDropdownMenuItem : DrawableMenuItem
             {
-                public event Action<DropdownMenuItem<T>, bool> PreselectionRequested;
+                public event Action<DropdownMenuItem<T>> PreselectionRequested;
 
                 protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
@@ -520,15 +519,9 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
-                protected override bool OnHover(HoverEvent e)
-                {
-                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>, false);
-                    return base.OnHover(e);
-                }
-
                 protected override bool OnMouseMove(MouseMoveEvent e)
                 {
-                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>, true);
+                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
                     return base.OnMouseMove(e);
                 }
             }
