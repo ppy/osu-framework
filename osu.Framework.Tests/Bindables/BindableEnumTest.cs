@@ -59,10 +59,9 @@ namespace osu.Framework.Tests.Bindables
             var bindable = new Bindable<TestEnum>();
             var nullable = new Bindable<TestEnum?>();
 
-            bindable.Parse(string.Empty);
+            Assert.Throws<ArgumentException>(() => bindable.Parse(string.Empty));
             nullable.Parse(string.Empty);
 
-            Assert.That(bindable.Value, Is.EqualTo(default(TestEnum)));
             Assert.That(nullable.Value, Is.Null);
         }
 

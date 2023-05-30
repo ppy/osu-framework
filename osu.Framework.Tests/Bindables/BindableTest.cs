@@ -129,8 +129,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseEmptyStringIntoValueType()
         {
             Bindable<int> bindable = new Bindable<int>();
-            bindable.Parse(string.Empty);
-            Assert.That(bindable.Value, Is.Zero);
+            Assert.Throws<FormatException>(() => bindable.Parse(string.Empty));
         }
 
         // Bindable<int?>.Parse(string.Empty)
@@ -196,7 +195,33 @@ namespace osu.Framework.Tests.Bindables
             bindable.Parse(string.Empty);
             Assert.That(bindable.Value, Is.Null);
         }
-#nullable disable
+#nullable restore
+
+        [Test]
+        public void TestParseNullIntoStringType()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        [Test]
+        public void TestParseEmptyStringIntoStringType()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Empty);
+        }
+
+#nullable enable
+        [Test]
+        public void TestParseEmptyStringIntoNullableStringType()
+        {
+            Bindable<string?> bindable = new Bindable<string?>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Empty);
+        }
+#nullable restore
 
         private static IEnumerable<object[]> getParsingConversionTests()
         {
