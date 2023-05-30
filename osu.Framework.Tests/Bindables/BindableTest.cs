@@ -215,7 +215,23 @@ namespace osu.Framework.Tests.Bindables
 
 #nullable enable
         [Test]
-        public void TestParseNullIntoNullableStringType()
+        public void TestParseNullIntoStringTypeWithNRT()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        [Test]
+        public void TestParseEmptyStringIntoStringTypeWithNRT()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Empty);
+        }
+
+        [Test]
+        public void TestParseNullIntoNullableStringTypeWithNRT()
         {
             Bindable<string?> bindable = new Bindable<string?>();
             bindable.Parse(null);
@@ -223,7 +239,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestParseEmptyStringIntoNullableStringType()
+        public void TestParseEmptyStringIntoNullableStringTypeWithNRT()
         {
             Bindable<string?> bindable = new Bindable<string?>();
             bindable.Parse(string.Empty);
