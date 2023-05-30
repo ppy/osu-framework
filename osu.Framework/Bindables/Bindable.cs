@@ -249,21 +249,21 @@ namespace osu.Framework.Bindables
         {
             switch (input)
             {
-                case null:
-                    if (typeof(T).IsNullable() || typeof(T).IsClass)
-                    {
-                        // 1. If (T) is a nullable value type (first condition), it may receive `null`.
-                        // 2. If (T) is a reference type (second condition), we are unable to detect the annotation on it so we also allow `null` to be set in all cases.
-                        Value = default;
-                    }
-                    else
-                        throw new ArgumentNullException(nameof(input));
-
-                    break;
-
+                // This also covers the case when the input is a string. Both `string.Empty` and `null` are valid values for this type.
                 case T t:
                     Value = t;
                     break;
+
+                case null:
+                    // Nullable value types and reference types (annotated or not) are allowed to be initialised with `null`.
+                    if (typeof(T).IsNullable() || typeof(T).IsClass)
+                    {
+                        Value = default;
+                        break;
+                    }
+
+                    // Non-nullable value types can't convert from null.
+                    throw new ArgumentNullException(nameof(input));
 
                 case IBindable:
                     if (!(input is IBindable<T> bindable))
@@ -272,13 +272,20 @@ namespace osu.Framework.Bindables
                     Value = bindable.Value;
                     break;
 
-                case string str when string.IsNullOrEmpty(str):
-                    // This is slightly different from the `null` case.
-                    // Consider a non-nullable default-initialised struct for which `ToString()` outputs an empty string.
-                    Value = default;
-                    break;
-
                 default:
+                    if (input is string strInput && string.IsNullOrEmpty(strInput))
+                    {
+                        // Nullable value types and reference types are initialised to `null` on empty strings.
+                        if (typeof(T).IsNullable() || typeof(T).IsClass)
+                        {
+                            Value = default;
+                            break;
+                        }
+
+                        // Most likely all conversion methods will not accept empty strings, but we let this fall through so that the exception is thrown by .NET itself.
+                        // For example, DateTime.Parse() throws a more contextually relevant exception than int.Parse().
+                    }
+
                     Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
 
                     if (underlyingType.IsEnum)
