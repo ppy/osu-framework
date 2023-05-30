@@ -115,6 +115,14 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(() => bindable.Parse(null), Throws.ArgumentNullException);
         }
 
+        // Bindable<int>.Parse(string.Empty)
+        [Test]
+        public void TestParseEmptyStringIntoValueType()
+        {
+            Bindable<int> bindable = new Bindable<int>();
+            Assert.Throws<FormatException>(() => bindable.Parse(string.Empty));
+        }
+
         // Bindable<int?>.Parse(null)
         [Test]
         public void TestParseNullIntoNullableValueType()
@@ -122,14 +130,6 @@ namespace osu.Framework.Tests.Bindables
             Bindable<int?> bindable = new Bindable<int?>();
             bindable.Parse(null);
             Assert.That(bindable.Value, Is.Null);
-        }
-
-        // Bindable<int>.Parse(string.Empty)
-        [Test]
-        public void TestParseEmptyStringIntoValueType()
-        {
-            Bindable<int> bindable = new Bindable<int>();
-            Assert.Throws<FormatException>(() => bindable.Parse(string.Empty));
         }
 
         // Bindable<int?>.Parse(string.Empty)
@@ -169,21 +169,21 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<Class?>.Parse(null) -- NRT
-        [Test]
-        public void TestParseNullIntoNullableReferenceTypeWithNRT()
-        {
-            Bindable<TestClass?> bindable = new Bindable<TestClass?>();
-            bindable.Parse(null);
-            Assert.That(bindable.Value, Is.Null);
-        }
-
         // Bindable<Class>.Parse(string.Empty) -- NRT
         [Test]
         public void TestParseEmptyStringIntoReferenceTypeWithNRT()
         {
             Bindable<TestClass> bindable = new Bindable<TestClass>();
             bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<Class?>.Parse(null) -- NRT
+        [Test]
+        public void TestParseNullIntoNullableReferenceTypeWithNRT()
+        {
+            Bindable<TestClass?> bindable = new Bindable<TestClass?>();
+            bindable.Parse(null);
             Assert.That(bindable.Value, Is.Null);
         }
 
