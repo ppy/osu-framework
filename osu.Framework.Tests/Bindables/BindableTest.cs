@@ -195,7 +195,7 @@ namespace osu.Framework.Tests.Bindables
             bindable.Parse(string.Empty);
             Assert.That(bindable.Value, Is.Null);
         }
-#nullable restore
+#nullable disable
 
         [Test]
         public void TestParseNullIntoStringType()
@@ -245,7 +245,7 @@ namespace osu.Framework.Tests.Bindables
             bindable.Parse(string.Empty);
             Assert.That(bindable.Value, Is.Empty);
         }
-#nullable restore
+#nullable disable
 
         private static IEnumerable<object[]> getParsingConversionTests()
         {
