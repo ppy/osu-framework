@@ -345,8 +345,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public abstract partial class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
-            private bool isKeyboardNavigating;
-
             protected DropdownMenu()
                 : base(Direction.Vertical)
             {
@@ -358,11 +356,7 @@ namespace osu.Framework.Graphics.UserInterface
                 base.Add(item);
 
                 var drawableDropdownMenuItem = (DrawableDropdownMenuItem)ItemsContainer.Single(drawableItem => drawableItem.Item == item);
-                drawableDropdownMenuItem.PreselectionRequested += (menuItem, scrollToItem) =>
-                {
-                    if (!isKeyboardNavigating)
-                        PreselectItem(menuItem, scrollToItem);
-                };
+                drawableDropdownMenuItem.PreselectionRequested += PreselectItem;
             }
 
             private void clearPreselection(MenuState obj)
@@ -410,11 +404,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected void PreselectItemWithKeyboard(int index)
-            {
-                isKeyboardNavigating = true;
-                PreselectItem(Items[Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
-            }
+            protected void PreselectItem(int index) => PreselectItem(Items[Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
 
             /// <summary>
             /// Preselects an item from this <see cref="DropdownMenu"/>.
@@ -441,12 +431,6 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
 
                 return EqualityComparer<T>.Default.Equals(aTyped.Value, bTyped.Value);
-            }
-
-            protected override bool OnMouseMove(MouseMoveEvent e)
-            {
-                isKeyboardNavigating = false;
-                return base.OnMouseMove(e);
             }
 
             #region DrawableDropdownMenuItem
@@ -563,29 +547,29 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (e.Key)
                 {
                     case Key.Up:
-                        PreselectItemWithKeyboard(targetPreselectionIndex - 1);
+                        PreselectItem(targetPreselectionIndex - 1);
                         return true;
 
                     case Key.Down:
-                        PreselectItemWithKeyboard(targetPreselectionIndex + 1);
+                        PreselectItem(targetPreselectionIndex + 1);
                         return true;
 
                     case Key.PageUp:
                         var firstVisibleItem = VisibleMenuItems.First();
 
                         if (currentPreselected == firstVisibleItem)
-                            PreselectItemWithKeyboard(targetPreselectionIndex - VisibleMenuItems.Count());
+                            PreselectItem(targetPreselectionIndex - VisibleMenuItems.Count());
                         else
-                            PreselectItemWithKeyboard(drawableMenuItemsList.IndexOf(firstVisibleItem));
+                            PreselectItem(drawableMenuItemsList.IndexOf(firstVisibleItem));
                         return true;
 
                     case Key.PageDown:
                         var lastVisibleItem = VisibleMenuItems.Last();
 
                         if (currentPreselected == lastVisibleItem)
-                            PreselectItemWithKeyboard(targetPreselectionIndex + VisibleMenuItems.Count());
+                            PreselectItem(targetPreselectionIndex + VisibleMenuItems.Count());
                         else
-                            PreselectItemWithKeyboard(drawableMenuItemsList.IndexOf(lastVisibleItem));
+                            PreselectItem(drawableMenuItemsList.IndexOf(lastVisibleItem));
                         return true;
 
                     case Key.Enter:
