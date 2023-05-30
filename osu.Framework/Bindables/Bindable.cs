@@ -249,7 +249,8 @@ namespace osu.Framework.Bindables
         {
             switch (input)
             {
-                // This also covers the case when the input is a string. Both `string.Empty` and `null` are valid values for this type.
+                // Of note, this covers the case when the input is a string and `T` is `string`.
+                // Both `string.Empty` and `null` are valid values for this type.
                 case T t:
                     Value = t;
                     break;
