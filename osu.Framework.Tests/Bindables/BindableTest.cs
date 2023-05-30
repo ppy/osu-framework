@@ -215,6 +215,14 @@ namespace osu.Framework.Tests.Bindables
 
 #nullable enable
         [Test]
+        public void TestParseNullIntoNullableStringType()
+        {
+            Bindable<string?> bindable = new Bindable<string?>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        [Test]
         public void TestParseEmptyStringIntoNullableStringType()
         {
             Bindable<string?> bindable = new Bindable<string?>();
