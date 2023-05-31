@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using ObjCRuntime;
@@ -46,6 +47,12 @@ namespace osu.Framework.iOS
 
             window = Runtime.GetNSObject<UIWindow>(WindowHandle);
             updateSafeArea();
+        }
+
+        protected override void RunMainLoop()
+        {
+            SDL.SDL_iPhoneSetEventPump(SDL.SDL_bool.SDL_FALSE);
+            SDL.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, _ => RunFrame(), IntPtr.Zero);
         }
 
         private void updateSafeArea()
