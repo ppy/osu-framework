@@ -27,7 +27,7 @@
     <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
-    <PackageReference Include="ppy.Veldrid" Version="4.9.3-gf1f8dc0432" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.3-gd4340776eb" />
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-g3e4b9f196a" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
