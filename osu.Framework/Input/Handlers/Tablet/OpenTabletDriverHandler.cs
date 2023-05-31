@@ -152,22 +152,23 @@ namespace osu.Framework.Input.Handlers.Tablet
             float inputWidth = digitizer.Width;
             float inputHeight = digitizer.Height;
 
-            AreaSize.Default = new Vector2(inputWidth, inputHeight);
+            Vector2 defaultSize = new Vector2(inputWidth, inputHeight);
+            AreaSize.Default = defaultSize;
             // Force default value, Seems that somewhere Vector2? AreaSize.Value initializes to (0,0)
-            AreaSize.SetDefault();
+            //AreaSize.SetDefault();
             // If the area hasn't been configured, take the full area from the tablet that was just found.
             if (AreaSize.Value == null)
                 AreaSize.SetDefault();
 
             AreaOffset.Default = new Vector2(inputWidth / 2, inputHeight / 2);
             // Force default value, Seems that somewhere Vector2? AreaOffset.Value initializes to (0,0)
-            AreaOffset.SetDefault();
+            //AreaOffset.SetDefault();
 
             // likewise with the position, use the centre point if it has not been configured.
             if (AreaOffset.Value == null)
                 AreaOffset.SetDefault();
 
-            tablet.Value = new TabletInfo(inputDevice.Properties.Name, AreaSize.Default ?? Vector2.Zero);
+            tablet.Value = new TabletInfo(inputDevice.Properties.Name, defaultSize);
 
             switch (inputDevice.OutputMode)
             {

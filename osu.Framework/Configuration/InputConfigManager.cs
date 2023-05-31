@@ -110,7 +110,7 @@ namespace osu.Framework.Configuration
 
                     // call `subscribe` with the type and bindable.
                     subscribeMethod.MakeGenericMethod(encapsulatedType)
-                                   .Invoke(this, new[] { property?.GetValue(handler) });
+                                   .Invoke(this, new[] { property.GetValue(handler) });
                 }
             }
         }
