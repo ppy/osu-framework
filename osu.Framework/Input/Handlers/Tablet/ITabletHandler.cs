@@ -34,22 +34,22 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// </summary>
         Bindable<float> Rotation { get; }
 
-        void updateAreaOffset(Vector2 areaOffset)
+        void UpdateAreaOffset(Vector2 areaOffset)
         {
             AreaOffset.Value = areaOffset;
         }
 
-        void updateAreaSize(Vector2 areaSize)
+        void UpdateAreaSize(Vector2 areaSize)
         {
             AreaSize.Value = areaSize;
         }
 
-        Vector2 getAreaOffset()
+        Vector2 GetAreaOffset()
         {
             return AreaOffset.Value ?? Vector2.One * 50f;
         }
 
-        Vector2 getAreaSize()
+        Vector2 GetAreaSize()
         {
             return AreaSize.Value ?? Vector2.One * 50f;
         }

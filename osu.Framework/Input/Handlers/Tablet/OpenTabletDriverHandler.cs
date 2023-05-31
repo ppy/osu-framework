@@ -153,14 +153,14 @@ namespace osu.Framework.Input.Handlers.Tablet
             float inputHeight = digitizer.Height;
 
             AreaSize.Default = new Vector2(inputWidth, inputHeight);
-            //Force default value, Seems that somewhere Vector2? AreaSize.Value initializes to (0,0) 
+            //Force default value, Seems that somewhere Vector2? AreaSize.Value initializes to (0,0)
             AreaSize.SetDefault();
             // if it's clear the user has not configured the area, take the full area from the tablet that was just found.
             if (AreaSize.Value == null)
                 AreaSize.SetDefault();
 
             AreaOffset.Default = new Vector2(inputWidth / 2, inputHeight / 2);
-            //Force default value, Seems that somewhere Vector2? AreaOffset.Value initializes to (0,0) 
+            //Force default value, Seems that somewhere Vector2? AreaOffset.Value initializes to (0,0)
             AreaOffset.SetDefault();
 
             // likewise with the position, use the centre point if it has not been configured.
@@ -177,9 +177,9 @@ namespace osu.Framework.Input.Handlers.Tablet
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
                     {
-                        Width = AreaSize?.Value?.X ?? 0f,
-                        Height = AreaSize?.Value?.Y ?? 0f,
-                        Position = new System.Numerics.Vector2(AreaOffset?.Value?.X ?? 0f, AreaOffset?.Value?.Y ?? 0f),
+                        Width = AreaSize.Value?.X ?? 0f,
+                        Height = AreaSize.Value?.Y ?? 0f,
+                        Position = new System.Numerics.Vector2(AreaOffset.Value?.X ?? 0f, AreaOffset.Value?.Y ?? 0f),
                         Rotation = Rotation.Value
                     };
                     break;
@@ -196,7 +196,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         {
             AreaSize.Value = areaSize;
         }
-        
+
         private Vector2 getAreaOffset()
         {
             return AreaOffset.Value ?? Vector2.One * 50f;
