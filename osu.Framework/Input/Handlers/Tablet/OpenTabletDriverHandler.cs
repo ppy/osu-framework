@@ -32,9 +32,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public override bool IsActive => tabletDriver != null;
 
-        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2?> AreaOffset { get; } = new Bindable<Vector2?>(null);
 
-        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2?> AreaSize { get; } = new Bindable<Vector2?>(null);
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
@@ -153,19 +153,22 @@ namespace osu.Framework.Input.Handlers.Tablet
             float inputHeight = digitizer.Height;
 
             AreaSize.Default = new Vector2(inputWidth, inputHeight);
-
+            //Force default value, Seems that somewhere Vector2? AreaSize.Value initializes to (0,0) 
+            AreaSize.SetDefault();
             // if it's clear the user has not configured the area, take the full area from the tablet that was just found.
-            if (AreaSize.Value == Vector2.Zero)
+            if (AreaSize.Value == null)
                 AreaSize.SetDefault();
 
             AreaOffset.Default = new Vector2(inputWidth / 2, inputHeight / 2);
+            //Force default value, Seems that somewhere Vector2? AreaOffset.Value initializes to (0,0) 
+            AreaOffset.SetDefault();
 
             // likewise with the position, use the centre point if it has not been configured.
             // it's safe to assume no user would set their centre point to 0,0 for now.
-            if (AreaOffset.Value == Vector2.Zero)
+            if (AreaOffset.Value == null)
                 AreaOffset.SetDefault();
 
-            tablet.Value = new TabletInfo(inputDevice.Properties.Name, AreaSize.Default);
+            tablet.Value = new TabletInfo(inputDevice.Properties.Name, AreaSize.Default ?? Vector2.Zero);
 
             switch (inputDevice.OutputMode)
             {
@@ -174,14 +177,34 @@ namespace osu.Framework.Input.Handlers.Tablet
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
                     {
-                        Width = AreaSize.Value.X,
-                        Height = AreaSize.Value.Y,
-                        Position = new System.Numerics.Vector2(AreaOffset.Value.X, AreaOffset.Value.Y),
+                        Width = AreaSize?.Value?.X ?? 0f,
+                        Height = AreaSize?.Value?.Y ?? 0f,
+                        Position = new System.Numerics.Vector2(AreaOffset?.Value?.X ?? 0f, AreaOffset?.Value?.Y ?? 0f),
                         Rotation = Rotation.Value
                     };
                     break;
                 }
             }
+        }
+
+        private void updateAreaOffset(Vector2 areaOffset)
+        {
+            AreaOffset.Value = areaOffset;
+        }
+
+        private void updateAreaSize(Vector2 areaSize)
+        {
+            AreaSize.Value = areaSize;
+        }
+        
+        private Vector2 getAreaOffset()
+        {
+            return AreaOffset.Value ?? Vector2.One * 50f;
+        }
+
+        private Vector2 getAreaSize()
+        {
+            return AreaSize.Value ?? Vector2.One * 50f;
         }
 
         private void handleTabletReport(ITabletReport tabletReport)

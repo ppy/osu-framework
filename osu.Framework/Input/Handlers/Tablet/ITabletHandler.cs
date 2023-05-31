@@ -17,12 +17,12 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// <summary>
         /// The offset of the area which should be mapped to the game window.
         /// </summary>
-        Bindable<Vector2> AreaOffset { get; }
+        Bindable<Vector2?> AreaOffset { get; }
 
         /// <summary>
         /// The size of the area which should be mapped to the game window.
         /// </summary>
-        Bindable<Vector2> AreaSize { get; }
+        Bindable<Vector2?> AreaSize { get; }
 
         /// <summary>
         /// Information on the currently connected tablet device. May be null if no tablet is detected.
@@ -33,6 +33,26 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// The rotation of the tablet area in degrees.
         /// </summary>
         Bindable<float> Rotation { get; }
+
+        void updateAreaOffset(Vector2 areaOffset)
+        {
+            AreaOffset.Value = areaOffset;
+        }
+
+        void updateAreaSize(Vector2 areaSize)
+        {
+            AreaSize.Value = areaSize;
+        }
+
+        Vector2 getAreaOffset()
+        {
+            return AreaOffset.Value ?? Vector2.One * 50f;
+        }
+
+        Vector2 getAreaSize()
+        {
+            return AreaSize.Value ?? Vector2.One * 50f;
+        }
 
         BindableBool Enabled { get; }
     }
