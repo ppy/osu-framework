@@ -233,6 +233,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (e.Action.IsCommonTextEditingAction() && ImeCompositionActive)
                 return true;
 
+            var lastSelectionBounds = getTextSelectionBounds();
+
             switch (e.Action)
             {
                 // Clipboard
@@ -316,34 +318,34 @@ namespace osu.Framework.Graphics.UserInterface
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
                     ExpandSelectionBy(-1);
-                    onTextSelectionChanged(TextSelectionType.Character, getTextSelectionBounds());
+                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardChar:
                     ExpandSelectionBy(1);
-                    onTextSelectionChanged(TextSelectionType.Character, getTextSelectionBounds());
+                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectBackwardWord:
                     ExpandSelectionBy(GetBackwardWordAmount());
-                    onTextSelectionChanged(TextSelectionType.Word, getTextSelectionBounds());
+                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardWord:
                     ExpandSelectionBy(GetForwardWordAmount());
-                    onTextSelectionChanged(TextSelectionType.Word, getTextSelectionBounds());
+                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectBackwardLine:
                     ExpandSelectionBy(GetBackwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
-                    onTextSelectionChanged(TextSelectionType.All, getTextSelectionBounds());
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 case PlatformAction.SelectForwardLine:
                     ExpandSelectionBy(GetForwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
-                    onTextSelectionChanged(TextSelectionType.All, getTextSelectionBounds());
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
             }
 
@@ -1009,10 +1011,12 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
+            var lastSelectionBounds = getTextSelectionBounds();
+
             selectionStart = 0;
             selectionEnd = text.Length;
             cursorAndLayout.Invalidate();
-            onTextSelectionChanged(TextSelectionType.All, getTextSelectionBounds());
+            onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
