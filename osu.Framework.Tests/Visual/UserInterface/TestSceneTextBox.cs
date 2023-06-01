@@ -169,6 +169,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestSelectAll()
+        {
+            BasicTextBox textBox = null;
+
+            AddStep("add number textbox", () =>
+            {
+                textBoxes.Add(textBox = new BasicTextBox
+                {
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+            });
+
+            AddStep(@"set arbitrary text", () => textBox.Text = "some text");
+            AddAssert("not focused", () => textBox.HasFocus, () => Is.False);
+
+            AddStep("select all", () => textBox.SelectAll());
+
+            AddAssert("has focus", () => textBox.HasFocus, () => Is.True);
+            AddAssert("has selection", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
+        }
+
+        [Test]
         public void TestNumbersOnly()
         {
             NumberTextBox numbers = null;

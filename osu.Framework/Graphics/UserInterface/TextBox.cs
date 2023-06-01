@@ -233,8 +233,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (e.Action.IsCommonTextEditingAction() && ImeCompositionActive)
                 return true;
 
-            var lastSelectionBounds = getTextSelectionBounds();
-
             switch (e.Action)
             {
                 // Clipboard
@@ -262,10 +260,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.SelectAll:
-                    selectionStart = 0;
-                    selectionEnd = text.Length;
-                    cursorAndLayout.Invalidate();
-                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
+                    SelectAll();
                     return true;
 
                 // Cursor Manipulation
@@ -321,34 +316,34 @@ namespace osu.Framework.Graphics.UserInterface
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
                     ExpandSelectionBy(-1);
-                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
+                    onTextSelectionChanged(TextSelectionType.Character, getTextSelectionBounds());
                     return true;
 
                 case PlatformAction.SelectForwardChar:
                     ExpandSelectionBy(1);
-                    onTextSelectionChanged(TextSelectionType.Character, lastSelectionBounds);
+                    onTextSelectionChanged(TextSelectionType.Character, getTextSelectionBounds());
                     return true;
 
                 case PlatformAction.SelectBackwardWord:
                     ExpandSelectionBy(GetBackwardWordAmount());
-                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
+                    onTextSelectionChanged(TextSelectionType.Word, getTextSelectionBounds());
                     return true;
 
                 case PlatformAction.SelectForwardWord:
                     ExpandSelectionBy(GetForwardWordAmount());
-                    onTextSelectionChanged(TextSelectionType.Word, lastSelectionBounds);
+                    onTextSelectionChanged(TextSelectionType.Word, getTextSelectionBounds());
                     return true;
 
                 case PlatformAction.SelectBackwardLine:
                     ExpandSelectionBy(GetBackwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
-                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
+                    onTextSelectionChanged(TextSelectionType.All, getTextSelectionBounds());
                     return true;
 
                 case PlatformAction.SelectForwardLine:
                     ExpandSelectionBy(GetForwardLineAmount());
                     // TODO: Differentiate 'line' and 'all' selection types if/when multi-line support is added
-                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
+                    onTextSelectionChanged(TextSelectionType.All, getTextSelectionBounds());
                     return true;
             }
 
@@ -997,6 +992,27 @@ namespace osu.Framework.Graphics.UserInterface
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
+        }
+
+        /// <summary>
+        /// Select all text.
+        /// </summary>
+        /// <remarks>
+        /// This will force focus if not already focused.
+        /// </remarks>
+        public void SelectAll()
+        {
+            if (!HasFocus)
+            {
+                GetContainingInputManager().ChangeFocus(this);
+                Schedule(SelectAll);
+                return;
+            }
+
+            selectionStart = 0;
+            selectionEnd = text.Length;
+            cursorAndLayout.Invalidate();
+            onTextSelectionChanged(TextSelectionType.All, getTextSelectionBounds());
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
