@@ -12,9 +12,9 @@ namespace osu.Framework.Text
     public sealed class TruncatingTextBuilder : TextBuilder
     {
         /// <summary>
-        /// Indicates an ellipsis was added, meaning <see cref="SpriteText.Text"/> has been visually truncated.
+        /// Indicates whether <see cref="SpriteText.Text"/> has been visually truncated.
         /// </summary>
-        public bool EllipsisAdded { get; private set; }
+        public bool IsTruncated { get; private set; }
 
         private readonly char[] neverFixedWidthCharacters;
         private readonly char fallbackCharacter;
@@ -57,10 +57,10 @@ namespace osu.Framework.Text
         {
             base.Reset();
 
-            EllipsisAdded = false;
+            IsTruncated = false;
         }
 
-        protected override bool CanAddCharacters => (base.CanAddCharacters && !EllipsisAdded) || addingEllipsis;
+        protected override bool CanAddCharacters => (base.CanAddCharacters && !IsTruncated) || addingEllipsis;
 
         protected override bool HasAvailableSpace(float length) => base.HasAvailableSpace(length) || addingEllipsis;
 
@@ -108,7 +108,7 @@ namespace osu.Framework.Text
             finally
             {
                 addingEllipsis = false;
-                EllipsisAdded = true;
+                IsTruncated = true;
             }
         }
     }
