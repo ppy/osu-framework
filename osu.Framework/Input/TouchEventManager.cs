@@ -17,7 +17,7 @@ namespace osu.Framework.Input
     /// </summary>
     public class TouchEventManager : ButtonEventManager<TouchSource>
     {
-        protected Vector2? TouchDownPosition;
+        public Vector2? TouchDownPosition { get; private set; }
 
         /// <summary>
         /// The drawable from the input queue that handled a <see cref="TouchDownEvent"/> corresponding to this touch source.

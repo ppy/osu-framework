@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using osu.Framework.SourceGeneration.Generators;
 
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
-    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : IIncrementalGenerator, new()
+    public partial class CSharpMultiPhaseSourceGeneratorVerifier<TSourceGenerator> where TSourceGenerator : AbstractIncrementalGenerator, new()
     {
         public class Test
         {
             private GeneratorDriver driver;
+            private readonly TSourceGenerator generator;
             private readonly (string filename, string content)[] commonSources;
             private readonly (string filename, string content)[] commonGenerated;
             private readonly List<List<(string filename, string content)>> multiPhaseSources;
@@ -31,7 +32,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                 List<List<(string filename, string content)>> multiPhaseSources,
                 List<List<(string filename, string content)>> multiPhaseGenerated)
             {
-                driver = CSharpGeneratorDriver.Create(new TSourceGenerator());
+                driver = CSharpGeneratorDriver.Create(generator = new TSourceGenerator());
                 driver = driver.WithUpdatedParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion));
                 this.commonSources = commonSources;
                 this.commonGenerated = commonGenerated;
@@ -54,9 +55,9 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                     emitHits = 0;
                 };
 
-                DependencyInjectionSourceGenerator.GeneratorEvent.SyntaxTargetCreated += _ => syntaxTargetCreated++;
-                DependencyInjectionSourceGenerator.GeneratorEvent.SemanticTargetCreated += _ => semanticTargetCreated++;
-                DependencyInjectionSourceGenerator.GeneratorEvent.Emit += _ => emitHits++;
+                generator.EventDriver.SyntaxTargetCreated += _ => syntaxTargetCreated++;
+                generator.EventDriver.SemanticTargetCreated += _ => semanticTargetCreated++;
+                generator.EventDriver.Emit += _ => emitHits++;
 
                 PhaseCompleted += () =>
                 {

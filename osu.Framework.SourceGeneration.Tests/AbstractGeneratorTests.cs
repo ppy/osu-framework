@@ -11,7 +11,9 @@ namespace osu.Framework.SourceGeneration.Tests
 {
     public abstract class AbstractGeneratorTests
     {
-        private const string resources_namespace = "osu.Framework.SourceGeneration.Tests.Resources";
+        private const string assembly_namespace = "osu.Framework.SourceGeneration.Tests.Resources";
+
+        protected virtual string ResourceNamespace => string.Empty;
 
         /// <summary>
         /// This method is kind of SILLY and is a HACK.
@@ -51,10 +53,14 @@ namespace osu.Framework.SourceGeneration.Tests
             out (string filename, string content)[] commonGenerated,
             out (string filename, string content)[] generated)
         {
-            string commonSourcesNamespace = $"{resources_namespace}.CommonSources";
-            string commonGeneratedNamespace = $"{resources_namespace}.CommonGenerated";
-            string sourcesNamespace = $"{resources_namespace}.{name}.Sources";
-            string generatedNamespace = $"{resources_namespace}.{name}.Generated";
+            string baseNamespace = assembly_namespace;
+            if (!string.IsNullOrEmpty(ResourceNamespace))
+                baseNamespace += $".{ResourceNamespace}";
+
+            string commonSourcesNamespace = $"{baseNamespace}.CommonSources";
+            string commonGeneratedNamespace = $"{baseNamespace}.CommonGenerated";
+            string sourcesNamespace = $"{baseNamespace}.{name}.Sources";
+            string generatedNamespace = $"{baseNamespace}.{name}.Generated";
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             string[] resourceNames = assembly.GetManifestResourceNames();

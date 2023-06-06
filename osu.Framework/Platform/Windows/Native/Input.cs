@@ -67,6 +67,16 @@ namespace osu.Framework.Platform.Windows.Native
 
         [DllImport("user32.dll", SetLastError = false)]
         public static extern long GetMessageExtraInfo();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern unsafe bool SetWindowFeedbackSetting(IntPtr hwnd, FeedbackType feedback, ulong flags, uint size, int* configuration);
+
+        public static unsafe void SetWindowFeedbackSetting(IntPtr hwnd, FeedbackType feedback, bool configuration)
+        {
+            int config = configuration ? 1 : 0; // mimics win32 BOOL type.
+            SetWindowFeedbackSetting(hwnd, feedback, 0, sizeof(int), &config);
+        }
     }
 
     /// <summary>
@@ -338,5 +348,20 @@ namespace osu.Framework.Platform.Windows.Native
         BarCode = 0x8C,
         Scale = 0x8D,
         MSR = 0x8E
+    }
+
+    public enum FeedbackType
+    {
+        TouchContactVisualization = 1,
+        PenBarrelVisualization = 2,
+        PenTap = 3,
+        PenDoubleTap = 4,
+        PenPressAndHold = 5,
+        PenRightTap = 6,
+        TouchTap = 7,
+        TouchDoubleTap = 8,
+        TouchPressAndHold = 9,
+        TouchRightTap = 10,
+        GesturePressAndTap = 11,
     }
 }

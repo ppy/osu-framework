@@ -9,7 +9,10 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
+using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
@@ -22,6 +25,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public int MaxTexturesUploadedPerFrame { get; set; } = int.MaxValue;
         public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
 
+        public bool IsDepthRangeZeroToOne => true;
+        public bool IsUvOriginTopLeft => true;
+        public bool IsClipSpaceYInverted => true;
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
 
@@ -44,10 +50,12 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public DummyRenderer()
         {
             maskingInfo = default;
-            WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
+            WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
         }
 
         bool IRenderer.VerticalSync { get; set; } = true;
+
+        bool IRenderer.AllowTearing { get; set; }
 
         void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
@@ -62,11 +70,19 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
+        void IRenderer.FlushCurrentBatch(FlushBatchSource? source)
+        {
+        }
+
         void IRenderer.SwapBuffers()
         {
         }
 
         void IRenderer.WaitUntilIdle()
+        {
+        }
+
+        void IRenderer.WaitUntilNextFrameReady()
         {
         }
 
@@ -165,17 +181,19 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target) => disposalAction(target);
 
-        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        Image<Rgba32> IRenderer.TakeScreenshot() => new Image<Rgba32>(1366, 768);
+
+        IShaderPart IRenderer.CreateShaderPart(IShaderStore manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
-        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts)
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts)
             => new DummyShader(this);
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                                     WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
+                                     WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default)
             => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height)
@@ -186,6 +204,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
             => new DummyVertexBatch<TVertex>();
+
+        public IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>
+            => new DummyUniformBuffer<TData>();
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {

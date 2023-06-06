@@ -247,26 +247,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            double iterDuration = endTime - startTime + pause;
-            var toLoop = transforms.ToArray();
-
-            // Duplicate existing transforms numIters times
-            for (int i = 1; i < numIters; ++i)
-            {
-                foreach (var t in toLoop)
-                {
-                    var clone = t.Clone();
-
-                    clone.StartTime += i * iterDuration;
-                    clone.EndTime += i * iterDuration;
-
-                    clone.AppliedToEnd = false;
-                    clone.Applied = false;
-
-                    Add(clone);
-                    t.TargetTransformable.AddTransform(clone);
-                }
-            }
+            makeTransformsLooping(pause, numIters);
 
             return this;
         }
@@ -312,6 +293,14 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
+            makeTransformsLooping(pause);
+
+            onLoopingTransform();
+            return this;
+        }
+
+        private void makeTransformsLooping(double pause, int numIters = -1)
+        {
             double iterDuration = endTime - startTime + pause;
 
             foreach (var t in transforms)
@@ -327,11 +316,18 @@ namespace osu.Framework.Graphics.Transforms
                 // each other due to instant re-sorting upon adding.
                 double currentTransformTime = t.TargetTransformable.Time.Current;
 
+                int pushForwardCount = 0;
+
                 while (t.EndTime <= currentTransformTime)
                 {
                     t.StartTime += iterDuration;
                     t.EndTime += iterDuration;
+
+                    pushForwardCount++;
                 }
+
+                // In the finite case, we set LoopCount to the correct value to not add extra unneeded loops
+                t.LoopCount = numIters == -1 ? -1 : numIters - pushForwardCount;
             }
 
             // This sort is required such that no abortions happen.
@@ -340,7 +336,6 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (var t in sortedTransforms)
             {
-                t.IsLooping = true;
                 t.LoopDelay = iterDuration;
 
                 t.Applied = false;
@@ -348,9 +343,6 @@ namespace osu.Framework.Graphics.Transforms
 
                 t.TargetTransformable.AddTransform(t, t.TransformID);
             }
-
-            onLoopingTransform();
-            return this;
         }
 
         /// <summary>

@@ -1,11 +1,14 @@
 ﻿<Project>
   <PropertyGroup>
     <CodesignKey>iPhone Developer</CodesignKey>
+    <!-- Mono Interpreter resolves many AOT issues occuring on runtime,
+         and will be enabled by default on .NET 8+: https://github.com/dotnet/maui/issues/13019 -->
+    <UseInterpreter>true</UseInterpreter>
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <!-- MT7091 occurs when referencing a .framework bundle that consists of a static library.
          It only warns about not copying the library to the app bundle to save space,
          so there's nothing to be worried about. -->
-    <NoWarn>MT7091</NoWarn>
+    <NoWarn>$(NoWarn);MT7091</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
@@ -28,6 +31,8 @@
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavutil.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswresample.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswscale.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\veldrid-spirv.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\metal-mono-workaround.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
   </ItemGroup>
   <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
        See: https://github.com/mellinoe/veldrid/issues/472#issuecomment-1356461410 -->

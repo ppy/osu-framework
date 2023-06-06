@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Handlers.Touch
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL2DesktopWindow window))
+            if (!(host.Window is SDL2Window window))
                 return false;
 
             Enabled.BindValueChanged(enabled =>
