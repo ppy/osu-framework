@@ -1780,7 +1780,12 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-                childrenSizeDependencies.Invalidate();
+
+                if (value == Axes.None)
+                    childrenSizeDependencies.Validate();
+                else
+                    childrenSizeDependencies.Invalidate();
+
                 OnSizingChanged();
             }
         }
