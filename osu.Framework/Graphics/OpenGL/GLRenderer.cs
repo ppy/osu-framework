@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -18,7 +19,12 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
+using osuTK.Graphics;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -31,6 +37,8 @@ namespace osu.Framework.Graphics.OpenGL
             get => openGLSurface.VerticalSync;
             set => openGLSurface.VerticalSync = value;
         }
+
+        protected internal override bool AllowTearing { get; set; }
 
         public override bool IsDepthRangeZeroToOne => false;
         public override bool IsUvOriginTopLeft => false;
@@ -46,9 +54,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public bool IsEmbedded { get; private set; }
 
-        protected virtual int BackbufferFramebuffer => 0;
-
-        protected override bool GammaCorrection => base.GammaCorrection || !IsEmbedded;
+        private int backbufferFramebuffer;
 
         private readonly int[] lastBoundBuffers = new int[2];
 
@@ -63,6 +69,8 @@ namespace osu.Framework.Graphics.OpenGL
             openGLSurface = (IOpenGLGraphicsSurface)graphicsSurface;
             openGLSurface.MakeCurrent(openGLSurface.WindowContext);
 
+            backbufferFramebuffer = openGLSurface.BackbufferFramebuffer ?? 0;
+
             string version = GL.GetString(StringName.Version);
             IsEmbedded = version.Contains("OpenGL ES"); // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
 
@@ -71,7 +79,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
-            GL.Disable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
 
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
@@ -103,9 +110,16 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundBuffers.AsSpan().Clear();
             lastBoundVertexArray = 0;
 
+            // Seems to be required on some drivers as the context is lost from the draw thread.
+            MakeCurrent();
+
             GL.UseProgram(0);
 
             base.BeginFrame(windowSize);
+        }
+
+        protected internal override void WaitUntilNextFrameReady()
+        {
         }
 
         protected internal override void MakeCurrent() => openGLSurface.MakeCurrent(openGLSurface.WindowContext);
@@ -218,7 +232,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? BackbufferFramebuffer);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? backbufferFramebuffer);
 
         /// <summary>
         /// Deletes a frame buffer.
@@ -329,7 +343,19 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.Disable(EnableCap.StencilTest);
         }
 
-        protected override IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        protected internal override Image<Rgba32> TakeScreenshot()
+        {
+            var size = ((IGraphicsSurface)openGLSurface).GetDrawableSize();
+            var data = MemoryAllocator.Default.Allocate<Rgba32>(size.Width * size.Height);
+
+            GL.ReadPixels(0, 0, size.Width, size.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
+
+            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, size.Width, size.Height);
+            image.Mutate(i => i.Flip(FlipMode.Vertical));
+            return image;
+        }
+
+        protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
         {
             ShaderType glType;
 
@@ -347,7 +373,7 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported shader part type: {partType}", nameof(partType));
             }
 
-            return new GLShaderPart(this, name, rawData, glType, manager);
+            return new GLShaderPart(this, name, rawData, glType, store);
         }
 
         protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
@@ -408,7 +434,7 @@ namespace osu.Framework.Graphics.OpenGL
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Rgba32 initialisationColour = default)
+                                                              Color4 initialisationColour = default)
         {
             All glFilteringMode;
 

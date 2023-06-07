@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -32,11 +33,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
-
-        /// <summary>
-        /// Holds all <see cref="uniformBlocks"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
-        /// </summary>
-        private readonly List<GLUniformBlock> uniformBlocksValues = new List<GLUniformBlock>();
 
         public bool IsLoaded { get; private set; }
 
@@ -122,9 +118,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             for (int i = 0; i < textureUniforms.Count; i++)
                 textureUniforms[i].Update();
 
-            foreach (var block in uniformBlocksValues)
-                block?.Bind();
-
             IsBound = true;
         }
 
@@ -151,12 +144,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
+            if (buffer is not IGLUniformBuffer glBuffer)
+                throw new ArgumentException($"Buffer must be an {nameof(IGLUniformBuffer)}.");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
 
             EnsureShaderCompiled();
 
-            uniformBlocks[blockName].Assign(buffer);
+            renderer.FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, uniformBlocks[blockName].Binding, glBuffer.Id);
         }
 
         private protected virtual bool CompileInternal()
@@ -194,9 +191,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 }
                 else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
                 {
-                    var block = new GLUniformBlock(renderer, this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
+                    var block = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
                     uniformBlocks[layout.Elements[0].Name] = block;
-                    uniformBlocksValues.Add(block);
                 }
             }
 

@@ -206,12 +206,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("add box", () => Child = box = new AsyncPerformingBox(true));
             AddAssert("not spun", () => box.Rotation == 0);
 
-            AddStep("toggle execution mode", () => toggleExecutionMode());
+            AddStep("toggle execution mode", toggleExecutionMode);
 
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
             AddUntilStep("has spun", () => box.Rotation == 180);
 
-            AddStep("revert execution mode", () => toggleExecutionMode());
+            AddStep("revert execution mode", toggleExecutionMode);
 
             void toggleExecutionMode()
             {

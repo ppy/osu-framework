@@ -122,6 +122,13 @@ namespace osu.Framework.Graphics.UserInterface
                 if (innerRadius == 0 || (!roundedCaps && progress == 0))
                     return;
 
+                base.Blit(renderer);
+            }
+
+            protected override void BindUniformResources(IShader shader, IRenderer renderer)
+            {
+                base.BindUniformResources(shader, renderer);
+
                 parametersBuffer ??= renderer.CreateUniformBuffer<CircularProgressParameters>();
                 parametersBuffer.Data = new CircularProgressParameters
                 {
@@ -131,9 +138,7 @@ namespace osu.Framework.Graphics.UserInterface
                     RoundedCaps = roundedCaps,
                 };
 
-                TextureShader.BindUniformBlock("m_CircularProgressParameters", parametersBuffer);
-
-                base.Blit(renderer);
+                shader.BindUniformBlock("m_CircularProgressParameters", parametersBuffer);
             }
 
             protected internal override bool CanDrawOpaqueInterior => false;

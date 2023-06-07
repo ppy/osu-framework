@@ -45,6 +45,18 @@ namespace osu.Framework.Tests.Visual.Platform
                         Size = new Vector2(150, 30),
                         Text = "Open bad link",
                     },
+                    new BasicButton
+                    {
+                        Action = () => host.OpenUrlExternally("https://github.com/ppy/osu-framework"),
+                        Size = new Vector2(150, 30),
+                        Text = "Open github link",
+                    },
+                    new BasicButton
+                    {
+                        Action = () => host.OpenUrlExternally("https://twitter.com/osugame"),
+                        Size = new Vector2(150, 30),
+                        Text = "Open twitter link",
+                    },
                 }
             };
         }

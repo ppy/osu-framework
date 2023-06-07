@@ -31,6 +31,7 @@ namespace osu.Framework.Timing
                 FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(Source);
             }
 
+            currentTime = 0;
             LastInterpolatedTime = 0;
             CurrentInterpolatedTime = 0;
         }

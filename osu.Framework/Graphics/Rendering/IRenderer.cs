@@ -4,12 +4,14 @@
 using System;
 using osu.Framework.Graphics.Textures;
 using osuTK;
-using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osuTK.Graphics;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -46,6 +48,8 @@ namespace osu.Framework.Graphics.Rendering
         /// Enables or disables vertical sync.
         /// </summary>
         protected internal bool VerticalSync { get; set; }
+
+        protected internal bool AllowTearing { get; set; }
 
         /// <summary>
         /// The maximum allowed texture size.
@@ -179,6 +183,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal void WaitUntilIdle();
 
         /// <summary>
+        /// Waits until the GPU signals that the next frame is ready to be rendered.
+        /// </summary>
+        protected internal void WaitUntilNextFrameReady();
+
+        /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
         /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
         /// </summary>
@@ -189,6 +198,12 @@ namespace osu.Framework.Graphics.Rendering
         /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
         /// </summary>
         protected internal void ClearCurrent();
+
+        /// <summary>
+        /// Flushes the currently active vertex batch.
+        /// </summary>
+        /// <param name="source">The source performing the flush, for profiling purposes.</param>
+        internal void FlushCurrentBatch(FlushBatchSource? source);
 
         /// <summary>
         /// Binds a texture.
@@ -321,14 +336,19 @@ namespace osu.Framework.Graphics.Rendering
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
         /// <summary>
+        /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
+        /// </summary>
+        protected internal Image<Rgba32> TakeScreenshot();
+
+        /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
         /// </summary>
-        /// <param name="manager">The shader manager to load headers with.</param>
+        /// <param name="store">The shader store to load headers with.</param>
         /// <param name="name">The name of the shader part.</param>
         /// <param name="rawData">The content of the shader part.</param>
         /// <param name="partType">The type of the shader part.</param>
         /// <returns>The <see cref="IShaderPart"/>.</returns>
-        protected internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+        protected internal IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <summary>
         /// Creates a new <see cref="IShader"/>.
@@ -350,7 +370,7 @@ namespace osu.Framework.Graphics.Rendering
         /// Creates a new texture.
         /// </summary>
         Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                              WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default);
+                              WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default);
 
         /// <summary>
         /// Creates a new video texture.

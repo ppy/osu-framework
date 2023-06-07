@@ -44,7 +44,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="stores">The collection of stores.</param>
         public ResourceStore(IResourceStore<T>[] stores)
         {
-            foreach (var resourceStore in stores.Cast<ResourceStore<T>>())
+            foreach (var resourceStore in stores)
                 AddStore(resourceStore);
         }
 

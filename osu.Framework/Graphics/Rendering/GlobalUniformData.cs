@@ -10,9 +10,10 @@ namespace osu.Framework.Graphics.Rendering
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public record struct GlobalUniformData
     {
-        public UniformBool GammaCorrection;
         public UniformBool BackbufferDraw;
-        private readonly UniformPadding8 pad1;
+        public UniformBool IsDepthRangeZeroToOne;
+        public UniformBool IsClipSpaceYInverted;
+        public UniformBool IsUvOriginTopLeft;
 
         public UniformMatrix4 ProjMatrix;
         public UniformMatrix3 ToMaskingSpace;
@@ -33,9 +34,5 @@ namespace osu.Framework.Graphics.Rendering
         public UniformFloat InnerCornerRadius;
         public UniformInt WrapModeS;
         public UniformInt WrapModeT;
-
-        public UniformBool IsDepthRangeZeroToOne;
-        public UniformBool IsClipSpaceYInverted;
-        private readonly UniformPadding8 pad4;
     }
 }

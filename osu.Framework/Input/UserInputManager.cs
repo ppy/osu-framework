@@ -90,7 +90,7 @@ namespace osu.Framework.Input
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
-                    windowLocation = Host.Window is SDL2DesktopWindow sdlWindow ? sdlWindow.Position : Point.Empty;
+                    windowLocation = Host.Window is SDL2Window sdlWindow ? sdlWindow.Position : Point.Empty;
                     break;
 
                 default:

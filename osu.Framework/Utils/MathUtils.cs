@@ -46,5 +46,16 @@ namespace osu.Framework.Utils
         {
             return radians * (180.0 / Math.PI);
         }
+
+        /// <summary>
+        /// Integer division with rounding up instead of down.
+        /// </summary>
+        /// <param name="value">The value to be divided.</param>
+        /// <param name="divisor">The divisor of the division.</param>
+        /// <returns>The rounded-up quotient.</returns>
+        public static int DivideRoundUp(int value, int divisor)
+        {
+            return (value + divisor - 1) / divisor;
+        }
     }
 }

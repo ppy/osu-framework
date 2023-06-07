@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using Veldrid;
-using BufferUsage = Veldrid.BufferUsage;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {
@@ -14,12 +13,12 @@ namespace osu.Framework.Graphics.Veldrid.Batches
     {
         private readonly PrimitiveTopology type;
 
-        public VeldridLinearBatch(VeldridRenderer renderer, int size, int maxBuffers, PrimitiveTopology type)
-            : base(renderer, size, maxBuffers)
+        public VeldridLinearBatch(VeldridRenderer renderer, int size, PrimitiveTopology type)
+            : base(renderer, size)
         {
             this.type = type;
         }
 
-        protected override VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridLinearBuffer<T>(renderer, Size, type, BufferUsage.Dynamic);
+        protected override VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridLinearBuffer<T>(renderer, Size, type);
     }
 }

@@ -3,16 +3,13 @@
 
 #nullable disable
 
-using UIKit;
+using osu.Framework.iOS;
 
 namespace SampleGame.iOS
 {
     public static class Application
     {
         // This is the main entry point of the application.
-        public static void Main(string[] args)
-        {
-            UIApplication.Main(args, null, typeof(AppDelegate));
-        }
+        public static void Main(string[] args) => GameApplication.Main(new SampleGameGame());
     }
 }

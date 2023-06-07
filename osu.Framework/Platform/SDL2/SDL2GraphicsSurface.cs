@@ -15,7 +15,7 @@ namespace osu.Framework.Platform.SDL2
 {
     public class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
-        private readonly SDL2DesktopWindow window;
+        private readonly SDL2Window window;
 
         private IntPtr context;
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Platform.SDL2
 
         public GraphicsSurfaceType Type { get; }
 
-        public SDL2GraphicsSurface(SDL2DesktopWindow window, GraphicsSurfaceType surfaceType)
+        public SDL2GraphicsSurface(SDL2Window window, GraphicsSurfaceType surfaceType)
         {
             this.window = window;
             Type = surfaceType;
@@ -88,7 +88,15 @@ namespace osu.Framework.Platform.SDL2
 
         private void initialiseOpenGL()
         {
-            if (Type == GraphicsSurfaceType.OpenGL)
+            if (RuntimeInfo.IsMobile)
+            {
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
+
+                // Minimum OpenGL version for ES profile:
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+            }
+            else
             {
                 SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
 
@@ -161,10 +169,46 @@ namespace osu.Framework.Platform.SDL2
             return ret;
         }
 
+        int? IOpenGLGraphicsSurface.BackbufferFramebuffer
+        {
+            get
+            {
+                if (window.SDLWindowHandle == IntPtr.Zero)
+                    return null;
+
+                var wmInfo = window.GetWindowSystemInformation();
+
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
+                        return (int)wmInfo.info.uikit.framebuffer;
+                }
+
+                return null;
+            }
+        }
+
+        // cache value locally as requesting from SDL is not free.
+        // it is assumed that we are the only thing changing vsync modes.
+        private bool? verticalSync;
+
         bool IOpenGLGraphicsSurface.VerticalSync
         {
-            get => SDL.SDL_GL_GetSwapInterval() != 0;
-            set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+            get
+            {
+                if (verticalSync != null)
+                    return verticalSync.Value;
+
+                return (verticalSync = SDL.SDL_GL_GetSwapInterval() != 0).Value;
+            }
+            set
+            {
+                if (RuntimeInfo.IsDesktop)
+                {
+                    SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
+                    verticalSync = value;
+                }
+            }
         }
 
         IntPtr IOpenGLGraphicsSurface.WindowContext => context;

@@ -9,12 +9,14 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -22,7 +24,9 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -38,6 +42,7 @@ namespace osu.Framework.Graphics.Rendering
         private const int vbo_free_check_interval = 300;
 
         protected internal abstract bool VerticalSync { get; set; }
+        protected internal abstract bool AllowTearing { get; set; }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
@@ -68,16 +73,10 @@ namespace osu.Framework.Graphics.Rendering
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
 
-        /// <summary>
-        /// Whether this renderer should apply gamma correction (toSRGB/toLinear) functions in fragment shaders.
-        /// By default, this is only applied to the main framebuffer (i.e. "backbuffer").
-        /// </summary>
-        protected virtual bool GammaCorrection => UsingBackbuffer;
-
         public bool IsInitialised { get; private set; }
 
         protected ClearInfo CurrentClearInfo { get; private set; }
-        protected BlendingParameters CurrentBlendingParameters { get; private set; }
+        public BlendingParameters CurrentBlendingParameters { get; private set; }
         protected BlendingMask CurrentBlendingMask { get; private set; }
 
         /// <summary>
@@ -189,7 +188,8 @@ namespace osu.Framework.Graphics.Rendering
             globalUniformBuffer.Data = globalUniformBuffer.Data with
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
-                IsClipSpaceYInverted = IsClipSpaceYInverted
+                IsClipSpaceYInverted = IsClipSpaceYInverted,
+                IsUvOriginTopLeft = IsUvOriginTopLeft
             };
 
             Debug.Assert(defaultQuadBatch != null);
@@ -315,6 +315,11 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
+        /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
+        /// </summary>
+        protected internal abstract Image<Rgba32> TakeScreenshot();
+
+        /// <summary>
         /// Sets the current draw depth.
         /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
         /// </summary>
@@ -338,6 +343,8 @@ namespace osu.Framework.Graphics.Rendering
         /// This is equivalent to a <c>glFinish</c> call.
         /// </remarks>
         protected internal abstract void WaitUntilIdle();
+
+        protected internal abstract void WaitUntilNextFrameReady();
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
@@ -524,8 +531,16 @@ namespace osu.Framework.Graphics.Rendering
             if (Scissor == scissor)
                 return;
 
+            // when rendering to a framebuffer on a backend which has the UV origin set to bottom-left (OpenGL),
+            // vertex positions are flipped vertically in sh_Vertex_Output.h to match that UV origin.
+            // for scissoring to continue to work correctly with that, the scissor box has to be inverted too.
+            var compensatedScissor = scissor;
+            if (!UsingBackbuffer && !IsUvOriginTopLeft)
+                compensatedScissor.Y = Viewport.Height - scissor.Bottom;
+
             FlushCurrentBatch(FlushBatchSource.SetScissor);
-            SetScissorImplementation(scissor);
+            SetScissorImplementation(compensatedScissor);
+            // do not expose the implementation detail of flipping the scissor box to Scissor readers.
             Scissor = scissor;
         }
 
@@ -629,25 +644,25 @@ namespace osu.Framework.Graphics.Rendering
                 BorderColour = maskingInfo.BorderThickness > 0
                     ? new Matrix4(
                         // TopLeft
-                        maskingInfo.BorderColour.TopLeft.Linear.R,
-                        maskingInfo.BorderColour.TopLeft.Linear.G,
-                        maskingInfo.BorderColour.TopLeft.Linear.B,
-                        maskingInfo.BorderColour.TopLeft.Linear.A,
+                        maskingInfo.BorderColour.TopLeft.SRGB.R,
+                        maskingInfo.BorderColour.TopLeft.SRGB.G,
+                        maskingInfo.BorderColour.TopLeft.SRGB.B,
+                        maskingInfo.BorderColour.TopLeft.SRGB.A,
                         // BottomLeft
-                        maskingInfo.BorderColour.BottomLeft.Linear.R,
-                        maskingInfo.BorderColour.BottomLeft.Linear.G,
-                        maskingInfo.BorderColour.BottomLeft.Linear.B,
-                        maskingInfo.BorderColour.BottomLeft.Linear.A,
+                        maskingInfo.BorderColour.BottomLeft.SRGB.R,
+                        maskingInfo.BorderColour.BottomLeft.SRGB.G,
+                        maskingInfo.BorderColour.BottomLeft.SRGB.B,
+                        maskingInfo.BorderColour.BottomLeft.SRGB.A,
                         // TopRight
-                        maskingInfo.BorderColour.TopRight.Linear.R,
-                        maskingInfo.BorderColour.TopRight.Linear.G,
-                        maskingInfo.BorderColour.TopRight.Linear.B,
-                        maskingInfo.BorderColour.TopRight.Linear.A,
+                        maskingInfo.BorderColour.TopRight.SRGB.R,
+                        maskingInfo.BorderColour.TopRight.SRGB.G,
+                        maskingInfo.BorderColour.TopRight.SRGB.B,
+                        maskingInfo.BorderColour.TopRight.SRGB.A,
                         // BottomRight
-                        maskingInfo.BorderColour.BottomRight.Linear.R,
-                        maskingInfo.BorderColour.BottomRight.Linear.G,
-                        maskingInfo.BorderColour.BottomRight.Linear.B,
-                        maskingInfo.BorderColour.BottomRight.Linear.A)
+                        maskingInfo.BorderColour.BottomRight.SRGB.R,
+                        maskingInfo.BorderColour.BottomRight.SRGB.G,
+                        maskingInfo.BorderColour.BottomRight.SRGB.B,
+                        maskingInfo.BorderColour.BottomRight.SRGB.A)
                     : globalUniformBuffer.Data.BorderColour,
                 MaskingBlendRange = maskingInfo.BlendRange,
                 AlphaExponent = maskingInfo.AlphaExponent,
@@ -918,7 +933,7 @@ namespace osu.Framework.Graphics.Rendering
             setFrameBuffer(frameBuffer);
         }
 
-        public void UnbindFrameBuffer(IFrameBuffer frameBuffer)
+        public void UnbindFrameBuffer(IFrameBuffer? frameBuffer)
         {
             if (FrameBuffer != frameBuffer)
                 return;
@@ -936,11 +951,7 @@ namespace osu.Framework.Graphics.Rendering
 
             SetFrameBufferImplementation(frameBuffer);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with
-            {
-                BackbufferDraw = UsingBackbuffer,
-                GammaCorrection = GammaCorrection,
-            };
+            globalUniformBuffer!.Data = globalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
 
             FrameBuffer = frameBuffer;
         }
@@ -1022,10 +1033,33 @@ namespace osu.Framework.Graphics.Rendering
         public abstract IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <inheritdoc cref="IRenderer.CreateShaderPart"/>
-        protected abstract IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+        protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
         protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer);
+
+        private IShader? mipmapShader;
+
+        internal IShader GetMipmapShader()
+        {
+            if (mipmapShader != null)
+                return mipmapShader;
+
+            var store = new PassthroughShaderStore(
+                new NamespacedResourceStore<byte[]>(
+                    new NamespacedResourceStore<byte[]>(
+                        new DllResourceStore(typeof(Game).Assembly),
+                        @"Resources"),
+                    "Shaders"));
+
+            mipmapShader = CreateShader("mipmap", new[]
+            {
+                CreateShaderPart(store, "mipmap.vs", store.GetRawData("sh_mipmap.vs"), ShaderPartType.Vertex),
+                CreateShaderPart(store, "mipmap.fs", store.GetRawData("sh_mipmap.fs"), ShaderPartType.Fragment),
+            }, globalUniformBuffer.AsNonNull());
+
+            return mipmapShader;
+        }
 
         /// <inheritdoc cref="IRenderer.CreateLinearBatch{TVertex}"/>
         protected abstract IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
@@ -1046,7 +1080,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
         /// <returns>The <see cref="INativeTexture"/>.</returns>
         protected abstract INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Rgba32 initialisationColour = default);
+                                                              Color4 initialisationColour = default);
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/> for video sprites.
@@ -1056,7 +1090,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>The video <see cref="INativeTexture"/>.</returns>
         protected abstract INativeTexture CreateNativeVideoTexture(int width, int height);
 
-        public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Rgba32 initialisationColour)
+        public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Color4 initialisationColour)
             => CreateTexture(CreateNativeTexture(width, height, manualMipmaps, filteringMode, initialisationColour), wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height) => CreateTexture(CreateNativeVideoTexture(width, height));
@@ -1070,14 +1104,6 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>The <see cref="Texture"/>.</returns>
         internal Texture CreateTexture(INativeTexture nativeTexture, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
             => registerTexture(new Texture(nativeTexture, wrapModeS, wrapModeT));
-
-        /// <summary>
-        /// Creates a special <see cref="Texture"/> which responds to any UV-coordinate space requirements for use in framebuffers.
-        /// </summary>
-        /// <param name="nativeTexture">The framebuffer's native texture.</param>
-        /// <returns>The <see cref="Texture"/>.</returns>
-        internal Texture CreateFrameBufferTexture(INativeTexture nativeTexture)
-            => registerTexture(new ClipSpaceAdjustedTexture(nativeTexture, WrapMode.None, WrapMode.None));
 
         private Texture registerTexture(Texture texture)
         {
@@ -1096,18 +1122,27 @@ namespace osu.Framework.Graphics.Rendering
             set => VerticalSync = value;
         }
 
+        bool IRenderer.AllowTearing
+        {
+            get => AllowTearing;
+            set => AllowTearing = value;
+        }
+
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
+        void IRenderer.FlushCurrentBatch(FlushBatchSource? source) => FlushCurrentBatch(source);
         void IRenderer.SwapBuffers() => SwapBuffers();
         void IRenderer.WaitUntilIdle() => WaitUntilIdle();
+        void IRenderer.WaitUntilNextFrameReady() => WaitUntilNextFrameReady();
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
         void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
-        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(manager, name, rawData, partType);
+        Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
+        IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
@@ -1241,35 +1276,16 @@ namespace osu.Framework.Graphics.Rendering
 
         #endregion
 
-        #region Utils
-
-        /// <summary>
-        /// A special <see cref="Texture"/> which applies adjustments necessary for the current renderer
-        /// to ensure that (0, 0) is the top-left texel of the texture.
-        /// </summary>
-        /// <remarks>
-        /// This is used for framebuffers where the texture can't be pre-adjusted from the time of creation.
-        /// </remarks>
-        private class ClipSpaceAdjustedTexture : Texture
+        private class PassthroughShaderStore : IShaderStore
         {
-            public ClipSpaceAdjustedTexture(INativeTexture nativeTexture, WrapMode wrapModeS, WrapMode wrapModeT)
-                : base(nativeTexture, wrapModeS, wrapModeT)
+            private readonly IResourceStore<byte[]> store;
+
+            public PassthroughShaderStore(IResourceStore<byte[]> store)
             {
+                this.store = store;
             }
 
-            public ClipSpaceAdjustedTexture(Texture parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-                : base(parent, wrapModeS, wrapModeT)
-            {
-            }
-
-            public override RectangleF GetTextureRect(RectangleF? area = null)
-            {
-                return base.NativeTexture.Renderer.IsUvOriginTopLeft
-                    ? base.GetTextureRect(area)
-                    : base.GetTextureRect(area).Inflate(new Vector2(0, -1));
-            }
+            public byte[]? GetRawData(string fileName) => store.Get(fileName);
         }
-
-        #endregion
     }
 }

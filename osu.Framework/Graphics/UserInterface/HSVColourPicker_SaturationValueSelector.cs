@@ -259,12 +259,14 @@ namespace osu.Framework.Graphics.UserInterface
 
                     private IUniformBuffer<HueData> hueDataBuffer;
 
-                    protected override void Blit(IRenderer renderer)
+                    protected override void BindUniformResources(IShader shader, IRenderer renderer)
                     {
+                        base.BindUniformResources(shader, renderer);
+
                         hueDataBuffer ??= renderer.CreateUniformBuffer<HueData>();
                         hueDataBuffer.Data = hueDataBuffer.Data with { Hue = hue };
-                        TextureShader.BindUniformBlock("m_HueData", hueDataBuffer);
-                        base.Blit(renderer);
+
+                        shader.BindUniformBlock("m_HueData", hueDataBuffer);
                     }
 
                     protected override void Dispose(bool isDisposing)

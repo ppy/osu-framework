@@ -26,14 +26,14 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private string header = string.Empty;
         private string code;
 
-        private readonly ShaderManager manager;
+        private readonly IShaderStore store;
 
         public IReadOnlyList<VeldridShaderAttribute> Input { get; private set; } = new List<VeldridShaderAttribute>();
         public IReadOnlyList<VeldridShaderAttribute> Output { get; private set; } = new List<VeldridShaderAttribute>();
 
-        public VeldridShaderPart(byte[]? data, ShaderPartType type, ShaderManager manager)
+        public VeldridShaderPart(byte[]? data, ShaderPartType type, IShaderStore store)
         {
-            this.manager = manager;
+            this.store = store;
 
             Type = type;
 
@@ -55,11 +55,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             code = uniform_pattern.Replace(code, match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
         }
 
-        private VeldridShaderPart(string code, string header, ShaderPartType type, ShaderManager manager)
+        private VeldridShaderPart(string code, string header, ShaderPartType type, IShaderStore store)
         {
             this.code = code;
             this.header = header;
-            this.manager = manager;
+            this.store = store;
 
             Type = type;
         }
@@ -102,12 +102,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
 
-                        //#if DEBUG
-                        //                        byte[] rawData = null;
-                        //                        if (File.Exists(includeName))
-                        //                            rawData = File.ReadAllBytes(includeName);
-                        //#endif
-                        result += loadFile(manager.LoadRaw(includeName), false) + '\n';
+                        code += loadFile(store.GetRawData(includeName), false) + '\n';
                     }
                     else
                         result += line + '\n';
@@ -115,14 +110,14 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                 if (mainFile)
                 {
-                    string internalIncludes = loadFile(manager.LoadRaw("Internal/sh_Compatibility.h"), false) + "\n";
-                    internalIncludes += loadFile(manager.LoadRaw("Internal/sh_GlobalUniforms.h"), false) + "\n";
+                    string internalIncludes = loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false) + "\n";
+                    internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     result = internalIncludes + result;
 
                     Input = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
                     Output = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
 
-                    string outputCode = loadFile(manager.LoadRaw($"Internal/sh_{Type}_Output.h"), false);
+                    string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
 
                     if (!string.IsNullOrEmpty(outputCode))
                     {
@@ -146,7 +141,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         /// To prevent this from happening, make sure all unused vertex output are used and sent in the fragment output so that D3D11 doesn't omit them.
         /// </para>
         /// <para>
-        /// This creates a new <see cref="VeldridShaderPart"/> rather than altering this existing instance since this is cached at a <see cref="ShaderManager"/> level and should remain immutable.
+        /// This creates a new <see cref="VeldridShaderPart"/> rather than altering this existing instance since this is cached at a <see cref="IShaderStore"/> level and should remain immutable.
         /// </para>
         /// </remarks>
         /// <param name="vertexOutput">The list of vertex output members.</param>
@@ -175,7 +170,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString().Trim());
             fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString().Trim());
 
-            return new VeldridShaderPart(fragmentOutputCode, header, Type, manager) { Input = Input, Output = Output };
+            return new VeldridShaderPart(fragmentOutputCode, header, Type, store)
+            {
+                Input = Input,
+                Output = Output
+            };
         }
 
         public string GetRawText() => header + '\n' + code;

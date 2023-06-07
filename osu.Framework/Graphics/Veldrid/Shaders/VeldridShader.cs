@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
             if (buffer is not IVeldridUniformBuffer veldridBuffer)
-                throw new InvalidOperationException();
+                throw new ArgumentException($"Buffer must be an {nameof(IVeldridUniformBuffer)}.");
 
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
@@ -108,6 +108,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         private void compile()
         {
+            Logger.Log($"🖍️ Compiling shader {name}...");
+
             Debug.Assert(parts.Length == 2);
 
             VeldridShaderPart vertex = parts.Single(p => p.Type == ShaderPartType.Vertex);
@@ -127,11 +129,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     Array.Empty<byte>(),
                     renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
-                // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under Vulkan.
+                // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under other backends.
                 VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
                     Encoding.UTF8.GetBytes(vertex.GetRawText()),
                     Encoding.UTF8.GetBytes(fragment.GetRawText()),
-                    CrossCompileTarget.GLSL);
+                    RuntimeInfo.IsMobile ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
 
                 if (renderer.SurfaceType == GraphicsSurfaceType.Vulkan)
                 {
@@ -200,10 +202,13 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                                         ShaderStages.Fragment | ShaderStages.Vertex))));
                     }
                 }
+
+                Logger.Log($"🖍️ Shader {name} compiled!");
             }
             catch (SpirvCompilationException e)
             {
-                Logger.Error(e, $"Failed to initialise shader \"{name}\"");
+                Logger.Error(e, $"🖍️ Failed to initialise shader {name}");
+                throw;
             }
         }
 
