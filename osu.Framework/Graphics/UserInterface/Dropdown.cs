@@ -524,6 +524,12 @@ namespace osu.Framework.Graphics.UserInterface
                     PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
                     return base.OnMouseMove(e);
                 }
+
+                protected override bool OnMouseDown(MouseDownEvent e)
+                {
+                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
+                    return base.OnMouseDown(e);
+                }
             }
 
             #endregion
