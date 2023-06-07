@@ -1799,6 +1799,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal event Action OnAutoSize;
 
+        /// <summary>
+        /// Whether the <see cref="childrenSizeDependencies"/> layout is valid.
+        /// </summary>
+        internal bool ChildrenSizeDependenciesIsValid => childrenSizeDependencies.IsValid;
+
         private readonly LayoutValue childrenSizeDependencies = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         public override float Width

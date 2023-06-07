@@ -407,6 +407,97 @@ namespace osu.Framework.Tests.Layout
             AddAssert("child not invalidated", () => !invalidated);
         }
 
+        /// <summary>
+        /// Tests the state of childrenSizeDependencies by the time a <see cref="CompositeDrawable"/> is loaded, for various values of <see cref="Axes"/>.
+        /// </summary>
+        [TestCase(Axes.None)]
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestChildrenSizeDependenciesValidationOnLoad(Axes autoSizeAxes)
+        {
+            bool isValid = false;
+
+            AddStep("create test", () =>
+            {
+                Container child;
+                Child = child = new Container { AutoSizeAxes = autoSizeAxes };
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            if (autoSizeAxes != Axes.None)
+                AddAssert("invalidated", () => !isValid);
+            else
+                AddAssert("valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that setting <see cref="CompositeDrawable.AutoSizeAxes"/> causes an invalidation of childrenSizeDependencies when not <see cref="Axes.None"/>,
+        /// and causes a validation of childrenSizeDependencies when <see cref="Axes.None"/>.
+        /// </summary>
+        [Test]
+        public void TestSettingAutoSizeAxesInvalidatesAndValidates()
+        {
+            Container child = null;
+            bool isValid = false;
+
+            AddStep("create test", () =>
+            {
+                Child = child = new Container();
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("initially valid", () => isValid);
+
+            AddStep("set autosize", () =>
+            {
+                child.AutoSizeAxes = Axes.Both;
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("invalidated", () => !isValid);
+
+            AddStep("remove autosize", () =>
+            {
+                child.Invalidate(); // It will have automatically validated after the previous step.
+                child.AutoSizeAxes = Axes.None;
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that a non-autosizing parent does not have its childrenSizeDependencies invalidated when a child invalidates.
+        /// </summary>
+        [Test]
+        public void TestNonAutoSizingParentDoesNotInvalidateSizeDependenciesFromChild()
+        {
+            Container parent = null;
+            Drawable child = null;
+            bool isValid = false;
+
+            AddStep("create test", () =>
+            {
+                Child = parent = new Container
+                {
+                    Child = child = new Box()
+                };
+
+                isValid = parent.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("initially valid", () => isValid);
+
+            AddStep("invalidate child", () =>
+            {
+                child.Height = 100;
+                isValid = parent.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("still valid", () => isValid);
+        }
+
         private partial class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
