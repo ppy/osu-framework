@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public readonly ShaderPartType Type;
 
         private string header = string.Empty;
-        private string code;
 
+        private readonly string code;
         private readonly IShaderStore store;
 
         public IReadOnlyList<VeldridShaderAttribute> Input { get; private set; } = new List<VeldridShaderAttribute>();
@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             foreach (VeldridShaderAttribute attribute in unusedFragmentInput)
             {
-                string name = $"unused_input_{Guid.NewGuid().ToString("N")}";
+                string name = $"unused_input_{Guid.NewGuid():N}";
 
                 fragmentOutputLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
                 fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {attribute.Type} o_{name};");
