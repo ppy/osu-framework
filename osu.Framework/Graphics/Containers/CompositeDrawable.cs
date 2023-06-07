@@ -1090,9 +1090,14 @@ namespace osu.Framework.Graphics.Containers
             // The invalidation still needs to occur as normal, since a derived CompositeDrawable may want to respond to children size invalidations.
             Invalidate(invalidation, InvalidationSource.Child);
 
-            // If all the changed axes were bypassed and an invalidation occurred, the children size dependencies can immediately be
-            // re-validated without a recomputation, as a recomputation would not change the auto-sized size.
-            if (wasValid && (axes & source.BypassAutoSizeAxes) == axes)
+            // Skip axes that are bypassed.
+            axes &= ~source.BypassAutoSizeAxes;
+
+            // Include only axes that this composite is autosizing for.
+            axes &= AutoSizeAxes;
+
+            // If no remaining axes remain, then children size dependencies can immediately be re-validated as the auto-sized size would not change.
+            if (wasValid && axes == Axes.None)
                 childrenSizeDependencies.Validate();
         }
 
