@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
 
-                        code += loadFile(store.GetRawData(includeName), false) + '\n';
+                        result += loadFile(store.GetRawData(includeName), false) + '\n';
                     }
                     else
                         result += line + '\n';
