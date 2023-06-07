@@ -54,6 +54,9 @@ namespace osu.Framework.Graphics.Containers
             internalChildren = new SortedList<Drawable>(childComparer);
             aliveInternalChildren = new SortedList<Drawable>(childComparer);
 
+            // Validate initially. Done before the layout is added below to prevent a callback to this composite.
+            childrenSizeDependencies.Validate();
+
             AddLayout(childrenSizeDependencies);
         }
 
