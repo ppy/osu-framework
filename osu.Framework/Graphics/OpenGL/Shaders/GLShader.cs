@@ -1,11 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -48,7 +47,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             this.renderer = renderer;
             this.name = name;
             this.globalUniformBuffer = globalUniformBuffer;
-            this.parts = parts.Where(p => p != null).ToArray();
+            this.parts = parts;
 
             vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
             fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
@@ -225,15 +224,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-            {
-                IsDisposed = true;
+            if (IsDisposed)
+                return;
 
-                shaderCompileDelegate?.Cancel();
+            IsDisposed = true;
 
-                if (programID != -1)
-                    DeleteProgram(this);
-            }
+            if (shaderCompileDelegate.IsNotNull())
+                shaderCompileDelegate.Cancel();
+
+            if (programID != -1)
+                DeleteProgram(this);
         }
 
         #endregion
