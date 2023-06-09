@@ -108,13 +108,15 @@ namespace osu.Framework.Graphics.UserInterface
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var newItem = new DropdownMenuItem<T>(GenerateItemText(value), value, () =>
+            var newItem = new DropdownMenuItem<T>(value, () =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
 
                 Menu.State = MenuState.Closed;
             });
+
+            newItem.Text.Value = GenerateItemText(value);
 
             Menu.Add(newItem);
             itemMap[value] = newItem;
@@ -270,7 +272,7 @@ namespace osu.Framework.Graphics.UserInterface
             // null is not a valid value for Dictionary, so neither here
             if (args.NewValue == null && SelectedItem != null)
             {
-                selectedItem = new DropdownMenuItem<T>(default, default);
+                selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
             }
             else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {

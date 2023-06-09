@@ -18,8 +18,8 @@ namespace osu.Framework.Graphics.UserInterface
             Value = value;
         }
 
-        public DropdownMenuItem(LocalisableString text, T value, Action action)
-            : base(text, action)
+        public DropdownMenuItem(T value, Action action)
+            : base(action)
         {
             Value = value;
         }
