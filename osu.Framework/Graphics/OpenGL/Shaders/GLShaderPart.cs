@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int partID = -1;
 
-        public GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, IShaderStore store)
+        public GLShaderPart(IRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
             this.store = store;
