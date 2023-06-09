@@ -61,12 +61,12 @@ namespace osu.Framework.Tests.Shaders
         private class TestGLRenderer : GLRenderer
         {
             protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
-                => new TestGLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), compilationStore);
+                => new TestGLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer, compilationStore);
 
             private class TestGLShader : GLShader
             {
-                internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts, ShaderCompilationStore compilationStore)
-                    : base(renderer, name, parts, null, compilationStore)
+                internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
+                    : base(renderer, name, parts, globalUniformBuffer, compilationStore)
                 {
                 }
 
