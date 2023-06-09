@@ -942,6 +942,7 @@ namespace osu.Framework.Platform
             Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
 
             Renderer = renderer;
+            Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
             // Prepare window
             Window = CreateWindow(surfaceType);

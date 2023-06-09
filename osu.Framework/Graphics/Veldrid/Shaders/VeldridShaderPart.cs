@@ -115,10 +115,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                         if (!string.IsNullOrEmpty(backbufferCode))
                         {
-                            string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                            const string real_main_name = "__internal_real_main";
 
-                            backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                            backbufferCode = backbufferCode.Replace("{{ real_main }}", real_main_name);
+                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {real_main_name}()") + backbufferCode + '\n';
                         }
                     }
                 }

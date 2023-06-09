@@ -23,6 +23,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly string name;
         private readonly VeldridShaderPart[] parts;
         private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
+        private readonly ShaderCompilationStore compilationStore;
         private readonly VeldridRenderer renderer;
 
         public Shader[]? Shaders;
@@ -42,11 +43,12 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
         private readonly List<VeldridUniformLayout> textureLayouts = new List<VeldridUniformLayout>();
 
-        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
         {
             this.name = name;
             this.parts = parts;
             this.globalUniformBuffer = globalUniformBuffer;
+            this.compilationStore = compilationStore;
             this.renderer = renderer;
 
             // This part of the compilation is quite CPU expensive.
@@ -128,19 +130,19 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
                 // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under other backends.
-                VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                    Encoding.UTF8.GetBytes(vertex.GetRawText()),
-                    Encoding.UTF8.GetBytes(fragment.GetRawText()),
+                VertexFragmentShaderCompilation compilation = compilationStore.CompileVertexFragment(
+                    vertex.GetRawText(),
+                    fragment.GetRawText(),
                     RuntimeInfo.IsMobile ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
 
                 if (renderer.SurfaceType == GraphicsSurfaceType.Vulkan)
                 {
-                    vertexShaderDescription.ShaderBytes = SpirvCompilation.CompileGlslToSpirv(vertex.GetRawText(), null, ShaderStages.Vertex, GlslCompileOptions.Default).SpirvBytes;
-                    fragmentShaderDescription.ShaderBytes = SpirvCompilation.CompileGlslToSpirv(fragment.GetRawText(), null, ShaderStages.Fragment, GlslCompileOptions.Default).SpirvBytes;
+                    vertexShaderDescription.ShaderBytes = compilation.VertexBytes;
+                    fragmentShaderDescription.ShaderBytes = compilation.FragmentBytes;
                 }
                 else
                 {
-                    VertexFragmentCompilationResult platformCrossCompileResult = crossCompileResult;
+                    VertexFragmentShaderCompilation platformCompilation = compilation;
 
                     // If we don't have an OpenGL surface, we need to cross-compile once more for the correct platform.
                     if (renderer.SurfaceType != GraphicsSurfaceType.OpenGL)
@@ -152,19 +154,19 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                             _ => throw new InvalidOperationException($"Unsupported surface type: {renderer.SurfaceType}.")
                         };
 
-                        platformCrossCompileResult = SpirvCompilation.CompileVertexFragment(
-                            Encoding.UTF8.GetBytes(vertex.GetRawText()),
-                            Encoding.UTF8.GetBytes(fragment.GetRawText()),
+                        platformCompilation = compilationStore.CompileVertexFragment(
+                            vertex.GetRawText(),
+                            fragment.GetRawText(),
                             target);
                     }
 
-                    vertexShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCrossCompileResult.VertexShader);
-                    fragmentShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCrossCompileResult.FragmentShader);
+                    vertexShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCompilation.VertexText);
+                    fragmentShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCompilation.FragmentText);
                 }
 
-                for (int set = 0; set < crossCompileResult.Reflection.ResourceLayouts.Length; set++)
+                for (int set = 0; set < compilation.Reflection.ResourceLayouts.Length; set++)
                 {
-                    ResourceLayoutDescription layout = crossCompileResult.Reflection.ResourceLayouts[set];
+                    ResourceLayoutDescription layout = compilation.Reflection.ResourceLayouts[set];
 
                     if (layout.Elements.Length == 0)
                         continue;

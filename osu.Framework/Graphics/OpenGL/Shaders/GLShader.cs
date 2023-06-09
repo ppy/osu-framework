@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -42,9 +41,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly GLShaderPart vertexPart;
         private readonly GLShaderPart fragmentPart;
-        private readonly VertexFragmentCompilationResult crossCompileResult;
+        private readonly VertexFragmentShaderCompilation compilation;
 
-        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
         {
             this.renderer = renderer;
             this.name = name;
@@ -59,9 +58,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             try
             {
                 // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
-                crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
-                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                compilation = compilationStore.CompileVertexFragment(
+                    vertexPart.GetRawText(),
+                    fragmentPart.GetRawText(),
                     renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
             }
             catch (Exception e)
@@ -158,8 +157,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private protected virtual bool CompileInternal()
         {
-            vertexPart.Compile(crossCompileResult.VertexShader);
-            fragmentPart.Compile(crossCompileResult.FragmentShader);
+            vertexPart.Compile(compilation.VertexText);
+            fragmentPart.Compile(compilation.FragmentText);
 
             foreach (GLShaderPart p in parts)
                 GL.AttachShader(this, p);
@@ -176,7 +175,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             int blockBindingIndex = 0;
             int textureIndex = 0;
 
-            foreach (ResourceLayoutDescription layout in crossCompileResult.Reflection.ResourceLayouts)
+            foreach (ResourceLayoutDescription layout in compilation.Reflection.ResourceLayouts)
             {
                 if (layout.Elements.Length == 0)
                     continue;

@@ -57,6 +57,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         bool IRenderer.AllowTearing { get; set; }
 
+        Storage? IRenderer.CacheStorage { set { } }
+
         void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
             IsInitialised = true;
