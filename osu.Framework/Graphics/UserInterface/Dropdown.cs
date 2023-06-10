@@ -95,19 +95,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// Add a menu item directly while automatically generating a label.
         /// </summary>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
-
-        /// <summary>
-        /// Add a menu item directly.
-        /// </summary>
-        /// <param name="text">Text to display on the menu item.</param>
-        /// <param name="value">Value selected by the menu item.</param>
-        protected void AddDropdownItem(LocalisableString text, T value)
+        public void AddDropdownItem(T value)
         {
             if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
 
-            addDropdownItem(text, value);
+            addDropdownItem(GenerateItemText(value), value);
         }
 
         private void addDropdownItem(LocalisableString text, T value)

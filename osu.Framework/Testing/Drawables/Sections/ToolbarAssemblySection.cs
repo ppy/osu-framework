@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Testing.Drawables.Sections
@@ -59,11 +60,11 @@ namespace osu.Framework.Testing.Drawables.Sections
             };
         }
 
-        public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);
+        public void AddAssembly(Assembly assembly) => assemblyDropdown.AddAssembly(assembly);
 
         private partial class AssemblyDropdown : BasicDropdown<Assembly>
         {
-            public void AddAssembly(string name, Assembly assembly)
+            public void AddAssembly(Assembly assembly)
             {
                 if (assembly == null) return;
 
@@ -73,8 +74,10 @@ namespace osu.Framework.Testing.Drawables.Sections
                         RemoveDropdownItem(item.Value);
                 }
 
-                AddDropdownItem(name, assembly);
+                AddDropdownItem(assembly);
             }
+
+            protected override LocalisableString GenerateItemText(Assembly assembly) => assembly.GetName().Name;
         }
     }
 }
