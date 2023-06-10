@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             foreach (var entry in items)
-                addDropdownItem(GenerateItemText(entry), entry);
+                addDropdownItem(entry);
 
             if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
                 Current.Value = itemMap.Keys.FirstOrDefault();
@@ -100,15 +100,15 @@ namespace osu.Framework.Graphics.UserInterface
             if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
 
-            addDropdownItem(GenerateItemText(value), value);
+            addDropdownItem(value);
         }
 
-        private void addDropdownItem(LocalisableString text, T value)
+        private void addDropdownItem(T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var newItem = new DropdownMenuItem<T>(text, value, () =>
+            var newItem = new DropdownMenuItem<T>(GenerateItemText(value), value, () =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
