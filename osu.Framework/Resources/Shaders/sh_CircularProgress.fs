@@ -1,4 +1,8 @@
-﻿#define HIGH_PRECISION_VERTEX
+﻿#ifndef CIRCULAR_PROGRESS_FS
+#define CIRCULAR_PROGRESS_FS
+
+#undef HIGH_PRECISION_VERTEX
+#define HIGH_PRECISION_VERTEX
 
 #include "sh_Utils.h"
 #include "sh_Masking.h"
@@ -30,3 +34,5 @@ void main(void)
 
     o_Colour = vec4(textureColour.rgb, textureColour.a * progressAlphaAt(pixelPos, progress, innerRadius, roundedCaps, texelSize));
 }
+
+#endif
