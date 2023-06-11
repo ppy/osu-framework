@@ -110,8 +110,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         private void compile()
         {
-            Logger.Log($"🖍️ Compiling shader {name}...");
-
             Debug.Assert(parts.Length == 2);
 
             VeldridShaderPart vertex = parts.Single(p => p.Type == ShaderPartType.Vertex);
@@ -119,6 +117,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             try
             {
+                bool cached = true;
+
                 vertexShaderDescription = new ShaderDescription(
                     ShaderStages.Vertex,
                     Array.Empty<byte>(),
@@ -134,6 +134,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     vertex.GetRawText(),
                     fragment.GetRawText(),
                     RuntimeInfo.IsMobile ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
+
+                cached &= compilation.WasCached;
 
                 if (renderer.SurfaceType == GraphicsSurfaceType.Vulkan)
                 {
@@ -158,6 +160,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                             vertex.GetRawText(),
                             fragment.GetRawText(),
                             target);
+
+                        cached &= platformCompilation.WasCached;
                     }
 
                     vertexShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCompilation.VertexText);
@@ -203,7 +207,9 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     }
                 }
 
-                Logger.Log($"🖍️ Shader {name} compiled!");
+                Logger.Log(cached
+                    ? $"🖍️ Shader {name} loaded from cache!"
+                    : $"🖍️ Shader {name} compiled!");
             }
             catch (SpirvCompilationException e)
             {

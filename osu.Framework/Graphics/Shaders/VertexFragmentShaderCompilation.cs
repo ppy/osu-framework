@@ -8,6 +8,11 @@ namespace osu.Framework.Graphics.Shaders
     public class VertexFragmentShaderCompilation
     {
         /// <summary>
+        /// Whether this compilation was retrieved from cache.
+        /// </summary>
+        public bool WasCached { get; set; }
+
+        /// <summary>
         /// The SpirV bytes for the vertex shader.
         /// </summary>
         public byte[] VertexBytes { get; set; } = null!;

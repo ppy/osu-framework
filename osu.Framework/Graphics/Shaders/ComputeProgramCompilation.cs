@@ -8,6 +8,11 @@ namespace osu.Framework.Graphics.Shaders
     public class ComputeProgramCompilation
     {
         /// <summary>
+        /// Whether this compilation was retrieved from cache.
+        /// </summary>
+        public bool WasCached { get; set; }
+
+        /// <summary>
         /// The SpirV bytes for the program.
         /// </summary>
         public byte[] ProgramBytes { get; set; } = null!;
