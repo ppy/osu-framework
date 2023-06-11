@@ -116,7 +116,9 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu.State = MenuState.Closed;
             });
 
-            newItem.Text.Value = GenerateItemText(value);
+            // inheritors expect that `virtual GenerateItemText` is only called when this dropdown is fully loaded.
+            if (IsLoaded)
+                newItem.Text.Value = GenerateItemText(value);
 
             Menu.Add(newItem);
             itemMap[value] = newItem;
@@ -148,6 +150,12 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        /// <summary>
+        /// Called to generate the text to be shown for this <paramref name="item"/>.
+        /// </summary>
+        /// <remarks>
+        /// Can be overriden if custom behaviour is needed. Will only be called after this <see cref="Dropdown{T}"/> has fully loaded.
+        /// </remarks>
         protected virtual LocalisableString GenerateItemText(T item)
         {
             switch (item)
@@ -257,6 +265,14 @@ namespace osu.Framework.Graphics.UserInterface
                 default:
                     throw new ArgumentException("Unexpected selection action type.", nameof(action));
             }
+        }
+
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            foreach (var item in MenuItems)
+                item.Text.Value = GenerateItemText(item.Value);
         }
 
         protected override void LoadComplete()
