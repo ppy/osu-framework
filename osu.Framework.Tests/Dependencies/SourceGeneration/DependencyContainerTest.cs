@@ -467,6 +467,5 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             {
             }
         }
-#nullable disable
     }
 }
