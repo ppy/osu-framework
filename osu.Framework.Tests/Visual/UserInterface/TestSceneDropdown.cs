@@ -384,6 +384,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First().ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
         }
 
+        /// <summary>
+        /// Checks that <see cref="Dropdown{T}.GenerateItemText"/> is not called before load when initialising with <see cref="Dropdown{T}.Current"/>.
+        /// </summary>
+        [Test]
+        public void TestBdlWithCurrent()
+        {
+            BdlDropdown dropdown = null!;
+
+            Bindable<TestModel> bindable = null!;
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("create current", () => bindable = new Bindable<TestModel>(bindableList[1]));
+
+            AddStep("add dropdown that uses BDL", () => Add(dropdown = new BdlDropdown
+            {
+                Width = 150,
+                Position = new Vector2(250, 350),
+                ItemSource = bindableList,
+                Current = bindable,
+            }));
+
+            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First(d => d.IsSelected).ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: two"));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
@@ -437,7 +461,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 text = "loaded";
             }
 
-            protected override LocalisableString GenerateItemText(TestModel item) => $"{text}: {base.GenerateItemText(item)}";
+            protected override LocalisableString GenerateItemText(TestModel item)
+            {
+                Assert.That(text, Is.Not.Null);
+                return $"{text}: {base.GenerateItemText(item)}";
+            }
         }
     }
 }
