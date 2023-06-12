@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             var fragmentOutputLayout = new StringBuilder();
             var fragmentOutputAssignment = new StringBuilder();
 
-            var unusedVertexOutputs = vertexOutput.Where(a => !result.Contains(a.Name)).ToList();
+            var unusedVertexOutputs = vertexOutput.Where(vo => Input.All(fi => fi.Location != vo.Location)).ToList();
 
             foreach (VeldridShaderAttribute attribute in unusedVertexOutputs)
             {
