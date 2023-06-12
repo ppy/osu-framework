@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             // some attributes from the vertex output may not be used by the fragment shader, but that could break some renderers (e.g. D3D11).
             // therefore include any unused vertex output to a fragment shader as fragment input & output.
-            fragment = fragment.WithPassthroughInput(vertex.Output);
+            fragment = fragment.WithPassthroughInput(vertex.Outputs);
 
             try
             {

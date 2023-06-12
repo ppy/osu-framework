@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly string code;
         private readonly IShaderStore store;
 
-        public IReadOnlyList<VeldridShaderAttribute> Input { get; private set; } = new List<VeldridShaderAttribute>();
-        public IReadOnlyList<VeldridShaderAttribute> Output { get; private set; } = new List<VeldridShaderAttribute>();
+        public IReadOnlyList<VeldridShaderAttribute> Inputs { get; private set; } = new List<VeldridShaderAttribute>();
+        public IReadOnlyList<VeldridShaderAttribute> Outputs { get; private set; } = new List<VeldridShaderAttribute>();
 
         public VeldridShaderPart(byte[]? data, ShaderPartType type, IShaderStore store)
         {
@@ -114,8 +114,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     result = internalIncludes + result;
 
-                    Input = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
-                    Output = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
+                    Inputs = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
+                    Outputs = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
 
                     string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
 
@@ -150,14 +150,14 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         {
             string result = code;
 
-            int outputLayoutIndex = Output.Max(m => m.Location) + 1;
+            int outputLayoutIndex = Outputs.Max(m => m.Location) + 1;
 
             var attributesLayout = new StringBuilder();
             var attributesAssignment = new StringBuilder();
 
             foreach (VeldridShaderAttribute attribute in attributes)
             {
-                if (Input.Any(i => attribute.Location == i.Location))
+                if (Inputs.Any(i => attribute.Location == i.Location))
                     continue;
 
                 string name = $"unused_input_{Guid.NewGuid():N}";
@@ -175,8 +175,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             return new VeldridShaderPart(result, header, Type, store)
             {
-                Input = Input,
-                Output = Output
+                Inputs = Inputs,
+                Outputs = Outputs
             };
         }
 
