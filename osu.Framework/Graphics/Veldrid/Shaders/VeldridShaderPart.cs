@@ -163,8 +163,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 string name = $"unused_input_{Guid.NewGuid():N}";
 
                 attributesLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
-                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex++}) out {attribute.Type} o_{name};");
-                attributesAssignment.Append($"o_{name} = {name};\n    ");
+                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex++}) out {attribute.Type} __unused_o_{name};");
+                attributesAssignment.Append($"__unused_o_{name} = {name};\n    ");
             }
 
             // we're only using this for fragment shader so let's just assert that.
