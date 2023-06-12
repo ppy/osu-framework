@@ -1,22 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
     public partial class ToolbarAssemblySection : ToolbarSection
     {
-        private AssemblyDropdown assemblyDropdown;
+        private AssemblyDropdown assemblyDropdown = null!;
 
         public ToolbarAssemblySection()
         {
@@ -59,22 +57,11 @@ namespace osu.Framework.Testing.Drawables.Sections
             };
         }
 
-        public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);
+        public void AddAssembly(Assembly assembly) => assemblyDropdown.AddDropdownItem(assembly);
 
         private partial class AssemblyDropdown : BasicDropdown<Assembly>
         {
-            public void AddAssembly(string name, Assembly assembly)
-            {
-                if (assembly == null) return;
-
-                foreach (var item in MenuItems.ToArray())
-                {
-                    if (item.Text.Value.ToString().Contains("dynamic"))
-                        RemoveDropdownItem(item.Value);
-                }
-
-                AddDropdownItem(name, assembly);
-            }
+            protected override LocalisableString GenerateItemText(Assembly assembly) => assembly.GetName().Name ?? "unknonwn";
         }
     }
 }
