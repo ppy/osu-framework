@@ -149,16 +149,16 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         {
             Debug.Assert(Type == ShaderPartType.Fragment);
 
-            string fragmentOutputCode = code;
+            string result = code;
 
             int fragmentOutputLayoutIndex = Output.Max(m => m.Location) + 1;
 
             var fragmentOutputLayout = new StringBuilder();
             var fragmentOutputAssignment = new StringBuilder();
 
-            var unusedFragmentInput = vertexOutput.Where(a => !fragmentOutputCode.Contains(a.Name)).ToList();
+            var unusedVertexOutputs = vertexOutput.Where(a => !result.Contains(a.Name)).ToList();
 
-            foreach (VeldridShaderAttribute attribute in unusedFragmentInput)
+            foreach (VeldridShaderAttribute attribute in unusedVertexOutputs)
             {
                 string name = $"unused_input_{Guid.NewGuid():N}";
 
@@ -167,10 +167,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 fragmentOutputAssignment.Append($"o_{name} = {name};\n    ");
             }
 
-            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString().Trim());
-            fragmentOutputCode = fragmentOutputCode.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString().Trim());
+            result = result.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString().Trim());
+            result = result.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString().Trim());
 
-            return new VeldridShaderPart(fragmentOutputCode, header, Type, store)
+            return new VeldridShaderPart(result, header, Type, store)
             {
                 Input = Input,
                 Output = Output
