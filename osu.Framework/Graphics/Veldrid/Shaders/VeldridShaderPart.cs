@@ -133,7 +133,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         }
 
         /// <summary>
-        /// Creates a <see cref="VeldridShaderPart"/> with a completed fragment input/output structure included based on the specified vertex output list.
+        /// Creates a <see cref="VeldridShaderPart"/> based off this shader with a list of attributes passed through as input & output.
+        /// Attributes from the list that are already defined in this shader will be ignored.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -144,31 +145,33 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         /// This creates a new <see cref="VeldridShaderPart"/> rather than altering this existing instance since this is cached at a <see cref="IShaderStore"/> level and should remain immutable.
         /// </para>
         /// </remarks>
-        /// <param name="vertexOutput">The list of vertex output members.</param>
-        public VeldridShaderPart WithFragmentOutput(IEnumerable<VeldridShaderAttribute> vertexOutput)
+        /// <param name="attributes">The list of attributes to include in the shader as input & output.</param>
+        public VeldridShaderPart WithPassthroughInput(IEnumerable<VeldridShaderAttribute> attributes)
         {
-            Debug.Assert(Type == ShaderPartType.Fragment);
-
             string result = code;
 
-            int fragmentOutputLayoutIndex = Output.Max(m => m.Location) + 1;
+            int outputLayoutIndex = Output.Max(m => m.Location) + 1;
 
-            var fragmentOutputLayout = new StringBuilder();
-            var fragmentOutputAssignment = new StringBuilder();
+            var attributesLayout = new StringBuilder();
+            var attributesAssignment = new StringBuilder();
 
-            var unusedVertexOutputs = vertexOutput.Where(vo => Input.All(fi => fi.Location != vo.Location)).ToList();
-
-            foreach (VeldridShaderAttribute attribute in unusedVertexOutputs)
+            foreach (VeldridShaderAttribute attribute in attributes)
             {
+                if (Input.Any(i => attribute.Location == i.Location))
+                    continue;
+
                 string name = $"unused_input_{Guid.NewGuid():N}";
 
-                fragmentOutputLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
-                fragmentOutputLayout.AppendLine($"layout (location = {fragmentOutputLayoutIndex++}) out {attribute.Type} o_{name};");
-                fragmentOutputAssignment.Append($"o_{name} = {name};\n    ");
+                attributesLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
+                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex++}) out {attribute.Type} o_{name};");
+                attributesAssignment.Append($"o_{name} = {name};\n    ");
             }
 
-            result = result.Replace("{{ fragment_output_layout }}", fragmentOutputLayout.ToString().Trim());
-            result = result.Replace("{{ fragment_output_assignment }}", fragmentOutputAssignment.ToString().Trim());
+            // we're only using this for fragment shader so let's just assert that.
+            Debug.Assert(Type == ShaderPartType.Fragment);
+
+            result = result.Replace("{{ fragment_output_layout }}", attributesLayout.ToString().Trim());
+            result = result.Replace("{{ fragment_output_assignment }}", attributesAssignment.ToString().Trim());
 
             return new VeldridShaderPart(result, header, Type, store)
             {
