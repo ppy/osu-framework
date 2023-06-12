@@ -79,6 +79,6 @@ namespace osu.Framework.Testing.Drawables
             };
         }
 
-        public void AddAssembly(string name, Assembly assembly) => assemblySection.AddAssembly(name, assembly);
+        public void AddAssembly(Assembly assembly) => assemblySection.AddAssembly(assembly);
     }
 }

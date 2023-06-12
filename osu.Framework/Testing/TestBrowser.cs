@@ -245,7 +245,7 @@ namespace osu.Framework.Testing
                 HotReloadCallbackReceiver.CompilationFinished += compileFinished;
 
             foreach (Assembly asm in assemblies)
-                toolbar.AddAssembly(asm.GetName().Name, asm);
+                toolbar.AddAssembly(asm);
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(_ => runTests(null));
