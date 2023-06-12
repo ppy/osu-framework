@@ -54,6 +54,9 @@ namespace osu.Framework.Graphics.Containers
             internalChildren = new SortedList<Drawable>(childComparer);
             aliveInternalChildren = new SortedList<Drawable>(childComparer);
 
+            // Validate initially. Done before the layout is added below to prevent a callback to this composite.
+            childrenSizeDependencies.Validate();
+
             AddLayout(childrenSizeDependencies);
         }
 
@@ -1087,9 +1090,14 @@ namespace osu.Framework.Graphics.Containers
             // The invalidation still needs to occur as normal, since a derived CompositeDrawable may want to respond to children size invalidations.
             Invalidate(invalidation, InvalidationSource.Child);
 
-            // If all the changed axes were bypassed and an invalidation occurred, the children size dependencies can immediately be
-            // re-validated without a recomputation, as a recomputation would not change the auto-sized size.
-            if (wasValid && (axes & source.BypassAutoSizeAxes) == axes)
+            // Skip axes that are bypassed.
+            axes &= ~source.BypassAutoSizeAxes;
+
+            // Include only axes that this composite is autosizing for.
+            axes &= AutoSizeAxes;
+
+            // If no remaining axes remain, then children size dependencies can immediately be re-validated as the auto-sized size would not change.
+            if (wasValid && axes == Axes.None)
                 childrenSizeDependencies.Validate();
         }
 
@@ -1777,7 +1785,12 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-                childrenSizeDependencies.Invalidate();
+
+                if (value == Axes.None)
+                    childrenSizeDependencies.Validate();
+                else
+                    childrenSizeDependencies.Invalidate();
+
                 OnSizingChanged();
             }
         }
@@ -1798,6 +1811,11 @@ namespace osu.Framework.Graphics.Containers
         /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.
         /// </summary>
         internal event Action OnAutoSize;
+
+        /// <summary>
+        /// Whether the <see cref="childrenSizeDependencies"/> layout is valid.
+        /// </summary>
+        internal bool ChildrenSizeDependenciesIsValid => childrenSizeDependencies.IsValid;
 
         private readonly LayoutValue childrenSizeDependencies = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 

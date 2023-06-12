@@ -289,6 +289,11 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        /// <summary>
+        /// When <see cref="Truncate"/> is enabled, this indicates whether <see cref="Text"/> has been visually truncated.
+        /// </summary>
+        protected bool IsTruncated { get; private set; }
+
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
@@ -459,6 +464,8 @@ namespace osu.Framework.Graphics.Sprites
             if (charactersCache.IsValid)
                 return;
 
+            IsTruncated = false;
+
             charactersBacking.Clear();
 
             // Todo: Re-enable this assert after autosize is split into two passes.
@@ -476,6 +483,9 @@ namespace osu.Framework.Graphics.Sprites
                 textBuilder.Reset();
                 textBuilder.AddText(displayedText);
                 textBounds = textBuilder.Bounds;
+
+                if (textBuilder is TruncatingTextBuilder truncatingTextBuilder)
+                    IsTruncated = truncatingTextBuilder.IsTruncated;
             }
             finally
             {
