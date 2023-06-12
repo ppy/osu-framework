@@ -114,8 +114,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     result = internalIncludes + result;
 
-                    Inputs = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
-                    Outputs = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value, m.Groups[3].Value)).ToList();
+                    Inputs = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList();
+                    Outputs = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList();
 
                     string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
 
@@ -191,5 +191,5 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         #endregion
     }
 
-    public record struct VeldridShaderAttribute(int Location, string Type, string Name);
+    public record struct VeldridShaderAttribute(int Location, string Type);
 }
