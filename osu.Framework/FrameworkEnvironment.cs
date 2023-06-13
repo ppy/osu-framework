@@ -13,6 +13,7 @@ namespace osu.Framework
         public static bool ForceTestGC { get; }
         public static GraphicsSurfaceType? PreferredGraphicsSurface { get; }
         public static string? PreferredGraphicsRenderer { get; }
+        public static int? StagingBufferType { get; }
 
         static FrameworkEnvironment()
         {
@@ -21,6 +22,9 @@ namespace osu.Framework
             ForceTestGC = Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1";
             PreferredGraphicsSurface = Enum.TryParse<GraphicsSurfaceType>(Environment.GetEnvironmentVariable("OSU_GRAPHICS_SURFACE"), true, out var surface) ? surface : null;
             PreferredGraphicsRenderer = Environment.GetEnvironmentVariable("OSU_GRAPHICS_RENDERER")?.ToLowerInvariant();
+
+            if (int.TryParse(Environment.GetEnvironmentVariable("OSU_GRAPHICS_STAGING_BUFFER_TYPE"), out int stagingBufferImplementation))
+                StagingBufferType = stagingBufferImplementation;
         }
     }
 }
