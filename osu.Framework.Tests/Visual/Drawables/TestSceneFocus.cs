@@ -289,13 +289,11 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             protected override void PopIn()
             {
-                base.PopIn();
                 stateText.Text = State.ToString();
             }
 
             protected override void PopOut()
             {
-                base.PopOut();
                 stateText.Text = State.ToString();
             }
 

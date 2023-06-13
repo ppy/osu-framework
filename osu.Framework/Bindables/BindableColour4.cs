@@ -14,7 +14,7 @@ namespace osu.Framework.Bindables
         }
 
         // 8-bit precision should probably be enough for serialization.
-        public override string ToString(string format, IFormatProvider formatProvider) => Value.ToHex();
+        public override string ToString(string? format, IFormatProvider? formatProvider) => Value.ToHex();
 
         public override void Parse(object? input)
         {
