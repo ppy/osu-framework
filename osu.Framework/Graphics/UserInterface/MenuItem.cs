@@ -39,6 +39,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a new <see cref="MenuItem"/>.
         /// </summary>
+        /// <param name="action">The <see cref="Action"/> to perform when clicked.</param>
+        protected MenuItem(Action action)
+        {
+            Action.Value = action;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MenuItem"/>.
+        /// </summary>
         /// <param name="text">The text to display.</param>
         /// <param name="action">The <see cref="Action"/> to perform when clicked.</param>
         public MenuItem(LocalisableString text, Action action)
