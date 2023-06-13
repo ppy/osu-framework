@@ -77,7 +77,7 @@ namespace osu.Framework.Input.Handlers.Midi
                 }
             }, true);
 
-            return refreshDevices();
+            return true;
         }
 
         private bool refreshDevices()
