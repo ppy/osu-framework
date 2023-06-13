@@ -42,6 +42,10 @@ namespace osu.Framework.Graphics.Lines
 
         private Color4? customBackgroundColour;
 
+        /// <summary>
+        /// The background colour to be used for the frame buffer this path is rendered to.
+        /// For <see cref="SmoothPath"/>, this automatically defaults to the colour at 0 (the outermost colour of the path) to avoid aliasing issues.
+        /// </summary>
         public override Color4 BackgroundColour
         {
             get => customBackgroundColour ?? base.BackgroundColour;

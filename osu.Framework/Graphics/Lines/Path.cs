@@ -282,6 +282,9 @@ namespace osu.Framework.Graphics.Lines
 
         private Color4 backgroundColour = new Color4(0, 0, 0, 0);
 
+        /// <summary>
+        /// The background colour to be used for the frame buffer this path is rendered to.
+        /// </summary>
         public virtual Color4 BackgroundColour
         {
             get => backgroundColour;
