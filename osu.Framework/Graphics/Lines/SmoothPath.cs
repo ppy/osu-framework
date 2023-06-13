@@ -6,6 +6,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics;
@@ -39,6 +40,18 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
+        private Color4? customBackgroundColour;
+
+        /// <summary>
+        /// The background colour to be used for the frame buffer this path is rendered to.
+        /// For <see cref="SmoothPath"/>, this automatically defaults to the colour at 0 (the outermost colour of the path) to avoid aliasing issues.
+        /// </summary>
+        public override Color4 BackgroundColour
+        {
+            get => customBackgroundColour ?? base.BackgroundColour;
+            set => customBackgroundColour = base.BackgroundColour = value;
+        }
+
         private readonly Cached textureCache = new Cached();
 
         protected void InvalidateTexture()
@@ -70,6 +83,9 @@ namespace osu.Framework.Graphics.Lines
             var texture = new DisposableTexture(renderer.CreateTexture(textureWidth, 1, true));
             texture.SetData(new TextureUpload(raw));
             Texture = texture;
+
+            if (customBackgroundColour == null)
+                base.BackgroundColour = ColourAt(0).Opacity(0);
 
             textureCache.Validate();
         }
