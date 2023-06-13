@@ -203,16 +203,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 this.FadeIn(1000, Easing.OutQuint);
                 this.ScaleTo(1, 1000, Easing.OutElastic);
-
-                base.PopIn();
             }
 
             protected override void PopOut()
             {
                 this.FadeOut(1000, Easing.OutQuint);
                 this.ScaleTo(0.4f, 1000, Easing.OutQuint);
-
-                base.PopOut();
             }
         }
     }

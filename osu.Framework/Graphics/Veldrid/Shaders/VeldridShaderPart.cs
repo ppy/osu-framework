@@ -121,10 +121,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                     if (!string.IsNullOrEmpty(outputCode))
                     {
-                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                        const string real_main_name = "__internal_real_main";
 
-                        outputCode = outputCode.Replace("{{ real_main }}", realMainName);
-                        result = Regex.Replace(result, @"void main\((.*)\)", $"void {realMainName}()") + outputCode + '\n';
+                        outputCode = outputCode.Replace("{{ real_main }}", real_main_name);
+                        result = Regex.Replace(result, @"void main\((.*)\)", $"void {real_main_name}()") + outputCode + '\n';
                     }
                 }
 
