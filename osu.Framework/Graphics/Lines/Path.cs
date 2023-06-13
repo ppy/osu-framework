@@ -282,7 +282,7 @@ namespace osu.Framework.Graphics.Lines
 
         private Color4 backgroundColour = new Color4(0, 0, 0, 0);
 
-        public Color4 BackgroundColour
+        public virtual Color4 BackgroundColour
         {
             get => backgroundColour;
             set
