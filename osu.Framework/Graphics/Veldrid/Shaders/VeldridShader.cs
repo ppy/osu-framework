@@ -115,6 +115,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             VeldridShaderPart vertex = parts.Single(p => p.Type == ShaderPartType.Vertex);
             VeldridShaderPart fragment = parts.Single(p => p.Type == ShaderPartType.Fragment);
 
+            // some attributes from the vertex output may not be used by the fragment shader, but that could break some renderers (e.g. D3D11).
+            // therefore include any unused vertex output to a fragment shader as fragment input & output.
+            fragment = fragment.WithPassthroughInput(vertex.Outputs);
+
             try
             {
                 bool cached = true;
