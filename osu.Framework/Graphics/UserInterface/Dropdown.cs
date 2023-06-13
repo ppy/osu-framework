@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -108,7 +109,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var newItem = new DropdownMenuItem<T>(value, () =>
+            var item = new DropdownMenuItem<T>(value, () =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
@@ -118,10 +119,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             // inheritors expect that `virtual GenerateItemText` is only called when this dropdown is fully loaded.
             if (IsLoaded)
-                newItem.Text.Value = GenerateItemText(value);
+                item.Text.Value = GenerateItemText(value);
 
-            Menu.Add(newItem);
-            itemMap[value] = newItem;
+            Menu.Add(item);
+            itemMap[value] = item;
         }
 
         /// <summary>
@@ -272,7 +273,10 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadAsyncComplete();
 
             foreach (var item in MenuItems)
+            {
+                Debug.Assert(string.IsNullOrEmpty(item.Text.Value.ToString()));
                 item.Text.Value = GenerateItemText(item.Value);
+            }
         }
 
         protected override void LoadComplete()
