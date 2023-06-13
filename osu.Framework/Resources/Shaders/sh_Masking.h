@@ -1,4 +1,7 @@
-﻿layout(location = 0) in highp vec2 v_MaskingPosition;
+﻿#ifndef MASKING_H
+#define MASKING_H
+
+layout(location = 0) in highp vec2 v_MaskingPosition;
 layout(location = 1) in lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
@@ -124,3 +127,5 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	borderColour.a *= 1.0 - colourWeight;
 	return blend(borderColour, contentColour);
 }
+
+#endif

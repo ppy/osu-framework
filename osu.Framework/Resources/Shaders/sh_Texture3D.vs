@@ -1,3 +1,6 @@
+#ifndef TEXTURE3D_VS
+#define TEXTURE3D_VS
+
 #include "sh_Utils.h"
 
 layout(location = 0) in highp vec3 m_Position;
@@ -23,3 +26,5 @@ void main(void)
 	v_TexCoord = m_TexCoord;
 	gl_Position = g_ProjMatrix * vec4(m_Position, 1.0);
 }
+
+#endif
