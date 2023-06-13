@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly string code;
         private readonly IShaderStore store;
 
-        public IReadOnlyList<VeldridShaderAttribute> Inputs { get; private set; } = new List<VeldridShaderAttribute>();
-        public IReadOnlyList<VeldridShaderAttribute> Outputs { get; private set; } = new List<VeldridShaderAttribute>();
+        public readonly List<VeldridShaderAttribute> Inputs = new List<VeldridShaderAttribute>();
+        public readonly List<VeldridShaderAttribute> Outputs = new List<VeldridShaderAttribute>();
 
         public VeldridShaderPart(byte[]? data, ShaderPartType type, IShaderStore store)
         {
@@ -114,8 +114,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     result = internalIncludes + result;
 
-                    Inputs = shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList();
-                    Outputs = shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList();
+                    Inputs.AddRange(shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
+                    Outputs.AddRange(shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
 
                     string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
 
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         /// </para>
         /// </remarks>
         /// <param name="attributes">The list of attributes to include in the shader as input & output.</param>
-        public VeldridShaderPart WithPassthroughInput(IEnumerable<VeldridShaderAttribute> attributes)
+        public VeldridShaderPart WithPassthroughInput(IReadOnlyList<VeldridShaderAttribute> attributes)
         {
             string result = code;
 
@@ -154,6 +154,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             var attributesLayout = new StringBuilder();
             var attributesAssignment = new StringBuilder();
+            var outputAttributes = new List<VeldridShaderAttribute>();
 
             foreach (VeldridShaderAttribute attribute in attributes)
             {
@@ -163,8 +164,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 string name = $"unused_input_{Guid.NewGuid():N}";
 
                 attributesLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
-                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex++}) out {attribute.Type} __unused_o_{name};");
+                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex}) out {attribute.Type} __unused_o_{name};");
                 attributesAssignment.Append($"__unused_o_{name} = {name};\n    ");
+
+                outputAttributes.Add(attribute with { Location = outputLayoutIndex++ });
             }
 
             // we're only using this for fragment shader so let's just assert that.
@@ -173,11 +176,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             result = result.Replace("{{ fragment_output_layout }}", attributesLayout.ToString().Trim());
             result = result.Replace("{{ fragment_output_assignment }}", attributesAssignment.ToString().Trim());
 
-            return new VeldridShaderPart(result, header, Type, store)
-            {
-                Inputs = Inputs,
-                Outputs = Outputs
-            };
+            var part = new VeldridShaderPart(result, header, Type, store);
+            part.Inputs.AddRange(Inputs.Concat(attributes).DistinctBy(a => a.Location));
+            part.Outputs.AddRange(Outputs.Concat(outputAttributes));
+            return part;
         }
 
         public string GetRawText() => header + '\n' + code;
