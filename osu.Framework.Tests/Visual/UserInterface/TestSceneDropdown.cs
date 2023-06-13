@@ -6,10 +6,14 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -365,6 +369,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
+        [Test]
+        public void TestAccessBdlInGenerateItemText()
+        {
+            BdlDropdown dropdown = null!;
+
+            AddStep("add dropdown that uses BDL", () => Add(dropdown = new BdlDropdown
+            {
+                Width = 150,
+                Position = new Vector2(250, 350),
+                Items = new TestModel("test").Yield()
+            }));
+
+            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First().ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
+        }
+
+        /// <summary>
+        /// Checks that <see cref="Dropdown{T}.GenerateItemText"/> is not called before load when initialising with <see cref="Dropdown{T}.Current"/>.
+        /// </summary>
+        [Test]
+        public void TestBdlWithCurrent()
+        {
+            BdlDropdown dropdown = null!;
+
+            Bindable<TestModel> bindable = null!;
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("create current", () => bindable = new Bindable<TestModel>(bindableList[1]));
+
+            AddStep("add dropdown that uses BDL", () => Add(dropdown = new BdlDropdown
+            {
+                Width = 150,
+                Position = new Vector2(250, 350),
+                ItemSource = bindableList,
+                Current = bindable,
+            }));
+
+            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First(d => d.IsSelected).ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: two"));
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
@@ -403,6 +446,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
             public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
+        }
+
+        /// <summary>
+        /// Dropdown that will access state set by BDL load in <see cref="GenerateItemText"/>.
+        /// </summary>
+        private partial class BdlDropdown : TestDropdown
+        {
+            private string text;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                text = "loaded";
+            }
+
+            protected override LocalisableString GenerateItemText(TestModel item)
+            {
+                Assert.That(text, Is.Not.Null);
+                return $"{text}: {base.GenerateItemText(item)}";
+            }
         }
     }
 }
