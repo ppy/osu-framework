@@ -11,16 +11,16 @@ namespace osu.Framework.Input
         /// The most-derived type that implements this interface.
         /// This is used to handle non-partial leaf types that can't rely on the source-generated values and must fall back to reflection.
         /// </summary>
-        protected internal Type KnownType => typeof(object);
+        protected internal Type KnownType { get; }
 
         /// <summary>
         /// Whether this type or any of its base types request positional input.
         /// </summary>
-        protected internal bool RequestsPositionalInput => false;
+        protected internal bool RequestsPositionalInput { get; }
 
         /// <summary>
         /// Whether this type or any of its base types request non-positional input.
         /// </summary>
-        protected internal bool RequestsNonPositionalInput => false;
+        protected internal bool RequestsNonPositionalInput { get; }
     }
 }
