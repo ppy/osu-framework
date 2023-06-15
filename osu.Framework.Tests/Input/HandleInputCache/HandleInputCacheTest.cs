@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Input.HandleInputCache
         }
 #pragma warning restore OFSG001
 
-        private partial class PartialLeafClass : Drawable
+        private sealed partial class PartialLeafClass : Drawable
         {
             protected override bool Handle(UIEvent e) => true;
         }
@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Input.HandleInputCache
         }
 #pragma warning restore OFSG001
 
-        private partial class PartialLeafClassWithIntermediateNonPartial : IntermediateNonPartialClass
+        private sealed partial class PartialLeafClassWithIntermediateNonPartial : IntermediateNonPartialClass
         {
         }
     }
