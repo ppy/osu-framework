@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Nested class which is used for caching <see cref="HandleNonPositionalInput"/>, <see cref="HandlePositionalInput"/> values.
         /// </summary>
-        private static class HandleInputCache
+        internal static class HandleInputCache
         {
             private static readonly ConcurrentDictionary<Type, bool> positional_cached_values = new ConcurrentDictionary<Type, bool>();
             private static readonly ConcurrentDictionary<Type, bool> non_positional_cached_values = new ConcurrentDictionary<Type, bool>();
