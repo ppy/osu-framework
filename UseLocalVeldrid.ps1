@@ -18,15 +18,21 @@ $TMP=New-TemporaryFile
 
 $SLNF=Get-Content "osu-framework.Desktop.slnf" | ConvertFrom-Json
 $SLNF.solution.projects += ("../veldrid/src/Veldrid/Veldrid.csproj")
+$SLNF.solution.projects += ("../veldrid/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj")
+$SLNF.solution.projects += ("../veldrid/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj")
 ConvertTo-Json $SLNF | Out-File $TMP -Encoding UTF8
 Move-Item -Path $TMP -Destination "osu-framework.Desktop.slnf" -Force
 
 $SLNF=Get-Content "osu-framework.Android.slnf" | ConvertFrom-Json
 $SLNF.solution.projects += ("../veldrid/src/Veldrid/Veldrid.csproj")
+$SLNF.solution.projects += ("../veldrid/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj")
+$SLNF.solution.projects += ("../veldrid/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj")
 ConvertTo-Json $SLNF | Out-File $TMP -Encoding UTF8
 Move-Item -Path $TMP -Destination "osu-framework.Android.slnf" -Force
 
 $SLNF=Get-Content "osu-framework.iOS.slnf" | ConvertFrom-Json
 $SLNF.solution.projects += ("../veldrid/src/Veldrid/Veldrid.csproj")
+$SLNF.solution.projects += ("../veldrid/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj")
+$SLNF.solution.projects += ("../veldrid/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj")
 ConvertTo-Json $SLNF | Out-File $TMP -Encoding UTF8
 Move-Item -Path $TMP -Destination "osu-framework.iOS.slnf" -Force
