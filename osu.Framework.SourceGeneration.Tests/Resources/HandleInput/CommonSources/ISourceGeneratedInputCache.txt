@@ -1,8 +1,0 @@
-namespace osu.Framework.Input
-{
-    public interface ISourceGeneratedHandleInputCache
-    {
-        protected internal bool RequestsPositionalInput { get; }
-        protected internal bool RequestsNonPositionalInput { get; }
-    }
-}

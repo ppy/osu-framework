@@ -4,5 +4,6 @@
 
 partial class OnJoystickAxisMoveMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
+    global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::OnJoystickAxisMoveMethod);
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => true;
 }

@@ -4,6 +4,7 @@
 
 partial class OnFocusMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
+    global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::OnFocusMethod);
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => true;
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => true;
 }

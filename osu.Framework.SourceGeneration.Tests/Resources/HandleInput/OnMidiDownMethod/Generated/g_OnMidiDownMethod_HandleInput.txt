@@ -4,5 +4,6 @@
 
 partial class OnMidiDownMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
+    global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::OnMidiDownMethod);
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => true;
 }
