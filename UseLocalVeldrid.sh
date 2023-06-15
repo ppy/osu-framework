@@ -18,11 +18,11 @@ dotnet add $FRAMEWORK_CSPROJ reference ../veldrid/src/Veldrid/Veldrid.csproj
 
 tmp=$(mktemp)
 
-jq '.solution.projects += ["../veldrid/src/Veldrid/Veldrid.csproj"]' osu-framework.Desktop.slnf > $tmp
+jq '.solution.projects += ["../veldrid/src/Veldrid/Veldrid.csproj", "../veldrid/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj", "../veldrid/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj"]' osu-framework.Desktop.slnf > $tmp
 mv -f $tmp osu-framework.Desktop.slnf
 
-jq '.solution.projects += ["../veldrid/src/Veldrid/Veldrid.csproj"]' osu-framework.Android.slnf > $tmp
+jq '.solution.projects += ["../veldrid/src/Veldrid/Veldrid.csproj", "../veldrid/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj", "../veldrid/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj"]' osu-framework.Android.slnf > $tmp
 mv -f $tmp osu-framework.Android.slnf
 
-jq '.solution.projects += ["../veldrid/src/Veldrid/Veldrid.csproj"]' osu-framework.iOS.slnf > $tmp
+jq '.solution.projects += ["../veldrid/src/Veldrid/Veldrid.csproj", "../veldrid/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj", "../veldrid/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj"]' osu-framework.iOS.slnf > $tmp
 mv -f $tmp osu-framework.iOS.slnf
