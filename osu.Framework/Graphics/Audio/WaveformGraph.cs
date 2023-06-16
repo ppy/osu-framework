@@ -340,16 +340,15 @@ namespace osu.Framework.Graphics.Audio
 
                 float separation = drawSize.X / (points.Count - 1);
 
-                for (int i = 0; i < points.Count - 1; i++)
+                // Equates to making sure that rightX >= localMaskingRectangle.Left (see assertions in loop, which enforce the same thing).
+                // Without this pre-check, very long waveform displays can get slow just from running the loop below (point counts in excess of 1mil).
+                int startIndex = (int)Math.Clamp(localMaskingRectangle.Left / separation, 0, points.Count - 1);
+                int endIndex = (int)Math.Clamp(localMaskingRectangle.Right / separation + 1, 0, points.Count - 1);
+
+                for (int i = startIndex; i < endIndex; i++)
                 {
                     float leftX = i * separation;
                     float rightX = (i + 1) * separation;
-
-                    if (rightX < localMaskingRectangle.Left)
-                        continue;
-
-                    if (leftX > localMaskingRectangle.Right)
-                        break; // X is always increasing
 
                     Color4 frequencyColour = baseColour;
 
