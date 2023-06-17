@@ -484,9 +484,9 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
-                // Importantly, only wait on renderer frame availability if we actually rendered a frame.
-                // Without this, the wait handle will potentially be in a bad state and take the timeout
-                // value (1 second) to recover.
+                // Importantly, only wait on renderer frame availability if we actually rendered a frame since the last `WaitUntilNextFrameReady()`.
+                // Without this, the wait handle, internally used in the Veldrid-side implementation of `WaitUntilNextFrameReady()`,
+                // will potentially be in a bad state and take the timeout value (1 second) to recover.
                 if (didRenderFrame)
                     Renderer.WaitUntilNextFrameReady();
 
