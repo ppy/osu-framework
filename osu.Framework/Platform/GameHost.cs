@@ -468,6 +468,8 @@ namespace osu.Framework.Platform
 
         private readonly DepthValue depthValue = new DepthValue();
 
+        private bool didRenderFrame;
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -482,7 +484,13 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
-                Renderer.WaitUntilNextFrameReady();
+                // Importantly, only wait on renderer frame availability if we actually rendered a frame.
+                // Without this, the wait handle will potentially be in a bad state and take the timeout
+                // value (1 second) to recover.
+                if (didRenderFrame)
+                    Renderer.WaitUntilNextFrameReady();
+
+                didRenderFrame = false;
                 buffer = DrawRoots.GetForRead();
             }
 
@@ -529,6 +537,7 @@ namespace osu.Framework.Platform
                     Swap();
 
                 Window.OnDraw();
+                didRenderFrame = true;
             }
             finally
             {
