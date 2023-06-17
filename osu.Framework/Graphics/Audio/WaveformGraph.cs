@@ -340,7 +340,7 @@ namespace osu.Framework.Graphics.Audio
 
                 float separation = drawSize.X / (points.Count - 1);
 
-                // Equates to making sure that rightX >= localMaskingRectangle.Left (see assertions in loop, which enforce the same thing).
+                // Equates to making sure that rightX >= localMaskingRectangle.Left at startIndex and leftX <= localMaskingRectangle.Right at endIndex.
                 // Without this pre-check, very long waveform displays can get slow just from running the loop below (point counts in excess of 1mil).
                 int startIndex = (int)Math.Clamp(localMaskingRectangle.Left / separation, 0, points.Count - 1);
                 int endIndex = (int)Math.Clamp(localMaskingRectangle.Right / separation + 1, 0, points.Count - 1);
