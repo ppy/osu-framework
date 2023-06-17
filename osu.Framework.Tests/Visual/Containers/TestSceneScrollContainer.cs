@@ -373,7 +373,7 @@ namespace osu.Framework.Tests.Visual.Containers
         /// Ensures that initiating a drag with horizontal delta on a singular vertical <see cref="ScrollContainer{T}"/> doesn't prevent from continuing with vertical drags.
         /// </summary>
         /// <remarks>
-        /// If the vertical scroll container is nested inside of a horizontal one, then it should prevent it, as covered in <see cref="TestNestedScrolling"/>.
+        /// If the vertical scroll container is nested inside of a horizontal one, then it should prevent it, as covered in <see cref="TestSceneScrollContainerNested.TestDragging"/>.
         /// </remarks>
         [TestCase(false)]
         [TestCase(true)]
