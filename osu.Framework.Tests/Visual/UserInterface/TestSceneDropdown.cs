@@ -416,9 +416,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         /// <summary>
         /// Sets a non-existent item dropdown and ensures its label is assigned correctly.
         /// </summary>
-        /// <param name="afterBdl">Whether the non-existent item should be defined after dropdown finishes from BDL.</param>
+        /// <param name="afterBdl">Whether the non-existent item should be set before or after the dropdown's BDL has run.</param>
         [Test]
-        public void TestSetNonExistentItemBeforeDropdownIsLoaded([Values] bool afterBdl)
+        public void TestSetNonExistentItem([Values] bool afterBdl)
         {
             BdlDropdown dropdown = null!;
             Bindable<TestModel> bindable;
