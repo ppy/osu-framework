@@ -27,6 +27,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
         private DeviceBuffer? gpuBuffer;
 
+        private int lastWrittenVertexIndex = -1;
+
         protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
         {
             this.renderer = renderer;
@@ -44,10 +46,14 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             ref var currentVertex = ref getMemory()[vertexIndex];
 
-            bool isNewVertex = !currentVertex.Vertex.Equals(vertex) || currentVertex.BackbufferDrawDepth != renderer.BackbufferDrawDepth;
+            bool isNewVertex = vertexIndex > lastWrittenVertexIndex
+                               || !currentVertex.Vertex.Equals(vertex)
+                               || currentVertex.BackbufferDrawDepth != renderer.BackbufferDrawDepth;
 
             currentVertex.Vertex = vertex;
             currentVertex.BackbufferDrawDepth = renderer.BackbufferDrawDepth;
+
+            lastWrittenVertexIndex = Math.Max(lastWrittenVertexIndex, vertexIndex);
 
             return isNewVertex;
         }
@@ -69,9 +75,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
             memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
-
-            // Ensure the device buffer is initialised to 0.
-            Update();
         }
 
         ~VeldridVertexBuffer()
@@ -119,11 +122,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         protected abstract PrimitiveTopology Type { get; }
 
-        public void Draw()
-        {
-            DrawRange(0, Size);
-        }
-
         public void DrawRange(int startIndex, int endIndex)
         {
             Bind();
@@ -134,12 +132,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             Unbind();
         }
 
-        public void Update()
-        {
-            UpdateRange(0, Size);
-        }
-
-        public void UpdateRange(int startIndex, int endIndex)
+        internal void UpdateRange(int startIndex, int endIndex)
         {
             if (gpuBuffer == null)
                 Initialise();
