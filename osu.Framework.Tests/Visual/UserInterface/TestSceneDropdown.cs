@@ -401,11 +401,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("setup dropdown", () =>
             {
-                Child = dropdown = new BdlDropdown
+                Add(dropdown = new BdlDropdown
                 {
                     Width = 150,
                     Position = new Vector2(250, 350),
-                };
+                });
 
                 dropdown.Items = new TestModel("test").Yield();
             });
