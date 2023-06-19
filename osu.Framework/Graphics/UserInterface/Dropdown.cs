@@ -117,8 +117,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu.State = MenuState.Closed;
             });
 
-            // inheritors expect that `virtual GenerateItemText` is only called when this dropdown is fully loaded.
-            if (IsLoaded)
+            // inheritors expect that `virtual GenerateItemText` is only called when this dropdown's BDL has run to completion.
+            if (LoadState >= LoadState.Ready)
                 item.Text.Value = GenerateItemText(value);
 
             Menu.Add(item);
