@@ -119,11 +119,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         protected abstract PrimitiveTopology Type { get; }
 
-        public void Draw()
-        {
-            DrawRange(0, Size);
-        }
-
         public void DrawRange(int startIndex, int endIndex)
         {
             Bind();
