@@ -30,7 +30,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private readonly List<VeldridUniformBufferStorage<TData>> storages = new List<VeldridUniformBufferStorage<TData>>();
         private int currentStorageIndex;
-        private TData? pendingData;
+        private bool hasPendingData;
+        private TData data;
 
         private readonly VeldridRenderer renderer;
 
@@ -42,48 +43,50 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public TData Data
         {
-            get => pendingData ?? currentStorage.Data;
+            get => data;
             set
             {
-                if (value.Equals(Data))
-                    return;
+                data = value;
+                hasPendingData = true;
 
-                // Flush the current draw call since the contents of the buffer will change.
-                renderer.FlushCurrentBatch(FlushBatchSource.SetUniform);
-
-                pendingData = value;
+                renderer.RegisterUniformBufferForReset(this);
             }
         }
 
         public ResourceSet GetResourceSet(ResourceLayout layout)
         {
-            flushPendingData();
+            flushData();
             return currentStorage.GetResourceSet(layout);
         }
 
-        private void flushPendingData()
+        /// <summary>
+        /// Writes the data of this UBO to the underlying storage.
+        /// </summary>
+        private void flushData()
         {
-            if (pendingData is not TData pending)
+            if (!hasPendingData)
                 return;
 
-            pendingData = null;
+            hasPendingData = false;
 
-            // Register this UBO to be reset in the next frame, but only once per frame.
-            if (currentStorageIndex == 0)
-                renderer.RegisterUniformBufferForReset(this);
+            // If the contents of the UBO changed this frame...
+            if (Data.Equals(currentStorage.Data))
+                return;
 
-            // Advance the storage index to hold the new data.
+            // Advance to a new target to hold the new data.
+            // Note: It is illegal for a previously-drawn UBO to be updated with new data since UBOs are uploaded ahead of time in the frame.
             if (++currentStorageIndex == storages.Count)
                 storages.Add(new VeldridUniformBufferStorage<TData>(renderer));
             else
             {
-                // If the new storage previously existed, then it may already contain the data.
-                if (pending.Equals(currentStorage.Data))
+                // If we advanced to an existing target (from a previous frame), and since the target is always advanced before data is set,
+                // the new target may already contain the same data from the previous frame.
+                if (Data.Equals(currentStorage.Data))
                     return;
             }
 
             // Upload the data.
-            currentStorage.Data = pending;
+            currentStorage.Data = Data;
 
             FrameStatistics.Increment(StatisticsCounterType.UniformUpl);
         }
@@ -91,7 +94,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public void ResetCounters()
         {
             currentStorageIndex = 0;
-            pendingData = null;
+            data = default;
+            hasPendingData = false;
         }
 
         ~VeldridUniformBuffer()

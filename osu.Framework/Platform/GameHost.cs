@@ -44,6 +44,7 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
+using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
@@ -468,6 +469,8 @@ namespace osu.Framework.Platform
 
         private readonly DepthValue depthValue = new DepthValue();
 
+        private bool didRenderFrame;
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -477,12 +480,20 @@ namespace osu.Framework.Platform
                 return;
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
-            Renderer.WaitUntilNextFrameReady();
 
             ObjectUsage<DrawNode> buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            {
+                // Importantly, only wait on renderer frame availability if we actually rendered a frame since the last `WaitUntilNextFrameReady()`.
+                // Without this, the wait handle, internally used in the Veldrid-side implementation of `WaitUntilNextFrameReady()`,
+                // will potentially be in a bad state and take the timeout value (1 second) to recover.
+                if (didRenderFrame)
+                    Renderer.WaitUntilNextFrameReady();
+
+                didRenderFrame = false;
                 buffer = DrawRoots.GetForRead();
+            }
 
             if (buffer == null)
                 return;
@@ -527,6 +538,7 @@ namespace osu.Framework.Platform
                     Swap();
 
                 Window.OnDraw();
+                didRenderFrame = true;
             }
             finally
             {
@@ -942,6 +954,7 @@ namespace osu.Framework.Platform
             Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
 
             Renderer = renderer;
+            Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
             // Prepare window
             Window = CreateWindow(surfaceType);
@@ -977,6 +990,16 @@ namespace osu.Framework.Platform
 
             currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
             currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+            Window.CurrentDisplayBindable.BindValueChanged(display =>
+            {
+                if (Renderer is VeldridRenderer veldridRenderer)
+                {
+                    Rectangle bounds = display.NewValue.Bounds;
+
+                    veldridRenderer.Device.UpdateActiveDisplay(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                }
+            }, true);
 
             IsActive.BindTo(Window.IsActive);
         }

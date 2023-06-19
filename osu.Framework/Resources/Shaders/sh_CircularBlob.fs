@@ -1,4 +1,8 @@
-﻿#define HIGH_PRECISION_VERTEX
+﻿#ifndef CIRCULAR_BLOB_FS
+#define CIRCULAR_BLOB_FS
+
+#undef HIGH_PRECISION_VERTEX
+#define HIGH_PRECISION_VERTEX
 
 #include "sh_Utils.h"
 #include "sh_Masking.h"
@@ -31,3 +35,5 @@ void main(void)
 
     o_Colour = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, innerRadius, texelSize, frequency, amplitude, noisePosition));
 }
+
+#endif

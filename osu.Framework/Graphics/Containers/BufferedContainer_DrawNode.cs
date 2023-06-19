@@ -12,10 +12,8 @@ using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Utils;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -27,8 +25,6 @@ namespace osu.Framework.Graphics.Containers
 
             protected new CompositeDrawableDrawNode Child => (CompositeDrawableDrawNode)base.Child;
 
-            private readonly Action<TexturedVertex2D> addVertexAction;
-
             private bool drawOriginal;
             private ColourInfo effectColour;
             private BlendingParameters effectBlending;
@@ -39,19 +35,12 @@ namespace osu.Framework.Graphics.Containers
             private float blurRotation;
 
             private long updateVersion;
+
             private IShader blurShader;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
             {
-                addVertexAction = v =>
-                {
-                    blurQuadBatch!.Add(new BlurVertex
-                    {
-                        Position = v.Position,
-                        TexturePosition = v.TexturePosition
-                    });
-                };
             }
 
             public override void ApplyState()
@@ -106,12 +95,10 @@ namespace osu.Framework.Graphics.Containers
             }
 
             private IUniformBuffer<BlurParameters> blurParametersBuffer;
-            private IVertexBatch<BlurVertex> blurQuadBatch;
 
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
             {
                 blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
-                blurQuadBatch ??= renderer.CreateQuadBatch<BlurVertex>(1, 1);
 
                 IFrameBuffer current = SharedData.CurrentEffectBuffer;
                 IFrameBuffer target = SharedData.GetNextEffectBuffer();
@@ -132,9 +119,7 @@ namespace osu.Framework.Graphics.Containers
 
                     blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
                     blurShader.Bind();
-
-                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White), addVertexAction);
-
+                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
                     blurShader.Unbind();
                 }
             }
@@ -151,7 +136,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Dispose(isDisposing);
                 blurParametersBuffer?.Dispose();
-                blurQuadBatch?.Dispose();
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -162,20 +146,6 @@ namespace osu.Framework.Graphics.Containers
                 public UniformFloat Sigma;
                 public UniformVector2 Direction;
                 private readonly UniformPadding8 pad1;
-            }
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct BlurVertex : IEquatable<BlurVertex>, IVertex
-            {
-                [VertexMember(2, VertexAttribPointerType.Float)]
-                public Vector2 Position;
-
-                [VertexMember(2, VertexAttribPointerType.Float)]
-                public Vector2 TexturePosition;
-
-                public readonly bool Equals(BlurVertex other) =>
-                    Position.Equals(other.Position)
-                    && TexturePosition.Equals(other.TexturePosition);
             }
         }
 

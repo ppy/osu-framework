@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,8 +27,8 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public partial class WaveformGraph : Drawable
     {
-        private IShader shader;
-        private Texture texture;
+        private IShader shader = null!;
+        private Texture texture = null!;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)
@@ -61,12 +59,12 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private Waveform waveform;
+        private Waveform? waveform;
 
         /// <summary>
         /// The <see cref="Framework.Audio.Track.Waveform"/> to display.
         /// </summary>
-        public Waveform Waveform
+        public Waveform? Waveform
         {
             get => waveform;
             set
@@ -174,10 +172,10 @@ namespace osu.Framework.Graphics.Audio
             return result;
         }
 
-        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private CancellationTokenSource? cancelSource = new CancellationTokenSource();
 
         private long resampledVersion;
-        private Waveform.Point[] resampledPoints;
+        private Waveform.Point[]? resampledPoints;
         private int? resampledPointCount;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
@@ -186,7 +184,7 @@ namespace osu.Framework.Graphics.Audio
         private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
             int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
-            if (requiredPointCount == resampledPointCount && !cancelSource.IsCancellationRequested)
+            if (requiredPointCount == resampledPointCount && cancelSource?.IsCancellationRequested != false)
                 return;
 
             cancelGeneration();
@@ -259,10 +257,10 @@ namespace osu.Framework.Graphics.Audio
 
         private class WaveformDrawNode : DrawNode
         {
-            private IShader shader;
-            private Texture texture;
+            private IShader shader = null!;
+            private Texture? texture;
 
-            private List<Waveform.Point> points;
+            private List<Waveform.Point>? points;
 
             private Vector2 drawSize;
 
@@ -319,7 +317,7 @@ namespace osu.Framework.Graphics.Audio
                 }
             }
 
-            private IVertexBatch<TexturedVertex2D> vertexBatch;
+            private IVertexBatch<TexturedVertex2D>? vertexBatch;
 
             public override void Draw(IRenderer renderer)
             {
@@ -342,16 +340,15 @@ namespace osu.Framework.Graphics.Audio
 
                 float separation = drawSize.X / (points.Count - 1);
 
-                for (int i = 0; i < points.Count - 1; i++)
+                // Equates to making sure that rightX >= localMaskingRectangle.Left at startIndex and leftX <= localMaskingRectangle.Right at endIndex.
+                // Without this pre-check, very long waveform displays can get slow just from running the loop below (point counts in excess of 1mil).
+                int startIndex = (int)Math.Clamp(localMaskingRectangle.Left / separation, 0, points.Count - 1);
+                int endIndex = (int)Math.Clamp(localMaskingRectangle.Right / separation + 1, 0, points.Count - 1);
+
+                for (int i = startIndex; i < endIndex; i++)
                 {
                     float leftX = i * separation;
                     float rightX = (i + 1) * separation;
-
-                    if (rightX < localMaskingRectangle.Left)
-                        continue;
-
-                    if (leftX > localMaskingRectangle.Right)
-                        break; // X is always increasing
 
                     Color4 frequencyColour = baseColour;
 

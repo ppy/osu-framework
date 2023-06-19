@@ -52,6 +52,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal bool AllowTearing { get; set; }
 
         /// <summary>
+        /// A <see cref="Storage"/> that can be used to cache objects.
+        /// </summary>
+        protected internal Storage? CacheStorage { set; }
+
+        /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
         int MaxTextureSize { get; }

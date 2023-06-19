@@ -1,12 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -33,11 +32,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
 
-        /// <summary>
-        /// Holds all <see cref="uniformBlocks"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
-        /// </summary>
-        private readonly List<GLUniformBlock> uniformBlocksValues = new List<GLUniformBlock>();
-
         public bool IsLoaded { get; private set; }
 
         public bool IsBound { get; private set; }
@@ -46,14 +40,14 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly GLShaderPart vertexPart;
         private readonly GLShaderPart fragmentPart;
-        private readonly VertexFragmentCompilationResult crossCompileResult;
+        private readonly VertexFragmentShaderCompilation compilation;
 
-        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
         {
             this.renderer = renderer;
             this.name = name;
             this.globalUniformBuffer = globalUniformBuffer;
-            this.parts = parts.Where(p => p != null).ToArray();
+            this.parts = parts;
 
             vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
             fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
@@ -63,9 +57,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             try
             {
                 // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
-                crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
-                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                compilation = compilationStore.CompileVertexFragment(
+                    vertexPart.GetRawText(),
+                    fragmentPart.GetRawText(),
                     renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
             }
             catch (Exception e)
@@ -122,9 +116,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             for (int i = 0; i < textureUniforms.Count; i++)
                 textureUniforms[i].Update();
 
-            foreach (var block in uniformBlocksValues)
-                block?.Bind();
-
             IsBound = true;
         }
 
@@ -151,18 +142,22 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
+            if (buffer is not IGLUniformBuffer glBuffer)
+                throw new ArgumentException($"Buffer must be an {nameof(IGLUniformBuffer)}.");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
 
             EnsureShaderCompiled();
 
-            uniformBlocks[blockName].Assign(buffer);
+            renderer.FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, uniformBlocks[blockName].Binding, glBuffer.Id);
         }
 
         private protected virtual bool CompileInternal()
         {
-            vertexPart.Compile(crossCompileResult.VertexShader);
-            fragmentPart.Compile(crossCompileResult.FragmentShader);
+            vertexPart.Compile(compilation.VertexText);
+            fragmentPart.Compile(compilation.FragmentText);
 
             foreach (GLShaderPart p in parts)
                 GL.AttachShader(this, p);
@@ -179,7 +174,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             int blockBindingIndex = 0;
             int textureIndex = 0;
 
-            foreach (ResourceLayoutDescription layout in crossCompileResult.Reflection.ResourceLayouts)
+            foreach (ResourceLayoutDescription layout in compilation.Reflection.ResourceLayouts)
             {
                 if (layout.Elements.Length == 0)
                     continue;
@@ -194,9 +189,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 }
                 else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
                 {
-                    var block = new GLUniformBlock(renderer, this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
+                    var block = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
                     uniformBlocks[layout.Elements[0].Name] = block;
-                    uniformBlocksValues.Add(block);
                 }
             }
 
@@ -230,15 +224,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-            {
-                IsDisposed = true;
+            if (IsDisposed)
+                return;
 
-                shaderCompileDelegate?.Cancel();
+            IsDisposed = true;
 
-                if (programID != -1)
-                    DeleteProgram(this);
-            }
+            if (shaderCompileDelegate.IsNotNull())
+                shaderCompileDelegate.Cancel();
+
+            if (programID != -1)
+                DeleteProgram(this);
         }
 
         #endregion

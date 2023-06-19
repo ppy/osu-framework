@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -52,7 +53,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (boundItemSource != null)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
 
-                Scheduler.AddOnce(setItems, value);
+                setItems(value);
             }
         }
 
@@ -63,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             foreach (var entry in items)
-                addDropdownItem(GenerateItemText(entry), entry);
+                addDropdownItem(entry);
 
             if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
                 Current.Value = itemMap.Keys.FirstOrDefault();
@@ -95,27 +96,20 @@ namespace osu.Framework.Graphics.UserInterface
         /// Add a menu item directly while automatically generating a label.
         /// </summary>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
-
-        /// <summary>
-        /// Add a menu item directly.
-        /// </summary>
-        /// <param name="text">Text to display on the menu item.</param>
-        /// <param name="value">Value selected by the menu item.</param>
-        protected void AddDropdownItem(LocalisableString text, T value)
+        public void AddDropdownItem(T value)
         {
             if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
 
-            addDropdownItem(text, value);
+            addDropdownItem(value);
         }
 
-        private void addDropdownItem(LocalisableString text, T value)
+        private void addDropdownItem(T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var newItem = new DropdownMenuItem<T>(text, value, () =>
+            var item = new DropdownMenuItem<T>(value, () =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
@@ -123,8 +117,12 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu.State = MenuState.Closed;
             });
 
-            Menu.Add(newItem);
-            itemMap[value] = newItem;
+            // inheritors expect that `virtual GenerateItemText` is only called when this dropdown is fully loaded.
+            if (IsLoaded)
+                item.Text.Value = GenerateItemText(value);
+
+            Menu.Add(item);
+            itemMap[value] = item;
         }
 
         /// <summary>
@@ -153,6 +151,12 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        /// <summary>
+        /// Called to generate the text to be shown for this <paramref name="item"/>.
+        /// </summary>
+        /// <remarks>
+        /// Can be overriden if custom behaviour is needed. Will only be called after this <see cref="Dropdown{T}"/> has fully loaded.
+        /// </remarks>
         protected virtual LocalisableString GenerateItemText(T item)
         {
             switch (item)
@@ -225,7 +229,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, _) => Scheduler.AddOnce(setItems, ItemSource);
+            ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)
@@ -264,6 +268,17 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            foreach (var item in MenuItems)
+            {
+                Debug.Assert(string.IsNullOrEmpty(item.Text.Value.ToString()));
+                item.Text.Value = GenerateItemText(item.Value);
+            }
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -277,7 +292,7 @@ namespace osu.Framework.Graphics.UserInterface
             // null is not a valid value for Dictionary, so neither here
             if (args.NewValue == null && SelectedItem != null)
             {
-                selectedItem = new DropdownMenuItem<T>(default, default);
+                selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
             }
             else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {

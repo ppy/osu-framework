@@ -76,7 +76,7 @@ namespace osu.Framework.Audio.Track
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                FrequencyChangedToZero = () => stopInternal(),
+                FrequencyChangedToZero = stopInternal,
                 FrequencyChangedFromZero = () =>
                 {
                     // Do not resume the track if a play wasn't requested at all or has been paused via Stop().
