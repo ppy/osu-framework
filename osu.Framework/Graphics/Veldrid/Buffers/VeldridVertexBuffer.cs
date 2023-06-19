@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
 
             // Ensure the device buffer is initialised to 0.
-            Update();
+            UpdateRange(0, Size);
         }
 
         ~VeldridVertexBuffer()
@@ -134,12 +134,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             Unbind();
         }
 
-        public void Update()
-        {
-            UpdateRange(0, Size);
-        }
-
-        public void UpdateRange(int startIndex, int endIndex)
+        internal void UpdateRange(int startIndex, int endIndex)
         {
             if (gpuBuffer == null)
                 Initialise();
