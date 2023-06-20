@@ -35,6 +35,57 @@ namespace osu.Framework.Tests.Graphics
         }
 
         [Test]
+        public void TestSameBufferIsNotWrittenTwiceInRowNoContestation()
+        {
+            // Test with no contest
+            var tripleBuffer = new TripleBuffer<TestObject>();
+
+            using (var buffer = tripleBuffer.GetForWrite())
+                buffer.Object = new TestObject(1);
+
+            using (var buffer = tripleBuffer.GetForRead())
+                Assert.That(buffer?.Object?.ID, Is.EqualTo(1));
+
+            using (var buffer = tripleBuffer.GetForWrite())
+            {
+                Assert.That(buffer.Object, Is.Null);
+                buffer.Object = new TestObject(2);
+            }
+        }
+
+        [Test]
+        public void TestSameBufferIsNotWrittenTwiceInRowContestation()
+        {
+            // Test with first write in use during second.
+            var tripleBuffer = new TripleBuffer<TestObject>();
+
+            using (var buffer = tripleBuffer.GetForWrite())
+                buffer.Object = new TestObject(1);
+
+            using (var read = tripleBuffer.GetForRead())
+            {
+                Assert.That(read?.Object?.ID, Is.EqualTo(1));
+
+                using (var write = tripleBuffer.GetForWrite())
+                {
+                    Assert.That(write.Object, Is.Null);
+                    write.Object = new TestObject(2);
+                }
+            }
+
+            using (var read = tripleBuffer.GetForRead())
+            {
+                Assert.That(read?.Object?.ID, Is.EqualTo(2));
+
+                using (var write = tripleBuffer.GetForWrite())
+                {
+                    Assert.That(write.Object, Is.Null);
+                    write.Object = new TestObject(3);
+                }
+            }
+        }
+
+        [Test]
         public void TestWriteThenRead()
         {
             var tripleBuffer = new TripleBuffer<TestObject>();
@@ -86,16 +137,16 @@ namespace osu.Framework.Tests.Graphics
 
         private class TestObject
         {
-            private readonly int i;
+            public readonly int ID;
 
-            public TestObject(int i)
+            public TestObject(int id)
             {
-                this.i = i;
+                ID = id;
             }
 
             public override string ToString()
             {
-                return $"{base.ToString()} {i}";
+                return $"{base.ToString()} {ID}";
             }
         }
     }
