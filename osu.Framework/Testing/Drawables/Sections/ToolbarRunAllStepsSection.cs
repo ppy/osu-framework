@@ -9,9 +9,9 @@ using osuTK;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
-    public partial class ToolbarAssemblySection : ToolbarSection
+    public partial class ToolbarRunAllStepsSection : ToolbarSection
     {
-        public ToolbarAssemblySection()
+        public ToolbarRunAllStepsSection()
         {
             AutoSizeAxes = Axes.X;
             Masking = false;

@@ -45,7 +45,7 @@ namespace osu.Framework.Testing.Drawables
                         {
                             new Drawable[]
                             {
-                                new ToolbarAssemblySection { RelativeSizeAxes = Axes.Y },
+                                new ToolbarRunAllStepsSection { RelativeSizeAxes = Axes.Y },
                                 new ToolbarRateSection { RelativeSizeAxes = Axes.Both },
                                 new Container
                                 {
