@@ -9,6 +9,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// Handles triple-buffering of any object type.
     /// Thread safety assumes at most one writer and one reader.
+    /// Comes with the added assurance that the most recent <see cref="GetForRead"/> object is not written to.
     /// </summary>
     public class TripleBuffer<T>
         where T : class
@@ -16,6 +17,8 @@ namespace osu.Framework.Allocation
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
         private int? lastCompletedWriteIndex;
+
+        private int? lastReadIndex;
 
         private int? activeReadIndex;
 
@@ -75,6 +78,7 @@ namespace osu.Framework.Allocation
             for (int i = 0; i < buffer_count - 1; i++)
             {
                 if (i == activeReadIndex) continue;
+                if (i == lastReadIndex) continue;
                 if (i == lastCompletedWriteIndex) continue;
 
                 return buffers[i];
@@ -91,6 +95,7 @@ namespace osu.Framework.Allocation
                 {
                     case UsageType.Read:
                         Debug.Assert(activeReadIndex != null);
+                        lastReadIndex = activeReadIndex;
                         activeReadIndex = null;
                         break;
 
