@@ -174,13 +174,19 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             int blockBindingIndex = 0;
             int textureIndex = 0;
 
-            foreach (ResourceLayoutDescription layout in compilation.Reflection.ResourceLayouts)
+            for (int set = 0; set < compilation.Reflection.ResourceLayouts.Length; set++)
             {
+                ResourceLayoutDescription layout = compilation.Reflection.ResourceLayouts[set];
+
                 if (layout.Elements.Length == 0)
                     continue;
 
                 if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                 {
+                    ResourceLayoutElementDescription textureDesc = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+                    if (layout.Elements.All(e => e.Kind != ResourceKind.Sampler))
+                        throw new ProgramLinkingFailedException(name, $"Uniform set {set} contains a texture ({textureDesc.Name}) with no associated sampler.");
+
                     var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
                     textureUniforms.Add(new Uniform<int>(renderer, this, textureElement.Name, GL.GetUniformLocation(this, textureElement.Name))
                     {
