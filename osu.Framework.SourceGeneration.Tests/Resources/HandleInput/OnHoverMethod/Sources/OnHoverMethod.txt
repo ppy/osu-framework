@@ -1,0 +1,4 @@
+public partial class OnHoverMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnHover(object e) { }
+}
