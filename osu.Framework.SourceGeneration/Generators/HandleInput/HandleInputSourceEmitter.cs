@@ -55,22 +55,20 @@ namespace osu.Framework.SourceGeneration.Generators.HandleInput
             if (Target.RequestsNonPositionalInput || isDrawable)
                 yield return createInputMember("RequestsNonPositionalInput", Target.RequestsNonPositionalInput);
 
-            MemberDeclarationSyntax createInputMember(string name, bool value)
-            {
-                return SyntaxFactory.PropertyDeclaration(
-                                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
-                                        SyntaxFactory.Identifier(name))
-                                    .WithExplicitInterfaceSpecifier(
-                                        SyntaxFactory.ExplicitInterfaceSpecifier(
-                                            SyntaxFactory.IdentifierName(interface_name)))
-                                    .WithExpressionBody(
-                                        SyntaxFactory.ArrowExpressionClause(
-                                            SyntaxFactory.LiteralExpression(
-                                                value
-                                                    ? SyntaxKind.TrueLiteralExpression
-                                                    : SyntaxKind.FalseLiteralExpression)))
-                                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            }
+            MemberDeclarationSyntax createInputMember(string name, bool value) =>
+                SyntaxFactory.PropertyDeclaration(
+                                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
+                                 SyntaxFactory.Identifier(name))
+                             .WithExplicitInterfaceSpecifier(
+                                 SyntaxFactory.ExplicitInterfaceSpecifier(
+                                     SyntaxFactory.IdentifierName(interface_name)))
+                             .WithExpressionBody(
+                                 SyntaxFactory.ArrowExpressionClause(
+                                     SyntaxFactory.LiteralExpression(
+                                         value
+                                             ? SyntaxKind.TrueLiteralExpression
+                                             : SyntaxKind.FalseLiteralExpression)))
+                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
     }
 }
