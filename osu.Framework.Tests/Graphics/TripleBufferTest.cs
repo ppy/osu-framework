@@ -329,7 +329,7 @@ namespace osu.Framework.Tests.Graphics
 
             public override string ToString()
             {
-                return $"{base.ToString()} buffer index: {ID}";
+                return $"{base.ToString()} ID: {ID}";
             }
         }
     }
