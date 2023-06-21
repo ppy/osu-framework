@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -37,211 +38,198 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestSameBufferIsNotWrittenTwiceInRowNoContestation()
         {
-            var tripleBuffer = new TripleBuffer<TestObject>();
+            var tripleBuffer = createWithIDsMatchingIndices();
 
-            using (var buffer = tripleBuffer.GetForWrite())
-                buffer.Object = new TestObject(1);
+            using (var write = tripleBuffer.GetForWrite())
+                Assert.That(write.Object?.ID, Is.EqualTo(0));
 
+            // buffer 0: waiting for read
+            // buffer 1: old
+            // buffer 2: old
+
+            using (var buffer = tripleBuffer.GetForRead())
+                Assert.That(buffer?.Object?.ID, Is.EqualTo(0));
+
+            // buffer 0: last read
+            // buffer 1: old
+            // buffer 2: old
+
+            using (var write = tripleBuffer.GetForWrite())
+                Assert.That(write.Object?.ID, Is.EqualTo(1));
+
+            // buffer 0: last read
             // buffer 1: waiting for read
-            // buffer 2: null
-            // buffer 3: null
+            // buffer 2: old
+
+            using (var write = tripleBuffer.GetForWrite())
+                Assert.That(write.Object?.ID, Is.EqualTo(2));
+
+            // buffer 0: last read
+            // buffer 1: old
+            // buffer 2: waiting for read
+
+            using (var write = tripleBuffer.GetForWrite())
+                Assert.That(write.Object?.ID, Is.EqualTo(1));
+
+            // buffer 0: last read
+            // buffer 1: waiting for read
+            // buffer 2: old
 
             using (var buffer = tripleBuffer.GetForRead())
                 Assert.That(buffer?.Object?.ID, Is.EqualTo(1));
 
-            // buffer 1: last read
-            // buffer 2: null
-            // buffer 3: null
-
-            using (var buffer = tripleBuffer.GetForWrite())
-            {
-                Assert.That(buffer.Object, Is.Null);
-                buffer.Object = new TestObject(2);
-            }
-
-            // buffer 1: last read
-            // buffer 2: waiting for read
-            // buffer 3: null
-
-            using (var buffer = tripleBuffer.GetForWrite())
-            {
-                Assert.That(buffer.Object, Is.Null);
-                buffer.Object = new TestObject(3);
-            }
-
+            // buffer 0: old
             // buffer 1: last read
             // buffer 2: old
-            // buffer 3: waiting for read
-
-            using (var buffer = tripleBuffer.GetForWrite())
-                Assert.That(buffer?.Object?.ID, Is.EqualTo(2));
-
-            // buffer 1: last read
-            // buffer 2: waiting for read
-            // buffer 3: old
-
-            using (var buffer = tripleBuffer.GetForRead())
-                Assert.That(buffer?.Object?.ID, Is.EqualTo(2));
-
-            // buffer 1: old
-            // buffer 2: last read
-            // buffer 3: old
         }
 
         [Test]
         public void TestSameBufferIsNotWrittenTwiceInRowContestation()
         {
+            var tripleBuffer = createWithIDsMatchingIndices();
+
             // Test with first write in use during second.
-            var tripleBuffer = new TripleBuffer<TestObject>();
+            using (var write = tripleBuffer.GetForWrite())
+                Assert.That(write.Object?.ID, Is.EqualTo(0));
 
-            using (var buffer = tripleBuffer.GetForWrite())
-                buffer.Object = new TestObject(1);
-
-            // buffer 1: waiting for read
-            // buffer 2: null
-            // buffer 3: null
+            // buffer 0: waiting for read
+            // buffer 1: old
+            // buffer 2: old
 
             using (var read = tripleBuffer.GetForRead())
             {
-                Assert.That(read?.Object?.ID, Is.EqualTo(1));
+                Assert.That(read?.Object?.ID, Is.EqualTo(0));
 
-                // buffer 1: reading
-                // buffer 2: null
-                // buffer 3: null
-
-                using (var write = tripleBuffer.GetForWrite())
-                {
-                    Assert.That(write.Object, Is.Null);
-                    write.Object = new TestObject(2);
-                }
-
-                // buffer 1: reading
-                // buffer 2: waiting for read
-                // buffer 3: null
-
-                using (var write = tripleBuffer.GetForWrite())
-                {
-                    Assert.That(write.Object, Is.Null);
-                    write.Object = new TestObject(3);
-                }
-
-                // buffer 1: reading
-                // buffer 2: old
-                // buffer 3: waiting for read
-            }
-
-            using (var read = tripleBuffer.GetForRead())
-            {
-                Assert.That(read?.Object?.ID, Is.EqualTo(3));
-
+                // buffer 0: reading
                 // buffer 1: old
                 // buffer 2: old
-                // buffer 3: reading
 
                 using (var write = tripleBuffer.GetForWrite())
                     Assert.That(write.Object?.ID, Is.EqualTo(1));
 
+                // buffer 0: reading
                 // buffer 1: waiting for read
                 // buffer 2: old
-                // buffer 3: reading
 
                 using (var write = tripleBuffer.GetForWrite())
                     Assert.That(write.Object?.ID, Is.EqualTo(2));
 
+                // buffer 0: reading
                 // buffer 1: old
                 // buffer 2: waiting for read
-                // buffer 3: reading
-
-                using (var write = tripleBuffer.GetForWrite())
-                    Assert.That(write.Object?.ID, Is.EqualTo(1));
-
-                // buffer 1: waiting for read
-                // buffer 2: old
-                // buffer 3: reading
-            }
-
-            using (var read = tripleBuffer.GetForRead())
-            {
-                Assert.That(read?.Object?.ID, Is.EqualTo(1));
-                // buffer 1: reading
-                // buffer 2: old
-                // buffer 3: old
-            }
-        }
-
-        [Test]
-        public void TestSameBufferIsNotWrittenTwiceInRowContestation2()
-        {
-            var tripleBuffer = new TripleBuffer<TestObject>();
-
-            using (var buffer = tripleBuffer.GetForWrite())
-                buffer.Object = new TestObject(1);
-
-            // buffer 1: waiting for read
-            // buffer 2: null
-            // buffer 3: null
-
-            using (var read = tripleBuffer.GetForRead())
-            {
-                Assert.That(read?.Object?.ID, Is.EqualTo(1));
-
-                // buffer 1: reading
-                // buffer 2: null
-                // buffer 3: null
-
-                using (var write = tripleBuffer.GetForWrite())
-                {
-                    Assert.That(write.Object, Is.Null);
-                    write.Object = new TestObject(2);
-
-                    // buffer 1: reading
-                    // buffer 2: writing
-                    // buffer 3: null
-                }
             }
 
             using (var read = tripleBuffer.GetForRead())
             {
                 Assert.That(read?.Object?.ID, Is.EqualTo(2));
 
+                // buffer 0: old
                 // buffer 1: old
                 // buffer 2: reading
-                // buffer 3: null
+
+                using (var write = tripleBuffer.GetForWrite())
+                    Assert.That(write.Object?.ID, Is.EqualTo(0));
+
+                // buffer 0: waiting for read
+                // buffer 1: old
+                // buffer 2: reading
+
+                using (var write = tripleBuffer.GetForWrite())
+                    Assert.That(write.Object?.ID, Is.EqualTo(1));
+
+                // buffer 0: old
+                // buffer 1: waiting for read
+                // buffer 2: reading
+
+                using (var write = tripleBuffer.GetForWrite())
+                    Assert.That(write.Object?.ID, Is.EqualTo(0));
+
+                // buffer 0: waiting for read
+                // buffer 1: old
+                // buffer 2: reading
             }
 
-            using (var write = tripleBuffer.GetForWrite())
+            using (var read = tripleBuffer.GetForRead())
             {
-                Assert.That(write?.Object?.ID, Is.EqualTo(1));
+                Assert.That(read?.Object?.ID, Is.EqualTo(0));
+                // buffer 0: reading
+                // buffer 1: old
+                // buffer 2: old
+            }
+        }
 
-                // buffer 1: writing
-                // buffer 2: last read
-                // buffer 3: null
+        [Test]
+        public void TestSameBufferIsNotWrittenTwiceInRowContestation2()
+        {
+            var tripleBuffer = createWithIDsMatchingIndices();
+
+            using (var write = tripleBuffer.GetForWrite())
+                Assert.That(write.Object?.ID, Is.EqualTo(0));
+
+            // buffer 0: waiting for read
+            // buffer 1: old
+            // buffer 2: old
+
+            using (var read = tripleBuffer.GetForRead())
+            {
+                Assert.That(read?.Object?.ID, Is.EqualTo(0));
+
+                // buffer 0: reading
+                // buffer 1: old
+                // buffer 2: old
+
+                using (var write = tripleBuffer.GetForWrite())
+                {
+                    Assert.That(write.Object?.ID, Is.EqualTo(1));
+
+                    // buffer 0: reading
+                    // buffer 1: writing
+                    // buffer 2: old
+                }
             }
 
             using (var read = tripleBuffer.GetForRead())
             {
                 Assert.That(read?.Object?.ID, Is.EqualTo(1));
 
+                // buffer 0: old
                 // buffer 1: reading
                 // buffer 2: old
-                // buffer 3: null
+            }
+
+            using (var write = tripleBuffer.GetForWrite())
+            {
+                Assert.That(write.Object?.ID, Is.EqualTo(0));
+
+                // buffer 0: writing
+                // buffer 1: last read
+                // buffer 2: old
+            }
+
+            using (var read = tripleBuffer.GetForRead())
+            {
+                Assert.That(read?.Object?.ID, Is.EqualTo(0));
+
+                // buffer 0: reading
+                // buffer 1: old
+                // buffer 2: old
 
                 using (var write = tripleBuffer.GetForWrite())
                 {
-                    Assert.That(write?.Object?.ID, Is.EqualTo(2));
+                    Assert.That(write.Object?.ID, Is.EqualTo(1));
 
-                    // buffer 1: reading
-                    // buffer 2: writing
-                    // buffer 3: null
+                    // buffer 0: reading
+                    // buffer 1: writing
+                    // buffer 2: old
                 }
 
                 using (var write = tripleBuffer.GetForWrite())
                 {
-                    Assert.That(write?.Object?.ID, Is.Null);
+                    Assert.That(write.Object?.ID, Is.EqualTo(2));
 
-                    // buffer 1: reading
-                    // buffer 2: waiting for read
-                    // buffer 3: writing
+                    // buffer 0: reading
+                    // buffer 1: waiting for read
+                    // buffer 2: writing
                 }
             }
         }
@@ -255,8 +243,8 @@ namespace osu.Framework.Tests.Graphics
             {
                 var obj = new TestObject(i);
 
-                using (var buffer = tripleBuffer.GetForWrite())
-                    buffer.Object = obj;
+                using (var write = tripleBuffer.GetForWrite())
+                    write.Object = obj;
 
                 using (var buffer = tripleBuffer.GetForRead())
                     Assert.That(buffer?.Object, Is.EqualTo(obj));
@@ -288,12 +276,46 @@ namespace osu.Framework.Tests.Graphics
                     resetEventSlim.Wait(1000);
                     Thread.Sleep(10);
 
-                    using (var buffer = tripleBuffer.GetForWrite())
-                        buffer.Object = obj;
+                    using (var write = tripleBuffer.GetForWrite())
+                        write.Object = obj;
                 }, TaskCreationOptions.LongRunning);
 
                 readTask.WaitSafely();
             }
+        }
+
+        private static TripleBuffer<TestObject> createWithIDsMatchingIndices()
+        {
+            var tripleBuffer = new TripleBuffer<TestObject>();
+
+            // Setup the triple buffer with correctly indexed objects.
+            List<int> initialisedBuffers = new List<int>();
+
+            initialiseBuffer();
+
+            using (var _ = tripleBuffer.GetForRead())
+            {
+                initialiseBuffer();
+                initialiseBuffer();
+            }
+
+            Assert.That(initialisedBuffers, Is.EqualTo(new[] { 0, 1, 2 }));
+
+            // Read remaining buffers to reset things to a sane state (next write will be at index 0).
+            using (var _ = tripleBuffer.GetForRead()) { }
+
+            using (var _ = tripleBuffer.GetForRead()) { }
+
+            void initialiseBuffer()
+            {
+                using (var write = tripleBuffer.GetForWrite())
+                {
+                    write.Object = new TestObject(write.Index);
+                    initialisedBuffers.Add(write.Index);
+                }
+            }
+
+            return tripleBuffer;
         }
 
         private class TestObject
@@ -307,7 +329,7 @@ namespace osu.Framework.Tests.Graphics
 
             public override string ToString()
             {
-                return $"{base.ToString()} {ID}";
+                return $"{base.ToString()} buffer index: {ID}";
             }
         }
     }
