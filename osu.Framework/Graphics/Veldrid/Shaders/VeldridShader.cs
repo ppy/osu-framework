@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     {
                         ResourceLayoutElementDescription textureDesc = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
                         if (layout.Elements.All(e => e.Kind != ResourceKind.Sampler))
-                            throw new InvalidOperationException($"Uniform set {set} contains a texture ({textureDesc.Name}) with no associated sampler.");
+                            throw new InvalidOperationException($"Texture {textureDesc.Name} has no associated sampler.");
 
                         textureLayouts.Add(new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout)));
                     }
