@@ -47,7 +47,7 @@ namespace osu.Framework.Allocation
 
         public ObjectUsage<T> GetForWrite()
         {
-            // Only one read should be allowed at once
+            // Only one write should be allowed at once
             Debug.Assert(buffers.All(b => b.Usage != UsageType.Write));
 
             ObjectUsage<T> buffer;
