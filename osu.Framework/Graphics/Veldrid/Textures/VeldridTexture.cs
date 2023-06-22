@@ -170,7 +170,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             set => resourcesArray[0] = value;
         }
 
-        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList() => resourcesArray!;
+        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList()
+        {
+            if (resources == null)
+                return Array.Empty<VeldridTextureResources>();
+
+            return resourcesArray!;
+        }
 
         public void FlushUploads()
         {

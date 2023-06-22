@@ -46,7 +46,7 @@ namespace osu.Framework.Testing
         private BasicTextBox searchTextBox;
         private SearchContainer<TestGroupButton> leftFlowContainer;
         private Container testContentContainer;
-        private Container compilingNotice;
+        private Container hotReloadNotice;
 
         public readonly List<Type> TestTypes = new List<Type>();
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Testing
                                 Clock = framedClock,
                                 RelativeSizeAxes = Axes.Both,
                                 Padding = new MarginPadding { Top = 50 },
-                                Child = compilingNotice = new Container
+                                Child = hotReloadNotice = new Container
                                 {
                                     Alpha = 0,
                                     Anchor = Anchor.Centre,
@@ -128,6 +128,7 @@ namespace osu.Framework.Testing
                                     Depth = float.MinValue,
                                     CornerRadius = 5,
                                     AutoSizeAxes = Axes.Both,
+                                    Colour = Color4.YellowGreen,
                                     Children = new Drawable[]
                                     {
                                         new Box
@@ -138,7 +139,10 @@ namespace osu.Framework.Testing
                                         new SpriteText
                                         {
                                             Font = FrameworkFont.Regular.With(size: 30),
-                                            Text = @"Compiling new version..."
+                                            Text = @"Hot reload!",
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Margin = new MarginPadding(5),
                                         }
                                     },
                                 }
@@ -244,15 +248,17 @@ namespace osu.Framework.Testing
 
         private void compileFinished(Type[] updatedTypes) => Schedule(() =>
         {
-            compilingNotice.FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(Color4.YellowGreen, 100);
-
             if (CurrentTest == null)
                 return;
 
             try
             {
-                LoadTest(CurrentTest.GetType(), isDynamicLoad: true);
+                LoadTest(CurrentTest.GetType(), isHotReload: true);
+
+                hotReloadNotice
+                    .FadeIn(100).Then()
+                    .FadeOutFromOne(500, Easing.InQuint);
+                hotReloadNotice.FadeColour(Color4.YellowGreen, 100);
             }
             catch (Exception e)
             {
@@ -262,10 +268,12 @@ namespace osu.Framework.Testing
 
         private void compileFailed(Exception ex) => Schedule(() =>
         {
-            Logger.Error(ex, "Error with dynamic compilation!");
+            Logger.Error(ex, "Error loading test after hot reload.");
 
-            compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(Color4.Red, 100);
+            hotReloadNotice
+                .FadeIn(100).Then()
+                .FadeOutFromOne(500, Easing.InQuint);
+            hotReloadNotice.FadeColour(Color4.Red, 100);
         });
 
         protected override void LoadComplete()
@@ -335,7 +343,7 @@ namespace osu.Framework.Testing
         {
         }
 
-        public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
+        public void LoadTest(Type testType = null, Action onCompletion = null, bool isHotReload = false)
         {
             if (CurrentTest?.Parent != null)
             {
@@ -362,7 +370,7 @@ namespace osu.Framework.Testing
             updateButtons();
             resetRecording();
 
-            testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
+            testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isHotReload)
             {
                 OnCaughtError = compileFailed
             });

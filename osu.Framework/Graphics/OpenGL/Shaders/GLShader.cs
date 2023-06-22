@@ -181,7 +181,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                 {
-                    var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+                    ResourceLayoutElementDescription textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+
+                    if (layout.Elements.All(e => e.Kind != ResourceKind.Sampler))
+                        throw new ProgramLinkingFailedException(name, $"Texture {textureElement.Name} has no associated sampler.");
+
                     textureUniforms.Add(new Uniform<int>(renderer, this, textureElement.Name, GL.GetUniformLocation(this, textureElement.Name))
                     {
                         Value = textureIndex++
