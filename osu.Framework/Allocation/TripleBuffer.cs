@@ -94,7 +94,7 @@ namespace osu.Framework.Allocation
 
         private ObjectUsage<T> getNextWriteBuffer()
         {
-            for (int i = 0; i <= buffer_count - 1; i++)
+            for (int i = 0; i < buffer_count; i++)
             {
                 // Never write to the last read index.
                 // We assume there could be some reads still occurring even after the usage is finished.
