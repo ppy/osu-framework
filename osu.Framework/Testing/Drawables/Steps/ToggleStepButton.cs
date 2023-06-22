@@ -28,7 +28,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         {
             State = !State;
             Light.FadeColour(State ? on_colour : off_colour);
-            reloadCallback?.Invoke(State);
+            reloadCallback.Invoke(State);
 
             if (!State)
                 Success();

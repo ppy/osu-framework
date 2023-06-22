@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using JetBrains.Annotations;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.StateChanges.Events
@@ -16,14 +15,12 @@ namespace osu.Framework.Input.StateChanges.Events
         /// <summary>
         /// The <see cref="InputState"/> changed by this event.
         /// </summary>
-        [NotNull]
         public readonly InputState State;
 
         /// <summary>
         /// The <see cref="IInput"/> that caused this input state change.
         /// </summary>
-        [CanBeNull]
-        public readonly IInput Input;
+        public readonly IInput? Input;
 
         protected InputStateChangeEvent(InputState state, IInput input)
         {

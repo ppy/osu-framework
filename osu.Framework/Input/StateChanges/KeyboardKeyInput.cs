@@ -19,7 +19,7 @@ namespace osu.Framework.Input.StateChanges
         {
         }
 
-        public KeyboardKeyInput(ButtonStates<Key> current, ButtonStates<Key> previous)
+        public KeyboardKeyInput(ButtonStates<Key>? current, ButtonStates<Key>? previous)
             : base(current, previous)
         {
         }

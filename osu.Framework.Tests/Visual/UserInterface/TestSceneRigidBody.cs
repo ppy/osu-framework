@@ -25,9 +25,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 restitutionBacking = value;
 
-                if (sim == null)
-                    return;
-
                 foreach (var d in sim.Children)
                     d.Restitution = value;
                 sim.Restitution = value;
@@ -42,9 +39,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             set
             {
                 frictionBacking = value;
-
-                if (sim == null)
-                    return;
 
                 foreach (var d in sim.Children)
                     d.FrictionCoefficient = value;

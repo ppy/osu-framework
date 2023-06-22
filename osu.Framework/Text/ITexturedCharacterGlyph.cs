@@ -33,6 +33,6 @@ namespace osu.Framework.Text
         /// </summary>
         public static bool IsWhiteSpace<T>(this T glyph)
             where T : ITexturedCharacterGlyph
-            => glyph.Texture == null || char.IsWhiteSpace(glyph.Character);
+            => char.IsWhiteSpace(glyph.Character);
     }
 }

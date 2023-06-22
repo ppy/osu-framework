@@ -15,12 +15,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public LocalisableString Text
         {
-            get => SpriteText?.Text ?? default;
-            set
-            {
-                if (SpriteText != null)
-                    SpriteText.Text = value;
-            }
+            get => SpriteText.Text;
+            set => SpriteText.Text = value;
         }
 
         public Color4 BackgroundColour

@@ -30,7 +30,7 @@ namespace osu.Framework.Input
             }
         }
 
-        private void handleTextEditing(string text, int selectionStart, int selectionLength)
+        private void handleTextEditing(string? text, int selectionStart, int selectionLength)
         {
             if (text == null) return;
 

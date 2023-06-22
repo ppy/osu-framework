@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Performance;
 
 namespace osu.Framework.Graphics.Containers
@@ -136,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
 
             public void Dispose()
             {
-                if (Drawable != null)
+                if (Drawable.IsNotNull())
                     Drawable.LifetimeChanged -= drawableLifetimeChanged;
             }
         }

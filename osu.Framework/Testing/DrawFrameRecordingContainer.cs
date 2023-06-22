@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -31,7 +30,7 @@ namespace osu.Framework.Testing
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load([CanBeNull] TestBrowser browser)
+        private void load(TestBrowser? browser)
         {
             if (browser != null)
             {

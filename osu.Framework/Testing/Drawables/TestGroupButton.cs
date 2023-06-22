@@ -13,7 +13,7 @@ namespace osu.Framework.Testing.Drawables
 {
     internal partial class TestGroupButton : VisibilityContainer, IFilterable
     {
-        public IEnumerable<LocalisableString> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<LocalisableString>();
+        public IEnumerable<LocalisableString> FilterTerms => headerButton.FilterTerms;
 
         public bool MatchingFilter
         {

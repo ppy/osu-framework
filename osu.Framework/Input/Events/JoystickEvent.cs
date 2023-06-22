@@ -3,14 +3,13 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
     public abstract class JoystickEvent : UIEvent
     {
-        protected JoystickEvent([NotNull] InputState state)
+        protected JoystickEvent(InputState state)
             : base(state)
         {
         }

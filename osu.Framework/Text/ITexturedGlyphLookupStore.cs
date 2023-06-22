@@ -13,7 +13,7 @@ namespace osu.Framework.Text
         /// <param name="fontName">The name of the font.</param>
         /// <param name="character">The character to retrieve.</param>
         /// <returns>The character glyph.</returns>
-        ITexturedCharacterGlyph Get(string fontName, char character);
+        ITexturedCharacterGlyph? Get(string fontName, char character);
 
         /// <summary>
         /// Retrieves a glyph from the store asynchronously.
@@ -21,6 +21,6 @@ namespace osu.Framework.Text
         /// <param name="fontName">The name of the font.</param>
         /// <param name="character">The character to retrieve.</param>
         /// <returns>The character glyph.</returns>
-        Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character);
+        Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character);
     }
 }
