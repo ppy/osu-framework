@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
@@ -13,6 +14,11 @@ namespace osu.Framework.Graphics.Rendering
         /// The framebuffer's backing texture.
         /// </summary>
         Texture Texture { get; }
+
+        /// <summary>
+        /// The list of other pixel formats for this framebuffer, or null if not defined.
+        /// </summary>
+        IReadOnlyList<RenderBufferFormat>? Formats { get; }
 
         /// <summary>
         /// The framebuffer's texture size.
