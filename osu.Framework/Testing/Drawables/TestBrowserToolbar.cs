@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -14,8 +11,6 @@ namespace osu.Framework.Testing.Drawables
 {
     internal partial class TestBrowserToolbar : CompositeDrawable
     {
-        private ToolbarAssemblySection assemblySection;
-
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -50,7 +45,7 @@ namespace osu.Framework.Testing.Drawables
                         {
                             new Drawable[]
                             {
-                                assemblySection = new ToolbarAssemblySection { RelativeSizeAxes = Axes.Y },
+                                new ToolbarRunAllStepsSection { RelativeSizeAxes = Axes.Y },
                                 new ToolbarRateSection { RelativeSizeAxes = Axes.Both },
                                 new Container
                                 {
@@ -78,7 +73,5 @@ namespace osu.Framework.Testing.Drawables
                 }
             };
         }
-
-        public void AddAssembly(Assembly assembly) => assemblySection.AddAssembly(assembly);
     }
 }
