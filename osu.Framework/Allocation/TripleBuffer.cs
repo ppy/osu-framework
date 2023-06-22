@@ -16,7 +16,7 @@ namespace osu.Framework.Allocation
     public class TripleBuffer<T>
         where T : class
     {
-        private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
+        private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[buffer_count];
 
         /// <summary>
         /// The freshest buffer index which has finished a write, and is waiting to be read.
