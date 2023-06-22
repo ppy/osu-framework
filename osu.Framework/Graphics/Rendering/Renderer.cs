@@ -751,6 +751,9 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentStencilInfo.Equals(stencilInfo))
                 return;
 
+            if (stencilInfo.StencilTest && FrameBuffer != null && (FrameBuffer.Formats == null || !FrameBuffer.Formats[0].HasStencilAttachment()))
+                throw new InvalidOperationException("Cannot enable stencil tests on a frame buffer with no stencil attachment.");
+
             FlushCurrentBatch(FlushBatchSource.SetStencilInfo);
             SetStencilInfoImplementation(stencilInfo);
 
@@ -953,6 +956,9 @@ namespace osu.Framework.Graphics.Rendering
         {
             if (frameBuffer == FrameBuffer && !force)
                 return;
+
+            if (CurrentStencilInfo.StencilTest && frameBuffer != null && (frameBuffer.Formats == null || !frameBuffer.Formats[0].HasStencilAttachment()))
+                throw new InvalidOperationException("Cannot bind a frame buffer with no stencil attachment while stencil tests are enabled.");
 
             FlushCurrentBatch(FlushBatchSource.SetFrameBuffer);
 
