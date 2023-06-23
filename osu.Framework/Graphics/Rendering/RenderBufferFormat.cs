@@ -25,9 +25,4 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         D32S8
     }
-
-    public static class RenderBufferFormatExtensions
-    {
-        public static bool HasStencilAttachment(this RenderBufferFormat format) => format == RenderBufferFormat.D24S8 || format == RenderBufferFormat.D32S8;
-    }
 }

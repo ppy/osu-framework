@@ -36,4 +36,23 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         void Unbind();
     }
+
+    public static class RenderBufferFormatExtensions
+    {
+        public static bool HasStencilAttachment(this IFrameBuffer frameBuffer)
+        {
+            if (frameBuffer.Formats == null)
+                return false;
+
+            for (int i = 0; i < frameBuffer.Formats.Count; i++)
+            {
+                var format = frameBuffer.Formats[i];
+
+                if (format == RenderBufferFormat.D24S8 || format == RenderBufferFormat.D32S8)
+                    return true;
+            }
+
+            return false;
+        }
+    }
 }
