@@ -448,7 +448,7 @@ namespace osu.Framework.Platform
             switch (evtKey.type)
             {
                 case SDL.SDL_EventType.SDL_KEYDOWN:
-                    KeyDown?.Invoke(key);
+                    KeyDown?.Invoke(key, evtKey.repeat != 0);
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYUP:
@@ -556,7 +556,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        public event Action<Key>? KeyDown;
+        public event Action<Key, bool>? KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.

@@ -33,16 +33,6 @@ namespace osu.Framework.Input
 {
     public abstract partial class InputManager : Container, IInputStateChangeHandler
     {
-        /// <summary>
-        /// The initial delay before key repeat begins.
-        /// </summary>
-        private const int repeat_initial_delay = 250;
-
-        /// <summary>
-        /// The delay between key repeats after the initial repeat.
-        /// </summary>
-        private const int repeat_tick_rate = 70;
-
         [Resolved(CanBeNull = true)]
         protected GameHost Host { get; private set; }
 
@@ -52,9 +42,6 @@ namespace osu.Framework.Input
         public Drawable FocusedDrawable { get; internal set; }
 
         protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
-
-        private double keyboardRepeatTime;
-        private Key? keyboardRepeatKey;
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
@@ -476,8 +463,6 @@ namespace osu.Framework.Input
                 highFrequencyDrawables.Clear();
             }
 
-            updateKeyRepeat(CurrentState);
-
             // Other inputs or drawable changes may affect hover even if
             // there were no mouse movements, so it must be updated every frame.
             if (!hoverEventsUpdated)
@@ -487,19 +472,6 @@ namespace osu.Framework.Input
                 focusTopMostRequestingDrawable();
 
             base.Update();
-        }
-
-        private void updateKeyRepeat(InputState state)
-        {
-            if (!(keyboardRepeatKey is Key key)) return;
-
-            keyboardRepeatTime -= Time.Elapsed;
-
-            while (keyboardRepeatTime < 0)
-            {
-                GetButtonEventManagerFor(key).HandleRepeat(state);
-                keyboardRepeatTime += repeat_tick_rate;
-            }
         }
 
         private readonly List<IInput> inputs = new List<IInput>();
@@ -681,29 +653,30 @@ namespace osu.Framework.Input
                               || k == Key.LShift || k == Key.RShift
                               || k == Key.LWin || k == Key.RWin;
 
-        protected virtual void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
+        private bool isFirstKeyDownEvent = true;
+
+        protected virtual void HandleKeyboardKeyStateChange(KeyboardKeyStateChangeEvent keyboardKeyStateChange)
         {
             var state = keyboardKeyStateChange.State;
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
+            var repeat = keyboardKeyStateChange.Repeat;
 
-            GetButtonEventManagerFor(key).HandleButtonStateChange(state, kind);
+            if (isFirstKeyDownEvent && repeat)
+                repeat = false;
 
-            if (kind == ButtonStateChangeKind.Pressed)
+            var keyManager = GetButtonEventManagerFor(key);
+            if (repeat)
             {
                 if (!isModifierKey(key))
                 {
-                    keyboardRepeatKey = key;
-                    keyboardRepeatTime = repeat_initial_delay;
+                    keyManager.HandleRepeat(state);
                 }
             }
             else
             {
-                if (key == keyboardRepeatKey)
-                {
-                    keyboardRepeatKey = null;
-                    keyboardRepeatTime = 0;
-                }
+                isFirstKeyDownEvent = false;
+                keyManager.HandleButtonStateChange(state, kind);
             }
         }
 
@@ -880,7 +853,7 @@ namespace osu.Framework.Input
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
 
-                case ButtonStateChangeEvent<Key> keyboardKeyStateChange:
+                case KeyboardKeyStateChangeEvent keyboardKeyStateChange:
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
 

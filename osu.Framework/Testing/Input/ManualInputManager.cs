@@ -81,6 +81,10 @@ namespace osu.Framework.Testing.Input
             handler.EnqueueInput(input);
         }
 
+        private const double repeatDelayFirst = 250;
+        private const double repeatDelaySubsequent = 70;
+        private Threading.ScheduledDelegate keyDownRepeatDelay;
+
         /// <summary>
         /// Press a key down. Release with <see cref="ReleaseKey"/>.
         /// </summary>
@@ -88,13 +92,31 @@ namespace osu.Framework.Testing.Input
         /// To press and release a key immediately, use <see cref="Key"/>.
         /// </remarks>
         /// <param name="key">The key to press.</param>
-        public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
+        public void PressKey(Key key)
+        {
+            keyDownRepeatDelay?.Cancel();
+            keyDownRepeatDelay = Scheduler.AddDelayed(() =>
+            {
+                keyDownRepeatDelay = Scheduler.AddDelayed(() =>
+                {
+                    Input(new KeyboardKeyInput(key, true, true));
+                }, repeatDelaySubsequent, true);
+
+                Input(new KeyboardKeyInput(key, true, true));
+            }, repeatDelayFirst, false);
+
+            Input(new KeyboardKeyInput(key, true, false));
+        }
 
         /// <summary>
         /// Release a pressed key.
         /// </summary>
         /// <param name="key">The key to release.</param>
-        public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
+        public void ReleaseKey(Key key)
+        {
+            keyDownRepeatDelay?.Cancel();
+            Input(new KeyboardKeyInput(key, false));
+        }
 
         /// <summary>
         /// Press and release the specified key.
