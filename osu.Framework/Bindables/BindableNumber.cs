@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -13,7 +11,7 @@ namespace osu.Framework.Bindables
     public class BindableNumber<T> : RangeConstrainedBindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
-        public event Action<T> PrecisionChanged;
+        public event Action<T>? PrecisionChanged;
 
         public BindableNumber(T defaultValue = default)
             : base(defaultValue)
@@ -179,7 +177,7 @@ namespace osu.Framework.Bindables
             TriggerPrecisionChange(this, false);
         }
 
-        protected void TriggerPrecisionChange(BindableNumber<T> source = null, bool propagateToBindings = true)
+        protected void TriggerPrecisionChange(BindableNumber<T>? source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = precision;
