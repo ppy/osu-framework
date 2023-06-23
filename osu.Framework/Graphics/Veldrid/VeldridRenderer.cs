@@ -28,7 +28,6 @@ using Veldrid;
 using Veldrid.OpenGL;
 using Veldrid.OpenGLBinding;
 using Image = SixLabors.ImageSharp.Image;
-using PixelFormat = Veldrid.PixelFormat;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid
