@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Veldrid
             var options = new GraphicsDeviceOptions
             {
                 HasMainSwapchain = true,
-                SwapchainDepthFormat = PixelFormat.R16_UNorm,
+                SwapchainDepthFormat = IRenderer.DEPTH_STENCIL_FORMAT.ToPixelFormat(),
                 SyncToVerticalBlank = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
             };

@@ -45,6 +45,12 @@ namespace osu.Framework.Graphics.Rendering
         public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
+        /// The depth-stencil format used for the swap-chain frame buffer.
+        /// </summary>
+        // todo: this should match with GLRenderer, which currently specifies depth & stencil component sizes in SDL2GraphicsSurface.
+        public const RenderBufferFormat DEPTH_STENCIL_FORMAT = RenderBufferFormat.D32S8;
+
+        /// <summary>
         /// Enables or disables vertical sync.
         /// </summary>
         protected internal bool VerticalSync { get; set; }
