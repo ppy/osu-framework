@@ -498,6 +498,8 @@ namespace osu.Framework.Platform
             if (buffer == null)
                 return;
 
+            Debug.Assert(buffer.Object != null);
+
             try
             {
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
