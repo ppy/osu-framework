@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with a specific amount of effect buffers.
         /// </summary>
         /// <param name="effectBufferCount">The number of effect buffers.</param>
-        /// <param name="formats">The render buffer formats to attach to each frame buffer.</param>
+        /// <param name="formats">The render buffer formats to attach to main frame buffer.</param>
         /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".</param>
         /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node..</param>
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics
             return getEffectBufferAtIndex(currentEffectBuffer);
         }
 
-        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(formats, filterMode);
+        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(filteringMode: filterMode);
 
         /// <summary>
         /// Resets <see cref="CurrentEffectBuffer"/>.
