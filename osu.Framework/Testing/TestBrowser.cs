@@ -54,67 +54,36 @@ namespace osu.Framework.Testing
 
         private bool interactive;
 
-        private readonly List<Assembly> assemblies;
-
         /// <summary>
         /// Creates a new TestBrowser that displays the TestCases of every assembly that start with either "osu" or the specified namespace (if it isn't null)
         /// </summary>
         /// <param name="assemblyNamespace">Assembly prefix which is used to match assemblies whose tests should be displayed</param>
         public TestBrowser(string assemblyNamespace = null)
         {
-            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
             {
                 Debug.Assert(n.FullName != null);
                 return n.FullName.StartsWith("osu", StringComparison.Ordinal) || (assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace, StringComparison.Ordinal));
             }).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
-            foreach (Assembly asm in assemblies.ToList())
+            foreach (Assembly asm in assemblies)
             {
-                var tests = asm.GetLoadableTypes().Where(isValidVisualTest).ToList();
-
-                if (!tests.Any())
-                {
-                    assemblies.Remove(asm);
-                    continue;
-                }
-
-                foreach (Type type in tests)
+                foreach (Type type in asm.GetLoadableTypes().Where(isValidVisualTest))
                     TestTypes.Add(type);
             }
 
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any() && t.IsSupportedOnCurrentOSPlatform();
-
-        private void updateList(ValueChangedEvent<Assembly> args)
-        {
-            leftFlowContainer.Clear();
-
-            //Add buttons for each TestCase.
-            string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
-
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.NewValue)
-                                                .GroupBy(
-                                                    t =>
-                                                    {
-                                                        string group = t.Namespace?.AsSpan(namespacePrefix.Length).TrimStart('.').ToString();
-                                                        return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
-                                                    },
-                                                    t => t,
-                                                    (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
-                                                ).OrderBy(g => g.Name)
-                                                .Select(t => new TestGroupButton(type => LoadTest(type), t)));
-        }
+        private bool isValidVisualTest(Type t) =>
+            t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any() && t.IsSupportedOnCurrentOSPlatform();
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2, Default = 1 };
-        internal readonly Bindable<Assembly> Assembly = new Bindable<Assembly>();
         internal readonly Bindable<bool> RunAllSteps = new Bindable<bool>();
         internal readonly Bindable<RecordState> RecordState = new Bindable<RecordState>();
         internal readonly BindableInt CurrentFrame = new BindableInt { MinValue = 0, MaxValue = 0 };
 
-        private TestBrowserToolbar toolbar;
         private Container leftContainer;
         private Container mainContainer;
 
@@ -179,7 +148,7 @@ namespace osu.Framework.Testing
                                 }
                             }
                         },
-                        toolbar = new TestBrowserToolbar
+                        new TestBrowserToolbar
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
@@ -248,16 +217,33 @@ namespace osu.Framework.Testing
             if (RuntimeInfo.IsDesktop)
                 HotReloadCallbackReceiver.CompilationFinished += compileFinished;
 
-            foreach (Assembly asm in assemblies)
-                toolbar.AddAssembly(asm);
-
-            Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(_ => runTests(null));
             PlaybackRate.BindValueChanged(e =>
             {
                 rateAdjustClock.Rate = e.NewValue;
                 audioRateAdjust.Value = e.NewValue;
             }, true);
+
+            updateTestList();
+        }
+
+        private void updateTestList()
+        {
+            leftFlowContainer.Clear();
+
+            //Add buttons for each TestCase.
+            string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
+
+            leftFlowContainer.AddRange(TestTypes.GroupBy(
+                                                    t =>
+                                                    {
+                                                        string group = t.Namespace?.AsSpan(namespacePrefix.Length).TrimStart('.').ToString();
+                                                        return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
+                                                    },
+                                                    t => t,
+                                                    (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
+                                                ).OrderBy(g => g.Name)
+                                                .Select(t => new TestGroupButton(type => LoadTest(type), t)));
         }
 
         private void compileFinished(Type[] updatedTypes) => Schedule(() =>
@@ -377,8 +363,6 @@ namespace osu.Framework.Testing
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
             Debug.Assert(newTest != null);
-
-            Assembly.Value = testType.Assembly;
 
             CurrentTest = newTest;
             CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, onCompletion));
@@ -583,8 +567,12 @@ namespace osu.Framework.Testing
 
                 case MethodInfo sm:
                     int methodParamsLength = sm.GetParameters().Length;
+
                     if (methodParamsLength != (tcs.MethodParams?.Length ?? 0))
-                        throw new InvalidOperationException($"The given source method parameters count doesn't match the method. (attribute has {tcs.MethodParams?.Length ?? 0}, method has {methodParamsLength})");
+                    {
+                        throw new InvalidOperationException(
+                            $"The given source method parameters count doesn't match the method. (attribute has {tcs.MethodParams?.Length ?? 0}, method has {methodParamsLength})");
+                    }
 
                     return (IEnumerable)sm.Invoke(null, tcs.MethodParams);
 
