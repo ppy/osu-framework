@@ -29,7 +29,7 @@ namespace osu.Framework.Testing
             };
         }
 
-        [BackgroundDependencyLoader(true)]
+        [BackgroundDependencyLoader]
         private void load(TestBrowser? browser)
         {
             if (browser != null)
