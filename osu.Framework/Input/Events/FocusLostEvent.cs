@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public readonly Drawable? NextFocused;
 
-        public FocusLostEvent(InputState state, Drawable nextFocused)
+        public FocusLostEvent(InputState state, Drawable? nextFocused)
             : base(state)
         {
             NextFocused = nextFocused;
