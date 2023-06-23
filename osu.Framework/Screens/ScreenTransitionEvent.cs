@@ -11,14 +11,14 @@ namespace osu.Framework.Screens
         /// <summary>
         /// The <see cref="IScreen"/> which has been transitioned from.
         /// </summary>
-        public IScreen Last { get; }
+        public IScreen? Last { get; }
 
         /// <summary>
         /// The <see cref="IScreen"/> which has been transitioned to.
         /// </summary>
         public IScreen Next { get; }
 
-        public ScreenTransitionEvent(IScreen last, IScreen next)
+        public ScreenTransitionEvent(IScreen? last, IScreen next)
         {
             Last = last;
             Next = next;

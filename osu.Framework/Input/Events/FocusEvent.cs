@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public readonly Drawable? PreviouslyFocused;
 
-        public FocusEvent(InputState state, Drawable previouslyFocused)
+        public FocusEvent(InputState state, Drawable? previouslyFocused)
             : base(state)
         {
             PreviouslyFocused = previouslyFocused;

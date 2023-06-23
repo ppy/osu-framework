@@ -356,9 +356,9 @@ namespace osu.Framework.Text
         private ITexturedCharacterGlyph getTexturedGlyph(char character)
         {
             return store.Get(font.FontName, character)
-                   ?? store.Get(null, character)
+                   ?? store.Get(string.Empty, character)
                    ?? store.Get(font.FontName, fallbackCharacter)
-                   ?? store.Get(null, fallbackCharacter);
+                   ?? store.Get(string.Empty, fallbackCharacter);
         }
     }
 }
