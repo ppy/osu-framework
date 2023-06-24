@@ -20,7 +20,7 @@ namespace osu.Framework.Input.StateChanges.Events
         /// <summary>
         /// The <see cref="IInput"/> that caused this input state change.
         /// </summary>
-        public readonly IInput? Input;
+        public readonly IInput Input;
 
         protected InputStateChangeEvent(InputState state, IInput input)
         {
