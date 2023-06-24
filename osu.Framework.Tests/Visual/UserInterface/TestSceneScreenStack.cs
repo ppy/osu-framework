@@ -1099,7 +1099,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)e.Last).DummyBindable);
+                    DummyBindable.BindTo(((TestScreen)e.Last!).DummyBindable);
                     LeasedCopy = DummyBindable.BeginLease(true);
                 }
 
