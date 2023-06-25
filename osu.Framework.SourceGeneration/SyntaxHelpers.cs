@@ -113,7 +113,7 @@ namespace osu.Framework.SourceGeneration
             => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.CachedAttribute";
 
         public static bool IsLongRunningLoadAttribute(ITypeSymbol? type)
-            => type?.Name == "LongRunningLoadAttribute";
+            => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.LongRunningLoadAttribute";
 
         public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
             => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.IDependencyInjectionCandidate";
