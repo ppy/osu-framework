@@ -12,6 +12,6 @@ partial class ClassA : global::osu.Framework.Allocation.ISourceGeneratedDependen
         registry.Register(typeof(global::ClassA), (t, d) =>
         {
             ((global::ClassA)t).load();
-        }, null);
+        }, null, false);
     }
 }

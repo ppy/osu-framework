@@ -15,7 +15,7 @@ namespace osu
             {
                 ((global::osu.NestedConflictGenerator)t).resolvedMember = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::osu.NestedConflictGenerator), null, null, false, true);
                 ((global::osu.NestedConflictGenerator)t).load();
-            }, null);
+            }, null, false);
         }
     }
 }

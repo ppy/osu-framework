@@ -9,6 +9,6 @@ partial class SingleGeneric<T> : global::osu.Framework.Allocation.ISourceGenerat
         if (registry.IsRegistered(typeof(global::SingleGeneric<T>)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(global::SingleGeneric<T>), null, null);
+        registry.Register(typeof(global::SingleGeneric<T>), null, null, false);
     }
 }

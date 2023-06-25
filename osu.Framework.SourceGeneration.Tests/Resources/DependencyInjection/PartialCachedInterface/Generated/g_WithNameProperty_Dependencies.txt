@@ -14,6 +14,6 @@ partial class WithNameProperty : global::osu.Framework.Allocation.ISourceGenerat
             var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::WithNameProperty), t, i, typeof(global::IWithNameProperty), "Custom Name", null);
             return dependencies;
-        });
+        }, false);
     }
 }

@@ -12,6 +12,6 @@ partial class WithParentProperty : global::osu.Framework.Allocation.ISourceGener
         registry.Register(typeof(global::WithParentProperty), (t, d) =>
         {
             ((global::WithParentProperty)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::WithParentProperty), "ResolvedProperty", typeof(object), false, true);
-        }, null);
+        }, null, false);
     }
 }

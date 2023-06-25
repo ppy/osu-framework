@@ -12,6 +12,6 @@ partial class WithParameters : global::osu.Framework.Allocation.ISourceGenerated
         registry.Register(typeof(global::WithParameters), (t, d) =>
         {
             ((global::WithParameters)t).load(global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::WithParameters), null, null, false, false));
-        }, null);
+        }, null, false);
     }
 }

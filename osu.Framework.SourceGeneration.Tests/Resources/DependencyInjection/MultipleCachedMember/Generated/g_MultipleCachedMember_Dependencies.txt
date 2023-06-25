@@ -15,6 +15,6 @@ partial class MultipleCachedMember : global::osu.Framework.Allocation.ISourceGen
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::MultipleCachedMember), ((global::MultipleCachedMember)t).CachedMember, i, null, null, "CachedMember");
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::MultipleCachedMember), ((global::MultipleCachedMember)t).CachedMember, i, typeof(global::IDummyInterface), null, "CachedMember");
             return dependencies;
-        });
+        }, false);
     }
 }

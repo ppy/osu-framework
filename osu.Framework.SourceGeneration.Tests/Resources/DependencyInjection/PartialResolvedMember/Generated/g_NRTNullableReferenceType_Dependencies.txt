@@ -12,6 +12,6 @@ partial class NRTNullableReferenceType : global::osu.Framework.Allocation.ISourc
         registry.Register(typeof(global::NRTNullableReferenceType), (t, d) =>
         {
             ((global::NRTNullableReferenceType)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object?>(d, typeof(global::NRTNullableReferenceType), null, null, true, true);
-        }, null);
+        }, null, false);
     }
 }

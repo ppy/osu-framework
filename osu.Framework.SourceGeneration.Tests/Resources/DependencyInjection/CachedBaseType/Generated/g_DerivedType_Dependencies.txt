@@ -9,6 +9,6 @@ partial class DerivedType : global::osu.Framework.Allocation.ISourceGeneratedDep
         if (registry.IsRegistered(typeof(global::DerivedType)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(global::DerivedType), null, null);
+        registry.Register(typeof(global::DerivedType), null, null, false);
     }
 }

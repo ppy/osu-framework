@@ -9,6 +9,6 @@ partial class A : global::osu.Framework.Allocation.ISourceGeneratedDependencyAct
         if (registry.IsRegistered(typeof(global::A)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(global::A), null, null);
+        registry.Register(typeof(global::A), null, null, false);
     }
 }

@@ -12,6 +12,6 @@ partial class DefaultParameters : global::osu.Framework.Allocation.ISourceGenera
         registry.Register(typeof(global::DefaultParameters), (t, d) =>
         {
             ((global::DefaultParameters)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<global::osu.Framework.Bindables.Bindable<int>>(d, typeof(global::DefaultParameters), null, null, false, true);
-        }, null);
+        }, null, false);
     }
 }

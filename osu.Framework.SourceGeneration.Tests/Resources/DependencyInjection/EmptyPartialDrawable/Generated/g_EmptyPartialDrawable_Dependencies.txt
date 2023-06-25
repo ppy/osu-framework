@@ -9,6 +9,6 @@ partial class EmptyPartialDrawable : global::osu.Framework.Allocation.ISourceGen
         if (registry.IsRegistered(typeof(global::EmptyPartialDrawable)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(global::EmptyPartialDrawable), null, null);
+        registry.Register(typeof(global::EmptyPartialDrawable), null, null, false);
     }
 }

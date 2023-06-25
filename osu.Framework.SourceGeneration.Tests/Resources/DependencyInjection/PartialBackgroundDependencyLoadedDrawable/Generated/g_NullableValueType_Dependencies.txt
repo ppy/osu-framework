@@ -12,6 +12,6 @@ partial class NullableValueType : global::osu.Framework.Allocation.ISourceGenera
         registry.Register(typeof(global::NullableValueType), (t, d) =>
         {
             ((global::NullableValueType)t).load(global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<global::System.Threading.CancellationToken?>(d, typeof(global::NullableValueType), null, null, true, false));
-        }, null);
+        }, null, false);
     }
 }

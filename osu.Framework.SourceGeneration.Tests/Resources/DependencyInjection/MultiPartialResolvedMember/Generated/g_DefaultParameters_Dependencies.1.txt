@@ -13,6 +13,6 @@ partial class DefaultParameters : global::osu.Framework.Allocation.ISourceGenera
         {
             ((global::DefaultParameters)t).ResolvedProperty1 = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::DefaultParameters), null, null, false, true);
             ((global::DefaultParameters)t).ResolvedProperty2 = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<object>(d, typeof(global::DefaultParameters), null, null, false, true);
-        }, null);
+        }, null, false);
     }
 }

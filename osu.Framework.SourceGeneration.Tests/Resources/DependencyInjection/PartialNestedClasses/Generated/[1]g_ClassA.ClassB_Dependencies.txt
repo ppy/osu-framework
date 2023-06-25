@@ -14,7 +14,7 @@ partial class ClassA
             registry.Register(typeof(global::ClassA.ClassB), (t, d) =>
             {
                 ((global::ClassA.ClassB)t).load();
-            }, null);
+            }, null, false);
         }
     }
 }

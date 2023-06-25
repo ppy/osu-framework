@@ -18,6 +18,6 @@ partial class ConflictGenerator : global::osu.Framework.Allocation.ISourceGenera
             var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::ConflictGenerator), ((global::ConflictGenerator)t).CachedProperty, i, null, null, "CachedProperty");
             return dependencies;
-        });
+        }, false);
     }
 }

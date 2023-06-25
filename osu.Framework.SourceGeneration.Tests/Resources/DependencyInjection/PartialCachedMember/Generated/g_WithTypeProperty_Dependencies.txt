@@ -14,6 +14,6 @@ partial class WithTypeProperty : global::osu.Framework.Allocation.ISourceGenerat
             var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::WithTypeProperty), ((global::WithTypeProperty)t).CachedProperty, i, typeof(object), null, "CachedProperty");
             return dependencies;
-        });
+        }, false);
     }
 }

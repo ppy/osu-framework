@@ -12,6 +12,6 @@ partial class ValueType : global::osu.Framework.Allocation.ISourceGeneratedDepen
         registry.Register(typeof(global::ValueType), (t, d) =>
         {
             ((global::ValueType)t).ResolvedProperty = global::osu.Framework.Utils.SourceGeneratorUtils.GetDependency<global::System.Threading.CancellationToken>(d, typeof(global::ValueType), null, null, false, true);
-        }, null);
+        }, null, false);
     }
 }

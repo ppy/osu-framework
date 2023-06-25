@@ -15,6 +15,6 @@ partial class CachedInheritedInterface : global::osu.Framework.Allocation.ISourc
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::CachedInheritedInterface), t, i, typeof(global::IInterface1), null, null);
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::CachedInheritedInterface), t, i, typeof(global::IInterface2), null, null);
             return dependencies;
-        });
+        }, false);
     }
 }

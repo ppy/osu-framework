@@ -14,6 +14,6 @@ partial class B : global::osu.Framework.Allocation.ISourceGeneratedDependencyAct
             var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::B), t, i, typeof(global::B), null, null);
             return dependencies;
-        });
+        }, false);
     }
 }

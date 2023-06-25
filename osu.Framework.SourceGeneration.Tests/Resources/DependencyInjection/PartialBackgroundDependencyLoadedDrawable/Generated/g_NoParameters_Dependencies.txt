@@ -12,6 +12,6 @@ partial class NoParameters : global::osu.Framework.Allocation.ISourceGeneratedDe
         registry.Register(typeof(global::NoParameters), (t, d) =>
         {
             ((global::NoParameters)t).load();
-        }, null);
+        }, null, false);
     }
 }

@@ -9,6 +9,6 @@ partial class DoubleGeneric<T1, T2> : global::osu.Framework.Allocation.ISourceGe
         if (registry.IsRegistered(typeof(global::DoubleGeneric<T1, T2>)))
             return;
         base.RegisterForDependencyActivation(registry);
-        registry.Register(typeof(global::DoubleGeneric<T1, T2>), null, null);
+        registry.Register(typeof(global::DoubleGeneric<T1, T2>), null, null, false);
     }
 }

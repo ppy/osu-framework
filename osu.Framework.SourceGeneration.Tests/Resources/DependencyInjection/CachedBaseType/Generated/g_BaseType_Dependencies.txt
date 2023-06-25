@@ -13,6 +13,6 @@ partial class BaseType : global::osu.Framework.Allocation.ISourceGeneratedDepend
             var dependencies = new global::osu.Framework.Allocation.DependencyContainer(d);
             global::osu.Framework.Utils.SourceGeneratorUtils.CacheDependency(dependencies, typeof(global::BaseType), t, i, typeof(global::BaseType), null, null);
             return dependencies;
-        });
+        }, false);
     }
 }
