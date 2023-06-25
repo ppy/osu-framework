@@ -104,21 +104,21 @@ namespace osu.Framework.SourceGeneration
             => IsLongRunningLoadAttribute(attribute?.AttributeClass);
 
         public static bool IsBackgroundDependencyLoaderAttribute(ITypeSymbol? type)
-            => type?.Name == "BackgroundDependencyLoaderAttribute";
+            => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.BackgroundDependencyLoaderAttribute";
 
         public static bool IsResolvedAttribute(ITypeSymbol? type)
-            => type?.Name == "ResolvedAttribute";
+            => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.ResolvedAttribute";
 
         public static bool IsCachedAttribute(ITypeSymbol? type)
-            => type?.Name == "CachedAttribute";
+            => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.CachedAttribute";
 
         public static bool IsLongRunningLoadAttribute(ITypeSymbol? type)
             => type?.Name == "LongRunningLoadAttribute";
 
         public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
-            => type?.Name == "IDependencyInjectionCandidate";
+            => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.IDependencyInjectionCandidate";
 
-        public static string GetFullyQualifiedTypeName(INamedTypeSymbol type)
+        public static string GetFullyQualifiedTypeName(ITypeSymbol type)
             => type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 
         /// <summary>

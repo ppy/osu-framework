@@ -11,6 +11,7 @@ using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Statistics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Allocation
 {
@@ -89,13 +90,7 @@ namespace osu.Framework.Allocation
             }
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
-        {
-            object val = dc.Get(type);
-            if (val == null && !permitNulls)
-                throw new DependencyNotRegisteredException(requestingType, type);
-
-            return val;
-        };
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls)
+            => dc => SourceGeneratorUtils.GetDependency(dc, type, requestingType, null, null, permitNulls, false);
     }
 }

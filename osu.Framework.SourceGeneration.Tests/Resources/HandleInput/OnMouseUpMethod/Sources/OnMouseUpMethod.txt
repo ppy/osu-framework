@@ -1,0 +1,4 @@
+public partial class OnMouseUpMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnMouseUp(object e) { }
+}

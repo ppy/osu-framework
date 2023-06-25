@@ -496,7 +496,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             // Check if there is a sub menu to display
-            if (item.Item.Items?.Count == 0)
+            if (item.Item.Items.Count == 0)
             {
                 // This item must have attempted to invoke an action - close all menus if item allows
                 if (item.CloseMenuOnClick)
@@ -625,7 +625,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
 
-            if (triggeringItem?.Item.Items?.Contains(source) ?? triggeringItem == null)
+            if (triggeringItem?.Item.Items.Contains(source) ?? triggeringItem == null)
             {
                 Close();
                 parentMenu?.closeFromChild(triggeringItem?.Item);
@@ -834,7 +834,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected bool IsActionable => hasSubmenu || (!Item.Action.Disabled && Item.Action.Value != null);
 
-            private bool hasSubmenu => Item.Items?.Count > 0;
+            private bool hasSubmenu => Item.Items.Count > 0;
 
             /// <summary>
             /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
@@ -892,7 +892,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!IsActionable)
                     return true;
 
-                Item.Action.Value.Invoke();
+                Item.Action.Value?.Invoke();
                 Clicked?.Invoke(this);
                 return true;
             }

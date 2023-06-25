@@ -1,14 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Foundation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input.Bindings;
@@ -66,7 +65,7 @@ namespace osu.Framework.iOS
 
             UIApplication.SharedApplication.InvokeOnMainThread(() =>
             {
-                NSUrl nsurl = NSUrl.FromString(url);
+                NSUrl nsurl = NSUrl.FromString(url).AsNonNull();
                 if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
                     UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
             });

@@ -44,6 +44,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal abstract bool VerticalSync { get; set; }
         protected internal abstract bool AllowTearing { get; set; }
 
+        protected internal Storage? CacheStorage
+        {
+            set => shaderCompilationStore.CacheStorage = value;
+        }
+
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
         public int MaxTexturesUploadedPerFrame { get; set; } = 32;
@@ -93,6 +98,8 @@ namespace osu.Framework.Graphics.Rendering
         /// The current shader, or null if no shader is currently bound.
         /// </summary>
         protected IShader? Shader { get; private set; }
+
+        private readonly ShaderCompilationStore shaderCompilationStore = new ShaderCompilationStore();
 
         private readonly GlobalStatistic<int> statExpensiveOperationsQueued;
         private readonly GlobalStatistic<int> statTextureUploadsQueued;
@@ -1036,7 +1043,7 @@ namespace osu.Framework.Graphics.Rendering
         protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
-        protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer);
+        protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore);
 
         private IShader? mipmapShader;
 
@@ -1056,7 +1063,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 CreateShaderPart(store, "mipmap.vs", store.GetRawData("sh_mipmap.vs"), ShaderPartType.Vertex),
                 CreateShaderPart(store, "mipmap.fs", store.GetRawData("sh_mipmap.fs"), ShaderPartType.Fragment),
-            }, globalUniformBuffer.AsNonNull());
+            }, globalUniformBuffer.AsNonNull(), shaderCompilationStore);
 
             return mipmapShader;
         }
@@ -1128,6 +1135,11 @@ namespace osu.Framework.Graphics.Rendering
             set => AllowTearing = value;
         }
 
+        Storage? IRenderer.CacheStorage
+        {
+            set => CacheStorage = value;
+        }
+
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
         void IRenderer.BeginFrame(Vector2 windowSize) => BeginFrame(windowSize);
         void IRenderer.FinishFrame() => FinishFrame();
@@ -1143,7 +1155,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
-        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!);
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!, shaderCompilationStore);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
         {

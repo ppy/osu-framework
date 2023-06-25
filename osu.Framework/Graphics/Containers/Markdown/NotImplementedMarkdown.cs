@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
@@ -18,7 +16,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private readonly IMarkdownObject markdownObject;
 
         [Resolved]
-        private IMarkdownTextComponent parentTextComponent { get; set; }
+        private IMarkdownTextComponent parentTextComponent { get; set; } = null!;
 
         public NotImplementedMarkdown(IMarkdownObject markdownObject)
         {
@@ -38,7 +36,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             var text = parentTextComponent.CreateSpriteText();
             text.Colour = new Color4(255, 0, 0, 255);
             text.Font = text.Font.With(size: 21);
-            text.Text = markdownObject?.GetType() + " Not implemented.";
+            text.Text = markdownObject.GetType() + " Not implemented.";
             return text;
         }
     }

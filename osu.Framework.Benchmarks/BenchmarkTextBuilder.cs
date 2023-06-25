@@ -51,7 +51,7 @@ namespace osu.Framework.Benchmarks
                 new CharacterGlyph(character, character, character, character, character, null),
                 new DummyRenderer().CreateTexture(1, 1));
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
         }
     }
 }

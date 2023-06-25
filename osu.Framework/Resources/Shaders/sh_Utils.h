@@ -1,4 +1,8 @@
-﻿#define GAMMA 2.4
+﻿#ifndef UTILS_H
+#define UTILS_H
+
+#undef GAMMA
+#define GAMMA 2.4
 
 // perform alpha compositing of two colour components.
 // see http://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha.html
@@ -23,3 +27,5 @@ vec4 hsv2rgb(vec4 c)
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return vec4(c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y), c.w);
 }
+
+#endif

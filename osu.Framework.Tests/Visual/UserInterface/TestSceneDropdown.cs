@@ -10,10 +10,10 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Localisation;
-using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -369,34 +369,82 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("close dropdown", () => InputManager.Key(Key.Escape));
         }
 
+        /// <summary>
+        /// Adds an item before a dropdown is loaded, and ensures item labels are assigned correctly.
+        /// </summary>
+        /// <remarks>
+        /// Ensures item labels are assigned after the dropdown finishes loading (reaches <see cref="LoadState.Ready"/> state),
+        /// so any dependency from BDL can be retrieved first before calling <see cref="Dropdown{T}.GenerateItemText"/>.
+        /// </remarks>
         [Test]
-        public void TestReplaceItemsInItemSource()
+        public void TestAddItemBeforeDropdownLoad()
         {
-            AddStep("clear bindable list", () => bindableList.Clear());
-            toggleDropdownViaClick(bindableDropdown, "dropdown3");
-            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+            BdlDropdown dropdown = null!;
 
-            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
-            AddStep("select three", () => bindableDropdown.Current.Value = "three");
-
-            AddStep("remove and then add items to bindable", () =>
-            {
-                bindableList.Clear();
-                bindableList.AddRange(new[] { "four", "three" }.Select(s => new TestModel(s)));
-            });
-
-            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier, () => Is.EqualTo("three"));
-        }
-
-        [Test]
-        public void TestAccessBdlInGenerateItemText()
-        {
-            AddStep("add dropdown that uses BDL", () => Add(new BdlDropdown
+            AddStep("setup dropdown", () => Add(dropdown = new BdlDropdown
             {
                 Width = 150,
                 Position = new Vector2(250, 350),
                 Items = new TestModel("test").Yield()
             }));
+
+            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First().ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
+        }
+
+        /// <summary>
+        /// Adds an item after the dropdown is in <see cref="LoadState.Ready"/> state, and ensures item labels are assigned correctly and not ignored by <see cref="Dropdown{T}"/>.
+        /// </summary>
+        [Test]
+        public void TestAddItemWhileDropdownIsInReadyState()
+        {
+            BdlDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                Add(dropdown = new BdlDropdown
+                {
+                    Width = 150,
+                    Position = new Vector2(250, 350),
+                });
+
+                dropdown.Items = new TestModel("test").Yield();
+            });
+
+            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First(d => d.IsSelected).ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
+        }
+
+        /// <summary>
+        /// Sets a non-existent item dropdown and ensures its label is assigned correctly.
+        /// </summary>
+        /// <param name="afterBdl">Whether the non-existent item should be set before or after the dropdown's BDL has run.</param>
+        [Test]
+        public void TestSetNonExistentItem([Values] bool afterBdl)
+        {
+            BdlDropdown dropdown = null!;
+            Bindable<TestModel> bindable;
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+
+            AddStep("add dropdown that uses BDL", () =>
+            {
+                bindable = new Bindable<TestModel>();
+
+                if (!afterBdl)
+                    bindable.Value = new TestModel("non-existent item");
+
+                Add(dropdown = new BdlDropdown
+                {
+                    Width = 150,
+                    Position = new Vector2(250, 350),
+                    ItemSource = bindableList,
+                    Current = bindable,
+                });
+
+                if (afterBdl)
+                    bindable.Value = new TestModel("non-existent item");
+            });
+
+            AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
         }
 
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
@@ -440,14 +488,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         /// <summary>
-        /// Dropdown that will access <see cref="ResolvedAttribute"/> properties in <see cref="GenerateItemText"/>.
+        /// Dropdown that will access state set by BDL load in <see cref="GenerateItemText"/>.
         /// </summary>
         private partial class BdlDropdown : TestDropdown
         {
-            [Resolved]
-            private GameHost host { get; set; }
+            private string text;
 
-            protected override LocalisableString GenerateItemText(TestModel item) => $"{host.Name}: {base.GenerateItemText(item)}";
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                text = "loaded";
+            }
+
+            protected override LocalisableString GenerateItemText(TestModel item)
+            {
+                Assert.That(text, Is.Not.Null);
+                return $"{text}: {base.GenerateItemText(item)}";
+            }
         }
     }
 }

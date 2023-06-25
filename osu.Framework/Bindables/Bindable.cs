@@ -247,13 +247,24 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
-
             switch (input)
             {
+                // Of note, this covers the case when the input is a string and `T` is `string`.
+                // Both `string.Empty` and `null` are valid values for this type.
                 case T t:
                     Value = t;
                     break;
+
+                case null:
+                    // Nullable value types and reference types (annotated or not) are allowed to be initialised with `null`.
+                    if (typeof(T).IsNullable() || typeof(T).IsClass)
+                    {
+                        Value = default;
+                        break;
+                    }
+
+                    // Non-nullable value types can't convert from null.
+                    throw new ArgumentNullException(nameof(input));
 
                 case IBindable:
                     if (!(input is IBindable<T> bindable))
@@ -263,6 +274,21 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
+                    if (input is string strInput && string.IsNullOrEmpty(strInput))
+                    {
+                        // Nullable value types and reference types are initialised to `null` on empty strings.
+                        if (typeof(T).IsNullable() || typeof(T).IsClass)
+                        {
+                            Value = default;
+                            break;
+                        }
+
+                        // Most likely all conversion methods will not accept empty strings, but we let this fall through so that the exception is thrown by .NET itself.
+                        // For example, DateTime.Parse() throws a more contextually relevant exception than int.Parse().
+                    }
+
+                    Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
+
                     if (underlyingType.IsEnum)
                         Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else

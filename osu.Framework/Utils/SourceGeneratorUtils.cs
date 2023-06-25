@@ -62,16 +62,35 @@ namespace osu.Framework.Utils
         /// <exception cref="DependencyNotRegisteredException">If the dependency is not in <paramref name="container"/>.</exception>
         public static T GetDependency<T>(IReadOnlyDependencyContainer container, Type callerType, string? cachedName, Type? cachedParent, bool allowNulls, bool rebindBindables)
         {
-            object val = container.Get(typeof(T), new CacheInfo(cachedName, cachedParent));
-
-            if (val == null && !allowNulls)
-                throw new DependencyNotRegisteredException(callerType, typeof(T));
-
-            if (rebindBindables && val is IBindable bindableVal)
-                return (T)bindableVal.GetBoundCopy();
+            object? val = GetDependency(container, typeof(T), callerType, cachedName, cachedParent, allowNulls, rebindBindables);
 
             // `(int)(object)null` throws a NRE, so `default` is used instead.
             return val == null ? default! : (T)val;
+        }
+
+        /// <summary>
+        /// Retrieves an object from an <see cref="IReadOnlyDependencyContainer"/>.
+        /// </summary>
+        /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to retrieve the dependency from.</param>
+        /// <param name="type">The type of the object to retrieve.</param>
+        /// <param name="callerType">The type of object calling this method.</param>
+        /// <param name="cachedName">The name of the object.</param>
+        /// <param name="cachedParent">The parent of the object.</param>
+        /// <param name="allowNulls">Whether the returned object is allowed to be <c>null</c>.</param>
+        /// <param name="rebindBindables">If the object is a <see cref="IBindable"/>, whether it should be re-bound via <see cref="IBindable.GetBoundCopy"/>.</param>
+        /// <returns>The object.</returns>
+        /// <exception cref="DependencyNotRegisteredException">If the dependency is not in <paramref name="container"/>.</exception>
+        public static object? GetDependency(IReadOnlyDependencyContainer container, Type type, Type callerType, string? cachedName, Type? cachedParent, bool allowNulls, bool rebindBindables)
+        {
+            object? val = container.Get(type, new CacheInfo(cachedName, cachedParent));
+
+            if (val == null && !allowNulls)
+                throw new DependencyNotRegisteredException(callerType, type);
+
+            if (rebindBindables && val is IBindable bindableVal)
+                return bindableVal.GetBoundCopy();
+
+            return val;
         }
     }
 }

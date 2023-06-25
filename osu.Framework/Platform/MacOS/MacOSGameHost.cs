@@ -62,6 +62,7 @@ namespace osu.Framework.Platform.MacOS
             {
                 // There are several bugs we need to fix with macOS / SDL2 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
+                h.UseRelativeMode.Default = false;
             }
 
             return handlers;

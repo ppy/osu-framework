@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
@@ -21,7 +19,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private readonly QuoteBlock quoteBlock;
 
         [Resolved]
-        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; } = null!;
 
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
