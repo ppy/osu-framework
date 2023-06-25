@@ -1281,6 +1281,10 @@ namespace osu.Framework.Platform
                     updateLimiter *= 2;
                     break;
 
+                case FrameSync.Limit1x:
+                    updateLimiter *= 2;
+                    break;
+
                 case FrameSync.Limit2x:
                     drawLimiter *= 2;
                     updateLimiter *= 2;

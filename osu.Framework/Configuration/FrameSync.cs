@@ -9,6 +9,9 @@ namespace osu.Framework.Configuration
     {
         VSync,
 
+        [Description("1x refresh rate")]
+        Limit1x,
+
         [Description("2x refresh rate")]
         Limit2x,
 
