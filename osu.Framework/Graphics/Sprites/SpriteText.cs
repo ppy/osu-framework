@@ -31,8 +31,9 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <remarks>
         /// <c>U+00A0</c> is the Unicode NON-BREAKING SPACE character (distinct from the standard ASCII space).
+        /// <c>U+202F</c> is the Unicode NARROW NO-BREAK SPACE character.
         /// </remarks>
-        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ', '\u00A0' };
+        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ', '\u00A0', '\u202F' };
 
         [Resolved]
         private FontStore store { get; set; }
