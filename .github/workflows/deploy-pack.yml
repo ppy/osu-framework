@@ -1,43 +1,47 @@
-# There is no manual way to call this out to run this on tags via UI.
-# See: https://github.community/t/workflow-dispatch-from-a-tag-in-actions-tab/130561
-on: workflow_dispatch
-name: Deploy - Framework
+name: Pack and nuget
+
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
-  check-if-tag:
-    name: Set Package Version
+  notify_pending_production_deploy:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{steps.deployment.outputs.version}}
     steps:
-      - name: Checkout
+      -
+        name: Submit pending deployment notification
         run: |
-          REPOSITORY="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
-          BRANCH="${GITHUB_REF/#refs\/heads\//}"
+          export TITLE="Pending osu-framework Production Deployment: $GITHUB_REF_NAME"
+          export URL="https://github.com/ppy/osu-framework/actions/runs/$GITHUB_RUN_ID"
+          export DESCRIPTION="Awaiting approval for building NuGet packages for tag $GITHUB_REF_NAME:
+          [View Workflow Run]($URL)"
+          export ACTOR_ICON="https://avatars.githubusercontent.com/u/$GITHUB_ACTOR_ID"
 
-          git version
-          git clone --no-checkout ${REPOSITORY} .
-          git config --local gc.auto 0
+          BODY="$(jq --null-input '{
+            "embeds": [
+              {
+                "title": env.TITLE,
+                "color": 15098112,
+                "description": env.DESCRIPTION,
+                "url": env.URL,
+                "author": {
+                  "name": env.GITHUB_ACTOR,
+                  "icon_url": env.ACTOR_ICON
+                }
+              }
+            ]
+          }')"
 
-          git -c protocol.version=2 fetch --no-tags --prune --progress --depth=2 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
-          git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
-
-
-      - name: Set Variables
-        id: deployment
-        shell: bash
-        run: |
-          if [ $(git describe --exact-match --tags HEAD &> /dev/null; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::$(git describe --exact-match --tags HEAD)"
-          else
-            echo "fatal: no tag detected for HEAD. Workflow will now stop."
-            exit 128;
-          fi
+          curl \
+            -H "Content-Type: application/json" \
+            -d "$BODY" \
+            "${{ secrets.DISCORD_INFRA_WEBHOOK_URL }}"
 
   pack-framework:
     name: Pack (Framework)
     runs-on: windows-latest
-    needs: [check-if-tag]
+    environment: production
     defaults:
       run:
         shell: powershell
@@ -45,7 +49,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
@@ -55,9 +59,9 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: osu-framework
@@ -71,12 +75,12 @@ jobs:
   pack-template:
     name: Pack (Templates)
     runs-on: ubuntu-latest
-    needs: [check-if-tag]
+    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
@@ -85,13 +89,13 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
-      - name: Replace Project References
-        run: osu.Framework.Templates/replace-references.sh ${{needs.check-if-tag.outputs.version}}
+      - name: Replace project references
+        run: osu.Framework.Templates/replace-references.sh ${{ github.ref_name }}
 
       - name: Pack (Template)
-        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: osu-framework-templates
@@ -103,7 +107,7 @@ jobs:
   pack-android:
     name: Pack (Android)
     runs-on: windows-latest
-    needs: [check-if-tag]
+    environment: production
     defaults:
       run:
         shell: powershell
@@ -111,7 +115,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
@@ -124,9 +128,9 @@ jobs:
         run: dotnet workload install android
 
       - name: Pack (Android Framework)
-        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: osu-framework-android
@@ -138,7 +142,7 @@ jobs:
   pack-ios:
     name: Pack (iOS)
     runs-on: macos-latest
-    needs: [check-if-tag]
+    environment: production
     defaults:
       run:
         shell: bash
@@ -146,7 +150,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
@@ -161,9 +165,9 @@ jobs:
         run: dotnet workload install ios
 
       - name: Pack (iOS Framework)
-        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: osu-framework-ios
