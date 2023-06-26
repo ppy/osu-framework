@@ -64,9 +64,8 @@ namespace osu.Framework
 
         protected LocalisationManager Localisation { get; private set; }
 
-        private readonly Container content;
-
-        private readonly Container overlayContent;
+        private Container content;
+        private Container overlayContent;
 
         private DrawVisualiser drawVisualiser;
 
@@ -105,19 +104,6 @@ namespace osu.Framework
         protected Game()
         {
             RelativeSizeAxes = Axes.Both;
-
-            base.AddInternal(content = new Container
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Both,
-            });
-
-            base.AddInternal(overlayContent = new DrawSizePreservingFillContainer
-            {
-                TargetDrawSize = new Vector2(1280, 960),
-                RelativeSizeAxes = Axes.Both,
-            });
         }
 
         protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
@@ -133,6 +119,11 @@ namespace osu.Framework
             host.Activated += () => isActive.Value = true;
             host.Deactivated += () => isActive.Value = false;
         }
+
+        private Container contentContainer;
+        private BufferedContainer scaledRenderBuffer;
+
+        private Bindable<float> renderScale;
 
         private DependencyContainer dependencies;
 
@@ -202,6 +193,36 @@ namespace osu.Framework
             Localisation = CreateLocalisationManager(config);
             dependencies.CacheAs(Localisation);
 
+            contentContainer = new Container
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Children = new[]
+                {
+                    content = new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    overlayContent = new DrawSizePreservingFillContainer
+                    {
+                        TargetDrawSize = new Vector2(1280, 960),
+                        RelativeSizeAxes = Axes.Both,
+                    }
+                }
+            };
+
+            base.AddInternal(scaledRenderBuffer = new BufferedContainer
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+            });
+
+            base.AddInternal(contentContainer);
+
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
             executionMode = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
@@ -226,6 +247,21 @@ namespace osu.Framework
                     logOverlay?.Hide();
                 }
             }, true);
+
+            renderScale = config.GetBindable<float>(FrameworkSetting.RenderScale);
+            renderScale.BindValueChanged(updateRenderScale, true);
+        }
+
+        private void updateRenderScale(ValueChangedEvent<float> scale)
+        {
+            contentContainer.Parent?.RemoveInternal(contentContainer, false);
+
+            if (!renderScale.IsDefault)
+                scaledRenderBuffer.Add(contentContainer);
+            else
+                base.AddInternal(contentContainer);
+
+            scaledRenderBuffer.FrameBufferScale = new Vector2(scale.NewValue);
         }
 
         /// <summary>
