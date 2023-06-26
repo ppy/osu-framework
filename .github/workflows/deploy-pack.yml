@@ -14,7 +14,7 @@ jobs:
         run: |
           export TITLE="Pending osu-framework Production Deployment: $GITHUB_REF_NAME"
           export URL="https://github.com/ppy/osu-framework/actions/runs/$GITHUB_RUN_ID"
-          export DESCRIPTION="Docker image was built for tag $GITHUB_REF_NAME and awaiting approval for production deployment:
+          export DESCRIPTION="Awaiting approval for building NuGet packages for tag $GITHUB_REF_NAME:
           [View Workflow Run]($URL)"
           export ACTOR_ICON="https://avatars.githubusercontent.com/u/$GITHUB_ACTOR_ID"
 
