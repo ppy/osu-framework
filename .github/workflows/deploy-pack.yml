@@ -59,7 +59,7 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -90,10 +90,10 @@ jobs:
           dotnet-version: "6.0.x"
 
       - name: Replace project references
-        run: osu.Framework.Templates/replace-references.sh ${{needs.check-if-tag.outputs.version}}
+        run: osu.Framework.Templates/replace-references.sh ${{ github.ref_name }}
 
       - name: Pack (Template)
-        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -128,7 +128,7 @@ jobs:
         run: dotnet workload install android
 
       - name: Pack (Android Framework)
-        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -165,7 +165,7 @@ jobs:
         run: dotnet workload install ios
 
       - name: Pack (iOS Framework)
-        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
