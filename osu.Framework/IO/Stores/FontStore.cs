@@ -3,13 +3,13 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.Textures;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using osu.Framework.Logging;
-using System.Collections.Concurrent;
-using JetBrains.Annotations;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Text;
 
@@ -131,7 +131,6 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        [CanBeNull]
         public ITexturedCharacterGlyph Get(string fontName, char character)
         {
             var key = (fontName, character);
@@ -144,7 +143,7 @@ namespace osu.Framework.IO.Stores
             foreach (var store in glyphStores)
             {
                 if ((string.IsNullOrEmpty(fontName) || fontName == store.FontName) && store.HasGlyph(character))
-                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character), Get(textureName), 1 / ScaleAdjust);
+                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
             }
 
             foreach (var store in nestedFontStores)

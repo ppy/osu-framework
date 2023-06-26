@@ -51,6 +51,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         private readonly bool manualMipmaps;
 
+        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
+
         private readonly SamplerFilter filteringMode;
         private readonly Color4 initialisationColour;
 
@@ -168,7 +170,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             set => resourcesArray[0] = value;
         }
 
-        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList() => resourcesArray!;
+        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList()
+        {
+            if (resources == null)
+                return Array.Empty<VeldridTextureResources>();
+
+            return resourcesArray!;
+        }
 
         public void FlushUploads()
         {
@@ -212,7 +220,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             // We should never run raw Veldrid calls on another thread than the draw thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
 
-            List<RectangleI> uploadedRegions = new List<RectangleI>();
+            uploadedRegions.Clear();
 
             while (tryGetNextUpload(out ITextureUpload? upload))
             {

@@ -1,3 +1,6 @@
+#ifndef TEXTURE_FS
+#define TEXTURE_FS
+
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 #include "sh_TextureWrapping.h"
@@ -14,3 +17,5 @@ void main(void)
     vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
     o_Colour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Texture, m_Sampler, -0.9), wrappedCoord);
 }
+
+#endif

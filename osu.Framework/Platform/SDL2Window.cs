@@ -252,31 +252,49 @@ namespace osu.Framework.Platform
         {
             SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, objectHandle.Handle);
 
+            RunMainLoop();
+        }
+
+        /// <summary>
+        /// Runs the main window loop.
+        /// </summary>
+        /// <remarks>
+        /// By default this will block and indefinitely call <see cref="RunFrame"/> as long as the window <see cref="Exists"/>.
+        /// Once the main loop finished running, cleanup logic will run.
+        ///
+        /// This may be overridden for special use cases, like mobile platforms which delegate execution of frames to the OS
+        /// and don't require any kind of exit logic to exist.
+        /// </remarks>
+        protected virtual void RunMainLoop()
+        {
             while (Exists)
-            {
-                commandScheduler.Update();
+                RunFrame();
 
-                if (!Exists)
-                    break;
-
-                if (pendingWindowState != null)
-                    updateAndFetchWindowSpecifics();
-
-                pollSDLEvents();
-
-                if (!cursorInWindow.Value)
-                    pollMouse();
-
-                EventScheduler.Update();
-
-                Update?.Invoke();
-            }
-
-            Exists = false;
             Exited?.Invoke();
-
             Close();
             SDL.SDL_Quit();
+        }
+
+        /// <summary>
+        /// Run a single frame.
+        /// </summary>
+        protected void RunFrame()
+        {
+            commandScheduler.Update();
+
+            if (!Exists)
+                return;
+
+            if (pendingWindowState != null)
+                updateAndFetchWindowSpecifics();
+
+            pollSDLEvents();
+
+            if (!cursorInWindow.Value)
+                pollMouse();
+
+            EventScheduler.Update();
+            Update?.Invoke();
         }
 
         /// <summary>

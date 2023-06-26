@@ -1,0 +1,4 @@
+public partial class OnTouchMoveMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnTouchMove(object e) { }
+}
