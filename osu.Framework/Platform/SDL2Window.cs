@@ -24,7 +24,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    public abstract partial class SDL2Window : IWindow
+    internal abstract partial class SDL2Window : IWindow
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
@@ -542,11 +542,11 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        public void SetIconFromStream(Stream stream)
+        public void SetIconFromStream(Stream imageStream)
         {
             using (var ms = new MemoryStream())
             {
-                stream.CopyTo(ms);
+                imageStream.CopyTo(ms);
                 ms.Position = 0;
 
                 var imageInfo = Image.Identify(ms);
