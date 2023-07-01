@@ -534,7 +534,9 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
+                updatingWindowStateAndSize = true;
                 UpdateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+                updatingWindowStateAndSize = false;
 
                 fetchWindowSize();
 
@@ -721,6 +723,15 @@ namespace osu.Framework.Platform
         /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
         /// </summary>
         private bool storingSizeToConfig;
+
+        /// <summary>
+        /// Set when <see cref="UpdateWindowStateAndSize"/> is in progress to avoid <see cref="fetchWindowSize"/> being called with invalid data.
+        /// </summary>
+        /// <remarks>
+        /// Since <see cref="UpdateWindowStateAndSize"/> is a multi-step process, intermediary windows size changes might be invalid.
+        /// This is usually not a problem, but since <see cref="HandleEventFromFilter"/> runs out-of-band, invalid data might appear in those events.
+        /// </remarks>
+        private bool updatingWindowStateAndSize;
 
         private void storeWindowSizeToConfig()
         {
