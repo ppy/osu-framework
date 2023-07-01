@@ -574,6 +574,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run after a local window state change, to propagate the correct SDL actions.
         /// </summary>
+        /// <remarks>
+        /// Call sites need to set <see cref="updatingWindowStateAndSize"/> appropriately.
+        /// </remarks>
         protected virtual void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             switch (state)
