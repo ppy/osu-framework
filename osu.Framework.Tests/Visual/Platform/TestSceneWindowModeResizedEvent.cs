@@ -10,6 +10,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
@@ -33,10 +34,6 @@ namespace osu.Framework.Tests.Visual.Platform
             {
                 RelativeSizeAxes = Axes.Both
             };
-
-            AddLabel("set up defaults");
-            AddStep($"set windowed size to {windowed_size}", () => config.SetValue(FrameworkSetting.WindowedSize, windowed_size));
-            AddStep("set default fullscreen size", () => config.GetBindable<Size>(FrameworkSetting.SizeFullscreen).SetDefault());
         }
 
         [BackgroundDependencyLoader]
@@ -48,6 +45,13 @@ namespace osu.Framework.Tests.Visual.Platform
         }
 
         private void windowResized() => resizeInvokes.Enqueue(window.ClientSize);
+
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddStep($"set windowed size to {windowed_size}", () => config.SetValue(FrameworkSetting.WindowedSize, windowed_size));
+            AddStep("set default fullscreen size", () => config.GetBindable<Size>(FrameworkSetting.SizeFullscreen).SetDefault());
+        }
 
         private void setUp(WindowMode startingMode, WindowMode finalMode)
         {
