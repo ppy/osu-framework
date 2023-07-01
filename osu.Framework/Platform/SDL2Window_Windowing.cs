@@ -439,8 +439,14 @@ namespace osu.Framework.Platform
             if (w <= 0 || drawableW <= 0)
                 return;
 
+            Size lastClientSize = ClientSize;
             Scale = (float)drawableW / w;
-            Size = new Size(w, h);
+            size = new Size(w, h);
+
+            if (lastClientSize != ClientSize)
+            {
+                Resized?.Invoke();
+            }
 
             // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
             // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
