@@ -415,7 +415,7 @@ namespace osu.Framework.Platform
 
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
 
-        public void SetIconFromStream(Stream imageStream) => throw new InvalidOperationException($@"{nameof(SetIconFromStream)} is not supported.");
+        public void SetIconFromStream(Stream imageStream) => throw new NotSupportedException($@"{nameof(SetIconFromStream)} is not supported.");
 
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
         public Point PointToScreen(Point point) => OsuTKGameWindow.PointToScreen(point);
