@@ -326,7 +326,7 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
-                    if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                    if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED && !updatingWindowStateAndSize)
                         fetchWindowSize();
 
                     break;
