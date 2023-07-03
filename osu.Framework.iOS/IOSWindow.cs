@@ -12,7 +12,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSWindow : SDL2Window
+    internal class IOSWindow : SDL2Window
     {
         private UIWindow? window;
 

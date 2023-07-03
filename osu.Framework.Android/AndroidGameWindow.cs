@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameWindow : OsuTKWindow
+    internal class AndroidGameWindow : OsuTKWindow
     {
         private readonly AndroidGameView view;
 
