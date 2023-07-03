@@ -110,7 +110,9 @@ namespace osu.Framework.Benchmarks
 
             public override void RunMainLoop()
             {
-                if (!RunOnce.Wait(10000))
+                // This is set very high as we rely on it blocking frames from running from the background thread
+                // but need the look to continue to stay active until the benchmark finishes, to handle disposal.
+                if (!RunOnce.Wait(120000))
                     throw new TimeoutException("Run request didn't arrive for a long time");
 
                 RunSingleFrame();
