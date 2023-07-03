@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
@@ -23,9 +23,7 @@ namespace osu.Framework.Graphics.Sprites
             private ColourInfo shadowColour;
             private Vector2 shadowOffset;
 
-            private ScreenSpaceCharacterPart[]? parts;
-
-            private int partCount;
+            private List<ScreenSpaceCharacterPart>? parts;
 
             public SpriteTextDrawNode(SpriteText source)
                 : base(source)
@@ -62,7 +60,7 @@ namespace osu.Framework.Graphics.Sprites
                 var finalShadowColour = DrawColourInfo.Colour;
                 finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
 
-                for (int i = 0; i < partCount; i++)
+                for (int i = 0; i < parts.Count; i++)
                 {
                     if (shadow)
                     {
@@ -88,37 +86,24 @@ namespace osu.Framework.Graphics.Sprites
             /// </summary>
             private void updateScreenSpaceCharacters()
             {
-                partCount = Source.characters.Count;
+                int partCount = Source.characters.Count;
 
-                if (parts == null || parts.Length < partCount)
-                {
-                    if (parts != null)
-                        ArrayPool<ScreenSpaceCharacterPart>.Shared.Return(parts);
-                    parts = ArrayPool<ScreenSpaceCharacterPart>.Shared.Rent(partCount);
-                }
+                parts ??= new List<ScreenSpaceCharacterPart>(partCount);
+                parts.Clear();
 
                 Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
 
-                for (int i = 0; i < partCount; i++)
+                foreach (var character in Source.characters)
                 {
-                    var character = Source.characters[i];
-                    parts[i] = new ScreenSpaceCharacterPart
+                    parts.Add(new ScreenSpaceCharacterPart
                     {
                         DrawQuad = Source.ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
                         InflationPercentage = new Vector2(
                             character.DrawRectangle.Size.X == 0 ? 0 : inflationAmount.X / character.DrawRectangle.Size.X,
                             character.DrawRectangle.Size.Y == 0 ? 0 : inflationAmount.Y / character.DrawRectangle.Size.Y),
                         Texture = character.Texture
-                    };
+                    });
                 }
-            }
-
-            protected override void Dispose(bool isDisposing)
-            {
-                base.Dispose(isDisposing);
-
-                if (parts != null)
-                    ArrayPool<ScreenSpaceCharacterPart>.Shared.Return(parts);
             }
         }
 
