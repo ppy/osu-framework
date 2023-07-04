@@ -113,10 +113,14 @@ namespace osu.Framework
                 RelativeSizeAxes = Axes.Both,
             });
 
-            base.AddInternal(overlayContent = new DrawSizePreservingFillContainer
+            base.AddInternal(new SafeAreaContainer
             {
-                TargetDrawSize = new Vector2(1280, 960),
                 RelativeSizeAxes = Axes.Both,
+                Child = overlayContent = new DrawSizePreservingFillContainer
+                {
+                    TargetDrawSize = new Vector2(1280, 960),
+                    RelativeSizeAxes = Axes.Both,
+                }
             });
         }
 
