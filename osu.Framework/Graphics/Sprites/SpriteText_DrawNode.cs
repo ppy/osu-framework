@@ -88,8 +88,13 @@ namespace osu.Framework.Graphics.Sprites
             {
                 int partCount = Source.characters.Count;
 
-                parts ??= new List<ScreenSpaceCharacterPart>(partCount);
-                parts.Clear();
+                if (parts == null)
+                    parts = new List<ScreenSpaceCharacterPart>(partCount);
+                else
+                {
+                    parts.Clear();
+                    parts.EnsureCapacity(partCount);
+                }
 
                 Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
 
