@@ -104,6 +104,9 @@ namespace osu.Framework.Benchmarks
             public void RunSingleFrame()
             {
                 ExecutionMode = ExecutionMode.SingleThread;
+
+                // Importantly, this calls the base method, bypassing the custom wait logic below
+                // (which is blocking execution by thread runner while the benchmark runs).
                 base.RunMainLoop();
             }
 
