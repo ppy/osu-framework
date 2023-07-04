@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -110,10 +109,9 @@ namespace osu.Framework.Benchmarks
 
             public override void RunMainLoop()
             {
-                // This is set very high as we rely on it blocking frames from running from the background thread
-                // but need the look to continue to stay active until the benchmark finishes, to handle disposal.
-                if (!RunOnce.Wait(120000))
-                    throw new TimeoutException("Run request didn't arrive for a long time");
+#pragma warning disable RS0030
+                RunOnce.Wait();
+#pragma warning restore RS0030
 
                 RunSingleFrame();
                 RunOnce.Reset();
