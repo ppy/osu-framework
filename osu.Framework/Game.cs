@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -22,6 +24,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework
@@ -121,6 +124,8 @@ namespace osu.Framework
         }
 
         private Container contentContainer;
+
+        [CanBeNull]
         private BufferedContainer scaledRenderBuffer;
 
         private Bindable<float> renderScale;
@@ -214,13 +219,6 @@ namespace osu.Framework
                 }
             };
 
-            base.AddInternal(scaledRenderBuffer = new BufferedContainer
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Both,
-            });
-
             base.AddInternal(contentContainer);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
@@ -254,14 +252,34 @@ namespace osu.Framework
 
         private void updateRenderScale(ValueChangedEvent<float> scale)
         {
-            contentContainer.Parent?.RemoveInternal(contentContainer, false);
+            bool shouldUseBuffer = !Precision.AlmostEquals(scale.NewValue, 1);
+            bool hasBuffer = contentContainer.Parent == scaledRenderBuffer;
 
-            if (!renderScale.IsDefault)
-                scaledRenderBuffer.Add(contentContainer);
+            if (scaledRenderBuffer != null)
+                scaledRenderBuffer.FrameBufferScale = new Vector2(scale.NewValue);
+
+            if (shouldUseBuffer == hasBuffer) return;
+
+            if (shouldUseBuffer)
+            {
+                RemoveInternal(contentContainer, false);
+                base.AddInternal(scaledRenderBuffer = new BufferedContainer
+                {
+                    Name = "Render scale application",
+                    RelativeSizeAxes = Axes.Both,
+                    FrameBufferScale = new Vector2(scale.NewValue),
+                    Child = contentContainer,
+                });
+            }
             else
+            {
+                Debug.Assert(scaledRenderBuffer != null);
+
+                scaledRenderBuffer.Remove(contentContainer, false);
                 base.AddInternal(contentContainer);
 
-            scaledRenderBuffer.FrameBufferScale = new Vector2(scale.NewValue);
+                scaledRenderBuffer.RemoveAndDisposeImmediately();
+            }
         }
 
         /// <summary>
