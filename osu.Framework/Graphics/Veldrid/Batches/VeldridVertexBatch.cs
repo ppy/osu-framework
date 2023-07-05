@@ -28,9 +28,9 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// <summary>
         /// Multiple VBOs in a swap chain to try our best to avoid GPU contention.
         /// </summary>
-        private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[vertex_buffer_count];
+        private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
 
-        public List<VeldridVertexBuffer<T>> CurrentVertexBuffers => vertexBuffers[renderer.ResetId % vertex_buffer_count];
+        public List<VeldridVertexBuffer<T>> CurrentVertexBuffers => vertexBuffers[renderer.ResetId % (ulong)vertexBuffers.Length];
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
