@@ -161,11 +161,12 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 if (Inputs.Any(i => attribute.Location == i.Location))
                     continue;
 
-                string name = $"unused_input_{Guid.NewGuid():N}";
+                string inputName = $"__unused_input_{attribute.Location}";
+                string outputName = $"__unused_output_{outputLayoutIndex}";
 
-                attributesLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {name};");
-                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex}) out {attribute.Type} __unused_o_{name};");
-                attributesAssignment.Append($"__unused_o_{name} = {name};\n    ");
+                attributesLayout.AppendLine($"layout (location = {attribute.Location}) in {attribute.Type} {inputName};");
+                attributesLayout.AppendLine($"layout (location = {outputLayoutIndex}) out {attribute.Type} {outputName};");
+                attributesAssignment.Append($"{outputName} = {inputName};\n    ");
 
                 outputAttributes.Add(attribute with { Location = outputLayoutIndex++ });
             }
