@@ -84,7 +84,6 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// Adds a vertex to this <see cref="VeldridVertexBatch{T}"/>.
         /// </summary>
         /// <param name="v">The vertex to add.</param>
-        // todo: this might break when the vertices that are about to be added cannot all fit into this buffer.
         public void Add(T v)
         {
             renderer.SetActiveBatch(this);
