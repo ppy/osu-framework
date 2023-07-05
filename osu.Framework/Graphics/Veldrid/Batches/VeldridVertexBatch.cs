@@ -30,7 +30,9 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// </summary>
         private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
 
-        public List<VeldridVertexBuffer<T>> CurrentVertexBuffers => vertexBuffers[renderer.ResetId % (ulong)vertexBuffers.Length];
+        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.ResetId % (ulong)vertexBuffers.Length];
+
+        private VeldridVertexBuffer<T> currentVertexBuffer => currentVertexBuffers[currentBufferIndex];
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
@@ -44,8 +46,6 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         private int currentVertexIndex;
 
         private readonly VeldridRenderer renderer;
-
-        private VeldridVertexBuffer<T> currentVertexBuffer => CurrentVertexBuffers[currentBufferIndex];
 
         protected VeldridVertexBatch(VeldridRenderer renderer, int bufferSize)
         {
@@ -97,15 +97,15 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         {
             renderer.SetActiveBatch(this);
 
-            if (currentBufferIndex < CurrentVertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
+            if (currentBufferIndex < currentVertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
             {
                 Draw();
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
             }
 
             // currentIndex will change after Draw() above, so this cannot be in an else-condition
-            while (currentBufferIndex >= CurrentVertexBuffers.Count)
-                CurrentVertexBuffers.Add(CreateVertexBuffer(renderer));
+            while (currentBufferIndex >= currentVertexBuffers.Count)
+                currentVertexBuffers.Add(CreateVertexBuffer(renderer));
 
             if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
             {
