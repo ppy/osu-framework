@@ -8,9 +8,13 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osuTK;
 using osuTK.Graphics;
+using osuTK.Input;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
@@ -69,6 +73,71 @@ namespace osu.Framework.Graphics.Performance
 
             updateState();
             updateInfoText();
+        }
+
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            switch (e.Key)
+            {
+                case Key.ControlLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = true;
+
+                    break;
+
+                case Key.ShiftLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = false;
+
+                    break;
+            }
+
+            return base.OnKeyDown(e);
+        }
+
+        protected override void OnKeyUp(KeyUpEvent e)
+        {
+            switch (e.Key)
+            {
+                case Key.ControlLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = false;
+
+                    break;
+
+                case Key.ShiftLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = true;
+
+                    break;
+            }
+
+            base.OnKeyUp(e);
+        }
+
+        protected override bool OnTouchDown(TouchDownEvent e)
+        {
+            switch (e.Touch.Source)
+            {
+                case TouchSource.Touch1:
+                    if (State == FrameStatisticsMode.Full)
+                    {
+                        foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                            display.Expanded = !display.Expanded;
+                    }
+
+                    break;
+
+                case TouchSource.Touch2:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = !display.Running;
+
+                    break;
+            }
+
+            return base.OnTouchDown(e);
         }
 
         private void updateState()
