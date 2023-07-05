@@ -27,8 +27,6 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
-        private const float default_text_size = 20;
-
         /// <remarks>
         /// <c>U+00A0</c> is the Unicode NON-BREAKING SPACE character (distinct from the standard ASCII space).
         /// <c>U+202F</c> is the Unicode NARROW NO-BREAK SPACE character.
@@ -56,8 +54,6 @@ namespace osu.Framework.Graphics.Sprites
             });
 
             AddLayout(charactersCache);
-            AddLayout(parentScreenSpaceCache);
-            AddLayout(localScreenSpaceCache);
             AddLayout(shadowOffsetCache);
             AddLayout(textBuilderCache);
         }
@@ -501,53 +497,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly LayoutValue parentScreenSpaceCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence | Invalidation.DrawInfo, InvalidationSource.Parent);
-        private readonly LayoutValue localScreenSpaceCache = new LayoutValue(Invalidation.MiscGeometry, InvalidationSource.Self);
-
-        private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
-
-        /// <summary>
-        /// The characters in screen space. These are ready to be drawn.
-        /// </summary>
-        private List<ScreenSpaceCharacterPart> screenSpaceCharacters
-        {
-            get
-            {
-                computeScreenSpaceCharacters();
-                return screenSpaceCharactersBacking;
-            }
-        }
-
-        private void computeScreenSpaceCharacters()
-        {
-            if (!parentScreenSpaceCache.IsValid)
-            {
-                localScreenSpaceCache.Invalidate();
-                parentScreenSpaceCache.Validate();
-            }
-
-            if (localScreenSpaceCache.IsValid)
-                return;
-
-            screenSpaceCharactersBacking.Clear();
-
-            Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
-
-            foreach (var character in characters)
-            {
-                screenSpaceCharactersBacking.Add(new ScreenSpaceCharacterPart
-                {
-                    DrawQuad = ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
-                    InflationPercentage = new Vector2(
-                        character.DrawRectangle.Size.X == 0 ? 0 : inflationAmount.X / character.DrawRectangle.Size.X,
-                        character.DrawRectangle.Size.Y == 0 ? 0 : inflationAmount.Y / character.DrawRectangle.Size.Y),
-                    Texture = character.Texture
-                });
-            }
-
-            localScreenSpaceCache.Validate();
-        }
-
         private readonly LayoutValue<Vector2> shadowOffsetCache = new LayoutValue<Vector2>(Invalidation.DrawInfo, InvalidationSource.Parent);
 
         private Vector2 premultipliedShadowOffset =>
@@ -564,9 +513,6 @@ namespace osu.Framework.Graphics.Sprites
 
             if (textBuilder)
                 InvalidateTextBuilder();
-
-            parentScreenSpaceCache.Invalidate();
-            localScreenSpaceCache.Invalidate();
 
             Invalidate(Invalidation.RequiredParentSizeToFit);
         }
