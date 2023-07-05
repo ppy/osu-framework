@@ -30,11 +30,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// </summary>
         private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[vertex_buffer_count];
 
-        public List<VeldridVertexBuffer<T>> CurrentVertexBuffers
-        {
-            get => vertexBuffers[renderer.ResetId % vertex_buffer_count];
-            set => vertexBuffers[renderer.ResetId % vertex_buffer_count] = value;
-        }
+        public List<VeldridVertexBuffer<T>> CurrentVertexBuffers => vertexBuffers[renderer.ResetId % vertex_buffer_count];
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
