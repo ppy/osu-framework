@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
@@ -13,12 +14,26 @@ namespace osu.Framework.Graphics.Veldrid.Batches
     internal abstract class VeldridVertexBatch<T> : IVertexBatch<T>
         where T : unmanaged, IEquatable<T>, IVertex
     {
-        private readonly List<VeldridVertexBuffer<T>>[] tripleBufferedVertexBuffers = new List<VeldridVertexBuffer<T>>[3];
+        /// <summary>
+        /// Most documentation recommends that three buffers are used to avoid contention.
+        ///
+        /// We already have a triple buffer (see <see cref="GameHost.DrawRoots"/>) at a higher level which guarantees one extra previous buffer,
+        /// so setting this to two here is ample to guarantee we don't hit any weird edge cases (gives a theoretical buffer count of 4, in the worst scenario).
+        ///
+        /// Note that due to the higher level triple buffer, the actual number of buffers we are storing is three times as high as this constant.
+        /// Maintaining this many buffers is a cause of concern from an memory alloc / GPU upload perspective.
+        /// </summary>
+        private const int vertex_buffer_count = 2;
+
+        /// <summary>
+        /// Multiple VBOs in a swap chain to try our best to avoid GPU contention.
+        /// </summary>
+        private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[vertex_buffer_count];
 
         public List<VeldridVertexBuffer<T>> CurrentVertexBuffers
         {
-            get => tripleBufferedVertexBuffers[renderer.ResetId % 3];
-            set => tripleBufferedVertexBuffers[renderer.ResetId % 3] = value;
+            get => vertexBuffers[renderer.ResetId % vertex_buffer_count];
+            set => vertexBuffers[renderer.ResetId % vertex_buffer_count] = value;
         }
 
         /// <summary>
@@ -43,8 +58,8 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
             AddAction = Add;
 
-            for (int i = 0; i < tripleBufferedVertexBuffers.Length; i++)
-                tripleBufferedVertexBuffers[i] = new List<VeldridVertexBuffer<T>>();
+            for (int i = 0; i < vertexBuffers.Length; i++)
+                vertexBuffers[i] = new List<VeldridVertexBuffer<T>>();
         }
 
         #region Disposal
@@ -59,9 +74,9 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         {
             if (disposing)
             {
-                for (int i = 0; i < tripleBufferedVertexBuffers.Length; i++)
+                for (int i = 0; i < vertexBuffers.Length; i++)
                 {
-                    foreach (VeldridVertexBuffer<T> vbo in tripleBufferedVertexBuffers[i])
+                    foreach (VeldridVertexBuffer<T> vbo in vertexBuffers[i])
                         vbo.Dispose();
                 }
             }
