@@ -121,7 +121,6 @@ namespace osu.Framework.Graphics.Performance
 
             this.uploadPool = uploadPool;
 
-            Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_active;
 
