@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, not initialisation is provided out-of-the-box.</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
         public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Color4? initialisationColour = null)
         {
             Renderer = renderer;
