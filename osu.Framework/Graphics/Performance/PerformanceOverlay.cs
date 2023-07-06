@@ -75,7 +75,9 @@ namespace osu.Framework.Graphics.Performance
             updateInfoText();
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        // for some reason PerformanceOverlay has 0 width despite using AutoSizeAxes, and it doesn't look simple to fix.
+        // let's just work around it and consider frame statistics display dimensions for receiving input events.
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Children.OfType<FrameStatisticsDisplay>().Any(d => d.ReceivePositionalInputAt(screenSpacePos));
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
