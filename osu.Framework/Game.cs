@@ -509,13 +509,11 @@ namespace osu.Framework
                 this.game = game;
             }
 
-            protected override bool OnClick(ClickEvent e) => true;
+            protected override bool OnClick(ClickEvent e) => e.CurrentState.Mouse.LastSource is ISourcedFromTouch;
 
             protected override bool OnDoubleClick(DoubleClickEvent e)
             {
-                if (e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
-                    game.CycleFrameStatistics();
-
+                game.CycleFrameStatistics();
                 return base.OnDoubleClick(e);
             }
         }
