@@ -1084,10 +1084,10 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, not initialisation is provided out-of-the-box.</param>
         /// <returns>The <see cref="INativeTexture"/>.</returns>
         protected abstract INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Color4 initialisationColour = default);
+                                                              Color4? initialisationColour = null);
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/> for video sprites.
@@ -1097,7 +1097,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>The video <see cref="INativeTexture"/>.</returns>
         protected abstract INativeTexture CreateNativeVideoTexture(int width, int height);
 
-        public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Color4 initialisationColour)
+        public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Color4? initialisationColour)
             => CreateTexture(CreateNativeTexture(width, height, manualMipmaps, filteringMode, initialisationColour), wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height) => CreateTexture(CreateNativeVideoTexture(width, height));
