@@ -124,22 +124,39 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Touch.Source)
             {
                 case TouchSource.Touch1:
-                    if (State == FrameStatisticsMode.Full)
-                    {
-                        foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                            display.Expanded = !display.Expanded;
-                    }
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = true;
 
                     break;
 
                 case TouchSource.Touch2:
                     foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = !display.Running;
+                        display.Running = false;
 
                     break;
             }
 
             return base.OnTouchDown(e);
+        }
+
+        protected override void OnTouchUp(TouchUpEvent e)
+        {
+            switch (e.Touch.Source)
+            {
+                case TouchSource.Touch1:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = false;
+
+                    break;
+
+                case TouchSource.Touch2:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = true;
+
+                    break;
+            }
+
+            base.OnTouchUp(e);
         }
 
         private void updateState()
