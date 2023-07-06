@@ -268,7 +268,7 @@ namespace osu.Framework
 
             if (DebugUtils.IsDebugBuild)
             {
-                Add(new FrameStatisticsTouchReceptor(this)
+                base.AddInternal(new FrameStatisticsTouchReceptor(this)
                 {
                     Depth = float.MaxValue,
                     Anchor = Anchor.BottomRight,
