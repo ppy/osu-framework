@@ -198,7 +198,20 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid user storage paths in order of usage priority.
         /// </summary>
-        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+        public virtual IEnumerable<string> UserStoragePaths
+        {
+            get
+            {
+                if (RuntimeInfo.IsUnix)
+                {
+                    // On Linux under AOT, this returns ~/Documents, where just ~/ is expected.
+                    // Todo: This is probably an issue in the runtime?
+                    return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Yield();
+                }
+
+                return Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+            }
+        }
 
         /// <summary>
         /// The main storage as proposed by the host game.
