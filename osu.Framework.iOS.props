@@ -8,11 +8,11 @@
     <NoWarn>$(NoWarn);MT7091</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <!-- On debug configurations, we need Mono interpreter for faster compilation. -->
+    <!-- On debug configurations, we use Mono interpreter for faster compilation. -->
     <UseInterpreter>true</UseInterpreter>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <!-- On release configurations, we need AOT compiler for optimal performance. -->
+    <!-- On release configurations, we use AOT compiler for optimal performance. -->
     <UseInterpreter>false</UseInterpreter>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
