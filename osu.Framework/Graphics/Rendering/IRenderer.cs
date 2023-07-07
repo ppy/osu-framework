@@ -372,10 +372,18 @@ namespace osu.Framework.Graphics.Rendering
         IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <summary>
-        /// Creates a new texture.
+        /// Creates a new <see cref="Texture"/>.
         /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
+        /// <param name="filteringMode">The filtering mode.</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
+        /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
+        /// <returns>The <see cref="Texture"/>.</returns>
         Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                              WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default);
+                              WrapMode wrapModeT = WrapMode.None, Color4? initialisationColour = null);
 
         /// <summary>
         /// Creates a new video texture.
