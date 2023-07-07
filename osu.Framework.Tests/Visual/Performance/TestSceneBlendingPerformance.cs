@@ -8,7 +8,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Performance
 {
     [Description("tests blending overhead")]
-    public partial class TestSceneBlending : TestSceneTextures
+    public partial class TestSceneBlendingPerformance : TestSceneTexturePerformance
     {
         private BlendingParameters blendingParameters;
 

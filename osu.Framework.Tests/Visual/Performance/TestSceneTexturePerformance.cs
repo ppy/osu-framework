@@ -12,8 +12,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    [Description("tests mipmapping gains")]
-    public partial class TestSceneTextures : TestSceneBoxes
+    public partial class TestSceneTexturePerformance : TestSceneFillRate
     {
         private float fillWidth;
         private float fillHeight;

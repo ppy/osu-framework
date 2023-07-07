@@ -15,8 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    [Description("tests platform fillrate")]
-    public partial class TestSceneBoxes : FrameworkTestScene
+    public partial class TestSceneFillRate : PerformanceTestScene
     {
         private float fillWidth;
         private float fillHeight;

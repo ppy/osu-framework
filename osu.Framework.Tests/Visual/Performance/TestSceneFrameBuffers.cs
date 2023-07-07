@@ -9,7 +9,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Performance
 {
     [Description("tests frame buffers")]
-    public partial class TestSceneFrameBuffers : TestSceneTextures
+    public partial class TestSceneFrameBuffers : TestSceneTexturePerformance
     {
         private bool cachedFrameBuffers;
         private bool pixelSnapping;
