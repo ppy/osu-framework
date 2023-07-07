@@ -23,6 +23,7 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             base.LoadComplete();
 
+            AddLabel("Masking & Edge Effects");
             AddSliderStep("corner radius", 0f, 100f, 0f, v => cornerRadius = v);
             AddSliderStep("corner exponent", 1f, 10f, 2f, v => cornerExponent = v);
             AddStep("disable edge effect", () => edgeEffectType = EdgeEffectType.None);

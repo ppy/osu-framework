@@ -37,6 +37,7 @@ namespace osu.Framework.Tests.Visual.Performance
                 Spacing = new Vector2(20f),
             };
 
+            AddLabel("Boxes");
             AddSliderStep("fill width", 0.01f, 1.0f, 0.1f, v => fillWidth = v);
             AddSliderStep("fill height", 0.01f, 1.0f, 0.1f, v => fillHeight = v);
             AddSliderStep("sprites count", 1, 1000, 100, v => spritesCount = v);

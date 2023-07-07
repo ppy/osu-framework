@@ -43,6 +43,7 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             base.LoadComplete();
 
+            AddLabel("Textures");
             AddToggleStep("disable mipmaps", v => disableMipmaps = v);
             AddToggleStep("unique textures", v => uniqueTextures = v);
         }

@@ -19,6 +19,7 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             base.LoadComplete();
 
+            AddLabel("Frame Buffers");
             AddToggleStep("cache frame buffer", v => cachedFrameBuffers = v);
             AddToggleStep("pixel snapping", v => pixelSnapping = v);
             AddSliderStep("blur sigma", 0f, 100f, 0f, v => blurSigma = v);

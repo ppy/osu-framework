@@ -18,6 +18,7 @@ namespace osu.Framework.Tests.Visual.Performance
 
             Flow.Spacing = new Vector2(-20f);
 
+            AddLabel("Blending");
             AddStep("disable blending", () => blendingParameters = BlendingParameters.None);
             AddStep("set additive blending", () => blendingParameters = BlendingParameters.Additive);
             AddStep("set mixture blending", () => blendingParameters = BlendingParameters.Mixture);
