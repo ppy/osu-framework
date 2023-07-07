@@ -1,15 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.ComponentModel;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    [Description("tests frame buffers")]
-    public partial class TestSceneFrameBuffers : TestSceneTexturePerformance
+    public partial class TestSceneFrameBuffers : TestSceneFillRate
     {
         private bool cachedFrameBuffers;
         private bool pixelSnapping;
